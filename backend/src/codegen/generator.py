@@ -17,6 +17,7 @@ import zipfile
 from ..config import settings
 from ..storage.database import AsyncSessionLocal
 from ..storage.models import GeneratedProject
+from .template_filters import sql_type_filter, pydantic_type_filter
 
 logger = logging.getLogger(__name__)
 
