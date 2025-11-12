@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev-conditional - Autonomous Server Application Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .feature-card p {
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-info {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(66, 153, 225, 0.3);
+        }
+
+        .status-section {
+            background: #edf2f7;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        .status-section h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #cbd5e0;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-indicator {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-offline {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .workflow-designer {
+            margin-top: 30px;
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px dashed #cbd5e0;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .workflow-designer h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+
+        .workflow-designer p {
+            color: #718096;
+            margin-bottom: 20px;
+        }
+
+        .chat-interface {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        .chat-messages {
+            height: 300px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 15px;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .chat-input button {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .chat-input button:hover {
+            background: #5a67d8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dev-conditional</h1>
+            <p>Autonomous Server Application Engine with LLM Integration</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Status Section -->
+            <div class="status-section">
+                <h3>System Status</h3>
+                <div class="status-item">
+                    <span>Backend API</span>
+                    <span class="status-indicator status-online" id="api-status">Online</span>
+                </div>
+                <div class="status-item">
+                    <span>LLM Service</span>
+                    <span class="status-indicator status-offline" id="llm-status">Checking...</span>
+                </div>
+                <div class="status-item">
+                    <span>Database</span>
+                    <span class="status-indicator status-online" id="db-status">Connected</span>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features">
+                <div class="feature-card">
+                    <h3>🚀 Visual Workflow Designer</h3>
+                    <p>Create complex automation workflows with our intuitive drag-and-drop node editor. Design conditional logic, API integrations, and data flows visually.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🤖 AI-Powered Assistance</h3>
+                    <p>Get intelligent suggestions from our LLM integration for workflow design, code generation, and optimization. Let AI help you build better applications faster.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⚡ Code Generation</h3>
+                    <p>Generate production-ready FastAPI applications from your workflows. Includes models, routes, documentation, Docker configuration, and best practices.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🔧 Autonomous Execution</h3>
+                    <p>Deploy and execute workflows autonomously with terminal agents, file system access, and real-time monitoring. Handle errors and retries automatically.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📊 Real-time Monitoring</h3>
+                    <p>Monitor workflow executions, track performance metrics, and get instant notifications via WebSocket connections. Debug and optimize in real-time.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🐳 Container Ready</h3>
+                    <p>Deploy anywhere with Docker support. Includes Kubernetes configurations for scalable production deployments with proper monitoring.</p>
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="actions">
+                <button class="btn btn-primary" onclick="showWorkflowDesigner()">
+                    <span>🎨</span> Create Workflow
+                </button>
+                <button class="btn btn-secondary" onclick="generateCode()">
+                    <span>⚡</span> Generate Code
+                </button>
+                <button class="btn btn-info" onclick="showChatInterface()">
+                    <span>💬</span> AI Assistant
+                </button>
+            </div>
+
+            <!-- Workflow Designer Section -->
+            <div class="workflow-designer hidden" id="workflow-designer">
+                <h3>Workflow Designer</h3>
+                <p>Visual workflow designer will be implemented here with React Flow</p>
+                <button class="btn btn-primary" onclick="createSampleWorkflow()">Create Sample Workflow</button>
+            </div>
+
+            <!-- Code Generation Section -->
+            <div class="workflow-designer hidden" id="code-generation">
+                <h3>Code Generation</h3>
+                <p>Generate production-ready FastAPI applications from your workflows</p>
+                <div style="text-align: left; max-width: 600px; margin: 20px auto;">
+                    <h4>Sample Workflow Configuration:</h4>
+                    <pre style="background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 8px; overflow-x: auto;">
+{
+  "name": "Todo API",
+  "description": "Simple todo management API",
+  "models": [
+    {
+      "name": "Todo",
+      "fields": [
+        {"name": "title", "type": "string"},
+        {"name": "completed", "type": "boolean"},
+        {"name": "priority", "type": "integer"}
+      ]
+    }
+  ],
+  "endpoints": [
+    {
+      "path": "/todos",
+      "method": "GET",
+      "function_name": "get_todos"
+    },
+    {
+      "path": "/todos",
+      "method": "POST",
+      "function_name": "create_todo"
+    }
+  ]
+}
+                    </pre>
+                    <button class="btn btn-primary" style="margin-top: 15px;" onclick="generateSampleCode()">
+                        Generate FastAPI Project
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Interface Section -->
+            <div class="chat-interface hidden" id="chat-interface">
+                <h3>AI Assistant</h3>
+                <div class="chat-messages" id="chat-messages">
+                    <div style="background: #edf2f7; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <strong>AI Assistant:</strong> Hello! I'm here to help you create workflows, generate code, and answer questions about building autonomous server applications. What would you like to work on today?
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chat-input" placeholder="Ask me anything about workflow design, code generation, or best practices...">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div id="message-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:8000';
+
+        // Check system status on page load
+        window.addEventListener('load', function() {
+            checkSystemStatus();
+        });
+
+        // System Status Functions
+        async function checkSystemStatus() {
+            try {
+                // Check API status
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    updateStatus('api-status', 'Online', true);
+                } else {
+                    updateStatus('api-status', 'Error', false);
+                }
+
+                // Check LLM status
+                try {
+                    const llmResponse = await fetch(`${API_BASE_URL}/api/llm/status`);
+                    const llmData = await llmResponse.json();
+                    updateStatus('llm-status', llmData.status || 'Unknown', llmData.status === 'connected');
+                } catch (e) {
+                    updateStatus('llm-status', 'Offline', false);
+                }
+
+            } catch (error) {
+                updateStatus('api-status', 'Offline', false);
+                console.error('Status check failed:', error);
+            }
+        }
+
+        function updateStatus(elementId, status, isOnline) {
+            const element = document.getElementById(elementId);
+            element.textContent = status;
+            element.className = `status-indicator ${isOnline ? 'status-online' : 'status-offline'}`;
+        }
+
+        // UI Functions
+        function showWorkflowDesigner() {
+            hideAllSections();
+            document.getElementById('workflow-designer').classList.remove('hidden');
+        }
+
+        function generateCode() {
+            hideAllSections();
+            document.getElementById('code-generation').classList.remove('hidden');
+        }
+
+        function showChatInterface() {
+            hideAllSections();
+            document.getElementById('chat-interface').classList.remove('hidden');
+            document.getElementById('chat-input').focus();
+        }
+
+        function hideAllSections() {
+            document.getElementById('workflow-designer').classList.add('hidden');
+            document.getElementById('code-generation').classList.add('hidden');
+            document.getElementById('chat-interface').classList.add('hidden');
+        }
+
+        // Workflow Functions
+        function createSampleWorkflow() {
+            showMessage('Creating sample workflow...', 'info');
+
+            // Create a simple workflow configuration
+            const sampleWorkflow = {
+                name: "Sample Todo Workflow",
+                description: "A workflow for managing todo items",
+                nodes: [
+                    {
+                        id: "1",
+                        type: "trigger",
+                        position: { x: 100, y: 100 },
+                        data: { name: "Manual Trigger", trigger_type: "manual" }
+                    },
+                    {
+                        id: "2",
+                        type: "api_call",
+                        position: { x: 300, y: 100 },
+                        data: { name: "Fetch Todos", url: "/api/todos", method: "GET" }
+                    },
+                    {
+                        id: "3",
+                        type: "condition",
+                        position: { x: 500, y: 100 },
+                        data: { name: "Has Todos?", condition: "todos.length > 0" }
+                    }
+                ],
+                edges: [
+                    { id: "e1-2", source: "1", target: "2" },
+                    { id: "e2-3", source: "2", target: "3" }
+                ]
+            };
+
+            console.log('Sample Workflow:', sampleWorkflow);
+            showMessage('Sample workflow created! Check console for details.', 'success');
+        }
+
+        // Code Generation Functions
+        async function generateSampleCode() {
+            showMessage('Generating FastAPI project...', 'info');
+
+            const sampleConfig = {
+                name: "Todo API",
+                description: "Simple todo management API",
+                models: [
+                    {
+                        name: "Todo",
+                        fields: [
+                            { name: "title", type: "string" },
+                            { name: "completed", type: "boolean" },
+                            { name: "priority", type: "integer" }
+                        ]
+                    }
+                ],
+                endpoints: [
+                    {
+                        path: "/todos",
+                        method: "GET",
+                        function_name: "get_todos"
+                    },
+                    {
+                        path: "/todos",
+                        method: "POST",
+                        function_name: "create_todo"
+                    }
+                ]
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/codegen/preview`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        workflow_id: 1,
+                        project_name: "todo-api",
+                        template_name: "fastapi_basic",
+                        custom_config: sampleConfig
+                    })
+                });
+
+                const result = await response.json();
+                console.log('Code generation preview:', result);
+                showMessage('Code generation preview ready! Check console for details.', 'success');
+            } catch (error) {
+                showMessage('Error generating code: ' + error.message, 'error');
+            }
+        }
+
+        // Chat Functions
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            const messagesContainer = document.getElementById('chat-messages');
+
+            // Add user message
+            messagesContainer.innerHTML += `
+                <div style="background: #667eea; color: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: right;">
+                    <strong>You:</strong> ${message}
+                </div>
+            `;
+
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Add loading indicator
+            messagesContainer.innerHTML += `
+                <div id="loading-message" style="background: #edf2f7; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong>AI Assistant:</strong> <span class="loading"></span> Thinking...
+                </div>
+            `;
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/llm/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        session_id: "web_" + Date.now()
+                    })
+                });
+
+                const result = await response.json();
+
+                // Remove loading indicator
+                const loadingElement = document.getElementById('loading-message');
+                if (loadingElement) {
+                    loadingElement.remove();
+                }
+
+                // Add AI response
+                messagesContainer.innerHTML += `
+                    <div style="background: #edf2f7; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <strong>AI Assistant:</strong> ${result.response}
+                    </div>
+                `;
+
+            } catch (error) {
+                // Remove loading indicator
+                const loadingElement = document.getElementById('loading-message');
+                if (loadingElement) {
+                    loadingElement.remove();
+                }
+
+                messagesContainer.innerHTML += `
+                    <div style="background: #fed7d7; color: #742a2a; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <strong>Error:</strong> Failed to get AI response: ${error.message}
+                    </div>
+                `;
+            }
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Message display function
+        function showMessage(message, type) {
+            const container = document.getElementById('message-container');
+            const messageClass = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+
+            container.innerHTML = `<div class="${messageClass}">${message}</div>`;
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Handle Enter key in chat input
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
