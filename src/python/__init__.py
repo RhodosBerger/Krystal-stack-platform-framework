@@ -51,6 +51,15 @@ from .content_generator import (
     ContentGenerator, ContentType, GameContext, GeneratedContent,
     create_content_generator
 )
+from .hybrid_event_pipeline import (
+    HybridEventPipeline, TelemetrySnapshot, DirectiveDecision,
+    PresetType, RewardSignal, OpenVINOBridge, ProcessPredictor,
+    create_hybrid_pipeline
+)
+from .synthesis_dashboard import (
+    SynthesisDashboard, SystemState, ZoneInfo, ViewMode,
+    create_synthesis_dashboard
+)
 
 __all__ = [
     # Core
@@ -89,4 +98,11 @@ __all__ = [
     # Content Generator
     "ContentGenerator", "ContentType", "GameContext", "GeneratedContent",
     "create_content_generator",
+    # Hybrid Pipeline
+    "HybridEventPipeline", "TelemetrySnapshot", "DirectiveDecision",
+    "PresetType", "RewardSignal", "OpenVINOBridge", "ProcessPredictor",
+    "create_hybrid_pipeline",
+    # Synthesis Dashboard
+    "SynthesisDashboard", "SystemState", "ZoneInfo", "ViewMode",
+    "create_synthesis_dashboard",
 ]
