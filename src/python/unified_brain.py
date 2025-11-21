@@ -32,6 +32,7 @@ from invention_engine import (
     CausalInferenceEngine,
     HyperdimensionalEncoder
 )
+from emergent_system import create_emergent_system
 from metrics_logger import BrainMetrics, FeatureFlags, get_metrics, get_flags
 
 logger = logging.getLogger(__name__)
@@ -358,6 +359,7 @@ class UnifiedBrain:
         # Core engines
         self.cognitive = create_cognitive_orchestrator()
         self.invention = create_invention_engine() if self.flags.enable_invention_engine else None
+        self.emergent = create_emergent_system() if self.flags.enable_emergent_system else None
 
         # Integration layers
         self.temporal = TemporalFusion()
@@ -412,6 +414,13 @@ class UnifiedBrain:
                 invention_result = self.invention.process(telemetry)
                 self.metrics.stop_timer("invention")
 
+            # 6b. Emergent system processing (if enabled)
+            emergent_result = {}
+            if self.flags.enable_emergent_system and self.emergent:
+                self.metrics.start_timer("emergent")
+                emergent_result = self.emergent.process(telemetry)
+                self.metrics.stop_timer("emergent")
+
             # 7. Decision fusion
             decision = self._fuse_decisions(
                 cognitive_result,
@@ -449,6 +458,7 @@ class UnifiedBrain:
                 "decision": decision,
                 "cognitive": cognitive_result,
                 "invention": invention_result,
+                "emergent": emergent_result,
                 "attention": attended,
                 "surprise": surprise,
                 "anomalies": anomalies,
