@@ -74,6 +74,11 @@ from .guardian_hooks import (
     GuardianBridge, ValidatorBridge, ZoneState, BoostConfig, CraftPreset,
     BoostAction, CorePolicy, create_guardian_bridge, create_validator_bridge
 )
+from .kernel_bridge import (
+    GamesaKernel, Component, River, RiverEndpoint, RiverMessage,
+    ComponentType, ComponentState, RiverTransport, RiverDirection, RiverQoS,
+    create_kernel, create_full_stack_kernel
+)
 
 __all__ = [
     # Core
@@ -130,4 +135,8 @@ __all__ = [
     # Guardian Hooks
     "GuardianBridge", "ValidatorBridge", "ZoneState", "BoostConfig", "CraftPreset",
     "BoostAction", "CorePolicy", "create_guardian_bridge", "create_validator_bridge",
+    # Kernel
+    "GamesaKernel", "Component", "River", "RiverEndpoint", "RiverMessage",
+    "ComponentType", "ComponentState", "RiverTransport", "RiverDirection", "RiverQoS",
+    "create_kernel", "create_full_stack_kernel",
 ]
