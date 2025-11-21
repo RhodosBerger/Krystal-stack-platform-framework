@@ -548,6 +548,132 @@ class HALFactory:
 
 
 # ============================================================
+# HARDWARE SAFETY PROFILES
+# ============================================================
+
+@dataclass
+class HardwareSafetyProfile:
+    """
+    Hardware-specific safety limits.
+
+    These are conservative defaults that ensure safe operation
+    even under sustained load.
+    """
+    name: str
+
+    # Thermal limits (Celsius)
+    thermal_critical: float = 100.0      # Emergency shutdown
+    thermal_throttle: float = 90.0       # Force throttle
+    thermal_warning: float = 80.0        # Soft warning
+    thermal_target: float = 75.0         # Optimal operating
+
+    # Power limits (Watts)
+    tdp_max: float = 100.0               # Maximum TDP
+    tdp_sustained: float = 80.0          # Long-term sustainable
+    tdp_burst: float = 120.0             # Short burst allowed
+
+    # Memory limits
+    memory_max_percent: float = 90.0     # Max memory usage %
+    memory_warning_percent: float = 80.0 # Memory warning %
+
+    # Latency targets (ms)
+    latency_critical: float = 100.0      # Unacceptable
+    latency_target: float = 16.6         # 60fps frame time
+
+    # CPU utilization
+    cpu_max_percent: float = 95.0        # Sustained CPU max
+    cpu_burst_percent: float = 100.0     # Brief 100% OK
+
+    # GPU utilization
+    gpu_max_percent: float = 95.0        # Sustained GPU max
+
+
+# Pre-defined hardware profiles
+TIGER_LAKE_PROFILE = HardwareSafetyProfile(
+    name="Intel Tiger Lake (i5-1135G7)",
+    # Conservative thermal for 28W TDP mobile chip
+    thermal_critical=100.0,
+    thermal_throttle=85.0,       # Mobile: throttle earlier
+    thermal_warning=75.0,
+    thermal_target=65.0,         # Keep cool for longevity
+    # 28W TDP chip
+    tdp_max=28.0,
+    tdp_sustained=20.0,          # Sustained safe for laptop cooling
+    tdp_burst=64.0,              # PL2 burst
+    # Memory conservative
+    memory_max_percent=85.0,
+    memory_warning_percent=75.0,
+    # Latency for smooth gaming
+    latency_critical=50.0,
+    latency_target=16.6,
+    # CPU/GPU conservative for thermal
+    cpu_max_percent=90.0,
+    cpu_burst_percent=100.0,
+    gpu_max_percent=85.0,        # Iris Xe shares thermal budget
+)
+
+DESKTOP_PROFILE = HardwareSafetyProfile(
+    name="Desktop (Generic)",
+    thermal_critical=100.0,
+    thermal_throttle=95.0,
+    thermal_warning=85.0,
+    thermal_target=75.0,
+    tdp_max=125.0,
+    tdp_sustained=100.0,
+    tdp_burst=200.0,
+    memory_max_percent=90.0,
+    memory_warning_percent=80.0,
+    latency_critical=100.0,
+    latency_target=16.6,
+    cpu_max_percent=95.0,
+    cpu_burst_percent=100.0,
+    gpu_max_percent=95.0,
+)
+
+LAPTOP_CONSERVATIVE_PROFILE = HardwareSafetyProfile(
+    name="Laptop (Conservative)",
+    thermal_critical=95.0,
+    thermal_throttle=80.0,       # Very conservative
+    thermal_warning=70.0,
+    thermal_target=60.0,
+    tdp_max=35.0,
+    tdp_sustained=25.0,
+    tdp_burst=50.0,
+    memory_max_percent=80.0,
+    memory_warning_percent=70.0,
+    latency_critical=50.0,
+    latency_target=16.6,
+    cpu_max_percent=85.0,
+    cpu_burst_percent=95.0,
+    gpu_max_percent=80.0,
+)
+
+
+def get_safety_profile(cpu_model: str = "") -> HardwareSafetyProfile:
+    """
+    Get appropriate safety profile for hardware.
+
+    Auto-detects Tiger Lake and other known CPUs.
+    """
+    model_lower = cpu_model.lower()
+
+    # Tiger Lake detection
+    if "1135g7" in model_lower or "1165g7" in model_lower or "1185g7" in model_lower:
+        return TIGER_LAKE_PROFILE
+    if "tiger" in model_lower and "lake" in model_lower:
+        return TIGER_LAKE_PROFILE
+    if "11th gen" in model_lower and "intel" in model_lower:
+        return TIGER_LAKE_PROFILE
+
+    # Generic laptop detection
+    if any(x in model_lower for x in ["laptop", "mobile", "u", "g7", "g4"]):
+        return LAPTOP_CONSERVATIVE_PROFILE
+
+    # Default to desktop
+    return DESKTOP_PROFILE
+
+
+# ============================================================
 # DEMO
 # ============================================================
 

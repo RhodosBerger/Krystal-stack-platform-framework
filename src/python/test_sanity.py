@@ -373,7 +373,53 @@ def get_default_rules():
             description="Demote cold pages on memory pressure"
         ),
 
-        # Shadow-mode experiment
+        # Power management
+        MicroInferenceRule(
+            rule_id="power_limit",
+            condition="power_draw > tdp_max * 1.1",
+            action="reduce_clocks",
+            priority=9,
+            safety_tier=SafetyTier.STRICT,
+            description="Reduce clocks when exceeding TDP"
+        ),
+        MicroInferenceRule(
+            rule_id="idle_powersave",
+            condition="cpu_util < 0.15 and gpu_util < 0.1",
+            action="enter_powersave",
+            priority=2,
+            safety_tier=SafetyTier.STRICT,
+            description="Enter powersave on sustained idle"
+        ),
+
+        # Gaming performance
+        MicroInferenceRule(
+            rule_id="combat_boost_affinity",
+            condition="game_state == 'combat' and thermal_headroom > 10",
+            action="boost_priority",
+            priority=6,
+            safety_tier=SafetyTier.STRICT,
+            description="Boost priority during combat if thermal OK"
+        ),
+        MicroInferenceRule(
+            rule_id="fps_recovery",
+            condition="fps < fps_target * 0.9 and thermal_headroom > 5",
+            action="increase_gpu_power",
+            priority=5,
+            safety_tier=SafetyTier.STRICT,
+            description="Increase GPU power to recover FPS"
+        ),
+
+        # Stability
+        MicroInferenceRule(
+            rule_id="anomaly_response",
+            condition="anomaly_count > 3",
+            action="conservative_mode",
+            priority=7,
+            safety_tier=SafetyTier.STRICT,
+            description="Enter conservative mode on anomalies"
+        ),
+
+        # Shadow-mode experiments
         MicroInferenceRule(
             rule_id="experimental_boost",
             condition="cpu_util < 0.3 and gpu_util < 0.3 and thermal_headroom > 15",
@@ -382,6 +428,15 @@ def get_default_rules():
             safety_tier=SafetyTier.EXPERIMENTAL,
             shadow_mode=True,
             description="[SHADOW] Test opportunistic boost in idle"
+        ),
+        MicroInferenceRule(
+            rule_id="experimental_prefetch",
+            condition="memory_util < 0.5 and cache_miss_rate > 0.1",
+            action="aggressive_prefetch",
+            priority=2,
+            safety_tier=SafetyTier.EXPERIMENTAL,
+            shadow_mode=True,
+            description="[SHADOW] Test aggressive prefetching"
         ),
     ]
 

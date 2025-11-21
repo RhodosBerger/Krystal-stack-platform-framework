@@ -137,7 +137,7 @@ class CSVExporter:
                     f"{stats['avg']:.4f}",
                     f"{stats['p50']:.4f}",
                     f"{stats['p95']:.4f}",
-                    f"{stats['p99']:.4f}
+                    f"{stats['p99']:.4f}",
                 ])
         return path
 
