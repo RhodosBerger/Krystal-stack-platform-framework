@@ -71,7 +71,12 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest tests/python -v --cov=src/python --cov-report=xml
+          python -m pytest tests/ -v --cov=src/python --cov-report=xml --ignore=tests/integration
+
+      - name: KrystalSDK smoke test
+        run: |
+          python -m src.python.krystal_sdk health --json
+          python -m src.python.krystal_sdk bench --json
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4

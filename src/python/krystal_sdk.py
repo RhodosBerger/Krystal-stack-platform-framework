@@ -448,49 +448,123 @@ def create_iot_optimizer() -> Krystal:
     ))
 
 
-# Quick demo
-if __name__ == "__main__":
-    print("=== KrystalSDK Demo ===\n")
+__version__ = "0.1.0"
 
-    # Simulate game optimization
-    k = create_game_optimizer()
 
-    print("Simulating 100 cycles of game optimization...\n")
+def health_check() -> Dict[str, Any]:
+    """
+    Run health check on KrystalSDK components.
 
-    fps, temp = 45, 70
-    for i in range(100):
-        # Observe state
-        k.observe({
-            "fps": fps / 60,
-            "temp": temp / 100,
-            "gpu_util": 0.8 + random.gauss(0, 0.1),
-            "power": 0.6
-        })
+    >>> result = health_check()
+    >>> result['status']
+    'healthy'
+    >>> 'learner' in result['components']
+    True
+    """
+    results = {"status": "healthy", "version": __version__, "components": {}}
 
-        # Get action
+    # Test MicroLearner
+    try:
+        learner = MicroLearner()
+        pred = learner.predict([0.5] * 8)
+        results["components"]["learner"] = {"ok": True, "test_pred": round(pred, 4)}
+    except Exception as e:
+        results["components"]["learner"] = {"ok": False, "error": str(e)}
+        results["status"] = "degraded"
+
+    # Test MicroPhase
+    try:
+        phase = MicroPhase()
+        p = phase.update(0.3, 0.7)
+        results["components"]["phase"] = {"ok": True, "test_phase": p.name}
+    except Exception as e:
+        results["components"]["phase"] = {"ok": False, "error": str(e)}
+        results["status"] = "degraded"
+
+    # Test MicroSwarm
+    try:
+        swarm = MicroSwarm(n_particles=3, dim=2)
+        best = swarm.step(lambda x: -sum(xi**2 for xi in x))
+        results["components"]["swarm"] = {"ok": True, "particles": 3}
+    except Exception as e:
+        results["components"]["swarm"] = {"ok": False, "error": str(e)}
+        results["status"] = "degraded"
+
+    # Test full Krystal
+    try:
+        k = Krystal()
+        k.observe({"test": 0.5})
         action = k.decide()
+        k.reward(0.5)
+        results["components"]["krystal"] = {"ok": True, "action_dim": len(action)}
+    except Exception as e:
+        results["components"]["krystal"] = {"ok": False, "error": str(e)}
+        results["status"] = "degraded"
 
-        # Simulate effect (higher action[0] = more performance but more heat)
-        fps = 45 + action[0] * 30 + random.gauss(0, 2)
-        temp = 60 + action[0] * 30 + random.gauss(0, 3)
+    return results
 
-        # Reward: high fps, low temp
-        reward = (fps / 60) - (temp / 200)
-        k.reward(reward)
 
-    print(f"Final: {k}")
-    print(f"Metrics: {k.get_metrics()}")
-    print(f"\nLast action: {[f'{a:.2f}' for a in k.last_action]}")
+def main():
+    """CLI entrypoint."""
+    import argparse
 
-    # Optimization demo
-    print("\n=== Optimization Demo ===")
-    k2 = Krystal()
+    parser = argparse.ArgumentParser(description="KrystalSDK - Adaptive Intelligence")
+    parser.add_argument("command", nargs="?", default="demo",
+                       choices=["demo", "health", "version", "bench"],
+                       help="Command to run")
+    parser.add_argument("--cycles", type=int, default=100, help="Demo cycles")
+    parser.add_argument("--json", action="store_true", help="JSON output")
+    args = parser.parse_args()
 
-    def rosenbrock(x):
-        """Classic optimization test function (negated for maximization)."""
-        return -sum(100 * (x[i+1] - x[i]**2)**2 + (1 - x[i])**2
-                   for i in range(len(x)-1))
+    if args.command == "version":
+        print(__version__ if not args.json else json.dumps({"version": __version__}))
 
-    best, score = k2.optimize(rosenbrock, iterations=100)
-    print(f"Best solution: {[f'{b:.3f}' for b in best]}")
-    print(f"Best score: {score:.4f}")
+    elif args.command == "health":
+        result = health_check()
+        if args.json:
+            print(json.dumps(result, indent=2))
+        else:
+            print(f"KrystalSDK v{__version__}")
+            print(f"Status: {result['status']}")
+            for name, comp in result["components"].items():
+                status = "OK" if comp["ok"] else "FAIL"
+                print(f"  {name}: {status}")
+
+    elif args.command == "bench":
+        print("Running benchmark...")
+        k = Krystal()
+        start = time.time()
+        for _ in range(10000):
+            k.observe({"x": random.random()})
+            k.decide()
+            k.reward(random.random())
+        elapsed = time.time() - start
+        ops_per_sec = 10000 / elapsed
+        if args.json:
+            print(json.dumps({"cycles": 10000, "elapsed_s": round(elapsed, 3),
+                             "ops_per_sec": round(ops_per_sec, 1)}))
+        else:
+            print(f"10000 cycles in {elapsed:.3f}s ({ops_per_sec:.0f} ops/sec)")
+
+    else:  # demo
+        print("=== KrystalSDK Demo ===\n")
+        k = create_game_optimizer()
+        print(f"Running {args.cycles} cycles...\n")
+
+        fps, temp = 45, 70
+        for i in range(args.cycles):
+            k.observe({"fps": fps/60, "temp": temp/100, "gpu_util": 0.8, "power": 0.6})
+            action = k.decide()
+            fps = 45 + action[0] * 30 + random.gauss(0, 2)
+            temp = 60 + action[0] * 30 + random.gauss(0, 3)
+            k.reward((fps/60) - (temp/200))
+
+        if args.json:
+            print(json.dumps(k.get_metrics(), indent=2))
+        else:
+            print(f"Final: {k}")
+            print(f"Metrics: {k.get_metrics()}")
+
+
+if __name__ == "__main__":
+    main()
