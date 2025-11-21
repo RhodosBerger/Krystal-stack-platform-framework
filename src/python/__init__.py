@@ -84,6 +84,18 @@ from .cognitive_engine import (
     StatMechAllocator, EntropyAnalyzer, EvolutionaryOptimizer,
     SystemState, ControlSignal, Preset, create_cognitive_engine
 )
+from .nvidia_optimizer import (
+    NvidiaOptimizer, NvidiaPreset, NvidiaGpuState, NvmlBridge,
+    TensorRTBridge, create_nvidia_optimizer
+)
+from .amd_optimizer import (
+    AmdOptimizer, AmdPreset, AmdGpuState, AmdgpuSysfs,
+    RocmBridge, create_amd_optimizer
+)
+from .gpu_optimizer import (
+    UnifiedGpuOptimizer, GpuVendor, UnifiedPreset, GpuInfo,
+    OptimizationResult, GpuDetector, create_gpu_optimizer
+)
 
 __all__ = [
     # Core
@@ -148,4 +160,13 @@ __all__ = [
     "CognitiveEngine", "FeedbackController", "TDLearner", "BayesianTracker",
     "StatMechAllocator", "EntropyAnalyzer", "EvolutionaryOptimizer",
     "SystemState", "ControlSignal", "Preset", "create_cognitive_engine",
+    # NVIDIA Optimizer
+    "NvidiaOptimizer", "NvidiaPreset", "NvidiaGpuState", "NvmlBridge",
+    "TensorRTBridge", "create_nvidia_optimizer",
+    # AMD Optimizer
+    "AmdOptimizer", "AmdPreset", "AmdGpuState", "AmdgpuSysfs",
+    "RocmBridge", "create_amd_optimizer",
+    # Unified GPU Optimizer
+    "UnifiedGpuOptimizer", "GpuVendor", "UnifiedPreset", "GpuInfo",
+    "OptimizationResult", "GpuDetector", "create_gpu_optimizer",
 ]
