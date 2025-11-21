@@ -12,6 +12,9 @@ pub mod rule_evaluator;
 pub mod feature_engine;
 pub mod runtime;
 pub mod allocation;
+pub mod effects;
+pub mod contracts;
+pub mod signals;
 
 pub use types::*;
 pub use economic_engine::*;
@@ -20,6 +23,9 @@ pub use rule_evaluator::*;
 pub use feature_engine::*;
 pub use runtime::*;
 pub use allocation::*;
+pub use effects::*;
+pub use contracts::*;
+pub use signals::*;
 
 /// Main orchestrator combining all components
 pub struct Guardian {
