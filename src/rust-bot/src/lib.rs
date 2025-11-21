@@ -23,6 +23,7 @@ pub mod vulkan_inspector;
 pub mod stack_injector;
 pub mod grid_injector;
 pub mod fallback;
+pub mod unified_core;
 
 pub use types::*;
 pub use config::Config;
@@ -41,6 +42,7 @@ pub use vulkan_inspector::{VulkanInspector, SceneAnalysis, GovernorSuggestion};
 pub use stack_injector::{StackInjector, BoostInjection};
 pub use grid_injector::{GridInjector, GridReplica, GridCell as InjectorCell};
 pub use fallback::{FallbackManager, TrustLevel};
+pub use unified_core::{UnifiedCore, HardwareTelemetry, HardwarePreset, Phase, SystemMode};
 
 /// Main orchestrator combining all components
 pub struct GamesaBot {

@@ -118,6 +118,11 @@ from .emergent_intelligence import (
     CollectiveIntelligence, SynapseNetwork, Attractor, Agent, Synapse,
     PhaseState, create_emergent_intelligence
 )
+from .unified_system import (
+    UnifiedSystem, HardwareLevel, SignalLevel, LearningLevel,
+    PredictionLevel, EmergenceLevel, GenerationLevel,
+    SystemMode, SystemMetrics, create_unified_system
+)
 
 __all__ = [
     # Core
@@ -209,4 +214,8 @@ __all__ = [
     "EmergentIntelligence", "AttractorLandscape", "PhaseTransitionEngine",
     "CollectiveIntelligence", "SynapseNetwork", "Attractor", "Agent", "Synapse",
     "PhaseState", "create_emergent_intelligence",
+    # Unified System
+    "UnifiedSystem", "HardwareLevel", "SignalLevel", "LearningLevel",
+    "PredictionLevel", "EmergenceLevel", "GenerationLevel",
+    "SystemMode", "SystemMetrics", "create_unified_system",
 ]
