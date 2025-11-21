@@ -10,12 +10,14 @@ pub mod economic_engine;
 pub mod action_gate;
 pub mod rule_evaluator;
 pub mod feature_engine;
+pub mod runtime;
 
 pub use types::*;
 pub use economic_engine::*;
 pub use action_gate::*;
 pub use rule_evaluator::*;
 pub use feature_engine::*;
+pub use runtime::*;
 
 /// Main orchestrator combining all components
 pub struct Guardian {

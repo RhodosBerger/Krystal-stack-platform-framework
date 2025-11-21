@@ -14,6 +14,7 @@ from .feature_engine import (
     FeatureEngine, DbFeatureTransformer, ScaleParams,
     LogBase, TrigFunc, scale_alpha_beta_theta, log_scale, trig_encode
 )
+from .runtime import Runtime, RuntimeVar, RuntimeFunc, VarSource, quick_eval
 
 __all__ = [
     "MetacognitiveInterface",
@@ -27,4 +28,9 @@ __all__ = [
     "scale_alpha_beta_theta",
     "log_scale",
     "trig_encode",
+    "Runtime",
+    "RuntimeVar",
+    "RuntimeFunc",
+    "VarSource",
+    "quick_eval",
 ]
