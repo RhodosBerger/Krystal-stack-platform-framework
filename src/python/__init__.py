@@ -10,9 +10,21 @@ This module implements the Cognitive Stream components:
 from .metacognitive import MetacognitiveInterface
 from .experience_store import ExperienceStore
 from .policy_generator import PolicyProposalGenerator
+from .feature_engine import (
+    FeatureEngine, DbFeatureTransformer, ScaleParams,
+    LogBase, TrigFunc, scale_alpha_beta_theta, log_scale, trig_encode
+)
 
 __all__ = [
     "MetacognitiveInterface",
     "ExperienceStore",
     "PolicyProposalGenerator",
+    "FeatureEngine",
+    "DbFeatureTransformer",
+    "ScaleParams",
+    "LogBase",
+    "TrigFunc",
+    "scale_alpha_beta_theta",
+    "log_scale",
+    "trig_encode",
 ]

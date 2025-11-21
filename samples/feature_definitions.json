@@ -1,0 +1,55 @@
+{
+  "features": [
+    {
+      "name": "cpu_util_log",
+      "expression": "ln(cpu_util)",
+      "description": "Natural log of CPU utilization"
+    },
+    {
+      "name": "cpu_util_scaled",
+      "expression": "scale(cpu_util, 2.0, -1.0, 0.5)",
+      "params": {
+        "alpha": 2.0,
+        "beta": -1.0,
+        "theta": 0.5
+      },
+      "description": "Alpha-beta-theta scaled CPU utilization"
+    },
+    {
+      "name": "frametime_sin",
+      "expression": "sin(frametime_ms / 16.67 * pi)",
+      "description": "Sinusoidal encoding of frametime relative to 60fps"
+    },
+    {
+      "name": "temp_normalized",
+      "expression": "scale(temp_cpu, 0.01, 0, 0)",
+      "description": "Normalized temperature (0-1 range for 0-100C)"
+    },
+    {
+      "name": "hour_sin",
+      "expression": "sin(2 * pi * hour / 24)",
+      "description": "Cyclical encoding of hour (sin component)"
+    },
+    {
+      "name": "hour_cos",
+      "expression": "cos(2 * pi * hour / 24)",
+      "description": "Cyclical encoding of hour (cos component)"
+    },
+    {
+      "name": "power_efficiency",
+      "expression": "log10(fps / power_mw)",
+      "description": "Log-scaled power efficiency metric"
+    },
+    {
+      "name": "thermal_margin",
+      "expression": "tanh((95 - temp_cpu) / 20)",
+      "description": "Thermal margin with tanh normalization"
+    }
+  ],
+  "scale_presets": {
+    "normalize_0_1": {"alpha": 1.0, "beta": 0.0, "theta": 0.0},
+    "standardize": {"alpha": 1.0, "beta": 0.0, "theta": 0.0},
+    "gaming_boost": {"alpha": 1.5, "beta": 0.2, "theta": 0.1},
+    "power_save": {"alpha": 0.7, "beta": -0.1, "theta": 0.0}
+  }
+}
