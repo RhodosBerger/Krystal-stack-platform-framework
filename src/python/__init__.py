@@ -102,6 +102,12 @@ from .generative_engine import (
     OpenVINOGenerator, ProceduralGenerator, RecipeGenerator,
     create_generative_engine
 )
+from .breakthrough_engine import (
+    BreakthroughEngine, TemporalPredictor, NeuralHardwareFabric,
+    QuantumInspiredOptimizer, SelfModifyingEngine, SwarmIntelligence,
+    FutureState, HardwareNeuron, QuantumPreset, CodePatch, SwarmNode,
+    create_breakthrough_engine
+)
 
 __all__ = [
     # Core
@@ -180,4 +186,9 @@ __all__ = [
     "LatentVector", "GeneratedOutput", "GenerationRequest", "GeneratorConfig",
     "OpenVINOGenerator", "ProceduralGenerator", "RecipeGenerator",
     "create_generative_engine",
+    # Breakthrough Engine
+    "BreakthroughEngine", "TemporalPredictor", "NeuralHardwareFabric",
+    "QuantumInspiredOptimizer", "SelfModifyingEngine", "SwarmIntelligence",
+    "FutureState", "HardwareNeuron", "QuantumPreset", "CodePatch", "SwarmNode",
+    "create_breakthrough_engine",
 ]
