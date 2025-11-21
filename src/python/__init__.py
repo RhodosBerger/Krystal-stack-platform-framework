@@ -34,6 +34,18 @@ from .signals import (
     Signal, SignalSource, SignalKind, Domain, SignalScheduler,
     telemetry_signal, safety_signal, user_signal, ipc_signal
 )
+from .llm_bridge import (
+    LLMBridge, LLMConfig, LLMResponse, LLMCache, LLMProvider, LLMError,
+    create_llm_bridge
+)
+from .document_processor import (
+    DocumentProcessor, DocumentRecord, ExtractedData, DocumentType,
+    ProcessingStatus, OCREngine, PDFProcessor
+)
+from .mongo_store import (
+    MongoStore, MongoConfig, CollectionName, InMemoryCollection,
+    create_mongo_store
+)
 
 __all__ = [
     # Core
@@ -58,4 +70,13 @@ __all__ = [
     # Signals
     "Signal", "SignalSource", "SignalKind", "Domain", "SignalScheduler",
     "telemetry_signal", "safety_signal", "user_signal", "ipc_signal",
+    # LLM Bridge
+    "LLMBridge", "LLMConfig", "LLMResponse", "LLMCache", "LLMProvider",
+    "LLMError", "create_llm_bridge",
+    # Document Processor
+    "DocumentProcessor", "DocumentRecord", "ExtractedData", "DocumentType",
+    "ProcessingStatus", "OCREngine", "PDFProcessor",
+    # MongoDB Store
+    "MongoStore", "MongoConfig", "CollectionName", "InMemoryCollection",
+    "create_mongo_store",
 ]
