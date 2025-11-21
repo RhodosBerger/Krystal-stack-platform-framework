@@ -1,0 +1,43 @@
+{
+  "presets": {
+    "gaming_performance": {
+      "description": "Aggressive scaling for gaming - prioritizes responsiveness",
+      "cpu_util": {"alpha": 1.8, "beta": 0.1, "theta": 0.15},
+      "gpu_util": {"alpha": 1.5, "beta": 0.0, "theta": 0.1},
+      "frametime": {"alpha": 2.0, "beta": -0.5, "theta": 0.0},
+      "temp": {"alpha": 1.2, "beta": 0.0, "theta": 0.0}
+    },
+    "power_efficient": {
+      "description": "Conservative scaling for battery life",
+      "cpu_util": {"alpha": 0.8, "beta": -0.1, "theta": 0.0},
+      "gpu_util": {"alpha": 0.7, "beta": 0.0, "theta": 0.0},
+      "frametime": {"alpha": 0.5, "beta": 0.0, "theta": 0.0},
+      "temp": {"alpha": 1.5, "beta": 0.0, "theta": 0.0}
+    },
+    "balanced": {
+      "description": "Default balanced scaling",
+      "cpu_util": {"alpha": 1.0, "beta": 0.0, "theta": 0.0},
+      "gpu_util": {"alpha": 1.0, "beta": 0.0, "theta": 0.0},
+      "frametime": {"alpha": 1.0, "beta": 0.0, "theta": 0.0},
+      "temp": {"alpha": 1.0, "beta": 0.0, "theta": 0.0}
+    },
+    "thermal_aware": {
+      "description": "Temperature-sensitive scaling with theta phase shift",
+      "cpu_util": {"alpha": 1.0, "beta": 0.0, "theta": 0.3},
+      "gpu_util": {"alpha": 1.0, "beta": 0.0, "theta": 0.3},
+      "frametime": {"alpha": 1.0, "beta": 0.0, "theta": 0.0},
+      "temp": {"alpha": 2.0, "beta": -0.5, "theta": 0.5}
+    }
+  },
+  "log_transforms": {
+    "natural": {"base": "e", "description": "ln(x) - natural log"},
+    "base2": {"base": 2, "description": "log2(x) - binary log"},
+    "base10": {"base": 10, "description": "log10(x) - common log"}
+  },
+  "trig_encodings": {
+    "hourly": {"period": 24, "functions": ["sin", "cos"]},
+    "daily": {"period": 7, "functions": ["sin", "cos"]},
+    "monthly": {"period": 30, "functions": ["sin", "cos"]},
+    "yearly": {"period": 365, "functions": ["sin", "cos"]}
+  }
+}

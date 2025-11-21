@@ -1,0 +1,54 @@
+{
+  "description": "Telemetry data with alpha-beta-theta scaling applied",
+  "scale_params": {
+    "cpu_util": {"alpha": 1.5, "beta": -0.25, "theta": 0.1},
+    "gpu_util": {"alpha": 1.2, "beta": 0.0, "theta": 0.0},
+    "frametime": {"alpha": 0.06, "beta": 0.0, "theta": 0.0},
+    "temperature": {"alpha": 0.01, "beta": 0.0, "theta": 0.0}
+  },
+  "raw_records": [
+    {"ts": "2025-01-21T14:30:00Z", "cpu_util": 0.72, "gpu_util": 0.65, "frametime_ms": 14.2, "temp_cpu": 72},
+    {"ts": "2025-01-21T14:30:01Z", "cpu_util": 0.74, "gpu_util": 0.68, "frametime_ms": 14.8, "temp_cpu": 73},
+    {"ts": "2025-01-21T14:30:02Z", "cpu_util": 0.78, "gpu_util": 0.70, "frametime_ms": 13.1, "temp_cpu": 74}
+  ],
+  "scaled_records": [
+    {
+      "ts": "2025-01-21T14:30:00Z",
+      "cpu_util_scaled": 0.901,
+      "cpu_util_log": -0.329,
+      "cpu_util_sin": 0.659,
+      "cpu_util_cos": 0.752,
+      "gpu_util_scaled": 0.780,
+      "frametime_scaled": 0.852,
+      "temp_normalized": 0.720
+    },
+    {
+      "ts": "2025-01-21T14:30:01Z",
+      "cpu_util_scaled": 0.934,
+      "cpu_util_log": -0.301,
+      "cpu_util_sin": 0.674,
+      "cpu_util_cos": 0.739,
+      "gpu_util_scaled": 0.816,
+      "frametime_scaled": 0.888,
+      "temp_normalized": 0.730
+    },
+    {
+      "ts": "2025-01-21T14:30:02Z",
+      "cpu_util_scaled": 1.000,
+      "cpu_util_log": -0.248,
+      "cpu_util_sin": 0.703,
+      "cpu_util_cos": 0.711,
+      "gpu_util_scaled": 0.840,
+      "frametime_scaled": 0.786,
+      "temp_normalized": 0.740
+    }
+  ],
+  "trig_encoded": {
+    "hour_of_day": 14,
+    "hour_sin": 0.866,
+    "hour_cos": -0.5,
+    "day_of_week": 2,
+    "day_sin": 0.782,
+    "day_cos": -0.623
+  }
+}
