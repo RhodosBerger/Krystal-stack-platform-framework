@@ -432,4 +432,101 @@ print(f"Source: {result['decision']['source']}")
 | `platform_hal.py` | ~500 | Hardware abstraction |
 | `memory_manager.py` | ~600 | Memory tiering |
 
-**Total: ~6,000+ lines of innovative code**
+**Total: ~7,000+ lines of innovative code**
+
+---
+
+## 15. Testing & Metrics
+
+### Test Suite (`test_sanity.py`)
+
+| Test Class | Tests | Coverage |
+|------------|-------|----------|
+| TestSafetyGuardrails | 5 | thermal, power, memory, latency, violation rate |
+| TestRuleEngine | 4 | trigger, no-trigger, shadow-mode, priority |
+| TestEconomicEngine | 4 | afford, over-budget, trade, replenish |
+| TestCognitiveOrchestrator | 4 | normal, safety override, economic, metacog |
+| TestInventionEngine | 4 | quantum, causal, HD encoder, full process |
+| TestEmergentSystem | 4 | CA, SOM, criticality, full process |
+
+**Run tests:**
+```bash
+cd src/python && python -m unittest test_sanity -v
+```
+
+### Metrics Logger (`metrics_logger.py`)
+
+| Component | Function |
+|-----------|----------|
+| MetricsCollector | samples, counters, histograms, percentiles |
+| CSVExporter | export samples.csv, summary.csv |
+| BrainMetrics | latency/thermal/budget/violation hooks |
+| FeatureFlags | prod/lab configuration |
+
+**Usage:**
+```python
+from metrics_logger import get_metrics, FeatureFlags, CSVExporter
+
+# Get KPI summary
+kpi = get_metrics().get_kpi_summary()
+print(kpi["latency"]["process"])  # {count, min, max, avg, p50, p95, p99}
+
+# Export to CSV
+exporter = CSVExporter("./metrics")
+exporter.export_summary(get_metrics().collector)
+```
+
+### Feature Toggles
+
+```python
+from metrics_logger import FeatureFlags
+from unified_brain import UnifiedBrain
+
+# Production mode (invention/emergent OFF)
+brain = UnifiedBrain(flags=FeatureFlags.production())
+
+# Lab mode (all features ON)
+brain = UnifiedBrain(flags=FeatureFlags.laboratory())
+```
+
+| Flag | Production | Laboratory |
+|------|------------|------------|
+| enable_invention_engine | OFF | ON |
+| enable_emergent_system | OFF | ON |
+| enable_distributed_brain | OFF | ON |
+| enable_metrics_logging | ON | ON |
+| enable_shadow_rules | OFF | ON |
+
+---
+
+## 16. Default Rules Bundle
+
+| Rule ID | Condition | Action | Priority | Mode |
+|---------|-----------|--------|----------|------|
+| thermal_warning | `thermal_headroom < 8` | reduce_power | 8 | STRICT |
+| thermal_critical | `thermal_headroom < 3` | emergency_throttle | 10 | STRICT |
+| latency_cutback | `latency_ms > target * 1.5` | reduce_quality | 7 | STRICT |
+| memory_demotion | `memory_util > 0.85` | demote_cold_pages | 5 | STRICT |
+| experimental_boost | idle + headroom > 15 | opportunistic_boost | 3 | SHADOW |
+
+**Install rules:**
+```python
+from test_sanity import get_default_rules, install_default_rules
+from cognitive_engine import create_cognitive_orchestrator
+
+orchestrator = create_cognitive_orchestrator()
+install_default_rules(orchestrator)
+```
+
+---
+
+## 17. KPI Targets
+
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| Process latency (p95) | < 5ms | `metrics.latency_process_ms` |
+| Cognitive latency (p95) | < 2ms | `metrics.latency_cognitive_ms` |
+| Thermal violations/min | < 2 | `metrics.violations_thermal_*` |
+| Decision consistency | > 95% | action distribution entropy |
+| Memory overhead | < 50MB | process RSS delta |
+| CPU overhead | < 2% | idle CPU usage |
