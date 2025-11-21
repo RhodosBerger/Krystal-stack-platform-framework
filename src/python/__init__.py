@@ -47,6 +47,10 @@ from .mongo_store import (
     create_mongo_store
 )
 from .flask_app import create_app, run_app
+from .content_generator import (
+    ContentGenerator, ContentType, GameContext, GeneratedContent,
+    create_content_generator
+)
 
 __all__ = [
     # Core
@@ -82,4 +86,7 @@ __all__ = [
     "create_mongo_store",
     # Flask App
     "create_app", "run_app",
+    # Content Generator
+    "ContentGenerator", "ContentType", "GameContext", "GeneratedContent",
+    "create_content_generator",
 ]
