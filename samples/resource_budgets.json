@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-01-21T14:30:00Z",
+  "budgets": {
+    "cpu_budget": {
+      "current_mw": 45000,
+      "max_mw": 65000,
+      "headroom_pct": 30.8
+    },
+    "gpu_budget": {
+      "current_mw": 120000,
+      "max_mw": 200000,
+      "headroom_pct": 40.0
+    },
+    "memory_tier_budget": {
+      "bandwidth_used_gbps": 38.5,
+      "bandwidth_max_gbps": 51.2,
+      "hot_slots_used": 12,
+      "hot_slots_max": 16
+    },
+    "thermal_headroom": {
+      "cpu_current_c": 72,
+      "cpu_max_c": 95,
+      "gpu_current_c": 68,
+      "gpu_max_c": 90,
+      "headroom_c": 22
+    },
+    "latency_budget": {
+      "target_frametime_ms": 16.67,
+      "current_frametime_ms": 14.2,
+      "headroom_ms": 2.47
+    },
+    "time_budget": {
+      "decision_cycle_ms": 100,
+      "used_ms": 12,
+      "remaining_ms": 88
+    }
+  }
+}

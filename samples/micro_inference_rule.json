@@ -1,0 +1,43 @@
+{
+  "rule_id": "mir-gaming-pcore-pin",
+  "version": "1.0.0",
+  "source": "llm_generated",
+  "safety_tier": 2,
+  "shadow_mode": false,
+  "conditions": [
+    {
+      "metric": "active_process_category",
+      "operator": "eq",
+      "value": "gaming",
+      "logical_op": "and"
+    },
+    {
+      "metric": "cpu_utilization",
+      "operator": "gt",
+      "value": 0.70,
+      "logical_op": "and"
+    },
+    {
+      "metric": "thermal_headroom_c",
+      "operator": "gt",
+      "value": 15,
+      "logical_op": null
+    }
+  ],
+  "actions": [
+    {
+      "action_type": "set_cpu_affinity",
+      "params": {
+        "target": "foreground_process",
+        "cores": "p_cores_only"
+      }
+    },
+    {
+      "action_type": "set_governor",
+      "params": {
+        "governor": "performance"
+      }
+    }
+  ],
+  "justification": "Combat-heavy gaming benefits from P-core pinning when thermal headroom exists."
+}
