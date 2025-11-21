@@ -32,6 +32,7 @@ from invention_engine import (
     CausalInferenceEngine,
     HyperdimensionalEncoder
 )
+from metrics_logger import BrainMetrics, FeatureFlags, get_metrics, get_flags
 
 logger = logging.getLogger(__name__)
 
@@ -350,10 +351,13 @@ class UnifiedBrain:
     and biological-inspired mechanisms.
     """
 
-    def __init__(self):
+    def __init__(self, flags: Optional[FeatureFlags] = None):
+        self.flags = flags or get_flags()
+        self.metrics = get_metrics()
+
         # Core engines
         self.cognitive = create_cognitive_orchestrator()
-        self.invention = create_invention_engine()
+        self.invention = create_invention_engine() if self.flags.enable_invention_engine else None
 
         # Integration layers
         self.temporal = TemporalFusion()
@@ -374,6 +378,8 @@ class UnifiedBrain:
         """
         Full brain processing pipeline.
         """
+        self.metrics.start_timer("process")
+
         with self._lock:
             self.tick_count += 1
 
@@ -395,10 +401,16 @@ class UnifiedBrain:
             stress = self.homeostatic.get_stress_level(telemetry)
 
             # 5. Cognitive processing
+            self.metrics.start_timer("cognitive")
             cognitive_result = self.cognitive.process(telemetry)
+            self.metrics.stop_timer("cognitive")
 
-            # 6. Invention processing
-            invention_result = self.invention.process(telemetry)
+            # 6. Invention processing (if enabled)
+            invention_result = {}
+            if self.flags.enable_invention_engine and self.invention:
+                self.metrics.start_timer("invention")
+                invention_result = self.invention.process(telemetry)
+                self.metrics.stop_timer("invention")
 
             # 7. Decision fusion
             decision = self._fuse_decisions(
@@ -409,7 +421,29 @@ class UnifiedBrain:
                 surprise
             )
 
-            # 8. Record
+            # 8. Record metrics
+            self.metrics.record_decision(decision["action"], decision["source"])
+            self.metrics.record_stress(stress)
+            self.metrics.record_surprise(surprise)
+            if "thermal_headroom" in telemetry:
+                self.metrics.record_thermal(
+                    telemetry.get("thermal_headroom", 0),
+                    telemetry.get("temperature", 0)
+                )
+            if "economic" in cognitive_result:
+                budgets = cognitive_result.get("economic", {}).get("budgets", {})
+                self.metrics.record_budgets(
+                    budgets.get("cpu_mw", 0),
+                    budgets.get("gpu_mw", 0),
+                    budgets.get("thermal_c", 0),
+                    budgets.get("latency_ms", 0)
+                )
+
+            # 9. Record violations
+            violations = cognitive_result.get("safety", {}).get("violations", [])
+            for v in violations:
+                self.metrics.record_violation(v, "warning")
+
             result = {
                 "tick": self.tick_count,
                 "decision": decision,
@@ -426,6 +460,7 @@ class UnifiedBrain:
             self.history.append(telemetry)
             self.decisions.append(decision)
 
+            self.metrics.stop_timer("process")
             return result
 
     def _get_timescale(self) -> str:
