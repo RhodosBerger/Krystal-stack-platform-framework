@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>RISE | UNIVERSAL BLUEPRINT</title>
+    <!-- Use a premium font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.3);
+            --bg: #050505;
+            --panel: #111;
+            --border: #222;
+            --text-main: #e0e0e0;
+            --text-dim: #888;
+            --warning: #ffcc00;
+            --danger: #ff4444;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            display: grid;
+            grid-template-rows: 60px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .brand {
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sys-clock {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            color: var(--text-dim);
+        }
+
+        /* --- Layout Grid --- */
+        main {
+            display: grid;
+            grid-template-columns: 350px 1fr 400px;
+            gap: 15px;
+            padding: 15px;
+            height: calc(100vh - 90px);
+        }
+
+        /* --- Panel Styles --- */
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel-header {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* --- Sidebar Specifics --- */
+        .sidebar-left {
+            display: grid;
+            grid-template-rows: 2fr 1fr;
+            gap: 15px;
+        }
+
+        .sidebar-right {
+            display: grid;
+            grid-template-rows: 1.5fr 1fr;
+            gap: 15px;
+        }
+
+        /* --- Component Injections --- */
+        .scroll-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .scroll-list li {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9em;
+            transition: 0.2s;
+        }
+
+        .scroll-list li:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        /* --- Global Status Bar --- */
+        .status-bar {
+            grid-column: span 3;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            height: 30px;
+            margin: 0 15px 15px 15px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 0.75em;
+            color: var(--text-dim);
+            gap: 20px;
+        }
+
+        .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            background: #333;
+        }
+
+        .indicator.online {
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary);
+        }
+
+        /* --- Scrollbar Customization --- */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+
+        /* Animation */
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.6;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary)">
+                <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"></path>
+            </svg>
+            RISE // UNIVERSAL CONTROL
+        </div>
+        <div class="sys-clock" id="clock">20:01:18 UTC</div>
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div
+                style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--border);">
+                <span style="font-size: 0.7em; letter-spacing: 1px; color: var(--text-dim);">ADVANCED MODE</span>
+                <label class="switch">
+                    <input type="checkbox" id="mode-toggle" onchange="toggleUserMode(this.checked)">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <button
+                style="background:transparent; border:1px solid var(--border); color:white; padding:5px 15px; border-radius:20px; font-size:0.8em; cursor:pointer;">DEPLOY
+                LOGS</button>
+            <div class="brand" style="font-size:0.8em; color:var(--text-dim);">V2.5.0-ABSOLUTE</div>
+        </div>
+    </header>
+
+    <style>
+        /* Switch styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 18px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 18px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(16px);
+        }
+
+        .advanced-only {
+            display: none !important;
+        }
+
+        body.advanced-mode .advanced-only {
+            display: flex !important;
+        }
+    </style>
+
+    <main>
+        <!-- Left: Swarm & Cortex -->
+        <div class="sidebar-left">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>🏭 SWARM MONITOR</span>
+                    <span class="badge" style="color:var(--primary);">10 UNITS</span>
+                </div>
+                <div class="panel-content" id="swarm-inject">
+                    {self.components.get('comp_swarm_status.html', '<div>Swarm Hive Unavailable</div>')}
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <span>🧠 CORTEX MIRROR</span>
+                    <span class="pulse" style="color:var(--primary);">● LIVE</span>
+                </div>
+                <div class="panel-content"
+                    style="background:#000; font-family:'JetBrains Mono', monospace; font-size:0.75em;"
+                    id="cortex-inject">
+                    <!-- Logs will flow here -->
+                    <div style="color:var(--text-dim);">Connecting to Redis Membrane...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center: Spectrum & 3D Twin -->
+        <div class="panel" style="background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);">
+            <div class="panel-header">
+                <span>🛰️ CREATIVE TWIN // SPECTRUM SIMULATOR</span>
+                <div style="display:flex; gap:5px;">
+                    <div style="width:10px; height:10px; border:1px solid var(--primary); border-radius:1px;"></div>
+                    <div style="width:10px; height:10px; background:var(--primary); border-radius:1px;"></div>
+                </div>
+            </div>
+            <div class="panel-content"
+                style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <!-- Spectrum Simulator Injection -->
+                <div style="width:100%; height:100%;" id="spectrum-inject">
+                    {self.components.get('comp_spectrum_sim.html', '<div>Spectrum Simulator Error</div>')}
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Controls (Hidden by default) -->
+        <div class="panel advanced-only" style="margin-top: -10px;">
+            <div class="panel-content" id="advanced-controls-inject">
+                {self.components.get('comp_advanced_controls.html', '<div>Advanced Tuning Hub Loading...</div>')}
+            </div>
+        </div>
+
+        <!-- Right: Neural Chat & 2FA -->
+        <div class="sidebar-right">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>💬 NEURAL UPLINK</span>
+                </div>
+                <div class="panel-content" id="chat-inject">
+                    {self.components.get('comp_neural_chat.html', '<div>Uplink Offline</div>')}
+                </div>
+            </div>
+
+            <!-- PHASE 37: PROJECT MULTIVERSE EXPLORER -->
+            <div class="panel" style="margin-top: -10px;">
+                <div class="panel-header" style="background: var(--info); color: white;">
+                    <span>🌿 PROJECT MULTIVERSE</span>
+                </div>
+                <div class="panel-content" id="alternative-inject">
+                    {self.components.get('comp_alternative_explorer.html', '<div>Multiverse Offline</div>')}
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <span>🔐 VERIFICATION QUEUE</span>
+                </div>
+                <div class="panel-content">
+                    <ul class="scroll-list" id="pending-list">
+                        <li style="color:var(--text-dim); text-align:center; padding:20px;">No pending validations in
+                            Cortex.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="panel" style="background: rgba(0, 255, 136, 0.02);">
+                <div class="panel-header">
+                    <span>🔭 WILDCARD RADAR</span>
+                </div>
+                <div class="panel-content" id="wildcard-inject">
+                    {self.components.get('comp_wildcard_radar.html', '<div>Radar System Offline</div>')}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="status-bar">
+        <div><span class="indicator online"></span> API: OPERATIONAL</div>
+        <div><span class="indicator"></span> LIVE_LINK: SEARCHING...</div>
+        <div><span class="indicator online"></span> DATABASE: CONNECTED</div>
+        <div style="margin-left:auto;">THROUGHPUT: <span style="color:var(--primary);">8,693 OPS/S</span></div>
+    </div>
+
+    <script>
+        function toggleUserMode(isAdvanced) {
+            if (isAdvanced) {
+                document.body.classList.add('advanced-mode');
+                addLogLine("SYS", "EXPERIMENTAL_MODE: ADVANCED_UPLINK_ENGAGED");
+            } else {
+                document.body.classList.remove('advanced-mode');
+                addLogLine("SYS", "MODE_RESTORED: BASIC_OPERATIONS");
+            }
+
+            // Persist to backend
+            fetch('/api/user/mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ advanced: isAdvanced })
+            }).catch(e => console.warn("Mode sync failed"));
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toISOString().split('T')[1].split('.')[0] + ' UTC';
+        }
+        setInterval(updateClock, 1000);
+
+        // Cortex Log Mocker (since we don't have real-time websocket updates here)
+        function addLogLine(actor, action) {
+            const container = document.getElementById('cortex-inject');
+            const line = document.createElement('div');
+            line.style.marginBottom = '5px';
+            line.innerHTML = `<span style="color:#555;">[${new Date().toLocaleTimeString()}]</span> <span style="color:var(--primary);">${actor}</span>: ${action}`;
+            container.prepend(line);
+            if (container.children.length > 50) container.lastChild.remove();
+        }
+
+        // Simulate activity
+        setInterval(() => {
+            const actors = ["Swarm_C", "Safety_L", "Cortex_X", "Live_Link"];
+            const actions = ["INTENT_MIRROR", "VALIDATE_G90", "VOXEL_EXTRACT", "POLL_SWARM"];
+            addLogLine(actors[Math.floor(Math.random() * actors.length)], actions[Math.floor(Math.random() * actions.length)]);
+        }, 3000);
+    </script>
+</body>
+
+</html>

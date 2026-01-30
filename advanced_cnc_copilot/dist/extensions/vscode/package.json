@@ -1,0 +1,46 @@
+{
+  "name": "fanuc-rise-neuro-coder",
+  "displayName": "Fanuc Rise: Neuro-Coder",
+  "description": "AI-Enhanced G-Code Editor & Manufacturing Copilot",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Machine Learning"
+  ],
+  "activationEvents": [
+    "onLanguage:gcode"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "languages": [{
+      "id": "gcode",
+      "aliases": ["G-Code", "CNC"],
+      "extensions": [".nc", ".gcode", ".mpt", ".cnc"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "gcode",
+      "scopeName": "source.gcode",
+      "path": "./syntaxes/gcode.tmLanguage.json"
+    }],
+    "commands": [{
+      "command": "fanuc.askHiveMind",
+      "title": "Ask Fanuc Hive Mind"
+    }, {
+      "command": "fanuc.optimizeSelection",
+      "title": "Optimize G-Code Selection (AI)"
+    }],
+    "menus": {
+      "editor/context": [{
+        "command": "fanuc.askHiveMind",
+        "group": "fanuc-rise@1"
+      }, {
+        "command": "fanuc.optimizeSelection",
+        "group": "fanuc-rise@2"
+      }]
+    }
+  }
+}

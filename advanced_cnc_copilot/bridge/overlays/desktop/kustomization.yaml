@@ -1,0 +1,15 @@
+#! kustomization.yaml
+# Generated code, do not edit
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+    - ../../base
+patches:
+    - path: backend-C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot-persistentVolumeClaim.yaml
+    - path: backend-service.yaml
+    - path: celery_beat-C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot-persistentVolumeClaim.yaml
+    - path: celery_worker-C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot-persistentVolumeClaim.yaml
+    - path: flower-service.yaml
+    - path: redis-service.yaml
+    - path: timescaledb-postgres_data-persistentVolumeClaim.yaml
+    - path: timescaledb-service.yaml

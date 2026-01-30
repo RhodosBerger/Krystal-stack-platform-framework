@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RISE // Setup Wizard</title>
+    <style>
+        :root {
+            --primary: #00ff88;
+            --accent: #667eea;
+            --bg: #0a0a0a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #1a1a1a, var(--bg));
+            color: var(--text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Glassmorphic Container */
+        .wizard-container {
+            width: 900px;
+            height: 600px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 40px 20px;
+            border-right: 1px solid var(--glass-border);
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            color: #666;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .step-item.active {
+            background: var(--glass);
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+        }
+
+        .step-item.completed {
+            color: #ccc;
+        }
+
+        .step-icon {
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .step-content {
+            flex-grow: 1;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .step-header p {
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: #fff;
+            outline: none;
+        }
+
+        /* Toggle Button */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        button.nav-btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-prev {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn-next {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .btn-finish {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* AI Assistant (Draggable Bubble) */
+        .ai-assistant {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 300px;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--accent);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .ai-assistant.open {
+            transform: scale(1);
+        }
+
+        .ai-header {
+            padding: 15px;
+            background: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-window {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+        }
+
+        .chat-input {
+            padding: 10px;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex-grow: 1;
+            background: none;
+            border: none;
+            color: #fff;
+            outline: none;
+        }
+
+        .ai-toggle {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wizard-container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar" id="sidebar">
+            <div class="step-item active" data-step="0">
+                <span class="step-icon">🌐</span>
+                <span>Environment</span>
+            </div>
+            <div class="step-item" data-step="1">
+                <span class="step-icon">⚙️</span>
+                <span>Machine</span>
+            </div>
+            <div class="step-item" data-step="2">
+                <span class="step-icon">🧠</span>
+                <span>Intelligence</span>
+            </div>
+            <div class="step-item" data-step="3">
+                <span class="step-icon">✅</span>
+                <span>Finalize</span>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="content">
+            <div id="step-container">
+                <!-- Steps will be injected here -->
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn btn-prev" id="btn-prev" onclick="moveStep(-1)"
+                    style="visibility: hidden;">Back</button>
+                <button class="nav-btn btn-next" id="btn-next" onclick="moveStep(1)">Next</button>
+            </div>
+        </div>
+
+        <!-- AI Assistant -->
+        <div class="ai-toggle" onclick="toggleAI()">🧠</div>
+        <div class="ai-assistant" id="ai-chat">
+            <div class="ai-header">
+                <span>RISE AI Guide</span>
+                <span style="cursor:pointer" onclick="toggleAI()">×</span>
+            </div>
+            <div class="chat-window" id="chat-window">
+                <div style="background:var(--glass); padding:10px; border-radius:8px; margin-bottom:10px;">
+                    Hello! I am your setup guide. Ask me anything about the configuration steps!
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="ai-input" placeholder="Type a message..." onkeypress="handleAIChat(event)">
+                <button onclick="aiAsk()"
+                    style="background:none; border:none; color:var(--primary); cursor:pointer;">➔</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/dashboard/wizard_logic.js"></script>
+</body>
+
+</html>

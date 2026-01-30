@@ -1,0 +1,282 @@
+/*
+ * Glass Brain Interface Animations
+ * Visual representations of neuro-safety gradients with biological metaphors
+ */
+
+/* Pulsing animation for dopamine (reward) indicators */
+@keyframes dopamine-pulse {
+  0% {
+    border-width: 2px;
+    box-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    border-width: 3px;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+  }
+  100% {
+    border-width: 2px;
+    box-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
+  }
+}
+
+/* Pulsing animation for cortisol (stress) indicators */
+@keyframes cortisol-pulse {
+  0% {
+    border-width: 2px;
+    box-shadow: 0 0 5px rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    border-width: 4px;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.7);
+  }
+  100% {
+    border-width: 2px;
+    box-shadow: 0 0 5px rgba(245, 158, 11, 0.3);
+  }
+}
+
+/* Heartbeat animation for system vitality */
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.15); }
+  70% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+
+/* Neural pathway visualization */
+.neural-pathway {
+  position: relative;
+  overflow: hidden;
+}
+
+.neural-pathway::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+  animation: neural-signal 2s infinite;
+}
+
+@keyframes neural-signal {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Synesthetic vibration visualization - blur effect */
+.vibration-blur {
+  filter: blur(0.5px);
+  transition: filter 0.1s ease-in-out;
+}
+
+.vibration-blur.high {
+  filter: blur(2px);
+}
+
+.vibration-blur.extreme {
+  filter: blur(4px);
+}
+
+/* Gradient transition animations */
+.dopamine-gradient-transition {
+  transition: 
+    border-color 0.5s ease,
+    background-color 0.5s ease,
+    box-shadow 0.5s ease;
+}
+
+.cortisol-gradient-transition {
+  transition: 
+    border-color 0.5s ease,
+    background-color 0.5s ease,
+    box-shadow 0.5s ease;
+}
+
+/* Adaptive border that reflects machine stress */
+.stress-border {
+  position: relative;
+}
+
+.stress-border::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: inherit;
+  z-index: -1;
+  transition: all 0.3s ease;
+}
+
+.stress-border.low-stress::before {
+  border: 2px solid rgba(16, 185, 129, 0.5); /* Emerald green for low stress */
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.stress-border.medium-stress::before {
+  border: 3px solid rgba(245, 158, 11, 0.6); /* Amber for medium stress */
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+}
+
+.stress-border.high-stress::before {
+  border: 4px solid rgba(239, 68, 68, 0.7); /* Red for high stress */
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+  animation: stress-warning-pulse 1s infinite alternate;
+}
+
+@keyframes stress-warning-pulse {
+  from { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+  to { box-shadow: 0 0 30px rgba(239, 68, 68, 0.8); }
+}
+
+/* Neuro-card styling with synesthetic effects */
+.neuro-card {
+  background: rgba(30, 41, 59, 0.7); /* Dark slate background */
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: all 0.3s ease;
+}
+
+/* Alive UI - UI that "breathes" with machine state */
+.alive-ui {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1.0; }
+}
+
+/* Cognitive load shedding - simplify UI under stress */
+.cognitive-load-shedding.high-stress {
+  /* Reduce visual complexity under high stress */
+  filter: saturate(0.7);
+}
+
+.cognitive-load-shedding.high-stress .detail-element {
+  /* Hide less critical details during high stress */
+  opacity: 0.5;
+}
+
+.cognitive-load-shedding.high-stress .critical-element {
+  /* Highlight critical elements during high stress */
+  border: 2px solid #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+/* Visual entropy for vibration representation */
+.visual-entropy-low {
+  filter: contrast(1.0) brightness(1.0);
+}
+
+.visual-entropy-medium {
+  filter: contrast(0.9) brightness(0.95);
+  /* Add slight distortion */
+}
+
+.visual-entropy-high {
+  filter: contrast(0.7) brightness(0.8) blur(0.5px);
+  /* Significant visual distortion to represent high vibration */
+}
+
+/* Reasoning trace animation - shows decision process */
+.reasoning-trace {
+  position: relative;
+}
+
+.reasoning-trace::after {
+  content: "●";
+  position: absolute;
+  right: 0;
+  animation: trace-progress 2s infinite;
+}
+
+@keyframes trace-progress {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1.0; transform: scale(1.2); }
+}
+
+/* Collective intelligence visualization */
+.collective-intelligence-node {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.collective-intelligence-node.connected::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: 50px;
+  height: 2px;
+  background: linear-gradient(to right, rgba(59, 130, 246, 0.5), transparent);
+  animation: connection-pulse 1.5s infinite alternate;
+}
+
+@keyframes connection-pulse {
+  from { opacity: 0.3; }
+  to { opacity: 0.8; }
+}
+
+/* Economic mode indicators */
+.economic-mode-rush {
+  border-left: 4px solid #10b981; /* Emerald green for rush mode */
+}
+
+.economic-mode-economy {
+  border-left: 4px solid #ef4444; /* Red for economy mode */
+}
+
+.economic-mode-balanced {
+  border-left: 4px solid #3b82f6; /* Blue for balanced mode */
+}
+
+/* Trauma inheritance visualization */
+.trauma-inherited {
+  background: linear-gradient(45deg, rgba(239, 68, 68, 0.1), transparent);
+  animation: trauma-memory-fade 3s ease-in;
+}
+
+@keyframes trauma-memory-fade {
+  from { background-color: rgba(239, 68, 68, 0.3); }
+  to { background-color: transparent; }
+}
+
+/* Genetic diversity visualization */
+.genetic-diversity-indicator {
+  position: relative;
+  height: 10px;
+  background: #334155;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.genetic-diversity-indicator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #ec4899, #f43f5e);
+  width: var(--diversity-percent, 0%);
+  transition: width 0.5s ease;
+}
+
+/* Phantom trauma detection visualization */
+.phantom-trauma-detected {
+  border: 2px dashed #f59e0b;
+  animation: phantom-trauma-pulse 2s infinite;
+}
+
+@keyframes phantom-trauma-pulse {
+  0%, 100% { border-color: #f59e0b; }
+  50% { border-color: #fbbf24; }
+}

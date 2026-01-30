@@ -1,0 +1,76 @@
+<div id="cortex-heatmap-container" style="padding:10px; background:var(--panel); border-radius:8px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3 style="margin:0; color:var(--primary);">🧠 Cortex Intent Heatmap</h3>
+        <button onclick="fethCortexStats()"
+            style="background:transparent; border:1px solid #444; color:#888; cursor:pointer;">↻</button>
+    </div>
+
+    <div id="heatmap-grid" style="display:grid; grid-template-columns: repeat(10, 1fr); gap:4px; margin-bottom:10px;">
+        <!-- JS will populate this -->
+        <div style="background:#222; height:20px;"></div>
+    </div>
+
+    <div id="intent-list"
+        style="height:150px; overflow-y:auto; font-size:12px; font-family:monospace; color:#888; border-top:1px solid #333; padding-top:10px;">
+        Loading intent stream...
+    </div>
+
+    <script>
+        async function fethCortexStats() {
+            const grid = document.getElementById('heatmap-grid');
+            const list = document.getElementById('intent-list');
+            grid.innerHTML = '';
+            list.innerHTML = 'Fetching neural data...';
+
+            try {
+                const res = await fetch('/api/cortex/stats?limit=50');
+                const data = await res.json();
+
+                // Clear grid
+                grid.innerHTML = '';
+                list.innerHTML = '';
+
+                // Render Heatmap (simulate activity by time or type)
+                // We'll create 50 cells, colored by action type
+                data.intents.forEach(intent => {
+                    const cell = document.createElement('div');
+                    cell.style.height = '20px';
+                    cell.style.borderRadius = '2px';
+                    cell.title = `${intent.actor}: ${intent.action}`;
+
+                    // Color coding logic
+                    if (intent.action.includes("GCODE")) cell.style.background = '#00ff88'; // Green
+                    else if (intent.action.includes("ERROR")) cell.style.background = '#ff0055'; // Red
+                    else if (intent.action.includes("SUSTAIN")) cell.style.background = '#00ccff'; // Blue
+                    else cell.style.background = '#444'; // Grey
+
+                    // Opacity based on recency (simple trick)
+                    cell.style.opacity = '0.9';
+
+                    grid.appendChild(cell);
+
+                    // Populate List
+                    const item = document.createElement('div');
+                    item.innerText = `[${intent.timestamp.split('T')[1].split('.')[0]}] ${intent.actor} -> ${intent.action}`;
+                    list.appendChild(item);
+                });
+
+                // Fill remaining grid cells if less than 50
+                for (let i = data.intents.length; i < 50; i++) {
+                    const cell = document.createElement('div');
+                    cell.style.height = '20px';
+                    cell.style.background = '#111';
+                    grid.appendChild(cell);
+                }
+
+            } catch (e) {
+                list.innerText = "Error connecting to Cortex: " + e;
+            }
+        }
+
+        // Auto-load
+        fethCortexStats();
+        // Poll every 5 seconds
+        setInterval(fethCortexStats, 5000);
+    </script>
+</div>

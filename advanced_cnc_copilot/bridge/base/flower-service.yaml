@@ -1,0 +1,21 @@
+#! flower-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: flower-published
+    namespace: advanced-cnc-copilot
+    labels:
+        com.docker.compose.project: advanced_cnc_copilot
+        com.docker.compose.service: flower
+spec:
+    selector:
+        com.docker.compose.project: advanced_cnc_copilot
+        com.docker.compose.service: flower
+    ports:
+        - name: flower-5555
+          port: 5555
+          protocol: TCP
+          targetPort: flower-5555
+
+# check if there is at least one published port

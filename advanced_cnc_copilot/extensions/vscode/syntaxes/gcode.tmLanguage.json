@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/json.json",
+  "name": "G-Code",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#commands"
+    },
+    {
+      "include": "#coords"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.gcode",
+          "match": "\\(.*\\)|;.*"
+        }
+      ]
+    },
+    "commands": {
+      "patterns": [
+        {
+          "name": "keyword.control.gcode",
+          "match": "\\b([GgMm])\\d+(\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "coords": {
+      "patterns": [
+        {
+          "name": "variable.parameter.gcode",
+          "match": "\\b([X-Zx-zI-Ki-kFfSsRr])"
+        },
+        {
+          "name": "constant.numeric.gcode",
+          "match": "[-+]?\\d+(\\.\\d+)?"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.gcode"
+}

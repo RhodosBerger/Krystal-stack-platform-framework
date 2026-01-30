@@ -1,0 +1,51 @@
+#! celery_worker-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: celery-worker
+    namespace: advanced-cnc-copilot
+    labels:
+        com.docker.compose.project: advanced_cnc_copilot
+        com.docker.compose.service: celery_worker
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: advanced_cnc_copilot
+            com.docker.compose.service: celery_worker
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: advanced_cnc_copilot
+                com.docker.compose.service: celery_worker
+                com.docker.compose.network.rise_network: "true"
+        spec:
+            containers:
+                - name: rise-worker
+                  image: advanced_cnc_copilot-celery_worker
+                  imagePullPolicy: IfNotPresent
+                  args:
+                    - celery
+                    - -A
+                    - backend.worker.celery_app
+                    - worker
+                    - --loglevel=info
+                  env:
+                    - name: CELERY_BROKER_URL
+                      value: "redis://redis:6379/0"
+                    - name: CELERY_RESULT_BACKEND
+                      value: "redis://redis:6379/0"
+                    - name: DATABASE_URL
+                      value: "postgresql://postgres:postgres@timescaledb:5432/rise_enterprise"
+                    - name: REDIS_URL
+                      value: "redis://redis:6379/0"
+                  volumeMounts:
+                    - name: app
+                      mountPath: /app
+            volumes:
+                - name: app
+                  hostPath:
+                    path: C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot

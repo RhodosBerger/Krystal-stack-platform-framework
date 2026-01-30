@@ -1,0 +1,21 @@
+INFO:LLMBrain:LLM Brain Initialized
+INFO:LLMBrain:OLLAMA_BASE_URL: http://localhost:11434
+INFO:LLMBrain:OpenAI Key Present: False
+WARNING:LLMBrain:OpenAI API Key not found. Running in Local Mode (Ollama) only.
+ERROR:MasterOrchestrator:Failed to import CMS modules: cannot import name 'RealTimeLLMAccessor' from 'backend.core.llm_brain' (C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\llm_brain.py)
+ERROR:MasterOrchestrator:Traceback (most recent call last):
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\orchestrator.py", line 32, in <module>
+    from cms.llm_gcode_generator import LLMGCodeGenerator
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\cms\llm_gcode_generator.py", line 23, in <module>
+    from backend.core.llm_brain import RealTimeLLMAccessor
+ImportError: cannot import name 'RealTimeLLMAccessor' from 'backend.core.llm_brain' (C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\llm_brain.py)
+
+INFO:CortexTransmitter:\u2705 Cortex Transmitter Connected to Shared Memory
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\main.py", line 17, in <module>
+    from backend.core.orchestrator import orchestrator
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\orchestrator.py", line 60, in <module>
+    from backend.core.marketplace import marketplace_service
+ImportError: cannot import name 'marketplace_service' from 'backend.core.marketplace' (C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\marketplace.py)

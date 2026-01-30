@@ -1,0 +1,22 @@
+{
+    "Aluminum6061": {
+        "surface_speed_sfm": 600,
+        "feed_per_tooth": 0.005,
+        "notes": "High speed, can run dry or mist."
+    },
+    "Titanium6Al4V": {
+        "surface_speed_sfm": 150,
+        "feed_per_tooth": 0.003,
+        "notes": "Low speed, high feed. Risk of work hardening."
+    },
+    "Steel4140": {
+        "surface_speed_sfm": 300,
+        "feed_per_tooth": 0.004,
+        "notes": "Standard limits. Coolant required."
+    },
+    "Stainless304": {
+        "surface_speed_sfm": 250,
+        "feed_per_tooth": 0.004,
+        "notes": "Difficult to machine. Work hardening."
+    }
+}

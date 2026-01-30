@@ -1,0 +1,96 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\main.py", line 16, in <module>
+    from backend.core.security import Token, User, get_current_active_user, create_access_token, verify_password, get_password_hash
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\security.py", line 49, in <module>
+    from .database import SessionLocal
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\database.py", line 9, in <module>
+    from backend.core.config import settings
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\config.py", line 75, in <module>
+    settings = Settings()
+  File "C:\Users\dusan\AppData\Roaming\Python\Python314\site-packages\pydantic_settings\main.py", line 194, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        **__pydantic_self__._settings_build_values(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<27 lines>...
+        )
+        ^
+    )
+    ^
+  File "C:\Users\dusan\AppData\Roaming\Python\Python314\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 24 validation errors for Settings
+database_url
+  Extra inputs are not permitted [type=extra_forbidden, input_value='postgresql://postgres:po...st:5432/rise_enterprise', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+database_pool_size
+  Extra inputs are not permitted [type=extra_forbidden, input_value='20', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+database_max_overflow
+  Extra inputs are not permitted [type=extra_forbidden, input_value='10', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+default_llm_provider
+  Extra inputs are not permitted [type=extra_forbidden, input_value='openai', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+llm_model
+  Extra inputs are not permitted [type=extra_forbidden, input_value='gpt-4', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+llm_temperature
+  Extra inputs are not permitted [type=extra_forbidden, input_value='0.7', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+llm_max_tokens
+  Extra inputs are not permitted [type=extra_forbidden, input_value='2000', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+redis_url
+  Extra inputs are not permitted [type=extra_forbidden, input_value='redis://localhost:6379/0', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+mqtt_broker_host
+  Extra inputs are not permitted [type=extra_forbidden, input_value='localhost', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+mqtt_broker_port
+  Extra inputs are not permitted [type=extra_forbidden, input_value='1883', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+api_host
+  Extra inputs are not permitted [type=extra_forbidden, input_value='0.0.0.0', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+api_port
+  Extra inputs are not permitted [type=extra_forbidden, input_value='8000', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+api_reload
+  Extra inputs are not permitted [type=extra_forbidden, input_value='True', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+api_log_level
+  Extra inputs are not permitted [type=extra_forbidden, input_value='info', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+jwt_expiration_hours
+  Extra inputs are not permitted [type=extra_forbidden, input_value='24', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+enable_predictive_maintenance
+  Extra inputs are not permitted [type=extra_forbidden, input_value='True', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+enable_llm_gcode_generation
+  Extra inputs are not permitted [type=extra_forbidden, input_value='True', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+enable_iot_sensors
+  Extra inputs are not permitted [type=extra_forbidden, input_value='True', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+enable_multi_bot_system
+  Extra inputs are not permitted [type=extra_forbidden, input_value='True', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+data_directory
+  Extra inputs are not permitted [type=extra_forbidden, input_value='./data', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+logs_directory
+  Extra inputs are not permitted [type=extra_forbidden, input_value='./logs', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+models_directory
+  Extra inputs are not permitted [type=extra_forbidden, input_value='./models', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+debug_mode
+  Extra inputs are not permitted [type=extra_forbidden, input_value='True', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+verbose_logging
+  Extra inputs are not permitted [type=extra_forbidden, input_value='False', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden

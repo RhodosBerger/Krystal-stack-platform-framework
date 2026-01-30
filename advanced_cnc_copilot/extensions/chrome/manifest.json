@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Fanuc Rise: Fleet Overlay",
+  "version": "1.0",
+  "description": "Always-on Manufacturing Intelligence Side Panel",
+  "permissions": ["sidePanel"],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Open Fanuc Rise"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

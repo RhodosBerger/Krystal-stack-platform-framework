@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fanuc Rise | System Architecture</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .doc-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .doc-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            /* Text | Panel Preview */
+            gap: 40px;
+            margin-bottom: 60px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 40px;
+        }
+
+        .doc-text h2 {
+            color: var(--text-primary);
+            border: none;
+            font-size: 1.8rem;
+        }
+
+        .doc-text .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: var(--fn-mono);
+            font-size: 0.7rem;
+            margin-bottom: 10px;
+        }
+
+        .badge.backend {
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+        }
+
+        .badge.ui {
+            background: rgba(192, 132, 252, 0.2);
+            color: var(--neon-purple);
+            border: 1px solid var(--neon-purple);
+        }
+
+        .code-ref {
+            font-family: var(--fn-mono);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 6px;
+            color: #ccc;
+            margin: 10px 0;
+            font-size: 0.8rem;
+        }
+
+        .panel-preview {
+            transform: scale(0.9);
+            /* Fit nicely */
+            transform-origin: top left;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glass-container">
+        <header class="dashboard-header">
+            <div class="logo">
+                <h1><a href="hub.html" style="text-decoration:none; color:white;">← SYSTEM DOCS</a></h1>
+            </div>
+            <div class="status-badge">ARCHITECTURAL REFERENCE</div>
+        </header>
+
+        <div class="doc-container">
+
+            <!-- 1. SENSORY CORTEX -->
+            <div class="doc-section">
+                <div class="doc-text">
+                    <span class="badge backend">BACKEND: sensory_cortex.py</span>
+                    <h2>Sensory Cortex (HAL)</h2>
+                    <p>The input layer of the system. It connects to the physical machine via the <strong>Fanuc FOCAS
+                            Bridge</strong> (or Mock Adapter).</p>
+
+                    <div class="code-ref">
+                        class SensoryCortex:<br>
+                        &nbsp;&nbsp;def perceive(self):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;return hal.read_metrics()
+                    </div>
+
+                    <p><strong>UI Representation:</strong> Visualized as raw telemetry gauges. Direct connection to
+                        reality.</p>
+                </div>
+
+                <div class="panel-preview">
+                    <!-- COPY OF PANEL 1 -->
+                    <section class="panel glass-panel">
+                        <h2><span class="icon">📡</span> Sensory Panel (Preview)</h2>
+                        <div class="metric-card">
+                            <label>Spindle RPM</label>
+                            <div class="value">12,500</div>
+                            <div class="bar-container">
+                                <div class="bar" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- 2. DOPAMINE ENGINE -->
+            <div class="doc-section">
+                <div class="doc-text">
+                    <span class="badge backend">BACKEND: dopamine_engine.py</span>
+                    <h2>Dopamine Engine</h2>
+                    <p>The "Emotional State" of the machine. Operates on a Balance/Reward system.</p>
+                    <ul>
+                        <li><strong>Dopamine:</strong> Reward for Safety & Efficiency.</li>
+                        <li><strong>Cortisol:</strong> Penalty for Vibration & Load peaks.</li>
+                    </ul>
+                    <div class="code-ref">
+                        class DopamineEngine:<br>
+                        &nbsp;&nbsp;def update_mood(self, ctx):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;self.dopamine += ctx.reward
+                    </div>
+                </div>
+
+                <div class="panel-preview">
+                    <!-- COPY OF PANEL 2 -->
+                    <section class="panel glass-panel">
+                        <h2><span class="icon">🧬</span> Neuro-Engine</h2>
+                        <div class="neuro-stat">
+                            <div class="neuro-label">Dopamine (Reward)</div>
+                            <div class="neuro-bar-bg">
+                                <div class="neuro-bar dopamine" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div class="neuro-stat">
+                            <div class="neuro-label">Cortisol (Stress)</div>
+                            <div class="neuro-bar-bg">
+                                <div class="neuro-bar cortisol" style="width: 10%"></div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- 3. LOGIC TOPOLOGY -->
+            <div class="doc-section">
+                <div class="doc-text">
+                    <span class="badge backend">BACKEND: knowledge_graph.py</span>
+                    <h2>Logic Topology</h2>
+                    <p>The "Glass Brain". Visualizes the causal flow of decisions. Used by the <strong>Protocol
+                            Conductor</strong> to validate user intent.</p>
+                    <div class="code-ref">
+                        graph.trace_root_cause("CHATTER")<br>
+                        >> ["UNSTABLE", "VIB_FREQ"]
+                    </div>
+                </div>
+
+                <div class="panel-preview">
+                    <section class="panel glass-panel">
+                        <h2><span class="icon">🧠</span> Logic Map</h2>
+                        <div class="logic-map-container">
+                            <div class="logic-node">SENSE</div>
+                            <div class="logic-link">→</div>
+                            <div class="logic-node">THINK</div>
+                            <div class="logic-link">→</div>
+                            <div class="logic-node">ACT</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>

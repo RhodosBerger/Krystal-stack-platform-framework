@@ -1,0 +1,60 @@
+#! backend-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: backend
+    namespace: advanced-cnc-copilot
+    labels:
+        com.docker.compose.project: advanced_cnc_copilot
+        com.docker.compose.service: backend
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: advanced_cnc_copilot
+            com.docker.compose.service: backend
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: advanced_cnc_copilot
+                com.docker.compose.service: backend
+                com.docker.compose.network.rise_network: "true"
+        spec:
+            containers:
+                - name: rise-backend
+                  image: advanced_cnc_copilot-backend
+                  imagePullPolicy: IfNotPresent
+                  args:
+                    - uvicorn
+                    - backend.main:app
+                    - --host
+                    - 0.0.0.0
+                    - --port
+                    - 8000
+                    - --reload
+                  env:
+                    - name: CELERY_BROKER_URL
+                      value: "redis://redis:6379/0"
+                    - name: CELERY_RESULT_BACKEND
+                      value: "redis://redis:6379/0"
+                    - name: DATABASE_URL
+                      value: "postgresql://postgres:postgres@timescaledb:5432/rise_enterprise"
+                    - name: OLLAMA_BASE_URL
+                      value: "http://host.docker.internal:11434"
+                    - name: OPENAI_API_KEY
+                      value: "your_openai_key_here"
+                    - name: REDIS_URL
+                      value: "redis://redis:6379/0"
+                  ports:
+                    - name: backend-8000
+                      containerPort: 8000
+                  volumeMounts:
+                    - name: app
+                      mountPath: /app
+            volumes:
+                - name: app
+                  hostPath:
+                    path: C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot

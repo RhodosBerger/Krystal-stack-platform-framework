@@ -1,0 +1,207 @@
+<div class="grid-container">
+    <!-- Header Metrics -->
+    <div class="panel header-metrics"
+        style="grid-column: span 3; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2>🚀 MISSION CONTROL</h2>
+            <div class="subtitle">System Status: <span id="global-status"
+                    class="status-indicator">INITIALIZING...</span></div>
+        </div>
+        <div style="text-align: right;">
+            <div class="metric-mini">CPU: <span id="cpu-load">12%</span></div>
+            <div class="metric-mini">RAM: <span id="ram-load">4.2GB</span></div>
+        </div>
+    </div>
+
+    <!-- Column 1: Intelligence -->
+    <div class="panel">
+        <h3>🧠 Neural Cortex</h3>
+        <div id="cortex-feed" class="scrolling-terminal">
+            <div class="log-entry"><span class="timestamp">[19:42:01]</span> <span class="info">Cortex Connected.
+                    Watching streams...</span></div>
+        </div>
+        <button class="btn-action" onclick="fetchLogs()">⟳ Refresh Stream</button>
+    </div>
+
+    <!-- Column 2: Live Link & Twin -->
+    <div class="panel">
+        <h3>⚡ Creative Twin (Live Link)</h3>
+        <div class="twin-status">
+            <div id="livelink-indicator" class="connection-blob"></div>
+            <span id="livelink-text">Disconnected</span>
+        </div>
+        <div class="metric-box">
+            <h4>Active Session</h4>
+            <div>Objects: <span id="obj-count">0</span></div>
+            <div>Last Event: <span id="last-event">None</span></div>
+        </div>
+        <button class="btn-action warning" onclick="triggerRemoteSim()">⚡ Trigger Simulation</button>
+    </div>
+
+    <!-- Column 3: Backend Health -->
+    <div class="panel">
+        <h3>🛡️ System Health</h3>
+        <ul class="health-list">
+            <li>Orchestrator: <span id="status-orch">Unknown</span></li>
+            <li>Redis Membrane: <span id="status-redis">Unknown</span></li>
+            <li>Celery Workers: <span id="status-celery">Unknown</span></li>
+            <li>Safety Protocol: <span id="status-safety" class="success">G90 LOCKED</span></li>
+        </ul>
+        <div id="spectrum-sim-container" style="margin-top:10px;">
+            {self.components.get('comp_spectrum_sim.html', '<div>Spectrum Simulator Loading...</div>')}
+        </div>
+    </div>
+
+    <!-- Full Width Swarm Row -->
+    <div class="panel" style="grid-column: span 3;">
+        {self.components.get('comp_swarm_status.html', '<div>Swarm Monitoring Hive Loading...</div>')}
+    </div>
+</div>
+
+<style>
+    .grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: auto 1fr;
+        gap: 20px;
+        height: 100%;
+    }
+
+    .scrolling-terminal {
+        background: #000;
+        border: 1px solid #333;
+        height: 300px;
+        overflow-y: auto;
+        padding: 10px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85em;
+        margin-bottom: 10px;
+    }
+
+    .log-entry {
+        margin-bottom: 4px;
+        border-bottom: 1px solid #111;
+    }
+
+    .timestamp {
+        color: #555;
+        margin-right: 5px;
+    }
+
+    .info {
+        color: #0f8;
+    }
+
+    .active {
+        color: #0f8;
+    }
+
+    .health-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .health-list li {
+        padding: 8px 0;
+        border-bottom: 1px solid #333;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .connection-blob {
+        width: 15px;
+        height: 15px;
+        background: #333;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    .connection-blob.online {
+        background: #0f8;
+        box-shadow: 0 0 10px #0f8;
+    }
+
+    .btn-action {
+        width: 100%;
+        background: #333;
+        color: white;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-action:hover {
+        background: #444;
+    }
+
+    .btn-action.warning {
+        background: #d35400;
+    }
+
+    .btn-action.warning:hover {
+        background: #e67e22;
+    }
+</style>
+
+<script>
+    // --- Auto-Refresh Polish ---
+    setInterval(updateHealth, 5000);
+    setInterval(checkLiveLink, 2000);
+
+    function updateHealth() {
+        fetch('/api/health')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('global-status').textContent = data.global_status;
+                document.getElementById('global-status').style.color = data.global_status == 'OPERATIONAL' ? '#0f8' : 'red';
+
+                const sys = data.systems || {};
+                updateStatus('status-orch', 'ONLINE'); // Orchestrator is self
+                updateStatus('status-redis', sys.shared_memory);
+                updateStatus('status-celery', sys.cms_engines); // Proxy for heavy compute
+            })
+            .catch(e => console.error("Health Check Failed", e));
+    }
+
+    function updateStatus(id, status) {
+        const el = document.getElementById(id);
+        el.textContent = status;
+        el.style.color = (status == 'ONLINE' || status == 'READY') ? '#0f8' : (status == 'OFFLINE' ? '#f00' : '#fa0');
+    }
+
+    function fetchLogs() {
+        fetch('/api/cortex/stats?limit=10')
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('cortex-feed');
+                container.innerHTML = '';
+                data.intents.forEach(log => {
+                    container.innerHTML += `<div class="log-entry"><span class="timestamp">[${log.timestamp.split('T')[1].split('.')[0]}]</span> <span class="info">${log.actor}: ${log.action}</span></div>`;
+                });
+            });
+    }
+
+    function checkLiveLink() {
+        // Simple heuristic: ping the websocket if we had one, or just check backend status
+        // For visual demo, we toggle based on Backend connection
+        const el = document.getElementById('livelink-indicator');
+        const txt = document.getElementById('livelink-text');
+
+        // Mock check
+        if (document.getElementById('global-status').textContent == 'OPERATIONAL') {
+            el.classList.add('online');
+            txt.textContent = "Protocol Active";
+            txt.style.color = "#0f8";
+        } else {
+            el.classList.remove('online');
+            txt.textContent = "Searching...";
+            txt.style.color = "#888";
+        }
+    }
+
+    // Init
+    updateHealth();
+    fetchLogs();
+</script>
