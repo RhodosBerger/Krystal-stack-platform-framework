@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="sk">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fanuc Rise | Dynamic Control Panel</title>
+    <link rel="stylesheet" href="dynamic-panel.css">
+</head>
+
+<body>
+    <!-- FIXED SIDEBAR NAVIGATION -->
+    <aside class="sidebar-nav" id="main-sidebar">
+        <div class="sidebar-header">
+            <h2>🔧 FANUC RISE</h2>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        </div>
+
+        <!-- MULTI-LEVEL NAVIGATION -->
+        <nav class="nav-tree">
+            <!-- Level 1: Main Categories -->
+            <div class="nav-item" data-category="monitoring">
+                <div class="nav-header" onclick="toggleNav(this)">
+                    <span class="icon">📊</span>
+                    <span class="label">Monitoring</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="nav-children">
+                    <!-- Level 2: Sub-features -->
+                    <div class="nav-item" data-feature="realtime">
+                        <div class="nav-header" onclick="loadPanel('realtime')">
+                            <span class="icon">⚡</span>
+                            <span class="label">Real-time Dashboard</span>
+                            <span class="badge">LIVE</span>
+                        </div>
+                    </div>
+                    <div class="nav-item" data-feature="history">
+                        <div class="nav-header" onclick="loadPanel('history')">
+                            <span class="icon">📈</span>
+                            <span class="label">Historical Trends</span>
+                        </div>
+                    </div>
+                    <div class="nav-item" data-feature="alerts">
+                        <div class="nav-header" onclick="loadPanel('alerts')">
+                            <span class="icon">🔔</span>
+                            <span class="label">Alert Configuration</span>
+                            <span class="badge alert">3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety & Control -->
+            <div class="nav-item" data-category="safety">
+                <div class="nav-header" onclick="toggleNav(this)">
+                    <span class="icon">🛡️</span>
+                    <span class="label">Safety & Control</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="nav-children">
+                    <div class="nav-item" data-feature="semaphore">
+                        <div class="nav-header" onclick="loadPanel('semaphore')">
+                            <span class="icon">🚦</span>
+                            <span class="label">Semaphore System</span>
+                        </div>
+                    </div>
+                    <div class="nav-item" data-feature="dopamine">
+                        <div class="nav-header" onclick="loadPanel('dopamine')">
+                            <span class="icon">🧠</span>
+                            <span class="label">Dopamine Engine</span>
+                        </div>
+                    </div>
+                    <div class="nav-item" data-feature="override">
+                        <div class="nav-header" onclick="loadPanel('override')">
+                            <span class="icon">⚠️</span>
+                            <span class="label">Manual Override</span>
+                            <span class="lock">🔒</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI & Optimization -->
+            <div class="nav-item" data-category="ai">
+                <div class="nav-header" onclick="toggleNav(this)">
+                    <span class="icon">🤖</span>
+                    <span class="label">AI & Optimization</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="nav-children">
+                    <div class="nav-item" data-feature="llm">
+                        <div class="nav-header" onclick="loadPanel('llm')">
+                            <span class="icon">💬</span>
+                            <span class="label">LLM Suggestions</span>
+                        </div>
+                    </div>
+                    <div class="nav-item" data-feature="learning">
+                        <div class="nav-header" onclick="loadPanel('learning')">
+                            <span class="icon">📚</span>
+                            <span class="label">Collective Learning</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Economics -->
+            <div class="nav-item" data-category="economics">
+                <div class="nav-header" onclick="loadPanel('economics')">
+                    <span class="icon">💰</span>
+                    <span class="label">Economics Dashboard</span>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="nav-item" data-category="settings">
+                <div class="nav-header" onclick="toggleNav(this)">
+                    <span class="icon">⚙️</span>
+                    <span class="label">Settings</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="nav-children">
+                    <div class="nav-item" data-feature="machines">
+                        <div class="nav-header" onclick="loadPanel('machines')">
+                            <span class="icon">🔧</span>
+                            <span class="label">Machine Registry</span>
+                        </div>
+                    </div>
+                    <div class="nav-item" data-feature="users">
+                        <div class="nav-header" onclick="loadPanel('users')">
+                            <span class="icon">👥</span>
+                            <span class="label">User Management</span>
+                        </div>
+                    </div>
+                    <div class="nav-item" data-feature="preferences">
+                        <div class="nav-header" onclick="loadPanel('preferences')">
+                            <span class="icon">🎨</span>
+                            <span class="label">UI Preferences</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- SIDEBAR FOOTER -->
+        <div class="sidebar-footer">
+            <div class="connection-status">
+                <span class="status-dot online"></span>
+                <span>CNC_VMC_01 Connected</span>
+            </div>
+            <button class="btn-collapse" onclick="collapseSidebar()">«</button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content" id="dynamic-panel">
+        <!-- DYNAMIC FORM BUILDER CONTAINER -->
+        <div class="panel-header">
+            <h1 id="panel-title">Dynamic Control Panel</h1>
+            <div class="panel-actions">
+                <button onclick="saveConfiguration()">💾 Save</button>
+                <button onclick="resetToDefaults()">↺ Reset</button>
+                <button onclick="exportConfig()">📤 Export</button>
+            </div>
+        </div>
+
+        <!-- DYNAMIC FORM (Populated by JavaScript) -->
+        <form id="dynamic-form" class="config-form">
+            <!-- Generated dynamically based on backend config -->
+        </form>
+    </main>
+
+    <script src="dynamic-panel.js"></script>
+</body>
+
+</html>

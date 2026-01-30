@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fanuc Rise | Neuro-Command Center</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="glass-container">
+        <!-- HEADER -->
+        <header class="dashboard-header">
+            <div class="logo">
+                <span class="icon">🧠</span>
+                <h1>FANUC RISE <span class="subtitle">NEURO-ADAPTIVE CORE</span></h1>
+            </div>
+            <div class="status-badge" id="system-status">SYSTEM ONLINE</div>
+        </header>
+
+        <!-- MAIN GRID -->
+        <main class="dashboard-grid">
+
+            <!-- PANEL 1: SENSORY CORTEX (HAL) -->
+            <section class="panel glass-panel" id="sensory-panel">
+                <h2><span class="icon">📡</span> Sensory Cortex (HAL)</h2>
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <label>Spindle RPM</label>
+                        <div class="value" id="val-rpm">0</div>
+                        <div class="bar-container">
+                            <div class="bar" id="bar-rpm" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <label>Servo Load</label>
+                        <div class="value" id="val-load">0%</div>
+                        <div class="bar-container">
+                            <div class="bar warning" id="bar-load" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <label>Vibration (g)</label>
+                        <div class="value" id="val-vib">0.0</div>
+                        <div class="bar-container">
+                            <div class="bar danger" id="bar-vib" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL 2: DOPAMINE ENGINE (BRAIN) -->
+            <section class="panel glass-panel" id="neuro-panel">
+                <h2><span class="icon">🧬</span> Dopamine Engine</h2>
+                <div class="neuro-visualization">
+                    <div class="neuro-stat">
+                        <div class="neuro-label">Dopamine (Reward)</div>
+                        <div class="neuro-bar-bg">
+                            <div class="neuro-bar dopamine" id="neuro-dopamine"></div>
+                        </div>
+                    </div>
+                    <div class="neuro-stat">
+                        <div class="neuro-label">Cortisol (Stress)</div>
+                        <div class="neuro-bar-bg">
+                            <div class="neuro-bar cortisol" id="neuro-cortisol"></div>
+                        </div>
+                    </div>
+                    <div class="neuro-stat">
+                        <div class="neuro-label">Serotonin (Stability)</div>
+                        <div class="neuro-bar-bg">
+                            <div class="neuro-bar serotonin" id="neuro-serotonin"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- CREATIVE CANVAS (DIGITAL TWIN) -->
+                <div class="creative-canvas" id="digital-twin">
+                    <h3><span class="icon">🔮</span> Digital Twin (Solidworks)</h3>
+                    <div class="twin-viz">
+                        <div class="twin-layer" id="layer-ghost">GHOST PATH PREDICTION</div>
+                        <div class="twin-stat">Calculated Curvature: <span id="val-curve">0.00</span></div>
+                        <div class="twin-stat">Stress Prediction: <span id="val-stress">LOW</span></div>
+                    </div>
+                </div>
+                <div class="action-readout">
+                    <label>Recommended Action</label>
+                    <div class="action-text" id="ai-action">WAITING_FOR_SENSATION...</div>
+                </div>
+            </section>
+
+            <!-- PANEL 3: STRATEGY & LOGIC MAP -->
+            <section class="panel glass-panel" id="strategy-panel">
+                <h2><span class="icon">🧠</span> Logic & Strategy</h2>
+
+                <!-- LOGIC MAP VISUALIZATION -->
+                <div class="logic-map-container">
+                    <div class="logic-node" id="node-sensory">SENSORY<br><span class="node-val">OK</span></div>
+                    <div class="logic-link">→</div>
+                    <div class="logic-node" id="node-dopamine">REWARD<br><span class="node-val">50</span></div>
+                    <div class="logic-link">→</div>
+                    <div class="logic-node" id="node-semaphore">SIGNAL<br><span class="node-val">GREEN</span></div>
+
+                    <div class="logic-row-2">
+                        <div class="logic-link">↓</div>
+                        <div class="logic-node x-wide" id="node-economics">ECONOMIC SCORE<br><span class="node-val"
+                                id="val-econ-score">0.0</span></div>
+                    </div>
+                </div>
+
+                <form id="strategy-form" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>Target Material</label>
+                        <select id="input-material">
+                            <option value="Steel4140">Steel 4140 (Standard)</option>
+                            <option value="Aluminum6061">Aluminum 6061 (High Speed)</option>
+                            <option value="Titanium6Al4V">Titanium (Cautious)</option>
+                            <option value="Unknown">Unknown (Auto-Detect)</option>
+                        </select>
+                    </div>
+                    <!-- CREATIVE PROTOCOL CANVAS -->
+                    <div class="creative-canvas" id="protocol-canvas">
+                        <h3><span class="icon">✨</span> Creative Protocol Conductor</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Describe your intent ("Cut fast but
+                            safe", "Mirror finish"). AI will validate against Topology.</p>
+                        <textarea id="protocol-prompt" rows="3" placeholder="Enter creative intent..."
+                            style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); color: white; border-radius: 4px; padding: 5px; margin-bottom: 10px; font-family: var(--fn-mono);"></textarea>
+
+                        <button class="btn-primary" onclick="window.app.conductProtocol()">🎩 Conduct Protocol</button>
+
+                        <div id="protocol-result"
+                            style="margin-top: 10px; font-family: var(--fn-mono); font-size: 0.7rem; color: var(--neon-blue); white-space: pre-wrap; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; display: none;">
+                        </div>
+                    </div>
+
+                    <!-- STANDARD CONTROLS (Collapsed) -->
+                    <details style="margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary);">
+                        <summary>Standard Manual Controls</summary>
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label>Optimization Mode</label>
+                            <div class="radio-group">
+                                <input type="radio" name="mode" id="mode-speed" value="SPEED"> <label
+                                    for="mode-speed">Rush</label>
+                                <input type="radio" name="mode" id="mode-safe" value="SAFE" checked> <label
+                                    for="mode-safe">Safe</label>
+                            </div>
+                        </div>
+                    </details>
+                    <div id="console-output" class="console-box">
+                        > System Ready...
+                    </div>
+            </section>
+
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -902,6 +902,12 @@ class InventionEngine:
         # Reservoir prediction (optimized: 100 neurons)
         self.reservoir = ReservoirComputer(input_size=10, reservoir_size=100)
 
+        # Optimization State
+        self._result_cache: Dict[int, Dict[str, Any]] = {}
+        self._last_demands: Optional[Dict[str, float]] = None
+        self._last_allocation: Optional[Dict[str, float]] = None
+        self._cache_hits = 0
+
     def _init_spiking_network(self):
         """Initialize spiking network topology."""
         resources = ["cpu", "gpu", "npu", "cache", "memory"]
@@ -916,30 +922,38 @@ class InventionEngine:
 
     def process(self, telemetry: Dict[str, float]) -> Dict[str, Any]:
         """Process telemetry through invention pipeline."""
+        
+        # 1. Caching (Memoization)
+        # Hash state vector (quantized)
+        cache_key = self._compute_cache_key(telemetry)
+        if cache_key in self._result_cache:
+            self._cache_hits += 1
+            return self._result_cache[cache_key]
 
-        # 1. Causal observation
+        # 2. Pruning (Top-K Filter)
+        # Prune unlikely states based on simple heuristics before Quantum
+        # (This avoids creating superpositions for obviously wrong states)
+        candidate_states = self._prune_states(telemetry)
+
+        # 3. Causal observation
         self.causal.observe(telemetry)
 
-        # 2. HD encoding
+        # 4. HD encoding
         self.hd.store(f"state_{time.time()}", telemetry)
         similar = self.hd.query(telemetry, top_k=3)
 
-        # 3. Quantum task scheduling
+        # 5. Quantum task scheduling
         task = self.quantum.create_superposition(
             f"task_{time.time()}",
-            ["boost", "throttle", "migrate", "idle"]
+            candidate_states
         )
         self.quantum.interference(task.task_id, telemetry)
         action = self.quantum.measure(task.task_id)
 
-        # 4. Spike-based resource allocation
-        allocation = self.spiking.allocate_resources({
-            "cpu": telemetry.get("cpu_util", 0.5),
-            "gpu": telemetry.get("gpu_util", 0.5),
-            "npu": telemetry.get("npu_util", 0.3),
-        })
+        # 6. Incremental Spike-based resource allocation
+        allocation = self._incremental_allocation(telemetry)
 
-        return {
+        result = {
             "action": action,
             "allocation": allocation,
             "similar_states": similar,
@@ -949,6 +963,59 @@ class InventionEngine:
                 "hyperdimensional": "holographic_memory",
             }
         }
+        
+        # Update Cache
+        self._result_cache[cache_key] = result
+        return result
+
+    def _compute_cache_key(self, telemetry: Dict[str, float]) -> int:
+        """Create robust hash of telemetry state."""
+        # Round to 1 decimal place to allow for slight variations
+        return hash(tuple(sorted((k, round(v, 1)) for k, v in telemetry.items())))
+
+    def _prune_states(self, telemetry: Dict[str, float]) -> List[str]:
+        """Top-K pruning of candidate states."""
+        states = ["boost", "throttle", "migrate", "idle"]
+        cpu = telemetry.get("cpu_util", 0.5)
+        
+        # Heuristic pruning
+        if cpu > 0.8:
+            if "idle" in states: states.remove("idle")
+        if cpu < 0.2:
+            if "boost" in states: states.remove("boost")
+            if "throttle" in states: states.remove("throttle")
+            
+        return states
+
+    def _incremental_allocation(self, telemetry: Dict[str, float]) -> Dict[str, float]:
+        """Incremental update for resource allocation."""
+        demands = {
+            "cpu": telemetry.get("cpu_util", 0.5),
+            "gpu": telemetry.get("gpu_util", 0.5),
+            "npu": telemetry.get("npu_util", 0.3),
+        }
+
+        # Check delta
+        if self._last_allocation and self._is_delta_small(demands):
+            return self._last_allocation
+
+        # Run full simulation if delta is large
+        allocation = self.spiking.allocate_resources(demands)
+        
+        self._last_allocation = allocation
+        self._last_demands = demands
+        return allocation
+
+    def _is_delta_small(self, current_demands: Dict[str, float], threshold: float = 0.05) -> bool:
+        """Check if demands have changed significantly."""
+        if not self._last_demands:
+            return False
+            
+        delta = 0.0
+        for k, v in current_demands.items():
+            delta += abs(v - self._last_demands.get(k, 0.0))
+            
+        return delta < threshold
 
 
 # Factory

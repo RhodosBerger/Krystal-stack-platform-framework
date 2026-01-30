@@ -1,0 +1,1 @@
+@tailwind base;@tailwind components;@tailwind utilities;body{background-color:#0f172a;color:#fff}@layer utilities{.glass-panel{@apply backdrop-blur-md bg-industrial-surface/80 border border-industrial-border;}.neuro-text{@apply font-mono uppercase tracking-widest text-xs;}}

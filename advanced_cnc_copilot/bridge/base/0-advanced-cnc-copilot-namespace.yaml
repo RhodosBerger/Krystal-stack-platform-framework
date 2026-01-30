@@ -1,0 +1,8 @@
+#! 0-advanced-cnc-copilot-namespace.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: advanced-cnc-copilot
+    labels:
+        com.docker.compose.project: advanced_cnc_copilot

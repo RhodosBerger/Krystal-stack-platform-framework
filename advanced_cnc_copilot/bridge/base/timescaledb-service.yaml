@@ -1,0 +1,19 @@
+#! timescaledb-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: timescaledb-published
+    namespace: advanced-cnc-copilot
+    labels:
+        com.docker.compose.project: advanced_cnc_copilot
+        com.docker.compose.service: timescaledb
+spec:
+    selector:
+        com.docker.compose.project: advanced_cnc_copilot
+        com.docker.compose.service: timescaledb
+    ports:
+        - name: timescaled-5432
+          port: 5432
+          protocol: TCP
+          targetPort: timescaled-5432

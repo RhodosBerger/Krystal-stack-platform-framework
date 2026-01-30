@@ -1,0 +1,57 @@
+# Custom rules for FANUC RISE system
+groups:
+- name: rise_alerts
+  rules:
+  - alert: HighCortisolLevel
+    expr: neuro_cortisol_level > 0.8
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High stress level detected in CNC system"
+      description: "Cortisol level is above 0.8 indicating potential safety issues on machine {{ $labels.instance }}"
+      
+  - alert: LowDopamineLevel
+    expr: neuro_dopamine_level < 0.2
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Low reward level detected in CNC system"
+      description: "Dopamine level is below 0.2 indicating suboptimal performance on machine {{ $labels.instance }}"
+      
+  - alert: ToolWearCritical
+    expr: tool_wear_percentage > 90
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Tool wear critical"
+      description: "Tool wear has exceeded 90% on machine {{ $labels.instance }}"
+      
+  - alert: ThermalRunaway
+    expr: temperature_celsius > 75
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Thermal runaway detected"
+      description: "Temperature has exceeded 75°C on machine {{ $labels.instance }}"
+      
+  - alert: HighVibration
+    expr: max_vibration_level > 2.0
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "High vibration detected"
+      description: "Vibration level has exceeded 2.0 on machine {{ $labels.instance }}"
+      
+  - alert: ProfitRateDecline
+    expr: (profit_rate_per_hour offset 5m) - profit_rate_per_hour > 50
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Significant profit rate decline"
+      description: "Profit rate has declined by more than $50/hr in the last 5 minutes on machine {{ $labels.instance }}"

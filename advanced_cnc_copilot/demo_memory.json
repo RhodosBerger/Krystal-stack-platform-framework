@@ -1,0 +1,102 @@
+[
+  {
+    "timestamp": 1769168933.0744355,
+    "material": "Inconel718",
+    "rpm": 3000,
+    "feed": 500,
+    "action_taken": "ACTION_STANDARD_MODE",
+    "outcome_cortisol": 85.0,
+    "outcome_dopamine": 10.0,
+    "notes": "Chatter event 0"
+  },
+  {
+    "timestamp": 1769168933.0749197,
+    "material": "Inconel718",
+    "rpm": 3000,
+    "feed": 500,
+    "action_taken": "ACTION_STANDARD_MODE",
+    "outcome_cortisol": 85.0,
+    "outcome_dopamine": 10.0,
+    "notes": "Chatter event 1"
+  },
+  {
+    "timestamp": 1769168933.0752692,
+    "material": "Inconel718",
+    "rpm": 3000,
+    "feed": 500,
+    "action_taken": "ACTION_STANDARD_MODE",
+    "outcome_cortisol": 85.0,
+    "outcome_dopamine": 10.0,
+    "notes": "Chatter event 2"
+  },
+  {
+    "timestamp": 1769168933.075634,
+    "material": "Inconel718",
+    "rpm": 3000,
+    "feed": 500,
+    "action_taken": "ACTION_STANDARD_MODE",
+    "outcome_cortisol": 85.0,
+    "outcome_dopamine": 10.0,
+    "notes": "Chatter event 3"
+  },
+  {
+    "timestamp": 1769168933.0759377,
+    "material": "Inconel718",
+    "rpm": 3000,
+    "feed": 500,
+    "action_taken": "ACTION_STANDARD_MODE",
+    "outcome_cortisol": 85.0,
+    "outcome_dopamine": 10.0,
+    "notes": "Chatter event 4"
+  },
+  {
+    "timestamp": 1769168933.0763993,
+    "material": "Aluminum6061",
+    "rpm": 12000,
+    "feed": 4000,
+    "action_taken": "ACTION_RUSH_MODE",
+    "outcome_cortisol": 5.0,
+    "outcome_dopamine": 90.0,
+    "notes": "Smooth cutting"
+  },
+  {
+    "timestamp": 1769168933.0767276,
+    "material": "Aluminum6061",
+    "rpm": 12000,
+    "feed": 4000,
+    "action_taken": "ACTION_RUSH_MODE",
+    "outcome_cortisol": 5.0,
+    "outcome_dopamine": 90.0,
+    "notes": "Smooth cutting"
+  },
+  {
+    "timestamp": 1769168933.0770998,
+    "material": "Aluminum6061",
+    "rpm": 12000,
+    "feed": 4000,
+    "action_taken": "ACTION_RUSH_MODE",
+    "outcome_cortisol": 5.0,
+    "outcome_dopamine": 90.0,
+    "notes": "Smooth cutting"
+  },
+  {
+    "timestamp": 1769168933.0774732,
+    "material": "Aluminum6061",
+    "rpm": 12000,
+    "feed": 4000,
+    "action_taken": "ACTION_RUSH_MODE",
+    "outcome_cortisol": 5.0,
+    "outcome_dopamine": 90.0,
+    "notes": "Smooth cutting"
+  },
+  {
+    "timestamp": 1769168933.0778444,
+    "material": "Aluminum6061",
+    "rpm": 12000,
+    "feed": 4000,
+    "action_taken": "ACTION_RUSH_MODE",
+    "outcome_cortisol": 5.0,
+    "outcome_dopamine": 90.0,
+    "notes": "Smooth cutting"
+  }
+]

@@ -1,0 +1,144 @@
+{
+  "system_fingerprint": "HWFP_EE4F83B5DC8C",
+  "constants": [
+    {
+      "name": "thread_efficiency_factor",
+      "value": 0.95,
+      "description": "Efficiency factor for multithreading operations",
+      "min_value": 0.1,
+      "max_value": 1.0,
+      "unit": "ratio",
+      "category": "multithreading",
+      "priority": 1
+    },
+    {
+      "name": "cpu_thermal_scaling_factor",
+      "value": 0.95,
+      "description": "Scaling factor for CPU thermal management",
+      "min_value": 0.5,
+      "max_value": 1.0,
+      "unit": "ratio",
+      "category": "thermal",
+      "priority": 1
+    },
+    {
+      "name": "memory_bandwidth_efficiency",
+      "value": 0.78,
+      "description": "Efficiency of memory bandwidth utilization",
+      "min_value": 0.1,
+      "max_value": 1.0,
+      "unit": "ratio",
+      "category": "memory",
+      "priority": 1
+    },
+    {
+      "name": "gpu_compute_efficiency",
+      "value": 0.88,
+      "description": "Efficiency of GPU compute operations",
+      "min_value": 0.1,
+      "max_value": 1.0,
+      "unit": "ratio",
+      "category": "gpu",
+      "priority": 1
+    },
+    {
+      "name": "task_scheduling_overhead",
+      "value": 0.02,
+      "description": "Overhead for task scheduling operations",
+      "min_value": 0.0,
+      "max_value": 0.1,
+      "unit": "ratio",
+      "category": "scheduling",
+      "priority": 2
+    },
+    {
+      "name": "batch_processing_efficiency",
+      "value": 0.92,
+      "description": "Efficiency gain from batch processing",
+      "min_value": 0.1,
+      "max_value": 1.0,
+      "unit": "ratio",
+      "category": "processing",
+      "priority": 1
+    },
+    {
+      "name": "cpu_power_efficiency",
+      "value": 0.85,
+      "description": "Power efficiency factor for CPU operations",
+      "min_value": 0.1,
+      "max_value": 1.0,
+      "unit": "ratio",
+      "category": "power",
+      "priority": 1
+    },
+    {
+      "name": "memory_allocation_efficiency",
+      "value": 0.9,
+      "description": "Efficiency of memory allocation algorithms",
+      "min_value": 0.1,
+      "max_value": 1.0,
+      "unit": "ratio",
+      "category": "memory",
+      "priority": 1
+    }
+  ],
+  "heuristics": [
+    {
+      "name": "high_cpu_thermal_protection",
+      "description": "Reduce CPU frequency when thermal limits approached",
+      "condition": "cpu_usage > 85 and thermal_headroom < 15",
+      "action": "reduce_cpu_frequency_by_20_percent",
+      "confidence": 0.92,
+      "effectiveness": 0.88,
+      "last_updated": 1767025738.2626922
+    },
+    {
+      "name": "memory_pressure_management",
+      "description": "Reduce memory allocation when pressure detected",
+      "condition": "memory_usage > 90",
+      "action": "reduce_memory_allocation_by_30_percent",
+      "confidence": 0.88,
+      "effectiveness": 0.85,
+      "last_updated": 1767025738.262694
+    },
+    {
+      "name": "gpu_overutilization_protection",
+      "description": "Throttle GPU when overutilized",
+      "condition": "gpu_usage > 95",
+      "action": "reduce_gpu_workload_by_25_percent",
+      "confidence": 0.9,
+      "effectiveness": 0.87,
+      "last_updated": 1767025738.2626946
+    },
+    {
+      "name": "multithreading_optimization",
+      "description": "Optimize thread count based on workload",
+      "condition": "active_threads > 16 and cpu_usage < 70",
+      "action": "reduce_thread_count_by_25_percent",
+      "confidence": 0.85,
+      "effectiveness": 0.82,
+      "last_updated": 1767025738.2626953
+    },
+    {
+      "name": "power_efficient_scheduling",
+      "description": "Use power-efficient scheduling when possible",
+      "condition": "power_consumption < 50 and performance_score > 0.8",
+      "action": "switch_to_power_efficient_mode",
+      "confidence": 0.8,
+      "effectiveness": 0.78,
+      "last_updated": 1767025738.2626958
+    },
+    {
+      "name": "performance_boost_on_low_load",
+      "description": "Boost performance when system load is low",
+      "condition": "cpu_usage < 30 and memory_usage < 50",
+      "action": "increase_performance_mode",
+      "confidence": 0.87,
+      "effectiveness": 0.84,
+      "last_updated": 1767025738.2626963
+    }
+  ],
+  "recent_metrics_count": 3,
+  "recent_presets_count": 3,
+  "last_updated": 1767025738.2761898
+}

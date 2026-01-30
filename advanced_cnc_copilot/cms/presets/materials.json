@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Aluminum 6061-T6",
+    "category": "Metal",
+    "density": "2.70 g/cm³",
+    "hardness": "95 HB",
+    "machinability": "Excellent"
+  },
+  {
+    "name": "Titanium Grade 5",
+    "category": "Metal",
+    "density": "4.43 g/cm³",
+    "hardness": "36 HRC",
+    "machinability": "Fair"
+  },
+  {
+    "name": "Inconel 718",
+    "category": "Superalloy",
+    "density": "8.19 g/cm³",
+    "hardness": "40 HRC",
+    "machinability": "Difficult"
+  },
+  {
+    "name": "PEEK (Medical)",
+    "category": "Polymer",
+    "density": "1.32 g/cm³",
+    "hardness": "85 Shore D",
+    "machinability": "Good"
+  }
+]

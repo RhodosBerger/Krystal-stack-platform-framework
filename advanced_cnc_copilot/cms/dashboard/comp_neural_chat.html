@@ -1,0 +1,139 @@
+<div class="card shadow mb-4" id="neural-chat-panel">
+    <div
+        class="card-header py-3 bg-gradient-primary text-white d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold">
+            <i class="fas fa-brain"></i> Neural Assistant
+        </h6>
+        <span class="badge badge-light text-primary">v2.1 Online</span>
+    </div>
+    <div class="card-body p-0">
+        <!-- Chat History -->
+        <div id="chat-history" class="p-3" style="height: 300px; overflow-y: auto; background-color: #f8f9fc;">
+            <div class="chat-message bot mb-2">
+                <small class="text-xs font-weight-bold text-primary">System</small>
+                <div class="p-2 rounded bg-white shadow-sm border-left-primary">
+                    Hello! I am your Mechanical Copilot. Ask me to "Analyze Stress" or "optimize for 5-axis".
+                </div>
+            </div>
+            <!-- Dynamic messages go here -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-group p-2 border-top bg-white">
+            <input type="text" id="chat-input" class="form-control bg-light border-0 small"
+                placeholder="Type your intent..." aria-label="Search" aria-describedby="basic-addon2"
+                onkeypress="handleEnter(event)">
+            <div class="input-group-append">
+                <button class="btn btn-warning" type="button" onclick="triggerRemoteSim()" title="Trigger Blender Sim">
+                    <i class="fas fa-bolt fa-sm"></i>
+                </button>
+            </div>
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" onclick="sendIntent()">
+                    <i class="fas fa-paper-plane fa-sm"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function handleEnter(e) {
+        if (e.key === 'Enter') sendIntent();
+    }
+
+    function triggerRemoteSim() {
+        const ws = new WebSocket("ws://localhost:8000/ws/live_link");
+        ws.onopen = () => {
+            ws.send(JSON.stringify({
+                "type": "TRIGGER_SIMULATION",
+                "payload": { "force": 1000 }
+            }));
+            addMessage('System', 'Triggering Remote Blender Simulation...', 'bot');
+        };
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'SIMULATION_RESULT') {
+                addMessage('Simulation Agent', `Result Recieved: SF ${data.data.safety_factor}`, 'bot');
+                ws.close();
+            }
+        };
+    }
+
+    const LEXICON_DEFINITIONS = {
+        "mill_face": "Z-depth facing (zig-zag). params: x_start, y_start, x_end, y_end, z_depth",
+        "drill_circle": "Pecking drill cycle. params: x, y, z_depth, peck",
+        "rapid_to": "Safe move. params: x, y, z"
+    };
+
+    function sendIntent() {
+        const input = document.getElementById('chat-input');
+        const text = input.value;
+        if (!text) return;
+
+        // Add User Message
+        addMessage('User', text, 'user');
+        input.value = '';
+
+        // Mock Response
+        setTimeout(() => {
+            if (text.toLowerCase().includes("help") || text.toLowerCase().includes("lexicon")) {
+                let hint = "<b>Available Semantic Primitives:</b><br>";
+                for (const [key, val] of Object.entries(LEXICON_DEFINITIONS)) {
+                    hint += `<code>${key}</code>: ${val}<br>`;
+                }
+                addMessage('Copilot', hint, 'bot');
+                return;
+            }
+
+            const mockResponses = {
+                "stress": "Parsing geometry... Finding high-stress zones on fillets.",
+                "cost": "Estimated run time: 4m 30s. Material Cost: $12.50.",
+                "gcode": "Generating G-Code using Lexicon Primitives...",
+                "program": "Semantic Program Compiled: [Mill_Face -> Drill_Circle -> Rapid_Home]"
+            };
+
+            let reply = "I'm processing your request via the Neural Voxelizer...";
+            for (const key in mockResponses) {
+                if (text.toLowerCase().includes(key)) reply = mockResponses[key];
+            }
+
+            addMessage('Copilot', reply, 'bot');
+        }, 800);
+    }
+
+    function addMessage(sender, text, type) {
+        const history = document.getElementById('chat-history');
+        const colorClass = type === 'user' ? 'border-left-success' : 'border-left-primary';
+        const alignClass = type === 'user' ? 'text-right' : 'text-left';
+
+        const html = `
+            <div class="chat-message ${type} mb-2 ${alignClass}">
+                <small class="text-xs font-weight-bold text-gray-500">${sender}</small>
+                <div class="p-2 rounded bg-white shadow-sm ${colorClass} d-inline-block text-left">
+                    ${text}
+                </div>
+            </div>
+        `;
+        history.insertAdjacentHTML('beforeend', html);
+        history.scrollTop = history.scrollHeight;
+    }
+
+    // Smart Trigger: AltGr (Right Alt) Toggles Visibility
+    document.addEventListener('keydown', function (event) {
+        if (event.code === 'AltRight') {
+            event.preventDefault(); // Prevent browser default
+            const panel = document.getElementById('neural-chat-panel');
+            if (panel) {
+                if (panel.style.display === 'none') {
+                    panel.style.display = 'block';
+                    document.getElementById('chat-input').focus();
+                    console.log("Neural Chat: OPEN via AltGr");
+                } else {
+                    panel.style.display = 'none';
+                    console.log("Neural Chat: CLOSED via AltGr");
+                }
+            }
+        }
+    });
+</script>

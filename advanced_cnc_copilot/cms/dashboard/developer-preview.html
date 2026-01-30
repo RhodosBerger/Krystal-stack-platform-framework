@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNC Copilot - Developer Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(180deg, rgba(15, 12, 41, 0.9) 0%, rgba(36, 36, 62, 0.5) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+
+        .version-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            border-radius: 20px;
+            margin: 10px;
+            font-size: 0.9rem;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            padding: 12px 30px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-btn:hover {
+            background: rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 80px;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.5);
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .feature-desc {
+            opacity: 0.8;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .feature-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .tag {
+            padding: 4px 12px;
+            background: rgba(118, 75, 162, 0.3);
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #667eea;
+        }
+
+        .stat-label {
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 40px 0;
+        }
+
+        .layer {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .layer-title {
+            font-size: 1.3rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .layer-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .layer-item {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        /* Quick Links */
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .link-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s;
+            display: block;
+        }
+
+        .link-card:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateX(5px);
+        }
+
+        .link-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .link-title {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .link-url {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            font-family: monospace;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 80px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero -->
+    <div class="hero">
+        <h1>🚀 CNC Copilot Platform</h1>
+        <p>AI-Powered Manufacturing Intelligence & Automation</p>
+        <div>
+            <span class="version-badge">🔬 Developer Preview</span>
+            <span class="version-badge">📅 January 2026</span>
+            <span class="version-badge">⚡ Phase 44 Complete</span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <a href="#features" class="nav-btn">Features</a>
+        <a href="#architecture" class="nav-btn">Architecture</a>
+        <a href="#apis" class="nav-btn">APIs</a>
+        <a href="#links" class="nav-btn">Quick Links</a>
+    </div>
+
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">500+</div>
+                <div class="stat-label">Files Created</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">15+</div>
+                <div class="stat-label">Core Modules</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Frameworks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">API Endpoints</div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div id="features" class="section">
+            <h2 class="section-title">🎯 Core Features</h2>
+
+            <div class="feature-grid">
+                <!-- AI Brain -->
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3 class="feature-title">AI Cognitive Engine</h3>
+                    <p class="feature-desc">
+                        Dopamine-based reward system, Impact Cortex for decision making, and signaling system for safety
+                        alerts.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">Dopamine Engine</span>
+                        <span class="tag">Impact Cortex</span>
+                        <span class="tag">Signaling</span>
+                    </div>
+                </div>
+
+                <!-- Real-time Telemetry -->
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Real-time Telemetry</h3>
+                    <p class="feature-desc">
+                        Live machine monitoring with WebSocket streaming, historical data analysis, and predictive
+                        maintenance.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">WebSocket</span>
+                        <span class="tag">Time-series</span>
+                        <span class="tag">Analytics</span>
+                    </div>
+                </div>
+
+                <!-- Dashboard Builder -->
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3 class="feature-title">Visual Dashboard Builder</h3>
+                    <p class="feature-desc">
+                        Drag-and-drop dashboard creation with predefined components, templates, and real-time data
+                        binding.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">Drag-Drop</span>
+                        <span class="tag">Templates</span>
+                        <span class="tag">JSON Config</span>
+                    </div>
+                </div>
+
+                <!-- JSON Config System -->
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3 class="feature-title">JSON Configuration Management</h3>
+                    <p class="feature-desc">
+                        Complete configuration management with versioning, rollback, deployment tracking, and audit
+                        logs.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">Versioning</span>
+                        <span class="tag">Audit Trail</span>
+                        <span class="tag">Deployment</span>
+                    </div>
+                </div>
+
+                <!-- Component Inspector -->
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3 class="feature-title">Code Inspection Engine</h3>
+                    <p class="feature-desc">
+                        Field-of-view analyzer that scans code, extracts patterns, and generates reusable component
+                        templates.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">Pattern Recognition</span>
+                        <span class="tag">Auto-generation</span>
+                        <span class="tag">Reusability</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Forms -->
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3 class="feature-title">Dynamic Forms System</h3>
+                    <p class="feature-desc">
+                        JSON-driven form generation with validation, conditional logic, and LLM-powered suggestions.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">JSON Schema</span>
+                        <span class="tag">Validation</span>
+                        <span class="tag">LLM Integration</span>
+                    </div>
+                </div>
+
+                <!-- OEE Tracking -->
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3 class="feature-title">OEE & Analytics</h3>
+                    <p class="feature-desc">
+                        Overall Equipment Effectiveness tracking with availability, performance, and quality metrics.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">OEE Calculator</span>
+                        <span class="tag">SPC Charts</span>
+                        <span class="tag">Reports</span>
+                    </div>
+                </div>
+
+                <!-- Economics -->
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3 class="feature-title">Economics & Costing</h3>
+                    <p class="feature-desc">
+                        Automated cost calculation per job, part, and operation with savings analysis.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">Cost Tracking</span>
+                        <span class="tag">ROI Analysis</span>
+                        <span class="tag">Savings</span>
+                    </div>
+                </div>
+
+                <!-- Tool Management -->
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3 class="feature-title">Tool Life Management</h3>
+                    <p class="feature-desc">
+                        Track tool usage, predict wear, and automate replacement scheduling.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">Life Tracking</span>
+                        <span class="tag">Predictions</span>
+                        <span class="tag">Alerts</span>
+                    </div>
+                </div>
+
+                <!-- Quality -->
+                <div class="feature-card">
+                    <div class="feature-icon">✓</div>
+                    <h3 class="feature-title">Quality Inspection</h3>
+                    <p class="feature-desc">
+                        Digital inspection reports with AI-powered root cause analysis and corrective actions.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">Inspections</span>
+                        <span class="tag">SPC</span>
+                        <span class="tag">Root Cause</span>
+                    </div>
+                </div>
+
+                <!-- SolidWorks Integration -->
+                <div class="feature-card">
+                    <div class="feature-icon">📐</div>
+                    <h3 class="feature-title">SolidWorks Integration</h3>
+                    <p class="feature-desc">
+                        CAD workflow mapping to UI components with dimension-driven operations.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">CAD Bridge</span>
+                        <span class="tag">Workflows</span>
+                        <span class="tag">Auto-docs</span>
+                    </div>
+                </div>
+
+                <!-- Multi-tenant -->
+                <div class="feature-card">
+                    <div class="feature-icon">🏢</div>
+                    <h3 class="feature-title">Multi-tenant Platform</h3>
+                    <p class="feature-desc">
+                        Organization-based isolation with role-based access control and permissions.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">Organizations</span>
+                        <span class="tag">RBAC</span>
+                        <span class="tag">Isolation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture -->
+        <div id="architecture" class="section">
+            <h2 class="section-title">🏗️ System Architecture</h2>
+
+            <div class="architecture">
+                <div class="layer">
+                    <div class="layer-title">🎨 Presentation Layer</div>
+                    <div class="layer-items">
+                        <span class="layer-item">Dashboard Builder</span>
+                        <span class="layer-item">Dynamic Forms</span>
+                        <span class="layer-item">Component Inspector UI</span>
+                        <span class="layer-item">Analytics Dashboards</span>
+                    </div>
+                </div>
+
+                <div class="layer">
+                    <div class="layer-title">🌐 API Gateway</div>
+                    <div class="layer-items">
+                        <span class="layer-item">Django REST Framework</span>
+                        <span class="layer-item">Flask Microservices</span>
+                        <span class="layer-item">WebSocket Server</span>
+                        <span class="layer-item">JSON Config API</span>
+                    </div>
+                </div>
+
+                <div class="layer">
+                    <div class="layer-title">⚙️ Business Logic</div>
+                    <div class="layer-items">
+                        <span class="layer-item">Dopamine Engine</span>
+                        <span class="layer-item">Impact Cortex</span>
+                        <span class="layer-item">OEE Calculator</span>
+                        <span class="layer-item">Economics Engine</span>
+                        <span class="layer-item">Pattern Matcher</span>
+                    </div>
+                </div>
+
+                <div class="layer">
+                    <div class="layer-title">💾 Data Access</div>
+                    <div class="layer-items">
+                        <span class="layer-item">Django ORM</span>
+                        <span class="layer-item">Repository Pattern</span>
+                        <span class="layer-item">Time-series DB</span>
+                        <span class="layer-item">Config Registry</span>
+                    </div>
+                </div>
+
+                <div class="layer">
+                    <div class="layer-title">🔌 Integration Layer</div>
+                    <div class="layer-items">
+                        <span class="layer-item">HAL Adapters</span>
+                        <span class="layer-item">Fanuc FOCAS</span>
+                        <span class="layer-item">SolidWorks API</span>
+                        <span class="layer-item">LLM Integration</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- APIs -->
+        <div id="apis" class="section">
+            <h2 class="section-title">🔗 API Endpoints</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🤖 Django ERP API</h4>
+                    <p class="feature-desc">http://localhost:8000/api/</p>
+                    <ul style="opacity: 0.8; margin-top: 10px; line-height: 1.8;">
+                        <li>/machines/ - Machine CRUD</li>
+                        <li>/projects/ - Project management</li>
+                        <li>/tools/ - Tool tracking</li>
+                        <li>/jobs/ - Job scheduling</li>
+                        <li>/analytics/dashboard/ - Analytics</li>
+                        <li>/json-configs/ - Configuration API</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>⚡ Flask Microservice</h4>
+                    <p class="feature-desc">http://localhost:5000/api/</p>
+                    <ul style="opacity: 0.8; margin-top: 10px; line-height: 1.8;">
+                        <li>/telemetry/current - Real-time data</li>
+                        <li>/dopamine/evaluate - AI rewards</li>
+                        <li>/signals/check - Safety signals</li>
+                        <li>ws://localhost:5000 - WebSocket</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>🧩 Component Builder</h4>
+                    <p class="feature-desc">Python API</p>
+                    <ul style="opacity: 0.8; margin-top: 10px; line-height: 1.8;">
+                        <li>FieldOfViewAnalyzer - Code scanning</li>
+                        <li>ComponentInspector - Pattern extraction</li>
+                        <li>PatternMatcher - Suggestions</li>
+                        <li>JSONConfigManager - Config management</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div id="links" class="section">
+            <h2 class="section-title">🔗 Quick Links</h2>
+
+            <div class="quick-links">
+                <a href="/cms/dashboard/index.html" class="link-card">
+                    <div class="link-icon">📊</div>
+                    <div class="link-title">Main Dashboard</div>
+                    <div class="link-url">/cms/dashboard/index.html</div>
+                </a>
+
+                <a href="/cms/dashboard/dashboard-builder.html" class="link-card">
+                    <div class="link-icon">🎨</div>
+                    <div class="link-title">Dashboard Builder</div>
+                    <div class="link-url">/cms/dashboard/dashboard-builder.html</div>
+                </a>
+
+                <a href="/cms/dashboard/hub.html" class="link-card">
+                    <div class="link-icon">🏠</div>
+                    <div class="link-title">Portal Hub</div>
+                    <div class="link-url">/cms/dashboard/hub.html</div>
+                </a>
+
+                <a href="/cms/dashboard/lab.html" class="link-card">
+                    <div class="link-icon">🔬</div>
+                    <div class="link-title">Lab & Prototypes</div>
+                    <div class="link-url">/cms/dashboard/lab.html</div>
+                </a>
+
+                <a href="/cms/dashboard/docs.html" class="link-card">
+                    <div class="link-icon">📚</div>
+                    <div class="link-title">Documentation</div>
+                    <div class="link-url">/cms/dashboard/docs.html</div>
+                </a>
+
+                <a href="/admin/" class="link-card">
+                    <div class="link-icon">⚙️</div>
+                    <div class="link-title">Django Admin</div>
+                    <div class="link-url">http://localhost:8000/admin/</div>
+                </a>
+
+                <a href="/api/" class="link-card">
+                    <div class="link-icon">🔌</div>
+                    <div class="link-title">API Documentation</div>
+                    <div class="link-url">http://localhost:8000/api/</div>
+                </a>
+
+                <a href="https://github.com" class="link-card">
+                    <div class="link-icon">📁</div>
+                    <div class="link-title">Source Code</div>
+                    <div class="link-url">GitHub Repository</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p style="opacity: 0.7;">🚀 CNC Copilot Platform - Developer Preview</p>
+        <p style="opacity: 0.5; margin-top: 10px;">Built with Django, Flask, and Modern Web Technologies</p>
+    </div>
+
+    <script>
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Animate stats on scroll
+        const stats = document.querySelectorAll('.stat-number');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const target = entry.target;
+                    const value = parseInt(target.textContent);
+                    animateValue(target, 0, value, 1500);
+                    observer.unobserve(target);
+                }
+            });
+        });
+
+        stats.forEach(stat => observer.observe(stat));
+
+        function animateValue(element, start, end, duration) {
+            const startTime = performance.now();
+            const update = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const current = Math.floor(progress * (end - start) + start);
+                element.textContent = current + (element.textContent.includes('+') ? '+' : '');
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            };
+            requestAnimationFrame(update);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fanuc Rise | Innovation Lab</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .lab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+            height: 90vh;
+            padding: 40px;
+        }
+
+        .concept-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed var(--neon-purple);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .concept-title {
+            color: var(--neon-purple);
+            font-family: var(--fn-mono);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            display: inline-block;
+            border-radius: 4px;
+        }
+
+        /* abstract viz */
+        .viz-box {
+            width: 100%;
+            height: 80%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Concept 1: Harmonic Sphere */
+        .sphere {
+            width: 150px;
+            height: 150px;
+            border: 1px solid var(--neon-blue);
+            border-radius: 50%;
+            animation: sphere-spin 10s infinite linear;
+            position: relative;
+        }
+
+        .sphere::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 1px solid var(--neon-red);
+            border-radius: 50%;
+            transform: rotateX(60deg);
+        }
+
+        .sphere::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 1px solid var(--neon-green);
+            border-radius: 50%;
+            transform: rotateY(60deg);
+        }
+
+        @keyframes sphere-spin {
+            from {
+                transform: rotate(0deg) rotateX(0deg);
+            }
+
+            to {
+                transform: rotate(360deg) rotateX(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glass-container">
+        <header class="dashboard-header">
+            <div class="logo">
+                <h1><a href="hub.html" style="text-decoration:none; color:white;">← PROJECT LAB</a></h1>
+            </div>
+            <div class="status-badge" style="border-color: var(--neon-purple); color: var(--neon-purple);">EXPERIMENTAL
+            </div>
+        </header>
+
+        <div class="lab-grid">
+            <!-- 1. MULTIDIMENSIONAL HARMONICS -->
+            <div class="concept-card">
+                <div class="concept-title">Concept A: Harmonic Topology</div>
+                <div class="viz-box">
+                    <div class="sphere"></div>
+                </div>
+                <p style="font-size: 0.8rem; color: #999;">
+                    Visualizing 5-Axis toolpaths not as lines, but as <strong>Harmonic Frequencies</strong>.
+                    A smooth sphere = perfect surface finish. Spikes = Chatter.
+                </p>
+            </div>
+
+            <!-- 2. DATA MANIPULATION TERMINAL -->
+            <div class="concept-card">
+                <div class="concept-title">Concept B: Gen-AI Script Injection</div>
+                <div class="console-box" style="height: 80%; margin-top: 10px;">
+                    > INJECTING: "Optimize_Feed.py"<br>
+                    > TARGET: Global_Var "D1"<br>
+                    > ANALYSIS: Stress reduced by 15%<br>
+                    > <span style="color:var(--neon-green)">SUCCESS</span><br>
+                    > ...<br>
+                    > AWAITING PROMPT...
+                </div>
+                <p style="font-size: 0.8rem; color: #999;">
+                    Direct LLM-to-Kernel interface. Writing code that rewrites the machine's behavior in real-time.
+                </p>
+            </div>
+
+            <!-- 3. ECONOMIC PREDICTION -->
+            <div class="concept-card">
+                <div class="concept-title">Concept C: The Ledger</div>
+                <div class="viz-box" style="flex-direction: column; align-items: flex-start;">
+                    <h1 style="font-size: 3rem; color: var(--neon-green); margin: 0;">$428.50</h1>
+                    <span style="color: #666;">PROJECTED PROFIT (NEXT HOUR)</span>
+                    <div class="bar-container" style="width: 100%; margin-top: 20px;">
+                        <div class="bar" style="width: 85%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. FUTURE -->
+            <div class="concept-card" style="display: flex; justify-content: center; align-items: center;">
+                <h2 style="color: rgba(255,255,255,0.1);">[REDACTED PROTOTYPE]</h2>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
