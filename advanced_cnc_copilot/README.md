@@ -139,6 +139,112 @@ A three-agent system ensuring safe AI integration:
 - Interface topology approach for connecting disparate systems
 - Nightmare Training for offline learning through simulation
 
+
+## Documentation Set (Complete)
+
+- `README.md`: project entrypoint, setup, and quickstart.
+- `SYSTEM_ARCHITECTURE.md`: architecture and data-flow map.
+- `FEATURE_IMPLEMENTATION_BLUEPRINT.md`: roadmap-driven delivery blueprint.
+- `docs/TECHNICAL_REFERENCE.md`: production-style technical contracts, NFRs, safety and release criteria.
+- `docs/DEVELOPER_EDITING_GUIDE.md`: safe code editing workflow and PR checklist.
+- `docs/METHODOLOGY_OF_ANALOGY.md`: analogy methodics and validation protocol.
+- `docs/CODER_LEXICON.md`: canonical project vocabulary for consistent implementation language.
+- `docs/COMPONENT_COMPLETION_REPORT.md`: evidence-based status of what is done vs in progress.
+- `docs/NEXT_WEEK_DEVELOPMENT_PLAN.md`: concrete next-week implementation commitments.
+- `docs/MONETIZATION_ARTICLE_PRODUCTIZED_AI_CNC.md`: monetization strategy for product tiers and outcome-based pricing.
+- `docs/MONETIZATION_ARTICLE_SERVICES_AND_ECOSYSTEM.md`: services/ecosystem-led commercialization strategy.
+
+## Delivery Blueprint (Roadmap -> Execution)
+
+- **Feature execution plan**: `FEATURE_IMPLEMENTATION_BLUEPRINT.md` (maps roadmap docs into tracks, sprints, DoD, and acceptance criteria).
+- **Bootstrap + dependency audit script**: `tools/bootstrap_and_audit.sh` (creates Python env, installs dependencies across workspaces, runs quick diagnostics).
+
+## Dependency Bootstrap & Environment Debugging
+
+To avoid mixed environments, use one Python environment and install frontend dependencies per app folder.
+
+### 1) Python backend environment
+```bash
+cd advanced_cnc_copilot
+python -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install -r flask_service/requirements.txt
+```
+
+If you prefer conda:
+```bash
+conda env create -f environment.yml
+conda activate fanuc-rise
+```
+
+### 2) Frontend dependencies
+```bash
+cd advanced_cnc_copilot/frontend-react && npm install
+cd ../frontend-vue && npm install
+```
+
+### 3) Quick dependency diagnostics
+```bash
+python --version
+pip check
+npm --version
+npm ls --depth=0
+```
+
+### 4) Runtime connectivity checks
+```bash
+# API health
+curl -s http://localhost:8000/api/health
+
+# Dashboard websocket (machine-scoped)
+# ws://localhost:8000/ws/telemetry/CNC-001
+```
+
+If machine-scoped telemetry is unavailable in your current backend mode, the dashboard now falls back to the global stream endpoint (`/ws/telemetry`).
+
+## How to Train the LLM with the Simulator (Practical Loop)
+
+Use this loop to improve planning quality without risking hardware:
+
+1. **Generate scenario batches**
+   - Use simulator variants (normal, chatter, thermal drift, spindle stall) to create trajectories.
+   - Save each run as `{input_intent, telemetry_trace, action_trace, outcome, safety_flags}`.
+
+2. **Build supervised preference data**
+   - For each scenario, keep:
+     - `creator_proposal` (candidate plan)
+     - `auditor_verdict` (pass/fail + rule trace)
+     - `accountant_score` (time/cost impact)
+   - Convert this into preference pairs (`good_plan`, `bad_plan`) for fine-tuning or ranking.
+
+3. **Train in phases**
+   - **SFT phase**: train on accepted plans and corrective rewrites.
+   - **Reward/ranking phase**: train a scorer on safety + economics labels.
+   - **Policy improvement phase**: optimize for high reward under strict safety constraints.
+
+4. **Gate with deterministic safety**
+   - Keep Physics Auditor and hard constraints outside the model.
+   - Reject any proposal violating vibration/load/curvature bounds even if model confidence is high.
+
+5. **Deploy as shadow mode first**
+   - Run the model in recommendation-only mode.
+   - Compare proposed actions vs executed actions and measure regret/safety deltas before enabling active control.
+
+### Suggested training metrics
+- Safety violation rate
+- Auditor rejection rate
+- Cycle-time improvement
+- Surface finish proxy / quality score
+- Recovery latency after injected fault
+
+## Additional Critical Recommendations
+
+- **Do not remove deterministic guardrails** when increasing model autonomy.
+- **Version telemetry schemas** so training data stays compatible over time.
+- **Record full reasoning traces** for post-incident audits.
+- **Keep a simulator parity suite** that replays historical failure windows before each release.
+
 ## Usage Examples
 
 ### Starting the Application

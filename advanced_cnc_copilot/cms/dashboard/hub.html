@@ -32,7 +32,7 @@
 
         .hub-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 40px;
             z-index: 2;
             text-align: center;
@@ -123,7 +123,7 @@
 
         <div class="hub-grid">
             <!-- 1. THE OPERATIONAL CORTEX (Index.html) -->
-            <a href="index.html" class="hub-card">
+            <a href="index.html?machine_id=CNC-001" class="hub-card">
                 <span class="hub-icon">🧠</span>
                 <span class="hub-title">OPERATIONAL CORTEX</span>
                 <p class="hub-desc">
@@ -155,6 +155,29 @@
                     Terminology (Dopamine, Perceptron), and the Philosophy of the "Creative Machine".
                     <br><br>
                     <em>"Understand the Why behind the How."</em>
+                </p>
+            </a>
+
+            <!-- 4. FLEET VIEW (Roadmap Q2 Multi-Machine Sync) -->
+            <a href="index.html?machine_id=CNC-002" class="hub-card">
+                <span class="hub-icon">🛰️</span>
+                <span class="hub-title">FLEET VIEW: CNC-002</span>
+                <p class="hub-desc">
+                    Open the <strong>Operational Cortex</strong> for a second machine node.
+                    Validate multi-machine telemetry switching directly from the hub.
+                    <br><br>
+                    <em>"One portal, many machine minds."</em>
+                </p>
+            </a>
+
+            <a href="index.html?machine_id=CNC-003" class="hub-card">
+                <span class="hub-icon">🌐</span>
+                <span class="hub-title">FLEET VIEW: CNC-003</span>
+                <p class="hub-desc">
+                    Spin up another live node to compare stress, reward, and action streams
+                    across the fleet during synchronized operations.
+                    <br><br>
+                    <em>"Watch the swarm think in parallel."</em>
                 </p>
             </a>
         </div>
