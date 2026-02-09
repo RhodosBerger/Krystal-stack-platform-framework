@@ -10,7 +10,7 @@ import json
 import os
 import psycopg2
 from datetime import datetime
-from cms.protocols.user_mirror import MirrorObject
+from backend.cms.protocols.user_mirror import MirrorObject
 
 logger = logging.getLogger("SemanticLibrary")
 

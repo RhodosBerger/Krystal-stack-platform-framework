@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 
 # Logic Sources
 from cnc_optimization_engine import OptimizationCopilot, CostFactors, ProjectParameters, ProductionMode
-from cms.active_optic_compositor import ActiveOpticCompositor, EntropyMetrics
+from backend.cms.active_optic_compositor import ActiveOpticCompositor, EntropyMetrics
 
 logger = logging.getLogger("SHADOW_AGENTS")
 

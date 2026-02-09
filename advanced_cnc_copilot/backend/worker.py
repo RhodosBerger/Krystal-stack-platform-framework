@@ -74,7 +74,7 @@ def generate_gcode_task(description: str, material: str, job_id: str):
     cortex.mirror_log("Worker", f"Start Processing Job {job_id}", "INFO")
     
     try:
-        from cms.llm_gcode_generator import LLMGCodeGenerator
+        from backend.cms.llm_gcode_generator import LLMGCodeGenerator
         engine = LLMGCodeGenerator()
         
         full_desc = f"{description} in {material}"
@@ -120,7 +120,7 @@ def optimize_process_task(description: str, constraints: dict, job_id: str):
     cortex.mirror_log("Worker", f"Start Optimization Job {job_id}", "INFO")
     
     try:
-        from cms.producer_effectiveness_engine import PartOptimizationBot
+        from backend.cms.producer_effectiveness_engine import PartOptimizationBot
         optimizer = PartOptimizationBot()
         
         result = optimizer.optimize_complete_project(description, constraints)
@@ -196,7 +196,7 @@ def generate_propedeutics_task(topic: str):
     Knowledge Task: Generate educational content using KnowledgeEngine
     """
     try:
-        from cms.knowledge_engine import knowledge_engine
+        from backend.cms.knowledge_engine import knowledge_engine
         content = knowledge_engine.generate_propedeutics(topic)
         return {"status": "completed", "topic": topic, "content_snippet": content[:100] + "..."}
     except Exception as e:

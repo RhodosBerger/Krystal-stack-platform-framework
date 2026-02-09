@@ -1,0 +1,8 @@
+{"event": "system", "cycle": 0, "enabled": false, "tick_ms": 0, "monotonic_ms": 10415325, "scheduler_hint": "non_windows"}
+{"event": "system", "cycle": 1, "enabled": false, "tick_ms": 0, "monotonic_ms": 10415426, "scheduler_hint": "non_windows"}
+{"event": "system", "cycle": 2, "enabled": false, "tick_ms": 0, "monotonic_ms": 10415529, "scheduler_hint": "non_windows"}
+{"event": "system", "cycle": 3, "enabled": false, "tick_ms": 0, "monotonic_ms": 10415618, "scheduler_hint": "non_windows"}
+{"event": "system", "cycle": 0, "enabled": false, "tick_ms": 0, "monotonic_ms": 10443687, "scheduler_hint": "non_windows"}
+{"event": "system", "cycle": 1, "enabled": false, "tick_ms": 0, "monotonic_ms": 10443787, "scheduler_hint": "non_windows"}
+{"event": "system", "cycle": 2, "enabled": false, "tick_ms": 0, "monotonic_ms": 10443891, "scheduler_hint": "non_windows"}
+{"event": "system", "cycle": 3, "enabled": false, "tick_ms": 0, "monotonic_ms": 10443980, "scheduler_hint": "non_windows"}

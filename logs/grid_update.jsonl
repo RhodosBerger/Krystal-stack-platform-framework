@@ -1,0 +1,8 @@
+{"event": "grid_update", "cycle": 0, "coord": [0, 0, 0], "used_cells": 1, "capacity": 144}
+{"event": "grid_update", "cycle": 1, "coord": [1, 0, 0], "used_cells": 2, "capacity": 144}
+{"event": "grid_update", "cycle": 2, "coord": [2, 0, 0], "used_cells": 3, "capacity": 144}
+{"event": "grid_update", "cycle": 3, "coord": [3, 0, 0], "used_cells": 4, "capacity": 144}
+{"event": "grid_update", "cycle": 0, "coord": [0, 0, 0], "used_cells": 1, "capacity": 144}
+{"event": "grid_update", "cycle": 1, "coord": [1, 0, 0], "used_cells": 2, "capacity": 144}
+{"event": "grid_update", "cycle": 2, "coord": [2, 0, 0], "used_cells": 3, "capacity": 144}
+{"event": "grid_update", "cycle": 3, "coord": [3, 0, 0], "used_cells": 4, "capacity": 144}

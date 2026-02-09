@@ -29,20 +29,20 @@ logger.setLevel(logging.INFO)
 CMS_AVAILABLE = False
 try:
     logger.info(f"System Path: {sys.path}")
-    from cms.llm_gcode_generator import LLMGCodeGenerator
-    from cms.multi_bot_system import BotCoordinator
-    from cms.producer_effectiveness_engine import PartOptimizationBot
+    from backend.cms.llm_gcode_generator import LLMGCodeGenerator
+    from backend.cms.multi_bot_system import BotCoordinator
+    from backend.cms.producer_effectiveness_engine import PartOptimizationBot
     
     # Shadow Council Imports
-    from cms.message_bus import global_bus
+    from backend.cms.message_bus import global_bus
     from backend.core.council import council
-    from cms.interaction_supervisor import InteractionSupervisor
-    from cms.translation_adapter import TranslationAdapter, SaaSMetric
-    from cms.cross_session_intelligence import CrossSessionIntelligence
-    from cms.intervention_agent import InterventionAgent
-    from cms.economic_engine import EconomicEngine
-    from cms.swarm_brain import SwarmBrain
-    from cms.twin_engine import TwinEngine
+    from backend.cms.interaction_supervisor import InteractionSupervisor
+    from backend.cms.translation_adapter import TranslationAdapter, SaaSMetric
+    from backend.cms.cross_session_intelligence import CrossSessionIntelligence
+    from backend.cms.intervention_agent import InterventionAgent
+    from backend.cms.economic_engine import EconomicEngine
+    from backend.cms.swarm_brain import SwarmBrain
+    from backend.cms.twin_engine import TwinEngine
     
     CMS_AVAILABLE = True
 except Exception as e:
@@ -96,6 +96,15 @@ class MasterOrchestrator:
         self.swarm_state = {} # Stores the latest telemetry for each machine
         self.active_marketplace_map = {} # { job_id: component_id } for Anti-Fragile rewards
         
+        try:
+            from backend.agent.manufacturing import ManufacturingAgent
+            # Use the engines already initialized in LLMRouter
+            self.agent = ManufacturingAgent(self.llm_router.engine, self.llm_router.processor)
+            logger.info("🤖 Manufacturing Agent (Cognitive) Initialized.")
+        except ImportError as e:
+            logger.error(f"Failed to load ManufacturingAgent: {e}")
+            self.agent = None
+
         # Initialize Redis for Shared Control Pad
         try:
             logger.info("🔌 Connecting to Redis (Shared Memory)...")
@@ -202,7 +211,7 @@ class MasterOrchestrator:
             logger.info("🐝 Swarm Brain (Coordination) Activated")
             
             # Start Vision Cortex (Phase 8: Optical Grounding)
-            from cms.vision_cortex import vision_cortex
+            from backend.cms.vision_cortex import vision_cortex
             asyncio.create_task(vision_cortex.start())
             logger.info("👁️ Vision Cortex (Optical Grounding) Activated")
             
@@ -575,12 +584,17 @@ class MasterOrchestrator:
             )
             return {"status": "success", "data": result}
         else:
-            # Brain fallback
-            response = self.llm_router.query(
-                 system_prompt="You are a Manufacturing Consultant.",
-                 user_prompt=question
-            )
-            return {"status": "success", "data": {"response": response, "source": "LLM Fallback"}}
+            # Brain fallback -> Cognitive Agent
+            if self.agent:
+                response = self.agent.run_task(f"Consultation: {question}")
+                return {"status": "success", "data": {"response": response, "source": "ManufacturingAgent"}}
+            else:
+                # Basic Router Fallback
+                response = self.llm_router.query(
+                    system_prompt="You are a Manufacturing Consultant.",
+                    user_prompt=question
+                )
+                return {"status": "success", "data": {"response": response, "source": "LLM Fallback"}}
 
     async def _handle_market_analysis(self, payload: Dict) -> Dict:
         return {"analysis": "Market data module not yet connected."}

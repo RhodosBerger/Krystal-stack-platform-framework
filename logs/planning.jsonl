@@ -1,0 +1,4 @@
+{"event": "planning", "cycle": 1, "mode": "balanced", "reward_signal": 1.0, "threads_cap": 12, "streams_cap": 3, "target_interval": 0.1, "economics_score": 0.004089355468750014}
+{"event": "planning", "cycle": 2, "mode": "aggressive", "reward_signal": 1.4, "threads_cap": 24, "streams_cap": 6, "target_interval": 0.085, "economics_score": 0.874690263393487}
+{"event": "planning", "cycle": 1, "mode": "balanced", "reward_signal": 1.0, "threads_cap": 12, "streams_cap": 3, "target_interval": 0.1, "economics_score": 0.025732421874999994}
+{"event": "planning", "cycle": 2, "mode": "aggressive", "reward_signal": 1.4, "threads_cap": 24, "streams_cap": 6, "target_interval": 0.085, "economics_score": 0.9213357553720076}

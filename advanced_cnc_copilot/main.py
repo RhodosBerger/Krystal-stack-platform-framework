@@ -5,7 +5,7 @@ from fastapi import FastAPI
 import logging
 from datetime import datetime
 
-from cms.app_factory import create_app
+from backend.cms.app_factory import create_app
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

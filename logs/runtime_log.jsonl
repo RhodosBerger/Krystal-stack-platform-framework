@@ -1,0 +1,37 @@
+{"event": "grid_update", "cycle": 0, "coord": [0, 0, 0], "used_cells": 1, "capacity": 144}
+{"event": "telemetry", "event_id": "1e06ee43-1c32-4308-9380-ae65eaedf876", "timestamp": 1770630296.78773, "cpu_percent": 16.717529296875, "memory_percent": 0.0, "process_count": 0, "openvino_device_hint": "AUTO", "oneapi_threads": "auto"}
+{"event": "inference", "cycle": 1, "threads": 4, "streams": 3, "latency_ms": 2.0576903699134164, "throughput": 485.98176607206364, "backend": "simulated"}
+{"event": "grid_update", "cycle": 1, "coord": [1, 0, 0], "used_cells": 2, "capacity": 144}
+{"event": "telemetry", "event_id": "c766e125-34fc-46e8-ac7b-5ad01c599970", "timestamp": 1770630296.8908446, "cpu_percent": 16.717529296875, "memory_percent": 0.0, "process_count": 0, "openvino_device_hint": "AUTO", "oneapi_threads": "auto"}
+{"event": "inference", "cycle": 2, "threads": 2, "streams": 3, "latency_ms": 1.8758230949106292, "throughput": 533.0993112906756, "backend": "simulated"}
+{"event": "grid_update", "cycle": 2, "coord": [2, 0, 0], "used_cells": 3, "capacity": 144}
+{"event": "system", "cycle": 0, "enabled": false, "tick_ms": 0, "monotonic_ms": 10415325, "scheduler_hint": "non_windows"}
+{"event": "grid_update", "cycle": 0, "coord": [0, 0, 0], "used_cells": 1, "capacity": 144}
+{"event": "system", "cycle": 1, "enabled": false, "tick_ms": 0, "monotonic_ms": 10415426, "scheduler_hint": "non_windows"}
+{"event": "telemetry", "event_id": "73c90a64-351a-4091-aabb-1cb52a837018", "timestamp": 1770630476.3882196, "cpu_percent": 15.985107421875, "memory_percent": 0.0, "process_count": 0, "cpu_count": 8, "load_1m": 1.27880859375, "disk_percent": 0.0, "net_bytes_sent": 0, "net_bytes_recv": 0, "platform_system": "Linux", "platform_release": "6.17.0-14-generic", "is_windows": false, "openvino_device_hint": "AUTO", "oneapi_threads": "auto"}
+{"event": "planning", "cycle": 1, "mode": "balanced", "reward_signal": 1.0, "threads_cap": 12, "streams_cap": 3, "target_interval": 0.1, "economics_score": 0.004089355468750014}
+{"event": "inference", "cycle": 1, "threads": 2, "streams": 3, "mode": "balanced", "economics_score": 0.004089355468750014, "latency_ms": 1.9798115848448106, "throughput": 505.09856981081657, "backend": "simulated"}
+{"event": "grid_update", "cycle": 1, "coord": [1, 0, 0], "used_cells": 2, "capacity": 144}
+{"event": "system", "cycle": 2, "enabled": false, "tick_ms": 0, "monotonic_ms": 10415529, "scheduler_hint": "non_windows"}
+{"event": "telemetry", "event_id": "43fbb259-49bb-4f5b-b50a-524a9cbd8472", "timestamp": 1770630476.4917526, "cpu_percent": 15.985107421875, "memory_percent": 0.0, "process_count": 0, "cpu_count": 8, "load_1m": 1.27880859375, "disk_percent": 0.0, "net_bytes_sent": 0, "net_bytes_recv": 0, "platform_system": "Linux", "platform_release": "6.17.0-14-generic", "is_windows": false, "openvino_device_hint": "AUTO", "oneapi_threads": "auto"}
+{"event": "planning", "cycle": 2, "mode": "aggressive", "reward_signal": 1.4, "threads_cap": 24, "streams_cap": 6, "target_interval": 0.085, "economics_score": 0.874690263393487}
+{"event": "inference", "cycle": 2, "threads": 2, "streams": 3, "mode": "aggressive", "economics_score": 0.874690263393487, "latency_ms": 2.270049620954069, "throughput": 440.51900485757426, "backend": "simulated"}
+{"event": "grid_update", "cycle": 2, "coord": [2, 0, 0], "used_cells": 3, "capacity": 144}
+{"event": "system", "cycle": 3, "enabled": false, "tick_ms": 0, "monotonic_ms": 10415618, "scheduler_hint": "non_windows"}
+{"event": "grid_update", "cycle": 3, "coord": [3, 0, 0], "used_cells": 4, "capacity": 144}
+{"event": "system", "cycle": 0, "enabled": false, "tick_ms": 0, "monotonic_ms": 10443687, "scheduler_hint": "non_windows"}
+{"event": "grid_update", "cycle": 0, "coord": [0, 0, 0], "used_cells": 1, "capacity": 144}
+{"event": "system", "cycle": 1, "enabled": false, "tick_ms": 0, "monotonic_ms": 10443787, "scheduler_hint": "non_windows"}
+{"event": "telemetry", "event_id": "8905a913-0460-491b-b2f2-0ce3d2e6ad93", "timestamp": 1770630504.749965, "cpu_percent": 12.3779296875, "memory_percent": 0.0, "process_count": 0, "cpu_count": 8, "load_1m": 0.990234375, "disk_percent": 0.0, "net_bytes_sent": 0, "net_bytes_recv": 0, "platform_system": "Linux", "platform_release": "6.17.0-14-generic", "is_windows": false, "openvino_device_hint": "AUTO", "oneapi_threads": "auto"}
+{"event": "planning", "cycle": 1, "mode": "balanced", "reward_signal": 1.0, "threads_cap": 12, "streams_cap": 3, "target_interval": 0.1, "economics_score": 0.025732421874999994}
+{"event": "policy", "cycle": 1, "threads": 2, "streams": 3, "mode": "balanced"}
+{"event": "inference", "cycle": 1, "threads": 2, "streams": 3, "mode": "balanced", "economics_score": 0.025732421874999994, "latency_ms": 1.9337167017931733, "throughput": 517.1388337664356, "backend": "simulated"}
+{"event": "grid_update", "cycle": 1, "coord": [1, 0, 0], "used_cells": 2, "capacity": 144}
+{"event": "system", "cycle": 2, "enabled": false, "tick_ms": 0, "monotonic_ms": 10443891, "scheduler_hint": "non_windows"}
+{"event": "telemetry", "event_id": "73665955-9f7e-4dc1-8465-2f71a18795e9", "timestamp": 1770630504.853532, "cpu_percent": 12.3779296875, "memory_percent": 0.0, "process_count": 0, "cpu_count": 8, "load_1m": 0.990234375, "disk_percent": 0.0, "net_bytes_sent": 0, "net_bytes_recv": 0, "platform_system": "Linux", "platform_release": "6.17.0-14-generic", "is_windows": false, "openvino_device_hint": "AUTO", "oneapi_threads": "2"}
+{"event": "planning", "cycle": 2, "mode": "aggressive", "reward_signal": 1.4, "threads_cap": 24, "streams_cap": 6, "target_interval": 0.085, "economics_score": 0.9213357553720076}
+{"event": "policy", "cycle": 2, "threads": 2, "streams": 3, "mode": "aggressive"}
+{"event": "inference", "cycle": 2, "threads": 2, "streams": 3, "mode": "aggressive", "economics_score": 0.9213357553720076, "latency_ms": 2.3184776270534253, "throughput": 431.31751125453354, "backend": "simulated"}
+{"event": "grid_update", "cycle": 2, "coord": [2, 0, 0], "used_cells": 3, "capacity": 144}
+{"event": "system", "cycle": 3, "enabled": false, "tick_ms": 0, "monotonic_ms": 10443980, "scheduler_hint": "non_windows"}
+{"event": "grid_update", "cycle": 3, "coord": [3, 0, 0], "used_cells": 4, "capacity": 144}

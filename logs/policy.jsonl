@@ -1,0 +1,2 @@
+{"event": "policy", "cycle": 1, "threads": 2, "streams": 3, "mode": "balanced"}
+{"event": "policy", "cycle": 2, "threads": 2, "streams": 3, "mode": "aggressive"}

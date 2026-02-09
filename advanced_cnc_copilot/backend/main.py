@@ -20,9 +20,9 @@ from backend.core.llm_brain import LLMRouter
 from backend.core.cortex_transmitter import cortex
 from backend.core.sustainability_engine import sustainability
 from backend.core.marketplace import router as marketplace_router # Phase 4: Marketplace
-# from cms.cross_session_intelligence import CrossSessionIntelligence, DataPoint
-# from cms.llm_integration_examples import LLMManufacturingAssistant
-# from cms.thermal_biased_simulator import get_simulator
+# from backend.cms.cross_session_intelligence import CrossSessionIntelligence, DataPoint
+# from backend.cms.llm_integration_examples import LLMManufacturingAssistant
+# from backend.cms.thermal_biased_simulator import get_simulator
 
 # MOCK SIMULATOR FOR ROBUSTNESS
 def get_simulator(machine_id):
@@ -37,7 +37,7 @@ def get_simulator(machine_id):
 # ai_assistant = LLMManufacturingAssistant()
 
 # Theory 6: Seed Truth Engine with historical "Black Swan" data
-# from cms.cross_session_intelligence import DataPoint
+# from backend.cms.cross_session_intelligence import DataPoint
 # from datetime import timedelta
 
 # def seed_truth_engine():
@@ -79,7 +79,7 @@ app.add_middleware(
 )
 
 # --- Static Files & Dashboard ---
-dashboard_dir = os.path.join(os.path.dirname(__file__), "../cms/dashboard")
+dashboard_dir = os.path.join(os.path.dirname(__file__), "cms/dashboard")
 app.mount("/dashboard", StaticFiles(directory=dashboard_dir), name="dashboard")
 
 from fastapi.responses import HTMLResponse, FileResponse
@@ -155,7 +155,7 @@ async def view_wizard():
 @app.get("/api/wizard/config")
 async def get_wizard_config():
     """Returns the configuration for the Multi-Step Wizard"""
-    from cms.dynamic_form_builder import FieldType
+    from backend.cms.dynamic_form_builder import FieldType
     
     return {
         "steps": [
@@ -249,7 +249,7 @@ async def websocket_endpoint_multi(websocket: WebSocket, machine_id: str):
 @app.websocket("/ws/telemetry")
 async def websocket_telemetry(websocket: WebSocket):
     await websocket.accept()
-    from cms.message_bus import global_bus
+    from backend.cms.message_bus import global_bus
     
     # Queue for receiving Neuro-Updates, Audit Results, and Scalpel Interventions
     neuro_queue = asyncio.Queue()
@@ -394,7 +394,7 @@ async def search_knowledge(
     """
     AJAX Search Validator: Filter Knowledge Base by query.
     """
-    from cms.knowledge_engine import knowledge_engine
+    from backend.cms.knowledge_engine import knowledge_engine
     
     results = []
     query = q.lower()
@@ -465,7 +465,7 @@ async def verify_knowledge_artifact(
         
     if approved:
         # Commit to Knowledge Engine
-        from cms.knowledge_engine import knowledge_engine
+        from backend.cms.knowledge_engine import knowledge_engine
         import json
         artifact = json.loads(data_json)
         
@@ -491,7 +491,7 @@ async def trigger_synthetic_data_generation(
 
 # --- Frontend Generator Bridge ---
 from fastapi.responses import HTMLResponse
-from cms.frontend_generator import frontend_generator
+from backend.cms.frontend_generator import frontend_generator
 
 @app.get("/view/{view_type}", response_class=HTMLResponse)
 async def serve_dynamic_view(view_type: str):
@@ -535,7 +535,7 @@ async def inspect_logs(current_user: User = Depends(get_current_active_user)):
     """
     Cognitive Inspection: Uses LLM to read transformed logs and generate a Shift Report.
     """
-    from cms.log_inspector import log_inspector
+    from backend.cms.log_inspector import log_inspector
     report = log_inspector.generate_shift_report()
     return {"status": "SUCCESS", "report": report}
 
@@ -545,7 +545,7 @@ async def trigger_cognitive_repair(payload: dict, current_user: User = Depends(g
     Manual Trigger for the 'Regedit' Logic.
     Simulates a vision defect and asks the Cognitive Link to propose a patch.
     """
-    from cms.cognitive_link import cognitive_link
+    from backend.cms.cognitive_link import cognitive_link
     symptom = payload.get("symptom", "Unknown Defect")
     context = payload.get("context", {})
     
@@ -559,7 +559,7 @@ async def benchmark_norms(current_user: User = Depends(get_current_active_user))
     """
     Global Benchmarking: Compare Graph Knowledge vs Internet Standards.
     """
-    from cms.norm_comparator import norm_inspector
+    from backend.cms.norm_comparator import norm_inspector
     return {"status": "SUCCESS", "report": norm_inspector.compare_performance()}
 
 @app.get("/api/swarm/status")
@@ -811,7 +811,7 @@ async def create_synaptic_protocol(payload: dict, current_user: User = Depends(g
     Uses the Synaptic Bridge to translate feelings into system parameters.
     """
     from backend.core.synaptic_bridge import synaptic_bridge
-    from cms.protocol_conductor import ProtocolConductor
+    from backend.cms.protocol_conductor import ProtocolConductor
     
     intent = payload.get("intent", "").strip()
     base_prompt = payload.get("prompt", "") or intent
@@ -839,7 +839,7 @@ async def create_synaptic_protocol(payload: dict, current_user: User = Depends(g
     
     # 4. Trigger Shadow Council (Async Broadcast)
     # This invokes the Auditor and Biochemist to vote on the "Creative" output
-    from cms.message_bus import global_bus
+    from backend.cms.message_bus import global_bus
     await global_bus.publish(
         channel="DRAFT_PLAN",
         payload={
@@ -1412,7 +1412,7 @@ async def conduct_protocol(request: Dict[str, str], current_user: User = Depends
     Creative UI Endpoint: Conducts a protocol based on user prompt.
     """
     try:
-        from cms.protocol_conductor import ProtocolConductor
+        from backend.cms.protocol_conductor import ProtocolConductor
         conductor = ProtocolConductor()
         name = request.get("name", "Unnamed_Protocol")
         prompt = request.get("prompt", "")
@@ -1426,7 +1426,7 @@ async def optimize_gcode(gcode: List[str], material: str = "Steel4140", current_
     Runs the CNC-VINO Optimizer on raw G-Code.
     """
     try:
-        from cms.cnc_vino_optimizer import CNCOptimizer
+        from backend.cms.cnc_vino_optimizer import CNCOptimizer
         optimizer = CNCOptimizer()
         ir = optimizer.optimize_model(gcode, material)
         return {"optimized_ir": ir}
@@ -1461,7 +1461,7 @@ async def intelligence_stats():
         "timestamp": datetime.now().isoformat()
     }
 
-from cms.vision_cortex import vision_cortex
+from backend.cms.vision_cortex import vision_cortex
 
 @app.post("/api/intelligence/predict")
 async def intelligence_predict(request: Dict[str, Any], current_user: User = Depends(get_current_active_user)):

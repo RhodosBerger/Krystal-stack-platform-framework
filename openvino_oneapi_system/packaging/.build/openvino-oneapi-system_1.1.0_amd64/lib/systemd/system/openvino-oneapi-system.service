@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenVINO ONE API Runtime
+After=network.target
+
+[Service]
+Type=simple
+User=openvino-ovo
+Group=openvino-ovo
+EnvironmentFile=-/etc/default/openvino-oneapi-system
+WorkingDirectory=/var/lib/openvino-oneapi-system
+ExecStart=/bin/sh -lc 'exec /usr/bin/ovo-runtime ${OVO_RUNTIME_ARGS:-"--cycles 0 --interval 0.5"}'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

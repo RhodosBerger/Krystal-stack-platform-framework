@@ -1,0 +1,4 @@
+{"event": "inference", "cycle": 1, "threads": 2, "streams": 3, "mode": "balanced", "economics_score": 0.004089355468750014, "latency_ms": 1.9798115848448106, "throughput": 505.09856981081657, "backend": "simulated"}
+{"event": "inference", "cycle": 2, "threads": 2, "streams": 3, "mode": "aggressive", "economics_score": 0.874690263393487, "latency_ms": 2.270049620954069, "throughput": 440.51900485757426, "backend": "simulated"}
+{"event": "inference", "cycle": 1, "threads": 2, "streams": 3, "mode": "balanced", "economics_score": 0.025732421874999994, "latency_ms": 1.9337167017931733, "throughput": 517.1388337664356, "backend": "simulated"}
+{"event": "inference", "cycle": 2, "threads": 2, "streams": 3, "mode": "aggressive", "economics_score": 0.9213357553720076, "latency_ms": 2.3184776270534253, "throughput": 431.31751125453354, "backend": "simulated"}
