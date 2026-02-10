@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/dusan/Documents/GitHub/Dev-contitional/advanced_cnc_copilot/backend/main.py", line 20, in <module>
+    from backend.core.security import Token, User, get_current_active_user, create_access_token, verify_password, get_password_hash
+  File "/home/dusan/Documents/GitHub/Dev-contitional/advanced_cnc_copilot/backend/core/security.py", line 8, in <module>
+    from jose import JWTError, jwt
+ModuleNotFoundError: No module named 'jose'

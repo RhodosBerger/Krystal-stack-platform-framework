@@ -5,7 +5,7 @@ Responsibility:
 2. Chain transformations: Input -> Transform -> Emit -> Seal.
 """
 from typing import List, Dict, Any, Callable
-from backend.platform.entity import PlatformEntity, EntityStatus
+from backend.system_platform.entity import PlatformEntity, EntityStatus
 import uuid
 
 class PipelineStage:

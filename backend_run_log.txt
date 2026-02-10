@@ -1,0 +1,46 @@
+INFO:LLMBrain:🧠 Initializing Augmented LLM Brain...
+INFO:OpenVINO_Engine:OpenVINO Runtime not found. Running in Simulation Mode.
+INFO:LlamaCppEngine:No model path provided. Running in Mock Mode.
+INFO:LLMBrain:✅ Augmented Brain Online.
+INFO:backend.cms.message_bus:✅ Nervous System Uplink (Redis) Established: BUS_7D0BF384
+INFO:cms.message_bus:✅ Nervous System Uplink (Redis) Established: BUS_464C99C6
+ERROR:MasterOrchestrator:Failed to import CMS modules: name 'Tuple' is not defined
+ERROR:MasterOrchestrator:Traceback (most recent call last):
+  File "/home/dusan/Documents/GitHub/Dev-contitional/advanced_cnc_copilot/backend/core/orchestrator.py", line 38, in <module>
+    from backend.core.council import council
+  File "/home/dusan/Documents/GitHub/Dev-contitional/advanced_cnc_copilot/backend/core/council.py", line 9, in <module>
+    from backend.core.agents import AuditorAgent, BiochemistAgent, ObserverAgent
+  File "/home/dusan/Documents/GitHub/Dev-contitional/advanced_cnc_copilot/backend/core/agents.py", line 34, in <module>
+    class AuditorAgent(Agent):
+  File "/home/dusan/Documents/GitHub/Dev-contitional/advanced_cnc_copilot/backend/core/agents.py", line 43, in AuditorAgent
+    def _calculate_inhibition_risk(self, telemetry: Dict, proposed_action: str) -> Tuple[float, str]:
+                                                                                   ^^^^^
+NameError: name 'Tuple' is not defined. Did you mean: 'tuple'?
+
+INFO:CortexTransmitter:✅ Cortex Transmitter Connected to Shared Memory
+INFO:LLMBrain:🧠 Initializing Augmented LLM Brain...
+INFO:OpenVINO_Engine:OpenVINO Runtime not found. Running in Simulation Mode.
+INFO:LlamaCppEngine:No model path provided. Running in Mock Mode.
+INFO:LLMBrain:✅ Augmented Brain Online.
+INFO:MasterOrchestrator:🤖 Manufacturing Agent (Cognitive) Initialized.
+INFO:MasterOrchestrator:🔌 Connecting to Redis (Shared Memory)...
+INFO:MasterOrchestrator:✅ Shared Control Pad (Redis) Client Initialized (Lazy)
+WARNING:CortexTransmitter:⚠️ Cortex Link Lost (Error 111 connecting to localhost:6379. Connection refused.). Disabling Transmission.
+WARNING:MasterOrchestrator:⚠️ CMS Modules not found. Running in degraded mode.
+/home/dusan/Documents/GitHub/Dev-contitional/advanced_cnc_copilot/backend/main.py:96: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+Warning: Redis unavailable. Worker running in limited mode.
+Traceback (most recent call last):
+  File "/home/dusan/Documents/GitHub/Dev-contitional/advanced_cnc_copilot/backend/main.py", line 1476, in <module>
+    from backend.cms.vision_cortex import vision_cortex
+  File "/home/dusan/Documents/GitHub/Dev-contitional/advanced_cnc_copilot/backend/cms/vision_cortex.py", line 26, in <module>
+    class VisionCortex:
+  File "/home/dusan/Documents/GitHub/Dev-contitional/advanced_cnc_copilot/backend/cms/vision_cortex.py", line 110, in VisionCortex
+    def analyze_stream_frame(self) -> Dict[str, Any]:
+                                                ^^^
+NameError: name 'Any' is not defined. Did you mean: 'any'?

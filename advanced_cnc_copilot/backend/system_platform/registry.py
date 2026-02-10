@@ -5,7 +5,7 @@ Responsibility:
 2. Provides CRUD operations for platform management.
 """
 from typing import Dict, List, Optional
-from backend.platform.entity import PlatformEntity
+from backend.system_platform.entity import PlatformEntity
 
 class PlatformRegistry:
     def __init__(self):

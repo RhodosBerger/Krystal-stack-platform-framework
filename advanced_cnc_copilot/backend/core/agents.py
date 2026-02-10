@@ -8,7 +8,7 @@ import logging
 import random
 import os
 import math
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 
 # Logic Sources
 from cnc_optimization_engine import OptimizationCopilot, CostFactors, ProjectParameters, ProductionMode

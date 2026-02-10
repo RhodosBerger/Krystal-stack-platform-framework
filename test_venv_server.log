@@ -1,0 +1,13 @@
+INFO:     Started server process [32019]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+Python executable: /home/dusan/Documents/GitHub/Dev-contitional/.venv/bin/python3
+FastAPI version: 0.128.6
+Uvicorn version: 0.40.0
+Starting test server on port 8001...
+INFO:     127.0.0.1:52218 - "GET / HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [32019]

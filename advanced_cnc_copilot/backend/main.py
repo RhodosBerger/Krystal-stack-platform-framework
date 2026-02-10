@@ -11,6 +11,10 @@ from typing import Dict, Any, List
 
 from fastapi.staticfiles import StaticFiles
 import os
+import sys
+
+# Ensure 'backend' is importable
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import Core Modules
 from backend.core.security import Token, User, get_current_active_user, create_access_token, verify_password, get_password_hash
@@ -870,13 +874,13 @@ async def create_synaptic_protocol(payload: dict, current_user: User = Depends(g
 @app.get("/api/platform/entities")
 async def list_platform_entities(current_user: User = Depends(get_current_active_user)):
     """Lists all registered platform entities."""
-    from backend.platform import platform_registry
+    from backend.system_platform import platform_registry
     return {"status": "SUCCESS", "entities": [e.to_dict() for e in platform_registry.list_all()]}
 
 @app.post("/api/platform/entity")
 async def create_platform_entity(payload: dict, current_user: User = Depends(get_current_active_user)):
     """Creates and registers a new platform entity."""
-    from backend.platform import PlatformEntity, platform_registry
+    from backend.system_platform import PlatformEntity, platform_registry
     entity = PlatformEntity(
         entity_type=payload.get("entity_type", "GENERIC"),
         name=payload.get("name", "Untitled Entity"),
@@ -888,7 +892,7 @@ async def create_platform_entity(payload: dict, current_user: User = Depends(get
 @app.post("/api/platform/run-pipeline")
 async def run_generation_pipeline(payload: dict, current_user: User = Depends(get_current_active_user)):
     """Runs the default generation pipeline on an entity."""
-    from backend.platform import platform_registry, default_pipeline, EntityStatus
+    from backend.system_platform import platform_registry, default_pipeline, EntityStatus
     entity_id = payload.get("entity_id")
     initial_data = payload.get("data", "")
     

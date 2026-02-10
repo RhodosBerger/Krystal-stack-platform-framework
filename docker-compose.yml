@@ -19,23 +19,37 @@ services:
     ports:
       - "6379:6379"
 
-  # Optional: Kafka for Real RAG
-  # zookeeper:
-  #   image: confluentinc/cp-zookeeper:latest
-  #   environment:
-  #     ZOOKEEPER_CLIENT_PORT: 2181
-  #     ZOOKEEPER_TICK_TIME: 2000
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme123
+      POSTGRES_DB: fanuc_rise
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
-  # kafka:
-  #   image: confluentinc/cp-kafka:latest
-  #   depends_on:
-  #     - zookeeper
-  #   ports:
-  #     - "9092:9092"
-  #   environment:
-  #     KAFKA_BROKER_ID: 1
-  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+volumes:
+  postgres_data:
+
+    # Optional: Kafka for Real RAG
+    # zookeeper:
+    #   image: confluentinc/cp-zookeeper:latest
+    #   environment:
+    #     ZOOKEEPER_CLIENT_PORT: 2181
+    #     ZOOKEEPER_TICK_TIME: 2000
+
+    # kafka:
+    #   image: confluentinc/cp-kafka:latest
+    #   depends_on:
+    #     - zookeeper
+    #   ports:
+    #     - "9092:9092"
+    #   environment:
+    #     KAFKA_BROKER_ID: 1
+    #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+    #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+    #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
