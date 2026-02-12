@@ -1,0 +1,4 @@
+# openvino-oneapi-system default environment
+OVO_LOG_DIR=/var/log/openvino-oneapi-system
+# For service mode, cycles=0 means run forever.
+OVO_RUNTIME_ARGS="--cycles 0 --interval 0.5"

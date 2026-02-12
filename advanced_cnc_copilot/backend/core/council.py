@@ -61,5 +61,16 @@ class ShadowCouncil:
         else:
              return ("REJECT", weighted_score)
 
+
+    async def start_session(self):
+        """
+        Starts the active session for all council members.
+        """
+        logger.info("Starting Council Session...")
+        await self.auditor.start()
+        # Other agents might have async start methods later
+        logger.info("Council Session Active.")
+
 # Global Instance
 council = ShadowCouncil()
+

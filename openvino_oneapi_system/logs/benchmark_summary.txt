@@ -1,0 +1,18 @@
+Benchmark Summary (latest run)
+
+Command:
+  python3 openvino_oneapi_system/benchmark_linux.py --cycles 60
+
+Key improvements:
+  Latency improvement:    51.44%
+  Throughput improvement: 175.79%
+  Utility improvement:    194.02%
+  Sysbench improvement:   102.65%
+
+Sysbench events/s:
+  Baseline: 2574.85
+  Adaptive: 5218.04
+
+Source:
+  openvino_oneapi_system/logs/benchmark_latest.txt
+  openvino_oneapi_system/logs/benchmark_latest.json

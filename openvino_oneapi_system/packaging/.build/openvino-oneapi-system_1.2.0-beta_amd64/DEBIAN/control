@@ -1,0 +1,12 @@
+Package: openvino-oneapi-system
+Version: 1.2.0-beta
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: Dušan Kopecký <dusan.kopecky0101@gmail.com>
+Depends: python3 (>= 3.10)
+Recommends: sysbench
+Description: OpenVINO + oneAPI orchestration and Linux benchmark toolkit
+ Includes adaptive planning, delegated logging, 3D grid memory abstraction,
+ algorithmic planning, and synthetic+sysbench benchmark workflow.
+ Licensed under Apache 2.0.

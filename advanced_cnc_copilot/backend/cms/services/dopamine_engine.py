@@ -1,14 +1,25 @@
+
 from typing import Dict, List, Tuple, Optional, Any
 from datetime import datetime, timedelta
 import logging
 import math
 from dataclasses import dataclass
+from functools import lru_cache
+import numpy as np
 
 # Removed direct import of Session since we're importing from models and repositories
 from ..models import Telemetry
 from ..repositories.telemetry_repository import TelemetryRepository
+import os
+
+try:
+    from openvino.runtime import Core
+    OPENVINO_AVAILABLE = True
+except ImportError:
+    OPENVINO_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -33,6 +44,20 @@ class DopamineEngine:
         self.phantom_trauma_threshold = 0.3  # Threshold for detecting phantom trauma
         self.stress_decay_time = 30  # Minutes for stress to decay
         self.reward_decay_time = 60  # Minutes for reward to decay
+        
+        # Initialize OpenVINO if available
+        self.ov_core = None
+        self.compiled_model = None
+        if OPENVINO_AVAILABLE:
+            try:
+                model_path = "phantom_net.onnx"
+                if os.path.exists(model_path):
+                    self.ov_core = Core()
+                    model = self.ov_core.read_model(model=model_path)
+                    self.compiled_model = self.ov_core.compile_model(model=model, device_name="AUTO")
+                    logger.info("OpenVINO Phantom Trauma Model loaded successfully.")
+            except Exception as e:
+                logger.warning(f"Failed to load OpenVINO model: {e}")
     
     def calculate_current_state(self, machine_id: int, current_metrics: Dict) -> NeuroState:
         """
@@ -234,34 +259,83 @@ class DopamineEngine:
         
         return trace
     
+
     def detect_phantom_trauma(self, machine_id: int, current_metrics: Dict) -> Tuple[bool, str]:
         """
         Detect 'Phantom Trauma' - when system is overly sensitive to safe conditions
         Based on the 'Memory of Pain' concept where stress responses linger unnecessarily
+        Uses vectorized numpy operations for performance.
         """
         # Get recent high-stress events to establish pattern
         recent_data = self.repository.get_recent_by_machine(machine_id, minutes=30)
         
         if not recent_data:
             return False, "No historical data for comparison"
+
+        # Calculate historical average stress for feature input
+        # Dictionary to store accumulated stress vectors for avg calculation
+        spindle_loads = np.array([r.spindle_load or 0.0 for r in recent_data])
+        temperatures = np.array([r.temperature or 35.0 for r in recent_data])
+
+        # Approximate historical stress (simplified for feature extraction)
+        spindle_stress_vec = np.where(spindle_loads > 95, 1.0, 
+                             np.where(spindle_loads > 85, 0.8,
+                             np.where(spindle_loads > 70, 0.4, 0.1)))
         
-        # Calculate current stress vs. recent average
+        temp_stress_vec = np.where(temperatures > 70, 1.0,
+                          np.where(temperatures > 60, 0.8,
+                          np.where(temperatures > 50, 0.5, 
+                          np.maximum(0.0, (temperatures - 30) / 20.0))))
+        
+        historical_stresses = (spindle_stress_vec * 0.5 + temp_stress_vec * 0.5)
+        avg_historical_stress = np.mean(historical_stresses) if len(historical_stresses) > 0 else 0.0
+
+        # Current Features
+        current_load = current_metrics.get('spindle_load', 50.0)
+        current_temp = current_metrics.get('temperature', 35.0)
+        current_vib = current_metrics.get('vibration_x', 0.5)
+
+        # OpenVINO Inference Path
+        if self.compiled_model:
+            # Prepare input tensor: [load, temp, vib, hist_avg]
+            input_tensor = np.array([[current_load, current_temp, current_vib, avg_historical_stress]], dtype=np.float32)
+            try:
+                # Infer
+                results = self.compiled_model([input_tensor])[self.compiled_model.output(0)]
+                is_phantom = bool(results[0])
+                if is_phantom:
+                     return True, f"Phantom Trauma Detected (Neural Inference): Probability > Threshold. Model detected pattern match."
+                else:
+                     return False, "Normal response (Neural Inference)"
+            except Exception as e:
+                logger.error(f"OpenVINO inference failed, falling back to heuristic: {e}")
+
+        # Fallback to Heuristic (Original Logic)
+        
+        # Calculate current stress
         current_stress = self._calculate_cortisol_response(current_metrics)
         
-        # Calculate average stress from recent data
-        historical_stresses = []
-        for record in recent_data:
-            # Calculate stress from historical record
-            hist_metrics = {
-                'spindle_load': record.spindle_load or 0.0,
-                'vibration_x': record.vibration_x or 0.0,
-                'temperature': record.temperature or 35.0,
-                'tool_wear': record.tool_wear or 0.0
-            }
-            hist_stress = self._calculate_cortisol_response(hist_metrics)
-            historical_stresses.append(hist_stress)
+        # Vectorized calculation of historical stress
+        # Extract features into numpy arrays
+        spindle_loads = np.array([r.spindle_load or 0.0 for r in recent_data])
+        temperatures = np.array([r.temperature or 35.0 for r in recent_data])
         
-        avg_historical_stress = sum(historical_stresses) / len(historical_stresses) if historical_stresses else 0.0
+        # Simplified batch stress calculation for history (approximation for speed)
+        # Using vectorized logic similar to _calculate_cortisol_response but faster
+        spindle_stress_vec = np.where(spindle_loads > 95, 1.0, 
+                             np.where(spindle_loads > 85, 0.8,
+                             np.where(spindle_loads > 70, 0.4, 0.1)))
+        
+        temp_stress_vec = np.where(temperatures > 70, 1.0,
+                          np.where(temperatures > 60, 0.8,
+                          np.where(temperatures > 50, 0.5, 
+                          np.maximum(0.0, (temperatures - 30) / 20.0))))
+                          
+        # Weighting (simplified for vectorization)
+        # Assuming just these two dominant factors for speed in this check
+        historical_stresses = (spindle_stress_vec * 0.5 + temp_stress_vec * 0.5)
+        
+        avg_historical_stress = np.mean(historical_stresses) if len(historical_stresses) > 0 else 0.0
         
         # Detect phantom trauma: current conditions are safe but system shows high stress
         current_vibration = current_metrics.get('vibration_x', 0.5)
@@ -280,6 +354,7 @@ class DopamineEngine:
             return True, f"Phantom Trauma Detected: Physical conditions safe (vib={current_vibration}, temp={current_temperature}, load={current_load}) but stress elevated ({current_stress:.3f}). System may be overly sensitive to safe conditions."
         
         return False, f"Normal response: Current stress ({current_stress:.3f}) consistent with physical conditions and historical patterns (avg={avg_historical_stress:.3f})"
+
     
     def get_process_recommendation(self, machine_id: int, current_metrics: Dict) -> Dict[str, Any]:
         """

@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -eu
+[ -f /etc/default/openvino-oneapi-system ] && . /etc/default/openvino-oneapi-system
+export OVO_LOG_DIR="${OVO_LOG_DIR:-/var/log/openvino-oneapi-system}"
+exec python3 /usr/lib/openvino-oneapi-system/benchmark_linux.py "$@"

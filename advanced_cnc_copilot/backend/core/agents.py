@@ -13,6 +13,8 @@ from typing import Dict, Any, Optional, Tuple
 # Logic Sources
 from cnc_optimization_engine import OptimizationCopilot, CostFactors, ProjectParameters, ProductionMode
 from backend.cms.active_optic_compositor import ActiveOpticCompositor, EntropyMetrics
+from backend.cms.message_bus import global_bus
+
 
 logger = logging.getLogger("SHADOW_AGENTS")
 
@@ -39,6 +41,17 @@ class AuditorAgent(Agent):
         self.copilot = OptimizationCopilot(costs)
         self.budget_limit = 200.0 # $/unit
         self.event_history = [] # History of authorized actions
+        self.grid_saturation = 0.0 # From Vulkan Ingestor
+        
+    async def start(self):
+        """Initialize subscriptions."""
+        global_bus.subscribe("VULKAN_GRID_UPDATE", self._on_grid_update)
+        logger.info("Auditor Agent subscribed to VULKAN_GRID_UPDATE")
+
+    async def _on_grid_update(self, msg):
+        """Update internal grid state perception."""
+        self.grid_saturation = msg.payload.get("saturation", 0.0)
+
         
     def _calculate_inhibition_risk(self, telemetry: Dict, proposed_action: str) -> Tuple[float, str]:
         """
@@ -73,6 +86,12 @@ class AuditorAgent(Agent):
         if vibration > 0.8:
              logger.warning(f"[AUDITOR] VETO: Vibration {vibration}g indicates crash risk.")
              return False # VETO
+
+        # Logic 1.5: Grid Saturation Check (Vulkan)
+        if self.grid_saturation > 0.9 and proposed_action == "INCREASE_SPEED":
+             logger.warning(f"[AUDITOR] VETO: Grid Saturation {self.grid_saturation:.2%}. Processing bottleneck.")
+             return False # VETO
+
 
         # Logic 2: Economic Check (Simulated)
         # In a real step, we'd estimate the cost of the proposed action.

@@ -77,3 +77,10 @@ Codebase: `advanced_cnc_copilot/`
 ## Direction Note
 The priority of this repository is Krystal Vino/GAMESA 3D Grid as the main platform for PC hardware and inference performance.  
 FANUC RISE remains a separate, secondary domain branch for CNC integrations.
+
+---
+
+## Author & License
+**Author**: Dušan Kopecký  
+**Email**: dusan.kopecky0101@gmail.com  
+**License**: Apache 2.0 (See `LICENSE` file)

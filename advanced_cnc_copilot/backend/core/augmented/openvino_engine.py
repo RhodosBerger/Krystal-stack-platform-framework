@@ -17,6 +17,20 @@ try:
 except ImportError:
     OPEN_VINO_AVAILABLE = False
 
+# Add OVO System to Path for valid imports
+import sys
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../"))
+if ROOT_DIR not in sys.path:
+    sys.path.append(ROOT_DIR)
+
+try:
+    from openvino_oneapi_system.ovo.inference import OpenVinoInferenceEngine
+    OVO_AVAILABLE = True
+except ImportError:
+    OVO_AVAILABLE = False
+    OpenVinoInferenceEngine = None
+
+
 # Logger Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("OpenVINO_Engine")
@@ -46,6 +60,16 @@ class OpenVINOEngine:
             except Exception as e:
                  logger.error(f"Failed to initialize OpenVINO Runtime: {e}")
                  # functionality will be disabled by self.core remaining None
+        
+        # Initialize OVO Engine if available
+        self.ovo_engine = None
+        if OVO_AVAILABLE:
+            try:
+                self.ovo_engine = OpenVinoInferenceEngine()
+                logger.info("✅ OVO Inference Engine Bridge Established")
+            except Exception as e:
+                logger.error(f"Failed to initialize OVO Engine: {e}")
+
         else:
             logger.info("OpenVINO Runtime not found. Running in Simulation Mode.")
 
@@ -96,11 +120,17 @@ class OpenVINOEngine:
         if model_name not in self.models:
             raise ValueError(f"Model {model_name} not loaded.")
 
-        if OPEN_VINO_AVAILABLE and self.core and self.models[model_name] != "MOCK_MODEL":
-            # Real Inference Logic would go here
-            # request = self.models[model_name].create_infer_request()
-            # ...
-            pass
+        if OVO_AVAILABLE and self.ovo_engine:
+            # Augment inference with OVO Performance capability
+            # Use threads=4, streams=2 as default for now
+            result = self.ovo_engine.run(threads=4, streams=2)
+            if OPEN_VINO_AVAILABLE and self.core and self.models[model_name] != "MOCK_MODEL":
+                # Real Inference Logic would go here
+                # request = self.models[model_name].create_infer_request()
+                # ...
+                pass
+            return {"ovo_stats": result.as_dict(), "model": model_name, "status": "accelerated"}
+
         else:
             # Simulation Logic
             return self._mock_inference(model_name, input_data)

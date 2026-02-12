@@ -1,0 +1,30 @@
+{
+    "active_mode": "BALANCED",
+    "profiles": {
+        "ECONOMY": {
+            "dopamine_sensitivity": 0.5,
+            "cortisol_sensitivity": 1.5,
+            "history_window_minutes": 60,
+            "cache_ttl_seconds": 300,
+            "use_vectorized_math": false
+        },
+        "BALANCED": {
+            "dopamine_sensitivity": 1.0,
+            "cortisol_sensitivity": 1.0,
+            "history_window_minutes": 30,
+            "cache_ttl_seconds": 60,
+            "use_vectorized_math": true
+        },
+        "TURBO": {
+            "dopamine_sensitivity": 1.5,
+            "cortisol_sensitivity": 0.8,
+            "history_window_minutes": 10,
+            "cache_ttl_seconds": 10,
+            "use_vectorized_math": true
+        }
+    },
+    "benchmarking": {
+        "target_ops_sec": 5000,
+        "warn_on_below_ops": 2000
+    }
+}

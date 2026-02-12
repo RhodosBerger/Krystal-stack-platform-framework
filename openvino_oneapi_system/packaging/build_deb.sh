@@ -29,12 +29,13 @@ Version: $VERSION
 Section: utils
 Priority: optional
 Architecture: $ARCH
-Maintainer: Dev-contitional Team <maintainer@example.com>
+Maintainer: Dušan Kopecký <dusan.kopecky0101@gmail.com>
 Depends: python3 (>= 3.10)
 Recommends: sysbench
 Description: OpenVINO + oneAPI orchestration and Linux benchmark toolkit
  Includes adaptive planning, delegated logging, 3D grid memory abstraction,
  algorithmic planning, and synthetic+sysbench benchmark workflow.
+ Licensed under Apache 2.0.
 EOF
 
 # Copy application payload, excluding runtime logs and cache artifacts.
@@ -43,6 +44,9 @@ cp "$ROOT_DIR/benchmark_linux.py" "$BUILD_DIR$INSTALL_DIR/benchmark_linux.py"
 cp "$ROOT_DIR/README.md" "$BUILD_DIR$INSTALL_DIR/README.md"
 cp "$ROOT_DIR/requirements.txt" "$BUILD_DIR$INSTALL_DIR/requirements.txt"
 cp -r "$ROOT_DIR/ovo" "$BUILD_DIR$INSTALL_DIR/ovo"
+[ -f "$ROOT_DIR/LICENSE" ] && cp "$ROOT_DIR/LICENSE" "$BUILD_DIR$INSTALL_DIR/LICENSE"
+[ -f "$ROOT_DIR/phantom_net.onnx" ] && cp "$ROOT_DIR/phantom_net.onnx" "$BUILD_DIR$INSTALL_DIR/phantom_net.onnx"
+
 find "$BUILD_DIR$INSTALL_DIR" -type d -name "__pycache__" -prune -exec rm -rf {} +
 find "$BUILD_DIR$INSTALL_DIR" -type f -name "*.pyc" -delete
 

@@ -2,60 +2,52 @@
 import sys
 import os
 import asyncio
-import logging
+from typing import Dict, Any
 
-# Add path
-sys.path.append(os.path.join(os.getcwd(), 'advanced_cnc_copilot'))
+# Ensure path to find backend
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-# Logging
-logging.basicConfig(level=logging.ERROR)
-logger = logging.getLogger("IntegrationTest")
-logger.setLevel(logging.INFO)
+from advanced_cnc_copilot.backend.cms.vulkan_ingestor import grid_state
+from advanced_cnc_copilot.backend.cms.services.shadow_council import AuditorAgent, DecisionPolicy
 
-# Mock missing dependencies
-from unittest.mock import MagicMock
-sys.modules["numpy"] = MagicMock()
-sys.modules["redis"] = MagicMock()
-sys.modules["celery"] = MagicMock()
-sys.modules["celery.result"] = MagicMock()
-sys.modules["scipy"] = MagicMock()
-sys.modules["fastapi"] = MagicMock()
-sys.modules["pydantic"] = MagicMock()
-sys.modules["sqlalchemy"] = MagicMock()
-sys.modules["sqlalchemy.orm"] = MagicMock()
-sys.modules["requests"] = MagicMock()
-sys.modules["openai"] = MagicMock()
-
-async def test_integration():
-    print("🚀 Starting Integration Test...")
+async def run_test():
+    print("🧪 Starting Integration Verification...")
     
-    try:
-        from backend.core.orchestrator import orchestrator
-        print("✅ Orchestrator Imported.")
-        
-        # Initialize
-        await orchestrator.initialize()
-        print("✅ Orchestrator Initialized.")
-        
-        # Test 1: Consultation (Classic -> Agent)
-        print("\n--- Testing Consultation (Expect Agent Response) ---")
-        payload = {"question": "How do I optimize steel milling?"}
-        response = await orchestrator.process_request("CONSULTATION", payload, "test_user")
-        
-        print(f"Response: {response}")
-        
-        if "ManufacturingAgent" in str(response):
-             print("✅ Success: Response came from ManufacturingAgent.")
-        else:
-             print(f"⚠️ Warning: Response source might be fallback: {response.get('data', {}).get('source')}")
+    # 1. Setup Environment
+    policy = DecisionPolicy()
+    auditor = AuditorAgent(policy)
+    
+    # 2. Simulate Normal State
+    print("\n--- Test Case 1: Normal Grid State (0.2 Saturation) ---")
+    grid_state["saturation"] = 0.2
+    
+    proposal_normal = {
+        'proposed_parameters': {'feed_rate': 2000.0},
+        'confidence': 0.9
+    }
+    current_state = {'feed_rate': 1000.0}
+    
+    result = auditor.validate_proposal(proposal_normal, current_state)
+    print(f"Result: Approved={result['is_approved']}")
+    if result['is_approved']:
+        print("✅ PASS: Low saturation allowed action.")
+    else:
+        print("❌ FAIL: Low saturation blocked action.")
 
-        # Test 2: G-Code (Async -> Scheduler -> Agent/Legacy)
-        # Note: G-Code goes to Celery buffer, so we might just see QUEUED.
-        
-    except Exception as e:
-        print(f"❌ Integration Test Failed: {e}")
-        import traceback
-        traceback.print_exc()
+    # 3. Simulate Saturated State
+    print("\n--- Test Case 2: Saturated Grid State (0.95 Saturation) ---")
+    grid_state["saturation"] = 0.95
+    
+    result_saturated = auditor.validate_proposal(proposal_normal, current_state)
+    print(f"Result: Approved={result_saturated['is_approved']}")
+    
+    has_saturation_violation = any(v['parameter'] == 'grid_saturation' for v in result_saturated['constraint_violations'])
+    
+    if not result_saturated['is_approved'] and has_saturation_violation:
+        print("✅ PASS: High saturation blocked action.")
+    else:
+        print("❌ FAIL: High saturation did NOT block action.")
+        print(result_saturated)
 
 if __name__ == "__main__":
-    asyncio.run(test_integration())
+    asyncio.run(run_test())

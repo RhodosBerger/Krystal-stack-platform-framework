@@ -6,6 +6,8 @@ from ..models import Telemetry
 from ..services.dopamine_engine import DopamineEngine
 from ..services.economics_engine import EconomicsEngine
 from ..repositories.telemetry_repository import TelemetryRepository
+from ..vulkan_ingestor import grid_state
+
 
 logger = logging.getLogger(__name__)
 
@@ -244,6 +246,17 @@ class AuditorAgent:
                 'reason': 'Proposed parameters violate physics relationships'
             })
             reasoning.append("REJECTED: Proposed parameters violate physics relationships")
+            
+        # Validate Grid Saturation (Vulkan)
+        if grid_state.get("saturation", 0.0) > 0.9:
+             violations.append({
+                 'parameter': 'grid_saturation',
+                 'proposed_value': 'N/A',
+                 'constraint_limit': '90%',
+                 'reason': 'Vulkan Grid Memory Saturated'
+             })
+             reasoning.append(f"REJECTED: Grid Saturation at {grid_state['saturation']:.2%}")
+
         
         # Calculate fitness score
         if violations:
