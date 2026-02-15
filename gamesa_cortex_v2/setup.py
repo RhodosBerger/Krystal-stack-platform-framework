@@ -15,6 +15,9 @@ setup(
     install_requires=[
         "numpy",
         "psutil",
+        "streamlit",
+        "pandas",
+        "altair",
         "openvino>=2023.0.0; platform_machine=='x86_64'", # Only install if available via pip
     ],
     author="Gamesa Cortex Team",

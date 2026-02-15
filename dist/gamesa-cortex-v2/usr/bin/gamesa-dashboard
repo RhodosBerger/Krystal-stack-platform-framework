@@ -1,0 +1,3 @@
+#!/bin/bash
+export PYTHONPATH=/usr/lib/python3/dist-packages:$PYTHONPATH
+streamlit run /usr/lib/python3/dist-packages/gamesa_cortex_v2/dashboard/app.py

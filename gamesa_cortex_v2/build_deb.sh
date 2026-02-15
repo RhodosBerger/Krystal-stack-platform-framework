@@ -20,6 +20,20 @@ mkdir -p dist/gamesa-cortex-v2/usr/lib/python3/dist-packages/gamesa_cortex_v2/ru
 cp -r gamesa_cortex_v2/rust_planner/src dist/gamesa-cortex-v2/usr/lib/python3/dist-packages/gamesa_cortex_v2/rust_planner/
 cp gamesa_cortex_v2/rust_planner/Cargo.toml dist/gamesa-cortex-v2/usr/lib/python3/dist-packages/gamesa_cortex_v2/rust_planner/
 
+# 2.5 Copy Dashboard
+echo "[Gamesa Builder] Copying Dashboard..."
+mkdir -p dist/gamesa-cortex-v2/usr/lib/python3/dist-packages/gamesa_cortex_v2/dashboard
+cp -r gamesa_cortex_v2/dashboard/* dist/gamesa-cortex-v2/usr/lib/python3/dist-packages/gamesa_cortex_v2/dashboard/
+
+# 2.6 Create Dashboard Launcher
+mkdir -p dist/gamesa-cortex-v2/usr/bin
+cat <<EOF > dist/gamesa-cortex-v2/usr/bin/gamesa-dashboard
+#!/bin/bash
+export PYTHONPATH=/usr/lib/python3/dist-packages:\$PYTHONPATH
+streamlit run /usr/lib/python3/dist-packages/gamesa_cortex_v2/dashboard/app.py
+EOF
+chmod +x dist/gamesa-cortex-v2/usr/bin/gamesa-dashboard
+
 # 3. Create Control File
 echo "[Gamesa Builder] Creating Control File..."
 cat <<EOF > dist/gamesa-cortex-v2/DEBIAN/control
