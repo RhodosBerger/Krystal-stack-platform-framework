@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+if [ "$1" = "configure" ]; then
+    echo "[Gamesa Setup] Creating Virtual Environment in /opt/gamesa-cortex-v2/venv..."
+    if [ ! -d "/opt/gamesa-cortex-v2/venv" ]; then
+        python3 -m venv /opt/gamesa-cortex-v2/venv
+    fi
+
+    echo "[Gamesa Setup] Installing Dependencies into VENV..."
+    source /opt/gamesa-cortex-v2/venv/bin/activate
+    
+    # Upgrade pip
+    pip install --upgrade pip
+    
+    # Install core dependencies
+    # Note: openvino might take time or fail on non-x86, so we utilize || true for robustness in this demo
+    pip install numpy psutil pandas altair streamlit fastapi uvicorn
+    
+    echo "[Gamesa Setup] Installation Complete."
+fi
+
+exit 0

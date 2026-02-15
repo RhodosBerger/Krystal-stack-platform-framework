@@ -1,0 +1,12 @@
+[Unit]
+Description=Gamesa Cortex V2 API Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/gamesa-api
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

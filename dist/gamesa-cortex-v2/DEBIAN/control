@@ -3,7 +3,8 @@ Version: 0.1.0
 Section: python
 Priority: optional
 Architecture: all
-Depends: python3, python3-numpy, python3-psutil, python3-pandas
+Depends: python3, python3-venv, python3-pip
 Maintainer: Gamesa Cortex Team <dev@gamesacortex.com>
 Description: The Neural Control Plane for Industry 5.0
  Gamesa Cortex V2 orchestrates AI inference, economic planning, and safety checks.
+ This package installs into /opt/gamesa-cortex-v2 and creates a private virtual environment.

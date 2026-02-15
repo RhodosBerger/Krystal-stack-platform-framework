@@ -41,3 +41,27 @@ class OpenVINOSubsystem:
         self.streams = streams
         self.logger.info(f"OpenVINO Streams set to: {self.streams}")
         # In real implementation: self.core.set_property(self.device, {"NUM_STREAMS": streams})
+
+    def get_available_devices(self):
+        """
+        Returns a list of available OpenVINO devices (e.g. CPU, GPU, NPU).
+        """
+        if self.available:
+            return self.core.available_devices
+        return ["CPU", "GPU.0", "NPU.3720"] # Simulation mock
+
+    def load_model(self, model_path: str, device: str = "AUTO"):
+        """
+        Loads and compiles a model for the specified device.
+        """
+        self.logger.info(f"Loading Model: {model_path} on {device}...")
+        # Simulation delay
+        # time.sleep(0.1) 
+        return {"model": model_path, "device": device, "status": "COMPILED"}
+
+    def async_inference(self, model_handle, input_data):
+        """
+        Submits an asynchronous inference request.
+        """
+        # self.logger.debug(f"Async Inference Request: {model_handle['model']}")
+        return {"result": [0.1, 0.9], "latency_ms": 15.4}

@@ -1,0 +1,3 @@
+#!/bin/bash
+export PYTHONPATH=/opt/gamesa-cortex-v2
+/opt/gamesa-cortex-v2/venv/bin/python -m uvicorn gamesa_cortex_v2.src.core.api:app --host 0.0.0.0 --port 8000
