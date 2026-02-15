@@ -1,0 +1,11 @@
+{
+  "baseline_time": 0.009038853999300045,
+  "baseline_tps": 1106.334940333629,
+  "managed_time": 0.010532257999329886,
+  "managed_tps": 949.4640181275705,
+  "improvement_percent": -14.17933362556118,
+  "tasks_total": 10,
+  "tasks_completed": 10,
+  "tasks_denied": 0,
+  "remaining_credits": 49875
+}

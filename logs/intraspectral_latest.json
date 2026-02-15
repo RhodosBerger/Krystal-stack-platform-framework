@@ -1,0 +1,55 @@
+[
+  {
+    "timestamp": 1771146653312271307,
+    "spectrum": "SYSTEM",
+    "component": "NPU_Coordinator",
+    "message": "Online",
+    "metrics": {
+      "dopamine": 0.5,
+      "cortisol": 0.1
+    }
+  },
+  {
+    "timestamp": 1771146653312384075,
+    "spectrum": "SYSTEM",
+    "component": "NPU_Coordinator",
+    "message": "Preset Applied",
+    "metrics": {
+      "preset": "STANDARD_BALANCED"
+    }
+  },
+  {
+    "timestamp": 1771146653312508484,
+    "spectrum": "SYSTEM",
+    "component": "NPU_Coordinator",
+    "message": "Preset Applied",
+    "metrics": {
+      "preset": "IDLE_ECO"
+    }
+  },
+  {
+    "timestamp": 1771146653312597117,
+    "spectrum": "SYSTEM",
+    "component": "NPU_Coordinator",
+    "message": "Preset Applied",
+    "metrics": {
+      "preset": "HIGH_PERFORMANCE"
+    }
+  },
+  {
+    "timestamp": 1771146653312680132,
+    "spectrum": "SYSTEM",
+    "component": "NPU_Coordinator",
+    "message": "Preset Applied",
+    "metrics": {
+      "preset": "OPENVINO_INFERENCE"
+    }
+  },
+  {
+    "timestamp": 1771146653312717356,
+    "spectrum": "SYSTEM",
+    "component": "NPU_Coordinator",
+    "message": "Shutdown",
+    "metrics": {}
+  }
+]

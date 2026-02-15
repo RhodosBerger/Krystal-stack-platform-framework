@@ -1,86 +1,56 @@
-# Dev-contitional Platform
+# Dev-conditional: Heterogeneous Industrial AI Platform
 
-This repository is presented as 2 connected but independently positioned projects:
-
-- **60%: Krystal Vino + GAMESA 3D Grid** (primary platform)
-- **40%: FANUC RISE** (secondary industrial branch, FOCAS integration)
+This repository hosts a next-generation heterogeneous industrial AI platform, bridging the gap between high-level reasoning and real-time industrial control. It represents a fundamental rethink of how we architect compute at the edge, moving away from monolithic designs to a segmented, best-tool-for-the-job architecture.
 
 ---
 
-## 1) Krystal Vino + GAMESA 3D Grid (Primary Platform, 60%)
+## 1) Gamesa Cortex V2 (Primary Platform, 60%)
+**The Neural Control Plane**
 
-### What Krystal Vino Is
-Krystal Vino is a performance orchestration layer on top of OpenVINO/oneAPI for personal computers.  
-Its goal is to reduce latency and increase throughput through adaptive planning, telemetry, and runtime policy control.
+Gamesa Cortex V2 is a heterogeneous AI stack designed to run on commodity PC hardware while delivering safety-critical performance for industrial automation. It serves as an operating system for decision-making, orchestrating low-level acceleration through high-level logic.
 
-Codebase: `openvino_oneapi_system/`
+### Core Architecture
+- **Rust for Safety-Critical Planning** 🦀: Replaces Python in the critical path. Planning algorithms (A*, RRT) are compiled into shared libraries for zero-cost abstractions and memory safety.
+- **Vulkan for Spatial Awareness** 🌋: Leverages Compute Shaders (Intel Iris Xe, NVIDIA RTX) for massive parallel voxel collision detection, treating the workspace as a live volumetric grid.
+- **Economic Governance** ⚖️: A bio-inspired "Economic Governor" manages computation budgets. High-value tasks (Safety) get priority, while low-value tasks wait for "fiscal replenishment," preventing thermal throttling.
+- **Docker & vGPU Framework** 🐳: A custom **vGPU Manager** creates "Virtual Slices" of the host GPU for containerized AI workloads, enabling deployment on any Linux distro.
 
-### Core Components
-- **OpenVINO runtime layer**: inference with a safe fallback mode.
-- **oneAPI/OpenMP tuning**: dynamic control of `ONEAPI_NUM_THREADS`, `OMP_NUM_THREADS`, `OPENVINO_NUM_STREAMS`, `KMP_*`.
-- **Economic planner + evolutionary tuner**: online switching between `defensive/balanced/aggressive` modes.
-- **GAMESA 3D Grid**: logical 3D memory layer for data organization/swap behavior.
-- **Delegated logging**: separate channels for `system`, `telemetry`, `planning`, `policy`, `inference`, `grid_update`.
-
-### Proven Results (Linux Benchmark)
-Source: `openvino_oneapi_system/logs/benchmark_latest.txt`
-
-- **Latency improvement**: `66.01%`
-- **Throughput improvement**: `234.59%`
-- **Utility improvement**: `270.42%`
-- **Sysbench improvement**: `99.55%`  
-  Baseline: `2615.43 events/s` -> Adaptive: `5219.10 events/s`
-
-### Quick Run
-```bash
-python3 openvino_oneapi_system/main.py --cycles 10 --interval 0.5
-python3 openvino_oneapi_system/benchmark_linux.py --cycles 60
-```
-
-### Debian Package (Whole Package)
-Generated package:
-- `openvino_oneapi_system/dist/openvino-oneapi-system_1.1.0_amd64.deb`
-
-Includes:
-- CLI: `ovo-runtime`, `ovo-benchmark`
-- Service unit: `openvino-oneapi-system.service`
-- Config: `/etc/default/openvino-oneapi-system`
+**Codebase**: `gamesa_cortex_v2/`
 
 ---
 
-## 2) FANUC RISE (Secondary Branch, 40%)
+## 2) FANUC RISE v3.0 - Cognitive Forge (Secondary Branch, 40%)
+**Advanced CNC Copilot**
 
-### Project Characterization
-FANUC RISE is an industrial CNC layer focused on operations, telemetry, and workflow automation.  
-FOCAS is a **secondary integration layer**, not the primary product target.
+FANUC RISE v3.0 represents the evolution from deterministic execution to probabilistic creation. It is a **Conceptual Prototype & Pattern Library** demonstrating architectural patterns for bio-mimetic industrial automation.
 
-Codebase: `advanced_cnc_copilot/`
+### Key Concepts
+- **Cognitive Forge**: Shifts focus from "Doing What Is Told" to "Suggesting What Is Possible," where AI proposes optimization strategies for operator selection.
+- **Shadow Council Governance**: A multi-agent system (Creator, Auditor, Accountant) ensuring safe AI integration by validating probabilistic proposals against deterministic physics.
+- **The Probability Canvas**: A "Glass Brain" interface visualizing potential futures and decision trees instead of just current status.
+- **Neuro-Geometric Architecture**: Integer-only neural networks for edge computing.
 
-### Scope
-- CNC operator workflows and supervision
-- API + UI for production monitoring
-- FANUC telemetry bridge (mock/real mode based on environment)
-- Extensible backend services for manufacturing analytics
-
-### Role in the Overall Ecosystem
-- Krystal Vino handles performance runtime orchestration and compute optimization.
-- FANUC RISE handles industrial context, machine/data connectivity, and operator use.
-- Together they form a pipeline: **performance core + industrial execution**.
+**Codebase**: `advanced_cnc_copilot/`
 
 ---
 
 ## Repository Map
-- `openvino_oneapi_system/` primary performance platform (OpenVINO, oneAPI, GAMESA 3D Grid)
-- `advanced_cnc_copilot/` FANUC RISE industrial stack
-- `docs/` additional technical materials
+
+- **`gamesa_cortex_v2/`**: **Core Platform**. The active development branch for the heterogeneous AI stack (Rust/Vulkan/Python).
+- **`advanced_cnc_copilot/`**: **Industrial Application Layer**. The FANUC RISE v3.0 Cognitive Forge prototype and pattern library.
+- **`openvino_oneapi_system/`**: **Legacy/Foundation**. Previous generation performance orchestration layer (Krystal Vino). Served as the foundation for Cortex V2's optimization strategies.
+- **`docs/`**: Additional technical materials and documentation.
+
+---
 
 ## Direction Note
-The priority of this repository is Krystal Vino/GAMESA 3D Grid as the main platform for PC hardware and inference performance.  
-FANUC RISE remains a separate, secondary domain branch for CNC integrations.
+
+The priority of this repository is **Gamesa Cortex V2** as the main platform for PC hardware and inference performance. **FANUC RISE v3.0** serves as the advanced application layer and pattern library for industrial logic.
 
 ---
 
 ## Author & License
-**Author**: Dušan Kopecký  
-**Email**: dusan.kopecky0101@gmail.com  
+
+**Author**: Dušan Kopecký
+**Email**: dusan.kopecky0101@gmail.com
 **License**: Apache 2.0 (See `LICENSE` file)

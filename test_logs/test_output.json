@@ -1,0 +1,31 @@
+[
+  {
+    "timestamp": 1771143880835545769,
+    "spectrum": "SYSTEM",
+    "component": "TestScript",
+    "message": "Startup",
+    "metrics": {
+      "version": "1.0"
+    }
+  },
+  {
+    "timestamp": 1771143880935622853,
+    "spectrum": "PLANNING",
+    "component": "Planner",
+    "message": "PathFound",
+    "metrics": {
+      "cost": 42,
+      "nodes": 150
+    }
+  },
+  {
+    "timestamp": 1771143881035701480,
+    "spectrum": "SAFETY",
+    "component": "PowerMonitor",
+    "message": "VoltageCheck",
+    "metrics": {
+      "v_cpu": 1.25,
+      "temp": 45.0
+    }
+  }
+]
