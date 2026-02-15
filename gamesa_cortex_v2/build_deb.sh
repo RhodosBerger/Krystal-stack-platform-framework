@@ -30,7 +30,16 @@ mkdir -p dist/gamesa-cortex-v2/usr/bin
 cat <<EOF > dist/gamesa-cortex-v2/usr/bin/gamesa-dashboard
 #!/bin/bash
 export PYTHONPATH=/usr/lib/python3/dist-packages:\$PYTHONPATH
-streamlit run /usr/lib/python3/dist-packages/gamesa_cortex_v2/dashboard/app.py
+
+# Check for Streamlit
+if ! python3 -c "import streamlit" &> /dev/null; then
+    echo "Error: Streamlit dependency missing."
+    echo "Please run: sudo apt-get install python3-streamlit  OR  sudo pip3 install streamlit"
+    exit 1
+fi
+
+# Launch using python module to avoid PATH issues
+python3 -m streamlit run /usr/lib/python3/dist-packages/gamesa_cortex_v2/dashboard/app.py
 EOF
 chmod +x dist/gamesa-cortex-v2/usr/bin/gamesa-dashboard
 
@@ -42,7 +51,7 @@ Version: 0.1.0
 Section: python
 Priority: optional
 Architecture: all
-Depends: python3, python3-numpy, python3-psutil
+Depends: python3, python3-numpy, python3-psutil, python3-pandas
 Maintainer: Gamesa Cortex Team <dev@gamesacortex.com>
 Description: The Neural Control Plane for Industry 5.0
  Gamesa Cortex V2 orchestrates AI inference, economic planning, and safety checks.
