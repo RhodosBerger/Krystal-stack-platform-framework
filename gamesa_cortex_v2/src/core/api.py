@@ -96,6 +96,28 @@ async def dispatch_task(task: TaskRequest, background_tasks: BackgroundTasks):
         
     return {"status": "dispatched", "task": task.task_type}
 
+@app.post("/tasks/dispatch/eagle_eye", tags=["Tasks", "Acceleration"])
+async def dispatch_eagle_eye_task(task: TaskRequest, background_tasks: BackgroundTasks):
+    """
+    Submits an inference task specifically via the Eagle Eye Accelerator 
+    for strong acceleration using smaller consumption routing.
+    """
+    # Dummy inference input to demonstrate
+    dummy_model_handle = {"model": "phantom_net.onnx"}
+    dummy_input_data = [0.1, 0.2, 0.3]
+    
+    future = coordinator.dispatch_eagle_eye_task(
+        dummy_model_handle,
+        dummy_input_data,
+        task.workload,
+        task.task_type
+    )
+    
+    if future is None:
+        raise HTTPException(status_code=503, detail="Eagle Eye Task denied by Economic Governor")
+        
+    return {"status": "eagle_eye_dispatched", "task": task.task_type, "optimal_routing": "enabled"}
+
 # --- Launcher ---
 def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8000)

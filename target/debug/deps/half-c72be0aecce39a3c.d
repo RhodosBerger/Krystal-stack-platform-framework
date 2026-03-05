@@ -1,0 +1,12 @@
+/home/dusan/Documents/GitHub/Dev-contitional/target/debug/deps/libhalf-c72be0aecce39a3c.rmeta: /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/lib.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/bfloat.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/bfloat/convert.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/binary16.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/binary16/convert.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/leading_zeros.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/slice.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/vec.rs
+
+/home/dusan/Documents/GitHub/Dev-contitional/target/debug/deps/half-c72be0aecce39a3c.d: /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/lib.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/bfloat.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/bfloat/convert.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/binary16.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/binary16/convert.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/leading_zeros.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/slice.rs /home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/vec.rs
+
+/home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/lib.rs:
+/home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/bfloat.rs:
+/home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/bfloat/convert.rs:
+/home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/binary16.rs:
+/home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/binary16/convert.rs:
+/home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/leading_zeros.rs:
+/home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/slice.rs:
+/home/dusan/.cargo/registry/src/index.crates.io-6f17d22bba15001f/half-2.2.1/src/vec.rs:

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Forge | Cognitive Forge Foundation</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .mantinel-curve {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.8) 100%);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .curve-path {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            border-top: 2px solid var(--text-accent);
+            border-radius: 100% 0 0 0;
+            transform: scaleX(2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">
+                <div class="brand-icon"></div>
+                <span>THE FORGE</span>
+            </div>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="codex.html">The Codex</a>
+                <a href="forge.html" class="active">The Forge</a>
+                <a href="economy.html">The Economy</a>
+                <a href="library.html">The Library</a>
+            </nav>
+        </header>
+
+        <section class="hero text-center" style="min-height: 40vh;">
+            <div>
+                <div class="mono text-highlight">MODULE 2</div>
+                <h1>The Physics of Adaptation</h1>
+                <p class="text-secondary" style="font-size: 1.2rem; max-width: 800px; margin: 0 auto;">
+                    Applying theoretical concepts to the physical constraints of machinery and geometry. The "Body" of
+                    the Industrial Organism.
+                </p>
+            </div>
+        </section>
+
+        <!-- 2.1 The Quadratic Mantinel -->
+        <section class="section">
+            <div class="card">
+                <div class="mono text-accent">PHYSICS 2.1</div>
+                <h2>The Quadratic Mantinel</h2>
+                <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <p>Kinematics must be constrained by geometric curvature to preserve momentum and prevent servo
+                            jerk. Implementation of <strong>B-Spline smoothing</strong> converts sharp path corners into
+                            tolerance-band curves (ρ), allowing "Rush Mode" velocities.</p>
+                        <div class="code-block mono"
+                            style="background:#111; padding: 1rem; margin-top: 1rem; border-left: 2px solid var(--text-accent);">
+                            Speed = f(Curvature²)
+                        </div>
+                    </div>
+                    <div class="mantinel-curve">
+                        <div class="overlay-data mono"
+                            style="position: absolute; top: 10px; right: 10px; font-size: 0.7rem; color: var(--text-accent);">
+                            > CURVATURE: OPTIMAL<br>
+                            > JERK: 0.002
+                        </div>
+                        <svg width="100%" height="100%" viewBox="0 0 400 200">
+                            <path d="M0,180 Q200,180 200,20 T400,20" fill="none" stroke="var(--text-accent)"
+                                stroke-width="2" />
+                            <circle cx="200" cy="100" r="4" fill="var(--text-danger)">
+                                <animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite" />
+                            </circle>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2.2 Fluid Engineering Framework -->
+        <section class="section">
+            <div class="card">
+                <div class="mono text-highlight">PHYSICS 2.2</div>
+                <h2>Fluid Engineering Framework</h2>
+                <p class="text-secondary">Engineering plans treated as dynamic flows rather than static blueprints.</p>
+                <div class="flow-steps"
+                    style="display: flex; justify-content: space-between; margin-top: 2rem; border-top: 2px solid var(--border-light); padding-top: 1rem;">
+                    <div class="step text-center">
+                        <div class="mono text-accent">01</div>
+                        <h4>Perception</h4>
+                        <small>Sensing vibration/heat</small>
+                    </div>
+                    <div class="step text-center">
+                        <div class="mono text-accent">02</div>
+                        <h4>Translation</h4>
+                        <small>Mapping sens data</small>
+                    </div>
+                    <div class="step text-center">
+                        <div class="mono text-accent">03</div>
+                        <h4>Adaptation</h4>
+                        <small>Homeostasis</small>
+                    </div>
+                    <div class="step text-center">
+                        <div class="mono text-accent">04</div>
+                        <h4>Execution</h4>
+                        <small>Path Implementation</small>
+                    </div>
+                    <div class="step text-center">
+                        <div class="mono text-accent">05</div>
+                        <h4>Learning</h4>
+                        <small>Policy Update</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2.3 Nightmare Training -->
+        <section class="section">
+            <div class="card" style="border-color: var(--text-danger);">
+                <div class="mono text-danger">PHYSICS 2.3</div>
+                <h2>Nightmare Training (The Dream State)</h2>
+                <p>Biological memory consolidation applied to industrial hardware. During idle times, the system runs
+                    adversarial simulations ("Nightmares")—tool breakages, power failures, thermal spikes—to update its
+                    Dopamine Policy without risking physical assets.</p>
+                <div class="nightmare-ui"
+                    style="margin-top: 1rem; background: rgba(255,0,0,0.1); padding: 1rem; border-radius: 8px;">
+                    <span class="mono text-danger">> SIMULATION: CRITICAL FAILURE... RECOVERING...</span>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div class="mono">COGNITIVE FORGE FOUNDATION © 2026</div>
+        </footer>
+    </div>
+</body>
+
+</html>

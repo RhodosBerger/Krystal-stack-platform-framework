@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krystal-edge-miner
+  labels:
+    app: krystal-miner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: krystal-miner
+  template:
+    metadata:
+      labels:
+        app: krystal-miner
+    spec:
+      containers:
+      - name: krystal-miner
+        image: krystal-miner:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        # Dynamické delenie vGPU Threadov pre edge Nvidia GPU karty
+        - name: CUDA_MPS_ACTIVE_THREAD_PERCENTAGE
+          value: "40"
+        - name: CUDA_VDPAU_TREAT_G_AS_C
+          value: "1"
+        - name: RUST_LOG
+          value: "info"
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        volumeMounts:
+        - name: hwmon
+          mountPath: /sys/class/hwmon
+          readOnly: true
+        # Priloženie UDS Socketu pre komunikáciu s lokálnym Governor-om
+        - name: ipc-socket
+          mountPath: /tmp/krystal_ob.sock
+      volumes:
+      - name: hwmon
+        hostPath:
+          path: /sys/class/hwmon
+          type: Directory
+      - name: ipc-socket
+        hostPath:
+          path: /tmp/krystal_ob.sock
+          type: Socket

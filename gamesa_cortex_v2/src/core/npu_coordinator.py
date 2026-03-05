@@ -11,6 +11,7 @@ from .config import GamesaConfig
 from .logging_system import IntraspectralLogger
 from .presets import PresetManager
 from .openvino_subsystem import OpenVINOSubsystem
+from .eagle_eye_accelerator import EagleEyeAccelerator
 
 class NPUCoordinator:
     """
@@ -33,6 +34,7 @@ class NPUCoordinator:
         self.timer = PreciseTimer()
         self.power = PowerGovernor() # ARM Integration
         self.economics = EconomicGovernor() # Resource Regulation
+        self.eagle_eye = EagleEyeAccelerator(self.openvino, self.power) # Advanced NPU optimization
         
         self.logger.info("Orbit V2: NPU Coordinator Online (EDF Scheduler).")
         self.intra_logger.log_event("SYSTEM", "NPU_Coordinator", "Online", self.neural_state)
@@ -106,6 +108,27 @@ class NPUCoordinator:
         # self.logger.info(f"Dispatching Task {task_type}. Protocol: {priority}.")
         self.intra_logger.log_event("INFERENCE", "NPU_Coordinator", "Task Dispatched", {"task": task_type, "priority": priority, "deadline": deadline_ms})
         return self.executor.submit(task_func, *args)
+        
+    def dispatch_eagle_eye_task(self, model_handle, input_data, workload_size: int, task_type: str="EAGLE_EYE_INFERENCE"):
+        """
+        Specialized dispatch for strong acceleration with smaller unit consumption
+        using the integrated Eagle Eye NPU Accelerator.
+        """
+        priority = self.assess_priority({})
+        
+        # Lower cost profile via Eagle Eye optimizations
+        if not self.economics.request_allocation(task_type, priority):
+            self.logger.warning(f"Eagle Eye Task {task_type} Denied by Economic Governor.")
+            self.intra_logger.log_event("PLANNING", "NPU_Coordinator", "Eagle Eye Task Denied", {"task": task_type, "reason": "budget"})
+            return None
+
+        self.intra_logger.log_event("INFERENCE", "NPU_Coordinator", "Eagle Eye Dispatched", {"task": task_type, "workload": workload_size})
+        
+        # Offload logic execution directly onto the threadpool via our accelerator
+        def _eagle_eye_runner():
+            return self.eagle_eye.execute_with_eagle_eye(model_handle, input_data, workload_size)
+            
+        return self.executor.submit(_eagle_eye_runner)
 
     def shutdown(self):
         """

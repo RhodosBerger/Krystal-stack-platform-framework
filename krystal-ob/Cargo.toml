@@ -1,0 +1,13 @@
+[package]
+name = "krystal-ob"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.34", features = ["full", "time"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+anyhow = "1.0"
+nvml-wrapper = "0.10.0"
+rumqttc = "0.24.0"

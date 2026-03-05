@@ -1,0 +1,35 @@
+#version 450
+
+// Zero-copy data flow layout: Workgroup size = 64 threadov
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) buffer Data {
+    uint data[];
+} nonces;
+
+// Kostra pre SHA-256 pre ťažbu (mining). 
+// Optimalizovaná flow pre midstate výpočet nie je celá tu (bola by na >300 riadkov glsl), 
+// ale ukazuje in-place výpočet.
+
+#define RIGHT_ROTATE(x, n) (((x) >> (n)) | ((x) << (32 - (n))))
+#define CH(x, y, z) (((x) & (y)) ^ (~(x) & (z)))
+#define MAJ(x, y, z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
+#define EP0(x) (RIGHT_ROTATE(x, 2) ^ RIGHT_ROTATE(x, 13) ^ RIGHT_ROTATE(x, 22))
+#define EP1(x) (RIGHT_ROTATE(x, 6) ^ RIGHT_ROTATE(x, 11) ^ RIGHT_ROTATE(x, 25))
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    uint nonce = nonces.data[idx];
+    
+    // -- Sem ide reálny pre-calc midstate (80 byte hlavička bitcoinu) a SHA-256 64-round cyklus --
+    // Simulácia hashu cez bitové operácie pre testovacie účely:
+    uint simulated_hash = nonce ^ EP0(nonce); 
+    
+    // Difficulty target overenie vzťahu 
+    // Zápis in-place: zero-copy flow dovolí Rustu prečítať iba upravené zmeny na rovnakom buffri
+    if (simulated_hash < 0x00AFFFFF) {
+        nonces.data[idx] = simulated_hash; // úspešný návrat hashu validovaného v GPU
+    } else {
+        nonces.data[idx] = 0; // zlyhanie - nezapíšeme do poolu
+    }
+}

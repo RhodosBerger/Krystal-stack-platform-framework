@@ -1,0 +1,321 @@
+/* Cognitive Forge Foundation - Industrial Organism Theme */
+:root {
+    --bg-dark: #050508;
+    --bg-card: rgba(20, 20, 30, 0.6);
+    --bg-glass: rgba(255, 255, 255, 0.03);
+
+    --text-primary: #f0f0f5;
+    --text-secondary: #a0a0b0;
+    --text-accent: #00ffbc;
+    /* Dopamine/Efficiency */
+    --text-danger: #ff0055;
+    /* Cortisol/Stress */
+    --text-highlight: #00b8ff;
+    /* Intelligence/Cool */
+
+    --border-light: rgba(255, 255, 255, 0.1);
+    --border-active: rgba(0, 255, 188, 0.5);
+
+    --glow-dopamine: 0 0 20px rgba(0, 255, 188, 0.3);
+    --glow-cortisol: 0 0 20px rgba(255, 0, 85, 0.3);
+
+    --font-heading: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --transition-speed: 0.3s;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-secondary) var(--bg-dark);
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    line-height: 1.6;
+    overflow-x: hidden;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(0, 184, 255, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(255, 0, 85, 0.05) 0%, transparent 40%);
+    min-height: 100vh;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.mono {
+    font-family: var(--font-mono);
+}
+
+.text-accent {
+    color: var(--text-accent);
+}
+
+.text-danger {
+    color: var(--text-danger);
+}
+
+.text-highlight {
+    color: var(--text-highlight);
+}
+
+/* Layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 3rem;
+}
+
+.brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.brand-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--text-accent);
+    box-shadow: var(--glow-dopamine);
+    border-radius: 4px;
+}
+
+nav ul {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+}
+
+nav a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition-speed);
+}
+
+nav a:hover,
+nav a.active {
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Glass Components */
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: transform var(--transition-speed), border-color var(--transition-speed);
+    position: relative;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    border-color: var(--border-active);
+    box-shadow: var(--glow-dopamine);
+}
+
+.glitch-border {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Visualizations */
+.neuro-metric {
+    margin-top: 1rem;
+}
+
+.metric-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    position: relative;
+}
+
+.dopamine-fill {
+    background: var(--text-accent);
+    box-shadow: var(--glow-dopamine);
+    width: 75%;
+}
+
+.cortisol-fill {
+    background: var(--text-danger);
+    box-shadow: var(--glow-cortisol);
+    width: 25%;
+}
+
+/* Hero Section */
+.hero {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    min-height: 60vh;
+}
+
+.hero-visual {
+    position: relative;
+    height: 400px;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 100%);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.glass-brain {
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: inset 0 0 50px rgba(0, 184, 255, 0.1);
+    animation: breathe 4s ease-in-out infinite alternate;
+}
+
+@keyframes breathe {
+    0% {
+        box-shadow: inset 0 0 50px rgba(0, 184, 255, 0.1), 0 0 20px rgba(0, 184, 255, 0.1);
+        transform: scale(1);
+        border: 1px solid rgba(0, 184, 255, 0.2);
+    }
+
+    100% {
+        box-shadow: inset 0 0 80px rgba(255, 0, 85, 0.2), 0 0 40px rgba(255, 0, 85, 0.2);
+        transform: scale(1.05);
+        border: 1px solid rgba(255, 0, 85, 0.4);
+    }
+}
+
+.synapse {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    animation: fire 2s infinite linear;
+}
+
+/* Module Grid */
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 4rem;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-light);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: all var(--transition-speed);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--text-accent);
+    color: #000;
+    border: none;
+    box-shadow: var(--glow-dopamine);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 40px rgba(0, 255, 188, 0.5);
+}
+
+/* Footer */
+footer {
+    margin-top: 5rem;
+    padding: 3rem 0;
+    border-top: 1px solid var(--border-light);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Utility Animations */
+.pulse-slow {
+    animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}

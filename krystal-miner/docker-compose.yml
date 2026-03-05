@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  krystal_edge_miner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # vGPU slicing a deployment na Nvidia MPS / ROCm z docker host levelu
+    environment:
+      - CUDA_MPS_ACTIVE_THREAD_PERCENTAGE=40 # VgPU allocation na 40%
+      - CUDA_VDPAU_TREAT_G_AS_C=1
+      - RUST_LOG=info
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu, compute, utility ]
+    volumes:
+      # Priamy bind /sys pre Economic Governor čítanie HW statusov ak obchádza nvidia-smi
+      - /sys/class/hwmon:/sys/class/hwmon:ro
+    network_mode: host
