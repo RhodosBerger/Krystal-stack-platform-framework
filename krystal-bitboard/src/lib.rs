@@ -4,6 +4,7 @@ pub mod render;
 pub mod edge;
 pub mod ob;
 pub mod governor;
+pub mod enterprise;
 
 use std::sync::Arc;
 use grid::MemoryGrid;
@@ -32,6 +33,11 @@ pub fn start_grid() -> Arc<MemoryGrid> {
     // Economic Governor pre realloc
     let grid_g = grid.clone();
     tokio::spawn(async move { governor::start_economic_governor(grid_g).await; });
+
+    // --- Komerčná VRSTVA (Enterprise Upgrades) ---
+    tokio::spawn(async move { enterprise::run_big_data_shipper().await; });
+    tokio::spawn(async move { enterprise::run_central_admin().await; });
+    tokio::spawn(async move { enterprise::run_decentralized_admin().await; });
 
     grid
 }

@@ -1,0 +1,43 @@
+FROM rust:1.75 AS builder
+
+WORKDIR /app
+COPY . .
+
+# Inštalujeme komerčné moduly pre HW-Akceleráciu, RDMA stready, Kafka integrácie a Data Lake tools
+RUN apt-get update && apt-get install -y \
+    libvulkan-dev glslang-tools \
+    librdkafka-dev \
+    gcc g++ cmake pkg-config \
+    vulkan-tools libvulkan1 mesa-vulkan-drivers \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN cargo build --release -p krystal-bitboard
+
+# Komerčná produkčná vrstva pre NOC a Datacentrá
+FROM ubuntu:24.04
+WORKDIR /app
+
+# Inštalácia driverov dôležitých na edge host s GPU, nvml, hwmon + Big Data streamery
+RUN apt-get update && apt-get install -y \
+    vulkan-tools \
+    libvulkan1 \
+    mesa-vulkan-drivers \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/target/release/krystal-bitboard /usr/local/bin/krystal-bitboard
+
+# Eniromentálne premenné pre Enterprise Architektúru:
+ENV KRYSTAL_MODE=enterprise
+ENV BIG_DATA_STREAM=kafka://core-broker:9092
+ENV CENTRAL_ADMIN_URL=https://fleet.krystal.node
+ENV SWARM_P2P_PORT=8333
+ENV RUST_LOG=info
+ENV CUDA_MPS_ACTIVE_THREAD_PERCENTAGE=100
+
+# Vystavujeme Porty pre Data Lakes a NOC Control Pane
+EXPOSE 8080 9090 8333
+
+# Start Daemon s limitáciou na prístupy GPU a IPC Swarm pamäte.
+ENTRYPOINT ["krystal-bitboard"]
