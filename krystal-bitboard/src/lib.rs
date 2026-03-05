@@ -5,6 +5,7 @@ pub mod edge;
 pub mod ob;
 pub mod governor;
 pub mod enterprise;
+pub mod integrations;
 
 use std::sync::Arc;
 use grid::MemoryGrid;

@@ -14,6 +14,23 @@ impl TemperaturePredictor {
         Self { history: VecDeque::with_capacity(30) }
     }
 
+    pub fn add_sample(&mut self, temp: f64) {
+        if self.history.len() == 30 {
+            self.history.pop_front();
+        }
+        self.history.push_back(temp);
+    }
+
+    pub fn rapid_increase(&self) -> bool {
+        if self.history.len() >= 10 {
+            let old_temp = self.history[self.history.len() - 10];
+            let new_temp = *self.history.back().unwrap();
+            (new_temp - old_temp) >= 3.0
+        } else {
+            false
+        }
+    }
+
     pub fn predict_temp_5m(&self) -> f64 {
         let n = usize::min(10, self.history.len());
         if n < 2 { return *self.history.back().unwrap_or(&0.0); }
