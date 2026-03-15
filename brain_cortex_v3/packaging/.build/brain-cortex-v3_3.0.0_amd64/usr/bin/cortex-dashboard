@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+# Brain Cortex V3 — Web Dashboard
+set -eu
+[ -f /etc/default/brain-cortex-v3 ] && . /etc/default/brain-cortex-v3
+PORT="${BCX_DASHBOARD_PORT:-7860}"
+echo "CortexCSS Dashboard starting on http://localhost:${PORT}"
+cd /usr/lib/brain-cortex-v3/cortex_css
+exec "${BCX_PYTHON:-python3}" dashboard/server.py "$@"

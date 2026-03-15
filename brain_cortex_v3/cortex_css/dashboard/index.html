@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CortexCSS — Computation Style Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Design tokens — analogia CSS custom properties v štýlovom systéme */
+  --bg-primary:    #0a0e1a;
+  --bg-secondary:  #0f1629;
+  --bg-card:       #141c30;
+  --bg-card-hover: #1a2540;
+  --accent-blue:   #3b82f6;
+  --accent-cyan:   #06b6d4;
+  --accent-green:  #10b981;
+  --accent-amber:  #f59e0b;
+  --accent-red:    #ef4444;
+  --accent-purple: #8b5cf6;
+  --accent-pink:   #ec4899;
+  --text-primary:  #f0f4ff;
+  --text-secondary:#8899bb;
+  --text-muted:    #4a5880;
+  --border:        rgba(59,130,246,0.15);
+  --glow-blue:     0 0 20px rgba(59,130,246,0.3);
+  --glow-green:    0 0 20px rgba(16,185,129,0.3);
+  --glow-amber:    0 0 20px rgba(245,158,11,0.3);
+  --radius:        12px;
+  --radius-sm:     8px;
+  --font-mono:     'JetBrains Mono', monospace;
+  --font-ui:       'Inter', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 14px; scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Animated background grid ─────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* ── Layout ──────────────────────────────────────────────── */
+.layout {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+  padding: 0 24px 32px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+header {
+  padding: 24px 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.logo-group { display: flex; align-items: center; gap: 16px; }
+.logo-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: var(--glow-blue);
+}
+.logo-text h1 {
+  font-size: 1.25rem; font-weight: 700;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.logo-text p { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+
+.status-pill {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.75rem; color: var(--accent-green);
+  font-family: var(--font-mono);
+}
+.pulse {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent-green);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* ── Main grid ───────────────────────────────────────────── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  grid-template-rows: auto auto 1fr;
+  gap: 16px;
+}
+
+/* ── Cards ───────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.card:hover {
+  border-color: rgba(59,130,246,0.3);
+  box-shadow: var(--glow-blue);
+}
+.card-title {
+  font-size: 0.7rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title::before {
+  content: ''; display: block;
+  width: 3px; height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(var(--accent-blue), var(--accent-purple));
+}
+
+/* ── HW Panel ────────────────────────────────────────────── */
+#hw-panel { grid-column: 1; grid-row: 1 / 3; }
+
+.hw-metric { margin-bottom: 20px; }
+.hw-label  {
+  font-size: 0.7rem; color: var(--text-secondary);
+  margin-bottom: 6px; display: flex; justify-content: space-between;
+}
+.hw-value  {
+  font-family: var(--font-mono); font-size: 1.6rem; font-weight: 700;
+  color: var(--text-primary);
+}
+.hw-unit   { font-size: 0.9rem; color: var(--text-secondary); }
+
+.bar-track {
+  height: 8px; border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+  margin-top: 8px; overflow: hidden; position: relative;
+}
+.bar-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+.bar-fill::after {
+  content: '';
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 2px;
+}
+
+.bar-temp  { background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444); }
+.bar-gpu   { background: linear-gradient(90deg, #3b82f6, #8b5cf6); }
+.bar-cpu   { background: linear-gradient(90deg, #06b6d4, #3b82f6); }
+
+.power-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 6px;
+  font-size: 0.75rem; font-family: var(--font-mono); font-weight: 500;
+  margin-top: 8px;
+}
+.power-eco       { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+.power-balanced  { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+.power-overdrive { background: rgba(239,68,68,0.15);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+/* ── Mode selector ───────────────────────────────────────── */
+#mode-panel { grid-column: 2; grid-row: 1; }
+
+.mode-grid {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.mode-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 0.75rem; font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-btn:hover {
+  border-color: var(--accent-blue);
+  color: var(--text-primary);
+  background: rgba(59,130,246,0.1);
+}
+.mode-btn.active {
+  background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(139,92,246,0.25));
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  box-shadow: 0 0 12px rgba(59,130,246,0.2);
+}
+
+/* ── Race results ────────────────────────────────────────── */
+#race-panel { grid-column: 2; grid-row: 2 / 4; }
+#race-container {
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.race-row {
+  display: grid;
+  grid-template-columns: 140px 120px 60px 1fr 80px 80px 80px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+}
+.race-row::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: transparent;
+  transition: background 0.3s;
+}
+.race-row.winner {
+  background: linear-gradient(135deg,
+    rgba(16,185,129,0.08),
+    rgba(6,182,212,0.05));
+  border-color: rgba(16,185,129,0.35);
+  box-shadow: 0 0 16px rgba(16,185,129,0.15);
+}
+.race-row.winner::before { background: var(--accent-green); }
+
+.style-name {
+  font-family: var(--font-mono); font-size: 0.78rem;
+  color: var(--text-primary); font-weight: 500;
+}
+.style-classes {
+  display: flex; flex-wrap: wrap; gap: 3px;
+}
+.class-tag {
+  padding: 2px 6px; border-radius: 4px;
+  font-size: 0.62rem; font-family: var(--font-mono);
+  background: rgba(59,130,246,0.12);
+  color: #93c5fd;
+  border: 1px solid rgba(59,130,246,0.2);
+}
+.device-chip {
+  padding: 4px 8px; border-radius: 5px;
+  font-size: 0.7rem; font-family: var(--font-mono);
+  font-weight: 600; white-space: nowrap;
+}
+.chip-cpu    { background: rgba(6,182,212,0.15);  color: #22d3ee; }
+.chip-gpu    { background: rgba(139,92,246,0.15); color: #a78bfa; }
+.chip-hetero { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.chip-auto   { background: rgba(16,185,129,0.15); color: #34d399; }
+
+.score-bar-wrap { position: relative; }
+.score-bar-bg {
+  height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.05);
+  overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.race-row.winner .score-bar-fill {
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+}
+
+.metric-val {
+  font-family: var(--font-mono); font-size: 0.8rem;
+  color: var(--text-primary); text-align: right;
+}
+.metric-unit {
+  font-size: 0.65rem; color: var(--text-secondary);
+}
+
+.winner-badge {
+  display: none;
+  position: absolute; top: 8px; right: 8px;
+  background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+  color: #000;
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em;
+  padding: 2px 8px; border-radius: 99px;
+}
+.race-row.winner .winner-badge { display: block; }
+
+/* ── CSS Classes Panel ───────────────────────────────────── */
+#css-panel { grid-column: 1; grid-row: 3; }
+.class-list { max-height: 260px; overflow-y: auto; }
+.class-list::-webkit-scrollbar { width: 4px; }
+.class-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.class-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 8px; border-radius: 5px;
+  margin-bottom: 3px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.class-item:hover { background: rgba(59,130,246,0.08); }
+.class-item-name { font-family: var(--font-mono); color: #93c5fd; }
+.class-item-val  { color: var(--text-muted); font-size: 0.68rem; }
+
+/* ── Cascade log ─────────────────────────────────────────── */
+#cascade-log {
+  font-family: var(--font-mono); font-size: 0.68rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-height: 120px;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 12px;
+}
+.log-set      { color: #34d399; }
+.log-override { color: #fbbf24; }
+.log-cascade  { color: #60a5fa; }
+.log-miss     { color: #f87171; }
+
+/* ── Tooltip style inspector ─────────────────────────────── */
+.inspector {
+  position: fixed; bottom: 24px; right: 24px;
+  width: 300px;
+  background: var(--bg-card);
+  border: 1px solid var(--accent-blue);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--glow-blue);
+  font-size: 0.75rem;
+  z-index: 100;
+  transform: translateY(200%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.inspector.show { transform: translateY(0); }
+.inspector h3   { color: var(--accent-blue); margin-bottom: 10px; font-size: 0.8rem; }
+.inspector-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.inspector-item label { display: block; color: var(--text-muted); font-size: 0.65rem; margin-bottom: 2px; }
+.inspector-item span  { color: var(--text-primary); font-family: var(--font-mono); }
+
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.race-row { animation: slideIn 0.3s ease; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <header>
+    <div class="logo-group">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">
+        <h1>CortexCSS</h1>
+        <p>Computation Style System — Brain Cortex V3 / Intel i5-1135G7</p>
+      </div>
+    </div>
+    <div class="status-pill">
+      <div class="pulse"></div>
+      <span id="status-text">Pripájam WebSocket...</span>
+    </div>
+  </header>
+
+  <div class="main-grid">
+
+    <!-- HW Panel -->
+    <div class="card" id="hw-panel">
+      <div class="card-title">Hardvér — Tiger Lake</div>
+
+      <div class="hw-metric">
+        <div class="hw-label">
+          <span>CPU Teplota</span>
+          <span id="temp-pct">—</span>
+        </div>
+        <div class="hw-value" id="cpu-temp">—<span class="hw-unit">°C</span></div>
+        <div class="bar-track"><div class="bar-fill bar-temp" id="bar-temp" style="width:0%"></div></div>
+      </div>
+
+      <div class="hw-metric">
+        <div class="hw-label">
+          <span>Iris Xe GPU záťaž</span>
+          <span id="gpu-busy-val">—</span>
+        </div>
+        <div class="hw-value" id="gpu-busy">—<span class="hw-unit">%</span></div>
+        <div class="bar-track"><div class="bar-fill bar-gpu" id="bar-gpu" style="width:0%"></div></div>
+      </div>
+
+      <div class="hw-metric">
+        <div class="hw-label"><span>Napájanie</span></div>
+        <div id="power-badge" class="power-badge power-balanced">⚡ balanced</div>
+      </div>
+
+      <div class="hw-metric">
+        <div class="hw-label"><span>Zdroj napájania</span></div>
+        <div class="hw-value" id="power-source" style="font-size:1rem">—</div>
+      </div>
+
+      <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:10px">Cascade Inspector</div>
+        <div id="cascade-log"><span style="color:var(--text-muted)">Čakám na dáta...</span></div>
+      </div>
+    </div>
+
+    <!-- Mode selector -->
+    <div class="card" id="mode-panel">
+      <div class="card-title">Racing Mode — Štýl vyhodnotenia</div>
+      <div class="mode-grid" id="mode-selector">
+        <button class="mode-btn active" data-mode="balanced">⚖ balanced</button>
+        <button class="mode-btn" data-mode="latency">⚡ latency</button>
+        <button class="mode-btn" data-mode="throughput">🔄 throughput</button>
+        <button class="mode-btn" data-mode="battery">🔋 battery</button>
+      </div>
+    </div>
+
+    <!-- Race results -->
+    <div class="card" id="race-panel">
+      <div class="card-title">Paralelné štýly výpočtu — Race Results</div>
+      <div style="display:grid;grid-template-columns:140px 120px 60px 1fr 80px 80px 80px;gap:12px;padding:0 16px 8px;font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em">
+        <span>Štýl</span><span>Triedy</span><span>Device</span>
+        <span>Skóre</span><span>Latencia</span><span>FPS</span><span>mW</span>
+      </div>
+      <div id="race-container">
+        <div style="color:var(--text-muted);padding:20px;text-align:center;font-size:0.8rem">
+          Čakám na WebSocket dáta...
+        </div>
+      </div>
+    </div>
+
+    <!-- CSS Classes panel -->
+    <div class="card" id="css-panel">
+      <div class="card-title">CortexCSS Utility Triedy</div>
+      <div class="class-list" id="class-list">
+        <div style="color:var(--text-muted);font-size:0.75rem">Načítavam...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Inspector -->
+<div class="inspector" id="inspector">
+  <h3>⚙ Computed Style</h3>
+  <div class="inspector-grid" id="inspector-grid"></div>
+</div>
+
+<script>
+const WS_URL = `ws://${location.host}/ws/race`;
+const API_URL = `/api/styles`;
+
+let ws = null;
+let currentMode = "balanced";
+let maxScore = 0;
+
+// ── WebSocket ─────────────────────────────────────────────
+function connect() {
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    document.getElementById("status-text").textContent = "Živé dáta ✓";
+  };
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    updateHW(data.hw);
+    updateRace(data.results);
+    updateCascadeLog(data.results);
+  };
+
+  ws.onerror = () => {
+    document.getElementById("status-text").textContent = "Chyba spojenia";
+  };
+
+  ws.onclose = () => {
+    document.getElementById("status-text").textContent = "Odpojené — rekonektujem...";
+    setTimeout(connect, 3000);
+  };
+}
+
+// ── HW update ─────────────────────────────────────────────
+function updateHW(hw) {
+  const temp = hw.cpu_temp_c;
+  const gpu  = hw.gpu_busy_pct;
+
+  document.getElementById("cpu-temp").innerHTML =
+    `${temp.toFixed(1)}<span class="hw-unit">°C</span>`;
+  document.getElementById("gpu-busy").innerHTML =
+    `${gpu.toFixed(0)}<span class="hw-unit">%</span>`;
+  document.getElementById("bar-temp").style.width = `${Math.min(100, (temp/100)*100)}%`;
+  document.getElementById("bar-gpu").style.width  = `${gpu}%`;
+  document.getElementById("temp-pct").textContent = temp > 80 ? "⚠ Horúci" : "OK";
+
+  const badge = document.getElementById("power-badge");
+  const mode  = hw.power_mode;
+  badge.className = `power-badge power-${mode}`;
+  const icons = {eco:"🔋", balanced:"⚡", overdrive:"🔥"};
+  badge.textContent = `${icons[mode]||"⚡"} ${mode}`;
+
+  document.getElementById("power-source").textContent =
+    hw.on_battery ? "🔋 Batéria" : "🔌 Nabíjačka";
+}
+
+// ── Race results update ───────────────────────────────────
+function updateRace(results) {
+  const container = document.getElementById("race-container");
+  maxScore = Math.max(...results.map(r => r.score), 0.001);
+
+  container.innerHTML = results.map((r, i) => {
+    const scorePct = (r.score / maxScore * 100).toFixed(0);
+    const devClass = {
+      "CPU": "chip-cpu",
+      "GPU.0": "chip-gpu",
+      "HETERO:GPU,CPU": "chip-hetero",
+      "AUTO": "chip-auto",
+    }[r.device] || "chip-auto";
+
+    const classTagsHtml = (r.classes || []).slice(0, 2).map(c =>
+      `<span class="class-tag">${c}</span>`
+    ).join("");
+
+    return `
+    <div class="race-row ${r.winner?'winner':''}" data-style="${r.name}"
+         onclick="showInspector(${JSON.stringify(r).replace(/"/g,"&quot;")})">
+      <div>
+        <div class="style-name">${r.name}</div>
+        <div style="font-size:0.62rem;color:var(--text-muted);margin-top:2px">
+          cost: ${r.credit_cost} credits
+        </div>
+      </div>
+      <div class="style-classes">${classTagsHtml}</div>
+      <div><span class="device-chip ${devClass}">${shortDevice(r.device)}</span></div>
+      <div class="score-bar-wrap">
+        <div class="score-bar-bg">
+          <div class="score-bar-fill" style="width:${scorePct}%"></div>
+        </div>
+        <div style="font-size:0.62rem;color:var(--text-secondary);margin-top:3px">
+          ${r.precision} · ${r.hint.toLowerCase()}
+        </div>
+      </div>
+      <div class="metric-val">${r.latency_ms.toFixed(1)}<span class="metric-unit">ms</span></div>
+      <div class="metric-val">${r.throughput_fps.toFixed(0)}<span class="metric-unit">fps</span></div>
+      <div class="metric-val">${r.power_mw}<span class="metric-unit">mW</span></div>
+      <div class="winner-badge">WINS</div>
+    </div>`;
+  }).join("");
+}
+
+function shortDevice(d) {
+  return {
+    "CPU": "CPU",
+    "GPU.0": "GPU·Xe",
+    "HETERO:GPU,CPU": "HETERO",
+    "AUTO": "AUTO",
+  }[d] || d;
+}
+
+// ── Cascade log ───────────────────────────────────────────
+function updateCascadeLog(results) {
+  const winner = results.find(r => r.winner);
+  if (!winner) return;
+  // We can show which classes the winner applied (simplified)
+  const log = winner.classes.map(c => `<div class="log-set">SET   ${c}</div>`).join("");
+  const final = `<div class="log-cascade">→ device: ${winner.device} · prec: ${winner.precision}</div>`;
+  document.getElementById("cascade-log").innerHTML = log + final;
+}
+
+// ── Inspector ─────────────────────────────────────────────
+function showInspector(r) {
+  const grid = document.getElementById("inspector-grid");
+  const props = [
+    ["Device", r.device], ["Precision", r.precision],
+    ["Hint", r.hint],     ["Streams", r.streams],
+    ["Power", r.power_mode], ["Latencia", r.latency_ms + "ms"],
+    ["FPS", r.throughput_fps], ["mW", r.power_mw],
+    ["Score", r.score.toFixed(4)], ["Credits", r.credit_cost],
+  ];
+  grid.innerHTML = props.map(([k,v]) =>
+    `<div class="inspector-item"><label>${k}</label><span>${v}</span></div>`
+  ).join("");
+  document.getElementById("inspector").classList.add("show");
+  setTimeout(() => document.getElementById("inspector").classList.remove("show"), 4000);
+}
+
+// ── Mode buttons ──────────────────────────────────────────
+document.getElementById("mode-selector").addEventListener("click", (e) => {
+  const btn = e.target.closest(".mode-btn");
+  if (!btn) return;
+  document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  currentMode = btn.dataset.mode;
+  // Send mode change to server (future: WS command)
+});
+
+// ── Load styles list ──────────────────────────────────────
+async function loadStyles() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    const list = document.getElementById("class-list");
+    list.innerHTML = data.styles.map(s => {
+      const preview = Object.entries(s.properties).slice(0,1).map(([k,v])=>`${k}: ${v}`).join("; ");
+      return `<div class="class-item" title="${JSON.stringify(s.properties,null,2)}">
+        <span class="class-item-name">${s.selector}</span>
+        <span class="class-item-val">${preview}</span>
+      </div>`;
+    }).join("");
+  } catch(e) {
+    console.error("Failed to load styles", e);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────
+loadStyles();
+connect();
+</script>
+</body>
+</html>

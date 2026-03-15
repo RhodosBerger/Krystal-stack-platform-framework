@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# Brain Cortex V3 — C++ CortexBot
+set -eu
+[ -f /etc/default/brain-cortex-v3 ] && . /etc/default/brain-cortex-v3
+BOT_BIN=/usr/lib/brain-cortex-v3/cortex_bot/cortex_bot
+if [ ! -x "$BOT_BIN" ]; then
+    echo "[cortex-bot] Binary not found. Run: cortex-game --arena ALL" >&2
+    exit 1
+fi
+exec "$BOT_BIN" --simulate "${@}"

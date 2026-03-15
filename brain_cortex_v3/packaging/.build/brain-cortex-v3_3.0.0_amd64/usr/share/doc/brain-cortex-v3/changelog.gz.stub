@@ -1,0 +1,8 @@
+brain-cortex-v3 (3.0.0) unstable; urgency=low
+  * Initial release of Brain Cortex V3
+  * Advice Grid: Vulkan log -> OpenVINO instruction translation
+  * CortexBot C++: sysfs real-time HW control loop
+  * CortexCSS: Computation Style System with parallel evaluator
+  * Four game arenas: ALPHA/BETA/GAMMA/DELTA
+  * Web dashboard: FastAPI + WebSocket
+ -- Dusan Kopecky <dusan.kopecky0101@gmail.com>  Sun, 15 Mar 2026 07:50:00 +0100

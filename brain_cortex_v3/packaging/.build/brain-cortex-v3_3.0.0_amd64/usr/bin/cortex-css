@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+# Brain Cortex V3 — CortexCSS Demo
+set -eu
+[ -f /etc/default/brain-cortex-v3 ] && . /etc/default/brain-cortex-v3
+cd /usr/lib/brain-cortex-v3/cortex_css
+exec "${BCX_PYTHON:-python3}" demo.py "$@"

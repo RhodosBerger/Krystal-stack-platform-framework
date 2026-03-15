@@ -1,0 +1,55 @@
+#!/usr/bin/env sh
+set -eu
+PKG="brain-cortex-v3"
+BOT_USER="cortex-bot"
+LOG_DIR="/var/log/${PKG}"
+LIB_DIR="/var/lib/${PKG}"
+INSTALL_DIR="/usr/lib/${PKG}"
+
+echo "[postinst] Konfigurujem ${PKG}..."
+
+# Vytvor system usera pre bezpecnye spustanie
+if ! getent group "${BOT_USER}" >/dev/null 2>&1; then
+    addgroup --system "${BOT_USER}" >/dev/null 2>&1 || true
+fi
+if ! getent passwd "${BOT_USER}" >/dev/null 2>&1; then
+    adduser --system --ingroup "${BOT_USER}"         --home "${LIB_DIR}" --no-create-home         --shell /usr/sbin/nologin         --gecos "Brain Cortex V3 Service"         "${BOT_USER}" >/dev/null 2>&1 || true
+fi
+
+# Adresare pre logy a runtime state
+mkdir -p "${LOG_DIR}" "${LIB_DIR}"
+chown -R "${BOT_USER}:${BOT_USER}" "${LOG_DIR}" "${LIB_DIR}" 2>/dev/null || true
+chmod 0775 "${LOG_DIR}" "${LIB_DIR}" 2>/dev/null || true
+
+# Nastav capabilities pre cortex-bot (sysfs pristup bez root)
+BOT_BIN="${INSTALL_DIR}/cortex_bot/cortex_bot"
+if [ -x "${BOT_BIN}" ] && command -v setcap >/dev/null 2>&1; then
+    setcap 'cap_sys_admin+ep' "${BOT_BIN}" 2>/dev/null ||         echo "[postinst] Tip: Spusti 'sudo setcap cap_sys_admin+ep ${BOT_BIN}'"
+fi
+
+# Nainštaluj Python závislosti do systémovej virty / globálne
+INSTALL_DIR_PY="/usr/lib/brain-cortex-v3"
+if command -v pip3 >/dev/null 2>&1; then
+    pip3 install --quiet --no-warn-script-location         rich psutil requests fastapi uvicorn 2>/dev/null ||         echo "[postinst] Tip: pip3 install rich psutil requests fastapi uvicorn"
+fi
+
+# Reload systemd a enable service
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl daemon-reload >/dev/null 2>&1 || true
+    echo ""
+    echo "==================================================================="
+    echo "  Brain Cortex V3 nainštalovaný!"
+    echo ""
+    echo "  Rýchly štart:"
+    echo "    cortex-game              # interaktívne menu"
+    echo "    cortex-game --arena ALL  # plný gauntlet"
+    echo "    cortex-demo              # živý stream"
+    echo "    cortex-css               # computation style race"
+    echo "    cortex-dashboard         # web UI na :7860"
+    echo "    cortex-bot --simulate    # C++ control loop"
+    echo ""
+    echo "  Ako service:"
+    echo "    sudo systemctl enable --now brain-cortex-v3"
+    echo "==================================================================="
+fi
+exit 0

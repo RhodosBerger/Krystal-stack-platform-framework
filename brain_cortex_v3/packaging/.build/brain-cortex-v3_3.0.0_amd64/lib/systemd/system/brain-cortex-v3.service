@@ -1,0 +1,29 @@
+[Unit]
+Description=Brain Cortex V3 — HW Inference Orchestration Bot
+Documentation=https://github.com/Dev-contitional/brain_cortex_v3
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=cortex-bot
+Group=cortex-bot
+EnvironmentFile=-/etc/default/brain-cortex-v3
+WorkingDirectory=/var/lib/brain-cortex-v3
+ExecStart=/usr/bin/cortex-dashboard
+ExecReload=/bin/kill -HUP $MAINPID
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brain-cortex-v3
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+
+# Bezpečnostné parametre
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/log/brain-cortex-v3 /var/lib/brain-cortex-v3
+
+[Install]
+WantedBy=multi-user.target

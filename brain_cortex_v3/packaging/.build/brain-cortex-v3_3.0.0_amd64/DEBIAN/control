@@ -1,0 +1,24 @@
+Package: brain-cortex-v3
+Version: 3.0.0
+Section: science
+Priority: optional
+Architecture: amd64
+Maintainer: Dušan Kopecký <dusan.kopecky0101@gmail.com>
+Depends: python3 (>= 3.10), python3-psutil, libstdc++6
+Recommends: python3-pip, cmake, build-essential, libdrm-dev, vulkan-tools
+Suggests: openvino-runtime, intel-gpu-tools, i7z, powertop
+Description: Brain Cortex V3 — HW Inference Orchestration Platform
+ Inteligentny plánovač inferencie pre Intel Tiger Lake (i5-1135G7).
+ .
+ Features:
+  - Advice Grid: Vulkan log -> OpenVINO inštrukcia prekladac
+  - Instruction Bus: OpenVINO + OpenAPI dual-path executor
+  - Power Monitor: sysfs RAPL + thermal reader
+  - Four Inference Arenas: ALPHA/BETA/GAMMA/DELTA game modes
+  - CortexCSS: CSS-analogny computation style system
+  - CortexBot (C++): OBSERVE->EVALUATE->ACT real-time control loop
+  - Web Dashboard: FastAPI + WebSocket live visualization
+  - Tiger Lake specific: Iris Xe 80EU, HETERO:GPU,CPU routing
+ .
+ Compiled with -march=tigerlake for maximum performance.
+ Licensed under Apache 2.0.

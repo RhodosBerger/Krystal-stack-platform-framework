@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+set -eu
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl daemon-reload >/dev/null 2>&1 || true
+fi
+if [ "$1" = "purge" ]; then
+    rm -rf /var/log/brain-cortex-v3 /var/lib/brain-cortex-v3 2>/dev/null || true
+fi
+exit 0

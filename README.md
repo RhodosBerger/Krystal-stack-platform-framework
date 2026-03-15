@@ -49,6 +49,13 @@ An advanced CNC Copilot representing the evolution from deterministic execution 
 - **Probability Canvas**: The "Glass Brain" interface revealing decision trees and future trajectories instead of stagnant status logs.
 - *Codebase*: `advanced_cnc_copilot/`
 
+### 3) Brain Cortex V3 (Hardware Inference Orchestration)
+An autonomous inference scheduler heavily optimized for Intel Tiger Lake (i5-1135G7) and Iris Xe architectures.
+- **Advice Grid**: Translates raw Vulkan latency/stalls into dynamic OpenVINO instructions.
+- **CortexCSS Component**: A CSS-analogous computation style system. Cascade-driven declarations (e.g., `.device-gpu .priority-critical`) evaluated in parallel.
+- **C++ Bot Core**: A real-time `OBSERVE -> EVALUATE -> ACT` control loop that manipulates Linux `sysfs` (RAPL limits, passive Intel P-States, and GPU GT frequencies).
+- *Codebase*: `brain_cortex_v3/`
+
 ---
 
 ## 🛠️ Repository Map
@@ -58,6 +65,7 @@ An advanced CNC Copilot representing the evolution from deterministic execution 
 - **`krystal-miner/`**: Proof-of-concept Vulkan-accelerated SHA-256 worker limits.
 - **`gamesa_cortex_v2/`**: Core Industrial heterogeneous AI stack (Rust/Vulkan/Python).
 - **`advanced_cnc_copilot/`**: FANUC RISE v3.0 Cognitive Forge prototype and interaction patterns.
+- **`brain_cortex_v3/`**: Autonomous hardware scheduler with C++ loop, CortexCSS, and games arenas.
 - **`docs/`**: Technical specs, architectural maps, and historical deployments.
 
 ---

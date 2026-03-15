@@ -1,0 +1,23 @@
+# Brain Cortex V3 — Runtime Environment
+# Upravte podľa vašej konfigurácie
+
+# Python interpreter
+BCX_PYTHON=/usr/bin/python3
+
+# Default power mode: eco | balanced | overdrive
+BCX_POWER_MODE=balanced
+
+# Target inference latency (ms)
+BCX_TARGET_LATENCY_MS=20
+
+# CortexBot tick period (ms) — 8ms = 125Hz
+BCX_TICK_MS=8
+
+# OpenAPI endpoint (Ollama local)
+BCX_OPENAPI_URL=http://localhost:11434/v1
+
+# Web dashboard port
+BCX_DASHBOARD_PORT=7860
+
+# Log directory
+BCX_LOG_DIR=/var/log/brain-cortex-v3
