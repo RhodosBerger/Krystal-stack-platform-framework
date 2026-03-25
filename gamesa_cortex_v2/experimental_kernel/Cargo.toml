@@ -1,0 +1,57 @@
+[package]
+name = "experimental_kernel"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dušan Kopecký <dusan.kopecky0101@gmail.com>"]
+description = "Experimental Kernel Layer for Krystal Stack - Advanced Scheduling and UUID Tracking"
+
+[lib]
+name = "experimental_kernel"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Python FFI bindings
+pyo3 = { version = "0.20", features = ["extension-module", "auto-initialize"] }
+
+# Async runtime for kernel-level concurrency
+tokio = { version = "1.35", features = ["full", "rt-multi-thread", "sync", "time", "macros"] }
+
+# UUID generation and tracking
+uuid = { version = "1.6", features = ["v4", "fast-rng"] }
+
+# High-resolution timing and latency measurement
+instant = "0.1"
+
+# System information and hardware monitoring
+sysinfo = "0.30"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging and tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Serialization for telemetry
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Lock-free data structures for high-performance concurrent access
+crossbeam = "0.8"
+dashmap = "5.5"
+
+# Memory-mapped I/O for kernel communication
+memmap2 = "0.9"
+
+# Numerical operations for scheduling algorithms
+ndarray = "0.15"
+
+# Random number generation for stochastic scheduling
+rand = "0.8"
+rand_chacha = "0.3"
+
+[features]
+default = []
+benchmark = []
+profiling = ["tracing/tracing-log"]
