@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>RISE | Multiverse Master</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0b;
+            --card: #141417;
+            --primary: #00ff88;
+            --info: #00d4ff;
+            --text: #e1e1e6;
+            --text-dim: #a8a8b3;
+            --border: #29292e;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .project-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .project-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .project-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .project-item.active {
+            border-left: 4px solid var(--info);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .multiverse-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .branch-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .branch-card:hover {
+            border-color: var(--info);
+            transform: translateY(-5px);
+        }
+
+        .branch-card.master {
+            border-color: var(--primary);
+        }
+
+        .badge {
+            font-size: 0.7em;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        .badge-info {
+            background: var(--info);
+            color: black;
+        }
+
+        .badge-master {
+            background: var(--primary);
+            color: black;
+        }
+
+        .line {
+            position: absolute;
+            height: 2px;
+            background: var(--border);
+            z-index: -1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="header">
+            <i class="fas fa-project-diagram fa-2x text-info"></i>
+            <div>
+                <div style="font-weight: bold;">MULTIVERSE MASTER</div>
+                <div style="font-size: 0.7em; color: var(--text-dim);">SAAS PROJECT EXPLORER</div>
+            </div>
+        </div>
+        <div class="project-list" id="project-list">
+            <!-- Projects injected here -->
+            <div class="project-item active" onclick="loadLineage(this, 'JOB-12345')">
+                <div style="font-weight: bold;">Engine Bracket V2</div>
+                <div style="font-size: 0.8em; color: var(--text-dim);">JOB-12345 • STATUS: PREVIEW</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div style="margin-bottom: 30px;">
+            <h1 style="margin:0;">Project Lineage: <span id="active-project-name" class="text-info">Engine Bracket
+                    V2</span></h1>
+            <p style="color:var(--text-dim);">Visualizing alternative builds and manufacturing vectors.</p>
+        </div>
+
+        <div class="multiverse-grid" id="multiverse-grid">
+            <!-- Cards injected here -->
+            <div class="branch-card master">
+                <span class="badge badge-master">Master Build</span>
+                <h3>Original Draft</h3>
+                <p style="font-size: 0.8em; color:var(--text-dim);">Standard Aluminum 6061-T6 parameters. Optimized for
+                    material cost.</p>
+                <div style="margin-top:20px; font-family:monospace; font-size:0.7em;">
+                    ID: JOB-12345<br>
+                    TIME: 2026-01-24
+                </div>
+            </div>
+
+            <div class="branch-card">
+                <span class="badge badge-info">Alternative</span>
+                <h3>Finish Optimized</h3>
+                <p style="font-size: 0.8em; color:var(--text-dim);">Reduced feed rates and increased stepover for
+                    aerospace finish.</p>
+                <div style="margin-top:20px; font-family:monospace; font-size:0.7em;">
+                    ID: BR-A882<br>
+                    PARENT: JOB-12345
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadLineage(element, jobId) {
+            // Remove active from all
+            document.querySelectorAll('.project-item').forEach(i => i.classList.remove('active'));
+            element.classList.add('active');
+
+            // In a real app: fetch /api/projects/branches?job_id=jobId
+            console.log("Loading multiverse for:", jobId);
+        }
+    </script>
+</body>
+
+</html>

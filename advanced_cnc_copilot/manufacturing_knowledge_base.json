@@ -1,0 +1,543 @@
+{
+  "best_practices": [
+    {
+      "category": "speeds_feeds",
+      "material": "Aluminum6061",
+      "operation": "roughing",
+      "rule": "Use cutting speed 250 m/min for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Aluminum6061",
+      "operation": "roughing",
+      "rule": "Use feed 0.2 mm/tooth for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Aluminum6061",
+      "operation": "roughing",
+      "rule": "Recommended tool: Carbide 3-flute end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Aluminum6061",
+      "operation": "finishing",
+      "rule": "Use cutting speed 350 m/min for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Aluminum6061",
+      "operation": "finishing",
+      "rule": "Use feed 0.1 mm/tooth for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Aluminum6061",
+      "operation": "finishing",
+      "rule": "Recommended tool: Carbide 4-flute end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Steel4140",
+      "operation": "roughing",
+      "rule": "Use cutting speed 100 m/min for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Steel4140",
+      "operation": "roughing",
+      "rule": "Use feed 0.15 mm/tooth for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Steel4140",
+      "operation": "roughing",
+      "rule": "Recommended tool: Carbide coated end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Steel4140",
+      "operation": "finishing",
+      "rule": "Use cutting speed 120 m/min for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Steel4140",
+      "operation": "finishing",
+      "rule": "Use feed 0.08 mm/tooth for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Steel4140",
+      "operation": "finishing",
+      "rule": "Recommended tool: Carbide finishing end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Titanium6Al4V",
+      "operation": "roughing",
+      "rule": "Use cutting speed 60 m/min for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Titanium6Al4V",
+      "operation": "roughing",
+      "rule": "Use feed 0.08 mm/tooth for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Titanium6Al4V",
+      "operation": "roughing",
+      "rule": "Recommended tool: Carbide low-helix end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Titanium6Al4V",
+      "operation": "finishing",
+      "rule": "Use cutting speed 70 m/min for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Titanium6Al4V",
+      "operation": "finishing",
+      "rule": "Use feed 0.05 mm/tooth for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Titanium6Al4V",
+      "operation": "finishing",
+      "rule": "Recommended tool: Carbide finishing end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "StainlessSteel316",
+      "operation": "roughing",
+      "rule": "Use cutting speed 80 m/min for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "StainlessSteel316",
+      "operation": "roughing",
+      "rule": "Use feed 0.12 mm/tooth for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "StainlessSteel316",
+      "operation": "roughing",
+      "rule": "Recommended tool: Carbide coated end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "StainlessSteel316",
+      "operation": "finishing",
+      "rule": "Use cutting speed 100 m/min for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "StainlessSteel316",
+      "operation": "finishing",
+      "rule": "Use feed 0.06 mm/tooth for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "StainlessSteel316",
+      "operation": "finishing",
+      "rule": "Recommended tool: Carbide finishing end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Brass",
+      "operation": "roughing",
+      "rule": "Use cutting speed 300 m/min for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Brass",
+      "operation": "roughing",
+      "rule": "Use feed 0.25 mm/tooth for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Brass",
+      "operation": "roughing",
+      "rule": "Recommended tool: HSS or Carbide end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Brass",
+      "operation": "finishing",
+      "rule": "Use cutting speed 400 m/min for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Brass",
+      "operation": "finishing",
+      "rule": "Use feed 0.12 mm/tooth for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Brass",
+      "operation": "finishing",
+      "rule": "Recommended tool: Carbide finishing end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Plastic_Acrylic",
+      "operation": "roughing",
+      "rule": "Use cutting speed 200 m/min for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Plastic_Acrylic",
+      "operation": "roughing",
+      "rule": "Use feed 0.3 mm/tooth for roughing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Plastic_Acrylic",
+      "operation": "roughing",
+      "rule": "Recommended tool: Single or double flute end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Plastic_Acrylic",
+      "operation": "finishing",
+      "rule": "Use cutting speed 250 m/min for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Plastic_Acrylic",
+      "operation": "finishing",
+      "rule": "Use feed 0.15 mm/tooth for finishing",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Plastic_Acrylic",
+      "operation": "finishing",
+      "rule": "Recommended tool: Polished end mill",
+      "source": "Speeds & Feeds Database",
+      "confidence": 0.9
+    },
+    {
+      "category": "setup",
+      "material": "all",
+      "operation": "general",
+      "rule": "Always indicate your vise to within 0.001\" for precision work",
+      "source": "Practical Machinist Forums",
+      "confidence": 0.95
+    },
+    {
+      "category": "tooling",
+      "material": "Aluminum",
+      "operation": "general",
+      "rule": "Use 3-flute end mills for roughing, 4-flute for finishing aluminum",
+      "source": "CNCCookbook",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Titanium",
+      "operation": "general",
+      "rule": "Maintain constant chip load when machining titanium to avoid work hardening",
+      "source": "Harvey Tool Technical",
+      "confidence": 0.95
+    },
+    {
+      "category": "coolant",
+      "material": "Steel",
+      "operation": "general",
+      "rule": "Use flood coolant for steel tapping operations to prevent tap breakage",
+      "source": "Machining Forums",
+      "confidence": 0.85
+    },
+    {
+      "category": "quality",
+      "material": "all",
+      "operation": "general",
+      "rule": "Let parts cool to room temperature before final inspection",
+      "source": "Quality Control Best Practices",
+      "confidence": 0.98
+    },
+    {
+      "category": "tooling",
+      "material": "Stainless",
+      "operation": "general",
+      "rule": "Use sharp tools and positive rake angles for stainless steel to reduce work hardening",
+      "source": "Sandvik Coromant",
+      "confidence": 0.92
+    },
+    {
+      "category": "setup",
+      "material": "all",
+      "operation": "general",
+      "rule": "Touch off tools with a 0.100\" gage block for consistent tool length offsets",
+      "source": "HAAS Technical",
+      "confidence": 0.9
+    },
+    {
+      "category": "speeds_feeds",
+      "material": "Aluminum",
+      "operation": "general",
+      "rule": "Increase spindle speed by 20-30% for finishing passes on aluminum",
+      "source": "Machining Best Practices",
+      "confidence": 0.85
+    },
+    {
+      "category": "troubleshooting",
+      "material": "all",
+      "operation": "general",
+      "rule": "Chatter usually indicates too much tool stick-out - reduce by 30% and retry",
+      "source": "Practical Machinist",
+      "confidence": 0.88
+    },
+    {
+      "category": "safety",
+      "material": "all",
+      "operation": "general",
+      "rule": "Never exceed 80% of manufacturer max spindle RPM for end mills",
+      "source": "Tooling Safety Standards",
+      "confidence": 0.99
+    }
+  ],
+  "parts_library": [
+    {
+      "part_type": "shaft",
+      "description": "20mm x 100mm shaft",
+      "material": "Steel4140",
+      "dimensions": {
+        "diameter": 20,
+        "length": 100
+      },
+      "template": "shaft"
+    },
+    {
+      "part_type": "shaft",
+      "description": "20mm x 200mm shaft",
+      "material": "Steel4140",
+      "dimensions": {
+        "diameter": 20,
+        "length": 200
+      },
+      "template": "shaft"
+    },
+    {
+      "part_type": "shaft",
+      "description": "30mm x 100mm shaft",
+      "material": "Steel4140",
+      "dimensions": {
+        "diameter": 30,
+        "length": 100
+      },
+      "template": "shaft"
+    },
+    {
+      "part_type": "shaft",
+      "description": "30mm x 200mm shaft",
+      "material": "Steel4140",
+      "dimensions": {
+        "diameter": 30,
+        "length": 200
+      },
+      "template": "shaft"
+    },
+    {
+      "part_type": "shaft",
+      "description": "40mm x 100mm shaft",
+      "material": "Steel4140",
+      "dimensions": {
+        "diameter": 40,
+        "length": 100
+      },
+      "template": "shaft"
+    },
+    {
+      "part_type": "shaft",
+      "description": "40mm x 200mm shaft",
+      "material": "Steel4140",
+      "dimensions": {
+        "diameter": 40,
+        "length": 200
+      },
+      "template": "shaft"
+    },
+    {
+      "part_type": "bracket",
+      "description": "50x50mm bracket",
+      "material": "Aluminum6061",
+      "dimensions": {
+        "length": 50,
+        "width": 50,
+        "thickness": 10
+      },
+      "template": "bracket"
+    },
+    {
+      "part_type": "bracket",
+      "description": "100x100mm bracket",
+      "material": "Aluminum6061",
+      "dimensions": {
+        "length": 100,
+        "width": 100,
+        "thickness": 10
+      },
+      "template": "bracket"
+    }
+  ],
+  "speeds_feeds": {
+    "Aluminum6061": {
+      "roughing": {
+        "cutting_speed_m_min": 250,
+        "feed_per_tooth_mm": 0.2,
+        "depth_of_cut_mm": 3.0,
+        "tool_type": "Carbide 3-flute end mill"
+      },
+      "finishing": {
+        "cutting_speed_m_min": 350,
+        "feed_per_tooth_mm": 0.1,
+        "depth_of_cut_mm": 0.5,
+        "tool_type": "Carbide 4-flute end mill"
+      }
+    },
+    "Steel4140": {
+      "roughing": {
+        "cutting_speed_m_min": 100,
+        "feed_per_tooth_mm": 0.15,
+        "depth_of_cut_mm": 2.0,
+        "tool_type": "Carbide coated end mill"
+      },
+      "finishing": {
+        "cutting_speed_m_min": 120,
+        "feed_per_tooth_mm": 0.08,
+        "depth_of_cut_mm": 0.3,
+        "tool_type": "Carbide finishing end mill"
+      }
+    },
+    "Titanium6Al4V": {
+      "roughing": {
+        "cutting_speed_m_min": 60,
+        "feed_per_tooth_mm": 0.08,
+        "depth_of_cut_mm": 1.0,
+        "tool_type": "Carbide low-helix end mill"
+      },
+      "finishing": {
+        "cutting_speed_m_min": 70,
+        "feed_per_tooth_mm": 0.05,
+        "depth_of_cut_mm": 0.2,
+        "tool_type": "Carbide finishing end mill"
+      }
+    },
+    "StainlessSteel316": {
+      "roughing": {
+        "cutting_speed_m_min": 80,
+        "feed_per_tooth_mm": 0.12,
+        "depth_of_cut_mm": 1.5,
+        "tool_type": "Carbide coated end mill"
+      },
+      "finishing": {
+        "cutting_speed_m_min": 100,
+        "feed_per_tooth_mm": 0.06,
+        "depth_of_cut_mm": 0.25,
+        "tool_type": "Carbide finishing end mill"
+      }
+    },
+    "Brass": {
+      "roughing": {
+        "cutting_speed_m_min": 300,
+        "feed_per_tooth_mm": 0.25,
+        "depth_of_cut_mm": 4.0,
+        "tool_type": "HSS or Carbide end mill"
+      },
+      "finishing": {
+        "cutting_speed_m_min": 400,
+        "feed_per_tooth_mm": 0.12,
+        "depth_of_cut_mm": 0.5,
+        "tool_type": "Carbide finishing end mill"
+      }
+    },
+    "Plastic_Acrylic": {
+      "roughing": {
+        "cutting_speed_m_min": 200,
+        "feed_per_tooth_mm": 0.3,
+        "depth_of_cut_mm": 5.0,
+        "tool_type": "Single or double flute end mill"
+      },
+      "finishing": {
+        "cutting_speed_m_min": 250,
+        "feed_per_tooth_mm": 0.15,
+        "depth_of_cut_mm": 0.5,
+        "tool_type": "Polished end mill"
+      }
+    }
+  },
+  "exported_at": "2026-01-24T12:10:51.526295"
+}

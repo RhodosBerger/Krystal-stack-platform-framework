@@ -1,0 +1,502 @@
+[
+  {
+    "timestamp": 1769169466.9051032,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 89.27302344664943,
+    "outcome_dopamine": 10.726976553350568,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9055774,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 66.14395670336965,
+    "outcome_dopamine": 33.85604329663035,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9059012,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 41.985583623453905,
+    "outcome_dopamine": 58.014416376546095,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9062912,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 0.030572079569519683,
+    "outcome_dopamine": 99.96942792043048,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9065988,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 55.104348149244295,
+    "outcome_dopamine": 44.895651850755705,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9068897,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 88.58092317239347,
+    "outcome_dopamine": 11.419076827606531,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9073174,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 31.84924219121434,
+    "outcome_dopamine": 68.15075780878566,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.907853,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 60.95382853422467,
+    "outcome_dopamine": 39.04617146577533,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.908258,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 12.641375434083347,
+    "outcome_dopamine": 87.35862456591666,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9086387,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 3.2493630981409005,
+    "outcome_dopamine": 96.7506369018591,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9090202,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 30.922704954641066,
+    "outcome_dopamine": 69.07729504535894,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.909387,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 0.7636641419703505,
+    "outcome_dopamine": 99.23633585802965,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9098465,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 60.19315783521225,
+    "outcome_dopamine": 39.80684216478775,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9102936,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 2.096168525706419,
+    "outcome_dopamine": 97.90383147429358,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.910694,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 35.66431834242893,
+    "outcome_dopamine": 64.33568165757107,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.911115,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 29.776680836404775,
+    "outcome_dopamine": 70.22331916359522,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9116533,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 42.31946614628809,
+    "outcome_dopamine": 57.68053385371191,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9121957,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 36.95617504940817,
+    "outcome_dopamine": 63.04382495059183,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9126945,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 39.82878590449627,
+    "outcome_dopamine": 60.17121409550373,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9132833,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 3.049628243664042,
+    "outcome_dopamine": 96.95037175633595,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9137905,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 78.61429918934286,
+    "outcome_dopamine": 21.38570081065714,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9142895,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 34.38691149814785,
+    "outcome_dopamine": 65.61308850185215,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9148211,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 40.8319080901657,
+    "outcome_dopamine": 59.1680919098343,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9153676,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 43.22060524682214,
+    "outcome_dopamine": 56.77939475317786,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9159126,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 25.259793081182714,
+    "outcome_dopamine": 74.74020691881728,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9164784,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 14.094284388358062,
+    "outcome_dopamine": 85.90571561164194,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.917049,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 52.57958295119394,
+    "outcome_dopamine": 47.42041704880606,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9176407,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 17.466973434553328,
+    "outcome_dopamine": 82.53302656544668,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.91824,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 49.02662971145925,
+    "outcome_dopamine": 50.97337028854075,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9188325,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 24.411642455213524,
+    "outcome_dopamine": 75.58835754478648,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.919481,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 53.85146223315143,
+    "outcome_dopamine": 46.14853776684857,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9201398,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 47.074506733875495,
+    "outcome_dopamine": 52.925493266124505,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.920818,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 41.937953832284265,
+    "outcome_dopamine": 58.062046167715735,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9216325,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 40.26706295568798,
+    "outcome_dopamine": 59.73293704431202,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9227877,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 28.114503821646935,
+    "outcome_dopamine": 71.88549617835307,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9236057,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 1.448368172984571,
+    "outcome_dopamine": 98.55163182701543,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9243848,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 8.052393060965242,
+    "outcome_dopamine": 91.94760693903476,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9251466,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 78.02701252893277,
+    "outcome_dopamine": 21.972987471067228,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9259865,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 38.76294090907039,
+    "outcome_dopamine": 61.23705909092961,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.926823,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 14.090039590574765,
+    "outcome_dopamine": 85.90996040942524,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.927666,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 36.67560803068966,
+    "outcome_dopamine": 63.32439196931034,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9285514,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 21.54679409818808,
+    "outcome_dopamine": 78.45320590181191,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9295726,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 78.85883973691239,
+    "outcome_dopamine": 21.141160263087613,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9305205,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 12.941361580913654,
+    "outcome_dopamine": 87.05863841908635,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.931418,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 29.111976129548292,
+    "outcome_dopamine": 70.8880238704517,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9325438,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 79.83846073755475,
+    "outcome_dopamine": 20.161539262445245,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9335341,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 29.624465490809584,
+    "outcome_dopamine": 70.37553450919042,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9345026,
+    "material": "Titanium6Al4V",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "RUSH",
+    "outcome_cortisol": 88.56311798575443,
+    "outcome_dopamine": 11.436882014245569,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.9354355,
+    "material": "Aluminum6061",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "CAUTIOUS",
+    "outcome_cortisol": 13.362115958504381,
+    "outcome_dopamine": 86.63788404149562,
+    "notes": ""
+  },
+  {
+    "timestamp": 1769169466.936412,
+    "material": "Steel4140",
+    "rpm": 5000,
+    "feed": 2000,
+    "action_taken": "STANDARD",
+    "outcome_cortisol": 32.039626649479686,
+    "outcome_dopamine": 67.96037335052031,
+    "notes": ""
+  }
+]

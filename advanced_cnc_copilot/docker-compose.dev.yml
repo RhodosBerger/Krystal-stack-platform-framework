@@ -1,0 +1,305 @@
+version: '3.8'
+
+# Development override for FANUC RISE v2.1 with service isolation capabilities
+services:
+  # TimescaleDB Database Service
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: fanuc-rise-dev-timescaledb
+    environment:
+      POSTGRES_DB: fanuc_rise_dev_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-StrongPassword123}
+    volumes:
+      - db_dev_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"  # Use different port for dev to avoid conflicts
+    networks:
+      - fanuc_dev_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Redis Cache Service
+  redis:
+    image: redis:7-alpine
+    container_name: fanuc-rise-dev-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-RedisPassword123}
+    ports:
+      - "6380:6379"  # Use different port for dev
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - fanuc_dev_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Backend API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: fanuc-rise-dev-api
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-StrongPassword123}@timescaledb:5432/fanuc_rise_dev_db
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-RedisPassword123}@redis:6379
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - DEBUG=true
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - TIMESCALEDB_HOST=timescaledb
+      - TIMESCALEDB_PORT=5432
+      - TIMESCALEDB_USER=postgres
+      - TIMESCALEDB_PASSWORD=${POSTGRES_PASSWORD:-StrongPassword123}
+      - TIMESCALEDB_NAME=fanuc_rise_dev_db
+    ports:
+      - "8001:8000"  # Use different port for dev
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fanuc_dev_network
+    restart: unless-stopped
+    volumes:
+      - .:/app  # Mount source code for hot reload
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # React Frontend Service
+  frontend-react:
+    build:
+      context: .
+      dockerfile: Dockerfile.react
+    container_name: fanuc-rise-dev-frontend-react
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=${API_URL:-http://localhost:8001}
+    networks:
+      - fanuc_dev_network
+    restart: unless-stopped
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Vue Frontend Service
+  frontend-vue:
+    build:
+      context: .
+      dockerfile: Dockerfile.vue
+    container_name: fanuc-rise-dev-frontend-vue
+    ports:
+      - "8081:80"  # Use different port for dev
+    environment:
+      - VUE_APP_API_URL=${API_URL:-http://localhost:8001}
+    networks:
+      - fanuc_dev_network
+    restart: unless-stopped
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Temporary Isolation Service (for debugging problematic services)
+  isolated-service-checker:
+    image: busybox:latest
+    container_name: fanuc-rise-isolated-checker
+    command: sh -c "echo 'Service isolation mechanism active' && sleep 3600"
+    networks:
+      - fanuc_dev_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
+
+  # Monitoring Stack - Prometheus
+  prometheus:
+    image: prom/prometheus
+    container_name: fanuc-rise-dev-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_dev_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    ports:
+      - "9091:9090"  # Use different port for dev
+    networks:
+      - fanuc_dev_network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Monitoring Stack - Grafana
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: fanuc-rise-dev-grafana
+    volumes:
+      - grafana_dev_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3002:3000"  # Use different port for dev
+    networks:
+      - fanuc_dev_network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Log Aggregation - Fluentd
+  fluentd:
+    image: fluent/fluentd:v1.14-1
+    container_name: fanuc-rise-dev-fluentd
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+      - log_dev_data:/var/log
+    ports:
+      - "24225:24224"
+      - "24225:24224/udp"
+    networks:
+      - fanuc_dev_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "fluentd", "--dry-run"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Celery Worker for Background Tasks
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: fanuc-rise-dev-celery-worker
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-StrongPassword123}@timescaledb:5432/fanuc_rise_dev_db
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-RedisPassword123}@redis:6379
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-RedisPassword123}@redis:6379/0
+    command: celery -A backend.worker worker --loglevel=info
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    networks:
+      - fanuc_dev_network
+    restart: unless-stopped
+    volumes:
+      - .:/app  # Mount source code for development
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Celery Beat for Scheduled Tasks
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: fanuc-rise-dev-celery-beat
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-StrongPassword123}@timescaledb:5432/fanuc_rise_dev_db
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-RedisPassword123}@redis:6379
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-RedisPassword123}@redis:6379/0
+    command: celery -A backend.worker beat --loglevel=info
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    networks:
+      - fanuc_dev_network
+    restart: unless-stopped
+    volumes:
+      - .:/app  # Mount source code for development
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+networks:
+  fanuc_dev_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+volumes:
+  db_dev_data:
+  redis_dev_data:
+  static_dev_volume:
+  prometheus_dev_data:
+  grafana_dev_data:
+  log_dev_data:

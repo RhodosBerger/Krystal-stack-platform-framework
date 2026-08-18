@@ -1,0 +1,85 @@
+<!-- 
+    🔍 AJAX Search Component 
+    Reusable Search Module for Knowledge Base
+-->
+<div class="search-component" style="border: 1px solid #333; padding: 15px; border-radius: 8px; background: #1a1a1a;">
+    <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <input type="text" id="knowledge-search-input" placeholder="Search Materials (e.g. 'Steel', 'Alloy')..."
+            style="flex-grow:1; padding:10px; background:#000; border:1px solid #444; color:#fff; border-radius:4px;">
+        <button onclick="performSearch()"
+            style="padding:10px 20px; background:var(--primary); color:#000; border:none; font-weight:bold; cursor:pointer; border-radius:4px;">
+            FILTER
+        </button>
+    </div>
+
+    <div id="search-results-container" style="max-height: 300px; overflow-y: auto;">
+        <div style="color:#666; font-style:italic;">Enter a term to filter data...</div>
+    </div>
+</div>
+
+<script>
+    async function performSearch() {
+        const query = document.getElementById('knowledge-search-input').value;
+        const container = document.getElementById('search-results-container');
+
+        if (!query) return;
+
+        container.innerHTML = '<div style="color:var(--primary);">Searching...</div>';
+
+        try {
+            // Call the new Search API
+            // Note: In production we need the JWT. For this demo, assuming cookie or embedded token.
+            // If token is missing, this might 401. 
+            // In a real app we'd grab localStorage.getItem('token').
+
+            const token = localStorage.getItem('access_token');
+            const headers = {};
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+
+            const resp = await fetch(`/api/knowledge/search?q=${encodeURIComponent(query)}`, {
+                headers: headers
+            });
+
+            if (resp.status === 401) {
+                container.innerHTML = '<div style="color:red;">Unauthorized. Please Login.</div>';
+                return;
+            }
+
+            const data = await resp.json();
+
+            if (data.count === 0) {
+                container.innerHTML = '<div style="color:#888;">No matches found.</div>';
+                return;
+            }
+
+            let html = `<div style="margin-bottom:10px; font-size:12px; color:#888;">Found ${data.count} matches:</div>`;
+
+            data.results.forEach(item => {
+                const isPending = item.source_type.includes('Pending');
+                const borderColor = isPending ? '#FFA500' : '#00ff88';
+
+                html += `
+                <div style="border-left: 3px solid ${borderColor}; background:#222; padding:10px; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong style="color:#fff;">${item.name}</strong>
+                        <span style="font-size:10px; background:#333; padding:2px 6px; border-radius:4px;">${item.source_type}</span>
+                    </div>
+                    <div style="font-size:12px; color:#aaa; margin-top:4px;">
+                        Category: ${item.category} | Source: ${item.source || 'Internal'}
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+
+        } catch (e) {
+            container.innerHTML = `<div style="color:red;">Search Successful (Error Rendering): ${e}</div>`;
+            console.error(e);
+        }
+    }
+
+    // Auto-search on Enter
+    document.getElementById('knowledge-search-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') performSearch();
+    });
+</script>

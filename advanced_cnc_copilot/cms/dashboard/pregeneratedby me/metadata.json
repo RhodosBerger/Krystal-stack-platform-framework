@@ -1,0 +1,7 @@
+{
+  "name": "Neuro-C Mechanical Core",
+  "description": "A sophisticated Cyber-Mechanical System (CMS) dashboard simulating biological evolutionary mechanics, gravitational scheduling, and real-time voice interaction via Gemini Live API.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

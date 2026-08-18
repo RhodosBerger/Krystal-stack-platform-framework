@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fanuc Rise | System Logs</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .log-container {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 20px;
+            padding: 20px;
+            height: 90vh;
+        }
+
+        .log-selector {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .log-selector button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .log-selector button:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: var(--neon-blue);
+        }
+
+        .log-selector button.active {
+            background: var(--neon-blue);
+            border-color: var(--neon-blue);
+        }
+
+        .log-viewer {
+            background: #000;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+            font-family: var(--fn-mono);
+            font-size: 0.85rem;
+            color: #0f0;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-left: 3px solid transparent;
+        }
+
+        .log-entry.debug {
+            color: #888;
+            border-left-color: #888;
+        }
+
+        .log-entry.info {
+            color: #0f0;
+            border-left-color: #0f0;
+        }
+
+        .log-entry.warning {
+            color: #ff0;
+            border-left-color: #ff0;
+        }
+
+        .log-entry.error {
+            color: #f00;
+            border-left-color: #f00;
+        }
+
+        .log-controls {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .export-btn {
+            padding: 8px 16px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glass-container">
+        <header class="dashboard-header">
+            <div class="logo">
+                <h1><a href="hub.html" style="text-decoration:none; color:white;">← SYSTEM LOGS</a></h1>
+            </div>
+            <div class="status-badge">MONITORING</div>
+        </header>
+
+        <div class="log-controls">
+            <button class="export-btn" onclick="exportLogs('csv')">📊 Export CSV</button>
+            <button class="export-btn" onclick="exportLogs('html')">📄 Export HTML</button>
+            <button class="export-btn" onclick="clearLogs()">🗑️ Clear Logs</button>
+            <div style="margin-left: auto; color: var(--text-secondary);">
+                <span id="log-count">0 entries</span> | <span id="last-update">Never</span>
+            </div>
+        </div>
+
+        <div class="log-container">
+            <div class="log-selector">
+                <h3 style="color: var(--text-secondary); margin-top:0;">Log Level</h3>
+                <button class="active" onclick="switchLog('operator')">👤 Operator</button>
+                <button onclick="switchLog('technical')">🔧 Technical</button>
+                <button onclick="switchLog('developer')">💻 Developer</button>
+
+                <h3 style="color: var(--text-secondary); margin-top:30px;">Filter</h3>
+                <input type="text" id="search-box" placeholder="Search logs..."
+                    style="width:100%; padding:8px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); color:white; border-radius:6px;"
+                    oninput="filterLogs(this.value)">
+            </div>
+
+            <div class="log-viewer" id="log-viewer">
+                <div class="log-entry info">2026-01-23 16:20:15 - System initialized</div>
+                <div class="log-entry info">2026-01-23 16:20:16 - Sensory cortex online</div>
+                <div class="log-entry warning">2026-01-23 16:20:45 - ⚠️ High load detected (95%)</div>
+                <div class="log-entry info">2026-01-23 16:21:00 - Feed adjusted to 1800mm/min</div>
+                <div class="log-entry info">2026-01-23 16:21:30 - Load normalized (72%)</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLogLevel = 'operator';
+
+        function switchLog(level) {
+            currentLogLevel = level;
+            document.querySelectorAll('.log-selector button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // In production, fetch from API
+            fetch(`/api/logs/${level}`)
+                .then(r => r.json())
+                .then(data => renderLogs(data))
+                .catch(() => console.log('Using mock data'));
+        }
+
+        function renderLogs(logs) {
+            const viewer = document.getElementById('log-viewer');
+            viewer.innerHTML = logs.map(log =>
+                `<div class="log-entry ${log.level}">${log.timestamp} - ${log.message}</div>`
+            ).join('');
+
+            document.getElementById('log-count').textContent = `${logs.length} entries`;
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        }
+
+        function filterLogs(query) {
+            const entries = document.querySelectorAll('.log-entry');
+            entries.forEach(entry => {
+                entry.style.display = entry.textContent.toLowerCase().includes(query.toLowerCase())
+                    ? 'block' : 'none';
+            });
+        }
+
+        function exportLogs(format) {
+            fetch(`/api/logs/export?format=${format}&level=${currentLogLevel}`)
+                .then(r => r.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `logs_${currentLogLevel}_${Date.now()}.${format}`;
+                    a.click();
+                });
+        }
+
+        function clearLogs() {
+            if (confirm('Clear all logs for current level?')) {
+                fetch(`/api/logs/clear/${currentLogLevel}`, { method: 'DELETE' })
+                    .then(() => location.reload());
+            }
+        }
+
+        // Auto-refresh every 5 seconds
+        setInterval(() => switchLog(currentLogLevel), 5000);
+    </script>
+</body>
+
+</html>

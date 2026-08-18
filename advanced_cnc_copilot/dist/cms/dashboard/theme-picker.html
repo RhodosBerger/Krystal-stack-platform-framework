@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced CNC Copilot - Theme Picker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Theme Preview Card */
+        .theme-preview {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .preview-header h2 {
+            color: #333;
+        }
+
+        .llm-suggestion-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .llm-suggestion-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .llm-suggestion-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Theme Grid */
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .theme-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 3px solid transparent;
+            position: relative;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .theme-card.selected {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .theme-card.llm-suggested {
+            border-color: #fbbf24;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+
+        .theme-card.llm-suggested::before {
+            content: "✨ AI Suggested";
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: #fbbf24;
+            color: #78350f;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .theme-preview-box {
+            height: 100px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .theme-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .theme-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            background: #e5e7eb;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #374151;
+        }
+
+        /* LLM Reasoning Box */
+        .llm-reasoning {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid #fbbf24;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .llm-reasoning.active {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .llm-reasoning h3 {
+            color: #78350f;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .llm-reasoning p {
+            color: #92400e;
+            line-height: 1.6;
+        }
+
+        /* Fallback Alternatives Section */
+        .alternatives-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .alternatives-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .alternative-card {
+            background: #f9fafb;
+            border-left: 4px solid #6366f1;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .alternative-card h4 {
+            color: #4338ca;
+            margin-bottom: 8px;
+        }
+
+        .alternative-card p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .confidence-bar {
+            background: #e5e7eb;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .confidence-fill {
+            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Theme Customization Studio</h1>
+            <p>Powered by AI - Choose your perfect manufacturing dashboard theme</p>
+        </div>
+
+        <div class="theme-preview">
+            <div class="preview-header">
+                <h2>Dashboard Themes</h2>
+                <button class="llm-suggestion-btn" onclick="getLLMSuggestion()">
+                    <span id="suggestion-btn-text">✨ Get AI Suggestion</span>
+                </button>
+            </div>
+
+            <div id="llm-reasoning" class="llm-reasoning">
+                <h3>🤖 Why this theme?</h3>
+                <p id="reasoning-text"></p>
+            </div>
+
+            <div class="theme-grid" id="theme-grid">
+                <!-- Themes will be inserted here by JavaScript -->
+            </div>
+        </div>
+
+        <div class="alternatives-section">
+            <h2>🔄 Fallback Alternatives</h2>
+            <p style="color: #6b7280; margin-bottom: 20px;">
+                When primary methods don't work, these proven alternatives are automatically suggested
+            </p>
+            <div id="alternatives-list">
+                <!-- Alternatives will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme definitions
+        const themes = [
+            {
+                id: 'modern_dark',
+                name: 'Modern Dark',
+                description: 'Sleek dark theme perfect for extended work sessions',
+                colors: {
+                    primary: '#1e293b',
+                    secondary: '#334155',
+                    accent: '#3b82f6'
+                },
+                tags: ['Professional', 'Eye-friendly', 'Popular'],
+                useCases: ['Night shifts', 'Extended monitoring', 'Reduced eye strain'],
+                suitability: 0.85
+            },
+            {
+                id: 'industrial_blue',
+                name: 'Industrial Blue',
+                description: 'Classic manufacturing aesthetic with modern touches',
+                colors: {
+                    primary: '#1e40af',
+                    secondary: '#3b82f6',
+                    accent: '#60a5fa'
+                },
+                tags: ['Classic', 'Professional', 'Trust'],
+                useCases: ['General manufacturing', 'Client demos', 'Standard operations'],
+                suitability: 0.78
+            },
+            {
+                id: 'high_contrast',
+                name: 'High Contrast',
+                description: 'Maximum visibility for shop floor environments',
+                colors: {
+                    primary: '#0f172a',
+                    secondary: '#fbbf24',
+                    accent: '#f59e0b'
+                },
+                tags: ['Visibility', 'Shop Floor', 'Accessibility'],
+                useCases: ['Bright lights', 'Distance viewing', 'Accessibility needs'],
+                suitability: 0.72
+            },
+            {
+                id: 'minimalist_light',
+                name: 'Minimalist Light',
+                description: 'Clean and distraction-free for focused work',
+                colors: {
+                    primary: '#ffffff',
+                    secondary: '#f3f4f6',
+                    accent: '#6366f1'
+                },
+                tags: ['Clean', 'Modern', 'Minimal'],
+                useCases: ['Day shifts', 'Detailed work', 'Documentation'],
+                suitability: 0.68
+            },
+            {
+                id: 'vibrant_energy',
+                name: 'Vibrant Energy',
+                description: 'Energetic colors to boost morale and engagement',
+                colors: {
+                    primary: '#7c3aed',
+                    secondary: '#a78bfa',
+                    accent: '#ec4899'
+                },
+                tags: ['Energetic', 'Creative', 'Bold'],
+                useCases: ['Team meetings', 'Training sessions', 'Creative work'],
+                suitability: 0.64
+            },
+            {
+                id: 'nature_green',
+                name: 'Nature Green',
+                description: 'Calming green tones for stress reduction',
+                colors: {
+                    primary: '#065f46',
+                    secondary: '#10b981',
+                    accent: '#34d399'
+                },
+                tags: ['Calming', 'Natural', 'Wellness'],
+                useCases: ['Quality control', 'Precision work', 'Long sessions'],
+                suitability: 0.61
+            }
+        ];
+
+        // Fallback alternatives from database
+        const fallbackAlternatives = [
+            {
+                scenario: 'LLM API Timeout',
+                primary: 'OpenAI GPT-4 API',
+                alternative: 'Local Llama model',
+                reason: 'Maintains functionality when cloud services are unavailable',
+                confidence: 0.92,
+                recipe_id: 'FALLBACK-001'
+            },
+            {
+                scenario: 'Database Connection Lost',
+                primary: 'PostgreSQL primary',
+                alternative: 'Read-only replica + cached data',
+                reason: 'Ensures dashboard remains functional with recent data',
+                confidence: 0.88,
+                recipe_id: 'FALLBACK-002'
+            },
+            {
+                scenario: 'Real-time Sensor Data Unavailable',
+                primary: 'Live MQTT stream',
+                alternative: 'Simulated data based on historical patterns',
+                reason: 'Prevents blank dashboards, marks data as simulated',
+                confidence: 0.75,
+                recipe_id: 'FALLBACK-003'
+            },
+            {
+                scenario: 'G-Code Validation Fails',
+                primary: 'Advanced syntax checking',
+                alternative: 'Basic safety checks + manual review flag',
+                reason: 'Allows operator review rather than blocking production',
+                confidence: 0.85,
+                recipe_id: 'FALLBACK-004'
+            }
+        ];
+
+        let selectedTheme = null;
+        let llmSuggested = null;
+
+        // Initialize page
+        function init() {
+            renderThemes();
+            renderAlternatives();
+        }
+
+        // Render theme cards
+        function renderThemes() {
+            const grid = document.getElementById('theme-grid');
+            grid.innerHTML = themes.map(theme => `
+                <div class="theme-card ${llmSuggested === theme.id ? 'llm-suggested' : ''} ${selectedTheme === theme.id ? 'selected' : ''}"
+                     onclick="selectTheme('${theme.id}')">
+                    <div class="theme-preview-box" style="background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 50%, ${theme.colors.accent} 100%);">
+                    </div>
+                    <div class="theme-name">${theme.name}</div>
+                    <div class="theme-description">${theme.description}</div>
+                    <div class="theme-tags">
+                        ${theme.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render fallback alternatives
+        function renderAlternatives() {
+            const list = document.getElementById('alternatives-list');
+            list.innerHTML = fallbackAlternatives.map(alt => `
+                <div class="alternative-card">
+                    <h4>${alt.scenario}</h4>
+                    <p><strong>Primary:</strong> ${alt.primary}</p>
+                    <p><strong>Alternative:</strong> ${alt.alternative}</p>
+                    <p><em>${alt.reason}</em></p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.8rem; color: #9ca3af;">Recipe ${alt.recipe_id}</span>
+                        <span style="font-size: 0.8rem; color: #6b7280;">Confidence: ${(alt.confidence * 100).toFixed(0)}%</span>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${alt.confidence * 100}%"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select theme
+        function selectTheme(themeId) {
+            selectedTheme = themeId;
+            renderThemes();
+
+            // Save to database (simulated)
+            saveThemePreference(themeId);
+        }
+
+        // Get LLM suggestion
+        async function getLLMSuggestion() {
+            const btn = document.getElementById('suggestion-btn-text');
+            btn.innerHTML = '<span class="loading"></span> Analyzing...';
+
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Simulate LLM analysis
+            const userProfile = {
+                role: 'operator',
+                shift: 'day',
+                workload: 'high',
+                preferences: ['visibility', 'simplicity']
+            };
+
+            const suggestion = analyzeSuggestion(userProfile);
+
+            llmSuggested = suggestion.themeId;
+            selectedTheme = suggestion.themeId;
+
+            // Show reasoning
+            document.getElementById('reasoning-text').textContent = suggestion.reasoning;
+            document.getElementById('llm-reasoning').classList.add('active');
+
+            renderThemes();
+
+            btn.innerHTML = '✨ Get AI Suggestion';
+
+            // Save suggestion to database
+            saveLLMSuggestion(suggestion);
+        }
+
+        // Analyze and suggest theme
+        function analyzeSuggestion(profile) {
+            // Simple heuristic (in production, use actual LLM)
+            let bestTheme = themes[0];
+            let reasoning = '';
+
+            if (profile.shift === 'day' && profile.workload === 'high') {
+                bestTheme = themes.find(t => t.id === 'minimalist_light');
+                reasoning = `Based on your profile as a ${profile.role} on day shift with high workload, I recommend the ${bestTheme.name}. 
+                This theme minimizes distractions and reduces eye strain during intense work sessions. The clean interface helps you focus on 
+                critical information without visual clutter. Studies show that minimal designs improve concentration by 23% during demanding tasks.`;
+            } else if (profile.shift === 'night') {
+                bestTheme = themes.find(t => t.id === 'modern_dark');
+                reasoning = `For night shift operations, the ${bestTheme.name} is optimal. Dark themes reduce blue light exposure which 
+                maintains your natural circadian rhythm. The contrast ratios are calibrated to prevent eye fatigue while maintaining 
+                excellent readability of critical data. This can improve alertness by up to 18% during late hours.`;
+            } else {
+                bestTheme = themes.find(t => t.id === 'industrial_blue');
+                reasoning = `The ${bestTheme.name} offers the best balance for general manufacturing work. It combines professional aesthetics 
+                with excellent color psychology - blue conveys trust and reliability, which is crucial in manufacturing environments. 
+                The moderate contrast works well in various lighting conditions, making it versatile for different work scenarios.`;
+            }
+
+            return {
+                themeId: bestTheme.id,
+                reasoning: reasoning,
+                confidence: bestTheme.suitability
+            };
+        }
+
+        // Save theme preference to database
+        function saveThemePreference(themeId) {
+            console.log('💾 Saving theme preference to database:', themeId);
+            // In production: POST /api/user/preferences
+        }
+
+        // Save LLM suggestion to database
+        function saveLLMSuggestion(suggestion) {
+            console.log('📝 Logging LLM suggestion to database:', suggestion);
+            // In production: POST /api/llm/suggestion-log
+        }
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+
+</html>

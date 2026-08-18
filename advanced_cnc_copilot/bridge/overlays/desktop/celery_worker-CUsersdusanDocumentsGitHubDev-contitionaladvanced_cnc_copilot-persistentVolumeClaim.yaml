@@ -1,0 +1,9 @@
+#! celery_worker-C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot-persistentVolumeClaim.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: celery-worker-c--users-dusan-documents-github-dev-contitional-advanced-cnc-copilot
+    namespace: advanced-cnc-copilot
+spec:
+    storageClassName: "hostpath" # see docker/desktop-storage-provisioner

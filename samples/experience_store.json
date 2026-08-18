@@ -1,0 +1,50 @@
+{
+  "experiences": [
+    {
+      "id": "exp-001",
+      "timestamp": "2025-01-21T14:30:00.200Z",
+      "state": {
+        "cpu_util": 0.74,
+        "gpu_util": 0.68,
+        "frametime_ms": 14.8,
+        "temp_cpu": 73,
+        "active_category": "gaming"
+      },
+      "action": {
+        "rule_id": "mir-gaming-pcore-pin",
+        "action_type": "set_cpu_affinity",
+        "params": {"cores": "p_cores_only"}
+      },
+      "reward": 0.15,
+      "next_state": {
+        "cpu_util": 0.78,
+        "gpu_util": 0.70,
+        "frametime_ms": 13.1,
+        "temp_cpu": 74
+      }
+    },
+    {
+      "id": "exp-002",
+      "timestamp": "2025-01-21T14:25:00.500Z",
+      "state": {
+        "cpu_util": 0.45,
+        "gpu_util": 0.30,
+        "frametime_ms": 16.2,
+        "temp_cpu": 65,
+        "active_category": "idle"
+      },
+      "action": {
+        "rule_id": "mir-idle-powersave",
+        "action_type": "set_governor",
+        "params": {"governor": "powersave"}
+      },
+      "reward": 0.08,
+      "next_state": {
+        "cpu_util": 0.42,
+        "gpu_util": 0.28,
+        "frametime_ms": 16.5,
+        "temp_cpu": 62
+      }
+    }
+  ]
+}

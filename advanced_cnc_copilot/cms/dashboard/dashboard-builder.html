@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fanuc Rise - Dashboard Builder</title>
+    <link rel="stylesheet" href="dashboard-builder.css">
+</head>
+
+<body>
+    <!-- BUILDER INTERFACE -->
+    <div class="builder-container">
+        <!-- LEFT SIDEBAR: COMPONENT PALETTE -->
+        <aside class="component-palette">
+            <div class="palette-header">
+                <h2>📦 Components</h2>
+                <input type="text" class="search-components" placeholder="Search...">
+            </div>
+
+            <div class="component-categories">
+                <!-- Data Display Category -->
+                <div class="category">
+                    <h3 class="category-title" onclick="toggleCategory(this)">
+                        📊 Data Display
+                        <span class="arrow">▼</span>
+                    </h3>
+                    <div class="category-items">
+                        <div class="component-item" draggable="true" data-component="gauge">
+                            <div class="component-icon">📈</div>
+                            <div class="component-info">
+                                <div class="component-name">Gauge</div>
+                                <div class="component-desc">Circular progress gauge</div>
+                            </div>
+                        </div>
+
+                        <div class="component-item" draggable="true" data-component="chart">
+                            <div class="component-icon">📊</div>
+                            <div class="component-info">
+                                <div class="component-name">Line Chart</div>
+                                <div class="component-desc">Time-series chart</div>
+                            </div>
+                        </div>
+
+                        <div class="component-item" draggable="true" data-component="bar-chart">
+                            <div class="component-icon">📊</div>
+                            <div class="component-info">
+                                <div class="component-name">Bar Chart</div>
+                                <div class="component-desc">Comparison bars</div>
+                            </div>
+                        </div>
+
+                        <div class="component-item" draggable="true" data-component="metric">
+                            <div class="component-icon">🔢</div>
+                            <div class="component-info">
+                                <div class="component-name">Metric Card</div>
+                                <div class="component-desc">Single KPI display</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Machine Status Category -->
+                <div class="category">
+                    <h3 class="category-title" onclick="toggleCategory(this)">
+                        🏭 Machine Status
+                        <span class="arrow">▼</span>
+                    </h3>
+                    <div class="category-items">
+                        <div class="component-item" draggable="true" data-component="machine-card">
+                            <div class="component-icon">🔧</div>
+                            <div class="component-info">
+                                <div class="component-name">Machine Card</div>
+                                <div class="component-desc">Machine overview</div>
+                            </div>
+                        </div>
+
+                        <div class="component-item" draggable="true" data-component="telemetry">
+                            <div class="component-icon">⚡</div>
+                            <div class="component-info">
+                                <div class="component-name">Live Telemetry</div>
+                                <div class="component-desc">Real-time sensors</div>
+                            </div>
+                        </div>
+
+                        <div class="component-item" draggable="true" data-component="oee">
+                            <div class="component-icon">🎯</div>
+                            <div class="component-info">
+                                <div class="component-name">OEE Widget</div>
+                                <div class="component-desc">OEE breakdown</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI & Cognitive Category -->
+                <div class="category">
+                    <h3 class="category-title" onclick="toggleCategory(this)">
+                        🧠 AI & Cognitive
+                        <span class="arrow">▼</span>
+                    </h3>
+                    <div class="category-items">
+                        <div class="component-item" draggable="true" data-component="dopamine">
+                            <div class="component-icon">💊</div>
+                            <div class="component-info">
+                                <div class="component-name">Dopamine Gauge</div>
+                                <div class="component-desc">AI confidence</div>
+                            </div>
+                        </div>
+
+                        <div class="component-item" draggable="true" data-component="signal">
+                            <div class="component-icon">🚦</div>
+                            <div class="component-info">
+                                <div class="component-name">Signal Light</div>
+                                <div class="component-desc">Traffic light status</div>
+                            </div>
+                        </div>
+
+                        <div class="component-item" draggable="true" data-component="llm-chat">
+                            <div class="component-icon">💬</div>
+                            <div class="component-info">
+                                <div class="component-name">AI Chat</div>
+                                <div class="component-desc">LLM assistant</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layout & Containers -->
+                <div class="category">
+                    <h3 class="category-title" onclick="toggleCategory(this)">
+                        📐 Layout
+                        <span class="arrow">▼</span>
+                    </h3>
+                    <div class="category-items">
+                        <div class="component-item" draggable="true" data-component="grid-2col">
+                            <div class="component-icon">▦</div>
+                            <div class="component-info">
+                                <div class="component-name">2 Column Grid</div>
+                                <div class="component-desc">Side-by-side</div>
+                            </div>
+                        </div>
+
+                        <div class="component-item" draggable="true" data-component="grid-3col">
+                            <div class="component-icon">▦</div>
+                            <div class="component-info">
+                                <div class="component-name">3 Column Grid</div>
+                                <div class="component-desc">Triple layout</div>
+                            </div>
+                        </div>
+
+                        <div class="component-item" draggable="true" data-component="card">
+                            <div class="component-icon">🗂️</div>
+                            <div class="component-info">
+                                <div class="component-name">Card</div>
+                                <div class="component-desc">Container panel</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER: CANVAS -->
+        <main class="canvas-area">
+            <div class="canvas-toolbar">
+                <button class="btn-icon" onclick="undoAction()" title="Undo">
+                    ↶
+                </button>
+                <button class="btn-icon" onclick="redoAction()" title="Redo">
+                    ↷
+                </button>
+                <div class="divider"></div>
+                <button class="btn-icon" onclick="previewDashboard()" title="Preview">
+                    👁️
+                </button>
+                <button class="btn-primary" onclick="saveDashboard()">
+                    💾 Save Dashboard
+                </button>
+                <button class="btn-secondary" onclick="exportCode()">
+                    📤 Export Code
+                </button>
+            </div>
+
+            <div class="canvas" id="canvas" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="canvas-placeholder">
+                    <div class="placeholder-icon">📦</div>
+                    <h2>Drag components here to build your dashboard</h2>
+                    <p>Or choose a template to start</p>
+                    <div class="template-quick-picks">
+                        <button onclick="loadTemplate('monitoring')">🏭 Monitoring</button>
+                        <button onclick="loadTemplate('analytics')">📊 Analytics</button>
+                        <button onclick="loadTemplate('cognitive')">🧠 Cognitive</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- RIGHT SIDEBAR: PROPERTIES -->
+        <aside class="properties-panel">
+            <div class="panel-header">
+                <h2>⚙️ Properties</h2>
+            </div>
+
+            <div class="properties-content" id="properties-content">
+                <div class="no-selection">
+                    <p>Select a component to edit its properties</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- TEMPLATES MODAL -->
+    <div class="modal" id="templates-modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Choose a Template</h2>
+                <button class="btn-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="templates-grid">
+                    <div class="template-card" onclick="loadTemplate('monitoring')">
+                        <div class="template-preview">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 150'%3E%3Crect fill='%231a1f2e' width='200' height='150'/%3E%3Ctext x='50%25' y='50%25' fill='%2338bdf8' text-anchor='middle' font-size='24'%3E🏭%3C/text%3E%3C/svg%3E"
+                                alt="Monitoring">
+                        </div>
+                        <h3>Machine Monitoring</h3>
+                        <p>Real-time machine dashboard with telemetry</p>
+                    </div>
+
+                    <div class="template-card" onclick="loadTemplate('analytics')">
+                        <div class="template-preview">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 150'%3E%3Crect fill='%231a1f2e' width='200' height='150'/%3E%3Ctext x='50%25' y='50%25' fill='%2338bdf8' text-anchor='middle' font-size='24'%3E📊%3C/text%3E%3C/svg%3E"
+                                alt="Analytics">
+                        </div>
+                        <h3>Analytics Dashboard</h3>
+                        <p>Charts and KPIs for performance analysis</p>
+                    </div>
+
+                    <div class="template-card" onclick="loadTemplate('cognitive')">
+                        <div class="template-preview">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 150'%3E%3Crect fill='%231a1f2e' width='200' height='150'/%3E%3Ctext x='50%25' y='50%25' fill='%2338bdf8' text-anchor='middle' font-size='24'%3E🧠%3C/text%3E%3C/svg%3E"
+                                alt="Cognitive">
+                        </div>
+                        <h3>Cognitive AI</h3>
+                        <p>Dopamine, signals, and AI insights</p>
+                    </div>
+
+                    <div class="template-card" onclick="loadTemplate('blank')">
+                        <div class="template-preview blank">
+                            <span>+</span>
+                        </div>
+                        <h3>Blank Canvas</h3>
+                        <p>Start from scratch</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard-builder.js"></script>
+</body>
+
+</html>

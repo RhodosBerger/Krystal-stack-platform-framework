@@ -1,0 +1,71 @@
+<div class="card shadow mb-4" id="gcode-editor-panel">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-code"></i> Semantic G-Code Editor
+        </h6>
+        <div class="dropdown no-arrow">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" onclick="toggleHighlight()">
+                <i class="fas fa-highlighter"></i> Toggle Highlighting
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Line Numbers -->
+            <div class="col-1 bg-light text-right text-muted border-right" id="line-numbers"
+                style="font-family: monospace; padding-right: 5px;">
+                1<br>2<br>3<br>4<br>5
+            </div>
+
+            <!-- Editor Area -->
+            <div class="col-11 p-0">
+                <textarea id="gcode-input" class="form-control border-0" rows="10"
+                    style="font-family: 'Courier New', monospace; background-color: #1e1e1e; color: #d4d4d4; resize: none;"
+                    oninput="updateHighlighting()" spellcheck="false">%
+O1000 (TEST PART)
+N10 G21 G90 G17
+N20 T01 M06 (END MILL D10)
+N30 S2000 M03
+N40 G00 X0 Y0 Z10
+N50 G01 Z-5 F500
+N60 X100 Y0
+N70 Y50
+N80 X0
+N90 Y0
+N100 G00 Z50
+N110 M30
+%</textarea>
+                <!-- Overlay for Syntax Highlighting (Mockup) -->
+                <div id="gcode-overlay"
+                    style="position: absolute; top: 0; left: 0; pointer-events: none; padding: 6px 12px; font-family: 'Courier New', monospace; color: transparent;">
+                    <!-- JS will populate this -->
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <span class="badge badge-info"><i class="fas fa-info-circle"></i> Adaptive Mode: Engineer</span>
+            <small class="text-muted ml-2">Context: Milling (3-Axis)</small>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Simple Syntax Highlighter Logic
+    function updateHighlighting() {
+        // In a real implementation, this would use CodeMirror or Monaco
+        // Here we just mock simple G/M code extraction
+        console.log("Analyzing Syntax...");
+    }
+
+    function toggleHighlight() {
+        const editor = document.getElementById('gcode-input');
+        if (editor.style.backgroundColor === 'rgb(30, 30, 30)') {
+            editor.style.backgroundColor = '#ffffff';
+            editor.style.color = '#000000';
+        } else {
+            editor.style.backgroundColor = '#1e1e1e';
+            editor.style.color = '#d4d4d4';
+        }
+    }
+</script>

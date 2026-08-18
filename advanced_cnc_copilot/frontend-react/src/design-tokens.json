@@ -1,0 +1,26 @@
+{
+  "theme": {
+    "colors": {
+      "industrial": {
+        "primary": "#FFD700",
+        "bg": "#0F172A",
+        "surface": "#1E293B",
+        "border": "rgba(255,255,255,0.1)"
+      },
+      "neuro": {
+        "pulse": "#00FFC8",
+        "synapse": "#8B5CF6",
+        "danger": "#FF453A",
+        "success": "#10B981"
+      },
+      "hologram": {
+        "overlay": "rgba(0, 255, 200, 0.1)",
+        "grid": "rgba(255, 255, 255, 0.05)"
+      }
+    },
+    "typography": {
+      "sans": "Inter, system-ui, sans-serif",
+      "mono": "'JetBrains Mono', monospace"
+    }
+  }
+}
