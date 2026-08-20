@@ -1,0 +1,21 @@
+# GAMESA/KrystalStack - Python Dependencies
+# Game Engine Optimization Framework with Data Engineering
+
+# Core
+pydantic>=2.0
+requests>=2.28
+
+# Web Framework
+flask>=2.3
+werkzeug>=2.3
+
+# MongoDB (optional - has in-memory fallback)
+pymongo>=4.0
+
+# Document Processing (optional)
+Pillow>=9.0
+pytesseract>=0.3
+PyMuPDF>=1.22
+
+# Development
+pytest>=7.0

@@ -1,0 +1,176 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Resource Allocation Schema",
+  "description": "Best practices allocation schema for GAMESA/KrystalStack",
+
+  "pools": {
+    "cpu_cores": {
+      "capacity": 16,
+      "strategy": "first_fit",
+      "min_allocation": 1,
+      "max_allocation": 8,
+      "alignment": 1,
+      "description": "Physical CPU cores for task pinning"
+    },
+    "cpu_time": {
+      "capacity": 100000,
+      "strategy": "best_fit",
+      "unit": "microseconds",
+      "min_allocation": 100,
+      "description": "CPU time slices for scheduling"
+    },
+    "gpu_memory": {
+      "capacity": 8192,
+      "strategy": "buddy",
+      "unit": "megabytes",
+      "alignment": 256,
+      "description": "GPU VRAM with power-of-two allocation"
+    },
+    "system_memory": {
+      "capacity": 32768,
+      "strategy": "best_fit",
+      "unit": "megabytes",
+      "alignment": 64,
+      "description": "System RAM for application use"
+    },
+    "power_budget": {
+      "capacity": 100,
+      "strategy": "first_fit",
+      "unit": "percentage",
+      "description": "Power budget allocation (TDP percentage)"
+    },
+    "thermal_headroom": {
+      "capacity": 100,
+      "strategy": "first_fit",
+      "unit": "percentage",
+      "description": "Thermal headroom budget"
+    }
+  },
+
+  "priorities": {
+    "critical": {
+      "level": 0,
+      "preemptible": false,
+      "description": "System-critical allocations, cannot be preempted"
+    },
+    "high": {
+      "level": 1,
+      "preemptible": false,
+      "description": "High priority, preempts normal tasks"
+    },
+    "normal": {
+      "level": 2,
+      "preemptible": true,
+      "description": "Default priority for user tasks"
+    },
+    "low": {
+      "level": 3,
+      "preemptible": true,
+      "description": "Background and maintenance tasks"
+    },
+    "best_effort": {
+      "level": 4,
+      "preemptible": true,
+      "description": "Allocate only if resources available"
+    }
+  },
+
+  "strategies": {
+    "first_fit": {
+      "description": "Allocate first available block that fits",
+      "use_case": "Fast allocation, good for uniform sizes",
+      "fragmentation": "medium"
+    },
+    "best_fit": {
+      "description": "Allocate smallest block that fits",
+      "use_case": "Memory-efficient, reduces waste",
+      "fragmentation": "low"
+    },
+    "worst_fit": {
+      "description": "Allocate largest available block",
+      "use_case": "Leaves large contiguous blocks",
+      "fragmentation": "variable"
+    },
+    "buddy": {
+      "description": "Power-of-two block splitting",
+      "use_case": "GPU memory, fast coalescing",
+      "fragmentation": "internal"
+    },
+    "slab": {
+      "description": "Object-cached allocation",
+      "use_case": "Frequent alloc/free of same size",
+      "fragmentation": "minimal"
+    },
+    "pool": {
+      "description": "Fixed-size block pool",
+      "use_case": "Real-time systems, predictable latency",
+      "fragmentation": "none"
+    }
+  },
+
+  "example_requests": [
+    {
+      "id": "gaming-task-1",
+      "resource_type": "cpu_cores",
+      "amount": 4,
+      "priority": "high",
+      "constraints": {
+        "affinity": [0, 2, 4, 6],
+        "preemptible": false
+      },
+      "metadata": {
+        "process": "game.exe",
+        "reason": "foreground_gaming"
+      }
+    },
+    {
+      "id": "render-job-1",
+      "resource_type": "gpu_memory",
+      "amount": 2048,
+      "priority": "normal",
+      "constraints": {
+        "alignment": 256,
+        "timeout_ms": 300000
+      },
+      "metadata": {
+        "job_type": "video_render"
+      }
+    },
+    {
+      "id": "background-sync",
+      "resource_type": "system_memory",
+      "amount": 512,
+      "priority": "low",
+      "constraints": {
+        "min_amount": 256,
+        "max_amount": 1024,
+        "preemptible": true
+      },
+      "metadata": {
+        "service": "cloud_sync"
+      }
+    }
+  ],
+
+  "best_practices": {
+    "allocation": [
+      "Always specify priority to enable fair scheduling",
+      "Use alignment constraints for GPU/DMA buffers",
+      "Set timeout_ms for temporary allocations",
+      "Use affinity hints for NUMA-aware allocation",
+      "Mark background tasks as preemptible"
+    ],
+    "pool_management": [
+      "Monitor fragmentation and trigger compaction above 30%",
+      "Use buddy allocation for GPU memory",
+      "Pre-allocate pools at startup for real-time guarantees",
+      "Implement periodic cleanup for expired allocations"
+    ],
+    "error_handling": [
+      "Implement backoff retry for transient failures",
+      "Fall back to smaller allocation on insufficient resources",
+      "Log allocation failures for capacity planning",
+      "Consider preemption for critical allocations"
+    ]
+  }
+}

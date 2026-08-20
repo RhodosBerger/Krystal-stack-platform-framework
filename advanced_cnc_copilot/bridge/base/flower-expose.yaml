@@ -1,0 +1,18 @@
+#! flower-expose.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: flower
+    namespace: advanced-cnc-copilot
+    labels:
+        com.docker.compose.project: advanced_cnc_copilot
+        com.docker.compose.service: flower
+spec:
+    selector:
+        com.docker.compose.project: advanced_cnc_copilot
+        com.docker.compose.service: flower
+    ports:
+        - name: flower-5555
+          port: 5555
+          targetPort: flower-5555

@@ -1,0 +1,14 @@
+C:\Users\dusan\Documents\GitHub\Dev-contitional\nexusgrid_system\target\debug\deps\serde-2ec320554cc4cb0d.d: C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\dusan\Documents\GitHub\Dev-contitional\nexusgrid_system\target\debug\build\serde-291d5c27960f80df\out/private.rs
+
+C:\Users\dusan\Documents\GitHub\Dev-contitional\nexusgrid_system\target\debug\deps\libserde-2ec320554cc4cb0d.rlib: C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\dusan\Documents\GitHub\Dev-contitional\nexusgrid_system\target\debug\build\serde-291d5c27960f80df\out/private.rs
+
+C:\Users\dusan\Documents\GitHub\Dev-contitional\nexusgrid_system\target\debug\deps\libserde-2ec320554cc4cb0d.rmeta: C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\dusan\Documents\GitHub\Dev-contitional\nexusgrid_system\target\debug\build\serde-291d5c27960f80df\out/private.rs
+
+C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs:
+C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs:
+C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs:
+C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs:
+C:\Users\dusan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs:
+C:\Users\dusan\Documents\GitHub\Dev-contitional\nexusgrid_system\target\debug\build\serde-291d5c27960f80df\out/private.rs:
+
+# env-dep:OUT_DIR=C:\\Users\\dusan\\Documents\\GitHub\\Dev-contitional\\nexusgrid_system\\target\\debug\\build\\serde-291d5c27960f80df\\out

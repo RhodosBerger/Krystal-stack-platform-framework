@@ -1,0 +1,592 @@
+{
+  "version": "1.0.0",
+  "patterns": [
+    {
+      "pattern_id": "dashboard-builder_pattern",
+      "source_component": "dashboard-builder",
+      "source_file": "C:\\Users\\dusan\\Documents\\GitHub\\Dev-contitional\\advanced_cnc_copilot\\cms\\dashboard\\dashboard-builder.js",
+      "signature": {
+        "file_hash": "063cba6ef1f06363",
+        "type": "interactive-widget",
+        "complexity": 8,
+        "data_flow": {
+          "inputs": 4,
+          "state_vars": 7,
+          "api_calls": 0
+        },
+        "interactions": {
+          "event_handlers": 5,
+          "bindings": 0
+        },
+        "visual_elements": 24,
+        "methods_count": 21
+      },
+      "pattern": {
+        "pattern_type": "interactive-widget",
+        "template_structure": {
+          "has_header": false,
+          "has_body": false,
+          "has_footer": false
+        },
+        "data_requirements": {
+          "props": [
+            "\n    const templates = {\n        'gauge': `\n            <div class=\"component-content\">\n                <h3>\ud83d\udcc8 Spindle Load</h3>\n                <div style=\"text-align: center;\">\n                    <div style=\"font-size: 3rem; color: #38bdf8;\">67%</div>\n                    <div class=\"progress-bar\" style=\"background: rgba(56,189,248,0.2); height: 8px; border-radius: 4px; margin-top: 10px;\">\n                        <div style=\"background: #38bdf8; width: 67%; height: 100%; border-radius: 4px;\"></div>\n                    </div>\n                </div>\n            </div>\n        `,\n        'chart': `\n            <div class=\"component-content\">\n                <h3>\ud83d\udcca Load History (Last Hour)</h3>\n                <div style=\"height: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #71717a;\">\n                    Chart will render here\n                </div>\n            </div>\n        `,\n        'metric': `\n            <div class=\"component-content\" style=\"text-align: center;\">\n                <div style=\"color: #71717a; font-size: 0.9rem; margin-bottom: 8px;\">RPM</div>\n                <div style=\"font-size: 2.5rem; font-weight: 700; color: #38bdf8;\">8,234</div>\n                <div style=\"color: #10b981; font-size: 0.85rem; margin-top: 5px;\">\u2191 +234 from setpoint</div>\n            </div>\n        `,\n        'machine-card': `\n            <div class=\"component-content\">\n                <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;\">\n                    <h3>\ud83d\udd27 CNC_VMC_01</h3>\n                    <span style=\"background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem;\">RUNNING</span>\n                </div>\n                <div style=\"display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;\">\n                    <div>\n                        <div style=\"color: #71717a; font-size: 0.85rem;\">Load</div>\n                        <div style=\"font-size: 1.3rem; font-weight: 600;\">67%</div>\n                    </div>\n                    <div>\n                        <div style=\"color: #71717a; font-size: 0.85rem;\">RPM</div>\n                        <div style=\"font-size: 1.3rem; font-weight: 600;\">8,234</div>\n                    </div>\n                </div>\n            </div>\n        `,\n        'dopamine': `\n            <div class=\"component-content\">\n                <h3>\ud83e\udde0 Dopamine Engine</h3>\n                <div style=\"text-align: center; margin: 20px 0;\">\n                    <div style=\"font-size: 2.5rem; color: #a855f7;\">75%</div>\n                    <div style=\"color: #71717a; margin-top: 5px;\">Confidence Level</div>\n                </div>\n                <div style=\"background: rgba(168,85,247,0.1); padding: 12px; border-radius: 8px; font-size: 0.9rem;\">\n                    \ud83d\udcad \"Load stable at 67% for 5min. Vibration low. Rewarding cautious approach.\"\n                </div>\n            </div>\n        `,\n        'signal': `\n            <div class=\"component-content\" style=\"text-align: center;\">\n                <h3>\ud83d\udea6 Safety Signal</h3>\n                <div style=\"font-size: 5rem; margin: 20px 0;\">\ud83d\udfe2</div>\n                <div style=\"background: rgba(16,185,129,0.1); padding: 10px; border-radius: 8px;\">\n                    <div style=\"color: #10b981; font-weight: 600;\">GREEN</div>\n                    <div style=\"color: #71717a; font-size: 0.85rem; margin-top: 4px;\">Safe to proceed</div>\n                </div>\n            </div>\n        `,\n        'oee': `\n            <div class=\"component-content\">\n                <h3>\ud83c\udfaf OEE Dashboard</h3>\n                <div style=\"text-align: center; margin: 15px 0;\">\n                    <div style=\"font-size: 2.5rem; color: #10b981;\">80.6%</div>\n                    <div style=\"color: #71717a;\">Overall Equipment Effectiveness</div>\n                </div>\n                <div style=\"display: grid; gap: 10px;\">\n                    <div style=\"background: rgba(16,185,129,0.1); padding: 10px; border-radius: 6px;\">\n                        <div style=\"color: #71717a; font-size: 0.85rem;\">Availability</div>\n                        <div style=\"font-weight: 600;\">93.8%</div>\n                    </div>\n                    <div style=\"background: rgba(56,189,248,0.1); padding: 10px; border-radius: 6px;\">\n                        <div style=\"color: #71717a; font-size: 0.85rem;\">Performance</div>\n                        <div style=\"font-weight: 600;\">90.0%</div>\n                    </div>\n                    <div style=\"background: rgba(168,85,247,0.1); padding: 10px; border-radius: 6px;\">\n                        <div style=\"color: #71717a; font-size: 0.85rem;\">Quality</div>\n                        <div style=\"font-weight: 600;\">95.6%</div>\n                    </div>\n                </div>\n            </div>\n        `,\n        'grid-2col': `\n            <div class=\"component-content\" style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-height: 150px;\">\n                <div style=\"background: rgba(255,255,255,0.03); border: 1px dashed #71717a; border-radius: 8px; padding: 20px; display: flex; align-items: center; justify-content: center; color: #71717a;\">\n                    Column 1\n                </div>\n                <div style=\"background: rgba(255,255,255,0.03); border: 1px dashed #71717a; border-radius: 8px; padding: 20px; display: flex; align-items: center; justify-content: center; color: #71717a;\">\n                    Column 2\n                </div>\n            </div>\n        `,\n        'card': `\n            <div class=\"component-content\" style=\"background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; min-height: 150px;\">\n                <h3 style=\"margin-bottom: 15px;\">Card Title</h3>\n                <p style=\"color: #71717a;\">Card content goes here...</p>\n            </div>\n        `\n    ",
+            "\n    const componentData = componentsOnCanvas.find(c => c.id === componentId);\n    if (!componentData) return;\n\n    const propertiesContent = document.getElementById('properties-content');\n    propertiesContent.innerHTML = `\n        <h3>${componentData.type.toUpperCase()",
+            "\n    const component = componentsOnCanvas.find(c => c.id === componentId);\n    if (component) {\n        component.properties[property] = value;\n    ",
+            "\n    return {\n        title: '',\n        dataSource: '',\n        refreshRate: 1\n    "
+          ],
+          "api_endpoint": null
+        },
+        "interactivity": {
+          "events": [
+            "event",
+            "event",
+            "event",
+            "event",
+            "deleteComponent"
+          ],
+          "bindings": []
+        },
+        "styling": {
+          "classes": [
+            "component-content",
+            "progress-bar",
+            "component-content",
+            "component-content",
+            "component-content",
+            "component-content",
+            "component-content",
+            "component-content",
+            "component-content",
+            "component-content",
+            "property-group",
+            "property-label",
+            "property-input",
+            "property-group",
+            "property-label",
+            "property-input",
+            "property-group",
+            "property-label",
+            "property-input",
+            "property-group",
+            "property-label",
+            "property-input",
+            "btn-secondary",
+            "no-selection"
+          ]
+        }
+      },
+      "reusability": {
+        "score": 90,
+        "level": "HIGHLY_REUSABLE",
+        "factors": [
+          "Generic API structure",
+          "Props-driven configuration",
+          "Styled with classes"
+        ]
+      },
+      "applicability": [
+        "analytics",
+        "controls",
+        "status-monitoring",
+        "dialogs",
+        "metrics",
+        "forms"
+      ]
+    },
+    {
+      "pattern_id": "docs_pattern",
+      "source_component": "docs",
+      "source_file": "C:\\Users\\dusan\\Documents\\GitHub\\Dev-contitional\\advanced_cnc_copilot\\cms\\dashboard\\docs.html",
+      "signature": {
+        "file_hash": "7a3f393e28f663ce",
+        "type": "styled-component",
+        "complexity": 0,
+        "data_flow": {
+          "inputs": 0,
+          "state_vars": 0,
+          "api_calls": 0
+        },
+        "interactions": {
+          "event_handlers": 0,
+          "bindings": 0
+        },
+        "visual_elements": 44,
+        "methods_count": 0
+      },
+      "pattern": {
+        "pattern_type": "styled-component",
+        "template_structure": {
+          "has_header": true,
+          "has_body": false,
+          "has_footer": false
+        },
+        "data_requirements": {
+          "props": [],
+          "api_endpoint": null
+        },
+        "interactivity": {
+          "events": [],
+          "bindings": []
+        },
+        "styling": {
+          "classes": [
+            "glass-container",
+            "dashboard-header",
+            "logo",
+            "status-badge",
+            "doc-container",
+            "doc-section",
+            "doc-text",
+            "badge backend",
+            "code-ref",
+            "panel-preview",
+            "panel glass-panel",
+            "icon",
+            "metric-card",
+            "value",
+            "bar-container",
+            "bar",
+            "doc-section",
+            "doc-text",
+            "badge backend",
+            "code-ref",
+            "panel-preview",
+            "panel glass-panel",
+            "icon",
+            "neuro-stat",
+            "neuro-label",
+            "neuro-bar-bg",
+            "neuro-bar dopamine",
+            "neuro-stat",
+            "neuro-label",
+            "neuro-bar-bg",
+            "neuro-bar cortisol",
+            "doc-section",
+            "doc-text",
+            "badge backend",
+            "code-ref",
+            "panel-preview",
+            "panel glass-panel",
+            "icon",
+            "logic-map-container",
+            "logic-node",
+            "logic-link",
+            "logic-node",
+            "logic-link",
+            "logic-node"
+          ]
+        }
+      },
+      "reusability": {
+        "score": 60,
+        "level": "MODERATELY_REUSABLE",
+        "factors": [
+          "Generic API structure",
+          "Styled with classes",
+          "Moderate complexity"
+        ]
+      },
+      "applicability": [
+        "status-monitoring"
+      ]
+    },
+    {
+      "pattern_id": "dynamic-panel_pattern",
+      "source_component": "dynamic-panel",
+      "source_file": "C:\\Users\\dusan\\Documents\\GitHub\\Dev-contitional\\advanced_cnc_copilot\\cms\\dashboard\\dynamic-panel.js",
+      "signature": {
+        "file_hash": "81a9e6ac70d6264c",
+        "type": "complex-component",
+        "complexity": 5,
+        "data_flow": {
+          "inputs": 0,
+          "state_vars": 3,
+          "api_calls": 0
+        },
+        "interactions": {
+          "event_handlers": 0,
+          "bindings": 0
+        },
+        "visual_elements": 1,
+        "methods_count": 7
+      },
+      "pattern": {
+        "pattern_type": "complex-component",
+        "template_structure": {
+          "has_header": false,
+          "has_body": false,
+          "has_footer": false
+        },
+        "data_requirements": {
+          "props": [],
+          "api_endpoint": null
+        },
+        "interactivity": {
+          "events": [],
+          "bindings": []
+        },
+        "styling": {
+          "classes": [
+            "required"
+          ]
+        }
+      },
+      "reusability": {
+        "score": 60,
+        "level": "MODERATELY_REUSABLE",
+        "factors": [
+          "Generic API structure",
+          "Styled with classes",
+          "Moderate complexity"
+        ]
+      },
+      "applicability": [
+        "status-monitoring"
+      ]
+    },
+    {
+      "pattern_id": "hub_pattern",
+      "source_component": "hub",
+      "source_file": "C:\\Users\\dusan\\Documents\\GitHub\\Dev-contitional\\advanced_cnc_copilot\\cms\\dashboard\\hub.html",
+      "signature": {
+        "file_hash": "6b13b1adf1c71b51",
+        "type": "styled-component",
+        "complexity": 0,
+        "data_flow": {
+          "inputs": 0,
+          "state_vars": 0,
+          "api_calls": 0
+        },
+        "interactions": {
+          "event_handlers": 0,
+          "bindings": 0
+        },
+        "visual_elements": 16,
+        "methods_count": 0
+      },
+      "pattern": {
+        "pattern_type": "styled-component",
+        "template_structure": {
+          "has_header": false,
+          "has_body": false,
+          "has_footer": false
+        },
+        "data_requirements": {
+          "props": [],
+          "api_endpoint": null
+        },
+        "interactivity": {
+          "events": [],
+          "bindings": []
+        },
+        "styling": {
+          "classes": [
+            "hub-container",
+            "orb orb-1",
+            "orb orb-2",
+            "hub-grid",
+            "hub-card",
+            "hub-icon",
+            "hub-title",
+            "hub-desc",
+            "hub-card",
+            "hub-icon",
+            "hub-title",
+            "hub-desc",
+            "hub-card",
+            "hub-icon",
+            "hub-title",
+            "hub-desc"
+          ]
+        }
+      },
+      "reusability": {
+        "score": 60,
+        "level": "MODERATELY_REUSABLE",
+        "factors": [
+          "Generic API structure",
+          "Styled with classes",
+          "Moderate complexity"
+        ]
+      },
+      "applicability": [
+        "status-monitoring"
+      ]
+    },
+    {
+      "pattern_id": "index_pattern",
+      "source_component": "index",
+      "source_file": "C:\\Users\\dusan\\Documents\\GitHub\\Dev-contitional\\advanced_cnc_copilot\\cms\\dashboard\\index.html",
+      "signature": {
+        "file_hash": "5c185d94ff24f81e",
+        "type": "styled-component",
+        "complexity": 0,
+        "data_flow": {
+          "inputs": 0,
+          "state_vars": 0,
+          "api_calls": 0
+        },
+        "interactions": {
+          "event_handlers": 1,
+          "bindings": 0
+        },
+        "visual_elements": 67,
+        "methods_count": 0
+      },
+      "pattern": {
+        "pattern_type": "styled-component",
+        "template_structure": {
+          "has_header": true,
+          "has_body": false,
+          "has_footer": false
+        },
+        "data_requirements": {
+          "props": [],
+          "api_endpoint": null
+        },
+        "interactivity": {
+          "events": [
+            "window"
+          ],
+          "bindings": []
+        },
+        "styling": {
+          "classes": [
+            "glass-container",
+            "dashboard-header",
+            "logo",
+            "icon",
+            "subtitle",
+            "status-badge",
+            "dashboard-grid",
+            "panel glass-panel",
+            "icon",
+            "telemetry-grid",
+            "metric-card",
+            "value",
+            "bar-container",
+            "bar",
+            "metric-card",
+            "value",
+            "bar-container",
+            "bar warning",
+            "metric-card",
+            "value",
+            "bar-container",
+            "bar danger",
+            "panel glass-panel",
+            "icon",
+            "neuro-visualization",
+            "neuro-stat",
+            "neuro-label",
+            "neuro-bar-bg",
+            "neuro-bar dopamine",
+            "neuro-stat",
+            "neuro-label",
+            "neuro-bar-bg",
+            "neuro-bar cortisol",
+            "neuro-stat",
+            "neuro-label",
+            "neuro-bar-bg",
+            "neuro-bar serotonin",
+            "creative-canvas",
+            "icon",
+            "twin-viz",
+            "twin-layer",
+            "twin-stat",
+            "twin-stat",
+            "action-readout",
+            "action-text",
+            "panel glass-panel",
+            "icon",
+            "logic-map-container",
+            "logic-node",
+            "node-val",
+            "logic-link",
+            "logic-node",
+            "node-val",
+            "logic-link",
+            "logic-node",
+            "node-val",
+            "logic-row-2",
+            "logic-link",
+            "logic-node x-wide",
+            "node-val",
+            "form-group",
+            "creative-canvas",
+            "icon",
+            "btn-primary",
+            "form-group",
+            "radio-group",
+            "console-box"
+          ]
+        }
+      },
+      "reusability": {
+        "score": 60,
+        "level": "MODERATELY_REUSABLE",
+        "factors": [
+          "Generic API structure",
+          "Styled with classes",
+          "Moderate complexity"
+        ]
+      },
+      "applicability": [
+        "status-monitoring"
+      ]
+    },
+    {
+      "pattern_id": "lab_pattern",
+      "source_component": "lab",
+      "source_file": "C:\\Users\\dusan\\Documents\\GitHub\\Dev-contitional\\advanced_cnc_copilot\\cms\\dashboard\\lab.html",
+      "signature": {
+        "file_hash": "b285f235ef17bff9",
+        "type": "styled-component",
+        "complexity": 0,
+        "data_flow": {
+          "inputs": 0,
+          "state_vars": 0,
+          "api_calls": 0
+        },
+        "interactions": {
+          "event_handlers": 0,
+          "bindings": 0
+        },
+        "visual_elements": 18,
+        "methods_count": 0
+      },
+      "pattern": {
+        "pattern_type": "styled-component",
+        "template_structure": {
+          "has_header": true,
+          "has_body": false,
+          "has_footer": false
+        },
+        "data_requirements": {
+          "props": [],
+          "api_endpoint": null
+        },
+        "interactivity": {
+          "events": [],
+          "bindings": []
+        },
+        "styling": {
+          "classes": [
+            "glass-container",
+            "dashboard-header",
+            "logo",
+            "status-badge",
+            "lab-grid",
+            "concept-card",
+            "concept-title",
+            "viz-box",
+            "sphere",
+            "concept-card",
+            "concept-title",
+            "console-box",
+            "concept-card",
+            "concept-title",
+            "viz-box",
+            "bar-container",
+            "bar",
+            "concept-card"
+          ]
+        }
+      },
+      "reusability": {
+        "score": 60,
+        "level": "MODERATELY_REUSABLE",
+        "factors": [
+          "Generic API structure",
+          "Styled with classes",
+          "Moderate complexity"
+        ]
+      },
+      "applicability": [
+        "status-monitoring"
+      ]
+    },
+    {
+      "pattern_id": "logs_pattern",
+      "source_component": "logs",
+      "source_file": "C:\\Users\\dusan\\Documents\\GitHub\\Dev-contitional\\advanced_cnc_copilot\\cms\\dashboard\\logs.html",
+      "signature": {
+        "file_hash": "2fb17ed431ab0ce9",
+        "type": "interactive-widget",
+        "complexity": 3,
+        "data_flow": {
+          "inputs": 0,
+          "state_vars": 1,
+          "api_calls": 0
+        },
+        "interactions": {
+          "event_handlers": 6,
+          "bindings": 0
+        },
+        "visual_elements": 18,
+        "methods_count": 5
+      },
+      "pattern": {
+        "pattern_type": "interactive-widget",
+        "template_structure": {
+          "has_header": true,
+          "has_body": false,
+          "has_footer": false
+        },
+        "data_requirements": {
+          "props": [],
+          "api_endpoint": null
+        },
+        "interactivity": {
+          "events": [
+            "exportLogs",
+            "exportLogs",
+            "clearLogs",
+            "switchLog",
+            "switchLog",
+            "switchLog"
+          ],
+          "bindings": []
+        },
+        "styling": {
+          "classes": [
+            "glass-container",
+            "dashboard-header",
+            "logo",
+            "status-badge",
+            "log-controls",
+            "export-btn",
+            "export-btn",
+            "export-btn",
+            "log-container",
+            "log-selector",
+            "active",
+            "log-viewer",
+            "log-entry info",
+            "log-entry info",
+            "log-entry warning",
+            "log-entry info",
+            "log-entry info",
+            "log-entry ${log.level}"
+          ]
+        }
+      },
+      "reusability": {
+        "score": 60,
+        "level": "MODERATELY_REUSABLE",
+        "factors": [
+          "Generic API structure",
+          "Styled with classes",
+          "Moderate complexity"
+        ]
+      },
+      "applicability": [
+        "forms",
+        "status-monitoring",
+        "dialogs",
+        "controls"
+      ]
+    }
+  ]
+}

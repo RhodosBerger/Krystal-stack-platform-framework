@@ -1,0 +1,39 @@
+INFO:LLMBrain:LLM Brain Initialized
+INFO:LLMBrain:OLLAMA_BASE_URL: http://localhost:11434
+INFO:LLMBrain:OpenAI Key Present: False
+WARNING:LLMBrain:OpenAI API Key not found. Running in Local Mode (Ollama) only.
+INFO:cms.message_bus:\u2705 Nervous System Uplink (Redis) Established: BUS_6BA5C854
+ERROR:MasterOrchestrator:Failed to import CMS modules: No module named 'scipy'
+ERROR:MasterOrchestrator:Traceback (most recent call last):
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\orchestrator.py", line 38, in <module>
+    from backend.core.council import council
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\council.py", line 9, in <module>
+    from backend.core.agents import AuditorAgent, BiochemistAgent, ObserverAgent
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\core\agents.py", line 15, in <module>
+    from cms.active_optic_compositor import ActiveOpticCompositor, EntropyMetrics
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\cms\active_optic_compositor.py", line 15, in <module>
+    from scipy import fft
+ModuleNotFoundError: No module named 'scipy'
+
+INFO:CortexTransmitter:\u2705 Cortex Transmitter Connected to Shared Memory
+INFO:LLMBrain:LLM Brain Initialized
+INFO:LLMBrain:OLLAMA_BASE_URL: http://localhost:11434
+INFO:LLMBrain:OpenAI Key Present: False
+WARNING:LLMBrain:OpenAI API Key not found. Running in Local Mode (Ollama) only.
+INFO:MasterOrchestrator:\U0001f50c Connecting to Redis (Shared Memory)...
+INFO:MasterOrchestrator:\u2705 Shared Control Pad (Redis) Client Initialized (Lazy)
+WARNING:CortexTransmitter:\u26a0\ufe0f Cortex Link Lost (Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.). Disabling Transmission.
+WARNING:MasterOrchestrator:\u26a0\ufe0f CMS Modules not found. Running in degraded mode.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\backend\main.py", line 24, in <module>
+    from cms.llm_integration_examples import LLMManufacturingAssistant
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\cms\llm_integration_examples.py", line 9, in <module>
+    from cms.sensory_cortex import SensoryCortex
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\cms\sensory_cortex.py", line 16, in <module>
+    from cms.hal_fanuc import FanucAdapter
+  File "C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot\cms\hal_fanuc.py", line 8, in <module>
+    from hal_core import GenericController
+ModuleNotFoundError: No module named 'hal_core'
+Warning: Redis unavailable. Worker running in limited mode.

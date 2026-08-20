@@ -1,0 +1,44 @@
+{
+    "manifest_version": "1.0.0",
+    "last_updated": "2026-01-24T19:51:00",
+    "core_api_version": "2.0.0",
+    "connectors": {
+        "solidworks": {
+            "name": "SolidWorks Simultaneous Link",
+            "version": "1.0.1-beta",
+            "status": "ACTIVE",
+            "compatibility": {
+                "solidworks": [
+                    2024,
+                    2025,
+                    2026
+                ],
+                "api": ">=2.0.0"
+            },
+            "hooks": [
+                "D0_Application_ActiveDocChangeNotify",
+                "D0_PartDoc_FileSaveNotify"
+            ]
+        },
+        "blender": {
+            "name": "Creative Twin Add-on",
+            "version": "0.9.5",
+            "status": "STABLE",
+            "compatibility": {
+                "blender": [
+                    4.2,
+                    4.3
+                ],
+                "api": ">=1.5.0"
+            }
+        },
+        "slack": {
+            "name": "Notification Bot",
+            "version": "1.1.0",
+            "status": "ACTIVE",
+            "compatibility": {
+                "api": ">=1.0.0"
+            }
+        }
+    }
+}

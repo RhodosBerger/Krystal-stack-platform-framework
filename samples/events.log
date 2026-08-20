@@ -1,0 +1,7 @@
+{"ts":"2025-01-21T14:30:00.000Z","event":"telemetry","cpu_util":0.72,"gpu_util":0.65,"frametime_ms":14.2,"temp_cpu":72,"temp_gpu":68}
+{"ts":"2025-01-21T14:30:00.100Z","event":"telemetry","cpu_util":0.74,"gpu_util":0.68,"frametime_ms":14.8,"temp_cpu":73,"temp_gpu":69}
+{"ts":"2025-01-21T14:30:00.200Z","event":"action_taken","rule_id":"mir-gaming-pcore-pin","action":"set_cpu_affinity","result":"success"}
+{"ts":"2025-01-21T14:30:00.300Z","event":"telemetry","cpu_util":0.78,"gpu_util":0.70,"frametime_ms":13.1,"temp_cpu":74,"temp_gpu":70}
+{"ts":"2025-01-21T14:30:00.400Z","event":"reward","rule_id":"mir-gaming-pcore-pin","reward":0.15,"reason":"frametime_improved"}
+{"ts":"2025-01-21T14:30:00.500Z","event":"telemetry","cpu_util":0.76,"gpu_util":0.69,"frametime_ms":13.4,"temp_cpu":75,"temp_gpu":70}
+{"ts":"2025-01-21T14:30:00.600Z","event":"metacognitive_trigger","reason":"periodic","window_start":"2025-01-21T14:25:00Z"}
