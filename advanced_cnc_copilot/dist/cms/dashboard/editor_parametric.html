@@ -1,0 +1,98 @@
+<div class="card shadow mb-4" id="parametric-editor-panel">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-success">
+            <i class="fas fa-sliders-h"></i> Parametric Controls
+        </h6>
+    </div>
+    <div class="card-body">
+        <!-- Dynamic Form Container -->
+        <form id="parametric-form">
+            <!-- Engineer View: Detailed Parameters -->
+            <div id="view-engineer" class="adaptive-view">
+                <div class="form-group row">
+                    <label class="col-sm-4 col-form-label text-success"><strong><i class="fas fa-trophy"></i> Proven
+                            Preset</strong></label>
+                    <div class="col-sm-8">
+                        <select class="form-control form-control-sm border-success" id="preset-select"
+                            onchange="loadPreset(this.value)">
+                            <option value="">-- Select Elite Config --</option>
+                        </select>
+                    </div>
+                </div>
+                <hr>
+                <h6 class="text-xs font-weight-bold text-primary text-uppercase mb-1">Global Variables</h6>
+                <div class="form-group row">
+                    <label for="p-length" class="col-sm-4 col-form-label">Length (L)</label>
+                    <div class="col-sm-8">
+                        <input type="number" class="form-control form-control-sm" id="p-length" value="120.5">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="p-width" class="col-sm-4 col-form-label">Width (W)</label>
+                    <div class="col-sm-8">
+                        <input type="number" class="form-control form-control-sm" id="p-width" value="50.0">
+                    </div>
+                </div>
+                <!-- Logic Nodes (Mockup) -->
+                <div class="p-2 bg-light border rounded mt-2">
+                    <small><strong><i class="fas fa-project-diagram"></i> Constraints:</strong></small>
+                    <ul class="list-unstyled text-xs mb-0">
+                        <li><code>L > W * 2</code> <span class="text-success">✔ OK</span></li>
+                        <li><code>Hole_Dia < 0.5 * W</code> <span class="text-success">✔ OK</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Operator View: Simple Inputs -->
+            <div id="view-operator" class="adaptive-view d-none">
+                <div class="alert alert-info py-2">
+                    <i class="fas fa-user-cog"></i> Operator Mode Active
+                </div>
+                <div class="form-group">
+                    <label>Batch Size</label>
+                    <input type="range" class="custom-range" min="1" max="100" id="op-batch">
+                    <div class="text-center font-weight-bold" id="op-batch-val">50</div>
+                </div>
+                <button type="button" class="btn btn-success btn-block btn-lg">
+                    <i class="fas fa-play"></i> Start Run
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Load proven presets on startup
+    fetch('/api/presets/proven')
+        .then(r => r.json())
+        .then(data => {
+            const select = document.getElementById('preset-select');
+            data.presets.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = JSON.stringify(p.params);
+                opt.textContent = `${p.label} (Score: ${p.score})`;
+                select.appendChild(opt);
+            });
+        });
+
+    function loadPreset(paramsStr) {
+        if (!paramsStr) return;
+        const params = JSON.parse(paramsStr);
+        // Map params to UI (Example: Length/Width)
+        if (params.spindle_speed) {
+            console.log("Applying Proven Params:", params);
+            // In a real app we'd map these to the specific inputs
+            document.getElementById('p-length').animate([{ borderColor: '#00ff88' }, { borderColor: '#ddd' }], 1000);
+        }
+    }
+
+    // Mock Role Switching Logic (controlled by parent)
+    function setParametricMode(role) {
+        document.querySelectorAll('.adaptive-view').forEach(el => el.classList.add('d-none'));
+        if (role === 'operator') {
+            document.getElementById('view-operator').classList.remove('d-none');
+        } else {
+            document.getElementById('view-engineer').classList.remove('d-none');
+        }
+    }
+</script>

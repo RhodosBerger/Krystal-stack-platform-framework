@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XYZ Dimensional Control Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            grid-template-rows: 80px 1fr;
+            gap: 20px;
+            padding: 20px;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            padding: 10px 20px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: rgba(102, 126, 234, 0.6);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Left Panel - DRO */
+        .dro-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+
+        .dro-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-align: center;
+        }
+
+        .axis-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+
+        .axis-display.x-axis {
+            border-color: #ff4757;
+        }
+
+        .axis-display.y-axis {
+            border-color: #5cd85c;
+        }
+
+        .axis-display.z-axis {
+            border-color: #4fc3f7;
+        }
+
+        .axis-label {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+
+        .axis-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: 'Consolas', monospace;
+            text-align: right;
+        }
+
+        .axis-unit {
+            font-size: 1rem;
+            opacity: 0.6;
+            margin-left: 8px;
+        }
+
+        .jog-controls {
+            margin-top: 25px;
+        }
+
+        .jog-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .jog-btn {
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .jog-btn:hover {
+            background: rgba(102, 126, 234, 0.5);
+            transform: scale(1.05);
+        }
+
+        .jog-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Center Panel - 3D Visualization */
+        .viz-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        #canvas3d {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .coordinate-overlay {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+        }
+
+        .coord-line {
+            margin: 5px 0;
+        }
+
+        .coord-x {
+            color: #ff4757;
+        }
+
+        .coord-y {
+            color: #5cd85c;
+        }
+
+        .coord-z {
+            color: #4fc3f7;
+        }
+
+        /* Right Panel - Scale Controls */
+        .scale-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+
+        .scale-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #764ba2;
+            text-align: center;
+        }
+
+        .scale-control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .scale-value {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .slider-container {
+            position: relative;
+            height: 40px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .preset-btn {
+            padding: 8px;
+            background: rgba(118, 75, 162, 0.3);
+            border: 1px solid rgba(118, 75, 162, 0.5);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: rgba(118, 75, 162, 0.5);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .action-btn {
+            padding: 15px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .apply-btn {
+            background: linear-gradient(135deg, #5cd85c 0%, #3ea93e 100%);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #ff4757 0%, #d63447 100%);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Transformation Matrix */
+        .matrix-display {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+        }
+
+        .matrix-title {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+
+        .matrix-row {
+            display: flex;
+            justify-content: space-around;
+            margin: 3px 0;
+        }
+
+        .matrix-value {
+            width: 60px;
+            text-align: right;
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="control-panel">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎯 XYZ Dimensional Control Panel</h1>
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="absolute">Absolute</button>
+                <button class="mode-btn" data-mode="incremental">Incremental</button>
+                <button class="mode-btn" data-mode="work">Work Coords</button>
+            </div>
+        </div>
+
+        <!-- Left Panel: Digital Readout (DRO) -->
+        <div class="dro-panel">
+            <div class="dro-title">📊 Digital Readout</div>
+
+            <div class="axis-display x-axis">
+                <div class="axis-label">X-Axis (Horizontal)</div>
+                <div class="axis-value">
+                    <span id="x-value">0.000</span>
+                    <span class="axis-unit">mm</span>
+                </div>
+            </div>
+
+            <div class="axis-display y-axis">
+                <div class="axis-label">Y-Axis (Lateral)</div>
+                <div class="axis-value">
+                    <span id="y-value">0.000</span>
+                    <span class="axis-unit">mm</span>
+                </div>
+            </div>
+
+            <div class="axis-display z-axis">
+                <div class="axis-label">Z-Axis (Vertical)</div>
+                <div class="axis-value">
+                    <span id="z-value">0.000</span>
+                    <span class="axis-unit">mm</span>
+                </div>
+            </div>
+
+            <div class="jog-controls">
+                <div class="control-label">
+                    <span>Jog Controls</span>
+                    <span class="scale-value" id="jog-increment">1.0 mm</span>
+                </div>
+
+                <!-- XY Jog Grid -->
+                <div class="jog-grid">
+                    <button class="jog-btn" data-axis="xy" data-dir="-1,1">↖</button>
+                    <button class="jog-btn" data-axis="y" data-dir="1">↑ Y+</button>
+                    <button class="jog-btn" data-axis="xy" data-dir="1,1">↗</button>
+
+                    <button class="jog-btn" data-axis="x" data-dir="-1">← X-</button>
+                    <button class="jog-btn" data-axis="home">⌂</button>
+                    <button class="jog-btn" data-axis="x" data-dir="1">X+ →</button>
+
+                    <button class="jog-btn" data-axis="xy" data-dir="-1,-1">↙</button>
+                    <button class="jog-btn" data-axis="y" data-dir="-1">Y- ↓</button>
+                    <button class="jog-btn" data-axis="xy" data-dir="1,-1">↘</button>
+                </div>
+
+                <!-- Z Jog -->
+                <div class="jog-grid" style="grid-template-columns: 1fr 1fr;">
+                    <button class="jog-btn" data-axis="z" data-dir="1">↑ Z+</button>
+                    <button class="jog-btn" data-axis="z" data-dir="-1">Z- ↓</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel: 3D Visualization -->
+        <div class="viz-panel">
+            <canvas id="canvas3d"></canvas>
+            <div class="coordinate-overlay">
+                <div class="coord-line coord-x">X: <span id="coord-x">0.000</span> mm</div>
+                <div class="coord-line coord-y">Y: <span id="coord-y">0.000</span> mm</div>
+                <div class="coord-line coord-z">Z: <span id="coord-z">0.000</span> mm</div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Scale Controls -->
+        <div class="scale-panel">
+            <div class="scale-title">⚙️ Scale Transforms</div>
+
+            <!-- X Scale -->
+            <div class="scale-control-group">
+                <div class="control-label">
+                    <span class="tooltip">X-Scale Factor
+                        <span class="tooltiptext">Multiplier for X-axis dimensions. 2.0 = double size</span>
+                    </span>
+                    <span class="scale-value"><span id="scale-x-display">1.00</span>x</span>
+                </div>
+                <input type="range" min="0.1" max="5" step="0.1" value="1" class="slider" id="scale-x"
+                    style="background: linear-gradient(to right, #ff4757, rgba(255,71,87,0.3));">
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-target="scale-x" data-value="0.5">0.5x</button>
+                    <button class="preset-btn" data-target="scale-x" data-value="1">1.0x</button>
+                    <button class="preset-btn" data-target="scale-x" data-value="2">2.0x</button>
+                </div>
+            </div>
+
+            <!-- Y Scale -->
+            <div class="scale-control-group">
+                <div class="control-label">
+                    <span class="tooltip">Y-Scale Factor
+                        <span class="tooltiptext">Multiplier for Y-axis dimensions</span>
+                    </span>
+                    <span class="scale-value"><span id="scale-y-display">1.00</span>x</span>
+                </div>
+                <input type="range" min="0.1" max="5" step="0.1" value="1" class="slider" id="scale-y"
+                    style="background: linear-gradient(to right, #5cd85c, rgba(92,216,92,0.3));">
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-target="scale-y" data-value="0.5">0.5x</button>
+                    <button class="preset-btn" data-target="scale-y" data-value="1">1.0x</button>
+                    <button class="preset-btn" data-target="scale-y" data-value="2">2.0x</button>
+                </div>
+            </div>
+
+            <!-- Z Scale -->
+            <div class="scale-control-group">
+                <div class="control-label">
+                    <span class="tooltip">Z-Scale Factor
+                        <span class="tooltiptext">Multiplier for Z-axis dimensions</span>
+                    </span>
+                    <span class="scale-value"><span id="scale-z-display">1.00</span>x</span>
+                </div>
+                <input type="range" min="0.1" max="5" step="0.1" value="1" class="slider" id="scale-z"
+                    style="background: linear-gradient(to right, #4fc3f7, rgba(79,195,247,0.3));">
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-target="scale-z" data-value="0.5">0.5x</button>
+                    <button class="preset-btn" data-target="scale-z" data-value="1">1.0x</button>
+                    <button class="preset-btn" data-target="scale-z" data-value="2">2.0x</button>
+                </div>
+            </div>
+
+            <!-- Uniform Scale -->
+            <div class="scale-control-group">
+                <div class="control-label">
+                    <span class="tooltip">Uniform Scale
+                        <span class="tooltiptext">Scale all axes equally (maintains proportions)</span>
+                    </span>
+                    <span class="scale-value"><span id="scale-uniform-display">1.00</span>x</span>
+                </div>
+                <input type="range" min="0.1" max="5" step="0.1" value="1" class="slider" id="scale-uniform"
+                    style="background: linear-gradient(to right, #667eea, rgba(102,126,234,0.3));">
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-target="scale-uniform" data-value="0.5">0.5x</button>
+                    <button class="preset-btn" data-target="scale-uniform" data-value="1">1.0x</button>
+                    <button class="preset-btn" data-target="scale-uniform" data-value="2">2.0x</button>
+                </div>
+            </div>
+
+            <!-- Transformation Matrix Display -->
+            <div class="matrix-display">
+                <div class="matrix-title">Transformation Matrix:</div>
+                <div class="matrix-row">
+                    <span class="matrix-value" id="m00">1.00</span>
+                    <span class="matrix-value" id="m01">0.00</span>
+                    <span class="matrix-value" id="m02">0.00</span>
+                </div>
+                <div class="matrix-row">
+                    <span class="matrix-value" id="m10">0.00</span>
+                    <span class="matrix-value" id="m11">1.00</span>
+                    <span class="matrix-value" id="m12">0.00</span>
+                </div>
+                <div class="matrix-row">
+                    <span class="matrix-value" id="m20">0.00</span>
+                    <span class="matrix-value" id="m21">0.00</span>
+                    <span class="matrix-value" id="m22">1.00</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn apply-btn" id="apply-transform">✓ Apply</button>
+                <button class="action-btn reset-btn" id="reset-transform">↺ Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // Paradigm: Coordinate System as 3D Space
+        // ============================================
+
+        class CoordinateSystem {
+            constructor() {
+                this.position = { x: 0, y: 0, z: 0 };
+                this.scale = { x: 1, y: 1, z: 1 };
+                this.mode = 'absolute'; // absolute, incremental, work
+                this.workOffset = { x: 0, y: 0, z: 0 };
+            }
+
+            // Transform coordinates (like GPS navigation)
+            transform(point) {
+                return {
+                    x: point.x * this.scale.x,
+                    y: point.y * this.scale.y,
+                    z: point.z * this.scale.z
+                };
+            }
+
+            // Get transformation matrix (mathematical representation)
+            getMatrix() {
+                return [
+                    [this.scale.x, 0, 0],
+                    [0, this.scale.y, 0],
+                    [0, 0, this.scale.z]
+                ];
+            }
+        }
+
+        // Initialize coordinate system
+        const coords = new CoordinateSystem();
+
+        // ============================================
+        // UI Update Functions
+        // ============================================
+
+        function updateDRO() {
+            document.getElementById('x-value').textContent = coords.position.x.toFixed(3);
+            document.getElementById('y-value').textContent = coords.position.y.toFixed(3);
+            document.getElementById('z-value').textContent = coords.position.z.toFixed(3);
+
+            document.getElementById('coord-x').textContent = coords.position.x.toFixed(3);
+            document.getElementById('coord-y').textContent = coords.position.y.toFixed(3);
+            document.getElementById('coord-z').textContent = coords.position.z.toFixed(3);
+        }
+
+        function updateScaleDisplays() {
+            document.getElementById('scale-x-display').textContent = coords.scale.x.toFixed(2);
+            document.getElementById('scale-y-display').textContent = coords.scale.y.toFixed(2);
+            document.getElementById('scale-z-display').textContent = coords.scale.z.toFixed(2);
+
+            updateMatrix();
+            draw3D();
+        }
+
+        function updateMatrix() {
+            const matrix = coords.getMatrix();
+            document.getElementById('m00').textContent = matrix[0][0].toFixed(2);
+            document.getElementById('m11').textContent = matrix[1][1].toFixed(2);
+            document.getElementById('m22').textContent = matrix[2][2].toFixed(2);
+        }
+
+        // ============================================
+        // Scale Control Events
+        // ============================================
+
+        document.getElementById('scale-x').addEventListener('input', (e) => {
+            coords.scale.x = parseFloat(e.target.value);
+            updateScaleDisplays();
+        });
+
+        document.getElementById('scale-y').addEventListener('input', (e) => {
+            coords.scale.y = parseFloat(e.target.value);
+            updateScaleDisplays();
+        });
+
+        document.getElementById('scale-z').addEventListener('input', (e) => {
+            coords.scale.z = parseFloat(e.target.value);
+            updateScaleDisplays();
+        });
+
+        document.getElementById('scale-uniform').addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            coords.scale.x = coords.scale.y = coords.scale.z = value;
+
+            document.getElementById('scale-x').value = value;
+            document.getElementById('scale-y').value = value;
+            document.getElementById('scale-z').value = value;
+
+            updateScaleDisplays();
+        });
+
+        // Preset buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.dataset.target;
+                const value = parseFloat(btn.dataset.value);
+
+                if (target === 'scale-uniform') {
+                    coords.scale.x = coords.scale.y = coords.scale.z = value;
+                    document.getElementById('scale-x').value = value;
+                    document.getElementById('scale-y').value = value;
+                    document.getElementById('scale-z').value = value;
+                    document.getElementById('scale-uniform').value = value;
+                } else {
+                    document.getElementById(target).value = value;
+                    const axis = target.split('-')[1];
+                    coords.scale[axis] = value;
+                }
+
+                updateScaleDisplays();
+            });
+        });
+
+        // ============================================
+        // Jog Controls
+        // ============================================
+
+        let jogIncrement = 1.0;
+
+        document.querySelectorAll('.jog-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const axis = btn.dataset.axis;
+                const dir = btn.dataset.dir;
+
+                if (axis === 'home') {
+                    coords.position.x = 0;
+                    coords.position.y = 0;
+                    coords.position.z = 0;
+                } else if (axis === 'xy') {
+                    const [dx, dy] = dir.split(',').map(Number);
+                    coords.position.x += dx * jogIncrement;
+                    coords.position.y += dy * jogIncrement;
+                } else {
+                    const direction = parseFloat(dir);
+                    coords.position[axis] += direction * jogIncrement;
+                }
+
+                updateDRO();
+                draw3D();
+            });
+        });
+
+        // ============================================
+        // 3D Visualization (Simplified)
+        // ============================================
+
+        const canvas = document.getElementById('canvas3d');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            draw3D();
+        }
+
+        function draw3D() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Draw axes
+            ctx.lineWidth = 2;
+
+            // X-axis (red)
+            ctx.strokeStyle = '#ff4757';
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + 100 * coords.scale.x, centerY);
+            ctx.stroke();
+            ctx.fillStyle = '#ff4757';
+            ctx.fillText('X', centerX + 110 * coords.scale.x, centerY);
+
+            // Y-axis (green)
+            ctx.strokeStyle = '#5cd85c';
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX - 50 * coords.scale.y, centerY - 86 * coords.scale.y);
+            ctx.stroke();
+            ctx.fillStyle = '#5cd85c';
+            ctx.fillText('Y', centerX - 60 * coords.scale.y, centerY - 96 * coords.scale.y);
+
+            // Z-axis (blue)
+            ctx.strokeStyle = '#4fc3f7';
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX, centerY - 100 * coords.scale.z);
+            ctx.stroke();
+            ctx.fillStyle = '#4fc3f7';
+            ctx.fillText('Z', centerX + 10, centerY - 110 * coords.scale.z);
+
+            // Draw current position
+            const scaledPos = coords.transform(coords.position);
+            const px = centerX + scaledPos.x;
+            const py = centerY - scaledPos.z - scaledPos.y * 0.5;
+
+            ctx.fillStyle = '#667eea';
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // ============================================
+        // Action Buttons
+        // ============================================
+
+        document.getElementById('apply-transform').addEventListener('click', () => {
+            alert('Transform applied! In production, this would send G-code commands to the CNC machine.');
+            console.log('Transformation Matrix:', coords.getMatrix());
+            console.log('Scale:', coords.scale);
+        });
+
+        document.getElementById('reset-transform').addEventListener('click', () => {
+            coords.scale.x = coords.scale.y = coords.scale.z = 1;
+
+            document.getElementById('scale-x').value = 1;
+            document.getElementById('scale-y').value = 1;
+            document.getElementById('scale-z').value = 1;
+            document.getElementById('scale-uniform').value = 1;
+
+            updateScaleDisplays();
+        });
+
+        // Mode selector
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                coords.mode = btn.dataset.mode;
+            });
+        });
+
+        // Initialize
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        updateDRO();
+        updateScaleDisplays();
+
+        console.log('XYZ Control Panel Initialized');
+        console.log('Paradigm: 3D coordinate system with real-time scaling');
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+#! timescaledb-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: timescaledb
+    namespace: advanced-cnc-copilot
+    labels:
+        com.docker.compose.project: advanced_cnc_copilot
+        com.docker.compose.service: timescaledb
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: advanced_cnc_copilot
+            com.docker.compose.service: timescaledb
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: advanced_cnc_copilot
+                com.docker.compose.service: timescaledb
+                com.docker.compose.network.rise_network: "true"
+        spec:
+            containers:
+                - name: rise-timescaledb
+                  image: timescale/timescaledb:latest-pg14
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: POSTGRES_DB
+                      value: "rise_enterprise"
+                    - name: POSTGRES_PASSWORD
+                      value: "postgres"
+                    - name: POSTGRES_USER
+                      value: "postgres"
+                  livenessProbe:
+                    exec:
+                        command:
+                            - /bin/sh
+                            - -c
+                            - pg_isready -U postgres
+                    periodSeconds: 10
+                    timeoutSeconds: 5
+                    failureThreshold: 5
+                  ports:
+                    - name: timescaled-5432
+                      containerPort: 5432
+                  volumeMounts:
+                    - name: var-lib-postgresql-data
+                      mountPath: /var/lib/postgresql/data
+            volumes:
+                - name: var-lib-postgresql-data
+                  persistentVolumeClaim:
+                    claimName: timescaledb-postgres-data

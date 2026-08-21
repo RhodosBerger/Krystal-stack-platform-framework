@@ -1,0 +1,65 @@
+# Multi-stage Dockerfile for FANUC RISE v2.1 Hardware Abstraction Layer (HAL)
+FROM python:3.11-slim AS base
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV PIP_NO_CACHE_DIR 1
+ENV PIP_DISABLE_PIP_VERSION_CHECK 1
+
+WORKDIR /app
+
+# Install system dependencies for CNC communication
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    git \
+    curl \
+    build-essential \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# Install Focas library dependencies if needed
+RUN apt-get update && apt-get install -y \
+    libusb-1.0-0-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Security enhancement: Create non-root user
+RUN useradd --create-home --shell /bin/bash app && chown -R app:app /app
+USER app
+
+# Copy HAL service code
+COPY cms/hal/ ./hal/
+COPY cms/models.py .
+COPY cms/repositories/ ./repositories/
+
+# Create a main module for the HAL service
+RUN echo "from cms.hal.focas_bridge import FocasBridge" > main.py
+RUN echo "" >> main.py
+RUN echo "# Hardware Abstraction Layer Service Entry Point" >> main.py
+RUN echo "from fastapi import FastAPI" >> main.py
+RUN echo "import uvicorn" >> main.py
+RUN echo "" >> main.py
+RUN echo "app = FastAPI(title='Hardware Abstraction Layer Service')" >> main.py
+RUN echo "" >> main.py
+RUN echo "@app.get('/health')" >> main.py
+RUN echo "async def health_check():" >> main.py
+RUN echo "    return {'status': 'healthy', 'service': 'hal_focas_bridge'}" >> main.py
+RUN echo "" >> main.py
+RUN echo "if __name__ == '__main__':" >> main.py
+RUN echo "    uvicorn.run('main:app', host='0.0.0.0', port=8000)" >> main.py
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

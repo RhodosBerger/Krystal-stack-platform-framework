@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Apple / System UI Palette */
+  --apple-bg: #F5F5F7;
+  /* Light Gray Background */
+  --apple-card: #FFFFFF;
+  /* Pure White Cards */
+  --apple-text-primary: #1D1D1F;
+  --apple-text-secondary: #86868B;
+
+  --system-blue: #007AFF;
+  --system-red: #FF3B30;
+  --system-green: #34C759;
+  --system-orange: #FF9500;
+  --system-purple: #AF52DE;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+}
+
+body {
+  background-color: var(--apple-bg);
+  color: var(--apple-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* --- TYPOGRAPHY --- */
+h1 {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.007em;
+}
+
+h3 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.007em;
+}
+
+h4 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  letter-spacing: -0.5px;
+}
+
+/* --- SCROLLBARS (Hidden/Minimal) --- */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* --- UTILITIES --- */
+@layer utilities {
+  .apple-card {
+    @apply bg-white rounded-3xl border border-white/50 shadow-[0_4px_24px_rgba(0, 0, 0, 0.04)] transition-all duration-300;
+  }
+
+  .apple-glass {
+    @apply backdrop-blur-2xl bg-white/70 border border-white/40 shadow-lg;
+  }
+
+  .apple-button {
+    @apply px-5 py-2 rounded-full font-medium text-[13px] hover:scale-[1.02] active:scale-95 transition-all;
+  }
+
+  /* Grid Layouts */
+  .dashboard-grid {
+    @apply grid grid-cols-12 gap-6 p-6 h-screen overflow-hidden;
+  }
+}
+
+/* --- ANIMATIONS --- */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}

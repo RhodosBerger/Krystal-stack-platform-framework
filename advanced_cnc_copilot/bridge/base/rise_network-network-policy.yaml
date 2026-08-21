@@ -1,0 +1,24 @@
+#! rise_network-network-policy.yaml
+# Generated code, do not edit
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: rise-network-network-policy
+    namespace: advanced-cnc-copilot
+spec:
+    podSelector:
+        matchLabels:
+            com.docker.compose.network.rise_network: "true"
+    policyTypes:
+        - Ingress
+        - Egress
+    ingress:
+        - from:
+            - podSelector:
+                matchLabels:
+                    com.docker.compose.network.rise_network: "true"
+    egress:
+        - to:
+            - podSelector:
+                matchLabels:
+                    com.docker.compose.network.rise_network: "true"

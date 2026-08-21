@@ -1,0 +1,15 @@
+{
+  "proposal_id": "pp-20250121-001",
+  "proposal_type": "parameter_adjustment",
+  "target": "cpu_governor_bias",
+  "suggested_value": "performance",
+  "justification": "Frametime variance increased 15% during gaming session. P-core utilization at 60% suggests headroom for performance mode.",
+  "confidence": 0.82,
+  "introspective_comment": "Previous similar adjustments yielded 8-12% frametime improvement. Risk is elevated thermal output.",
+  "related_metrics": {
+    "avg_frametime_ms": 16.7,
+    "frametime_variance": 2.3,
+    "cpu_temp_c": 72,
+    "p_core_utilization": 0.60
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "Inconel718": {
+    "preferred_strategy": "ACTION_STANDARD_MODE",
+    "confidence_score": -75.0,
+    "caution_flag": true
+  },
+  "Aluminum6061": {
+    "preferred_strategy": "ACTION_RUSH_MODE",
+    "confidence_score": 85.0,
+    "caution_flag": false
+  }
+}

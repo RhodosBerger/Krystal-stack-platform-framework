@@ -1,0 +1,18 @@
+#! celery_worker-C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot-persistentVolumeClaim.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: celery_worker-c--users-dusan-documents-github-dev-contitional-advanced-cnc-copilot
+    namespace: advanced-cnc-copilot
+    labels:
+        com.docker.compose.service: celery_worker
+        com.docker.compose.volume: C:\Users\dusan\Documents\GitHub\Dev-contitional\advanced_cnc_copilot
+spec:
+    accessModes:
+        # TODO would need to check which services use this volume
+        - ReadWriteOnce
+    volumeMode: Filesystem
+    resources:
+        requests:
+            storage: 100Mi

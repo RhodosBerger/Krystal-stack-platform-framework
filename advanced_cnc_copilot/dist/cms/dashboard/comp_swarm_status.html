@@ -1,0 +1,107 @@
+<div class="card shadow mb-4" id="swarm-status-panel">
+    <div class="card-header py-3 bg-gradient-success text-white d-flex align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold"><i class="fas fa-microchips"></i> Swarm Monitoring Hive</h6>
+        <div>
+            <span class="badge badge-light text-success" id="fleet-count">Fleet: 10 Units</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="swarm-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;">
+            <!-- Machine Cards injected here -->
+        </div>
+        <div class="mt-4 p-2 border-top">
+            <small class="text-muted"><i class="fas fa-sync fa-spin"></i> Polling Cortex every 5s...</small>
+        </div>
+    </div>
+</div>
+
+<style>
+    .machine-card {
+        background: #f8f9fc;
+        border: 1px solid #e3e6f0;
+        border-radius: 8px;
+        padding: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .machine-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-dot {
+        height: 8px;
+        width: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    .status-OPERATIONAL {
+        background-color: #1cc88a;
+    }
+
+    .status-IDLE {
+        background-color: #4e73df;
+    }
+
+    .status-MAINTENANCE {
+        background-color: #f6c23e;
+    }
+
+    .status-WARNING {
+        background-color: #e74a3b;
+    }
+
+    .load-bar-bg {
+        height: 4px;
+        background: #dee2e6;
+        border-radius: 2px;
+        margin-top: 8px;
+        overflow: hidden;
+    }
+
+    .load-bar-fill {
+        height: 100%;
+        transition: width 0.5s ease-out;
+    }
+</style>
+
+<script>
+    function updateSwarmUI() {
+        fetch('/api/swarm/status')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('fleet-count').textContent = `Fleet: ${data.fleet_size} Units (${data.active_units} Active)`;
+                const grid = document.getElementById('swarm-grid');
+                grid.innerHTML = '';
+
+                data.machines.forEach(m => {
+                    const card = document.createElement('div');
+                    card.className = 'machine-card';
+                    card.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="font-weight-bold text-dark">${m.id}</span>
+                            <span class="status-dot status-${m.status}"></span>
+                        </div>
+                        <div class="small text-muted mb-2">${m.status}</div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Load: ${m.load}%</div>
+                        <div class="load-bar-bg">
+                            <div class="load-bar-fill bg-success" style="width: ${m.load}%; background-color: ${m.load > 85 ? '#e74a3b' : '#1cc88a'} !important;"></div>
+                        </div>
+                        <div class="mt-2 d-flex justify-content-between align-items-center">
+                            <span class="badge badge-secondary" style="font-size: 0.7em;">${m.current_job}</span>
+                            <span class="text-xs ${m.health_score < 60 ? 'text-danger' : 'text-success'}">H: ${m.health_score}%</span>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            })
+            .catch(err => console.error("Swarm update failed:", err));
+    }
+
+    // Initial load + Polling
+    updateSwarmUI();
+    setInterval(updateSwarmUI, 5000);
+</script>
