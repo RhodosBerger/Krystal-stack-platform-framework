@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Krystal-Stack Heterogeneous Neural ASCII Mission Control & Active Optic Compositor">
+  <title>Krystal-Stack // Neural ASCII Mission Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="theme-cyberpunk">
+  <div class="cyber-scanlines"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <!-- Navigation / Header -->
+  <header class="hub-header">
+    <div class="brand">
+      <div class="logo-gem"></div>
+      <div class="brand-text">
+        <h1 class="logo-title">KRYSTAL<span>STACK</span></h1>
+        <p class="logo-subtitle">NEURAL ASCII ENGINE // ACTIVE OPTIC MISSION CONTROL</p>
+      </div>
+    </div>
+
+    <div class="header-status">
+      <div class="status-badge" id="connStatusBadge">
+        <span class="pulse-dot"></span>
+        <span id="connStatusText">CONNECTING...</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">VULKAN GPU:</span>
+        <span class="val highlight" id="vkPillStatus" style="color: #ffaa00;">DETECTED · CPU KERNEL</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">NPU ACCEL:</span>
+        <span class="val highlight" id="npuStatus">ACTIVE (DIRECTML)</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">COGNITIVE BRAINWAVE:</span>
+        <span class="val highlight" id="brainwaveStatus" style="color: var(--gold, #ffd700);">BETA (::)</span>
+      </div>
+      <div class="telemetry-pill">
+        <a href="/static/arch_ui.html" target="_blank" style="color: var(--cyan); text-decoration: none; font-weight: bold;">[ ADMIN PORTAL ]</a>
+      </div>
+      <div class="telemetry-pill">
+        <a href="/static/studio.html" target="_blank" style="color: var(--gold); text-decoration: none; font-weight: bold;">[ ERP STUDIO ]</a>
+      </div>
+      <div class="telemetry-pill">
+        <a href="/static/vr_studio.html" target="_blank" style="color: #ffaa00; text-decoration: none; font-weight: bold;">[ VR HOLODECK ]</a>
+      </div>
+      <div class="telemetry-pill">
+        <a href="/static/oxygen_client_dashboard.html" target="_blank" style="color: #ffffff; text-decoration: none; font-weight: bold; background: rgba(102, 252, 241, 0.2); padding: 0 5px; border-radius: 4px;">[ SAAS PROTOTYPE ]</a>
+      </div>
+      <div class="telemetry-pill">
+        <a href="/static/play_game.html" target="_blank" style="color: #ff4081; text-decoration: none; font-weight: bold; font-family: 'Cinzel', serif;">[ PLAY GAME: THE LAST TRIBE ]</a>
+      </div>
+      <div class="telemetry-pill">
+        <a href="/static/genie_interface.html" target="_blank" style="color: #4CAF50; text-decoration: none; font-weight: bold; font-family: monospace;">[ PROJECT GENIE ANALOG ]</a>
+      </div>
+      <div class="telemetry-pill" style="border: 1px solid #66fcf1; background: rgba(102, 252, 241, 0.15); box-shadow: 0 0 10px rgba(102, 252, 241, 0.3);">
+        <a href="/game" target="_blank" style="color: #66fcf1; text-decoration: none; font-weight: bold; font-family: 'Cinzel', serif; letter-spacing: 0.5px;">⚡ [ NATIVE GODOT 3D BUILDER ]</a>
+      </div>
+      <div class="telemetry-pill" style="border: 1px solid #ffd700; background: rgba(255, 215, 0, 0.15); box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);">
+        <a href="/manual" target="_blank" style="color: #ffd700; text-decoration: none; font-weight: bold; font-family: 'Cinzel', serif; letter-spacing: 0.5px;">📖 [ DESIGN MANUÁL ]</a>
+      </div>
+      <div class="telemetry-pill">
+        <a href="/static/procedural_3d_arena.html" target="_blank" style="color: #00ffff; text-decoration: none; font-weight: bold; font-family: monospace;">[ PROCEDURAL 3D ARENA ]</a>
+      </div>
+      <div class="telemetry-pill">
+        <a href="/static/innogames_kmen.html" target="_blank" style="color: #ffaa00; text-decoration: none; font-weight: bold; font-family: 'Cinzel', serif;">[ INNOGAMES STRATEGY UI ]</a>
+      </div>
+      <div class="telemetry-pill" style="border: 1px solid #9d4edd; background: rgba(157, 78, 221, 0.18); box-shadow: 0 0 10px rgba(157, 78, 221, 0.4);">
+        <a href="/static/archetype_helper_matrix.html" target="_blank" style="color: #e0aaff; text-decoration: none; font-weight: bold; font-family: 'Cinzel', serif;">🧙 [ 40 ARCHETYPOV & 120 POMOCNÍKOV ]</a>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">HAMILTONIAN H:</span>
+        <span class="val highlight" id="hamiltonianDisplay" style="color: var(--cyan);">--</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">ENGINE FPS:</span>
+        <span class="val" id="fpsDisplay">--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Layout -->
+  <main class="hub-dashboard">
+    <!-- Left Column: Controls & Director -->
+    <aside class="panel panel-controls">
+      <div class="panel-header">
+        <span class="panel-icon">⚙️</span>
+        <h2>ENGINE MODES & DIRECTIVES</h2>
+      </div>
+
+      <div class="control-group">
+        <label class="group-label">NEURAL STYLE PRESET</label>
+        <div class="mode-grid">
+          <button class="mode-btn active" id="btnCyberpunk" onclick="setMode('CYBERPUNK')">
+            <span class="btn-tag">01</span>
+            <span class="btn-name">CYBERPUNK</span>
+            <span class="btn-desc">High Contrast ░▒▓█</span>
+          </button>
+          <button class="mode-btn" id="btnBlueprint" onclick="setMode('BLUEPRINT_EDGE')">
+            <span class="btn-tag">02</span>
+            <span class="btn-name">BLUEPRINT</span>
+            <span class="btn-desc">Sobel Vectors | / - \</span>
+          </button>
+          <button class="mode-btn" id="btnHighFidelity" onclick="setMode('HIGH_FIDELITY')">
+            <span class="btn-tag">03</span>
+            <span class="btn-name">HIGH FIDELITY</span>
+            <span class="btn-desc">Standard Density Ramp</span>
+          </button>
+          <button class="mode-btn" id="btnRaymarch" onclick="setMode('RAYMARCH_ANOMALY')">
+            <span class="btn-tag">04</span>
+            <span class="btn-name">3D RAYMARCH</span>
+            <span class="btn-desc">Procedural SDF Torus</span>
+          </button>
+          <button class="mode-btn" id="btnMatrix" onclick="setMode('MATRIX_RAIN')">
+            <span class="btn-tag">05</span>
+            <span class="btn-name">MATRIX RAIN</span>
+            <span class="btn-desc">Digital Cascade Rain</span>
+          </button>
+          <button class="mode-btn" id="btnRetro" onclick="setMode('RETRO_CRT')">
+            <span class="btn-tag">06</span>
+            <span class="btn-name">RETRO CRT</span>
+            <span class="btn-desc">Interlaced Scanlines</span>
+          </button>
+          <button class="mode-btn" id="btnHolo" onclick="setMode('HOLOGRAPHIC_3D')">
+            <span class="btn-tag">07</span>
+            <span class="btn-name">HOLOGRAPHIC 3D</span>
+            <span class="btn-desc">Volumetric Anaglyph</span>
+          </button>
+          <button class="mode-btn" id="btnMirror" onclick="setMode('RECURSIVE_MIRROR')">
+            <span class="btn-tag">08</span>
+            <span class="btn-name">RECURSIVE MIRROR</span>
+            <span class="btn-desc">Dihedral D_N AR Fold</span>
+          </button>
+          <button class="mode-btn" id="btnMimic" onclick="setMode('MIMICRY_OBJECT')">
+            <span class="btn-tag">09</span>
+            <span class="btn-name">MIMICRY OBJ</span>
+            <span class="btn-desc">Blender Modifiers</span>
+          </button>
+          <button class="mode-btn" id="btnScene" onclick="setMode('GAME_SCENE')">
+            <span class="btn-tag">10</span>
+            <span class="btn-name">GAME SCENE</span>
+            <span class="btn-desc">Multi-Artifact World</span>
+          </button>
+          <button class="mode-btn" id="btnOpenWorld" onclick="setMode('OPENWORLD')">
+            <span class="btn-tag">11</span>
+            <span class="btn-name">OPEN WORLD</span>
+            <span class="btn-desc">Janet & Infinite Terrain</span>
+          </button>
+          <button class="mode-btn" id="btnKrystalLang" onclick="setMode('KRYSTAL_LANG_SHAPE')">
+            <span class="btn-tag">12</span>
+            <span class="btn-name">KRYSTAL-LANG</span>
+            <span class="btn-desc">Bytecode as 3D Shape</span>
+          </button>
+          <button class="mode-btn" id="btnCyclicOrganism" onclick="setMode('CYCLIC_HAMILTONIAN_ORGANISM')">
+            <span class="btn-tag">13</span>
+            <span class="btn-name">CYCLIC ORGANISM</span>
+            <span class="btn-desc">Hamiltonian Phase Orbit</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Antigravity Prompt & Template Studio -->
+      <div class="control-group antigravity-studio-group">
+        <div class="director-header">
+          <label class="group-label">ANTIGRAVITY PROMPT & TEMPLATE STUDIO</label>
+          <span class="badge-mini" id="agBadge" style="background: rgba(0, 240, 255, 0.15); color: var(--cyan); border-color: rgba(0, 240, 255, 0.4);">VULKAN SYNC</span>
+        </div>
+        
+        <div class="ag-prompt-box">
+          <input type="text" id="agPromptInput" placeholder="Enter NL prompt (e.g. 'zrkadli 6-uholníkovú posvätnú geometriu v štýle alchýmie')..." />
+          <button id="btnAgSubmit" onclick="submitAntigravityPrompt()">SYNTHESIZE</button>
+        </div>
+
+        <!-- Quick Prompt Suggestion Chips -->
+        <div class="quick-chips">
+          <span class="chip" onclick="applyQuickPrompt('zrkadli 6-uholníkovú posvätnú geometriu v štýle alchýmie so zlatými runami')">✦ 6-Fold Sacred Alchemical</span>
+          <span class="chip" onclick="applyQuickPrompt('recursive Menger sponge with 8-fold dihedral mirror in cyberpunk neon horizon')">⚡ 8-Fold Menger Cyberpunk</span>
+          <span class="chip" onclick="applyQuickPrompt('Calabi-Yau 6D cross section with quantum holographic laser interference fringes')">🌌 Calabi-Yau Hologram</span>
+          <span class="chip" onclick="applyQuickPrompt('trefoil torus knot technical blueprint schematic with CAD grid and 3 folds')">📐 Torus Knot Blueprint</span>
+        </div>
+
+        <!-- Instance Catalog Selectors -->
+        <div class="instance-selectors">
+          <div class="sel-row">
+            <label for="selGeom">GEOMETRIC INSTANCE:</label>
+            <select id="selGeom" onchange="composeFromSelectors()">
+              <option value="KALEIDOSCOPIC_IFS">Dihedral Kaleidoscopic IFS Fold (D6)</option>
+              <option value="PLATONIC_OCTAHEDRON">Octahedral Dual Crystal (Oh)</option>
+              <option value="PLATONIC_DODECAHEDRON">Pentagonal Dodecahedron (Ih)</option>
+              <option value="TORUS_KNOT_P3_Q5">Trefoil Torus Knot T(3,5)</option>
+              <option value="HYPERBOLIC_GYROID">Triply Periodic Minimal Gyroid</option>
+              <option value="MENGER_SPONGE_RECURSIVE">Recursive Menger Fractal Sponge</option>
+              <option value="CALABI_YAU_CROSS_SECTION">Calabi-Yau 6D Manifold Cross-Section</option>
+            </select>
+          </div>
+          <div class="sel-row">
+            <label for="selArt">ARTISTIC AR PRESET:</label>
+            <select id="selArt" onchange="composeFromSelectors()">
+              <option value="CYBERPUNK_NEON_AR">Cyberpunk Neon AR Horizon</option>
+              <option value="MONASTIC_ALCHEMICAL">Sacred Alchemical Geometric Circles</option>
+              <option value="HOLOGRAPHIC_QUANTUM">Quantum Interference Hologram</option>
+              <option value="BLUEPRINT_SCHEMATIC">Technical ISO Blueprint Engineering</option>
+              <option value="BIOMECHANICAL_GIGER">Bio-Mechanical Ribbed Organism</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Dihedral Composition Sliders -->
+        <div class="composition-sliders">
+          <div class="slider-row">
+            <label for="sliderFolds">DIHEDRAL MIRROR FOLDS: <span id="valFolds">6</span> (<span id="valFoldSymmetry">D6 / 12-fold</span>)</label>
+            <input type="range" id="sliderFolds" min="2" max="16" value="6" oninput="updateFoldSlider(this.value)" />
+          </div>
+          <div class="slider-row">
+            <label for="sliderRecursion">RECURSION DEPTH: <span id="valRecursion">24</span> PASSES</label>
+            <input type="range" id="sliderRecursion" min="2" max="36" value="24" oninput="updateRecursionSlider(this.value)" />
+          </div>
+        </div>
+
+        <!-- Vulkan GLSL Push Constant Accordion / Preview -->
+        <details class="glsl-inspector">
+          <summary>VULKAN GLSL UNIFORM CONSTANTS</summary>
+          <pre id="glslCodeBlock">// Vulkan Push Constants will appear here upon Antigravity synthesis</pre>
+        </details>
+      </div>
+
+      <!-- Blender Modifier & Mimicry Compositor Studio -->
+      <div class="control-group mimicry-studio-group">
+        <div class="director-header">
+          <label class="group-label">BLENDER CORE MODIFIERS & MIMICRY</label>
+          <span class="badge-mini" id="mimicBadge" style="background: rgba(255, 140, 0, 0.15); color: #ffaa00; border-color: rgba(255, 170, 0, 0.4);">DAG ENGINE</span>
+        </div>
+
+        <div class="mimic-selector-box">
+          <div class="sel-row">
+            <label for="selMimicObj">REAL-WORLD MIMIC OBJECT:</label>
+            <select id="selMimicObj" onchange="onSelectMimicObject(this.value)">
+              <option value="CYBER_TURRET_MK4">Cyber Turret MK-4 Automated Sentry</option>
+              <option value="MECH_WALKER_TITAN">Titan-IV Heavy Bipedal Mech</option>
+              <option value="ANCIENT_OBELISK_MONOLITH">Ancient Runic Obelisk Monolith</option>
+              <option value="BIOMECHANICAL_XENODRONE">Xenobiotic Swarm Drone</option>
+              <option value="CYBERPUNK_DATA_SPIRE">Megacity Central Data Spire</option>
+              <option value="RETRO_SOLAR_EXPLORER">Solar Explorer Research Vessel</option>
+            </select>
+          </div>
+          <div class="sel-row">
+            <label for="selGameScene">GAME SCENE OUTLINE / BLUEPRINT:</label>
+            <select id="selGameScene" onchange="onSelectGameScene(this.value)">
+              <option value="SCENE_CYBERPUNK_DISTRICT">Neo-Krystal Cyber District (4 Actors)</option>
+              <option value="SCENE_SACRED_ALCHEMICAL_RUINS">Temple of the Thousand Runes (Cardinal Altar)</option>
+              <option value="SCENE_DEEP_SPACE_HANGAR">Starport Aegis Hangar Bay (Zero-G Dock)</option>
+              <option value="SCENE_ALIEN_HIVE_CHAMBER">Chitin Hollow Xenobiotic Spire (Organic Swarm)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Active Blender Modifier Badges -->
+        <div class="modifier-stack-pills" id="modifierPills">
+          <span class="mod-pill active">Array (Count: 2)</span>
+          <span class="mod-pill active">Mirror (X)</span>
+          <span class="mod-pill active">Boolean (Smooth Union)</span>
+          <span class="mod-pill active">Bevel (r: 0.08)</span>
+          <span class="mod-pill active">Displace (Harmonic 3D)</span>
+        </div>
+
+        <div class="mimic-actions-row">
+          <button class="mimic-action-btn primary" onclick="renderCurrentMimicObject()">RENDER OBJECT</button>
+          <button class="mimic-action-btn scene" onclick="renderCurrentGameScene()">RENDER SCENE</button>
+          <button class="mimic-action-btn godot" onclick="exportActiveSceneToGodot()">EXPORT GODOT .TSCN</button>
+        </div>
+      </div>
+
+      <!-- Open-World Semantic Compiler & Janet Code Synthesizer Studio -->
+      <div class="control-group openworld-studio-group">
+        <div class="director-header">
+          <label class="group-label">OPEN-WORLD COMPILER & JANET DSL</label>
+          <span class="badge-mini" id="owBadge" style="background: rgba(57, 255, 20, 0.15); color: #39ff14; border-color: rgba(57, 255, 20, 0.4);">GROUNDING ACTIVE</span>
+        </div>
+        
+        <div class="ag-prompt-box">
+          <input type="text" id="owPromptInput" placeholder="Zadaj svet (napr. 'vulkanické hory s kryštálovými vežami a lávovými kaňonmi')..." />
+          <button id="btnOwSubmit" onclick="submitOpenWorldPrompt()">COMPILE TO MATH & JANET</button>
+        </div>
+
+        <!-- Quick Prompt Suggestion Chips -->
+        <div class="quick-chips">
+          <span class="chip" onclick="applyOwPrompt('vulkanické hory s kryštálovými vežami, sírnym dymom a 6 rekurzií')">🌋 Volcanic Crags (SK)</span>
+          <span class="chip" onclick="applyOwPrompt('kybernetická pustatina s neonovými obeliskmi a silnou eróziou')">🏙️ Cyber Wasteland (SK)</span>
+          <span class="chip" onclick="applyOwPrompt('rolling dunes desert with ancient monoliths and clear crystalline aether')">🏜️ Crystalline Dunes (EN)</span>
+          <span class="chip" onclick="applyOwPrompt('canyon trenches with walking mech titans and heavy hydraulic erosion')">🤖 Mech Titan Canyons (EN)</span>
+        </div>
+
+        <!-- Multi-language Code Viewers -->
+        <div class="code-tabs-header" style="display:flex; gap:6px; margin-top:8px;">
+          <button class="tab-btn active" id="tabBtnMath" onclick="switchOwTab('math')">MATH AST</button>
+          <button class="tab-btn" id="tabBtnJanet" onclick="switchOwTab('janet')">JANET LISP</button>
+          <button class="tab-btn" id="tabBtnGodot" onclick="switchOwTab('godot')">GODOT SHADER</button>
+          <button class="tab-btn" id="tabBtnPython" onclick="switchOwTab('python')">PYTHON</button>
+        </div>
+
+        <div class="code-tab-content" id="tabContentMath">
+          <pre class="vulkan-code" id="owMathViewer">// Mathematical Manifold AST will display here...</pre>
+        </div>
+        <div class="code-tab-content" id="tabContentJanet" style="display:none;">
+          <pre class="vulkan-code" id="owJanetViewer">; Janet S-expression code...</pre>
+        </div>
+        <div class="code-tab-content" id="tabContentGodot" style="display:none;">
+          <pre class="vulkan-code" id="owGodotViewer">// Godot 4.x screen-space raymarching shader...</pre>
+        </div>
+        <div class="code-tab-content" id="tabContentPython" style="display:none;">
+          <pre class="vulkan-code" id="owPythonViewer"># Standalone Python generator script...</pre>
+        </div>
+      </div>
+
+      <!-- Krystal-Lang Topological Bytecode & Queue Compiler Studio -->
+      <div class="control-group krystal-lang-group">
+        <div class="director-header">
+          <label class="group-label">KRYSTAL-LANG: TOPOLOGICAL BYTECODE & QUEUES</label>
+          <span class="badge-mini" id="klBadge" style="background: rgba(255, 0, 128, 0.15); color: #ff0080; border-color: rgba(255, 0, 128, 0.4);">VM STREAMING</span>
+        </div>
+        
+        <textarea id="klCodeInput" rows="6" style="width:100%; background:rgba(10,14,24,0.9); color:#39ff14; font-family:'Courier New', monospace; font-size:0.75rem; border:1px solid var(--border-subtle); border-radius:4px; padding:8px; resize:vertical;">module CyberMatrixCore
+queue InStream { priority: 3, capacity: 512, spatial: [0.0, 0.0, -4.0] }
+queue ProcessKernel { priority: 2, capacity: 1024, spatial: [0.0, 1.0, 0.0] }
+queue OutRaster { priority: 1, capacity: 256, spatial: [0.0, 0.0, 4.0] }
+shape KernelManifold { type: GYROID, frequency: 1.6, thickness: 0.12, csg: SMOOTH_MIN(0.25) }
+pipeline InToKernel { from: InStream, to: ProcessKernel, transform: MIRROR_DN(folds: 8), action: EVAL_SDF }
+pipeline KernelToOut { from: ProcessKernel, to: OutRaster, action: PASS }</textarea>
+
+        <div style="display:flex; gap:8px; margin-top:4px;">
+          <button id="btnKlCompile" class="mimic-action-btn primary" onclick="compileKrystalLang()">COMPILE & SHAPE VM</button>
+          <button class="mimic-action-btn scene" onclick="stepKrystalVM()">INJECT VM PACKET</button>
+        </div>
+
+        <div class="hud-item" style="margin-top:6px; font-size:0.72rem;">
+          <span class="hud-lbl">VM METRICS:</span>
+          <span class="hud-val" id="klVmMetrics">Cycles: 0 | Packets: 0 | Rate: 0 pps</span>
+        </div>
+      </div>
+
+      <!-- Cognitive Scene Director -->
+      <div class="control-group director-group">
+        <div class="director-header">
+          <label class="group-label">COGNITIVE SCENE DIRECTOR (SLM)</label>
+          <span class="badge-mini" id="directorBadge">AUTONOMOUS</span>
+        </div>
+        <div class="director-console" id="directorTerminal">
+          <div class="terminal-line"><span class="prompt">>></span> [DIRECTOR] Agent initialized. Monitoring scene entropy...</div>
+        </div>
+        <div class="director-input-row">
+          <input type="text" id="directorInput" placeholder="Inject narrative directive (e.g. 'engage stealth mode')..." />
+          <button id="btnSendDirective" onclick="sendDirective()">INJECT</button>
+        </div>
+      </div>
+
+      <!-- Resolution & Aspect Sliders -->
+      <div class="control-group sliders-group">
+        <div class="slider-row">
+          <label for="sliderCols">GRID COLS: <span id="valCols">96</span></label>
+          <input type="range" id="sliderCols" min="40" max="140" value="96" oninput="updateConfig('cols', this.value)" />
+        </div>
+        <div class="slider-row">
+          <label for="sliderRows">GRID ROWS: <span id="valRows">40</span></label>
+          <input type="range" id="sliderRows" min="24" max="60" value="40" oninput="updateConfig('rows', this.value)" />
+        </div>
+        <div class="slider-row">
+          <label for="sliderEntropyThresh">BACKPRESSURE THRESHOLD: <span id="valEntropyThresh">0.70</span></label>
+          <input type="range" id="sliderEntropyThresh" min="30" max="95" value="70" oninput="updateConfig('threshold', this.value / 100)" />
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center: Main Neural ASCII Canvas Viewport -->
+    <section class="panel panel-viewport">
+      <div class="viewport-toolbar">
+        <div class="viewport-title">
+          <span class="rec-dot"></span>
+          <span>LIVE NEURO-VISUAL STREAM</span>
+          <span class="res-tag" id="resTag">96x40 CHARS</span>
+        </div>
+        <div class="viewport-actions">
+          <button class="tool-btn" id="btnScanlines" onclick="toggleScanlines()" title="Toggle Scanline Effect">SCANLINES</button>
+          <button class="tool-btn" id="btnPause" onclick="togglePause()">PAUSE</button>
+          <button class="tool-btn" id="btnSnapshot" onclick="captureSnapshot()">SNAPSHOT</button>
+        </div>
+      </div>
+
+      <!-- Live Terminal Render Container -->
+      <div class="terminal-wrapper" id="terminalWrapper">
+        <pre class="ascii-canvas" id="asciiCanvas">INITIALIZING KRYSTAL STACK STREAM...</pre>
+      </div>
+
+      <!-- HUD Telemetry Ribbon -->
+      <div class="viewport-hud" id="viewportHud">
+        <div class="hud-item"><span class="hud-lbl">STYLE:</span> <span class="hud-val" id="hudMode">CYBERPUNK</span></div>
+        <div class="hud-item"><span class="hud-lbl">ENTROPY:</span> <span class="hud-val highlight" id="hudEntropy">0.00</span></div>
+        <div class="hud-item"><span class="hud-lbl">COHERENCE:</span> <span class="hud-val" id="hudCoherence">100%</span></div>
+        <div class="hud-item"><span class="hud-lbl">BACKPRESSURE:</span> <span class="hud-val" id="hudBackpressure">NORMAL</span></div>
+      </div>
+    </section>
+
+    <!-- Right Column: Gauges, Telemetry & Economic Governor -->
+    <aside class="panel panel-telemetry">
+      <div class="panel-header">
+        <span class="panel-icon">📊</span>
+        <h2>ENTROPY & GOVERNANCE</h2>
+      </div>
+
+      <!-- Gauge 1: Visual Entropy Multi-Scale -->
+      <div class="card-telemetry">
+        <div class="card-title">VISUAL ENTROPY METRICS</div>
+        <div class="meter-bar-container">
+          <div class="meter-label-row">
+            <span>SPATIAL ENTROPY ($E_s$)</span>
+            <span id="txtSpatialEntropy">0.00</span>
+          </div>
+          <div class="meter-track"><div class="meter-fill" id="fillSpatial" style="width: 25%"></div></div>
+        </div>
+        <div class="meter-bar-container">
+          <div class="meter-label-row">
+            <span>TEMPORAL ENTROPY ($E_t$)</span>
+            <span id="txtTemporalEntropy">0.00</span>
+          </div>
+          <div class="meter-track"><div class="meter-fill" id="fillTemporal" style="width: 35%"></div></div>
+        </div>
+        <div class="meter-bar-container">
+          <div class="meter-label-row">
+            <span>TOTAL ENTROPY ($E_{tot}$)</span>
+            <span id="txtTotalEntropy" class="highlight">0.00</span>
+          </div>
+          <div class="meter-track critical-track"><div class="meter-fill" id="fillTotal" style="width: 30%"></div></div>
+        </div>
+      </div>
+
+      <!-- Gauge 2: Economic Governor (Dual-Earn & Budget) -->
+      <div class="card-telemetry">
+        <div class="card-title">ECONOMIC GOVERNOR (GAMESA)</div>
+        <div class="budget-stat">
+          <span class="budget-num" id="govBudget">850</span>
+          <span class="budget-lbl">CREDITS AVAILABLE / 1000</span>
+        </div>
+        <div class="meter-track"><div class="meter-fill budget-fill" id="fillBudget" style="width: 85%"></div></div>
+
+        <div class="governor-pills">
+          <div class="gov-pill">
+            <span class="p-lbl">STATE:</span>
+            <span class="p-val" id="govState">OPTIMAL</span>
+          </div>
+          <div class="gov-pill">
+            <span class="p-lbl">THERMAL PENALTY:</span>
+            <span class="p-val" id="govPenalty">0.00</span>
+          </div>
+        </div>
+
+        <div class="governor-buttons">
+          <button class="gov-action-btn" onclick="triggerGovernor('RECHARGE')">REPLENISH +200</button>
+          <button class="gov-action-btn danger" onclick="triggerGovernor('DRAIN')">TEST LOAD SPIKE</button>
+        </div>
+      </div>
+
+      <!-- Vulkan Hardware Compute Pipeline (Zero-Compiler Ctypes) -->
+      <div class="card-telemetry" id="cardVulkan">
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>VULKAN PROBE + KERNEL BACKEND</span>
+          <span class="badge-mini" id="vkActiveBadge" style="background: rgba(255, 170, 0, 0.15); color: #ffaa00; border-color: rgba(255, 170, 0, 0.4);">DEVICE DETECTED · CPU KERNEL</span>
+        </div>
+        <div class="triad-list" style="margin-top: 6px;">
+          <div class="triad-item">
+            <span class="triad-name">🎮 DEVICE:</span>
+            <span class="triad-status cyan" id="vkDeviceName">Intel(R) Iris(R) Xe Graphics</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">⚡ KERNEL LATENCY:</span>
+            <span class="triad-status green" id="vkLatency">-- μs</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">🚀 HOST BUFFER RATE (SIMULATED):</span>
+            <span class="triad-status cyan" id="vkReadback">-- MB/s</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">🧬 TARGET BUFFER CONTRACT:</span>
+            <span class="triad-status green">uint8 glyphs + uint32 RGB</span>
+          </div>
+        </div>
+        <div class="governor-buttons" style="margin-top: 8px;">
+          <button class="gov-action-btn" id="btnToggleVk" onclick="toggleVulkan()" style="width: 100%;">TOGGLE VULKAN-PATH KERNEL / CPU</button>
+        </div>
+      </div>
+
+      <!-- Project Intelligence: priorities + expertise from /api/priorities, /api/expertise -->
+      <div class="card-telemetry" id="cardIntel">
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>PROJECT PRIORITIES &amp; EXPERTISE</span>
+          <span class="badge-mini" id="intelBadge" style="background: rgba(0, 240, 255, 0.15); color: var(--cyan); border-color: rgba(0, 240, 255, 0.4);">LOADING</span>
+        </div>
+        <div class="governor-buttons" style="margin-top: 6px; display: flex; gap: 6px;">
+          <button class="gov-action-btn" id="btnIntelScore" onclick="loadIntel('score')" style="flex: 1;">BY IMPACT</button>
+          <button class="gov-action-btn" id="btnIntelValue" onclick="loadIntel('value')" style="flex: 1;">BY VALUE/EFFORT</button>
+        </div>
+        <div class="triad-list" id="intelList" style="margin-top: 8px;"></div>
+        <div class="card-title" style="margin-top: 10px;">EXPERTISE NEEDED <span id="intelFocus" style="opacity: .7;"></span></div>
+        <div class="triad-list" id="intelExpertise" style="margin-top: 4px;"></div>
+      </div>
+
+      <!-- Gauge 3: Hardware Triad Allocator -->
+      <div class="card-telemetry">
+        <div class="card-title">HARDWARE TRIAD ORCHESTRATION</div>
+        <div class="triad-list">
+          <div class="triad-item">
+            <span class="triad-name">🎮 GPU PIPELINE (VULKAN):</span>
+            <span class="triad-status cyan">DEVICE PROBE ONLY · CPU KERNEL</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">🧠 NPU TENSOR CORE:</span>
+            <span class="triad-status cyan">NOT VERIFIED (NO RUNTIME)</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">⚡ CPU / WIN32 CONSOLE:</span>
+            <span class="triad-status cyan">VT-100 STREAM OK</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Logs Snippet -->
+      <div class="card-telemetry logs-card">
+        <div class="card-title">SYSTEM EVENT LOG</div>
+        <div class="sys-logs" id="sysLogs">
+          <div>[06:17:00] Krystal Localhost Hub Online</div>
+          <div>[06:17:01] Win32 Virtual Terminal initialized</div>
+          <div>[06:17:02] SSE stream subscribed from 127.0.0.1</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Footer -->
+  <footer class="hub-footer">
+    <div class="footer-left">
+      <span>KRYSTAL-STACK PLATFORM FRAMEWORK &copy; 2026 // OPEN MECHANICS ARCHITECTURE</span>
+    </div>
+    <div class="footer-right">
+      <span class="live-clock" id="liveClock">00:00:00 UTC</span>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

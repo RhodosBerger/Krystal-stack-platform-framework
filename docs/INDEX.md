@@ -33,3 +33,7 @@ Detailed guides on specific modules:
 
 ---
 *Visit the [Foundation Website](https://krystalstack.org) for more.*
+
+- [Project Audit & Compute Patterns](PROJECT_AUDIT_AND_COMPUTE_PATTERNS.md) - measured progress, compute patterns, priorities, expertise map
+- [Project Intelligence API](PROJECT_INTELLIGENCE_API.md) - `/api/priorities`, `/api/expertise`, `/api/compute-patterns`, `/api/project/overview`
+

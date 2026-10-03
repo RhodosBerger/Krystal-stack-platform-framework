@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Krystal Accounting // VR Studio</title>
+    <meta name="description" content="WebXR ERP Studio for Krystal-Stack">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <!-- Environment component for a nice backdrop -->
+    <script src="https://unpkg.com/aframe-environment-component@1.3.3/dist/aframe-environment-component.min.js"></script>
+    
+    <script>
+      // Component to handle interactions (clicking invoices)
+      AFRAME.registerComponent('invoice-interaction', {
+        init: function () {
+          var el = this.el;
+          
+          el.addEventListener('mouseenter', function () {
+            el.setAttribute('material', 'color', '#66fcf1');
+            el.setAttribute('scale', '1.1 1.1 1.1');
+          });
+          
+          el.addEventListener('mouseleave', function () {
+            el.setAttribute('material', 'color', '#1f2833');
+            el.setAttribute('scale', '1 1 1');
+          });
+          
+          el.addEventListener('click', function () {
+            const dataText = el.getAttribute('data-info');
+            const display = document.querySelector('#vr-console');
+            display.setAttribute('text', `value: ${dataText}; color: #66fcf1; align: center; width: 4`);
+          });
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+      <!-- 1. Krystal Cyberpunk Environment -->
+      <a-entity environment="preset: tron; skyType: atmosphere; lighting: point; grid: 1x1; seed: 42; skyColor: #0b0c10; horizonColor: #45a29e; groundColor: #0b0c10; groundColor2: #1f2833; gridColor: #66fcf1"></a-entity>
+
+      <!-- 2. Main Title Hologram -->
+      <a-text value="KRYSTAL-STACK VR STUDIO" 
+              position="0 3.5 -4" 
+              align="center" 
+              color="#66fcf1" 
+              width="8"
+              font="kelsonsans"
+              opacity="0.9">
+      </a-text>
+      <a-text value="ACCOUNTING & ERP HOLODECK" 
+              position="0 3.1 -4" 
+              align="center" 
+              color="#45a29e" 
+              width="4"
+              letter-spacing="5">
+      </a-text>
+
+      <!-- 3. Central Console / Output Display -->
+      <a-entity position="0 1 -3" rotation="-20 0 0">
+        <a-plane width="4.5" height="1.5" color="#0b0c10" opacity="0.8" border="1px solid #66fcf1"></a-plane>
+        <a-text id="vr-console" value="SYSTEM READY.\nLook at an invoice panel to analyze data." 
+                position="0 0 0.05" align="center" color="#c5c6c7" width="3.5">
+        </a-text>
+      </a-entity>
+
+      <!-- 4. Floating Invoice Data Panels (Left) -->
+      <a-entity position="-3 2 -4" rotation="0 30 0">
+        <a-text value="PENDING INVOICES" position="0 1.2 0" align="center" color="#ffaa00" width="3"></a-text>
+        
+        <!-- Invoice 1 -->
+        <a-box class="clickable" invoice-interaction data-info="UUID: fefe22a8\nSUPPLIER: KRYSTAL-STACK\nAMOUNT: 1450.50 EUR\nSTATUS: DIGITIZED" 
+               position="0 0.6 0" width="1.5" height="0.4" depth="0.1" color="#1f2833" opacity="0.9">
+          <a-text value="INV-001 [1450 EUR]" position="0 0 0.06" align="center" color="#ffffff" width="2"></a-text>
+        </a-box>
+
+        <!-- Invoice 2 -->
+        <a-box class="clickable" invoice-interaction data-info="UUID: 8492abcd\nSUPPLIER: Novak s.r.o. (Woo)\nAMOUNT: 125.50 EUR\nSTATUS: PAID" 
+               position="0 0 0" width="1.5" height="0.4" depth="0.1" color="#1f2833" opacity="0.9">
+          <a-text value="WOO-8492 [125 EUR]" position="0 0 0.06" align="center" color="#ffffff" width="2"></a-text>
+        </a-box>
+      </a-entity>
+
+      <!-- 5. 3D Data Visualization / Ledger Analytics (Right) -->
+      <a-entity position="3 0.5 -4" rotation="0 -30 0">
+        <a-text value="LEDGER CASHFLOW (30 DAYS)" position="0 2.5 0" align="center" color="#66fcf1" width="3"></a-text>
+        
+        <!-- Bar Chart: Revenue -->
+        <a-cylinder class="clickable" invoice-interaction data-info="METRIC: REVENUE\nVALUE: + 24,500 EUR"
+                    position="-0.8 1 0" radius="0.3" height="2" color="#66fcf1" opacity="0.7">
+        </a-cylinder>
+        <a-text value="REV" position="-0.8 -0.2 0.3" align="center" color="#ffffff" width="2"></a-text>
+
+        <!-- Bar Chart: Expenses -->
+        <a-cylinder class="clickable" invoice-interaction data-info="METRIC: EXPENSES\nVALUE: - 8,200 EUR"
+                    position="0.8 0.5 0" radius="0.3" height="1" color="#ff4081" opacity="0.7">
+        </a-cylinder>
+        <a-text value="EXP" position="0.8 -0.2 0.3" align="center" color="#ffffff" width="2"></a-text>
+      </a-entity>
+
+      <!-- 6. User / Camera Rig -->
+      <a-entity position="0 0 0">
+        <a-camera>
+          <a-cursor color="#66fcf1" 
+                    animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
+                    animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.1 0.1 0.1; dur: 1500"
+                    event-set__mouseenter="_event: mouseenter; color: #ffaa00"
+                    event-set__mouseleave="_event: mouseleave; color: #66fcf1">
+          </a-cursor>
+        </a-camera>
+        
+        <!-- VR Controllers -->
+        <a-entity laser-controls="hand: left"></a-entity>
+        <a-entity laser-controls="hand: right"></a-entity>
+      </a-entity>
+
+    </a-scene>
+  </body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POSLEDNÍ KMEN // THE GAME</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0b0c10;
+            --panel: rgba(18, 22, 28, 0.85);
+            --crystal: #66fcf1;
+            --toxic: #8a2be2;
+            --druid: #b8860b;
+            --text-main: #c5c6c7;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background-image: radial-gradient(circle at center, rgba(102, 252, 241, 0.05) 0%, transparent 70%);
+        }
+        h1, h2, h3 { font-family: 'Cinzel', serif; color: #fff; margin: 0; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        
+        .arena {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+        
+        .hero-card {
+            background: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            width: 250px;
+            overflow: hidden;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .hero-card:hover { transform: translateY(-10px); }
+        .hero-card[data-tribe="crystal"]:hover, .hero-card.active[data-tribe="crystal"] { border-color: var(--crystal); box-shadow: 0 0 20px rgba(102, 252, 241, 0.5); }
+        .hero-card[data-tribe="toxic"]:hover, .hero-card.active[data-tribe="toxic"] { border-color: var(--toxic); box-shadow: 0 0 20px rgba(138, 43, 226, 0.5); }
+        .hero-card[data-tribe="druid"]:hover, .hero-card.active[data-tribe="druid"] { border-color: var(--druid); box-shadow: 0 0 20px rgba(184, 134, 11, 0.5); }
+        
+        .hero-img { width: 100%; height: 300px; object-fit: cover; }
+        .hero-info { padding: 1rem; }
+        .stats { display: flex; justify-content: space-around; margin-top: 10px; font-weight: bold; }
+        
+        .combat-zone {
+            display: none; /* hidden until hero selected */
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .ledger-panel {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+        }
+        
+        .hand {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .play-card {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s;
+        }
+        .play-card:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+        
+        .terminal {
+            margin-top: 2rem;
+            background: #000;
+            color: #0f0;
+            padding: 1rem;
+            font-family: monospace;
+            height: 150px;
+            overflow-y: auto;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>POSLEDNÍ KMEN</h1>
+        <p>Axiomatic Game Engine // Krystal-Stack Simulation</p>
+    </div>
+
+    <!-- HERO SELECTION (THE 3 TRIBES) -->
+    <div class="arena" id="hero-selection">
+        <div class="hero-card" data-tribe="crystal" onclick="selectHero('crystal')">
+            <img src="/static/images/krystal_hero.jpg" class="hero-img" alt="Krystal Hero">
+            <div class="hero-info">
+                <h3>Severní Štíty</h3>
+                <div style="color: var(--crystal); font-size: 12px; margin-top: 5px;">KRYSTALOVÝ KMEN</div>
+                <div class="stats">
+                    <span style="color: #ff4081;">♥ 6 HP</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-card" data-tribe="toxic" onclick="selectHero('toxic')">
+            <img src="/static/images/toxic_hero.jpg" class="hero-img" alt="Toxic Hero">
+            <div class="hero-info">
+                <h3>Hnijící Slatiny</h3>
+                <div style="color: var(--toxic); font-size: 12px; margin-top: 5px;">JEDOVATÝ KMEN</div>
+                <div class="stats">
+                    <span style="color: #ff4081;">♥ 6 HP</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-card" data-tribe="druid" onclick="selectHero('druid')">
+            <img src="/static/images/druid_hero.jpg" class="hero-img" alt="Druid Hero">
+            <div class="hero-info">
+                <h3>Pradávný Les</h3>
+                <div style="color: var(--druid); font-size: 12px; margin-top: 5px;">DRUIDSKÝ KMEN</div>
+                <div class="stats">
+                    <span style="color: #ff4081;">♥ 6 HP</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMBAT ZONE (ACTIVE AFTER SELECTION) -->
+    <div class="combat-zone" id="combat-zone">
+        <h2 style="text-align: center; margin-bottom: 20px;">Aréna (Deathmatch)</h2>
+        
+        <div class="ledger-panel">
+            <div>
+                <div style="font-size: 12px; color: #8b92a5;">TY (Hráč 1)</div>
+                <div style="font-size: 24px; color: #fff;" id="player-hp">♥ 6</div>
+                <div style="color: var(--crystal);" id="player-mana">Mana (Ledger): 10</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 12px; color: #8b92a5;">AI PROTIVNÍK (Jedovatý Kmen)</div>
+                <div style="font-size: 24px; color: #fff;" id="ai-hp">♥ 6</div>
+                <div style="color: var(--toxic);">Mana (Ledger): 10</div>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 15px;">Tvoja Ruka (Karty)</h3>
+        <div class="hand">
+            <button class="play-card" onclick="playCard('Meteory', 4, 3)">
+                <strong>Kryštálové Meteory</strong><br><br>
+                <span style="color: var(--crystal);">Cena: 4 Mana</span><br>
+                <span style="color: #ff4081;">Útok: 3 Dmg</span>
+            </button>
+            <button class="play-card" onclick="playCard('Mráz', 2, 1)">
+                <strong>Spomaľujúci Mráz</strong><br><br>
+                <span style="color: var(--crystal);">Cena: 2 Mana</span><br>
+                <span style="color: #ff4081;">Útok: 1 Dmg</span>
+            </button>
+            <button class="play-card" onclick="playCard('Štít', 3, 0)">
+                <strong>Ľadový Štít</strong><br><br>
+                <span style="color: var(--crystal);">Cena: 3 Mana</span><br>
+                <span style="color: #4CAF50;">Obrana: Block</span>
+            </button>
+        </div>
+
+        <div class="terminal" id="terminal">
+            > Axiom Engine Inicializovaný. Vyber si kartu...<br>
+        </div>
+    </div>
+
+    <script>
+        let playerHP = 6;
+        let aiHP = 6;
+        let playerMana = 10;
+        let isGameOver = false;
+
+        function log(msg) {
+            const t = document.getElementById('terminal');
+            t.innerHTML += '> ' + msg + '<br>';
+            t.scrollTop = t.scrollHeight;
+        }
+
+        function selectHero(tribe) {
+            document.querySelectorAll('.hero-card').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.hero-card[data-tribe="${tribe}"]`).classList.add('active');
+            
+            document.getElementById('combat-zone').style.display = 'block';
+            log(`Vybral si si kmeň: ${tribe.toUpperCase()}. Boj sa začína!`);
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        function playCard(name, cost, dmg) {
+            if (isGameOver) return;
+
+            // 1. Accounting Rule Enforcement
+            if (playerMana < cost) {
+                log(`<span style="color:red;">Účtovný Zamietnutie: Nedostatok Many (Ledger). Potrebuješ ${cost}, máš ${playerMana}.</span>`);
+                return;
+            }
+
+            // 2. Play Card
+            playerMana -= cost;
+            log(`Zahral si kartu: ${name} (Odpočítané ${cost} Many).`);
+            document.getElementById('player-mana').innerText = `Mana (Ledger): ${playerMana}`;
+
+            // 3. AI Axiom Generation Simulation
+            setTimeout(() => {
+                log(`[AI Bot] Vykresľujem scenu pre akciu: ${name}...`);
+                if (dmg > 0) {
+                    aiHP -= dmg;
+                    document.getElementById('ai-hp').innerText = `♥ ${aiHP}`;
+                    log(`Zásah! Protivník stratil ${dmg} HP.`);
+                }
+                
+                checkWin();
+                if(!isGameOver) aiTurn();
+            }, 1000);
+        }
+
+        function aiTurn() {
+            setTimeout(() => {
+                log(`[AI Protivník] Hrá kartu: Hnijící Slatiny (Jed).`);
+                playerHP -= 2;
+                document.getElementById('player-hp').innerText = `♥ ${playerHP}`;
+                log(`<span style="color:var(--toxic);">Utrpel si 2 poškodenie jedom!</span>`);
+                
+                // Income Phase (Accounting)
+                playerMana += 2;
+                document.getElementById('player-mana').innerText = `Mana (Ledger): ${playerMana}`;
+                log(`Kolo ukončené. +2 Mana (Income).`);
+                
+                checkWin();
+            }, 1500);
+        }
+
+        function checkWin() {
+            if (aiHP <= 0) {
+                log(`<span style="color:#ffaa00; font-size: 1.2rem;">VÍŤAZSTVO! Protivník bol porazený!</span>`);
+                isGameOver = true;
+            } else if (playerHP <= 0) {
+                log(`<span style="color:red; font-size: 1.2rem;">PREHRA. Tvoj kmeň vyhynul.</span>`);
+                isGameOver = true;
+            }
+        }
+    </script>
+</body>
+</html>

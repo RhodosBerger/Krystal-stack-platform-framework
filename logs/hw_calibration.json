@@ -1,0 +1,18 @@
+{
+  "single_ms": 113.7,
+  "work_units": 1500000,
+  "thread_speedup": {
+    "2": 1.03,
+    "4": 1.09
+  },
+  "process_speedup": {
+    "2": 1.84,
+    "4": 3.08,
+    "8": 3.37
+  },
+  "ipc_rtt_us_p50": 86,
+  "ipc_rtt_us_p95": 137,
+  "best_process_workers": 4,
+  "peak_process_speedup": 3.37,
+  "measured_at": "2026-10-03T11:27:33+0200"
+}

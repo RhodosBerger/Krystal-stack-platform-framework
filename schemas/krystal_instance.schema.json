@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://krystal-stack.org/schemas/krystal_instance.schema.json",
+  "title": "Krystal-Stack Procedural Instance Schema",
+  "description": "Formal specification for 3D procedural geometric and artistic instances in the Krystal-Stack ecosystem.",
+  "type": "object",
+  "required": ["id", "name", "category", "symmetry_group", "default_params", "composition_rules"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_]+$",
+      "description": "Unique identifier for the procedural instance."
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable title of the instance."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "platonic_solid",
+        "topological_manifold",
+        "hyperbolic_surface",
+        "fractal_manifold",
+        "sacred_geometry",
+        "superstring_topology",
+        "superformula_organic",
+        "cybernetic_spire",
+        "alchemical_polyhedron",
+        "biomorphic_xenodrone"
+      ]
+    },
+    "generated": {
+      "type": "boolean",
+      "default": false
+    },
+    "seed": {
+      "type": ["integer", "null"]
+    },
+    "symmetry_group": {
+      "type": "string",
+      "description": "Crystallographic or dihedral symmetry classification (e.g., D6, Oh, Ih)."
+    },
+    "formula": {
+      "type": "string",
+      "description": "Mathematical SDF or parametric formula definition."
+    },
+    "default_params": {
+      "type": "object",
+      "description": "Default continuous variables governing the instance geometry.",
+      "additionalProperties": { "type": ["number", "integer", "string"] }
+    },
+    "composition_rules": {
+      "type": "object",
+      "required": ["mirror_folds", "fresnel_reflectance", "depth_layers"],
+      "properties": {
+        "mirror_folds": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "fresnel_reflectance": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "depth_layers": { "type": "integer", "minimum": 1, "maximum": 128 }
+      }
+    },
+    "preferred_glyphs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Ordered glyph set for neural ASCII rasterization."
+    }
+  }
+}

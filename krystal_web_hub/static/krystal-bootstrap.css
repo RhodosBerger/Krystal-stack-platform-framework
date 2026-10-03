@@ -1,0 +1,214 @@
+/**
+ * ============================================================================
+ * Krystal-Bootstrap: CSS Design Tokens & 3D Web Engine Utility Classes
+ * ============================================================================
+ * The 3D/Procedural Engine Analog of Twitter Bootstrap for Web Technologies.
+ */
+
+:root {
+  /* Engine Spatial Tokens */
+  --k-grid-unit: 1.0rem;
+  --k-viewport-bg: #07090e;
+  --k-canvas-border: rgba(0, 240, 255, 0.25);
+  
+  /* Material Shader Tokens */
+  --k-mat-neon-primary: #00f0ff;
+  --k-mat-neon-accent: #ff0055;
+  --k-mat-gold-primary: #f0c040;
+  --k-mat-gold-accent: #ffdf70;
+  --k-mat-holo-primary: #70a0ff;
+  --k-mat-giger-primary: #50e050;
+  --k-mat-blueprint-primary: #00c8ff;
+
+  /* Typography / Monospace Display */
+  --k-font-engine: "Fira Code", "Courier New", monospace;
+}
+
+/* ── 1. Engine Viewport Containers ────────────────────────────────────────── */
+
+.k-viewport {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--k-viewport-bg);
+  border: 1px solid var(--k-canvas-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  font-family: var(--k-font-engine);
+}
+
+.k-viewport-16x9 {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+.k-viewport-4x3 {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+}
+
+.k-viewport-1x1 {
+  aspect-ratio: 1 / 1;
+}
+
+.k-viewport-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  border: none;
+}
+
+/* ── 2. Viewport Header & HUD Toolbar ─────────────────────────────────────── */
+
+.k-viewport-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(14, 20, 32, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.k-viewport-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--k-mat-neon-primary);
+  font-weight: 700;
+}
+
+.k-viewport-title .k-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--k-mat-neon-accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--k-mat-neon-accent);
+  animation: k-pulse 1.8s infinite;
+}
+
+@keyframes k-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* ── 3. Render Canvas & ASCII Display ─────────────────────────────────────── */
+
+.k-canvas-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #0f1624 0%, #05070a 100%);
+  overflow: hidden;
+}
+
+.k-ascii-stream {
+  font-family: var(--k-font-engine);
+  font-size: 11px;
+  line-height: 1.15;
+  letter-spacing: 0.5px;
+  margin: 0;
+  white-space: pre;
+  user-select: none;
+  color: #39ff14;
+  text-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
+}
+
+/* ── 4. Material Shader Utility Tokens ────────────────────────────────────── */
+
+.k-mat-cyber-neon {
+  color: var(--k-mat-neon-primary) !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6) !important;
+}
+
+.k-mat-alchemical-gold {
+  color: var(--k-mat-gold-primary) !important;
+  text-shadow: 0 0 8px rgba(240, 192, 64, 0.5) !important;
+}
+
+.k-mat-holographic {
+  color: var(--k-mat-holo-primary) !important;
+  text-shadow: 0 0 10px rgba(112, 160, 255, 0.7) !important;
+}
+
+.k-mat-biogiger {
+  color: var(--k-mat-giger-primary) !important;
+  text-shadow: 0 0 8px rgba(80, 224, 80, 0.5) !important;
+}
+
+.k-mat-blueprint {
+  color: var(--k-mat-blueprint-primary) !important;
+  text-shadow: 0 0 4px rgba(0, 200, 255, 0.3) !important;
+}
+
+/* ── 5. Post-Processing FX Tokens ─────────────────────────────────────────── */
+
+.k-fx-scanlines::after {
+  content: " ";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%),
+              linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.k-fx-crt {
+  border-radius: 16px;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 240, 255, 0.2);
+}
+
+.k-fx-glow {
+  filter: drop-shadow(0 0 12px var(--k-mat-neon-primary));
+}
+
+/* ── 6. 3D Spatial Layout Container Cards (Analogous to Bootstrap Cards) ──── */
+
+.k-grid-container {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}
+
+.k-grid-2col { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.k-grid-3col { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+.k-card-engine {
+  background: rgba(14, 20, 32, 0.7);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.k-card-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.k-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.k-badge-cyan { background: rgba(0, 240, 255, 0.15); color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.4); }
+.k-badge-gold { background: rgba(240, 192, 64, 0.15); color: #f0c040; border: 1px solid rgba(240, 192, 64, 0.4); }
+.k-badge-green { background: rgba(57, 255, 20, 0.15); color: #39ff14; border: 1px solid rgba(57, 255, 20, 0.4); }
+.k-badge-magenta { background: rgba(255, 0, 85, 0.15); color: #ff0055; border: 1px solid rgba(255, 0, 85, 0.4); }

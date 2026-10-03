@@ -1,0 +1,68 @@
+[gd_scene load_steps=7 format=3 uid="uid://c8m4k9w2x5q1"]
+
+[ext_resource type="Script" path="res://scripts/KrystalHoloBridge.gd" id="1_bridge"]
+[ext_resource type="Shader" path="res://shaders/recursive_ar_mirror.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mirror"]
+shader = ExtResource("2_shader")
+shader_parameter/u_mirror_folds = 6
+shader_parameter/u_fold_angle = 0.5235987
+shader_parameter/u_recursion_limit = 8
+shader_parameter/u_fresnel_factor = 0.88
+shader_parameter/u_chromatic_aberration = 0.008
+shader_parameter/u_scanline_density = 120.0
+shader_parameter/u_primary_color = Color(0, 0.941, 1, 1)
+shader_parameter/u_accent_color = Color(1, 0, 0.333, 1)
+shader_parameter/cell_size = Vector2(8, 16)
+shader_parameter/mirror_zoom = 1.35
+shader_parameter/rotation_speed = 0.25
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sacred"]
+albedo_color = Color(1, 0.8, 0.2, 1)
+metallic = 0.95
+roughness = 0.05
+emission_enabled = true
+emission = Color(0.8, 0.5, 0.1, 1)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="TorusMesh" id="TorusMesh_sacred"]
+material = SubResource("StandardMaterial3D_sacred")
+inner_radius = 0.8
+outer_radius = 1.6
+rings = 64
+ring_segments = 32
+
+[sub_resource type="Environment" id="Environment_dark"]
+background_mode = 1
+background_color = Color(0.008, 0.012, 0.02, 1)
+ambient_light_color = Color(0.15, 0.15, 0.25, 1)
+
+[node name="RecursiveMirrorARStage" type="Node3D"]
+script = ExtResource("1_bridge")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_dark")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 4, 6, 4)
+light_color = Color(1, 0.95, 0.85, 1)
+light_energy = 2.2
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9396, 0.3420, 0, -0.3420, 0.9396, 0, 1.5, 4.2)
+current = true
+
+[node name="SacredManifold" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+mesh = SubResource("TorusMesh_sacred")
+
+[node name="PostProcessLayer" type="CanvasLayer" parent="."]
+
+[node name="RecursiveMirrorRect" type="ColorRect" parent="PostProcessLayer"]
+material = SubResource("ShaderMaterial_mirror")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

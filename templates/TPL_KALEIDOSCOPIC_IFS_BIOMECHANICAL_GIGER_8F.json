@@ -1,0 +1,110 @@
+{
+  "template_id": "TPL_KALEIDOSCOPIC_IFS_BIOMECHANICAL_GIGER_8F",
+  "name": "Dihedral Kaleidoscopic IFS Fold × Bio-Mechanical Ribbed Organism",
+  "geometric_instance": {
+    "id": "KALEIDOSCOPIC_IFS",
+    "name": "Dihedral Kaleidoscopic IFS Fold",
+    "category": "sacred_geometry",
+    "symmetry_group": "D6 (Hexagonal Dihedral)",
+    "formula": "p = abs(p), rotate(pi/N), fold across plane normals n=(cos a, sin a, 0)",
+    "default_params": {
+      "folds": 6,
+      "scale": 1.85,
+      "offset": 1.1
+    },
+    "composition_rules": {
+      "mirror_folds": 6,
+      "fresnel_reflectance": 0.88,
+      "depth_layers": 24
+    },
+    "preferred_glyphs": [
+      "*",
+      "✦",
+      "✧",
+      "✶",
+      "✹",
+      "✺",
+      "/",
+      "\\",
+      "|",
+      "-"
+    ]
+  },
+  "artistic_instance": {
+    "id": "BIOMECHANICAL_GIGER",
+    "name": "Bio-Mechanical Ribbed Organism",
+    "primary_palette": {
+      "r": 180,
+      "g": 210,
+      "b": 170
+    },
+    "accent_palette": {
+      "r": 90,
+      "g": 130,
+      "b": 80
+    },
+    "background_tint": {
+      "r": 5,
+      "g": 8,
+      "b": 5
+    },
+    "chromatic_aberration": 0.004,
+    "scanline_density": 180.0,
+    "glyph_ramp": " ·:;oO08#%&@",
+    "hud_elements": [
+      "PULSE_RHYTHM",
+      "CHITIN_INTEGRITY",
+      "SPORE_DENSITY"
+    ]
+  },
+  "composition_rules": {
+    "mirror_folds": 8,
+    "fold_angle_deg": 22.5,
+    "fold_angle_rad": 0.3927,
+    "recursion_depth": 24,
+    "fresnel_reflectance": 0.88,
+    "golden_harmonic_scale": 0.94162,
+    "symmetry_group": "D8 (Dihedral 16-fold symmetry)"
+  },
+  "vulkan_shader_uniforms": {
+    "u_mirror_folds": 8,
+    "u_fold_angle": 0.39269908169872414,
+    "u_recursion_limit": 24,
+    "u_fresnel_factor": 0.88,
+    "u_chromatic_aberration": 0.004,
+    "u_scanline_density": 180.0,
+    "u_primary_color": [
+      0.7058823529411765,
+      0.8235294117647058,
+      0.6666666666666666,
+      1.0
+    ],
+    "u_accent_color": [
+      0.35294117647058826,
+      0.5098039215686274,
+      0.3137254901960784,
+      1.0
+    ]
+  },
+  "ascii_config": {
+    "glyph_ramp": " ·:;oO08#%&@",
+    "preferred_glyphs": [
+      "*",
+      "✦",
+      "✧",
+      "✶",
+      "✹",
+      "✺",
+      "/",
+      "\\",
+      "|",
+      "-"
+    ],
+    "hud_elements": [
+      "PULSE_RHYTHM",
+      "CHITIN_INTEGRITY",
+      "SPORE_DENSITY"
+    ]
+  },
+  "custom_notes": ""
+}

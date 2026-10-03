@@ -1,0 +1,102 @@
+{
+  "template_id": "TPL_PLATONIC_DODECAHEDRON_BLUEPRINT_SCHEMATIC_3F",
+  "name": "Pentagonal Dodecahedron × Technical ISO Blueprint Engineering",
+  "geometric_instance": {
+    "id": "PLATONIC_DODECAHEDRON",
+    "name": "Pentagonal Dodecahedron",
+    "category": "platonic_solid",
+    "symmetry_group": "Ih (Icosahedral 120-fold)",
+    "formula": "max(|x*phi + y/phi|, |y*phi + z/phi|, |z*phi + x/phi|) - radius",
+    "default_params": {
+      "radius": 1.25,
+      "phi": 1.6180339887,
+      "facet_bevel": 0.08
+    },
+    "composition_rules": {
+      "mirror_folds": 5,
+      "fresnel_reflectance": 0.9,
+      "depth_layers": 20
+    },
+    "preferred_glyphs": [
+      "⬠",
+      "⬡",
+      "⎔",
+      "✦",
+      "+",
+      "x"
+    ]
+  },
+  "artistic_instance": {
+    "id": "BLUEPRINT_SCHEMATIC",
+    "name": "Technical ISO Blueprint Engineering",
+    "primary_palette": {
+      "r": 0,
+      "g": 200,
+      "b": 255
+    },
+    "accent_palette": {
+      "r": 255,
+      "g": 255,
+      "b": 255
+    },
+    "background_tint": {
+      "r": 2,
+      "g": 10,
+      "b": 25
+    },
+    "chromatic_aberration": 0.001,
+    "scanline_density": 60.0,
+    "glyph_ramp": " .:-=+*#%@",
+    "hud_elements": [
+      "GRID_COORDINATES",
+      "TOLERANCE_DIMENSIONS",
+      "AXIS_TRIPOD"
+    ]
+  },
+  "composition_rules": {
+    "mirror_folds": 3,
+    "fold_angle_deg": 60.0,
+    "fold_angle_rad": 1.0472,
+    "recursion_depth": 24,
+    "fresnel_reflectance": 0.88,
+    "golden_harmonic_scale": 0.8518,
+    "symmetry_group": "D3 (Dihedral 6-fold symmetry)"
+  },
+  "vulkan_shader_uniforms": {
+    "u_mirror_folds": 3,
+    "u_fold_angle": 1.0471975511965976,
+    "u_recursion_limit": 24,
+    "u_fresnel_factor": 0.88,
+    "u_chromatic_aberration": 0.001,
+    "u_scanline_density": 60.0,
+    "u_primary_color": [
+      0.0,
+      0.7843137254901961,
+      1.0,
+      1.0
+    ],
+    "u_accent_color": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "ascii_config": {
+    "glyph_ramp": " .:-=+*#%@",
+    "preferred_glyphs": [
+      "⬠",
+      "⬡",
+      "⎔",
+      "✦",
+      "+",
+      "x"
+    ],
+    "hud_elements": [
+      "GRID_COORDINATES",
+      "TOLERANCE_DIMENSIONS",
+      "AXIS_TRIPOD"
+    ]
+  },
+  "custom_notes": ""
+}

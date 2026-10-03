@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRYSTAL-STACK // EXACT DESIGN MANUAL OF GAME ELEMENTS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* =====================================================================
+           XIAOMI HYPEROS 4 / MIUI DESIGN SYSTEM TOKENS
+           ===================================================================== */
+        :root {
+            --bg-dark: #08090d;
+            --bg-card: rgba(18, 22, 34, 0.75);
+            --bg-surface: rgba(26, 32, 48, 0.65);
+            --hyper-glass: rgba(18, 22, 34, 0.72);
+            --hyper-glass-border: rgba(255, 255, 255, 0.12);
+            --hyper-glass-border-focus: rgba(100, 210, 255, 0.45);
+            --hyper-blur: blur(28px) saturate(190%) contrast(105%);
+            --hyper-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            --hyper-squircle-sm: 10px;
+            --hyper-squircle-md: 14px;
+            --hyper-squircle-lg: 20px;
+            --hyper-squircle-xl: 28px;
+            --hyper-squircle-pill: 9999px;
+
+            /* Tribal Colors */
+            --cyan: #66fcf1;
+            --cyan-glow: rgba(102, 252, 241, 0.45);
+            --hyper-blue: #0a84ff;
+            --neon-green: #39ff14;
+            --toxic-purple: #9d4edd;
+            --druid-gold: #ffd700;
+            --druid-amber: #ff9100;
+            --alert-red: #ff453a;
+            --text-main: #f0f3f8;
+            --text-muted: #8e95a5;
+            --text-subtle: #5a6275;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(102, 252, 241, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(157, 78, 221, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.03) 0%, transparent 50%);
+        }
+
+        /* Ambient scanlines */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.3;
+        }
+
+        /* HEADER */
+        header.manual-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--hyper-glass);
+            backdrop-filter: var(--hyper-blur);
+            -webkit-backdrop-filter: var(--hyper-blur);
+            padding: 12px 32px;
+            border-bottom: 1px solid var(--hyper-glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-logo-gem {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--cyan), var(--hyper-blue), var(--druid-gold));
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            box-shadow: 0 0 18px var(--cyan-glow);
+            animation: pulse-gem 3s infinite alternate;
+        }
+
+        @keyframes pulse-gem {
+            0% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+            100% { transform: scale(1.08) rotate(5deg); filter: brightness(1.3); }
+        }
+
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+
+        .brand-title span {
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--hyper-glass-border);
+            color: var(--text-main);
+            padding: 7px 16px;
+            border-radius: var(--hyper-squircle-pill);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            background: var(--cyan);
+            color: #000;
+            border-color: var(--cyan);
+            box-shadow: 0 0 14px var(--cyan-glow);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.primary {
+            background: linear-gradient(135deg, #0a84ff, #00c6ff);
+            border: none;
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.4);
+        }
+
+        .nav-btn.primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.6);
+        }
+
+        /* CONTAINER */
+        .manual-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            width: 100%;
+        }
+
+        /* SECTION HEADER */
+        .section-header {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .section-tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .section-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            line-height: 1.5;
+        }
+
+        /* SECTION 1: MASTER DESIGN TOKENS */
+        .tokens-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .token-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--hyper-blur);
+            border: 1px solid var(--hyper-glass-border);
+            border-radius: var(--hyper-squircle-lg);
+            padding: 20px;
+            box-shadow: var(--hyper-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .token-card-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            color: var(--cyan);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .palette-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .palette-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: var(--hyper-squircle-sm);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .palette-swatch-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .palette-swatch {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.4);
+        }
+
+        .palette-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .palette-hex {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        /* SECTION 2: CARD ANATOMY & 3D SHOWROOM */
+        .card-showroom-layout {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 28px;
+            background: var(--bg-card);
+            backdrop-filter: var(--hyper-blur);
+            border: 1px solid var(--hyper-glass-border);
+            border-radius: var(--hyper-squircle-xl);
+            padding: 28px;
+            box-shadow: var(--hyper-shadow);
+        }
+
+        .card-view-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* HYPEROS ACTION CARD 3D */
+        .hyper-card-3d-wrapper {
+            perspective: 1000px;
+            width: 280px;
+            height: 420px;
+        }
+
+        .hyper-card-3d {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(165deg, rgba(28, 34, 52, 0.95), rgba(14, 18, 28, 0.98));
+            border: 1.5px solid var(--cyan);
+            border-radius: var(--hyper-squircle-lg);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 24px rgba(102, 252, 241, 0.25);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .hyper-card-3d:hover {
+            transform: translateY(-8px) rotateX(4deg) rotateY(-4deg);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7), 0 0 32px var(--cyan-glow);
+        }
+
+        .card-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .card-mana-pill {
+            background: rgba(102, 252, 241, 0.18);
+            border: 1px solid var(--cyan);
+            border-radius: var(--hyper-squircle-pill);
+            padding: 4px 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--cyan);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-tribe-pill {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--hyper-squircle-pill);
+            padding: 3px 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .card-title-text {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            color: #fff;
+            margin: 6px 0;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+            z-index: 2;
+        }
+
+        /* 3D Canvas inside card */
+        .card-canvas-viewport {
+            width: 100%;
+            height: 160px;
+            background: radial-gradient(circle, rgba(10, 25, 45, 0.9) 0%, rgba(5, 10, 20, 0.95) 100%);
+            border-radius: var(--hyper-squircle-md);
+            border: 1px solid rgba(102, 252, 241, 0.25);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-range-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.45);
+            border-radius: var(--hyper-squircle-pill);
+            padding: 4px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 6px 0;
+            z-index: 2;
+        }
+
+        .card-range-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            color: var(--cyan);
+            font-weight: 600;
+        }
+
+        .card-metric-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--alert-red);
+        }
+
+        .card-desc-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 8px;
+            border-radius: var(--hyper-squircle-sm);
+            border-left: 2px solid var(--cyan);
+            z-index: 2;
+        }
+
+        .card-aim-btn {
+            background: linear-gradient(135deg, var(--cyan), var(--hyper-blue));
+            border: none;
+            color: #000;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 8px;
+            border-radius: var(--hyper-squircle-pill);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px var(--cyan-glow);
+            z-index: 2;
+        }
+
+        .card-aim-btn:hover {
+            filter: brightness(1.15);
+            transform: scale(1.02);
+        }
+
+        /* ANATOMY INSPECTOR & TABS */
+        .card-details-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card-selector-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .card-tab-btn {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--hyper-glass-border);
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: var(--hyper-squircle-pill);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .card-tab-btn:hover {
+            color: #fff;
+            border-color: var(--cyan);
+        }
+
+        .card-tab-btn.active {
+            background: rgba(102, 252, 241, 0.15);
+            color: var(--cyan);
+            border-color: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .card-tab-btn.ultimate {
+            border-color: rgba(255, 42, 109, 0.4);
+            color: #ff2a6d;
+        }
+
+        .card-tab-btn.ultimate.active {
+            background: rgba(255, 42, 109, 0.2);
+            border-color: #ff2a6d;
+            box-shadow: 0 0 12px rgba(255, 42, 109, 0.4);
+        }
+
+        .anatomy-callouts-box {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .callout-item {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--hyper-squircle-md);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .callout-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--cyan);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .callout-desc {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* SECTION 3: 3D TARGETING ARROW & RANGE TESTBENCH */
+        .targeting-testbench-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+            background: var(--bg-card);
+            backdrop-filter: var(--hyper-blur);
+            border: 1px solid var(--hyper-glass-border);
+            border-radius: var(--hyper-squircle-xl);
+            padding: 24px;
+            box-shadow: var(--hyper-shadow);
+        }
+
+        .testbench-viewport-container {
+            width: 100%;
+            height: 480px;
+            border-radius: var(--hyper-squircle-lg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            background: #050608;
+        }
+
+        #targetingCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .viewport-overlay-hud {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .hud-pill {
+            background: var(--hyper-glass);
+            backdrop-filter: var(--hyper-blur);
+            border: 1px solid var(--hyper-glass-border);
+            border-radius: var(--hyper-squircle-pill);
+            padding: 6px 14px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .testbench-controls-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 14px;
+            border-radius: var(--hyper-squircle-md);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .control-label {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--cyan);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .attack-type-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .attack-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 8px 4px;
+            border-radius: var(--hyper-squircle-sm);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .attack-btn:hover {
+            color: #fff;
+            border-color: var(--cyan);
+        }
+
+        .attack-btn.active {
+            background: rgba(102, 252, 241, 0.15);
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            accent-color: var(--cyan);
+        }
+
+        .btn-fire-projectile {
+            background: linear-gradient(135deg, #ff007f, #7928ca);
+            border: none;
+            color: #fff;
+            padding: 12px;
+            border-radius: var(--hyper-squircle-pill);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(255, 0, 127, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-fire-projectile:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(255, 0, 127, 0.6);
+            filter: brightness(1.15);
+        }
+
+        /* SECTION 4: DYNAMIC ISLAND SIMULATOR */
+        .island-simulator-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--hyper-blur);
+            border: 1px solid var(--hyper-glass-border);
+            border-radius: var(--hyper-squircle-xl);
+            padding: 24px;
+            box-shadow: var(--hyper-shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .island-stage-box {
+            width: 100%;
+            height: 120px;
+            background: radial-gradient(circle, rgba(14, 20, 32, 0.95), rgba(5, 7, 12, 0.98));
+            border-radius: var(--hyper-squircle-lg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Dynamic Island Element */
+        .dynamic-island-capsule {
+            background: rgba(18, 22, 34, 0.88);
+            backdrop-filter: blur(28px) saturate(190%);
+            -webkit-backdrop-filter: blur(28px) saturate(190%);
+            border: 1px solid var(--hyper-glass-border);
+            border-radius: var(--hyper-squircle-pill);
+            padding: 6px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+            min-width: 320px;
+            max-width: 580px;
+        }
+
+        .dynamic-island-capsule.in-range {
+            border-color: var(--cyan);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px var(--cyan-glow);
+        }
+
+        .dynamic-island-capsule.out-range {
+            border-color: var(--alert-red);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 69, 58, 0.4);
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .island-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan);
+            animation: pulse-dot 1.5s infinite alternate;
+        }
+
+        @keyframes pulse-dot {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.4); opacity: 1; }
+        }
+
+        .island-text-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .island-primary-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .island-sub-text {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+
+        .island-cancel-btn {
+            background: rgba(255, 69, 58, 0.18);
+            border: 1px solid var(--alert-red);
+            color: var(--alert-red);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: var(--hyper-squircle-pill);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .island-cancel-btn:hover {
+            background: var(--alert-red);
+            color: #fff;
+        }
+
+        .island-toggles-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* SECTION 5: PROCEDURAL SOUNDBOARD */
+        .soundboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .sound-btn {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--hyper-glass-border);
+            border-radius: var(--hyper-squircle-md);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            text-align: left;
+        }
+
+        .sound-btn:hover {
+            background: var(--bg-surface);
+            border-color: var(--cyan);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .sound-icon-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .sound-spec-label {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            color: var(--cyan);
+        }
+
+        .sound-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+        }
+
+        /* FOOTER */
+        footer.manual-footer {
+            background: var(--hyper-glass);
+            border-top: 1px solid var(--hyper-glass-border);
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: auto;
+        }
+
+        /* SECTION 0: EXACT GAME GRAPHICS GALLERY */
+        .graphics-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .graphics-gallery-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .render-card {
+            background: var(--bg-card);
+            border: 1px solid var(--hyper-glass-border);
+            border-radius: var(--hyper-squircle-xl);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--hyper-shadow);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .render-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--cyan);
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(102, 252, 241, 0.2);
+        }
+
+        .render-img-wrapper {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .render-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .render-card:hover .render-img-wrapper img {
+            transform: scale(1.03);
+        }
+
+        .render-badge-tag {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: rgba(18, 22, 34, 0.85);
+            backdrop-filter: var(--hyper-blur);
+            border: 1px solid var(--hyper-glass-border);
+            color: var(--cyan);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: var(--hyper-squircle-pill);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .render-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .render-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .render-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+
+        .render-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: auto;
+        }
+
+        .render-pill {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: var(--hyper-squircle-pill);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-subtle);
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+
+    <!-- HEADER -->
+    <header class="manual-header">
+        <div class="brand-container">
+            <div class="brand-logo-gem"></div>
+            <div class="brand-title">KRYSTAL-STACK // <span>DESIGN MANUAL</span></div>
+        </div>
+        <div class="nav-links">
+            <a href="/game" class="nav-btn primary">🎮 OTVORIŤ 3D ŠTÚDIO</a>
+            <a href="/" class="nav-btn">🌐 WEB HUB</a>
+            <a href="#renders" class="nav-btn" style="border-color:var(--cyan); color:var(--cyan);">🖼️ NÁHĽADY GRAFIKY</a>
+            <a href="#tokens" class="nav-btn">🎨 TOKENS</a>
+            <a href="#cards" class="nav-btn">🃏 KARTY</a>
+            <a href="#targeting" class="nav-btn">🏹 TARGETING</a>
+            <a href="#audio" class="nav-btn">🔊 ZVUKY</a>
+        </div>
+    </header>
+
+    <div class="manual-container">
+
+        <!-- INTRO HERO -->
+        <section class="section-header">
+            <span class="section-tag">ARCHITEKTÚRA A VIZUÁLNE PRAVIDLÁ // VERZIA 1.0.0</span>
+            <h1 class="section-title">EXACT DESIGN MANUAL OF GAME ELEMENTS</h1>
+            <p class="section-desc">
+                Definitívna špecifikácia herných prvkov platformy Krystal-Stack: dizajn manuál Xiaomi HyperOS 4 / MIUI (tekutý sklomorfizmus, superelipsy, gaussovské rozostrenie), 3D parabolický zameriavací šíp s limitmi dosahu, anatómia kariet Poslední Kmen a procedurálny syntetizátor Web Audio.
+            </p>
+        </section>
+
+        <!-- SECTION 0: EXACT GAME GRAPHICS SHOWCASE & RENDERS -->
+        <section id="renders">
+            <div class="section-header">
+                <span class="section-tag">AUTONÓMNE GODOT 4.3 PBR RENDERY // EXACT IN-GAME GRAPHICS</span>
+                <h2 class="section-title">PREHĽAD A NÁHĽADY FINÁLNEJ HERNEJ GRAFIKY</h2>
+                <p class="section-desc">
+                    Vysokofarebné zábery priamo demonštrujúce finálnu grafiku stratégie <b>Poslední Kmen</b>: 3D taktickú arénu s výškovými kontúrami, detailné modely troch šampiónov, lokačnú algebru veže s ward štítom a 4X budovanie citadely v štýle InnoGames.
+                </p>
+            </div>
+
+            <div class="graphics-gallery-grid">
+                <!-- Render 1: Tactical Arena -->
+                <div class="render-card">
+                    <div class="render-img-wrapper">
+                        <span class="render-badge-tag">🎮 IN-GAME TACTICAL ARENA</span>
+                        <img src="/static/images/gameplay_3d_arena_preview.jpg" alt="Taktická 3D Aréna Poslední Kmen">
+                    </div>
+                    <div class="render-content">
+                        <div class="render-title">Taktická 3D Aréna &amp; HyperOS 4 HUD</div>
+                        <div class="render-desc">
+                            19-hexová odstupňovaná aréna (h=0.0m až 2.5m). Kryštálová citadela s ochrannou Ward Bubble sférou, centrálny checkpoint Aéterový Nexus, nepriateľský Toxický Úľ, 3D parabolický zameriavací lúč s runovými značkami a spodný HyperOS fluid glass dock s kartami (6 HP max limit).
+                        </div>
+                        <div class="render-pills">
+                            <span class="render-pill">Godot 4.3 PBR</span>
+                            <span class="render-pill">19-Hex Grid</span>
+                            <span class="render-pill">Ward Bubble</span>
+                            <span class="render-pill">HyperOS HUD</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Render 2: Three Tribal Heroes -->
+                <div class="render-card">
+                    <div class="render-img-wrapper">
+                        <span class="render-badge-tag">👑 TRIBAL HERO ROSTER</span>
+                        <img src="/static/images/three_tribal_heroes_showcase.jpg" alt="Šampióni troch kmeňov">
+                    </div>
+                    <div class="render-content">
+                        <div class="render-title">Šampióni Troch Kmeňov (PBR Roster)</div>
+                        <div class="render-desc">
+                            Porovnávací render troch hrdinov v štúdiovom nasvietení: <b>Kryštálový Archón</b> s fazetovým aéterovým plátom a levitujúcou korunou, <b>Toxický Hnilobník</b> s chitínovým exoskeletom a rezervoármi kyseliny a <b>Prastarý Druid</b> so skamenenou dubovou kôrou, jantárovými runami a slnečnou palicou.
+                        </div>
+                        <div class="render-pills">
+                            <span class="render-pill">Subsurface Scattering</span>
+                            <span class="render-pill">PBR Shaders</span>
+                            <span class="render-pill">3 Archetypy</span>
+                            <span class="render-pill">Vysoký Detail</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Render 3: Locational Combat Action -->
+                <div class="render-card">
+                    <div class="render-img-wrapper">
+                        <span class="render-badge-tag">⚔️ LOCATIONAL COMBAT &amp; WARDS</span>
+                        <img src="/static/images/locational_combat_action.jpg" alt="Akčný bojový záber veže a štítu">
+                    </div>
+                    <div class="render-content">
+                        <div class="render-title">Lokačná Algebra Veže &amp; Ward Absorpcia</div>
+                        <div class="render-desc">
+                            Obranná veža na vyvýšenom skalnom útese (h=2.5m) páli rezonančný aéterový lúč zhora nadol (High Ground bonus k poškodeniu), zatiaľ čo hrdina aktivuje dúhovú Ward sféru pohlcujúcu toxický projektil s kruhovými rázovými vlnami a odrážaním poškodenia.
+                        </div>
+                        <div class="render-pills">
+                            <span class="render-pill">Warhammer Pravidlá</span>
+                            <span class="render-pill">Elevation Bonus</span>
+                            <span class="render-pill">Ward Deflect</span>
+                            <span class="render-pill">VFX Particles</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Render 4: Citadel Base & World -->
+                <div class="render-card">
+                    <div class="render-img-wrapper">
+                        <span class="render-badge-tag">🏰 4X BASE BUILDING &amp; WORLD</span>
+                        <img src="/static/images/strategy_citadel_base_world.jpg" alt="Budovanie citadely a strategická mapa">
+                    </div>
+                    <div class="render-content">
+                        <div class="render-title">Citadela &amp; Strategický Svet (InnoGames Štýl)</div>
+                        <div class="render-desc">
+                            Veľkolepý strategický nadhľad na opevnenú Kryštálovú Citadelu na modulárnych hexových dištriktoch s centrálnym Aéterovým Pylónom, kováčňami, rozvodnými kanálmi, prechodom do jesenných druidských hájov a sopečných toxických roklín s InnoGames 4X resource manažmentom.
+                        </div>
+                        <div class="render-pills">
+                            <span class="render-pill">InnoGames Aesthetic</span>
+                            <span class="render-pill">Double-Entry Ledger</span>
+                            <span class="render-pill">Hex Dištrikty</span>
+                            <span class="render-pill">Biome Transition</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 1: MASTER DESIGN TOKENS -->
+        <section id="tokens">
+            <div class="section-header">
+                <span class="section-tag">KAPITOLA 1 // DESIGN SYSTEM FOUNDATION</span>
+                <h2 class="section-title">MASTER DESIGN TOKENS & SQUIRCLES</h2>
+            </div>
+            <div class="tokens-grid">
+                <!-- Tribal Palettes -->
+                <div class="token-card">
+                    <div class="token-card-title">💎 Kmeňové Palety & Akcenty</div>
+                    <div class="palette-row">
+                        <div class="palette-item">
+                            <div class="palette-swatch-box">
+                                <div class="palette-swatch" style="background:#66fcf1; box-shadow:0 0 10px #66fcf1;"></div>
+                                <span class="palette-name">Kryštálový Kmeň</span>
+                            </div>
+                            <span class="palette-hex">#66fcf1</span>
+                        </div>
+                        <div class="palette-item">
+                            <div class="palette-swatch-box">
+                                <div class="palette-swatch" style="background:#39ff14; box-shadow:0 0 10px #39ff14;"></div>
+                                <span class="palette-name">Jedovatý Kmeň</span>
+                            </div>
+                            <span class="palette-hex">#39ff14</span>
+                        </div>
+                        <div class="palette-item">
+                            <div class="palette-swatch-box">
+                                <div class="palette-swatch" style="background:#ffd700; box-shadow:0 0 10px #ffd700;"></div>
+                                <span class="palette-name">Druidské Zlato</span>
+                            </div>
+                            <span class="palette-hex">#ffd700</span>
+                        </div>
+                        <div class="palette-item">
+                            <div class="palette-swatch-box">
+                                <div class="palette-swatch" style="background:#9d4edd; box-shadow:0 0 10px #9d4edd;"></div>
+                                <span class="palette-name">Toxický Spór</span>
+                            </div>
+                            <span class="palette-hex">#9d4edd</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HyperOS Squircles -->
+                <div class="token-card">
+                    <div class="token-card-title">📐 Superelipsy & Zakrivenia (Squircles)</div>
+                    <div class="palette-row">
+                        <div class="palette-item">
+                            <span class="palette-name">Pill (Kapsule / Tlačidlá)</span>
+                            <span class="palette-hex">border-radius: 9999px</span>
+                        </div>
+                        <div class="palette-item">
+                            <span class="palette-name">Extra Large (Dock / Panely)</span>
+                            <span class="palette-hex">border-radius: 28px</span>
+                        </div>
+                        <div class="palette-item">
+                            <span class="palette-name">Large (Karty / Modály)</span>
+                            <span class="palette-hex">border-radius: 20px</span>
+                        </div>
+                        <div class="palette-item">
+                            <span class="palette-name">Medium (Badges / Inputs)</span>
+                            <span class="palette-hex">border-radius: 14px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gaussian Blur -->
+                <div class="token-card">
+                    <div class="token-card-title">✨ Gaussovské Rozostrenie & Sklo</div>
+                    <div class="palette-row">
+                        <div class="palette-item">
+                            <span class="palette-name">Hyper Blur Token</span>
+                            <span class="palette-hex">blur(28px) sat(190%)</span>
+                        </div>
+                        <div class="palette-item">
+                            <span class="palette-name">Primárny Podklad</span>
+                            <span class="palette-hex">rgba(18, 22, 34, 0.72)</span>
+                        </div>
+                        <div class="palette-item">
+                            <span class="palette-name">Zrkadlový Lem</span>
+                            <span class="palette-hex">inset 0 1px 0 #ffffff1f</span>
+                        </div>
+                        <div class="palette-item">
+                            <span class="palette-name">Hĺbkový Tieň</span>
+                            <span class="palette-hex">0 16px 40px #00000073</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: CARD ANATOMY & 3D SHOWROOM -->
+        <section id="cards">
+            <div class="section-header">
+                <span class="section-tag">KAPITOLA 2 // INTERAKTÍVNY SHOWROOM KARIET</span>
+                <h2 class="section-title">ANATÓMIA AKČNÝCH KARIET</h2>
+                <p class="section-desc">
+                    Akčná karta integruje pevnú sadu mechanických pravidiel, 3D náhľad objektu, ukazovateľ dosahu s typom útoku a priame zameriavacie tlačidlo. Kliknite na kartu pre výber.
+                </p>
+            </div>
+
+            <div class="card-showroom-layout">
+                <!-- 3D Card Display -->
+                <div class="card-view-column">
+                    <div class="hyper-card-3d-wrapper">
+                        <div class="hyper-card-3d" id="activeCard3D">
+                            <!-- Card Header -->
+                            <div class="card-header-bar">
+                                <div class="card-mana-pill" id="cardManaDisplay">💎 3 MANA</div>
+                                <div class="card-tribe-pill" id="cardTribeDisplay">💎 KRYŠTÁL [T1]</div>
+                            </div>
+                            
+                            <!-- Card Title -->
+                            <div class="card-title-text" id="cardTitleDisplay">KRYŠTÁLOVÝ METEOR</div>
+                            
+                            <!-- 3D Viewport inside Card -->
+                            <div class="card-canvas-viewport">
+                                <canvas id="cardMeshCanvas" width="248" height="158"></canvas>
+                            </div>
+
+                            <!-- Range & Stat Strip -->
+                            <div class="card-range-strip">
+                                <div class="card-range-badge" id="cardRangeBadge">🏹 RANGED: 1-4 HEX</div>
+                                <div class="card-metric-badge" id="cardMetricBadge">💥 -2 HP</div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="card-desc-text" id="cardDescDisplay">
+                                Zasiahne cieľ kryštálovým meteorom a spôsobí 2 body priameho zranenia. Dosah: 1-4 hexov.
+                            </div>
+
+                            <!-- Aim Button -->
+                            <button class="card-aim-btn" onclick="testCardAimTrigger()">
+                                <span>🎯 ZAMIERIŤ V 3D</span>
+                            </button>
+                        </div>
+                    </div>
+                    <span style="font-family:'Fira Code', monospace; font-size:0.7rem; color:var(--text-muted);">
+                        ⚡ Pohybujte myšou nad kartou pre 3D Parallax náklon
+                    </span>
+                </div>
+
+                <!-- Details & Anatomy Callouts -->
+                <div class="card-details-column">
+                    <div class="card-selector-tabs">
+                        <button class="card-tab-btn active" onclick="selectCard('crystal_meteor')">Kryštálový Meteor</button>
+                        <button class="card-tab-btn" onclick="selectCard('crystal_shield')">Kryštálový Štít</button>
+                        <button class="card-tab-btn" onclick="selectCard('crystal_pylon')">Rezonančný Pylón</button>
+                        <button class="card-tab-btn" onclick="selectCard('acid_slime')">Kyslý Sliz</button>
+                        <button class="card-tab-btn" onclick="selectCard('toxic_cloud')">Toxický Oblak</button>
+                        <button class="card-tab-btn" onclick="selectCard('decay_strike')">Zuby Rozkladu (Melee)</button>
+                        <button class="card-tab-btn" onclick="selectCard('earth_roots')">Korene Zeme</button>
+                        <button class="card-tab-btn" onclick="selectCard('nature_bless')">Požehnanie Prírody</button>
+                        <button class="card-tab-btn" onclick="selectCard('druid_strike')">Úder Palice (Melee)</button>
+                        <button class="card-tab-btn ultimate" onclick="selectCard('supernova_cataclysm')">⭐ Supernova (Ultima)</button>
+                    </div>
+
+                    <!-- 6-Point Anatomy Callouts -->
+                    <div class="anatomy-callouts-box">
+                        <div class="callout-item">
+                            <span class="callout-title">1. Mana & Kmeňový Pill</span>
+                            <span class="callout-desc">Mana debit v podvojnom ledgeru. Zobrazuje cenu v mane a kmeňových surovinách (Aether Crystal, Slime, Rune).</span>
+                        </div>
+                        <div class="callout-item">
+                            <span class="callout-title">2. 3D Holografický Priezor</span>
+                            <span class="callout-desc">Interaktívna Three.js geometria renderovaná priamo v karte s rotáciou pri prechode myšou.</span>
+                        </div>
+                        <div class="callout-item">
+                            <span class="callout-title">3. Pás Typu Útoku & Dosahu</span>
+                            <span class="callout-desc">Definuje limit dosahu: MELEE (1), RANGED (1-4), AOE (1-3), SELF (0) a delta hodnoty životov a brnenia.</span>
+                        </div>
+                        <div class="callout-item">
+                            <span class="callout-title">4. Tlačidlo "Zamieriť v 3D"</span>
+                            <span class="callout-desc">Aktivuje stav zameriavania na hernej ploche, vyvolá parabolický Bezier šíp a prepojí sa s Dynamic Island.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: 3D TARGETING ARROW & RANGE TESTBENCH -->
+        <section id="targeting">
+            <div class="section-header">
+                <span class="section-tag">KAPITOLA 3 // MATEMATICKÁ TRAJEKTÓRIA & DOSAH</span>
+                <h2 class="section-title">3D PARABOLICKÝ ZAMERIAVACÍ ŠÍP & LIMITY DOSAHU</h2>
+                <p class="section-desc">
+                    Skúšobné prostredie pre výpočet Quadratic Bezier trajektórie: $P(t) = (1-t)^2 P_0 + 2(1-t)t P_1 + t^2 P_2$. Melee vyžaduje striktne vzdialenosť 1 hex, streľba na diaľku 1 až 4 hexy.
+                </p>
+            </div>
+
+            <div class="targeting-testbench-layout">
+                <!-- 3D Three.js Viewport -->
+                <div class="testbench-viewport-container">
+                    <canvas id="targetingCanvas"></canvas>
+                    <div class="viewport-overlay-hud">
+                        <div class="hud-pill" id="hudDistancePill">📏 VZDIALENOSŤ: 2 HEXY</div>
+                        <div class="hud-pill" id="hudStatusPill" style="color:var(--neon-green); border-color:var(--neon-green);">🟢 V DOSAHU</div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="testbench-controls-column">
+                    <div class="control-group">
+                        <span class="control-label">TYP ÚTOKU</span>
+                        <div class="attack-type-selector">
+                            <button class="attack-btn active" id="btnTypeRanged" onclick="setAttackType('ranged')">🏹 RANGED<br>(1-4 Hex)</button>
+                            <button class="attack-btn" id="btnTypeMelee" onclick="setAttackType('melee')">⚔️ MELEE<br>(1 Hex)</button>
+                            <button class="attack-btn" id="btnTypeSelf" onclick="setAttackType('self')">🛡️ SELF<br>(0 Hex)</button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <span class="control-label">
+                            <span>VZDIALENOSŤ CIEĽA (D)</span>
+                            <span id="sliderValueText">2 Hexy</span>
+                        </span>
+                        <input type="range" class="range-slider" id="distanceSlider" min="0" max="5" value="2" step="1" oninput="updateTargetDistance(this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <span class="control-label">VZOREC VÝŠKY OBLÚKA H(D)</span>
+                        <span style="font-family:'Fira Code', monospace; font-size:0.75rem; color:var(--text-muted);" id="formulaText">
+                            H(2) = 1.0 + 2 × 0.55 = 2.10m
+                        </span>
+                    </div>
+
+                    <button class="btn-fire-projectile" onclick="fireDemoProjectile()">
+                        <span>🚀 VYSTRELIŤ PROJEKTIL PO TRAJEKTÓRII</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: DYNAMIC ISLAND SIMULATOR -->
+        <section id="island">
+            <div class="section-header">
+                <span class="section-tag">KAPITOLA 4 // HUD & STAVOVÉ KAPSULE</span>
+                <h2 class="section-title">XIAOMI HYPEROS 4 DYNAMIC ISLAND SIMULÁTOR</h2>
+                <p class="section-desc">
+                    Centrálna kapsula adaptívne mení tvar, farby a stav podľa akcie hráča.
+                </p>
+            </div>
+
+            <div class="island-simulator-card">
+                <div class="island-stage-box">
+                    <div class="dynamic-island-capsule in-range" id="simulatedIsland">
+                        <div class="island-dot" id="simulatedDot"></div>
+                        <div class="island-text-group">
+                            <span class="island-primary-title" id="simulatedTitle">🎯 KRYŠTÁLOVÝ METEOR [RANGED]</span>
+                            <span class="island-sub-text" id="simulatedSub"><strong style="color:var(--neon-green)">✓ V DOSAHU (2 hexy / Max: 4)</strong> — Kliknite pre úder!</span>
+                        </div>
+                        <button class="island-cancel-btn" onclick="setIslandState('ambient')">✕ ZRUŠIŤ</button>
+                    </div>
+                </div>
+
+                <div class="island-toggles-bar">
+                    <button class="card-tab-btn" onclick="setIslandState('ambient')">Stav 1: Pokojový (Ambient)</button>
+                    <button class="card-tab-btn active" onclick="setIslandState('in-range')">Stav 2: Mierenie v dosahu (Zelená)</button>
+                    <button class="card-tab-btn" onclick="setIslandState('out-range')">Stav 3: Mimo dosahu (Červená)</button>
+                    <button class="card-tab-btn" onclick="setIslandState('insufficient-mana')">Stav 4: Nedostatok many (Jantárová)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: PROCEDURAL SOUNDBOARD -->
+        <section id="audio">
+            <div class="section-header">
+                <span class="section-tag">KAPITOLA 5 // PROCEDURÁLNE ZVUKY (WEB AUDIO API)</span>
+                <h2 class="section-title">PROCEDURÁLNY AUDIOSYSTÉM BEZ EXTERNÝCH SÚBOROV</h2>
+                <p class="section-desc">
+                    Všetky zvukové efekty sú generované v reálnom čase matematickými oscilátormi a filtrami. Kliknite pre prehratie syntetizovaného zvuku.
+                </p>
+            </div>
+
+            <div class="soundboard-grid">
+                <div class="sound-btn" onclick="playProceduralSound('crystal')">
+                    <div class="sound-icon-title">💎 Kryštálový Úder</div>
+                    <span class="sound-spec-label">Sine 1760Hz + 2640Hz Bell</span>
+                    <span class="sound-desc">Vysokofrekvenčný kovový kmit pri dopade kryštálového meteoru.</span>
+                </div>
+
+                <div class="sound-btn" onclick="playProceduralSound('slime')">
+                    <div class="sound-icon-title">🧪 Kyslý Sliz</div>
+                    <span class="sound-spec-label">Sawtooth 180Hz + LFO 18Hz</span>
+                    <span class="sound-desc">Nízkofrekvenčné bublanie a špliechanie korozívnej kyseliny.</span>
+                </div>
+
+                <div class="sound-btn" onclick="playProceduralSound('druid')">
+                    <div class="sound-icon-title">🌿 Hlas Lesa</div>
+                    <span class="sound-spec-label">Triangle 330Hz + Harmonics</span>
+                    <span class="sound-desc">Mystický akord prírody a rastu posvätných dubov.</span>
+                </div>
+
+                <div class="sound-btn" onclick="playProceduralSound('melee')">
+                    <div class="sound-icon-title">⚔️ Úder Zblízka (Melee)</div>
+                    <span class="sound-spec-label">Sine 90Hz → 30Hz Thump</span>
+                    <span class="sound-desc">Tupý úder okovanou palicou na susedné hexové pole.</span>
+                </div>
+
+                <div class="sound-btn" onclick="playProceduralSound('whoosh')">
+                    <div class="sound-icon-title">🏹 Parabolický Svišt</div>
+                    <span class="sound-spec-label">White Noise Bandpass Sweep</span>
+                    <span class="sound-desc">Svišt projektilu letiaceho po Bezier trajektórii vzduchom.</span>
+                </div>
+
+                <div class="sound-btn" onclick="playProceduralSound('error')">
+                    <div class="sound-icon-title">🔴 Výstraha Mimo Dosahu</div>
+                    <span class="sound-spec-label">Square 110Hz Double Buzz</span>
+                    <span class="sound-desc">Haptický akustický tón pri pokuse o útok mimo limit dosahu.</span>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="manual-footer">
+        <div>KRYSTAL-STACK FRAMEWORK // <span>EXACT GAME ELEMENTS DESIGN MANUAL</span></div>
+        <div>STAV: <span>189/189 PASSING TESTS</span> | OPERAČNÝ SYSTÉM: <span>XIAOMI HYPEROS 4</span></div>
+    </footer>
+
+    <!-- SCRIPT: THREE.JS INTERACTIVE LOGIC & WEB AUDIO SYNTHESIZER -->
+    <script>
+        // ---------------------------------------------------------------------
+        // 1. CARDS DATA DICTIONARY
+        // ---------------------------------------------------------------------
+        const CARDS_DATA = {
+            crystal_meteor: {
+                id: "crystal_meteor",
+                name: "Kryštálový Meteor",
+                tribe: "Kryštálový Kmeň",
+                tribeCode: "KRYŠTÁL",
+                tier: 1,
+                mana: 3,
+                attackType: "ranged",
+                minRange: 1,
+                maxRange: 4,
+                metric: "💥 -2 HP",
+                color: "#66fcf1",
+                desc: "Zasiahne cieľ kryštálovým meteorom a spôsobí 2 body priameho zranenia. Dosah: 1-4 hexov.",
+                meshShape: "octahedron"
+            },
+            crystal_shield: {
+                id: "crystal_shield",
+                name: "Kryštálový Štít",
+                tribe: "Kryštálový Kmeň",
+                tribeCode: "KRYŠTÁL",
+                tier: 1,
+                mana: 2,
+                attackType: "self",
+                minRange: 0,
+                maxRange: 0,
+                metric: "🛡️ +2 BRNENIE",
+                color: "#00f2fe",
+                desc: "Vytvorí kryštálovú bariéru pridávajúcu +2 brnenia pre vlastného hrdinu.",
+                meshShape: "cylinder"
+            },
+            crystal_pylon: {
+                id: "crystal_pylon",
+                name: "Rezonančný Pylón",
+                tribe: "Kryštálový Kmeň",
+                tribeCode: "KRYŠTÁL",
+                tier: 1,
+                mana: 4,
+                attackType: "self",
+                minRange: 0,
+                maxRange: 2,
+                metric: "⚡ +1 MANA/ŤAH",
+                color: "#e0ffff",
+                desc: "Umiestni rezonančný pylón na pole, ktorý generuje +1 manu za ťah.",
+                meshShape: "cone"
+            },
+            acid_slime: {
+                id: "acid_slime",
+                name: "Kyslý Sliz",
+                tribe: "Jedovatý Kmeň",
+                tribeCode: "JED",
+                tier: 1,
+                mana: 1,
+                attackType: "ranged",
+                minRange: 1,
+                maxRange: 3,
+                metric: "🕸️ ZNEHYBNENIE",
+                color: "#39ff14",
+                desc: "Znehybní cieľovú jednotku na 1 ťah v bublajúcom kyslom slize (Dosah: 1-3 hexov).",
+                meshShape: "sphere"
+            },
+            toxic_cloud: {
+                id: "toxic_cloud",
+                name: "Toxický Oblak",
+                tribe: "Jedovatý Kmeň",
+                tribeCode: "JED",
+                tier: 1,
+                mana: 4,
+                attackType: "aoe",
+                minRange: 1,
+                maxRange: 3,
+                metric: "☠️ -1 HP/KOLO",
+                color: "#9d4edd",
+                desc: "Spore totem uvoľní jedovatý mrak; 1 poškodenie každé kolo pre všetkých v dosahu.",
+                meshShape: "torus"
+            },
+            decay_strike: {
+                id: "decay_strike",
+                name: "Zuby Rozkladu",
+                tribe: "Jedovatý Kmeň",
+                tribeCode: "JED",
+                tier: 1,
+                mana: 2,
+                attackType: "melee",
+                minRange: 1,
+                maxRange: 1,
+                metric: "⚔️ -2 HP (JED)",
+                color: "#7fff00",
+                desc: "Útok na blízko (dosah 1 hex): Leptavý útok na susednú jednotku spôsobí 2 poškodenia s nákazou.",
+                meshShape: "tetrahedron"
+            },
+            earth_roots: {
+                id: "earth_roots",
+                name: "Korene Zeme",
+                tribe: "Druidi",
+                tribeCode: "DRUID",
+                tier: 1,
+                mana: 2,
+                attackType: "ranged",
+                minRange: 1,
+                maxRange: 3,
+                metric: "💫 OMRÁČENIE",
+                color: "#ff9100",
+                desc: "Z koreňov stromov vyrastú výhonky, ktoré omráčia nepriateľa na 1 kolo a udelia 1 poškodenie.",
+                meshShape: "torusKnot"
+            },
+            nature_bless: {
+                id: "nature_bless",
+                name: "Požehnanie Prírody",
+                tribe: "Druidi",
+                tribeCode: "DRUID",
+                tier: 1,
+                mana: 3,
+                attackType: "self",
+                minRange: 0,
+                maxRange: 0,
+                metric: "💚 +2 HP (MAX 6)",
+                color: "#ffd700",
+                desc: "Posvätný monolit obnoví 2 životy (až do maxima 6 HP) a pridá +1 Brnenie.",
+                meshShape: "octahedron"
+            },
+            druid_strike: {
+                id: "druid_strike",
+                name: "Úder Druidskej Palice",
+                tribe: "Druidi",
+                tribeCode: "DRUID",
+                tier: 1,
+                mana: 1,
+                attackType: "melee",
+                minRange: 1,
+                maxRange: 1,
+                metric: "⚔️ -1 HP MELEE",
+                color: "#ffd700",
+                desc: "Útok na blízko (dosah 1 hex): Rýchly úder okovanou palicou spôsobí 1 poškodenie susednej jednotke.",
+                meshShape: "cylinder"
+            },
+            supernova_cataclysm: {
+                id: "supernova_cataclysm",
+                name: "Kryštálová Supernova",
+                tribe: "Kryštálový Kmeň",
+                tribeCode: "ULTIMA",
+                tier: 3,
+                mana: 8,
+                attackType: "global",
+                minRange: 1,
+                maxRange: 4,
+                metric: "💥 -5 HP + BLIND",
+                color: "#ff2a6d",
+                desc: "ULTIMÁTUM: Odpáli vlnu kryštálového aéteru. Udelí 5 zranení, dá +3 brnenia a oslepí nepriateľa.",
+                meshShape: "dodecahedron"
+            }
+        };
+
+        // ---------------------------------------------------------------------
+        // 2. CARD VIEWPORT 3D RENDERER (Inside Card)
+        // ---------------------------------------------------------------------
+        let cardScene, cardCamera, cardRenderer, activeCardMesh;
+
+        function initCard3D() {
+            const canvas = document.getElementById('cardMeshCanvas');
+            cardScene = new THREE.Scene();
+            cardCamera = new THREE.PerspectiveCamera(45, canvas.width / canvas.height, 0.1, 100);
+            cardCamera.position.set(0, 0, 4.2);
+
+            cardRenderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            cardRenderer.setSize(canvas.width, canvas.height);
+            cardRenderer.setPixelRatio(window.devicePixelRatio);
+
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            cardScene.add(ambient);
+
+            const pLight = new THREE.PointLight(0x66fcf1, 2.5, 10);
+            pLight.position.set(2, 3, 3);
+            cardScene.add(pLight);
+
+            createCardMesh("octahedron", 0x66fcf1);
+            animateCard3D();
+        }
+
+        function createCardMesh(shape, colorHex) {
+            if (activeCardMesh) {
+                cardScene.remove(activeCardMesh);
+                if (activeCardMesh.geometry) activeCardMesh.geometry.dispose();
+                if (activeCardMesh.material) activeCardMesh.material.dispose();
+            }
+
+            let geom;
+            switch(shape) {
+                case "octahedron": geom = new THREE.OctahedronGeometry(1.2, 0); break;
+                case "cylinder": geom = new THREE.CylinderGeometry(0.8, 0.8, 1.4, 6); break;
+                case "cone": geom = new THREE.ConeGeometry(0.9, 1.6, 6); break;
+                case "sphere": geom = new THREE.DodecahedronGeometry(1.1, 1); break;
+                case "torus": geom = new THREE.TorusGeometry(0.9, 0.35, 16, 32); break;
+                case "tetrahedron": geom = new THREE.TetrahedronGeometry(1.3, 0); break;
+                case "torusKnot": geom = new THREE.TorusKnotGeometry(0.7, 0.25, 64, 8); break;
+                case "dodecahedron": geom = new THREE.DodecahedronGeometry(1.3, 0); break;
+                default: geom = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+            }
+
+            const mat = new THREE.MeshStandardMaterial({
+                color: colorHex,
+                emissive: colorHex,
+                emissiveIntensity: 0.35,
+                metalness: 0.7,
+                roughness: 0.2,
+                wireframe: false
+            });
+
+            activeCardMesh = new THREE.Mesh(geom, mat);
+            cardScene.add(activeCardMesh);
+        }
+
+        function animateCard3D() {
+            requestAnimationFrame(animateCard3D);
+            if (activeCardMesh) {
+                activeCardMesh.rotation.x += 0.01;
+                activeCardMesh.rotation.y += 0.015;
+            }
+            cardRenderer.render(cardScene, cardCamera);
+        }
+
+        function selectCard(cardId) {
+            const card = CARDS_DATA[cardId];
+            if (!card) return;
+
+            // Update Tab UI
+            document.querySelectorAll('.card-tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = Array.from(document.querySelectorAll('.card-tab-btn')).find(b => b.textContent.includes(card.name) || b.textContent.includes(card.id));
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Update Card Display
+            document.getElementById('cardManaDisplay').textContent = `💎 ${card.mana} MANA`;
+            document.getElementById('cardTribeDisplay').textContent = `${card.tribeCode} [T${card.tier}]`;
+            document.getElementById('cardTitleDisplay').textContent = card.name.toUpperCase();
+            document.getElementById('cardRangeBadge').textContent = `${card.attackType.toUpperCase()}: ${card.minRange}-${card.maxRange} HEX`;
+            document.getElementById('cardMetricBadge').textContent = card.metric;
+            document.getElementById('cardDescDisplay').textContent = card.desc;
+
+            const cardBox = document.getElementById('activeCard3D');
+            cardBox.style.borderColor = card.color;
+            cardBox.style.boxShadow = `0 16px 36px rgba(0, 0, 0, 0.6), 0 0 24px ${card.color}40`;
+
+            const colorNum = parseInt(card.color.replace("#", "0x"));
+            createCardMesh(card.meshShape, colorNum);
+
+            // Sync with Targeting Testbench
+            setAttackType(card.attackType);
+            playProceduralSound(card.tribeCode === 'JED' ? 'slime' : (card.tribeCode === 'DRUID' ? 'druid' : 'crystal'));
+        }
+
+        function testCardAimTrigger() {
+            playProceduralSound('whoosh');
+            const targetSection = document.getElementById('targeting');
+            targetSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ---------------------------------------------------------------------
+        // 3. TARGETING ARROW & RANGE TESTBENCH (Three.js)
+        // ---------------------------------------------------------------------
+        let tbScene, tbCamera, tbRenderer;
+        let tbArrowGroup, tbArrowCurveLine, tbArrowHead, tbReticle;
+        let tbSourceMesh, tbTargetMesh;
+        let currentAttackType = 'ranged';
+        let currentTargetDistance = 2;
+
+        function initTargetingTestbench() {
+            const container = document.querySelector('.testbench-viewport-container');
+            const canvas = document.getElementById('targetingCanvas');
+
+            tbScene = new THREE.Scene();
+            tbScene.background = new THREE.Color(0x050608);
+
+            tbCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+            tbCamera.position.set(0, 5.5, 7.5);
+            tbCamera.lookAt(0, 0, 0);
+
+            tbRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            tbRenderer.setSize(container.clientWidth, container.clientHeight);
+            tbRenderer.setPixelRatio(window.devicePixelRatio);
+
+            const gridHelper = new THREE.GridHelper(16, 16, 0x1a2638, 0x0f1722);
+            tbScene.add(gridHelper);
+
+            const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+            tbScene.add(ambient);
+
+            const dLight = new THREE.DirectionalLight(0x66fcf1, 1.2);
+            dLight.position.set(5, 10, 5);
+            tbScene.add(dLight);
+
+            // Source Hero Pillar (0, 0, 0)
+            const heroGeom = new THREE.CylinderGeometry(0.4, 0.5, 0.6, 6);
+            const heroMat = new THREE.MeshStandardMaterial({ color: 0x66fcf1, emissive: 0x66fcf1, emissiveIntensity: 0.4 });
+            tbSourceMesh = new THREE.Mesh(heroGeom, heroMat);
+            tbSourceMesh.position.set(0, 0.3, 2);
+            tbScene.add(tbSourceMesh);
+
+            // Target Ground Marker
+            const targetGeom = new THREE.CylinderGeometry(0.5, 0.6, 0.1, 6);
+            const targetMat = new THREE.MeshStandardMaterial({ color: 0x334466 });
+            tbTargetMesh = new THREE.Mesh(targetGeom, targetMat);
+            tbScene.add(tbTargetMesh);
+
+            // Arrow Group
+            tbArrowGroup = new THREE.Group();
+            tbScene.add(tbArrowGroup);
+
+            // Cone Arrowhead
+            const coneGeom = new THREE.ConeGeometry(0.25, 0.6, 16);
+            const coneMat = new THREE.MeshStandardMaterial({ color: 0x66fcf1, emissive: 0x66fcf1, emissiveIntensity: 0.8 });
+            tbArrowHead = new THREE.Mesh(coneGeom, coneMat);
+            tbArrowGroup.add(tbArrowHead);
+
+            // Target Reticle Rings
+            tbReticle = new THREE.Group();
+            const ring1 = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.5, 24), new THREE.MeshBasicMaterial({ color: 0x66fcf1, side: THREE.DoubleSide }));
+            ring1.rotation.x = -Math.PI / 2;
+            const ring2 = new THREE.Mesh(new THREE.RingGeometry(0.65, 0.72, 6), new THREE.MeshBasicMaterial({ color: 0x66fcf1, side: THREE.DoubleSide }));
+            ring2.rotation.x = -Math.PI / 2;
+            tbReticle.add(ring1);
+            tbReticle.add(ring2);
+            tbArrowGroup.add(tbReticle);
+
+            updateTargetingDisplay();
+            animateTargetingTestbench();
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            const container = document.querySelector('.testbench-viewport-container');
+            if (!container || !tbCamera || !tbRenderer) return;
+            tbCamera.aspect = container.clientWidth / container.clientHeight;
+            tbCamera.updateProjectionMatrix();
+            tbRenderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function setAttackType(type) {
+            currentAttackType = type;
+            document.querySelectorAll('.attack-btn').forEach(b => b.classList.remove('active'));
+            if (type === 'ranged') document.getElementById('btnTypeRanged').classList.add('active');
+            if (type === 'melee') document.getElementById('btnTypeMelee').classList.add('active');
+            if (type === 'self') document.getElementById('btnTypeSelf').classList.add('active');
+
+            updateTargetingDisplay();
+        }
+
+        function updateTargetDistance(val) {
+            currentTargetDistance = parseInt(val);
+            document.getElementById('sliderValueText').textContent = `${currentTargetDistance} Hex${currentTargetDistance === 1 ? '' : (currentTargetDistance < 5 ? 'y' : 'ov')}`;
+            updateTargetingDisplay();
+        }
+
+        function updateTargetingDisplay() {
+            const sourcePos = tbSourceMesh.position;
+            // Place target at distance along Z axis (1 hex ~ 1.5 units)
+            const targetZ = sourcePos.z - (currentTargetDistance * 1.5);
+            tbTargetMesh.position.set(0, 0.05, targetZ);
+            const targetPos = tbTargetMesh.position;
+
+            // Check Validity Rules
+            let isValid = true;
+            let ruleMessage = "";
+            let arcH = 1.6;
+
+            if (currentAttackType === 'melee') {
+                isValid = (currentTargetDistance === 1);
+                arcH = 0.5;
+                ruleMessage = isValid ? "✓ V DOSAHU (Susedný hex)" : "✕ MIMO DOSAHU (Melee vyžaduje presne 1 hex)";
+            } else if (currentAttackType === 'self') {
+                isValid = (currentTargetDistance === 0);
+                arcH = 0.2;
+                ruleMessage = isValid ? "✓ V DOSAHU (Vlastné pole)" : "✕ MIMO DOSAHU (Self akcia iba na seba)";
+            } else {
+                // Ranged (1 to 4)
+                isValid = (currentTargetDistance >= 1 && currentTargetDistance <= 4);
+                arcH = Math.min(3.8, 1.0 + currentTargetDistance * 0.55);
+                ruleMessage = isValid ? `✓ V DOSAHU (${currentTargetDistance} hexov / Max 4)` : (currentTargetDistance < 1 ? "✕ PRÍLIŠ BLÍZKO" : "✕ MIMO MAXIMÁLNEHO DOSAHU");
+            }
+
+            document.getElementById('formulaText').textContent = `H(${currentTargetDistance}) = ${arcH.toFixed(2)}m (Typ: ${currentAttackType.toUpperCase()})`;
+
+            // HUD Badges
+            const distPill = document.getElementById('hudDistancePill');
+            const statusPill = document.getElementById('hudStatusPill');
+
+            distPill.textContent = `📏 VZDIALENOSŤ: ${currentTargetDistance} HEX${currentTargetDistance === 1 ? '' : 'Y'}`;
+            if (isValid) {
+                statusPill.textContent = `🟢 ${ruleMessage}`;
+                statusPill.style.color = "var(--neon-green)";
+                statusPill.style.borderColor = "var(--neon-green)";
+            } else {
+                statusPill.textContent = `🔴 ${ruleMessage}`;
+                statusPill.style.color = "var(--alert-red)";
+                statusPill.style.borderColor = "var(--alert-red)";
+            }
+
+            // Curve Colors
+            const colorHex = isValid ? 0x66fcf1 : 0xff453a;
+            const threeColor = new THREE.Color(colorHex);
+
+            // Rebuild Bezier Curve
+            const midX = (sourcePos.x + targetPos.x) / 2;
+            const midZ = (sourcePos.z + targetPos.z) / 2;
+            const midY = Math.max(sourcePos.y, targetPos.y) + arcH;
+            const controlPoint = new THREE.Vector3(midX, midY, midZ);
+
+            const curve = new THREE.QuadraticBezierCurve3(
+                new THREE.Vector3(sourcePos.x, sourcePos.y + 0.35, sourcePos.z),
+                controlPoint,
+                new THREE.Vector3(targetPos.x, targetPos.y + 0.2, targetPos.z)
+            );
+
+            if (tbArrowCurveLine) {
+                tbArrowGroup.remove(tbArrowCurveLine);
+                if (tbArrowCurveLine.geometry) tbArrowCurveLine.geometry.dispose();
+                if (tbArrowCurveLine.material) tbArrowCurveLine.material.dispose();
+            }
+
+            const tubeGeom = new THREE.TubeGeometry(curve, 32, 0.07, 8, false);
+            const tubeMat = new THREE.MeshStandardMaterial({
+                color: threeColor,
+                emissive: threeColor,
+                emissiveIntensity: isValid ? 0.8 : 0.4,
+                transparent: true,
+                opacity: 0.9
+            });
+            tbArrowCurveLine = new THREE.Mesh(tubeGeom, tubeMat);
+            tbArrowCurveLine.userData = { curve: curve };
+            tbArrowGroup.add(tbArrowCurveLine);
+
+            // Orient Cone Arrowhead
+            tbArrowHead.position.set(targetPos.x, targetPos.y + 0.2, targetPos.z);
+            tbArrowHead.material.color.copy(threeColor);
+            tbArrowHead.material.emissive.copy(threeColor);
+
+            const tangent = curve.getTangent(1.0).normalize();
+            tbArrowHead.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tangent);
+
+            // Reticle
+            tbReticle.position.set(targetPos.x, targetPos.y + 0.05, targetPos.z);
+            tbReticle.children.forEach(c => c.material.color.copy(threeColor));
+
+            // Sync Dynamic Island
+            syncDynamicIslandState(isValid, ruleMessage);
+        }
+
+        function animateTargetingTestbench() {
+            requestAnimationFrame(animateTargetingTestbench);
+            if (tbReticle) {
+                tbReticle.rotation.y += 0.02;
+            }
+            tbRenderer.render(tbScene, tbCamera);
+        }
+
+        function fireDemoProjectile() {
+            if (!tbArrowCurveLine || !tbArrowCurveLine.userData.curve) return;
+            const curve = tbArrowCurveLine.userData.curve;
+
+            playProceduralSound('whoosh');
+
+            const projGeom = new THREE.SphereGeometry(0.18, 16, 16);
+            const projMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x66fcf1, emissiveIntensity: 2.0 });
+            const projMesh = new THREE.Mesh(projGeom, projMat);
+            tbScene.add(projMesh);
+
+            const startTime = performance.now();
+            const duration = 500 + currentTargetDistance * 80;
+
+            function travelStep(now) {
+                const elapsed = now - startTime;
+                const t = Math.min(1.0, elapsed / duration);
+                const pos = curve.getPoint(t);
+                projMesh.position.copy(pos);
+
+                if (t < 1.0) {
+                    requestAnimationFrame(travelStep);
+                } else {
+                    tbScene.remove(projMesh);
+                    projGeom.dispose();
+                    projMat.dispose();
+                    triggerShockwaveImpact(pos);
+                }
+            }
+            requestAnimationFrame(travelStep);
+        }
+
+        function triggerShockwaveImpact(pos) {
+            playProceduralSound(currentAttackType === 'melee' ? 'melee' : 'crystal');
+
+            const shockGeom = new THREE.RingGeometry(0.2, 0.35, 32);
+            shockGeom.rotateX(-Math.PI / 2);
+            const shockMat = new THREE.MeshBasicMaterial({ color: 0x66fcf1, transparent: true, opacity: 1.0, side: THREE.DoubleSide });
+            const shockMesh = new THREE.Mesh(shockGeom, shockMat);
+            shockMesh.position.set(pos.x, 0.06, pos.z);
+            tbScene.add(shockMesh);
+
+            const startTime = performance.now();
+            const duration = 400;
+
+            function shockStep(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(1.0, elapsed / duration);
+                const scale = 1.0 + progress * 3.5;
+                shockMesh.scale.set(scale, 1, scale);
+                shockMat.opacity = 1.0 - progress;
+
+                if (progress < 1.0) {
+                    requestAnimationFrame(shockStep);
+                } else {
+                    tbScene.remove(shockMesh);
+                    shockGeom.dispose();
+                    shockMat.dispose();
+                }
+            }
+            requestAnimationFrame(shockStep);
+        }
+
+        // ---------------------------------------------------------------------
+        // 4. DYNAMIC ISLAND SIMULATOR
+        // ---------------------------------------------------------------------
+        function syncDynamicIslandState(isValid, text) {
+            const island = document.getElementById('simulatedIsland');
+            const dot = document.getElementById('simulatedDot');
+            const title = document.getElementById('simulatedTitle');
+            const sub = document.getElementById('simulatedSub');
+
+            title.textContent = `🎯 KRYŠTÁLOVÝ METEOR [${currentAttackType.toUpperCase()}]`;
+
+            if (isValid) {
+                island.className = "dynamic-island-capsule in-range";
+                dot.style.background = "var(--neon-green)";
+                dot.style.boxShadow = "0 0 8px var(--neon-green)";
+                sub.innerHTML = `<strong style="color:var(--neon-green)">${text}</strong> — Kliknite pre útok!`;
+            } else {
+                island.className = "dynamic-island-capsule out-range";
+                dot.style.background = "var(--alert-red)";
+                dot.style.boxShadow = "0 0 8px var(--alert-red)";
+                sub.innerHTML = `<strong style="color:var(--alert-red)">${text}</strong> — Nemožno vykonať akciu!`;
+                playProceduralSound('error');
+            }
+        }
+
+        function setIslandState(state) {
+            const island = document.getElementById('simulatedIsland');
+            const dot = document.getElementById('simulatedDot');
+            const title = document.getElementById('simulatedTitle');
+            const sub = document.getElementById('simulatedSub');
+
+            island.className = "dynamic-island-capsule";
+
+            if (state === 'ambient') {
+                island.classList.remove('in-range', 'out-range');
+                dot.style.background = "var(--cyan)";
+                dot.style.boxShadow = "0 0 8px var(--cyan)";
+                title.textContent = "⚔️ KOLO 1 // EKONOMICKÁ FÁZA";
+                sub.innerHTML = "Voľný pohyb a zber surovín z ovládnutých sektorov";
+            } else if (state === 'in-range') {
+                island.classList.add('in-range');
+                dot.style.background = "var(--neon-green)";
+                dot.style.boxShadow = "0 0 8px var(--neon-green)";
+                title.textContent = "🎯 KRYŠTÁLOVÝ METEOR [RANGED]";
+                sub.innerHTML = "<strong style=\"color:var(--neon-green)\">✓ V DOSAHU (2 hexy / Max: 4)</strong> — Pripravené na útok";
+            } else if (state === 'out-range') {
+                island.classList.add('out-range');
+                dot.style.background = "var(--alert-red)";
+                dot.style.boxShadow = "0 0 8px var(--alert-red)";
+                title.textContent = "🎯 KRYŠTÁLOVÝ METEOR [RANGED]";
+                sub.innerHTML = "<strong style=\"color:var(--alert-red)\">✕ MIMO DOSAHU (5 hexov / Max: 4)</strong> — Priblížte sa";
+                playProceduralSound('error');
+            } else if (state === 'insufficient-mana') {
+                island.style.borderColor = "var(--druid-amber)";
+                dot.style.background = "var(--druid-amber)";
+                dot.style.boxShadow = "0 0 8px var(--druid-amber)";
+                title.textContent = "⚠️ NEDOSTATOK MANY";
+                sub.innerHTML = "Potrebujete 3 Many, máte iba 1 Manu v ledgeru";
+                playProceduralSound('error');
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // 5. PROCEDURAL WEB AUDIO SYNTHESIZER
+        // ---------------------------------------------------------------------
+        let audioCtx;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playProceduralSound(type) {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+
+                if (type === 'crystal') {
+                    // Chime Bell
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(1760, now);
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(2640, now);
+
+                    gain.gain.setValueAtTime(0.35, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+                    osc1.connect(gain);
+                    osc2.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.4);
+                    osc2.stop(now + 0.4);
+                } else if (type === 'slime') {
+                    // Slime Splatter
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const filter = ctx.createBiquadFilter();
+
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.25);
+
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(500, now);
+
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'druid') {
+                    // Nature Chord
+                    [440, 554.37, 659.25].forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.04);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.04);
+                        osc.stop(now + 0.5);
+                    });
+                } else if (type === 'melee') {
+                    // Blunt Thump
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(110, now);
+                    osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+                    gain.gain.setValueAtTime(0.5, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'whoosh') {
+                    // Parabolic Whoosh (Noise buffer)
+                    const bufferSize = ctx.sampleRate * 0.2;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(1200, now);
+                    filter.frequency.exponentialRampToValueAtTime(300, now + 0.2);
+
+                    const gain = ctx.createGain();
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    noise.start(now);
+                    noise.stop(now + 0.2);
+                } else if (type === 'error') {
+                    // Out of range double buzz
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(110, now);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.18);
+                }
+            } catch(e) {
+                console.warn("Audio play blocked or unavailable", e);
+            }
+        }
+
+        // Initialize when DOM is ready
+        window.addEventListener('DOMContentLoaded', () => {
+            initCard3D();
+            initTargetingTestbench();
+        });
+    </script>
+</body>
+</html>

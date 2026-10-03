@@ -1,37 +1,91 @@
 version: '3.8'
 
 services:
-  cortex-core:
-    build: .
-    image: gamesa/cortex-v2:latest
-    container_name: gamesa_cortex_v2
-    restart: always
-
-    # Enable Hardware Passthrough for GPU/NPU
-    devices:
-      - /dev/dri:/dev/dri # Intel/AMD GPU
-      # - /dev/kfd:/dev/kfd # AMD ROCm (Uncomment if needed)
-
-      # For NVIDIA support (requires nvidia-container-toolkit)
-      # deploy:
-      #   resources:
-      #     reservations:
-      #       devices:
-      #         - driver: nvidia
-      #           count: 1
-      #           capabilities: [gpu]
-
+  # ────────────────────────────────────────────────────────────────────────────
+  # PROTOCOL 1A: KRYSTAL WEB HUB & 3D STUDIO (PORT 8080 - HTTP & WEBSOCKET)
+  # ────────────────────────────────────────────────────────────────────────────
+  krystal-web-hub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: krystal-stack/web-hub:latest
+    container_name: krystal_web_hub
+    restart: unless-stopped
+    command: ["python3", "-u", "-m", "krystal_web_hub.server", "8080"]
+    ports:
+      - "8080:8080"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ENGINE_CORE_URL=http://krystal-engine-core:8089
+      - SECURE_COMMERCE_URL=https://krystal-secure-commerce:8443
     volumes:
-      - .:/app # Mount current dir for live reload/code access
+      - ./krystal_web_hub:/app/krystal_web_hub
+      - ./logs:/app/logs
+    networks:
+      - krystal-network
+    depends_on:
+      - krystal-engine-core
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
 
+  # ────────────────────────────────────────────────────────────────────────────
+  # PROTOCOL 1B: KRYSTAL 3D ENGINE CORE (PORT 8089 - AST CMS & PROCEDURAL GEN)
+  # ────────────────────────────────────────────────────────────────────────────
+  krystal-engine-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: krystal-stack/engine-core:latest
+    container_name: krystal_engine_core
+    restart: unless-stopped
+    command: ["python3", "-u", "-m", "krystal_web_hub.krystal_engine_core", "8089"]
+    ports:
+      - "8089:8089"
     environment:
       - PYTHONUNBUFFERED=1
       - VULKAN_SDK_PATH=/usr
-      - OPENCL_VENDOR_PATH=/etc/OpenCL/vendors
+    volumes:
+      - ./krystal_web_hub:/app/krystal_web_hub
+      - ./godot_project:/app/godot_project
+    networks:
+      - krystal-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8089/api/status"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
 
-    # Security privileges for hardware access (Optional but often needed for raw device access)
-    privileged: true
-  # Future Services
-  # redis:
-  #   image: redis:alpine
-  #   ports: ["6379:6379"]
+  # ────────────────────────────────────────────────────────────────────────────
+  # PROTOCOL 2: SECURE TLS INVENTORY & COMMERCE GATEWAY (PORT 8443 - HTTPS/TLS)
+  # ────────────────────────────────────────────────────────────────────────────
+  krystal-secure-commerce:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: krystal-stack/secure-commerce:latest
+    container_name: krystal_secure_commerce
+    restart: unless-stopped
+    command: ["python3", "-u", "-m", "krystal_web_hub.secure_trading_server", "8443"]
+    ports:
+      - "8443:8443"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TLS_ENABLED=true
+    volumes:
+      - ./krystal_web_hub:/app/krystal_web_hub
+      - ./krystal_web_hub/certs:/app/krystal_web_hub/certs
+    networks:
+      - krystal-network
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:8443/api/commerce/status"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+networks:
+  krystal-network:
+    name: krystal-mesh
+    driver: bridge

@@ -1,0 +1,106 @@
+{
+  "template_id": "TPL_CALABI_YAU_CROSS_SECTION_HOLOGRAPHIC_QUANTUM_5F",
+  "name": "Calabi-Yau 6D Manifold 3D Cross-Section × Quantum Interference Hologram",
+  "geometric_instance": {
+    "id": "CALABI_YAU_CROSS_SECTION",
+    "name": "Calabi-Yau 6D Manifold 3D Cross-Section",
+    "category": "superstring_topology",
+    "symmetry_group": "SU(3) Holonomy",
+    "formula": "z1^n + z2^n = 1 projected via complex stereographic transform",
+    "default_params": {
+      "n": 5,
+      "alpha": 0.45,
+      "projection_dim": 6
+    },
+    "composition_rules": {
+      "mirror_folds": 5,
+      "fresnel_reflectance": 0.92,
+      "depth_layers": 32
+    },
+    "preferred_glyphs": [
+      "∫",
+      "∮",
+      "∇",
+      "∂",
+      "∞",
+      "∝",
+      "∘",
+      "·"
+    ]
+  },
+  "artistic_instance": {
+    "id": "HOLOGRAPHIC_QUANTUM",
+    "name": "Quantum Interference Hologram",
+    "primary_palette": {
+      "r": 0,
+      "g": 255,
+      "b": 180
+    },
+    "accent_palette": {
+      "r": 180,
+      "g": 80,
+      "b": 255
+    },
+    "background_tint": {
+      "r": 2,
+      "g": 3,
+      "b": 8
+    },
+    "chromatic_aberration": 0.012,
+    "scanline_density": 240.0,
+    "glyph_ramp": " ·∙∘⋄◇◈◆█",
+    "hud_elements": [
+      "INTERFERENCE_WAVE",
+      "HE-NE_LASER_632NM",
+      "PARALLAX_SLICES"
+    ]
+  },
+  "composition_rules": {
+    "mirror_folds": 5,
+    "fold_angle_deg": 36.0,
+    "fold_angle_rad": 0.62832,
+    "recursion_depth": 32,
+    "fresnel_reflectance": 0.92,
+    "golden_harmonic_scale": 0.90824,
+    "symmetry_group": "D5 (Dihedral 10-fold symmetry)"
+  },
+  "vulkan_shader_uniforms": {
+    "u_mirror_folds": 5,
+    "u_fold_angle": 0.6283185307179586,
+    "u_recursion_limit": 32,
+    "u_fresnel_factor": 0.92,
+    "u_chromatic_aberration": 0.012,
+    "u_scanline_density": 240.0,
+    "u_primary_color": [
+      0.0,
+      1.0,
+      0.7058823529411765,
+      1.0
+    ],
+    "u_accent_color": [
+      0.7058823529411765,
+      0.3137254901960784,
+      1.0,
+      1.0
+    ]
+  },
+  "ascii_config": {
+    "glyph_ramp": " ·∙∘⋄◇◈◆█",
+    "preferred_glyphs": [
+      "∫",
+      "∮",
+      "∇",
+      "∂",
+      "∞",
+      "∝",
+      "∘",
+      "·"
+    ],
+    "hud_elements": [
+      "INTERFERENCE_WAVE",
+      "HE-NE_LASER_632NM",
+      "PARALLAX_SLICES"
+    ]
+  },
+  "custom_notes": "Generated via Antigravity Prompt: 'Calabi-Yau 6D cross section with quantum holographic laser interference fringes'"
+}

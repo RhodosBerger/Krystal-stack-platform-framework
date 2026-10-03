@@ -35,3 +35,10 @@ Runs deterministic safety checks. Returns `False` if an immediate shutdown is re
 ### `CorticalMonitor` (Layer 2 Safety)
 #### `analyze_patterns(history: List[dict])`
 Analyzes long-term usage trends to optimize safety policies.
+
+---
+
+## Project Intelligence (HTTP, Mission Control)
+
+Read-only endpoints: `GET /api/project/overview`, `/api/priorities[?limit&sort&category&include_healthy&refresh]`, `/api/priorities/<id>`, `/api/expertise[?priority=<id>]`, `/api/compute-patterns`. Full schema and examples: [PROJECT_INTELLIGENCE_API.md](PROJECT_INTELLIGENCE_API.md). Analysis: [PROJECT_AUDIT_AND_COMPUTE_PATTERNS.md](PROJECT_AUDIT_AND_COMPUTE_PATTERNS.md).
+

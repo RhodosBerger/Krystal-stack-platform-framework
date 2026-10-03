@@ -1,0 +1,102 @@
+{
+  "template_id": "TPL_PLATONIC_DODECAHEDRON_BIOMECHANICAL_GIGER_3F",
+  "name": "Pentagonal Dodecahedron × Bio-Mechanical Ribbed Organism",
+  "geometric_instance": {
+    "id": "PLATONIC_DODECAHEDRON",
+    "name": "Pentagonal Dodecahedron",
+    "category": "platonic_solid",
+    "symmetry_group": "Ih (Icosahedral 120-fold)",
+    "formula": "max(|x*phi + y/phi|, |y*phi + z/phi|, |z*phi + x/phi|) - radius",
+    "default_params": {
+      "radius": 1.25,
+      "phi": 1.6180339887,
+      "facet_bevel": 0.08
+    },
+    "composition_rules": {
+      "mirror_folds": 5,
+      "fresnel_reflectance": 0.9,
+      "depth_layers": 20
+    },
+    "preferred_glyphs": [
+      "⬠",
+      "⬡",
+      "⎔",
+      "✦",
+      "+",
+      "x"
+    ]
+  },
+  "artistic_instance": {
+    "id": "BIOMECHANICAL_GIGER",
+    "name": "Bio-Mechanical Ribbed Organism",
+    "primary_palette": {
+      "r": 180,
+      "g": 210,
+      "b": 170
+    },
+    "accent_palette": {
+      "r": 90,
+      "g": 130,
+      "b": 80
+    },
+    "background_tint": {
+      "r": 5,
+      "g": 8,
+      "b": 5
+    },
+    "chromatic_aberration": 0.004,
+    "scanline_density": 180.0,
+    "glyph_ramp": " ·:;oO08#%&@",
+    "hud_elements": [
+      "PULSE_RHYTHM",
+      "CHITIN_INTEGRITY",
+      "SPORE_DENSITY"
+    ]
+  },
+  "composition_rules": {
+    "mirror_folds": 3,
+    "fold_angle_deg": 60.0,
+    "fold_angle_rad": 1.0472,
+    "recursion_depth": 24,
+    "fresnel_reflectance": 0.88,
+    "golden_harmonic_scale": 0.8518,
+    "symmetry_group": "D3 (Dihedral 6-fold symmetry)"
+  },
+  "vulkan_shader_uniforms": {
+    "u_mirror_folds": 3,
+    "u_fold_angle": 1.0471975511965976,
+    "u_recursion_limit": 24,
+    "u_fresnel_factor": 0.88,
+    "u_chromatic_aberration": 0.004,
+    "u_scanline_density": 180.0,
+    "u_primary_color": [
+      0.7058823529411765,
+      0.8235294117647058,
+      0.6666666666666666,
+      1.0
+    ],
+    "u_accent_color": [
+      0.35294117647058826,
+      0.5098039215686274,
+      0.3137254901960784,
+      1.0
+    ]
+  },
+  "ascii_config": {
+    "glyph_ramp": " ·:;oO08#%&@",
+    "preferred_glyphs": [
+      "⬠",
+      "⬡",
+      "⎔",
+      "✦",
+      "+",
+      "x"
+    ],
+    "hud_elements": [
+      "PULSE_RHYTHM",
+      "CHITIN_INTEGRITY",
+      "SPORE_DENSITY"
+    ]
+  },
+  "custom_notes": ""
+}

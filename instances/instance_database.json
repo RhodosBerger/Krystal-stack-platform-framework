@@ -1,0 +1,134 @@
+{
+  "version": "2.0.0",
+  "name": "Krystal-Stack Geometric & Artistic Instance Catalog",
+  "updated": "2026-10-01",
+  "geometric_instances": [
+    {
+      "id": "PLATONIC_OCTAHEDRON",
+      "name": "Octahedral Dual Crystal",
+      "category": "platonic_solid",
+      "symmetry_group": "Oh (Octahedral 48-fold)",
+      "formula": "|x| + |y| + |z| - radius",
+      "default_params": { "radius": 1.15, "wireframe_thickness": 0.04, "facet_bevel": 0.05 },
+      "composition_rules": { "mirror_folds": 4, "fresnel_reflectance": 0.85, "depth_layers": 16 },
+      "preferred_glyphs": ["⋄", "◇", "◈", "◆", "|", "/", "-", "\\"]
+    },
+    {
+      "id": "PLATONIC_DODECAHEDRON",
+      "name": "Pentagonal Dodecahedron",
+      "category": "platonic_solid",
+      "symmetry_group": "Ih (Icosahedral 120-fold)",
+      "formula": "max(|x*phi + y/phi|, |y*phi + z/phi|, |z*phi + x/phi|) - radius",
+      "default_params": { "radius": 1.25, "phi": 1.6180339887, "facet_bevel": 0.08 },
+      "composition_rules": { "mirror_folds": 5, "fresnel_reflectance": 0.90, "depth_layers": 20 },
+      "preferred_glyphs": ["⬠", "⬡", "⎔", "✦", "+", "x"]
+    },
+    {
+      "id": "TORUS_KNOT_P3_Q5",
+      "name": "Parametric Trefoil Torus Knot T(3,5)",
+      "category": "topological_manifold",
+      "symmetry_group": "C3v",
+      "formula": "r = cos(q*phi) + 2.0, x = r*cos(p*phi), y = r*sin(p*phi), z = -sin(q*phi)",
+      "default_params": { "p": 3, "q": 5, "tube_radius": 0.16, "major_radius": 1.2 },
+      "composition_rules": { "mirror_folds": 3, "fresnel_reflectance": 0.75, "depth_layers": 24 },
+      "preferred_glyphs": ["@", "8", "&", "o", "*", "•", "░", "▒"]
+    },
+    {
+      "id": "HYPERBOLIC_GYROID",
+      "name": "Triply Periodic Minimal Gyroid (TPMS)",
+      "category": "hyperbolic_surface",
+      "symmetry_group": "Ia3d",
+      "formula": "sin(x)*cos(y) + sin(y)*cos(z) + sin(z)*cos(x) - isovalue",
+      "default_params": { "scale": 2.4, "thickness": 0.12, "isovalue": 0.0 },
+      "composition_rules": { "mirror_folds": 6, "fresnel_reflectance": 0.80, "depth_layers": 32 },
+      "preferred_glyphs": ["~", "≈", "§", "▓", "▒", "░", "•"]
+    },
+    {
+      "id": "MENGER_SPONGE_RECURSIVE",
+      "name": "Recursive Menger Fractal Sponge",
+      "category": "fractal_manifold",
+      "symmetry_group": "Oh (Fractal Self-Similar)",
+      "formula": "Box(p) intersected with infinite cross cavities at 3^N scales",
+      "default_params": { "iterations": 4, "scale": 3.0, "sub_hole_scale": 1.0 },
+      "composition_rules": { "mirror_folds": 8, "fresnel_reflectance": 0.95, "depth_layers": 24 },
+      "preferred_glyphs": ["█", "▓", "▒", "░", "#", "+", ":", "."]
+    },
+    {
+      "id": "KALEIDOSCOPIC_IFS",
+      "name": "Dihedral Kaleidoscopic IFS Fold",
+      "category": "sacred_geometry",
+      "symmetry_group": "D6 (Hexagonal Dihedral)",
+      "formula": "p = abs(p), rotate(pi/N), fold across plane normals n=(cos a, sin a, 0)",
+      "default_params": { "folds": 6, "scale": 1.85, "offset": 1.1 },
+      "composition_rules": { "mirror_folds": 6, "fresnel_reflectance": 0.88, "depth_layers": 24 },
+      "preferred_glyphs": ["*", "✦", "✧", "✶", "✹", "✺", "/", "\\", "|", "-"]
+    },
+    {
+      "id": "CALABI_YAU_CROSS_SECTION",
+      "name": "Calabi-Yau 6D Manifold 3D Cross-Section",
+      "category": "superstring_topology",
+      "symmetry_group": "SU(3) Holonomy",
+      "formula": "z1^n + z2^n = 1 projected via complex stereographic transform",
+      "default_params": { "n": 5, "alpha": 0.45, "projection_dim": 6 },
+      "composition_rules": { "mirror_folds": 5, "fresnel_reflectance": 0.92, "depth_layers": 32 },
+      "preferred_glyphs": ["∫", "∮", "∇", "∂", "∞", "∝", "∘", "·"]
+    }
+  ],
+  "artistic_instances": [
+    {
+      "id": "CYBERPUNK_NEON_AR",
+      "name": "Cyberpunk Neon AR Horizon",
+      "primary_palette": { "r": 0, "g": 240, "b": 255 },
+      "accent_palette": { "r": 255, "g": 0, "b": 85 },
+      "background_tint": { "r": 7, "g": 9, "b": 14 },
+      "chromatic_aberration": 0.008,
+      "scanline_density": 120.0,
+      "glyph_ramp": " ░▒▓█",
+      "hud_elements": ["RETICLE_CIRCULAR", "RECURSIVE_HORIZON", "VOLTAGE_GAUGE"]
+    },
+    {
+      "id": "BLUEPRINT_SCHEMATIC",
+      "name": "Technical ISO Blueprint Engineering",
+      "primary_palette": { "r": 0, "g": 200, "b": 255 },
+      "accent_palette": { "r": 255, "g": 255, "b": 255 },
+      "background_tint": { "r": 2, "g": 10, "b": 25 },
+      "chromatic_aberration": 0.001,
+      "scanline_density": 60.0,
+      "glyph_ramp": " .:-=+*#%@",
+      "hud_elements": ["GRID_COORDINATES", "TOLERANCE_DIMENSIONS", "AXIS_TRIPOD"]
+    },
+    {
+      "id": "BIOMECHANICAL_GIGER",
+      "name": "Bio-Mechanical Ribbed Organism",
+      "primary_palette": { "r": 180, "g": 210, "b": 170 },
+      "accent_palette": { "r": 90, "g": 130, "b": 80 },
+      "background_tint": { "r": 5, "g": 8, "b": 5 },
+      "chromatic_aberration": 0.004,
+      "scanline_density": 180.0,
+      "glyph_ramp": " ·:;oO08#%&@",
+      "hud_elements": ["PULSE_RHYTHM", "CHITIN_INTEGRITY", "SPORE_DENSITY"]
+    },
+    {
+      "id": "HOLOGRAPHIC_QUANTUM",
+      "name": "Quantum Interference Hologram",
+      "primary_palette": { "r": 0, "g": 255, "b": 180 },
+      "accent_palette": { "r": 180, "g": 80, "b": 255 },
+      "background_tint": { "r": 2, "g": 3, "b": 8 },
+      "chromatic_aberration": 0.012,
+      "scanline_density": 240.0,
+      "glyph_ramp": " ·∙∘⋄◇◈◆█",
+      "hud_elements": ["INTERFERENCE_WAVE", "HE-NE_LASER_632NM", "PARALLAX_SLICES"]
+    },
+    {
+      "id": "MONASTIC_ALCHEMICAL",
+      "name": "Sacred Alchemical Geometric Circles",
+      "primary_palette": { "r": 255, "g": 200, "b": 80 },
+      "accent_palette": { "r": 255, "g": 100, "b": 30 },
+      "background_tint": { "r": 12, "g": 6, "b": 4 },
+      "chromatic_aberration": 0.003,
+      "scanline_density": 90.0,
+      "glyph_ramp": " .✦✧✶✹✺᚛᚜⎔",
+      "hud_elements": ["GOLDEN_SPIRAL", "MERKABA_STAR", "RUNIC_RING"]
+    }
+  ]
+}

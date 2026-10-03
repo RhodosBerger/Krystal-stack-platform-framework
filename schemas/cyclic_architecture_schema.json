@@ -1,0 +1,156 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KrystalStackCyclicArchitectureSchema",
+  "description": "Formal schema for the Symplectic Hamiltonian Cyclic Organism, cognitive brainwaves, and thermodynamic phase space regulation in Krystal-Stack.",
+  "type": "object",
+  "required": [
+    "organism_id",
+    "hamiltonian_parameters",
+    "state_vector",
+    "cognitive_phase",
+    "telemetry"
+  ],
+  "properties": {
+    "organism_id": {
+      "type": "string",
+      "description": "Unique identifier of the computational organism instance",
+      "example": "Organism-Alpha-Prime"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0.0"
+    },
+    "cognitive_phase": {
+      "type": "string",
+      "enum": ["ALPHA", "BETA", "GAMMA", "OMEGA"],
+      "description": "Current cognitive macro-state (ALPHA: Idle/Synthesis, BETA: Active Flow, GAMMA: Hyper-Focus Force, OMEGA: Entropy Backpressure)"
+    },
+    "hamiltonian_parameters": {
+      "type": "object",
+      "required": ["mass_inertia", "spring_constants", "homeostatic_setpoints", "barrier_limits"],
+      "properties": {
+        "mass_inertia": {
+          "type": "array",
+          "items": { "type": "number", "minimum": 0.001 },
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "Diagonal elements of mass inertia tensor M for [complexity, target_fps, vram_fraction, economic_balance]"
+        },
+        "spring_constants": {
+          "type": "array",
+          "items": { "type": "number", "minimum": 0.0 },
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "Harmonic restoring force constants k_i toward homeostatic setpoints"
+        },
+        "homeostatic_setpoints": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "Target optimal operating coordinates q* for the organism"
+        },
+        "barrier_limits": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "Upper bounds q_max preventing hardware damage or resource starvation"
+        },
+        "linear_damping_gamma": {
+          "type": "number",
+          "default": 0.05,
+          "minimum": 0.0
+        },
+        "nonlinear_entropy_beta": {
+          "type": "number",
+          "default": 2.5,
+          "minimum": 0.0
+        }
+      }
+    },
+    "state_vector": {
+      "type": "object",
+      "required": ["q_coordinates", "p_momentum"],
+      "properties": {
+        "q_coordinates": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "[visual_complexity, current_fps, vram_usage_frac, economic_render_ratio]"
+        },
+        "p_momentum": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "Conjugate momenta p_i = m_i * dq_i/dt"
+        }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "required": ["total_energy_h", "kinetic_energy_t", "potential_energy_v", "lyapunov_stability_index", "visual_entropy"],
+      "properties": {
+        "total_energy_h": {
+          "type": "number",
+          "description": "Total Hamiltonian energy H(q, p) = T + V"
+        },
+        "kinetic_energy_t": {
+          "type": "number",
+          "minimum": 0.0,
+          "description": "Kinetic computational energy sum(p_i^2 / (2 * m_i))"
+        },
+        "potential_energy_v": {
+          "type": "number",
+          "description": "Potential homeostatic energy V(q)"
+        },
+        "lyapunov_stability_index": {
+          "type": "number",
+          "description": "Lyapunov function value L(q, p) measuring distance from stable attractor"
+        },
+        "visual_entropy": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Combined spatial and temporal visual entropy of the rendering pipeline"
+        },
+        "gpu_temperature_c": {
+          "type": "number",
+          "description": "Monitored or simulated GPU junction temperature"
+        },
+        "economic_budget": {
+          "type": "number",
+          "description": "Current governor balance"
+        }
+      }
+    },
+    "control_actuation": {
+      "type": "object",
+      "properties": {
+        "raymarch_step_budget": {
+          "type": "integer",
+          "minimum": 12,
+          "maximum": 64
+        },
+        "active_style_palette": {
+          "type": "string"
+        },
+        "thread_priority": {
+          "type": "string",
+          "enum": ["IDLE", "LOW", "NORMAL", "ABOVE_NORMAL", "REALTIME"]
+        },
+        "vram_zone_distribution": {
+          "type": "object",
+          "properties": {
+            "mining_percent": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
+            "render_percent": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
+            "inference_percent": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
+            "buffer_percent": { "type": "number", "minimum": 0.0, "maximum": 100.0 }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+[gd_scene load_steps=7 format=3 uid="uid://df8k3y7v1q2x"]
+
+[ext_resource type="Script" path="res://scripts/KrystalHoloBridge.gd" id="1_bridge"]
+[ext_resource type="Shader" path="res://shaders/ascii_hologram.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_post"]
+shader = ExtResource("2_shader")
+shader_parameter/cell_size = Vector2(8, 16)
+shader_parameter/edge_threshold = 0.22
+shader_parameter/holographic_glow = 1.6
+shader_parameter/scanline_frequency = 140.0
+shader_parameter/chromatic_disparity = 0.006
+shader_parameter/tint_near = Vector3(0, 0.95, 1)
+shader_parameter/tint_far = Vector3(1, 0.05, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gem"]
+albedo_color = Color(0, 0.85, 1, 1)
+metallic = 0.8
+roughness = 0.1
+emission_enabled = true
+emission = Color(0, 0.4, 0.8, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="PrismMesh" id="PrismMesh_gem"]
+material = SubResource("StandardMaterial3D_gem")
+size = Vector3(2, 2.5, 2)
+
+[sub_resource type="Environment" id="Environment_dark"]
+background_mode = 1
+background_color = Color(0.015, 0.02, 0.04, 1)
+ambient_light_color = Color(0.1, 0.2, 0.3, 1)
+
+[node name="HoloStage" type="Node3D"]
+script = ExtResource("1_bridge")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_dark")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 5, 5, 5)
+light_color = Color(0.7, 0.9, 1, 1)
+light_energy = 2.0
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9659, 0.2588, 0, -0.2588, 0.9659, 0, 1.2, 4)
+current = true
+
+[node name="KrystalDiamond" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("PrismMesh_gem")
+
+[node name="PostProcessLayer" type="CanvasLayer" parent="."]
+
+[node name="HoloRect" type="ColorRect" parent="PostProcessLayer"]
+material = SubResource("ShaderMaterial_post")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

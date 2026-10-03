@@ -1,0 +1,107 @@
+{
+  "template_id": "TPL_TORUS_KNOT_P3_Q5_BLUEPRINT_SCHEMATIC_3F",
+  "name": "Parametric Trefoil Torus Knot T(3,5) × Technical ISO Blueprint Engineering",
+  "geometric_instance": {
+    "id": "TORUS_KNOT_P3_Q5",
+    "name": "Parametric Trefoil Torus Knot T(3,5)",
+    "category": "topological_manifold",
+    "symmetry_group": "C3v",
+    "formula": "r = cos(q*phi) + 2.0, x = r*cos(p*phi), y = r*sin(p*phi), z = -sin(q*phi)",
+    "default_params": {
+      "p": 3,
+      "q": 5,
+      "tube_radius": 0.16,
+      "major_radius": 1.2
+    },
+    "composition_rules": {
+      "mirror_folds": 3,
+      "fresnel_reflectance": 0.75,
+      "depth_layers": 24
+    },
+    "preferred_glyphs": [
+      "@",
+      "8",
+      "&",
+      "o",
+      "*",
+      "•",
+      "░",
+      "▒"
+    ]
+  },
+  "artistic_instance": {
+    "id": "BLUEPRINT_SCHEMATIC",
+    "name": "Technical ISO Blueprint Engineering",
+    "primary_palette": {
+      "r": 0,
+      "g": 200,
+      "b": 255
+    },
+    "accent_palette": {
+      "r": 255,
+      "g": 255,
+      "b": 255
+    },
+    "background_tint": {
+      "r": 2,
+      "g": 10,
+      "b": 25
+    },
+    "chromatic_aberration": 0.001,
+    "scanline_density": 60.0,
+    "glyph_ramp": " .:-=+*#%@",
+    "hud_elements": [
+      "GRID_COORDINATES",
+      "TOLERANCE_DIMENSIONS",
+      "AXIS_TRIPOD"
+    ]
+  },
+  "composition_rules": {
+    "mirror_folds": 3,
+    "fold_angle_deg": 60.0,
+    "fold_angle_rad": 1.0472,
+    "recursion_depth": 24,
+    "fresnel_reflectance": 0.75,
+    "golden_harmonic_scale": 0.8518,
+    "symmetry_group": "D3 (Dihedral 6-fold symmetry)"
+  },
+  "vulkan_shader_uniforms": {
+    "u_mirror_folds": 3,
+    "u_fold_angle": 1.0471975511965976,
+    "u_recursion_limit": 24,
+    "u_fresnel_factor": 0.75,
+    "u_chromatic_aberration": 0.001,
+    "u_scanline_density": 60.0,
+    "u_primary_color": [
+      0.0,
+      0.7843137254901961,
+      1.0,
+      1.0
+    ],
+    "u_accent_color": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "ascii_config": {
+    "glyph_ramp": " .:-=+*#%@",
+    "preferred_glyphs": [
+      "@",
+      "8",
+      "&",
+      "o",
+      "*",
+      "•",
+      "░",
+      "▒"
+    ],
+    "hud_elements": [
+      "GRID_COORDINATES",
+      "TOLERANCE_DIMENSIONS",
+      "AXIS_TRIPOD"
+    ]
+  },
+  "custom_notes": "Generated via Antigravity Prompt: 'trefoil torus knot technical blueprint schematic with CAD grid and 3 folds'"
+}

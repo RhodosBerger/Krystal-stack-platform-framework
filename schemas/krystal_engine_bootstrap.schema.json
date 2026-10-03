@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://krystal-stack.org/schemas/krystal_engine_bootstrap.schema.json",
+  "title": "Krystal Engine Bootstrap Web Specification",
+  "description": "Standardized declarative component schema for 3D procedural engines, viewports, spatial grids, and modifiers in web technologies (the 3D Web Engine analog of Twitter Bootstrap).",
+  "type": "object",
+  "required": ["version", "viewport", "scene"],
+  "properties": {
+    "version": { "type": "string", "default": "1.0.0" },
+    "viewport": {
+      "type": "object",
+      "required": ["aspect_ratio", "render_backend"],
+      "properties": {
+        "aspect_ratio": { "type": "string", "enum": ["16:9", "4:3", "1:1", "21:9", "fullscreen"] },
+        "render_backend": { "type": "string", "enum": ["ascii_canvas", "webgl2", "webgpu", "sse_stream"] },
+        "resolution": {
+          "type": "object",
+          "properties": {
+            "cols": { "type": "integer", "default": 96 },
+            "rows": { "type": "integer", "default": 40 }
+          }
+        },
+        "responsive_breakpoints": {
+          "type": "object",
+          "properties": {
+            "sm": { "type": "string", "default": "48x24" },
+            "md": { "type": "string", "default": "72x32" },
+            "lg": { "type": "string", "default": "96x40" },
+            "xl": { "type": "string", "default": "128x50" }
+          }
+        }
+      }
+    },
+    "scene": {
+      "type": "object",
+      "required": ["camera", "lighting"],
+      "properties": {
+        "camera": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["orbital", "first_person", "cinematic_flyby", "fixed"] },
+            "fov": { "type": "number", "default": 60.0 },
+            "position": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+            "target": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 }
+          }
+        },
+        "lighting": {
+          "type": "object",
+          "properties": {
+            "sun_direction": { "type": "array", "items": { "type": "number" } },
+            "ambient_color": { "type": "array", "items": { "type": "number" } },
+            "fog_density": { "type": "number", "default": 0.04 },
+            "fog_color": { "type": "array", "items": { "type": "number" } }
+          }
+        },
+        "layout_grids": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "instances"],
+            "properties": {
+              "type": { "type": "string", "enum": ["radial", "linear", "hexagonal", "menger_fractal"] },
+              "count": { "type": "integer", "default": 6 },
+              "spacing": { "type": "number", "default": 2.5 },
+              "instances": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["instance_id"],
+                  "properties": {
+                    "instance_id": { "type": "string" },
+                    "scale": { "type": "number", "default": 1.0 },
+                    "modifiers": { "type": "array", "items": { "type": "string" } },
+                    "material_token": { "type": "string", "default": "k-mat-cyber-neon" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post_processing": {
+          "type": "object",
+          "properties": {
+            "scanlines": { "type": "boolean", "default": true },
+            "bloom": { "type": "number", "default": 0.4 },
+            "crt_curvature": { "type": "boolean", "default": false },
+            "anaglyph_3d": { "type": "boolean", "default": false }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,39 +1,45 @@
-# Use Ubuntu 22.04 as base for broad hardware support (Intel/Vulkan)
-FROM ubuntu:22.04
+# ==============================================================================
+# KRYSTAL-STACK: MODULAR MULTI-PROTOCOL CONTAINER PLATFORM
+# ==============================================================================
+FROM python:3.12-slim-bookworm
 
-# Prevent interactive prompts
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-# 1. Install System Dependencies
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip python3-venv \
-    cmake build-essential curl \
-    vulkan-tools libvulkan-dev \
-    ocl-icd-opencl-dev opencl-headers \
+# 1. System Dependencies & Networking Utilities
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    openssl \
+    ca-certificates \
+    build-essential \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. Install Rust
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-# 3. Work Directory
 WORKDIR /app
 
-# 4. Copy Code
-COPY . /app
+# 2. Python Dependencies
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir --upgrade pip && \
+    if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
 
-# 5. Install Python Dependencies
-RUN pip3 install --no-cache-dir --upgrade pip && \
-    pip3 install --no-cache-dir \
-    numpy scipy wgpu pyopencl llama-cpp-python
+# 3. Copy Application Code & Assets
+COPY . /app/
 
-# 6. Build Rust Planner
-WORKDIR /app/gamesa_cortex_v2/rust_planner
-RUN cargo build --release
+# 4. Generate Default TLS Certificates if missing
+RUN mkdir -p /app/krystal_web_hub/certs && \
+    if [ ! -f /app/krystal_web_hub/certs/cert.pem ]; then \
+        openssl req -x509 -newkey rsa:2048 \
+        -keyout /app/krystal_web_hub/certs/key.pem \
+        -out /app/krystal_web_hub/certs/cert.pem \
+        -days 365 -nodes -subj "/CN=krystal.mesh/O=KrystalStack/C=SK"; \
+    fi
 
-# 7. Reset Workdir
-WORKDIR /app
+# 5. Expose Ports:
+#   - 8080: Web Hub & 3D WebGL Studio (HTTP & WebSocket)
+#   - 8089: Engine Core CMS & AST Backend (HTTP/REST)
+#   - 8443: Secure Commerce, Inventory & Underdog Gateway (HTTPS/TLS)
+EXPOSE 8080 8089 8443
 
-# 8. Define Entrypoint
-CMD ["python3", "-m", "gamesa_cortex_v2.src.core.npu_coordinator"]
+# 6. Default Command (Can be overridden by docker-compose)
+CMD ["python3", "-u", "-m", "krystal_web_hub.server", "8080"]

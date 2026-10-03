@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRYSTAL-STACK // NEURAL GENIE RENDERER</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0b0c10;
+            color: #c5c6c7;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        h1 {
+            font-family: 'Cinzel', serif;
+            color: #66fcf1;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-family: monospace;
+            color: #8b92a5;
+            margin-bottom: 30px;
+        }
+        
+        .genie-viewport {
+            width: 800px;
+            height: 450px;
+            background: #000;
+            border: 2px solid #66fcf1;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 40px rgba(102, 252, 241, 0.2);
+            transition: filter 0.3s ease;
+        }
+
+        .genie-frame {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 1;
+            transition: opacity 0.1s ease; /* Faster transition for animation */
+        }
+
+        .genie-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+            z-index: 10;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .action-btn {
+            background: rgba(18, 22, 28, 0.9);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-family: monospace;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: rgba(102, 252, 241, 0.1);
+            border-color: #66fcf1;
+            color: #66fcf1;
+            transform: translateY(-2px);
+        }
+        
+        .action-btn.special {
+            border-color: #ff4081;
+            color: #ff4081;
+        }
+        .action-btn.special:hover {
+            background: rgba(255, 64, 129, 0.1);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .loading-bar-container {
+            width: 800px;
+            height: 4px;
+            background: #222;
+            margin-top: 10px;
+            border-radius: 2px;
+            overflow: hidden;
+            display: none;
+        }
+        .loading-bar {
+            height: 100%;
+            width: 0%;
+            background: #66fcf1;
+        }
+        
+        .console-log {
+            margin-top: 20px;
+            width: 800px;
+            height: 100px;
+            background: #000;
+            color: #66fcf1;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>NEURAL DYNAMICS RENDERER</h1>
+    <div class="subtitle">Action-Conditional Frame Generation (Genie Analog)</div>
+
+    <div class="genie-viewport" id="viewport">
+        <div class="genie-overlay" id="hud">VQ-VAE: INITIALIZED | BASE FRAME</div>
+        <!-- Preloaded images for sequence -->
+        <img src="/static/images/krystal_hero.jpg" class="genie-frame" id="frame-0" style="z-index: 5;">
+        <img src="/static/images/genie_seq_1.jpg" class="genie-frame" id="frame-1" style="z-index: 4; opacity: 0;">
+        <img src="/static/images/genie_seq_2.jpg" class="genie-frame" id="frame-2" style="z-index: 3; opacity: 0;">
+        <img src="/static/images/genie_seq_3.jpg" class="genie-frame" id="frame-3" style="z-index: 2; opacity: 0;">
+    </div>
+    
+    <div class="loading-bar-container" id="loading-container">
+        <div class="loading-bar" id="loading-bar"></div>
+    </div>
+
+    <div class="controls">
+        <button class="action-btn" onclick="triggerAction('idle')">[I] IDLE</button>
+        <button class="action-btn special" onclick="triggerSequence()">[E] NEURAL SEQUENCE: CAST SPELL</button>
+    </div>
+    
+    <div class="console-log" id="clog">
+        > System Online. Waiting for Latent Action...
+    </div>
+
+    <script>
+        const hud = document.getElementById('hud');
+        const loader = document.getElementById('loading-container');
+        const loaderBar = document.getElementById('loading-bar');
+        const clog = document.getElementById('clog');
+        let isAnimating = false;
+
+        function log(msg) {
+            clog.innerHTML += '<br>> ' + msg;
+            clog.scrollTop = clog.scrollHeight;
+        }
+
+        function triggerAction(type) {
+            if (isAnimating) return;
+            log(`Action: ${type}. No latent dynamic frames available. Reseting view.`);
+            document.getElementById('frame-0').style.opacity = 1;
+            document.getElementById('frame-1').style.opacity = 0;
+            document.getElementById('frame-2').style.opacity = 0;
+            document.getElementById('frame-3').style.opacity = 0;
+            hud.innerText = `VQ-VAE: IDLE | BASE FRAME`;
+        }
+
+        function triggerSequence() {
+            if (isAnimating) return;
+            isAnimating = true;
+            log("INITIATING ACTION-CONDITIONAL GENERATION: CAST SPELL");
+            
+            // Step 1: Simulate the Neural processing delay
+            loader.style.display = 'block';
+            loaderBar.style.transition = 'none';
+            loaderBar.style.width = '0%';
+            
+            setTimeout(() => {
+                loaderBar.style.transition = 'width 1s linear';
+                loaderBar.style.width = '100%';
+                log("Inferencing frames from Latent Space...");
+            }, 50);
+
+            // Step 2: Playback the sequence (like a GIF / Genie output)
+            setTimeout(() => {
+                loader.style.display = 'none';
+                log("PLAYBACK: Frame 1 (Gathering Energy)");
+                hud.innerText = `GENERATED: FRAME 1/3 (GATHER)`;
+                document.getElementById('frame-0').style.opacity = 0;
+                document.getElementById('frame-1').style.opacity = 1;
+                document.getElementById('frame-1').style.zIndex = 10;
+                
+                setTimeout(() => {
+                    log("PLAYBACK: Frame 2 (Energy Burst)");
+                    hud.innerText = `GENERATED: FRAME 2/3 (BURST)`;
+                    document.getElementById('frame-1').style.opacity = 0;
+                    document.getElementById('frame-2').style.opacity = 1;
+                    document.getElementById('frame-2').style.zIndex = 10;
+
+                    setTimeout(() => {
+                        log("PLAYBACK: Frame 3 (Impact Cataclysm)");
+                        hud.innerText = `GENERATED: FRAME 3/3 (IMPACT)`;
+                        document.getElementById('frame-2').style.opacity = 0;
+                        document.getElementById('frame-3').style.opacity = 1;
+                        document.getElementById('frame-3').style.zIndex = 10;
+                        
+                        setTimeout(() => {
+                            log("Sequence Complete. Exporting to GIF buffer... [Mock]");
+                            isAnimating = false;
+                        }, 1000);
+                        
+                    }, 800); // Frame 2 duration
+                }, 800); // Frame 1 duration
+            }, 1050); // Neural delay
+        }
+    </script>
+</body>
+</html>

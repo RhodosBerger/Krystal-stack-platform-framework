@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POSLEDNÍ KMEN // TRIBAL WARS EDITION (DYNAMIC UI)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            background-image: url('/static/images/innogames_base.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* TOP RESOURCE BAR */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(to bottom, #1a1a1a, #0b0c10);
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+            z-index: 100;
+        }
+
+        .resource {
+            margin: 0 20px;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.3s;
+        }
+
+        .res-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .icon-mana { background: #66fcf1; box-shadow: 0 0 10px #66fcf1; }
+        .icon-hp { background: #ff4081; box-shadow: 0 0 10px #ff4081; }
+        .icon-flags { background: #ffaa00; box-shadow: 0 0 10px #ffaa00; }
+
+        /* LEFT PANEL */
+        .left-panel {
+            position: absolute;
+            top: 60px;
+            left: 10px;
+            width: 250px;
+            background: rgba(18, 22, 28, 0.9);
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            z-index: 100;
+        }
+
+        .left-panel h3 {
+            font-family: 'Cinzel', serif;
+            color: #66fcf1;
+            margin-top: 0;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+
+        .hero-portrait {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #66fcf1;
+            margin-bottom: 10px;
+        }
+
+        /* INTERACTIVE HOTSPOTS ON THE MAP */
+        .hotspot {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: rgba(102, 252, 241, 0.0);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .hotspot:hover {
+            background: rgba(102, 252, 241, 0.2);
+            box-shadow: 0 0 30px rgba(102, 252, 241, 0.5);
+            border: 1px dashed #66fcf1;
+        }
+
+        .hotspot-label {
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            pointer-events: none;
+            border: 1px solid #66fcf1;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .hotspot:hover .hotspot-label { opacity: 1; }
+
+        #spot-main { top: 45%; left: 45%; }
+        #spot-mine { top: 25%; left: 20%; }
+        #spot-barracks { top: 30%; left: 70%; width: 200px; height: 150px; }
+
+        /* FLOATING TEXT ANIMATION (+200 MANA) */
+        .floating-text {
+            position: absolute;
+            color: #66fcf1;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'Cinzel', serif;
+            text-shadow: 0 0 10px #000;
+            z-index: 9999;
+            pointer-events: none;
+            animation: floatUp 1.5s forwards ease-out;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+
+        /* FULLSCREEN ANIMATION LAYER (Z-INDEX 9000) */
+        #animation-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+        }
+
+        .anim-frame {
+            width: 800px;
+            height: 450px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid #66fcf1;
+            box-shadow: 0 0 50px rgba(102, 252, 241, 0.5);
+            position: absolute;
+            opacity: 0;
+        }
+        
+        /* SHAKE EFFECT FOR THE SCREEN */
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="resource" id="res-mana-container"><span class="res-icon icon-mana"></span> <span id="res-mana">1200</span> (Ledger Mana)</div>
+        <div class="resource"><span class="res-icon icon-hp"></span> <span id="res-hp">6</span> / 6 (Hero HP)</div>
+        <div class="resource"><span class="res-icon icon-flags"></span> <span id="res-flags">0</span> (Vlajky)</div>
+    </div>
+
+    <div class="left-panel">
+        <h3>Severní Štíty</h3>
+        <img src="/static/images/krystal_hero.jpg" class="hero-portrait" alt="Hero">
+        <div style="font-size: 12px; color: #888; margin-bottom: 15px;">Úroveň 1 | Hrdina Kmeňa</div>
+        <p style="font-size: 13px;">Klikajte priamo na budovy na mape na vykonanie dynamických akcií. Účtovníctvo a bojové animácie sú plne prepojené.</p>
+    </div>
+
+    <!-- MAP HOTSPOTS -->
+    <div class="hotspot" id="spot-main" onclick="upgradeCamp(event)">
+        <div class="hotspot-label">Vylepšiť Tábor (-500)</div>
+    </div>
+    <div class="hotspot" id="spot-mine" onclick="harvestMana(event)">
+        <div class="hotspot-label">Vyťažiť Manu (+200)</div>
+    </div>
+    <div class="hotspot" id="spot-barracks" onclick="triggerCombatSequence()">
+        <div class="hotspot-label">Vojnové Kasárne (Útok)</div>
+    </div>
+
+    <!-- Z-INDEX 9000 ANIMATION OVERLAY (Fakes a GIF playback) -->
+    <div id="animation-layer">
+        <img src="/static/images/genie_seq_1.jpg" class="anim-frame" id="anim-f1">
+        <img src="/static/images/genie_seq_2.jpg" class="anim-frame" id="anim-f2">
+        <img src="/static/images/genie_seq_3.jpg" class="anim-frame" id="anim-f3">
+    </div>
+
+    <script>
+        let mana = 1200;
+
+        function updateUI() {
+            document.getElementById('res-mana').innerText = mana;
+            // Pulse the UI element
+            const m = document.getElementById('res-mana-container');
+            m.style.color = '#66fcf1';
+            setTimeout(() => { m.style.color = '#e0e0e0'; }, 300);
+        }
+
+        function createFloatingText(x, y, text, color) {
+            const floatEl = document.createElement('div');
+            floatEl.className = 'floating-text';
+            floatEl.style.left = (x - 20) + 'px';
+            floatEl.style.top = y + 'px';
+            floatEl.style.color = color;
+            floatEl.innerText = text;
+            document.body.appendChild(floatEl);
+
+            setTimeout(() => { floatEl.remove(); }, 1500);
+        }
+
+        function harvestMana(e) {
+            mana += 200;
+            updateUI();
+            
+            // Spark dynamic visual instead of console log
+            createFloatingText(e.clientX, e.clientY, "+200 MANA", "#66fcf1");
+        }
+
+        function upgradeCamp(e) {
+            if (mana >= 500) {
+                mana -= 500;
+                updateUI();
+                createFloatingText(e.clientX, e.clientY, "-500 MANA (VYLEPŠENÉ)", "#ffaa00");
+                
+                // Add a cool visual flash to the screen
+                const flash = document.createElement('div');
+                flash.style.position = 'fixed';
+                flash.style.top = 0; flash.style.left = 0; flash.style.width = '100%'; flash.style.height = '100%';
+                flash.style.background = 'rgba(255, 170, 0, 0.4)';
+                flash.style.zIndex = 8000;
+                flash.style.pointerEvents = 'none';
+                flash.style.transition = 'opacity 0.5s';
+                document.body.appendChild(flash);
+                setTimeout(() => { flash.style.opacity = 0; }, 100);
+                setTimeout(() => { flash.remove(); }, 600);
+                
+            } else {
+                createFloatingText(e.clientX, e.clientY, "NEDOSTATOK MANY", "red");
+            }
+        }
+
+        function triggerCombatSequence() {
+            // Checks if enough mana to launch attack
+            if (mana < 300) {
+                const b = document.getElementById('spot-barracks').getBoundingClientRect();
+                createFloatingText(b.left + 50, b.top + 50, "CENA ÚTOKU: 300 MANA", "red");
+                return;
+            }
+            
+            mana -= 300;
+            updateUI();
+            
+            const b = document.getElementById('spot-barracks').getBoundingClientRect();
+            createFloatingText(b.left + 50, b.top + 50, "-300 MANA (ÚTOK!)", "#ff4081");
+
+            // Play GIF/Animation Sequence on Z-index 9000 Layer
+            const layer = document.getElementById('animation-layer');
+            const f1 = document.getElementById('anim-f1');
+            const f2 = document.getElementById('anim-f2');
+            const f3 = document.getElementById('anim-f3');
+            
+            layer.style.display = 'flex';
+            
+            // Frame 1
+            setTimeout(() => { f1.style.opacity = 1; }, 100);
+            
+            // Frame 2
+            setTimeout(() => { 
+                f1.style.opacity = 0; 
+                f2.style.opacity = 1; 
+            }, 800);
+            
+            // Frame 3 (Explosion + Screen Shake)
+            setTimeout(() => { 
+                f2.style.opacity = 0; 
+                f3.style.opacity = 1; 
+                document.body.classList.add('shake');
+                setTimeout(() => { document.body.classList.remove('shake'); }, 500);
+            }, 1600);
+            
+            // Clean up / Close
+            setTimeout(() => { 
+                f3.style.opacity = 0; 
+                layer.style.display = 'none'; 
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

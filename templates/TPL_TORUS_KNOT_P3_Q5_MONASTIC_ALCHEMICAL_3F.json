@@ -1,0 +1,107 @@
+{
+  "template_id": "TPL_TORUS_KNOT_P3_Q5_MONASTIC_ALCHEMICAL_3F",
+  "name": "Parametric Trefoil Torus Knot T(3,5) × Sacred Alchemical Geometric Circles",
+  "geometric_instance": {
+    "id": "TORUS_KNOT_P3_Q5",
+    "name": "Parametric Trefoil Torus Knot T(3,5)",
+    "category": "topological_manifold",
+    "symmetry_group": "C3v",
+    "formula": "r = cos(q*phi) + 2.0, x = r*cos(p*phi), y = r*sin(p*phi), z = -sin(q*phi)",
+    "default_params": {
+      "p": 3,
+      "q": 5,
+      "tube_radius": 0.16,
+      "major_radius": 1.2
+    },
+    "composition_rules": {
+      "mirror_folds": 3,
+      "fresnel_reflectance": 0.75,
+      "depth_layers": 24
+    },
+    "preferred_glyphs": [
+      "@",
+      "8",
+      "&",
+      "o",
+      "*",
+      "•",
+      "░",
+      "▒"
+    ]
+  },
+  "artistic_instance": {
+    "id": "MONASTIC_ALCHEMICAL",
+    "name": "Sacred Alchemical Geometric Circles",
+    "primary_palette": {
+      "r": 255,
+      "g": 200,
+      "b": 80
+    },
+    "accent_palette": {
+      "r": 255,
+      "g": 100,
+      "b": 30
+    },
+    "background_tint": {
+      "r": 12,
+      "g": 6,
+      "b": 4
+    },
+    "chromatic_aberration": 0.003,
+    "scanline_density": 90.0,
+    "glyph_ramp": " .✦✧✶✹✺᚛᚜⎔",
+    "hud_elements": [
+      "GOLDEN_SPIRAL",
+      "MERKABA_STAR",
+      "RUNIC_RING"
+    ]
+  },
+  "composition_rules": {
+    "mirror_folds": 3,
+    "fold_angle_deg": 60.0,
+    "fold_angle_rad": 1.0472,
+    "recursion_depth": 24,
+    "fresnel_reflectance": 0.88,
+    "golden_harmonic_scale": 0.8518,
+    "symmetry_group": "D3 (Dihedral 6-fold symmetry)"
+  },
+  "vulkan_shader_uniforms": {
+    "u_mirror_folds": 3,
+    "u_fold_angle": 1.0471975511965976,
+    "u_recursion_limit": 24,
+    "u_fresnel_factor": 0.88,
+    "u_chromatic_aberration": 0.003,
+    "u_scanline_density": 90.0,
+    "u_primary_color": [
+      1.0,
+      0.7843137254901961,
+      0.3137254901960784,
+      1.0
+    ],
+    "u_accent_color": [
+      1.0,
+      0.39215686274509803,
+      0.11764705882352941,
+      1.0
+    ]
+  },
+  "ascii_config": {
+    "glyph_ramp": " .✦✧✶✹✺᚛᚜⎔",
+    "preferred_glyphs": [
+      "@",
+      "8",
+      "&",
+      "o",
+      "*",
+      "•",
+      "░",
+      "▒"
+    ],
+    "hud_elements": [
+      "GOLDEN_SPIRAL",
+      "MERKABA_STAR",
+      "RUNIC_RING"
+    ]
+  },
+  "custom_notes": ""
+}

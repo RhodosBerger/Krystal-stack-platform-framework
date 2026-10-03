@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRYSTAL-STACK // ARCHETYPE BUILD & 120 HELPERS MATRIX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --card-bg: rgba(18, 24, 38, 0.75);
+      --card-border: rgba(102, 252, 241, 0.25);
+      --cyan: #66fcf1;
+      --cyan-glow: rgba(102, 252, 241, 0.4);
+      --purple: #9d4edd;
+      --gold: #ffd700;
+      --crimson: #ff3366;
+      --green: #00ff88;
+      --text-main: #e0e6ed;
+      --text-muted: #8892b0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(157, 78, 221, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(102, 252, 241, 0.12) 0%, transparent 45%),
+        linear-gradient(180deg, #07090e 0%, #0d111a 100%);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 25px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      margin-bottom: 25px;
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+    .brand-title span {
+      color: var(--cyan);
+      text-shadow: 0 0 15px var(--cyan-glow);
+    }
+
+    .header-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 5px 12px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+    }
+    .badge.cyan { border-color: var(--cyan); color: var(--cyan); }
+    .badge.gold { border-color: var(--gold); color: var(--gold); }
+    .badge.purple { border-color: var(--purple); color: var(--purple); }
+    .badge.green { border-color: var(--green); color: var(--green); }
+
+    .nav-links a {
+      color: var(--cyan);
+      text-decoration: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      margin-left: 15px;
+      transition: all 0.2s ease;
+    }
+    .nav-links a:hover {
+      text-shadow: 0 0 8px var(--cyan);
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 25px;
+    }
+    @media (max-width: 1200px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── LEFT PANEL: CHARACTER ROSTER ── */
+    .panel-box {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .gender-toggle {
+      display: inline-flex;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gender-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 18px;
+      border-radius: 25px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .gender-btn.active {
+      background: linear-gradient(135deg, var(--cyan), #48cae4);
+      color: #050811;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    .gender-btn.active.female {
+      background: linear-gradient(135deg, #f72585, #b5179e);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(247, 37, 133, 0.5);
+    }
+
+    .filter-select {
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .roster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 15px;
+      max-height: 750px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .roster-grid::-webkit-scrollbar {
+      width: 6px;
+    }
+    .roster-grid::-webkit-scrollbar-thumb {
+      background: var(--card-border);
+      border-radius: 4px;
+    }
+
+    .char-card {
+      background: rgba(13, 17, 26, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .char-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--cyan);
+      box-shadow: 0 8px 20px rgba(102, 252, 241, 0.2);
+    }
+    .char-card.selected {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.07);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+
+    .char-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .char-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .char-class {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--cyan);
+      text-transform: uppercase;
+      background: rgba(102, 252, 241, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(102, 252, 241, 0.3);
+    }
+
+    .char-lore {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      margin-bottom: 12px;
+      min-height: 42px;
+    }
+
+    .stat-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .stat-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .stat-pill.high {
+      background: rgba(102, 252, 241, 0.15);
+      color: var(--cyan);
+      border-color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .char-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 8px;
+      font-size: 0.75rem;
+    }
+    .char-weapon {
+      color: var(--gold);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .char-ability {
+      color: var(--purple);
+      font-weight: 600;
+    }
+
+    /* ── RIGHT PANEL: SLIDERS & COMPOSITE HUD ── */
+    .slider-section {
+      margin-bottom: 25px;
+    }
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.15rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 6px;
+    }
+
+    .slider-card {
+      background: rgba(13, 17, 26, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .slider-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .slider-value-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      padding: 2px 10px;
+      border-radius: 12px;
+      background: var(--cyan);
+      color: #07090e;
+      font-weight: 700;
+    }
+
+    .range-slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 4px;
+      background: #1b2333;
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .range-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    /* ── HELPER DISPLAY CARD ── */
+    .helper-display {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+    .helper-icon {
+      font-size: 2.2rem;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+    .helper-meta {
+      flex: 1;
+    }
+    .helper-title {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    .helper-details {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .synergy-indicator {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(0, 255, 136, 0.15);
+      border: 1px solid var(--green);
+      color: var(--green);
+      display: none;
+    }
+    .synergy-indicator.active {
+      display: inline-block;
+    }
+
+    /* ── STEPPER BUTTONS ── */
+    .stepper-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .step-btn {
+      flex: 1;
+      padding: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .step-btn:hover {
+      background: rgba(102, 252, 241, 0.2);
+      border-color: var(--cyan);
+    }
+
+    /* ── ATTRIBUTE GRID SLIDERS ── */
+    .attr-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .attr-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* ── COMPOSITE STAT HUD ── */
+    .composite-hud {
+      background: linear-gradient(135deg, rgba(20, 28, 45, 0.9), rgba(10, 15, 25, 0.95));
+      border: 1px solid var(--gold);
+      border-radius: 14px;
+      padding: 18px;
+      margin-top: 20px;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+    }
+
+    .composite-stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .comp-stat-badge {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+    .comp-stat-badge .lbl {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .comp-stat-badge .val {
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-top: 2px;
+    }
+
+    /* ── DUEL ARENA INTERACTIVE SIMULATOR ── */
+    .duel-arena {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--crimson);
+      border-radius: 14px;
+      padding: 18px;
+      margin-top: 20px;
+      box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
+    }
+    .duel-form {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .duel-select-group label {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .duel-select {
+      width: 100%;
+      background: rgba(13, 17, 26, 0.8);
+      color: #fff;
+      border: 1px solid var(--card-border);
+      padding: 8px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    .fire-duel-btn {
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--crimson), #c1121f);
+      border: none;
+      color: #fff;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
+      transition: all 0.2s ease;
+    }
+    .fire-duel-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(255, 51, 102, 0.7);
+    }
+
+    .combat-log {
+      margin-top: 14px;
+      background: #05070c;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      min-height: 80px;
+      color: #a8b2d1;
+      line-height: 1.4;
+    }
+    .combat-log .highlight {
+      color: var(--gold);
+      font-weight: 700;
+    }
+    .combat-log .hit {
+      color: var(--crimson);
+      font-weight: 700;
+    }
+    .combat-log .evaded {
+      color: var(--green);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1 class="brand-title">KRYSTAL<span>STACK</span> // ARCHETYPY & SLIDERY</h1>
+      <div class="header-badges" style="margin-top: 6px;">
+        <span class="badge cyan">[ 20 MUŽSKÝCH POSTÁV ]</span>
+        <span class="badge purple">[ 20 ŽENSKÝCH POSTÁV ]</span>
+        <span class="badge gold">[ 12 RÁS ]</span>
+        <span class="badge green">[ 120 POMOCNÍKOV ]</span>
+        <span class="badge">[ MAX 6 HP VITAL INVARIANT ]</span>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="/" target="_blank">[ HUB HOME ]</a>
+      <a href="/game" target="_blank">[ 3D GAME ]</a>
+      <a href="/manual" target="_blank">[ DESIGN MANUÁL ]</a>
+      <a href="/static/godot_builder_extension.html" target="_blank">[ GODOT EXTENSION ]</a>
+    </div>
+  </header>
+
+  <div class="main-grid">
+
+    <!-- ── LEFT: 20 REPRESENTATIVES (GENDER TOGGLE & ROSTER) ── -->
+    <div class="panel-box">
+      <div class="controls-row">
+        <div class="gender-toggle">
+          <button class="gender-btn active" id="btnMale" onclick="switchGender('male')">Muž (20 Predstaviteľov)</button>
+          <button class="gender-btn female" id="btnFemale" onclick="switchGender('female')">Žena (20 Predstaviteliek)</button>
+        </div>
+
+        <select class="filter-select" id="classFilter" onchange="filterArchetypes()">
+          <option value="">Všetky Triedy (20)</option>
+          <option value="Veštec">Veštci / Veštice</option>
+          <option value="Čarodej">Čarodejníci / Čarodejnice</option>
+          <option value="Mág">Mágovia / Mágky</option>
+          <option value="Kúzelník">Kúzelníci / Kúzelníčky</option>
+          <option value="Iluzionista">Iluzionisti / Iluzionistky</option>
+          <option value="Chladný Vystupovač">Chladní Vystupovači / Vystupovačky</option>
+          <option value="Odolávač">Odolávači / Odolávačky</option>
+        </select>
+      </div>
+
+      <div class="roster-grid" id="rosterGrid">
+        <!-- Dynamically rendered representative cards -->
+      </div>
+    </div>
+
+    <!-- ── RIGHT: SLIDERS (RACE x12, HELPERS x120, DUEL STATS) ── -->
+    <div class="panel-box">
+
+      <!-- 1. RACE SLIDER (1 to 12) -->
+      <div class="slider-section">
+        <div class="section-title">
+          <span>👑</span> Výber Rasy [1 - 12]
+        </div>
+        <div class="slider-card">
+          <div class="slider-header">
+            <span class="slider-label" id="raceLabel">Kryštálový Kmeň (crystal)</span>
+            <span class="slider-value-badge" id="raceIndexBadge">1 / 12</span>
+          </div>
+          <input type="range" min="1" max="12" value="1" class="range-slider" id="raceSlider" oninput="onRaceSliderChange(this.value)">
+          <div class="helper-display" id="raceDisplayBox" style="margin-top: 10px;">
+            <div class="helper-icon" id="raceIcon">💎</div>
+            <div class="helper-meta">
+              <div class="helper-title" id="raceTitle">Kryštálový Kmeň</div>
+              <div class="helper-details" id="racePassives">+15% Aéterová Rezonancia, +10 Reflexy proti strelám.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. HELPER SLIDER (1 to 120) -->
+      <div class="slider-section">
+        <div class="section-title">
+          <span>🐾</span> Výber Pomocníka [1 - 120] (x120 Pomocníkov)
+        </div>
+        <div class="slider-card">
+          <div class="slider-header">
+            <span class="slider-label" id="helperNameLabel">Kryštálový Kolibrík</span>
+            <span class="slider-value-badge" id="helperIndexBadge"># 001 / 120</span>
+          </div>
+          <input type="range" min="1" max="120" value="1" class="range-slider" id="helperSlider" oninput="onHelperSliderChange(this.value)">
+          <div class="stepper-row">
+            <button class="step-btn" onclick="stepHelper(-10)">-10</button>
+            <button class="step-btn" onclick="stepHelper(-1)">-1</button>
+            <button class="step-btn" onclick="stepHelper(1)">+1</button>
+            <button class="step-btn" onclick="stepHelper(10)">+10</button>
+          </div>
+
+          <div class="helper-display">
+            <div class="helper-icon" id="helperIcon">💎</div>
+            <div class="helper-meta">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="helper-title" id="helperTitle">Kryštálový Kolibrík (Tier 1 ⭐)</div>
+                <span class="synergy-indicator active" id="synergyBadge">⚡ SYNERGIA (1.4x)</span>
+              </div>
+              <div class="helper-details" id="helperRole">Rola: Familiár | Rasa: crystal</div>
+              <div class="helper-details" id="helperAura" style="color: var(--cyan);">Aura Bonus: +8 Reflexy, +5 Presnosť</div>
+              <div class="helper-details" id="helperPower" style="color: var(--gold);">Schopnosť: Rýchly aéterový prieskum</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. THE WEST DUEL ATTRIBUTE SLIDERS -->
+      <div class="slider-section">
+        <div class="section-title">
+          <span>🎯</span> The West Atribúty Buildu & Slidery
+        </div>
+
+        <div class="attr-grid">
+          <div class="attr-item">
+            <div class="slider-header">
+              <span class="slider-label">Húževnatosť (Toughness)</span>
+              <span class="slider-value-badge" id="valToughness">+0</span>
+            </div>
+            <input type="range" min="-15" max="35" value="0" class="range-slider" id="slideToughness" oninput="updateSliders()">
+          </div>
+
+          <div class="attr-item">
+            <div class="slider-header">
+              <span class="slider-label">Reflexy (Reflexes)</span>
+              <span class="slider-value-badge" id="valReflexes">+0</span>
+            </div>
+            <input type="range" min="-15" max="35" value="0" class="range-slider" id="slideReflexes" oninput="updateSliders()">
+          </div>
+
+          <div class="attr-item">
+            <div class="slider-header">
+              <span class="slider-label">Presnosť (Aim)</span>
+              <span class="slider-value-badge" id="valAim">+0</span>
+            </div>
+            <input type="range" min="-15" max="35" value="0" class="range-slider" id="slideAim" oninput="updateSliders()">
+          </div>
+
+          <div class="attr-item">
+            <div class="slider-header">
+              <span class="slider-label">Uhýbanie (Dodge)</span>
+              <span class="slider-value-badge" id="valDodge">+0</span>
+            </div>
+            <input type="range" min="-15" max="35" value="0" class="range-slider" id="slideDodge" oninput="updateSliders()">
+          </div>
+
+          <div class="attr-item">
+            <div class="slider-header">
+              <span class="slider-label">Vystupovanie (Appearance)</span>
+              <span class="slider-value-badge" id="valAppearance">+0</span>
+            </div>
+            <input type="range" min="-15" max="35" value="0" class="range-slider" id="slideAppearance" oninput="updateSliders()">
+          </div>
+
+          <div class="attr-item">
+            <div class="slider-header">
+              <span class="slider-label">Taktika (Tactics)</span>
+              <span class="slider-value-badge" id="valTactics">+0</span>
+            </div>
+            <input type="range" min="-15" max="35" value="0" class="range-slider" id="slideTactics" oninput="updateSliders()">
+          </div>
+        </div>
+
+        <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Pohyblivosť (Mobility):</span>
+            <span class="badge" id="valMobility">+0</span>
+            <input type="range" min="-10" max="25" value="0" class="range-slider" style="width: 140px;" id="slideMobility" oninput="updateSliders()">
+          </div>
+          <button class="step-btn" style="max-width: 120px;" onclick="resetSliders()">Reset Sliderov</button>
+        </div>
+      </div>
+
+      <!-- 4. LIVE COMPOSITE STAT HUD -->
+      <div class="composite-hud">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 700; color: #fff;" id="hudHeroName">Chladný Vystupovač - Ostrý Pohľad</div>
+            <div style="font-size: 0.8rem; color: var(--gold);" id="hudCompositeSummary">Hrdina + Pomocník #1 + Kryštálová Rasa (Synergia 1.4x)</div>
+          </div>
+          <div class="badge gold" style="font-size: 0.9rem; font-weight: 700;">MAX HP: 6 / 6</div>
+        </div>
+
+        <div class="composite-stats-row">
+          <div class="comp-stat-badge">
+            <div class="lbl">Húževnatosť</div>
+            <div class="val" id="hudStatTough">14</div>
+          </div>
+          <div class="comp-stat-badge">
+            <div class="lbl">Reflexy</div>
+            <div class="val" id="hudStatReflex">35</div>
+          </div>
+          <div class="comp-stat-badge">
+            <div class="lbl">Presnosť</div>
+            <div class="val" id="hudStatAim">41</div>
+          </div>
+          <div class="comp-stat-badge">
+            <div class="lbl">Vystupovanie</div>
+            <div class="val" id="hudStatApp" style="color: var(--gold);">55</div>
+          </div>
+          <div class="comp-stat-badge">
+            <div class="lbl">Uhýbanie</div>
+            <div class="val" id="hudStatDodge">16</div>
+          </div>
+          <div class="comp-stat-badge">
+            <div class="lbl">Taktika</div>
+            <div class="val" id="hudStatTac">12</div>
+          </div>
+          <div class="comp-stat-badge">
+            <div class="lbl">Pohyblivosť</div>
+            <div class="val" id="hudStatMob">18</div>
+          </div>
+          <div class="comp-stat-badge">
+            <div class="lbl">Intimidácia</div>
+            <div class="val" id="hudStatIntim" style="color: var(--green);">+35</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. INTERACTIVE DUEL ARENA -->
+      <div class="duel-arena">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 700; color: #fff;">
+            <span>⚔️</span> The West Duelová Skúška
+          </div>
+          <span class="badge" style="border-color: var(--crimson); color: var(--crimson);">6 MAX HP CLAMP</span>
+        </div>
+
+        <div class="duel-form">
+          <div class="duel-select-group">
+            <label>Zóna Zásahu</label>
+            <select class="duel-select" id="duelZone">
+              <option value="head">Hlava (1.5x Dmg)</option>
+              <option value="right_shoulder">Pravé Rameno (1.15x)</option>
+              <option value="left_shoulder">Ľavé Rameno (1.15x)</option>
+              <option value="torso">Telo / Hrudník (1.0x)</option>
+            </select>
+          </div>
+
+          <div class="duel-select-group">
+            <label>Postoj Obrancu</label>
+            <select class="duel-select" id="duelStance">
+              <option value="stand_firm">Pevný Postoj (+Presnosť)</option>
+              <option value="duck_down">Kačica / Zohnutie (Úhyb Hlave)</option>
+              <option value="lean_left">Úklon Vľavo (Úhyb P. Ramenu)</option>
+              <option value="lean_right">Úklon Vpravo (Úhyb Ľ. Ramenu)</option>
+            </select>
+          </div>
+
+          <div class="duel-select-group">
+            <label>Kategória Zbrane</label>
+            <select class="duel-select" id="duelWeapon">
+              <option value="ranged">Strelná Zbraň (Soak Reflexy)</option>
+              <option value="cold_melee">Chladná Zbraň (Soak Húževnatosť)</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="fire-duel-btn" id="btnFireDuel" onclick="fireDuelRound()">
+          ⚡ VYSTRELIŤ DUELOVÉ KOLO
+        </button>
+
+        <div class="combat-log" id="combatLog">
+          Pripravený na duelovú simuláciu. Vyberte zónu, postoj a stlačte tlačidlo.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // State
+    let currentGender = 'male';
+    let representatives = [];
+    let currentHero = null;
+    let races = [];
+    let currentRaceIndex = 1;
+    let helpers = [];
+    let currentHelperIndex = 1;
+
+    // 12 Canonical race map fallback
+    const RACES_FALLBACK = [
+      { id: "crystal", name: "Kryštálový Kmeň", icon: "💎", passives: "+15% Aéterová Rezonancia, +10 Reflexy" },
+      { id: "toxic", name: "Jedovatý Kmeň", icon: "🧪", passives: "+20% Odolnosť voči jedu, +12 Húževnatosť" },
+      { id: "druid", name: "Prastarí Druidi", icon: "🌿", passives: "+15% Mykorhíza, +10 Taktika a liečenie" },
+      { id: "human", name: "Hraniční Ľudia", icon: "🤠", passives: "+10% Univerzálnosť, +12 Presnosť" },
+      { id: "dwarf", name: "Hlbinní Trpaslíci", icon: "⚒️", passives: "+25% Absorpcia chladných zbraní, +14 Húževnatosť" },
+      { id: "elf", name: "Hviezdni Elfovia", icon: "✨", passives: "+20% Ostreľovanie, +12 Vystupovanie a Uhýbanie" },
+      { id: "infernal", name: "Pekelní Démoni", icon: "🔥", passives: "+20% Zastrašovanie, +14 Vystupovanie" },
+      { id: "celestial", name: "Nebeskí Anjeli", icon: "🕊️", passives: "+20% Posvätný Ward, Žiarivá prítomnosť" },
+      { id: "spectral", name: "Prízrační Nemŕtvi", icon: "👻", passives: "+25% Fázový posun, +14 Uhýbanie" },
+      { id: "elemental", name: "Elementáli Živlov", icon: "⚡", passives: "+15% Elementálna nestabilita, +10 Pohyblivosť" },
+      { id: "fae", name: "Lesné Víly", icon: "🦋", passives: "+25% Zmätenie cieľa, +14 Uhýbanie a Taktika" },
+      { id: "beastkin", name: "Zvierací Bojovníci", icon: "🐺", passives: "+20% Feralny inštinkt, +12 Pohyblivosť" }
+    ];
+
+    async function init() {
+      await loadRaces();
+      await loadRepresentatives('male');
+      await loadHelper(1);
+      updateSliders();
+    }
+
+    async function loadRaces() {
+      try {
+        const resp = await fetch('/api/archetypes/races');
+        const data = await resp.json();
+        if (data.success && data.races) {
+          races = data.races;
+        } else {
+          races = RACES_FALLBACK;
+        }
+      } catch (e) {
+        races = RACES_FALLBACK;
+      }
+      onRaceSliderChange(1);
+    }
+
+    async function loadRepresentatives(gender) {
+      currentGender = gender;
+      try {
+        const resp = await fetch(`/api/archetypes/representatives?gender=${gender}`);
+        const data = await resp.json();
+        if (data.success && data.representatives) {
+          representatives = data.representatives;
+        }
+      } catch (e) {
+        console.warn("API offline, using fallback representatives");
+      }
+      renderRoster();
+    }
+
+    function renderRoster() {
+      const grid = document.getElementById('rosterGrid');
+      const filter = document.getElementById('classFilter').value.toLowerCase();
+      grid.innerHTML = '';
+
+      const filtered = representatives.filter(c => !filter || c.archetype_class.toLowerCase().includes(filter));
+
+      filtered.forEach((char, idx) => {
+        const isSelected = (!currentHero && idx === 0) || (currentHero && currentHero.id === char.id);
+        if (isSelected && !currentHero) {
+          currentHero = char;
+        }
+
+        const card = document.createElement('div');
+        card.className = `char-card ${isSelected ? 'selected' : ''}`;
+        card.id = `card_${char.id}`;
+        card.onclick = () => selectHero(char);
+
+        const ds = char.duel_stats || {};
+        const wh = char.warhammer_stats || {};
+
+        card.innerHTML = `
+          <div class="char-header">
+            <div class="char-name">${char.name}</div>
+            <span class="char-class">${char.archetype_class}</span>
+          </div>
+          <div class="char-lore">${char.lore || ''}</div>
+          <div class="stat-pills">
+            <span class="stat-pill ${ds.appearance >= 30 ? 'high' : ''}">Vystupovanie: ${ds.appearance}</span>
+            <span class="stat-pill ${ds.aim >= 28 ? 'high' : ''}">Presnosť: ${ds.aim}</span>
+            <span class="stat-pill ${ds.toughness >= 24 ? 'high' : ''}">Húževnatosť: ${ds.toughness}</span>
+            <span class="stat-pill ${ds.reflexes >= 26 ? 'high' : ''}">Reflexy: ${ds.reflexes}</span>
+            <span class="stat-pill">Uhýbanie: ${ds.dodge}</span>
+            <span class="stat-pill">Taktika: ${ds.tactics}</span>
+          </div>
+          <div class="char-footer">
+            <span class="char-weapon">⚔️ ${char.favored_weapon || 'Aéterová Zbraň'}</span>
+            <span class="char-ability">✨ ${(char.signature_ability || {}).name || 'Schopnosť'}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      if (currentHero) {
+        updateCompositeDisplay();
+      }
+    }
+
+    function selectHero(hero) {
+      currentHero = hero;
+      document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+      const activeCard = document.getElementById(`card_${hero.id}`);
+      if (activeCard) activeCard.classList.add('selected');
+      updateSliders();
+    }
+
+    function switchGender(gender) {
+      document.getElementById('btnMale').classList.toggle('active', gender === 'male');
+      document.getElementById('btnFemale').classList.toggle('active', gender === 'female');
+      currentHero = null;
+      loadRepresentatives(gender);
+    }
+
+    function filterArchetypes() {
+      renderRoster();
+    }
+
+    function onRaceSliderChange(val) {
+      currentRaceIndex = parseInt(val);
+      const r = races[currentRaceIndex - 1] || RACES_FALLBACK[0];
+      document.getElementById('raceIndexBadge').innerText = `${currentRaceIndex} / 12`;
+      document.getElementById('raceLabel').innerText = `${r.name} (${r.id})`;
+      document.getElementById('raceIcon').innerText = r.icon || '💎';
+      document.getElementById('raceTitle').innerText = r.name;
+      document.getElementById('racePassives').innerText = r.racial_passives || r.passives || '';
+      checkSynergy();
+      updateSliders();
+    }
+
+    async function loadHelper(idx) {
+      currentHelperIndex = parseInt(idx);
+      try {
+        const resp = await fetch(`/api/archetypes/helper?index=${currentHelperIndex}`);
+        const data = await resp.json();
+        if (data.success && data.helper) {
+          const h = data.helper;
+          document.getElementById('helperIndexBadge').innerText = `# ${String(h.index).padStart(3, '0')} / 120`;
+          document.getElementById('helperNameLabel').innerText = h.name;
+          document.getElementById('helperIcon').innerText = h.icon || '🐾';
+          document.getElementById('helperTitle').innerText = `${h.name} (Tier ${h.tier} ⭐)`;
+          document.getElementById('helperRole').innerText = `Rola: ${h.role} | Rasa: ${h.race}`;
+
+          const auras = Object.entries(h.aura_bonus || {}).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(', ');
+          document.getElementById('helperAura').innerText = `Aura Bonus: ${auras}`;
+          document.getElementById('helperPower').innerText = `Schopnosť: ${h.special_ability}`;
+          document.getElementById('helperSlider').value = currentHelperIndex;
+
+          checkSynergy(h.race);
+          updateSliders();
+        }
+      } catch (e) {
+        console.warn("Helper API unavailable");
+      }
+    }
+
+    function onHelperSliderChange(val) {
+      loadHelper(val);
+    }
+
+    function stepHelper(delta) {
+      let target = currentHelperIndex + delta;
+      target = Math.max(1, Math.min(120, target));
+      loadHelper(target);
+    }
+
+    function checkSynergy(helperRace) {
+      const selectedRace = races[currentRaceIndex - 1] || RACES_FALLBACK[0];
+      const match = helperRace ? (helperRace === selectedRace.id) : false;
+      const badge = document.getElementById('synergyBadge');
+      badge.classList.toggle('active', match);
+    }
+
+    function updateSliders() {
+      const t = parseInt(document.getElementById('slideToughness').value);
+      const r = parseInt(document.getElementById('slideReflexes').value);
+      const a = parseInt(document.getElementById('slideAim').value);
+      const d = parseInt(document.getElementById('slideDodge').value);
+      const app = parseInt(document.getElementById('slideAppearance').value);
+      const tac = parseInt(document.getElementById('slideTactics').value);
+      const mob = parseInt(document.getElementById('slideMobility').value);
+
+      document.getElementById('valToughness').innerText = (t >= 0 ? `+${t}` : t);
+      document.getElementById('valReflexes').innerText = (r >= 0 ? `+${r}` : r);
+      document.getElementById('valAim').innerText = (a >= 0 ? `+${a}` : a);
+      document.getElementById('valDodge').innerText = (d >= 0 ? `+${d}` : d);
+      document.getElementById('valAppearance').innerText = (app >= 0 ? `+${app}` : app);
+      document.getElementById('valTactics').innerText = (tac >= 0 ? `+${tac}` : tac);
+      document.getElementById('valMobility').innerText = (mob >= 0 ? `+${mob}` : mob);
+
+      updateCompositeDisplay();
+    }
+
+    function resetSliders() {
+      ['slideToughness', 'slideReflexes', 'slideAim', 'slideDodge', 'slideAppearance', 'slideTactics', 'slideMobility'].forEach(id => {
+        document.getElementById(id).value = 0;
+      });
+      updateSliders();
+    }
+
+    async function updateCompositeDisplay() {
+      if (!currentHero) return;
+      const race = races[currentRaceIndex - 1] || RACES_FALLBACK[0];
+
+      const sliderAdj = {
+        toughness: parseInt(document.getElementById('slideToughness').value),
+        reflexes: parseInt(document.getElementById('slideReflexes').value),
+        aim: parseInt(document.getElementById('slideAim').value),
+        dodge: parseInt(document.getElementById('slideDodge').value),
+        appearance: parseInt(document.getElementById('slideAppearance').value),
+        tactics: parseInt(document.getElementById('slideTactics').value),
+        mobility: parseInt(document.getElementById('slideMobility').value)
+      };
+
+      try {
+        const resp = await fetch('/api/archetypes/composite_build', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hero_id: currentHero.id,
+            helper_index: currentHelperIndex,
+            race_id: race.id,
+            slider_adjustments: sliderAdj,
+            synergy_scale: 1.0
+          })
+        });
+        const data = await resp.json();
+        if (data.success && data.composite_build) {
+          const comp = data.composite_build;
+          const ds = comp.composite_duel_stats;
+
+          document.getElementById('hudHeroName').innerText = `${comp.hero_name} (${comp.hero_gender === 'male' ? 'Muž' : 'Žena'})`;
+          document.getElementById('hudCompositeSummary').innerText = 
+            `Zvolená rasa: ${comp.selected_race.name} | Pomocník #${comp.selected_helper.index}: ${comp.selected_helper.name} | Synergia: x${comp.synergy_multiplier_applied}`;
+
+          document.getElementById('hudStatTough').innerText = ds.toughness;
+          document.getElementById('hudStatReflex').innerText = ds.reflexes;
+          document.getElementById('hudStatAim').innerText = ds.aim;
+          document.getElementById('hudStatApp').innerText = ds.appearance;
+          document.getElementById('hudStatDodge').innerText = ds.dodge;
+          document.getElementById('hudStatTac').innerText = ds.tactics;
+          document.getElementById('hudStatMob').innerText = ds.mobility;
+
+          const intim = ds.appearance - 20; // vs default 20 tactics
+          document.getElementById('hudStatIntim').innerText = (intim >= 0 ? `+${intim}` : intim);
+        }
+      } catch (e) {
+        console.warn("Composite API unavailable");
+      }
+    }
+
+    async function fireDuelRound() {
+      if (!currentHero) return;
+      const race = races[currentRaceIndex - 1] || RACES_FALLBACK[0];
+      const zone = document.getElementById('duelZone').value;
+      const stance = document.getElementById('duelStance').value;
+      const weapon = document.getElementById('duelWeapon').value;
+      const log = document.getElementById('combatLog');
+
+      log.innerHTML = `<span class="highlight">NABÍJAM A MIERIM...</span> Zóna: ${zone.toUpperCase()}, Postoj obrancu: ${stance.toUpperCase()}`;
+
+      try {
+        const resp = await fetch('/api/archetypes/duel_round', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hero_id: currentHero.id,
+            helper_index: currentHelperIndex,
+            race_id: race.id,
+            attack_zone: zone,
+            defense_stance: stance,
+            weapon_type: weapon,
+            base_damage: 5,
+            defender_current_hp: 6
+          })
+        });
+        const data = await resp.json();
+        if (data.success && data.duel_result) {
+          const res = data.duel_result;
+          if (res.evaded) {
+            log.innerHTML = `
+              <div class="evaded">⚔️ ÚHYB! [EVADED]</div>
+              <div>${res.evasion_reason}</div>
+              <div style="margin-top: 4px;">Udelené zranenie: <span class="highlight">0 HP</span>. HP obrancu zostáva: <span class="highlight">${res.defender_hp_after} / 6 HP</span>.</div>
+            `;
+          } else {
+            log.innerHTML = `
+              <div class="hit">💥 ZÁSAH DO ${res.target_zone.toUpperCase()}! [HIT]</div>
+              <div>Pravdepodobnosť zásahu: <span class="highlight">${Math.round(res.hit_probability * 100)}%</span>.</div>
+              <div>Mitigácia: <span class="highlight">-${res.mitigation_amount} dmg</span> cez ${res.mitigation_stat}.</div>
+              <div style="margin-top: 4px;">Čisté zranenie: <span class="hit">${res.net_damage_dealt} HP</span>. Zostáva: <span class="highlight">${res.defender_hp_after} / 6 HP</span> (Vital Invariant OK).</div>
+            `;
+          }
+        }
+      } catch (e) {
+        log.innerHTML = `<span style="color: var(--crimson);">Chyba pri simulácii duelu: ${e.message}</span>`;
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

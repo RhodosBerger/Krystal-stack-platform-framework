@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Client Dashboard // Oxygen Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Oxygen Builder CSS Variables Injection Point */
+        :root {
+            --oxy-bg-base: #07080a;
+            --oxy-surface: rgba(18, 22, 28, 0.7);
+            --oxy-surface-hover: rgba(30, 36, 45, 0.9);
+            --oxy-accent: #66fcf1;
+            --oxy-accent-dim: rgba(102, 252, 241, 0.15);
+            --oxy-text-primary: #ffffff;
+            --oxy-text-muted: #8b92a5;
+            --oxy-border: rgba(255, 255, 255, 0.08);
+            --oxy-radius: 16px;
+            --oxy-font-heading: 'Outfit', sans-serif;
+            --oxy-font-body: 'Inter', sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            background-color: var(--oxy-bg-base);
+            color: var(--oxy-text-primary);
+            font-family: var(--oxy-font-body);
+            display: flex;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 100% 0%, rgba(102, 252, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 0% 100%, rgba(69, 162, 158, 0.05) 0%, transparent 50%);
+        }
+
+        /* --- Sidebar Template (oxy-template-sidebar) --- */
+        .oxy-sidebar {
+            width: 280px;
+            background: rgba(11, 12, 16, 0.95);
+            border-right: 1px solid var(--oxy-border);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+
+        .oxy-brand {
+            font-family: var(--oxy-font-heading);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--oxy-text-primary);
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .oxy-brand-icon {
+            width: 24px; height: 24px;
+            background: var(--oxy-accent);
+            border-radius: 4px;
+            box-shadow: 0 0 15px var(--oxy-accent);
+        }
+
+        .oxy-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .oxy-nav-item {
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            color: var(--oxy-text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .oxy-nav-item:hover, .oxy-nav-item.active {
+            background: var(--oxy-accent-dim);
+            color: var(--oxy-accent);
+        }
+
+        /* --- Main Content Template (oxy-template-main) --- */
+        .oxy-main {
+            flex: 1;
+            padding: 3rem 4rem;
+            overflow-y: auto;
+        }
+
+        .oxy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .oxy-header h1 {
+            font-family: var(--oxy-font-heading);
+            font-size: 2.2rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .oxy-user {
+            background: var(--oxy-surface);
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            border: 1px solid var(--oxy-border);
+            font-weight: 500;
+        }
+
+        /* --- Widgets Template (oxy-widget-grid) --- */
+        .oxy-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .oxy-card {
+            background: var(--oxy-surface);
+            border: 1px solid var(--oxy-border);
+            border-radius: var(--oxy-radius);
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+            transition: transform 0.3s ease;
+        }
+        
+        .oxy-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--oxy-accent);
+        }
+
+        .oxy-card-title {
+            color: var(--oxy-text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .oxy-card-value {
+            font-family: var(--oxy-font-heading);
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--oxy-text-primary);
+        }
+        
+        .oxy-card-value.highlight {
+            color: var(--oxy-accent);
+        }
+
+        /* --- Invoice List Template (oxy-invoice-repeater) --- */
+        .oxy-list-header {
+            font-family: var(--oxy-font-heading);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .oxy-table {
+            width: 100%;
+            background: var(--oxy-surface);
+            border-radius: var(--oxy-radius);
+            border: 1px solid var(--oxy-border);
+            overflow: hidden;
+        }
+
+        .oxy-table-row {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--oxy-border);
+            align-items: center;
+        }
+
+        .oxy-table-row:last-child {
+            border-bottom: none;
+        }
+
+        .oxy-table-header {
+            background: rgba(0,0,0,0.5);
+            color: var(--oxy-text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .oxy-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .oxy-badge.success {
+            background: rgba(102, 252, 241, 0.1);
+            color: var(--oxy-accent);
+            border: 1px solid var(--oxy-accent);
+        }
+
+        .oxy-btn {
+            background: transparent;
+            color: var(--oxy-text-primary);
+            border: 1px solid var(--oxy-border);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .oxy-btn:hover {
+            background: var(--oxy-text-primary);
+            color: var(--oxy-bg-base);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Generated by Oxygen Template -->
+    <aside class="oxy-sidebar">
+        <div class="oxy-brand">
+            <div class="oxy-brand-icon"></div>
+            SaaS Accounting
+        </div>
+        <nav class="oxy-nav">
+            <a href="#" class="oxy-nav-item active">Client Dashboard</a>
+            <a href="#" class="oxy-nav-item">WooCommerce Sync</a>
+            <a href="#" class="oxy-nav-item">Tax Reports</a>
+            <a href="#" class="oxy-nav-item">Settings</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="oxy-main">
+        
+        <!-- Header Generated by Oxygen Dynamic Data -->
+        <header class="oxy-header">
+            <h1>Welcome, {Client_Name}</h1>
+            <div class="oxy-user">{Store_Domain}</div>
+        </header>
+
+        <!-- KPI Widgets -->
+        <div class="oxy-grid">
+            <div class="oxy-card">
+                <div class="oxy-card-title">Monthly Revenue (WooCommerce)</div>
+                <div class="oxy-card-value highlight">€ 12,450.00</div>
+            </div>
+            <div class="oxy-card">
+                <div class="oxy-card-title">Pending Invoices</div>
+                <div class="oxy-card-value">14</div>
+            </div>
+            <div class="oxy-card">
+                <div class="oxy-card-title">Estimated VAT to Pay</div>
+                <div class="oxy-card-value" style="color: #ff4081;">€ 2,490.00</div>
+            </div>
+        </div>
+
+        <!-- Repeated Items via Oxygen Repeater Component -->
+        <div class="oxy-list-header">Recent Digital Invoices</div>
+        <div class="oxy-table">
+            <div class="oxy-table-row oxy-table-header">
+                <div>UUID / Ref</div>
+                <div>Supplier / Client</div>
+                <div>Amount</div>
+                <div>Status</div>
+                <div>Action</div>
+            </div>
+            
+            <!-- Repeater Item 1 -->
+            <div class="oxy-table-row">
+                <div style="font-family: monospace; color: var(--oxy-text-muted);">8492abcd</div>
+                <div style="font-weight: 500;">Retail Customer (Woo)</div>
+                <div style="font-weight: 600;">€ 125.50</div>
+                <div><span class="oxy-badge success">PAID</span></div>
+                <div><button class="oxy-btn">View PDF</button></div>
+            </div>
+
+            <!-- Repeater Item 2 -->
+            <div class="oxy-table-row">
+                <div style="font-family: monospace; color: var(--oxy-text-muted);">fefe22a8</div>
+                <div style="font-weight: 500;">Alza.sk a.s.</div>
+                <div style="font-weight: 600;">€ 890.00</div>
+                <div><span class="oxy-badge success">DIGITIZED</span></div>
+                <div><button class="oxy-btn">View PDF</button></div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

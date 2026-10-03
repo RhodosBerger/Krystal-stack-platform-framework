@@ -1,0 +1,48 @@
+[gd_scene load_steps=7 format=3 uid="uid://m8p2k5w1q9z3"]
+
+[ext_resource type="Script" path="res://scripts/KrystalHoloBridge.gd" id="1_bridge"]
+[ext_resource type="Shader" path="res://shaders/mimicry_sdf_compositor.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mimic"]
+shader = ExtResource("2_shader")
+shader_parameter/u_recipe_mode = 0
+shader_parameter/u_smooth_k = 0.15
+shader_parameter/u_displace_strength = 0.04
+shader_parameter/u_array_count = 2
+shader_parameter/u_light_dir = Vector3(0.577, 0.707, -0.408)
+shader_parameter/u_primary_color = Color(0, 0.941, 1, 1)
+shader_parameter/u_accent_color = Color(1, 0, 0.333, 1)
+shader_parameter/cell_size = Vector2(8, 16)
+shader_parameter/cam_dist = 4.0
+shader_parameter/rot_speed = 0.35
+
+[sub_resource type="Environment" id="Environment_dark"]
+background_mode = 1
+background_color = Color(0.012, 0.016, 0.025, 1)
+ambient_light_color = Color(0.12, 0.18, 0.28, 1)
+
+[node name="MimicryCompositorStage" type="Node3D"]
+script = ExtResource("1_bridge")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_dark")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 6, 8, 6)
+light_color = Color(0.85, 0.92, 1, 1)
+light_energy = 2.4
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9396, 0.342, 0, -0.342, 0.9396, 0, 2.0, 5.0)
+current = true
+
+[node name="PostProcessLayer" type="CanvasLayer" parent="."]
+
+[node name="MimicryColorRect" type="ColorRect" parent="PostProcessLayer"]
+material = SubResource("ShaderMaterial_mimic")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
