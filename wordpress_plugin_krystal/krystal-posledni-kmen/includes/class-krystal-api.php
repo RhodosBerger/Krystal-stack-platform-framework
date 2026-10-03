@@ -39,6 +39,29 @@ class Krystal_API_Connector {
             'callback' => array( $this, 'dispatch_mcp_duel_action' ),
             'permission_callback' => '__return_true'
         ));
+
+        // Subdomain Security Routes
+        register_rest_route( 'krystal/v1', '/auth-token', array(
+            'methods'  => 'GET',
+            'callback' => array( $this, 'get_subdomain_auth_token' ),
+            'permission_callback' => function() {
+                return is_user_logged_in();
+            }
+        ));
+
+        register_rest_route( 'krystal/v1', '/subdomain/status', array(
+            'methods'  => 'GET',
+            'callback' => array( $this, 'get_subdomain_security_status' ),
+            'permission_callback' => '__return_true'
+        ));
+
+        register_rest_route( 'krystal/v1', '/subdomain/proxy', array(
+            'methods'  => 'POST',
+            'callback' => array( $this, 'proxy_subdomain_request' ),
+            'permission_callback' => function() {
+                return is_user_logged_in();
+            }
+        ));
     }
 
     /**
@@ -117,5 +140,109 @@ class Krystal_API_Connector {
             'message' => 'MCP Bridge úspešne vypočítal kolíziu a streamuje bullet time do súperovho okna.'
         ));
     }
+
+    /**
+     * Creates an HMAC-SHA256 signed bearer token compatible with KrystalSubdomainSecurityGate
+     */
+    public static function create_subdomain_token( $user_id, $username, $role, $subdomain = null ) {
+        if ( ! $subdomain ) {
+            $subdomain = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( $_SERVER['HTTP_HOST'] ) : 'krystal.poslednikmen.cz';
+        }
+        $secret = get_option( 'krystal_subdomain_secret', 'krystal_wp_subdomain_secure_secret_2026' );
+        $now = time();
+        $nonce = substr( hash( 'sha256', $user_id . ':' . $now . ':' . microtime( true ) ), 0, 16 );
+
+        $payload = array(
+            'uid' => intval( $user_id ),
+            'usr' => sanitize_text_field( $username ),
+            'rol' => sanitize_text_field( $role ),
+            'sub' => $subdomain,
+            'iat' => $now,
+            'exp' => $now + 60, // 60s anti-replay window
+            'nce' => $nonce,
+            'vhp' => 6 // Strict platform-wide invariant: VITAL_MAX_HP = 6
+        );
+
+        $json = json_encode( $payload );
+        $payload_b64 = rtrim( strtr( base64_encode( $json ), '+/', '-_' ), '=' );
+        $signature = hash_hmac( 'sha256', $payload_b64, $secret );
+
+        return $payload_b64 . '.' . $signature;
+    }
+
+    /**
+     * REST callback: returns current authenticated user's signed token
+     */
+    public function get_subdomain_auth_token( $request ) {
+        $user = wp_get_current_user();
+        if ( ! $user || ! $user->ID ) {
+            return new WP_Error( 'unauthorized', 'User not logged in', array( 'status' => 401 ) );
+        }
+
+        $roles = (array) $user->roles;
+        $primary_role = ! empty( $roles ) ? $roles[0] : 'subscriber';
+        $token = self::create_subdomain_token( $user->ID, $user->user_login, $primary_role );
+
+        return rest_ensure_response( array(
+            'success' => true,
+            'token' => $token,
+            'user_id' => $user->ID,
+            'username' => $user->user_login,
+            'role' => $primary_role,
+            'vital_max_hp_rule' => 6
+        ));
+    }
+
+    /**
+     * REST callback: returns telemetry from internal engine
+     */
+    public function get_subdomain_security_status( $request ) {
+        $engine_url = get_option( 'krystal_engine_backend_url', 'http://127.0.0.1:8089' );
+        $response = wp_remote_get( $engine_url . '/api/wordpress/subdomain/security-status', array( 'timeout' => 5 ) );
+
+        if ( is_wp_error( $response ) ) {
+            return rest_ensure_response( array(
+                'status' => 'OFFLINE',
+                'error' => $response->get_error_message(),
+                'backend_url' => $engine_url,
+                'vital_max_hp_rule' => 6
+            ));
+        }
+
+        return rest_ensure_response( json_decode( wp_remote_retrieve_body( $response ) ) );
+    }
+
+    /**
+     * REST callback: secure proxy forwarding user requests with bearer token to internal engine
+     */
+    public function proxy_subdomain_request( $request ) {
+        $user = wp_get_current_user();
+        $roles = (array) $user->roles;
+        $primary_role = ! empty( $roles ) ? $roles[0] : 'subscriber';
+        $token = self::create_subdomain_token( $user->ID, $user->user_login, $primary_role );
+
+        $endpoint = $request->get_param( 'endpoint' );
+        $body = $request->get_json_params();
+
+        $engine_url = get_option( 'krystal_engine_backend_url', 'http://127.0.0.1:8089' );
+        $target_url = rtrim( $engine_url, '/' ) . '/' . ltrim( $endpoint, '/' );
+
+        $response = wp_remote_post( $target_url, array(
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $token,
+                'X-WP-Subdomain' => isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( $_SERVER['HTTP_HOST'] ) : 'krystal.poslednikmen.cz'
+            ),
+            'body' => json_encode( $body ),
+            'timeout' => 15
+        ));
+
+        if ( is_wp_error( $response ) ) {
+            return new WP_Error( 'proxy_error', $response->get_error_message(), array( 'status' => 502 ) );
+        }
+
+        return rest_ensure_response( json_decode( wp_remote_retrieve_body( $response ) ) );
+    }
 }
+
 

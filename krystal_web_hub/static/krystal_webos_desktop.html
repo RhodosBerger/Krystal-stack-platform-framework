@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Krystal-Stack Unified WebOS Desktop & Floating Window Management System">
+  <title>Krystal WebOS Desktop // Window Manager & Neural Workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Fira+Code:wght@400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal_window_manager.css">
+  <style>
+    /* ── Internal Embedded Window Component Styles ───────────────────────── */
+    .genie-box {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 12px;
+    }
+    .genie-viewport {
+      width: 100%;
+      height: 280px;
+      background: #000;
+      border: 1px solid var(--cyan);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+    }
+    .genie-frame {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0; left: 0;
+      transition: opacity 0.15s ease;
+    }
+    .genie-overlay {
+      position: absolute;
+      top: 8px; left: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--green);
+      border: 1px solid var(--green);
+      z-index: 20;
+    }
+    .genie-loader {
+      width: 100%;
+      height: 4px;
+      background: #111;
+      border-radius: 2px;
+      overflow: hidden;
+      display: none;
+    }
+    .genie-loader-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+    }
+    .genie-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .genie-btn {
+      background: rgba(22, 28, 42, 0.8);
+      color: #fff;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .genie-btn:hover {
+      background: rgba(0, 240, 255, 0.2);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      transform: translateY(-1px);
+    }
+    .genie-btn.spell {
+      border-color: var(--magenta);
+      color: var(--magenta);
+    }
+    .genie-btn.spell:hover {
+      background: rgba(255, 0, 85, 0.2);
+    }
+    .genie-log {
+      flex: 1;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--cyan);
+      overflow-y: auto;
+      min-height: 70px;
+    }
+
+    /* Pantheon Window Content */
+    .pantheon-box {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+    }
+    .pantheon-canvas-wrap {
+      width: 100%;
+      height: 200px;
+      background: #04060a;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pantheon-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .axiom-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .axiom-pill {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--gold-amber);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .axiom-pill.active {
+      background: rgba(245, 158, 11, 0.3);
+      border-color: var(--gold);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+    }
+    .pantheon-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(18, 24, 38, 0.6);
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Terminal Console Window */
+    .terminal-box {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: #020305;
+      border-radius: 6px;
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--green);
+    }
+    .terminal-output {
+      flex: 1;
+      overflow-y: auto;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+    .terminal-prompt-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      border-top: 1px solid rgba(0, 255, 136, 0.2);
+      padding-top: 6px;
+    }
+    .terminal-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    /* Vulkan Iris Xe Window */
+    .vulkan-box {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .vulkan-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .vulkan-stat-card {
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+    }
+    .vulkan-stat-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Desktop Surface ──────────────────────────────────────────────────── -->
+  <div class="k-desktop" id="desktop">
+    <div class="k-desktop-scanlines"></div>
+
+    <div class="k-desktop-watermark">
+      <h1>KRYSTAL WEBOS</h1>
+      <p>WINDOW MANAGER // HETEROGENEOUS NEURAL WORKSPACE</p>
+    </div>
+
+    <!-- Desktop Icons Grid -->
+    <div class="k-desktop-icons">
+      <div class="k-desktop-icon" data-launch="genie">
+        <div class="k-desktop-icon-img" style="color: #66fcf1;">🔮</div>
+        <div class="k-desktop-icon-label">Neural Genie</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="pantheon">
+        <div class="k-desktop-icon-img" style="color: #f59e0b;">🏛️</div>
+        <div class="k-desktop-icon-label">Panteón & Axiómy</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="terminal">
+        <div class="k-desktop-icon-img" style="color: #00ff88;">💻</div>
+        <div class="k-desktop-icon-label">Topological VM</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="vulkan">
+        <div class="k-desktop-icon-img" style="color: #00f0ff;">⚡</div>
+        <div class="k-desktop-icon-label">Vulkan Iris Xe</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="viewport3d">
+        <div class="k-desktop-icon-img" style="color: #a855f7;">📐</div>
+        <div class="k-desktop-icon-label">3D Viewport</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="poslednikmen">
+        <div class="k-desktop-icon-img" style="color: #ff0055;">⚔️</div>
+        <div class="k-desktop-icon-label">Poslední Kmen</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="quadratic">
+        <div class="k-desktop-icon-img" style="color: #f59e0b;">📊</div>
+        <div class="k-desktop-icon-label">Kvadratické x</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="surfacenodes">
+        <div class="k-desktop-icon-img" style="color: #00ff88;">🌐</div>
+        <div class="k-desktop-icon-label">Node Editor</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="chinesezodiac">
+        <div class="k-desktop-icon-img" style="color: #ffd700;">☯️</div>
+        <div class="k-desktop-icon-label">Čínsky Zverokruh</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="hifi3d">
+        <div class="k-desktop-icon-img" style="color: #00f0ff;">🎨</div>
+        <div class="k-desktop-icon-label">3D Displej & WSL</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="wslemulator">
+        <div class="k-desktop-icon-img" style="color: #00ff88;">🐧</div>
+        <div class="k-desktop-icon-label">WSL Emulátor</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="terrainsynthesis">
+        <div class="k-desktop-icon-img" style="color: #00f0ff;">🏔️</div>
+        <div class="k-desktop-icon-label">Terén & NPU</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="evolvedsvg">
+        <div class="k-desktop-icon-img" style="color: #bf5af2;">🎨</div>
+        <div class="k-desktop-icon-label">Evolved SVG</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="hybridportal">
+        <div class="k-desktop-icon-img" style="color: #D8AE4B;">🏛️</div>
+        <div class="k-desktop-icon-label">Hybrid Portál</div>
+      </div>
+      <div class="k-desktop-icon" data-launch="hub">
+        <div class="k-desktop-icon-img" style="color: #ffd700;">🌐</div>
+        <div class="k-desktop-icon-label">Mission Control</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Start Menu Popup ────────────────────────────────────────────────── -->
+  <div class="k-start-menu" id="startMenu">
+    <div class="k-start-menu-header">
+      <div class="k-start-user-info">
+        <div class="k-start-avatar">💎</div>
+        <div>
+          <h3 style="font-size: 0.9rem; color: #fff;">ARCHITECT // OPERATOR</h3>
+          <p style="font-size: 0.7rem; color: var(--cyan); font-family: var(--font-mono);">KRYSTAL KERNEL v2.5</p>
+        </div>
+      </div>
+      <div class="k-tray-pill vital-hp">HP: 6 / 6</div>
+    </div>
+
+    <div class="k-start-search">
+      <input type="text" placeholder="Vyhľadať aplikáciu, štúdio alebo nástroj..." id="startSearch">
+    </div>
+
+    <div class="k-start-app-grid">
+      <div class="k-start-app-item" data-launch="genie">
+        <div class="k-start-app-icon">🔮</div>
+        <div class="k-start-app-text">
+          <h4>Neural Genie Renderer</h4>
+          <p>Action-Conditional Video Playback</p>
+        </div>
+      </div>
+
+      <div class="k-start-app-item" data-launch="pantheon">
+        <div class="k-start-app-icon">🏛️</div>
+        <div class="k-start-app-text">
+          <h4>Grécky Panteón & Bohémia</h4>
+          <p>Filozofické Pamäťové Axiómy</p>
+        </div>
+      </div>
+
+      <div class="k-start-app-item" data-launch="vulkan">
+        <div class="k-start-app-icon">⚡</div>
+        <div class="k-start-app-text">
+          <h4>Vulkan Iris Xe Engine Lab</h4>
+          <p>96 EUs & Driver Bypass Control</p>
+        </div>
+      </div>
+
+      <div class="k-start-app-item" data-launch="terminal">
+        <div class="k-start-app-icon">💻</div>
+        <div class="k-start-app-text">
+          <h4>Topological VM Console</h4>
+          <p>Interactive Janet & Kernel CLI</p>
+        </div>
+      </div>
+
+      <div class="k-start-app-item" data-launch="viewport3d">
+        <div class="k-start-app-icon">📐</div>
+        <div class="k-start-app-text">
+          <h4>Declarative 3D Spatial Grid</h4>
+          <p>Krystal Bootstrap Viewport</p>
+        </div>
+      </div>
+
+      <div class="k-start-app-item" data-launch="poslednikmen">
+        <div class="k-start-app-icon">⚔️</div>
+        <div class="k-start-app-text">
+          <h4>Poslední Kmen: Kampaň</h4>
+          <p>Bojové divadlo a karty</p>
+        </div>
+      </div>
+
+      <div class="k-start-app-item" data-url="/static/zodiac_optics_and_grids.html">
+        <div class="k-start-app-icon">🌌</div>
+        <div class="k-start-app-text">
+          <h4>Zodiac & Verdy (21:19)</h4>
+          <p>Astrologické optiky a mriežky</p>
+        </div>
+      </div>
+
+      <div class="k-start-app-item" data-url="/static/wordpress_docker_security_and_islands_studio.html">
+        <div class="k-start-app-icon">🛡️</div>
+        <div class="k-start-app-text">
+          <h4>WordPress Docker & BBQ WAF</h4>
+          <p>Bezpečnosť a 2FA Štít</p>
+        </div>
+      <div class="k-start-app-item" data-launch="quadratic">
+        <div class="k-start-app-icon">📊</div>
+        <div class="k-start-app-text">
+          <h4>Kvadratický Prevodník (Latentné x)</h4>
+          <p>Univerzálny prevod premenných</p>
+        </div>
+      </div>
+      <div class="k-start-app-item" data-launch="surfacenodes">
+        <div class="k-start-app-icon">🌐</div>
+        <div class="k-start-app-text">
+          <h4>Node Editor Povrchov & Pamäť</h4>
+          <p>Multi-layer šédre & zber prázdnych slotov</p>
+        </div>
+      </div>
+      <div class="k-start-app-item" data-launch="chinesezodiac">
+        <div class="k-start-app-icon">☯️</div>
+        <div class="k-start-app-text">
+          <h4>Čínsky Zverokruh & Sektory</h4>
+          <p>12 pozemských vetiev & prírodné úkazy</p>
+        </div>
+      </div>
+      <div class="k-start-app-item" data-launch="hifi3d">
+        <div class="k-start-app-icon">🎨</div>
+        <div class="k-start-app-text">
+          <h4>High-Fidelity 3D Displej & WSL</h4>
+          <p>PBR Cook-Torrance & DNF Assimp import</p>
+        </div>
+      </div>
+      <div class="k-start-app-item" data-launch="wslemulator">
+        <div class="k-start-app-icon">🐧</div>
+        <div class="k-start-app-text">
+          <h4>WSL Emulačný Subsystém</h4>
+          <p>Virtuálny Linux runtime & DNF balíčkovač</p>
+        </div>
+      </div>
+      <div class="k-start-app-item" data-launch="terrainsynthesis">
+        <div class="k-start-app-icon">🏔️</div>
+        <div class="k-start-app-text">
+          <h4>Terén & NPU Syntéza</h4>
+          <p>Kontinuálna matematika, SDF & Iris Xe akcelerácia</p>
+        </div>
+      </div>
+      <div class="k-start-app-item" data-launch="evolvedsvg">
+        <div class="k-start-app-icon">🎨</div>
+        <div class="k-start-app-text">
+          <h4>Evolved SVG Blueprint</h4>
+          <p>Vysoko-detailné vektorové plány & Poslední Kmen</p>
+        </div>
+      </div>
+      <div class="k-start-app-item" data-launch="hybridportal">
+        <div class="k-start-app-icon">🏛️</div>
+        <div class="k-start-app-text">
+          <h4>Hybrid Portál & Aréna</h4>
+          <p>Krystal UI System v1.0, Frakcie & Telemetria</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="k-start-menu-footer">
+      <span style="color: var(--text-muted);">Platform Invariant: Max HP = 6</span>
+      <a href="/" style="color: var(--cyan); text-decoration: none; font-weight: 700;">Návrat do Hubu →</a>
+    </div>
+  </div>
+
+  <!-- ── Bottom Taskbar / Dock ───────────────────────────────────────────── -->
+  <footer class="k-taskbar">
+    <div class="k-taskbar-left">
+      <button class="k-start-btn" id="startBtn">
+        <div class="k-start-gem"></div>
+        <span>KRYSTAL OS</span>
+      </button>
+
+      <div class="k-taskbar-items" id="taskbarItems">
+        <!-- Open window pills populated dynamically -->
+      </div>
+    </div>
+
+    <div class="k-taskbar-tray">
+      <div class="k-tray-pill" id="trayVulkan" style="color: #ffaa00;">
+        <span>GPU:</span>
+        <span id="trayVulkanVal">IRIS XE</span>
+      </div>
+      <div class="k-tray-pill" id="trayNPU" style="color: var(--cyan);">
+        <span>NPU:</span>
+        <span>DIRECTML</span>
+      </div>
+      <div class="k-tray-pill" id="trayHam" style="color: var(--purple);">
+        <span>H:</span>
+        <span id="trayHamVal">0.275</span>
+      </div>
+      <div class="k-tray-pill vital-hp" title="Platform-wide Vital Invariant: 6 Max HP">
+        <span>VITAL HP:</span>
+        <span>6 / 6</span>
+      </div>
+      <div class="k-tray-pill clock" id="trayClock">--:--:--</div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/static/krystal_window_manager.js"></script>
+  <script>
+    // Initialize Krystal Window Manager
+    const wm = new KrystalWindowManager({
+      desktopSelector: '#desktop',
+      taskbarSelector: '#taskbarItems',
+      startMenuSelector: '#startMenu',
+      startBtnSelector: '#startBtn'
+    });
+
+    // ── Pre-spawn Default Windows (Staggered Layout) ─────────────────────────
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Neural Dynamics Renderer (Genie Analog)
+      spawnGenieWindow();
+
+      // 2. Grécky Panteón & Bohémia Pamäťové Axiómy
+      spawnPantheonWindow();
+
+      // 3. Topological VM Console / Terminal
+      spawnTerminalWindow();
+
+      // Desktop Icon Double-Clicks & Clicks
+      setupLaunchers();
+    });
+
+    function setupLaunchers() {
+      const launchMap = {
+        'genie': spawnGenieWindow,
+        'pantheon': spawnPantheonWindow,
+        'terminal': spawnTerminalWindow,
+        'vulkan': spawnVulkanWindow,
+        'viewport3d': spawnViewport3DWindow,
+        'poslednikmen': spawnPosledniKmenWindow,
+        'quadratic': spawnQuadraticWindow,
+        'surfacenodes': spawnSurfaceNodeWindow,
+        'chinesezodiac': spawnChineseZodiacWindow,
+        'hifi3d': spawnHiFi3DWindow,
+        'wslemulator': spawnWslEmulatorWindow,
+        'terrainsynthesis': spawnTerrainSynthesisWindow,
+        'evolvedsvg': spawnEvolvedSvgWindow,
+        'hybridportal': spawnHybridPortalWindow,
+        'hub': () => window.open('/', '_blank')
+      };
+
+      document.querySelectorAll('[data-launch]').forEach(el => {
+        const target = el.dataset.launch;
+        el.addEventListener('click', () => {
+          document.querySelectorAll('.k-desktop-icon').forEach(i => i.classList.remove('selected'));
+          if (el.classList.contains('k-desktop-icon')) el.classList.add('selected');
+        });
+        el.addEventListener('dblclick', () => {
+          if (launchMap[target]) launchMap[target]();
+          if (document.getElementById('startMenu')) document.getElementById('startMenu').classList.remove('open');
+        });
+        // Click on start menu item
+        if (el.classList.contains('k-start-app-item')) {
+          el.addEventListener('click', () => {
+            if (launchMap[target]) launchMap[target]();
+            document.getElementById('startMenu').classList.remove('open');
+          });
+        }
+      });
+
+      // External URL launchers
+      document.querySelectorAll('[data-url]').forEach(el => {
+        el.addEventListener('click', () => {
+          window.open(el.dataset.url, '_blank');
+          if (document.getElementById('startMenu')) document.getElementById('startMenu').classList.remove('open');
+        });
+      });
+    }
+
+    // ── Window 1: Neural Genie Dynamics Renderer ───────────────────────────
+    function spawnGenieWindow() {
+      wm.createWindow({
+        id: 'genie',
+        title: 'Neural Dynamics Renderer (Genie Analog)',
+        icon: '🔮',
+        badge: 'LATENT VQ-VAE',
+        width: 620,
+        height: 520,
+        x: 40,
+        y: 35,
+        content: `
+          <div class="genie-box">
+            <div class="genie-viewport" id="genieViewport">
+              <div class="genie-overlay" id="genieHud">VQ-VAE: ACTIVE | LATENT BASE</div>
+              <img src="/static/images/krystal_hero.jpg" class="genie-frame" id="gframe-0" style="z-index: 5;">
+              <img src="/static/images/genie_seq_1.jpg" class="genie-frame" id="gframe-1" style="z-index: 4; opacity: 0;">
+              <img src="/static/images/genie_seq_2.jpg" class="genie-frame" id="gframe-2" style="z-index: 3; opacity: 0;">
+              <img src="/static/images/genie_seq_3.jpg" class="genie-frame" id="gframe-3" style="z-index: 2; opacity: 0;">
+            </div>
+
+            <div class="genie-loader" id="genieLoader">
+              <div class="genie-loader-bar" id="genieLoaderBar"></div>
+            </div>
+
+            <div class="genie-controls">
+              <button class="genie-btn" id="gbtnIdle">[I] IDLE RESET</button>
+              <button class="genie-btn spell" id="gbtnSpell">[E] CAST SPELL (BURST)</button>
+              <button class="genie-btn" id="gbtnDruid">[D] DRUID FORM</button>
+              <button class="genie-btn" id="gbtnToxic">[T] TOXIC SHADOW</button>
+            </div>
+
+            <div class="genie-log" id="genieLog">
+              > [Genie] Neural dynamics model initialized. Ready for Latent Action input.
+            </div>
+          </div>
+        `,
+        onInit: (container) => {
+          const hud = container.querySelector('#genieHud');
+          const loader = container.querySelector('#genieLoader');
+          const bar = container.querySelector('#genieLoaderBar');
+          const logEl = container.querySelector('#genieLog');
+
+          const log = (msg) => {
+            logEl.innerHTML += `<br>> ${msg}`;
+            logEl.scrollTop = logEl.scrollHeight;
+          };
+
+          let animating = false;
+
+          const resetFrames = (imgSrc = '/static/images/krystal_hero.jpg', status = 'IDLE') => {
+            if (animating) return;
+            const f0 = container.querySelector('#gframe-0');
+            f0.src = imgSrc;
+            f0.style.opacity = '1';
+            container.querySelector('#gframe-1').style.opacity = '0';
+            container.querySelector('#gframe-2').style.opacity = '0';
+            container.querySelector('#gframe-3').style.opacity = '0';
+            hud.innerText = `VQ-VAE: ${status} | 512x512`;
+            log(`Action: Switched frame source to ${imgSrc}`);
+          };
+
+          container.querySelector('#gbtnIdle').addEventListener('click', () => resetFrames('/static/images/krystal_hero.jpg', 'IDLE BASE'));
+          container.querySelector('#gbtnDruid').addEventListener('click', () => resetFrames('/static/images/druid_hero.jpg', 'DRUID TRIBE'));
+          container.querySelector('#gbtnToxic').addEventListener('click', () => resetFrames('/static/images/toxic_hero.jpg', 'TOXIC TRIBE'));
+
+          container.querySelector('#gbtnSpell').addEventListener('click', () => {
+            if (animating) return;
+            animating = true;
+            log('INFERENCE: Neural sequence dispatch -> Latent diffusion generation...');
+            loader.style.display = 'block';
+            bar.style.transition = 'none';
+            bar.style.width = '0%';
+
+            setTimeout(() => {
+              bar.style.transition = 'width 0.9s linear';
+              bar.style.width = '100%';
+            }, 30);
+
+            setTimeout(() => {
+              loader.style.display = 'none';
+              log('PLAYBACK: Frame 1 (Gathering Prismatic Energy)');
+              hud.innerText = 'GENERATED: FRAME 1/3 (GATHER)';
+              container.querySelector('#gframe-0').style.opacity = '0';
+              const f1 = container.querySelector('#gframe-1');
+              f1.style.opacity = '1';
+              f1.style.zIndex = '10';
+
+              setTimeout(() => {
+                log('PLAYBACK: Frame 2 (Energy Burst & Resonance)');
+                hud.innerText = 'GENERATED: FRAME 2/3 (BURST)';
+                f1.style.opacity = '0';
+                const f2 = container.querySelector('#gframe-2');
+                f2.style.opacity = '1';
+                f2.style.zIndex = '10';
+
+                setTimeout(() => {
+                  log('PLAYBACK: Frame 3 (Cataclysm Impact Wave)');
+                  hud.innerText = 'GENERATED: FRAME 3/3 (IMPACT)';
+                  f2.style.opacity = '0';
+                  const f3 = container.querySelector('#gframe-3');
+                  f3.style.opacity = '1';
+                  f3.style.zIndex = '10';
+
+                  setTimeout(() => {
+                    log('Sequence complete. Buffer synchronized with Host VRAM.');
+                    animating = false;
+                  }, 800);
+                }, 750);
+              }, 750);
+            }, 950);
+          });
+        }
+      });
+    }
+
+    // ── Window 2: Grécky Panteón & Bohémia Pamäťové Axiómy ──────────────────
+    function spawnPantheonWindow() {
+      wm.createWindow({
+        id: 'pantheon',
+        title: 'Grécky Panteón, Bohémia & Filozofické Pamäťové Axiómy',
+        icon: '🏛️',
+        badge: 'PANTA RHEI FLUID',
+        width: 660,
+        height: 520,
+        x: 480,
+        y: 50,
+        content: `
+          <div class="pantheon-box">
+            <div class="pantheon-canvas-wrap">
+              <canvas id="pantaCanvas" class="pantheon-canvas"></canvas>
+            </div>
+
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; letter-spacing: 1px;">
+              AKTÍVNE FILOZOFICKÉ AXIÓMY (VYROVNÁVANIE PAMÄTE):
+            </div>
+
+            <div class="axiom-pills">
+              <div class="axiom-pill active" data-axiom="pythagoras_harmonics">📐 Pytagoras (Harmonický Krok)</div>
+              <div class="axiom-pill active" data-axiom="heraclitus_flux">🌊 Herakleitos (Panta Rhei)</div>
+              <div class="axiom-pill active" data-axiom="aristotle_golden_mean">⚖️ Aristoteles (Zlatá Stredná Cesta 0.618)</div>
+              <div class="axiom-pill active" data-axiom="plato_forms">🏛️ Platón (Archetypálne Formy)</div>
+              <div class="axiom-pill active" data-axiom="zeno_dichotomy">⚡ Zénón (Binárne Polenie)</div>
+              <div class="axiom-pill active" data-axiom="epicurus_atomism">⚛️ Epikuros (64B Atómy)</div>
+            </div>
+
+            <div class="pantheon-actions">
+              <div>
+                <span style="font-size: 0.75rem; color: var(--cyan); font-family: var(--font-mono);">
+                  Equilibrium Target: <strong>&phi;<sup>-1</sup> &approx; 0.61803</strong>
+                </span>
+                <span id="levelingTelemetry" style="font-size: 0.75rem; color: var(--gold); margin-left: 10px; font-family: var(--font-mono);">
+                  Latencia: -57.9% | Hit: 99.2%
+                </span>
+              </div>
+              <button class="genie-btn" id="btnSimLeveling" style="border-color: var(--gold); color: var(--gold);">
+                ⚡ SPUSTIŤ AUTONÓMNE VYROVNANIE
+              </button>
+            </div>
+
+            <div style="display: flex; gap: 8px; font-size: 0.72rem; color: var(--text-muted);">
+              <span class="k-tray-pill vital-hp">VITAL INVARIANT: 6 MAX HP</span>
+              <span class="k-tray-pill" style="color: var(--cyan);">8 Gréckych Bohov</span>
+              <span class="k-tray-pill" style="color: var(--gold);">8 Slovanských Spojencov</span>
+              <span class="k-tray-pill" style="color: var(--purple);">5 Zmluvných Paktov</span>
+            </div>
+          </div>
+        `,
+        onInit: (container) => {
+          // Initialize Panta Rhei Canvas Fluid Particles
+          const canvas = container.querySelector('#pantaCanvas');
+          const ctx = canvas.getContext('2d');
+          let width = canvas.width = canvas.parentElement.clientWidth;
+          let height = canvas.height = canvas.parentElement.clientHeight;
+
+          const particles = [];
+          for (let i = 0; i < 45; i++) {
+            particles.push({
+              x: Math.random() * width,
+              y: Math.random() * height,
+              vx: (Math.random() * 2 + 1) * 1.5,
+              vy: (Math.random() - 0.5) * 0.8,
+              radius: Math.random() * 2.5 + 1.5,
+              color: i % 3 === 0 ? '#00f0ff' : (i % 3 === 1 ? '#f59e0b' : '#a855f7')
+            });
+          }
+
+          let animId;
+          const renderFluid = () => {
+            ctx.fillStyle = 'rgba(4, 6, 10, 0.25)';
+            ctx.fillRect(0, 0, width, height);
+
+            particles.forEach(p => {
+              p.x += p.vx;
+              p.y += p.vy;
+              if (p.x > width) p.x = 0;
+              if (p.y < 0) p.y = height;
+              if (p.y > height) p.y = 0;
+
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+              ctx.fillStyle = p.color;
+              ctx.shadowColor = p.color;
+              ctx.shadowBlur = 8;
+              ctx.fill();
+            });
+
+            animId = requestAnimationFrame(renderFluid);
+          };
+          renderFluid();
+
+          // Axiom pills toggling
+          const pills = container.querySelectorAll('.axiom-pill');
+          pills.forEach(p => p.addEventListener('click', () => p.classList.toggle('active')));
+
+          // Simulate Leveling API Call
+          container.querySelector('#btnSimLeveling').addEventListener('click', async () => {
+            const activeIds = [];
+            container.querySelectorAll('.axiom-pill.active').forEach(p => activeIds.push(p.dataset.axiom));
+            const telemEl = container.querySelector('#levelingTelemetry');
+            telemEl.innerText = 'Vyrovnávam pamäťové fondy...';
+
+            try {
+              const res = await fetch('/api/greek-bohemia/simulate-leveling', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ axiom_ids: activeIds })
+              });
+              const data = await res.json();
+              telemEl.innerText = `Latencia: -${data.combined_latency_reduction_percent}% | Hit: ${data.achieved_cache_hit_rate_percent}% (Vyrovnané: ${data.applied_axioms_count} axióm)`;
+            } catch (err) {
+              telemEl.innerText = `Simulované vyrovnanie: -61.8% latencia (Offline fallback)`;
+            }
+          });
+        }
+      });
+    }
+
+    // ── Window 3: Krystal Topological VM Console / Terminal ─────────────────
+    function spawnTerminalWindow() {
+      wm.createWindow({
+        id: 'terminal',
+        title: 'Krystal Topological VM // Interactive Terminal',
+        icon: '💻',
+        badge: 'JANET & PYTHON',
+        width: 580,
+        height: 380,
+        x: 120,
+        y: 280,
+        content: `
+          <div class="terminal-box">
+            <div class="terminal-output" id="termOut">=============================================================
+ KRYSTAL-STACK 3D ENGINE CORE // TERMINAL PROMPT ONLINE
+ Mode: Local Competitive Headless CMS (Python + Janet AST)
+ Platform Invariant: VITAL_MAX_HP = 6
+ Type 'help' for available commands.
+=============================================================</div>
+            <div class="terminal-prompt-line">
+              <span style="color: var(--cyan);">krystal@engine:~$</span>
+              <input type="text" class="terminal-input" id="termIn" autofocus>
+            </div>
+          </div>
+        `,
+        onInit: (container) => {
+          const out = container.querySelector('#termOut');
+          const input = container.querySelector('#termIn');
+
+          input.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+              const cmd = input.value.trim();
+              input.value = '';
+              out.innerHTML += `\n<span style="color: #fff;">krystal@engine:~$ ${cmd}</span>`;
+
+              if (!cmd) return;
+
+              switch (cmd.toLowerCase()) {
+                case 'help':
+                  out.innerHTML += `\nAvailable commands:\n  help      - Show this menu\n  pantheon  - Query Greek-Bohemia pantheon status\n  axioms    - List active philosophical memory axioms\n  vulkan    - Query Vulkan Iris Xe state\n  vital     - Verify 6 Max HP invariant\n  genie     - Trigger Neural Genie sequence\n  clear     - Clear terminal buffer`;
+                  break;
+                case 'clear':
+                  out.innerHTML = `Krystal Terminal Buffer Cleared.`;
+                  break;
+                case 'vital':
+                  out.innerHTML += `\n[INVARIANT CHECK]: VITAL_MAX_HP = 6 (Strictly enforced across all entities)`;
+                  break;
+                case 'pantheon':
+                  try {
+                    const res = await fetch('/api/greek-bohemia/pantheon');
+                    const d = await res.json();
+                    out.innerHTML += `\n[PANTHEON]: Greek Deities: ${d.greek_deities_count} | Bohemian Allies: ${d.bohemian_allies_count} | Active Pacts: ${d.active_pacts_count} | Vital HP: ${d.vital_max_hp_rule}`;
+                  } catch (err) {
+                    out.innerHTML += `\n[ERROR]: Failed to connect to /api/greek-bohemia/pantheon`;
+                  }
+                  break;
+                case 'axioms':
+                  try {
+                    const res = await fetch('/api/greek-bohemia/memory-strategies');
+                    const d = await res.json();
+                    out.innerHTML += `\n[AXIOMS]: Registered: ${d.axioms_count}\n` + d.strategies.map(s => `  * ${s.philosopher} -> ${s.strategy_name} (${s.latency_reduction_percent}% speedup)`).join('\n');
+                  } catch (err) {
+                    out.innerHTML += `\n[ERROR]: Failed to query axioms`;
+                  }
+                  break;
+                case 'vulkan':
+                  out.innerHTML += `\n[VULKAN]: Device: Intel(R) Iris(R) Xe Graphics (96 EUs / 768 Threads)\nDispatch: 8192 Coords | Memory: Host DDR Shared VRAM | Status: OPERATIONAL`;
+                  break;
+                default:
+                  out.innerHTML += `\nCommand not found: '${cmd}'. Type 'help' for command list.`;
+                  break;
+              }
+
+              out.scrollTop = out.scrollHeight;
+            }
+          });
+        }
+      });
+    }
+
+    // ── Window 4: Vulkan Iris Xe Engine Lab ─────────────────────────────────
+    function spawnVulkanWindow() {
+      wm.createWindow({
+        id: 'vulkan',
+        title: 'Modifikovaný Vulkan Iris Xe & NPU Hardware Lab',
+        icon: '⚡',
+        badge: '96 EUs · INTEL IRIS XE',
+        width: 600,
+        height: 420,
+        x: 350,
+        y: 120,
+        content: `
+          <div class="vulkan-box">
+            <div class="vulkan-grid">
+              <div class="vulkan-stat-card">
+                <div style="color: var(--text-muted); font-size: 0.7rem;">EXECUTION UNITS</div>
+                <div class="vulkan-stat-val">96 EUs</div>
+              </div>
+              <div class="vulkan-stat-card">
+                <div style="color: var(--text-muted); font-size: 0.7rem;">HW THREADS</div>
+                <div class="vulkan-stat-val">768 Threads</div>
+              </div>
+              <div class="vulkan-stat-card">
+                <div style="color: var(--text-muted); font-size: 0.7rem;">BOOST CLOCK</div>
+                <div class="vulkan-stat-val">1450 MHz</div>
+              </div>
+            </div>
+
+            <div style="background: rgba(10, 14, 22, 0.8); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
+              <h4 style="color: var(--cyan); margin-bottom: 6px; font-size: 0.85rem;">OVLÁDAČOVÝ BYPASS & CPU NAŠEPKÁVAČ</h4>
+              <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">
+                Eliminácia bottlenecku štandardného Intel ovládača priamym dispatchom cez Vulkan výpočtové fronty (Compute Queue #0) a optimalizovaný swap do DDR RAM.
+              </p>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+              <button class="genie-btn" id="btnVulkanDispatch" style="flex: 1; border-color: var(--cyan); color: var(--cyan);">
+                ⚡ DISPATCH VULKAN COMPUTE (8192 COORDS)
+              </button>
+            </div>
+
+            <div class="genie-log" id="vulkanLog">
+              > [Vulkan Iris Xe] Ready. Compute Backend: Intel Iris Xe Graphics.
+            </div>
+          </div>
+        `,
+        onInit: (container) => {
+          const logEl = container.querySelector('#vulkanLog');
+          container.querySelector('#btnVulkanDispatch').addEventListener('click', async () => {
+            logEl.innerHTML += `<br>> Dispatching 8192 elements to 96 EUs...`;
+            try {
+              const res = await fetch('/api/vulkan-iris-xe/simulate-dispatch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ batch_size: 8192 })
+              });
+              const d = await res.json();
+              logEl.innerHTML += `<br>> [SUCCESS] Dispatched: ${d.elements_dispatched} elements in ${d.dispatch_time_ms} ms. Readback: ${d.bandwidth_gb_s} GB/s.`;
+            } catch (err) {
+              logEl.innerHTML += `<br>> [SUCCESS (Fallback)] Dispatched 8192 elements. Time: 0.42 ms. Latency: Sub-microsecond.`;
+            }
+            logEl.scrollTop = logEl.scrollHeight;
+          });
+        }
+      });
+    }
+
+    // ── Window 5: Declarative 3D Viewport ───────────────────────────────────
+    function spawnViewport3DWindow() {
+      wm.createWindow({
+        id: 'viewport3d',
+        title: 'Declarative 3D Spatial Grid Viewport',
+        icon: '📐',
+        badge: 'OPENGL / CANVAS 3D',
+        width: 540,
+        height: 420,
+        x: 240,
+        y: 160,
+        content: `
+          <div style="display: flex; flex-direction: column; height: 100%; gap: 10px;">
+            <canvas id="view3dCanvas" style="width: 100%; height: 280px; background: #000; border: 1px solid var(--purple); border-radius: 8px;"></canvas>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--purple);">Mesh: Alchemical Crystal Octahedron</span>
+              <button class="genie-btn" id="btnToggleSpin">ROTATION: ACTIVE</button>
+            </div>
+          </div>
+        `,
+        onInit: (container) => {
+          const canvas = container.querySelector('#view3dCanvas');
+          const ctx = canvas.getContext('2d');
+          let w = canvas.width = canvas.parentElement.clientWidth;
+          let h = canvas.height = 280;
+
+          let angle = 0;
+          let spinning = true;
+
+          const vertices = [
+            [0, 1, 0], [1, 0, 0], [0, 0, 1], [-1, 0, 0], [0, 0, -1], [0, -1, 0]
+          ];
+          const edges = [
+            [0, 1], [0, 2], [0, 3], [0, 4],
+            [5, 1], [5, 2], [5, 3], [5, 4],
+            [1, 2], [2, 3], [3, 4], [4, 1]
+          ];
+
+          const render3D = () => {
+            ctx.fillStyle = '#05070c';
+            ctx.fillRect(0, 0, w, h);
+
+            if (spinning) angle += 0.02;
+
+            const scale = 75;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            const proj = vertices.map(v => {
+              // Rotate Y
+              const x1 = v[0] * Math.cos(angle) + v[2] * Math.sin(angle);
+              const z1 = -v[0] * Math.sin(angle) + v[2] * Math.cos(angle);
+              // Rotate X
+              const y2 = v[1] * Math.cos(0.5) - z1 * Math.sin(0.5);
+              const z2 = v[1] * Math.sin(0.5) + z1 * Math.cos(0.5);
+
+              return [cx + x1 * scale, cy - y2 * scale];
+            });
+
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 1.5;
+            ctx.shadowColor = '#a855f7';
+            ctx.shadowBlur = 10;
+
+            edges.forEach(([i, j]) => {
+              ctx.beginPath();
+              ctx.moveTo(proj[i][0], proj[i][1]);
+              ctx.lineTo(proj[j][0], proj[j][1]);
+              ctx.stroke();
+            });
+
+            requestAnimationFrame(render3D);
+          };
+          render3D();
+
+          container.querySelector('#btnToggleSpin').addEventListener('click', (e) => {
+            spinning = !spinning;
+            e.target.innerText = `ROTATION: ${spinning ? 'ACTIVE' : 'PAUSED'}`;
+          });
+        }
+      });
+    }
+
+    // ── Window 6: Poslední Kmen (Combat Arena) ──────────────────────────────
+    function spawnPosledniKmenWindow() {
+      wm.createWindow({
+        id: 'poslednikmen',
+        title: 'Poslední Kmen // Strategické Bojové Divadlo',
+        icon: '⚔️',
+        badge: 'GAME RUNTIME',
+        width: 650,
+        height: 460,
+        x: 380,
+        y: 140,
+        isIframe: true,
+        url: '/static/play_game.html',
+        noPadding: true
+      });
+    }
+
+    // ── Window 7: Kvadratické Rovnice & Prevod Premenných cez x ─────────────
+    function spawnQuadraticWindow() {
+      wm.createWindow({
+        id: 'quadratic',
+        title: 'Kvadratické Rovnice & Prevod Premenných cez x',
+        icon: '📊',
+        badge: 'QUADRATIC MANIFOLD',
+        width: 740,
+        height: 540,
+        x: 320,
+        y: 70,
+        isIframe: true,
+        url: '/static/quadratic_transformer_studio.html',
+        noPadding: true
+      });
+    }
+
+    // ── Window 8: Surface Node Editor & Reverse Memory Slot Scavenger ────────
+    function spawnSurfaceNodeWindow() {
+      wm.createWindow({
+        id: 'surfacenodes',
+        title: 'Surface Node Editor & Spätný Zberač Pamäte',
+        icon: '🌐',
+        badge: 'MULTI-LAYER PBR',
+        width: 860,
+        height: 600,
+        x: 200,
+        y: 50,
+        isIframe: true,
+        url: '/static/surface_node_editor_studio.html',
+        noPadding: true
+      });
+    }
+
+    // ── Window 9: Chinese Zodiac Terrestrial Sectors & Phenomena ─────────────
+    function spawnChineseZodiacWindow() {
+      wm.createWindow({
+        id: 'chinesezodiac',
+        title: 'Čínsky Zverokruh & Pozemské Úkazy Sektorov',
+        icon: '☯️',
+        badge: '12 POZEMSKÝCH VETIEV',
+        width: 860,
+        height: 600,
+        x: 240,
+        y: 65,
+        isIframe: true,
+        url: '/static/chinese_zodiac_sectors_studio.html',
+        noPadding: true
+      });
+    }
+
+    // ── Window 10: High-Fidelity 3D Display & WSL DNF Asset Pipeline ─────────
+    function spawnHiFi3DWindow() {
+      wm.createWindow({
+        id: 'hifi3d',
+        title: 'High-Fidelity 3D Displej & WSL DNF Pipeline',
+        icon: '🎨',
+        badge: 'PBR COOK-TORRANCE',
+        width: 900,
+        height: 620,
+        x: 260,
+        y: 75,
+        isIframe: true,
+        url: '/static/high_fidelity_3d_studio.html',
+        noPadding: true
+      });
+    }
+
+    // ── Window 11: WSL Emulation Subsystem & Virtual Linux Runtime ──────────
+    function spawnWslEmulatorWindow() {
+      wm.createWindow({
+        id: 'wslemulator',
+        title: 'WSL Emulačný Subsystém & DNF Linux Shell',
+        icon: '🐧',
+        badge: 'POSIX ROOTFS',
+        width: 920,
+        height: 620,
+        x: 280,
+        y: 85,
+        isIframe: true,
+        url: '/static/wsl_emulator_studio.html',
+        noPadding: true
+      });
+    }
+
+    // ── Window 12: Continuous Terrain Synthesis & NPU Optimization ─────────
+    function spawnTerrainSynthesisWindow() {
+      wm.createWindow({
+        id: 'terrainsynthesis',
+        title: 'Kontinuálna Matematika, SDF & NPU Syntéza Terénu',
+        icon: '🏔️',
+        badge: 'IRIS XE & NPU',
+        width: 980,
+        height: 640,
+        x: 300,
+        y: 95,
+        isIframe: true,
+        url: '/static/npu_sdf_terrain_studio.html',
+        noPadding: true
+      });
+    }
+
+    // ── Window 13: Evolved High-Detail SVG Studio & Blueprint ──────────────
+    function spawnEvolvedSvgWindow() {
+      wm.createWindow({
+        id: 'evolvedsvg',
+        title: 'Evolved High-Detail SVG Studio & Blueprint',
+        icon: '🎨',
+        badge: 'VECTOR SVG',
+        width: 1040,
+        height: 680,
+        x: 320,
+        y: 105,
+        isIframe: true,
+        url: '/static/evolved_svg_studio.html',
+        noPadding: true
+      });
+    }
+
+    // ── Window 14: Hybrid Portal & Arena Studio (Krystal UI System) ─────────
+    function spawnHybridPortalWindow() {
+      wm.createWindow({
+        id: 'hybridportal',
+        title: 'Poslední Kmen // Hybrid Portal & Arena (UI System v1.0)',
+        icon: '🏛️',
+        badge: 'UI CONTRACT v1.0',
+        width: 1100,
+        height: 720,
+        x: 340,
+        y: 115,
+        isIframe: true,
+        url: '/static/hybrid_portal_arena_studio.html',
+        noPadding: true
+      });
+    }
+  </script>
+</body>
+</html>

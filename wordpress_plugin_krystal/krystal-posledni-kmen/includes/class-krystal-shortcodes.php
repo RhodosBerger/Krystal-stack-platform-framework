@@ -16,6 +16,14 @@ class Krystal_Shortcodes {
         add_shortcode( 'krystal_godot_arena', array( $this, 'render_godot_arena' ) );
         // [krystal_gnome_duel_window]
         add_shortcode( 'krystal_gnome_duel_window', array( $this, 'render_gnome_duel_window' ) );
+        // [krystal_subdomain_portal]
+        add_shortcode( 'krystal_subdomain_portal', array( $this, 'render_subdomain_portal' ) );
+        // [krystal_webos_desktop]
+        add_shortcode( 'krystal_webos_desktop', array( $this, 'render_webos_desktop' ) );
+        // [krystal_hybrid_arena]
+        add_shortcode( 'krystal_hybrid_arena', array( $this, 'render_hybrid_arena' ) );
+        // [krystal_svg_blueprint]
+        add_shortcode( 'krystal_svg_blueprint', array( $this, 'render_svg_blueprint' ) );
     }
 
     public function render_dashboard( $atts ) {
@@ -152,5 +160,108 @@ class Krystal_Shortcodes {
         </div>
         <?php
         return ob_get_clean();
+    }
+
+    /**
+     * Renders secure Krystal Subdomain Portal with HMAC session authentication
+     */
+    public function render_subdomain_portal( $atts ) {
+        $atts = shortcode_atts( array(
+            'mode' => 'hybrid', // hybrid | desktop | arena | blueprint | pantheon
+            'height' => '780px',
+            'require_login' => 'true'
+        ), $atts );
+
+        $is_logged_in = is_user_logged_in();
+        $require_login = filter_var( $atts['require_login'], FILTER_VALIDATE_BOOLEAN );
+
+        if ( $require_login && ! $is_logged_in ) {
+            $login_url = wp_login_url( get_permalink() );
+            ob_start();
+            ?>
+            <div class="krystal-subdomain-gate" style="background: #06090e; border: 1px solid #d8ae4b; border-radius: 2px; padding: 40px 24px; color: #fff; font-family: 'Cinzel', serif; text-align: center; max-width: 680px; margin: 30px auto; box-shadow: 0 4px 24px rgba(0,0,0,0.8);">
+                <div style="font-size: 32px; margin-bottom: 12px;">🏛️</div>
+                <div style="font-size: 11px; letter-spacing: 0.2em; color: #d8ae4b; text-transform: uppercase; margin-bottom: 8px;">KRYSTAL-STACK // SUBDOMAIN SECURITY GATE</div>
+                <h3 style="color: #f7f9fa; margin: 0 0 16px 0; font-size: 20px;">PRÍSTUP VYŽADUJE OVERENÝ ÚČET</h3>
+                <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: #8e9cae; line-height: 1.6; margin-bottom: 24px;">
+                    Tento procedurálny herný a výpočtový priestor je chránený kryptografickým HMAC tokenom. Pre prístup k simulácii a 3D aréne sa prosím prihláste do svojho účtu na subdoméne.
+                </p>
+                <div style="display: flex; justify-content: center; gap: 16px;">
+                    <a href="<?php echo esc_url( $login_url ); ?>" style="background: #d8ae4b; color: #06090e; text-decoration: none; padding: 10px 24px; font-weight: bold; font-size: 13px; letter-spacing: 0.1em; border-radius: 2px; text-transform: uppercase;">
+                        Prihlásiť sa cez WordPress
+                    </a>
+                </div>
+            </div>
+            <?php
+            return ob_get_clean();
+        }
+
+        // User is authenticated: generate HMAC signed bearer token
+        $user = wp_get_current_user();
+        $roles = (array) $user->roles;
+        $role = ! empty( $roles ) ? $roles[0] : 'subscriber';
+        $token = Krystal_API_Connector::create_subdomain_token( $user->ID, $user->user_login, $role );
+
+        // Determine target path based on mode
+        $engine_base = get_option( 'krystal_engine_subdomain_public_url', '' );
+        if ( empty( $engine_base ) ) {
+            $engine_base = '/krystal-core'; // Proxied by Nginx
+        }
+
+        $mode_map = array(
+            'hybrid' => '/hybrid-portal-arena',
+            'desktop' => '/desktop',
+            'arena' => '/game',
+            'blueprint' => '/evolved-svg-studio',
+            'pantheon' => '/static/greek_bohemia_pantheon_studio.html',
+            'terrain' => '/terrain-synthesis'
+        );
+
+        $rel_path = isset( $mode_map[ $atts['mode'] ] ) ? $mode_map[ $atts['mode'] ] : '/hybrid-portal-arena';
+        $target_url = rtrim( $engine_base, '/' ) . $rel_path . '?token=' . urlencode( $token );
+
+        ob_start();
+        ?>
+        <div class="krystal-subdomain-container" style="width: 100%; border: 1px solid #1f2d3d; border-radius: 2px; overflow: hidden; background: #06090e; margin: 20px 0;">
+            <!-- Secure HUD Bar -->
+            <div style="background: #090e15; border-bottom: 1px solid #1f2d3d; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; font-family: monospace; font-size: 11px;">
+                <div style="color: #d8ae4b; display: flex; align-items: center; gap: 8px;">
+                    <span>🛡️ SUBDOMAIN SECURED</span>
+                    <span style="color: #58d8ff;">[<?php echo esc_html( strtoupper( $atts['mode'] ) ); ?>]</span>
+                </div>
+                <div style="color: #8e9cae; display: flex; gap: 16px;">
+                    <span>USER: <b style="color: #f7f9fa;"><?php echo esc_html( $user->user_login ); ?></b> (<?php echo esc_html( $role ); ?>)</span>
+                    <span style="color: #4ade80;">● HMAC VALIDATED</span>
+                    <span style="color: #f87171;">VITAL HP: 6</span>
+                </div>
+            </div>
+            <!-- Embedded Viewport -->
+            <iframe 
+                src="<?php echo esc_url( $target_url ); ?>" 
+                style="width: 100%; height: <?php echo esc_attr( $atts['height'] ); ?>; border: none; background: #06090e;"
+                allow="autoplay; fullscreen; xr-spatial-tracking"
+                title="Krystal-Stack Subdomain Portal">
+            </iframe>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    public function render_webos_desktop( $atts ) {
+        $atts = is_array( $atts ) ? $atts : array();
+        $atts['mode'] = 'desktop';
+        return $this->render_subdomain_portal( $atts );
+    }
+
+    public function render_hybrid_arena( $atts ) {
+        $atts = is_array( $atts ) ? $atts : array();
+        $atts['mode'] = 'hybrid';
+        return $this->render_subdomain_portal( $atts );
+    }
+
+    public function render_svg_blueprint( $atts ) {
+        $atts = is_array( $atts ) ? $atts : array();
+        $atts['mode'] = 'blueprint';
+        return $this->render_subdomain_portal( $atts );
     }
 }

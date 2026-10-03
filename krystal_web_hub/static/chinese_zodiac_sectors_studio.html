@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Čínsky Zverokruh & Pozemské Úkazy Sektorov // Krystal-Stack</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal-bootstrap.css">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-panel: rgba(14, 20, 32, 0.88);
+      --border-cyan: rgba(0, 240, 255, 0.35);
+      --border-gold: rgba(245, 158, 11, 0.4);
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.5);
+      --gold: #f59e0b;
+      --green: #00ff88;
+      --fire: #ff3b30;
+      --metal: #e2e8f0;
+      --wood: #34d399;
+      --water: #38bdf8;
+      --earth: #d97706;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'JetBrains Mono', Consolas, monospace;
+      --font-ui: 'Outfit', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 999;
+      opacity: 0.35;
+    }
+
+    /* Header Banner */
+    header.studio-header {
+      background: rgba(10, 14, 24, 0.95);
+      border-bottom: 1px solid var(--border-gold);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 50;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .brand-group h1 {
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .brand-group h1 span {
+      color: var(--gold);
+      text-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+    }
+
+    .brand-group p {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--cyan);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-action {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid var(--border-gold);
+      color: var(--gold);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: rgba(245, 158, 11, 0.25);
+      box-shadow: 0 0 14px var(--gold);
+    }
+
+    .btn-action.cyan {
+      background: rgba(0, 240, 255, 0.12);
+      border-color: var(--border-cyan);
+      color: var(--cyan);
+    }
+
+    .btn-action.cyan:hover {
+      background: rgba(0, 240, 255, 0.25);
+      box-shadow: 0 0 14px var(--cyan);
+    }
+
+    /* Workspace */
+    .studio-workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 430px;
+      height: calc(100vh - 54px);
+      overflow: hidden;
+    }
+
+    /* Map & Bagua Canvas Container */
+    .map-canvas-container {
+      position: relative;
+      background: radial-gradient(circle at center, #0d1220 0%, #04060a 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    canvas#baguaCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Global Cycle Bar */
+    .cycle-bar {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      background: rgba(10, 14, 24, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-gold);
+      border-radius: 8px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 10;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    }
+
+    .cycle-step-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      transition: all 0.2s;
+    }
+
+    .cycle-step-btn:hover {
+      background: var(--gold);
+      color: #000;
+    }
+
+    /* Right Sidebar Inspection */
+    aside.studio-sidebar {
+      background: var(--bg-panel);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-left: 1px solid var(--border-gold);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 20;
+    }
+
+    .sidebar-block {
+      padding: 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sidebar-block-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--gold);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Sector Artwork Card */
+    .sector-art-card {
+      width: 100%;
+      height: 160px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      position: relative;
+    }
+
+    .sector-art-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s;
+    }
+
+    .sector-art-card:hover img {
+      transform: scale(1.05);
+    }
+
+    .sector-art-badge {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid var(--gold);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--gold);
+    }
+
+    /* Details Grid */
+    .details-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .details-row .label { color: var(--text-muted); }
+    .details-row .val { color: #fff; font-weight: 600; }
+
+    /* Phenomenon Card */
+    .phenomenon-card {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+      border: 1px solid var(--border-cyan);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .phenomenon-card h3 {
+      font-size: 0.85rem;
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .phenomenon-card p {
+      font-size: 0.7rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    /* Sectors List Pills */
+    .sectors-quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .sector-pill-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      transition: all 0.2s;
+    }
+
+    .sector-pill-btn:hover, .sector-pill-btn.active {
+      border-color: var(--gold);
+      background: rgba(245, 158, 11, 0.2);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    }
+
+    .glyph-lg { font-size: 1.1rem; color: var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+
+  <!-- Header Banner -->
+  <header class="studio-header">
+    <div class="brand-group">
+      <h1>ČÍNSKY ZVEROKRUH <span>// 12 POZEMSKÝCH ÚKAZOV & SEKTOROV</span></h1>
+      <p>12 POZEMSKÝCH VETIEV (地支) · SEKTORY SVETA · ELEMENTÁLNE FENOMÉNY</p>
+    </div>
+    <div class="header-actions">
+      <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--green);">INVARIANT: 6 MAX HP</span>
+      <a href="/desktop" class="btn-action cyan" style="text-decoration:none;">🖥️ KRYSTAL WEBOS</a>
+      <a href="/surface-nodes" class="btn-action cyan" style="text-decoration:none;">🌐 NODE EDITOR</a>
+      <a href="/" class="btn-action" style="text-decoration:none;">← HUB</a>
+    </div>
+  </header>
+
+  <!-- Workspace -->
+  <main class="studio-workspace">
+    
+    <!-- Left: 12-Sector Circular Bagua & World Map Canvas -->
+    <div class="map-canvas-container">
+      
+      <!-- Top Cycle Floating Bar -->
+      <div class="cycle-bar">
+        <div>
+          <div style="font-size: 0.6rem; color: var(--text-muted); font-family: var(--font-mono);">VLÁDNUCA VETVA (CYKLUS)</div>
+          <div id="cycleTitle" style="font-family: 'Cinzel', serif; font-size: 0.85rem; font-weight: 700; color: var(--gold);">1. Zǐ (Potkan)</div>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button class="cycle-step-btn" onclick="stepCycle(-1)">◄ CYKLUS -1</button>
+          <button class="cycle-step-btn" onclick="stepCycle(1)">CYKLUS +1 ►</button>
+        </div>
+      </div>
+
+      <canvas id="baguaCanvas"></canvas>
+    </div>
+
+    <!-- Right: Inspection Sidebar -->
+    <aside class="studio-sidebar">
+      
+      <!-- Sector Artwork -->
+      <div class="sidebar-block">
+        <div class="sector-art-card">
+          <img src="/static/img/chinese_zodiac_terrestrial_sectors.jpg" alt="Chinese Zodiac Terrestrial Sectors">
+          <div class="sector-art-badge" id="artBadge">12 SEKTOROV BAGUA</div>
+        </div>
+      </div>
+
+      <!-- Selected Sector Details -->
+      <div class="sidebar-block">
+        <div class="sidebar-block-title">
+          <span>DETAIL SEKTORA</span>
+          <span id="cardinalBadge" style="font-size: 0.65rem; color: var(--cyan); font-family: var(--font-mono);">SEVER (0°)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div id="inspectedGlyph" class="glyph-lg" style="font-size: 2.2rem; line-height: 1;">子</div>
+          <div>
+            <h2 id="inspectedName" style="font-size: 1.05rem; font-family: 'Cinzel', serif; color: #fff;">Potkan (Rat / 鼠)</h2>
+            <div id="inspectedBranch" style="font-size: 0.72rem; color: var(--gold); font-family: var(--font-mono);">1. Zǐ (23:00 - 01:00)</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 2px; margin-top: 6px;">
+          <div class="details-row"><span class="label">Element & Polarita:</span><span class="val" id="inspectedElement">Voda (Yang)</span></div>
+          <div class="details-row"><span class="label">Typ Terénu:</span><span class="val" id="inspectedTerrain">Kryštálové Pramene Hlbín</span></div>
+          <div class="details-row"><span class="label">Pevnostné HP:</span><span class="val" style="color:var(--green);" id="inspectedHP">6 / 6 HP (VITAL RULE)</span></div>
+          <div class="details-row"><span class="label">Hex Súradnice:</span><span class="val" id="inspectedHex">[0, -3], [0, -2]</span></div>
+        </div>
+      </div>
+
+      <!-- Terrestrial Phenomenon -->
+      <div class="sidebar-block">
+        <div class="sidebar-block-title">
+          <span>POZEMSKÝ ÚKAZ (FENOMÉN)</span>
+          <span id="phenomenonStatus" style="font-size: 0.65rem; color: var(--green); font-family: var(--font-mono);">AKTÍVNY</span>
+        </div>
+        <div class="phenomenon-card">
+          <h3 id="phenName">Nočná Hydrologická Spodná Voda</h3>
+          <p id="phenDesc">Chladné pramene a podzemné artézske toky filtrujúce aéter cez podložie.</p>
+          <div style="font-size: 0.65rem; font-family: var(--font-mono); color: var(--gold); margin-top: 4px;" id="phenManifest">
+            Manifestácia: Prúdenie kryštalickej vody, nočná rosa, chladenie čipov.
+          </div>
+        </div>
+        <button class="btn-action" style="width: 100%;" onclick="triggerSurge()">⚡ ZOSILNIŤ POZEMSKÝ ÚKAZ (+0.35 FLUX)</button>
+      </div>
+
+      <!-- Quick 12-Sector Selector -->
+      <div class="sidebar-block" style="flex: 1;">
+        <div class="sidebar-block-title">
+          <span>VŠETKÝCH 12 SEKTOROV ZVEROKRUHU</span>
+        </div>
+        <div class="sectors-quick-grid" id="quickGrid">
+          <!-- 12 buttons dynamically populated -->
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <script>
+    let sectorsData = [];
+    let selectedSector = null;
+    let currentTurn = 1;
+
+    const canvas = document.getElementById('baguaCanvas');
+    const ctx = canvas.getContext('2d');
+    let rotationAngle = 0;
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Fetch Sectors from REST API
+    async function loadSectors() {
+      try {
+        const res = await fetch('/api/zodiac-sectors/all');
+        const data = await res.json();
+        sectorsData = data.sectors;
+        if (sectorsData.length > 0) {
+          selectSector(sectorsData[0]);
+          renderQuickGrid();
+        }
+      } catch (err) {
+        console.error("API error:", err);
+      }
+    }
+
+    function renderQuickGrid() {
+      const qGrid = document.getElementById('quickGrid');
+      qGrid.innerHTML = '';
+      sectorsData.forEach((s, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `sector-pill-btn ${selectedSector && selectedSector.sector_id === s.sector_id ? 'active' : ''}`;
+        btn.innerHTML = `<span class="glyph-lg">${s.chinese_glyph.split(' ')[0]}</span><span>${s.zodiac_name.split(' ')[0]}</span>`;
+        btn.onclick = () => selectSector(s);
+        qGrid.appendChild(btn);
+      });
+    }
+
+    function selectSector(s) {
+      selectedSector = s;
+      document.getElementById('inspectedGlyph').innerText = s.chinese_glyph.split(' ')[0];
+      document.getElementById('inspectedName').innerText = s.zodiac_name;
+      document.getElementById('inspectedBranch').innerText = s.earthly_branch;
+      document.getElementById('inspectedElement').innerText = `${s.element.split(' ')[0]} (${s.polarity.split(' ')[0]})`;
+      document.getElementById('inspectedTerrain').innerText = s.terrain_type;
+      document.getElementById('inspectedHP').innerText = `${s.fortification_hp} / ${s.max_fortification_hp} HP (VITAL RULE)`;
+      document.getElementById('inspectedHex').innerText = JSON.stringify(s.hex_coordinates);
+      document.getElementById('cardinalBadge').innerText = s.cardinal_direction;
+
+      // Phenomenon
+      document.getElementById('phenName').innerText = s.phenomenon.name;
+      document.getElementById('phenDesc').innerText = s.phenomenon.description;
+      document.getElementById('phenManifest').innerText = `Manifestácia: ${s.phenomenon.manifestation}`;
+
+      renderQuickGrid();
+    }
+
+    async function triggerSurge() {
+      if (!selectedSector) return;
+      try {
+        const res = await fetch('/api/zodiac-sectors/trigger-phenomenon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sector_id: selectedSector.sector_id,
+            intensity_delta: 0.35
+          })
+        });
+        const d = await res.json();
+        selectedSector.resonance_intensity = d.new_resonance_intensity;
+        alert(`Pozemský úkaz v sektore ${selectedSector.zodiac_name} zosilnený na flux: ${d.new_resonance_intensity}!`);
+      } catch (e) {
+        alert("Úkaz zosilnený lokálne.");
+      }
+    }
+
+    async function stepCycle(delta) {
+      currentTurn = Math.max(1, currentTurn + delta);
+      try {
+        const res = await fetch(`/api/zodiac-sectors/cycle?turn=${currentTurn}`);
+        const d = await res.json();
+        document.getElementById('cycleTitle').innerText = `${d.ruling_earthly_branch} (${d.ruling_zodiac_sign.split(' ')[0]})`;
+        
+        // Auto select ruling sector
+        const target = sectorsData.find(x => x.earthly_branch === d.ruling_earthly_branch);
+        if (target) selectSector(target);
+      } catch (e) {}
+    }
+
+    // ── Real-Time Bagua Canvas Rendering ────────────────────────────────────
+    function drawBaguaWheel() {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const maxR = Math.min(w, h) * 0.42;
+      const innerR = maxR * 0.35;
+
+      rotationAngle += 0.002;
+
+      // Draw Center Yin-Yang Core
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.beginPath();
+      ctx.arc(0, 0, innerR * 0.9, 0, Math.PI * 2);
+      ctx.fillStyle = '#0a0e18';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#f59e0b';
+      ctx.stroke();
+
+      ctx.font = "bold 20px 'Cinzel', serif";
+      ctx.fillStyle = "#ffd700";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("☯ BAGUA", 0, -8);
+      ctx.font = "10px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#00f0ff";
+      ctx.fillText("12 SEKTOROV", 0, 14);
+      ctx.restore();
+
+      // Draw 12 Sectors
+      if (sectorsData.length === 12) {
+        const arc = (Math.PI * 2) / 12;
+        sectorsData.forEach((s, i) => {
+          const angleStart = i * arc + rotationAngle - Math.PI / 2;
+          const angleEnd = angleStart + arc;
+          const midAngle = angleStart + arc / 2;
+
+          const isSelected = selectedSector && selectedSector.sector_id === s.sector_id;
+
+          // Sector wedge
+          ctx.beginPath();
+          ctx.arc(cx, cy, maxR, angleStart, angleEnd);
+          ctx.arc(cx, cy, innerR, angleEnd, angleStart, true);
+          ctx.closePath();
+
+          if (isSelected) {
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3;
+          } else {
+            ctx.fillStyle = i % 2 === 0 ? 'rgba(0, 240, 255, 0.06)' : 'rgba(255, 255, 255, 0.03)';
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.35)';
+            ctx.lineWidth = 1;
+          }
+          ctx.fill();
+          ctx.stroke();
+
+          // Sector Glyph & Animal Label
+          const textR = (innerR + maxR) / 2;
+          const tx = cx + Math.cos(midAngle) * textR;
+          const ty = cy + Math.sin(midAngle) * textR;
+
+          ctx.save();
+          ctx.translate(tx, ty);
+          ctx.rotate(midAngle + Math.PI / 2);
+
+          ctx.font = isSelected ? "bold 18px 'Outfit', sans-serif" : "15px 'Outfit', sans-serif";
+          ctx.fillStyle = isSelected ? "#ffd700" : "#ffffff";
+          ctx.textAlign = "center";
+          ctx.fillText(s.chinese_glyph.split(' ')[0], 0, -6);
+
+          ctx.font = "9px 'JetBrains Mono', monospace";
+          ctx.fillStyle = isSelected ? "#00f0ff" : "#94a3b8";
+          ctx.fillText(s.zodiac_name.split(' ')[0], 0, 10);
+          ctx.restore();
+
+          // Particle phenomenon emissions
+          if (isSelected || Math.random() < 0.25) {
+            const px = cx + Math.cos(midAngle) * (maxR + 8);
+            const py = cy + Math.sin(midAngle) * (maxR + 8);
+            ctx.beginPath();
+            ctx.arc(px, py, 3 + Math.sin(Date.now() * 0.005 + i) * 2, 0, Math.PI * 2);
+            ctx.fillStyle = isSelected ? '#00ff88' : '#00f0ff';
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+        });
+      }
+
+      requestAnimationFrame(drawBaguaWheel);
+    }
+
+    // Canvas click detection for sectors
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const dx = clickX - cx;
+      const dy = clickY - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      const maxR = Math.min(canvas.width, canvas.height) * 0.42;
+      const innerR = maxR * 0.35;
+
+      if (dist >= innerR && dist <= maxR && sectorsData.length === 12) {
+        let angle = Math.atan2(dy, dx) - rotationAngle + Math.PI / 2;
+        while (angle < 0) angle += Math.PI * 2;
+        angle = angle % (Math.PI * 2);
+
+        const arc = (Math.PI * 2) / 12;
+        const index = Math.floor(angle / arc) % 12;
+        if (sectorsData[index]) selectSector(sectorsData[index]);
+      }
+    });
+
+    // Start
+    loadSectors().then(() => {
+      drawBaguaWheel();
+    });
+  </script>
+</body>
+</html>

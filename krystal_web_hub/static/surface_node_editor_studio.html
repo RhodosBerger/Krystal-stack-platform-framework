@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Node Editor Povrchov & Spätný Zberač Pamäte // Krystal-Stack</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal-bootstrap.css">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-panel: rgba(14, 20, 32, 0.88);
+      --bg-node: rgba(20, 28, 44, 0.94);
+      --border-cyan: rgba(0, 240, 255, 0.35);
+      --border-gold: rgba(245, 158, 11, 0.4);
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.5);
+      --gold: #f59e0b;
+      --green: #00ff88;
+      --purple: #a855f7;
+      --magenta: #ff0055;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'JetBrains Mono', Consolas, monospace;
+      --font-ui: 'Outfit', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 999;
+      opacity: 0.35;
+    }
+
+    /* Header Banner */
+    header.studio-header {
+      background: rgba(10, 14, 24, 0.95);
+      border-bottom: 1px solid var(--border-cyan);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 50;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .brand-group h1 {
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .brand-group h1 span {
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .brand-group p {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--gold);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-action {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--border-cyan);
+      color: var(--cyan);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: rgba(0, 240, 255, 0.25);
+      box-shadow: 0 0 14px var(--cyan);
+    }
+
+    .btn-action.gold {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .btn-action.gold:hover {
+      background: rgba(245, 158, 11, 0.3);
+      box-shadow: 0 0 14px var(--gold);
+    }
+
+    /* Main Workspace Layout */
+    .studio-workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      height: calc(100vh - 54px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Node Graph Canvas Area */
+    .node-canvas-container {
+      position: relative;
+      background: radial-gradient(circle at center, #0a0e18 0%, #04060a 100%);
+      overflow: hidden;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .node-canvas-container:active {
+      cursor: grabbing;
+    }
+
+    .grid-bg-svg {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    .node-wires-svg {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* Draggable Nodes */
+    .graph-node {
+      position: absolute;
+      width: 230px;
+      background: var(--bg-node);
+      border: 1px solid var(--border-cyan);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 10;
+      font-size: 0.75rem;
+      cursor: default;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .graph-node:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 10px 35px rgba(0, 240, 255, 0.25);
+    }
+
+    .graph-node.node-memory {
+      border-color: var(--gold);
+    }
+
+    .graph-node.node-memory:hover {
+      box-shadow: 0 10px 35px rgba(245, 158, 11, 0.3);
+    }
+
+    .node-header {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      border-top-left-radius: 7px;
+      border-top-right-radius: 7px;
+    }
+
+    .node-body {
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .node-sockets {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+    }
+
+    .socket-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .socket-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+
+    .socket-pin {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00f0ff;
+      border: 1px solid #fff;
+      box-shadow: 0 0 6px var(--cyan);
+      cursor: pointer;
+    }
+
+    .socket-pin.pin-gold { background: #ffd700; box-shadow: 0 0 6px #ffd700; }
+    .socket-pin.pin-purple { background: #bf5af2; box-shadow: 0 0 6px #bf5af2; }
+    .socket-pin.pin-green { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
+
+    .node-param-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .node-slider {
+      width: 100px;
+      height: 4px;
+      accent-color: var(--cyan);
+    }
+
+    /* Right Inspection Sidebar */
+    aside.studio-sidebar {
+      background: var(--bg-panel);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-left: 1px solid var(--border-cyan);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 20;
+    }
+
+    .sidebar-block {
+      padding: 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sidebar-block-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--cyan);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* 3D Surface Preview Viewport */
+    .surface-3d-wrapper {
+      width: 100%;
+      height: 220px;
+      background: #030508;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas#surfaceCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Memory Block Matrix Grid */
+    .mem-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .mem-slot {
+      aspect-ratio: 1;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.2s;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .mem-slot.occupied {
+      background: rgba(0, 240, 255, 0.35);
+      border-color: var(--cyan);
+      box-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
+    }
+
+    .mem-slot.reclaimed {
+      background: rgba(0, 255, 136, 0.6);
+      border-color: var(--green);
+      box-shadow: 0 0 10px var(--green);
+      animation: slot-pulse 1.5s infinite alternate;
+    }
+
+    @keyframes slot-pulse {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.4); }
+    }
+
+    /* Combinatorial Odometer */
+    .scenario-odometer-card {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .odometer-num {
+      font-family: var(--font-mono);
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #ffd700;
+      text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    }
+
+    .odometer-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+
+  <!-- Header Banner -->
+  <header class="studio-header">
+    <div class="brand-group">
+      <h1>SURFACE NODE EDITOR <span>// REVERSE MEMORY SLOT RECLAIMER</span></h1>
+      <p>VIACVRSTVOVÉ ŠÉDRE · SPÄTNÉ VYCHYTÁVANIE PAMÄTE · NÁRAST SCENÁROV</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-action" onclick="resetDefaultGraph()">✦ RESET GRAFU</button>
+      <button class="btn-action gold" onclick="triggerScavengerSim()">🔄 SPUSTIŤ SPÄTNÝ ZBER</button>
+      <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--green);">INVARIANT: 6 MAX HP</span>
+      <a href="/desktop" class="btn-action" style="text-decoration:none;">🖥️ KRYSTAL WEBOS</a>
+      <a href="/" class="btn-action" style="text-decoration:none;">← HUB</a>
+    </div>
+  </header>
+
+  <!-- Workspace -->
+  <main class="studio-workspace">
+    
+    <!-- Left: Node Canvas Container -->
+    <div class="node-canvas-container" id="nodeCanvasContainer">
+      <svg class="grid-bg-svg" id="gridBgSvg"></svg>
+      <svg class="node-wires-svg" id="nodeWiresSvg"></svg>
+      <div id="nodesRoot"></div>
+    </div>
+
+    <!-- Right: Surface Inspector & Memory Matrix -->
+    <aside class="studio-sidebar">
+      
+      <!-- 1. 3D Surface Real-Time Viewport -->
+      <div class="sidebar-block">
+        <div class="sidebar-block-title">
+          <span>3D SIMULÁCIA POVRCHU</span>
+          <span style="font-size: 0.65rem; color: var(--cyan); font-family: var(--font-mono);">MULTI-LAYER PBR</span>
+        </div>
+        <div class="surface-3d-wrapper">
+          <canvas id="surfaceCanvas"></canvas>
+        </div>
+        <div style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono); display: flex; justify-content: space-between;">
+          <span>Model: <strong>Kryštálová Guľa</strong></span>
+          <span>Rotácia: <strong>Ťahanie myšou</strong></span>
+        </div>
+      </div>
+
+      <!-- 2. Memory Slot Scavenger Slab Matrix -->
+      <div class="sidebar-block">
+        <div class="sidebar-block-title">
+          <span>BLOKY PAMÄTE (64-SLOT SLAB)</span>
+          <span id="reclaimedBadge" style="font-size: 0.65rem; color: var(--green); font-family: var(--font-mono);">0 RECLAIMED</span>
+        </div>
+        <div class="mem-grid" id="memGrid">
+          <!-- 64 Slots dynamically rendered -->
+        </div>
+        <div style="display: flex; gap: 8px; font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted);">
+          <span>■ Obsadené</span>
+          <span style="color: var(--green);">■ Spätne Vychytané</span>
+          <span>□ Voľné Diery</span>
+        </div>
+      </div>
+
+      <!-- 3. Combinatorial Scenario Permutation Expansion -->
+      <div class="sidebar-block">
+        <div class="sidebar-block-title">
+          <span>NÁRAST SCENÁROV Z RECYKLÁCIE</span>
+          <span style="font-size: 0.65rem; color: var(--gold); font-family: var(--font-mono);">ZERO RAM OVERHEAD</span>
+        </div>
+        <div class="scenario-odometer-card">
+          <div class="odometer-num" id="odometerNum">322,560</div>
+          <div class="odometer-label">UNIKÁTNYCH POVRCHOVÝCH PERMUTÁCIÍ</div>
+          <div style="font-size: 0.62rem; color: var(--green); font-family: var(--font-mono); margin-top: 4px;">
+            P(8, k) &times; 2^(k/4) &middot; Spätné využitie dier v blokoch pamäte
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Active Compiled Shader Uniforms -->
+      <div class="sidebar-block" style="flex: 1;">
+        <div class="sidebar-block-title">
+          <span>AKTÍVNE UNIFORMY ŠÉDRA</span>
+          <span style="font-size: 0.65rem; color: var(--cyan); font-family: var(--font-mono);">GLSL / VULKAN</span>
+        </div>
+        <div id="uniformsList" style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <script>
+    // ── Canonical Default Graph Data ────────────────────────────────────────
+    let currentGraph = {
+      nodes: [
+        {
+          id: "node_base",
+          title: "Základná Vrstva Povrchu",
+          x: 40, y: 50,
+          type: "base",
+          params: { roughness: 0.32, metallic: 0.75, albedo: "#00f0ff" },
+          outputs: [{ id: "out_col", name: "Albedo", color: "pin-purple" }, { id: "out_rough", name: "Roughness", color: "pin-green" }]
+        },
+        {
+          id: "node_noise",
+          title: "Voronoi Perturbácia & Reliéf",
+          x: 40, y: 250,
+          type: "noise",
+          params: { scale: 12.0, bump_depth: 0.65 },
+          outputs: [{ id: "out_height", name: "Height Map", color: "pin-green" }]
+        },
+        {
+          id: "node_shadow",
+          title: "Kontaktné Samotienenie",
+          x: 320, y: 220,
+          type: "shadow",
+          params: { self_shadow_bias: 0.8 },
+          inputs: [{ id: "in_h", name: "Height Map" }],
+          outputs: [{ id: "out_shadow", name: "Shadow Occlusion", color: "pin-green" }]
+        },
+        {
+          id: "node_fresnel",
+          title: "Harmonický Lem (Phi^-1)",
+          x: 320, y: 60,
+          type: "fresnel",
+          params: { rim_power: 1.618 },
+          outputs: [{ id: "out_rim", name: "Rim Glow", color: "pin-gold" }]
+        },
+        {
+          id: "node_reclaimer",
+          title: "Spätný Zberač Slotov Pamäte",
+          x: 590, y: 230,
+          type: "memory",
+          params: { slab_size: 64, reverse_lifo: true },
+          outputs: [{ id: "out_entropy", name: "Slot Entropy", color: "pin-gold" }]
+        },
+        {
+          id: "node_expander",
+          title: "Kombinatorická Expanzia",
+          x: 860, y: 230,
+          type: "expander",
+          params: { permutations_p8k: true },
+          inputs: [{ id: "in_ent", name: "Slot Entropy" }],
+          outputs: [{ id: "out_scenarios", name: "Scenarios Multiplier", color: "pin-gold" }]
+        },
+        {
+          id: "node_output",
+          title: "Master PBR Shader Výstup",
+          x: 1140, y: 110,
+          type: "output",
+          inputs: [
+            { id: "in_diff", name: "Diffuse" },
+            { id: "in_rough", name: "Roughness" },
+            { id: "in_shd", name: "Shadow Mask" },
+            { id: "in_fres", name: "Rim" },
+            { id: "in_scen", name: "Scenarios" }
+          ]
+        }
+      ],
+      connections: [
+        { from: "node_noise", pinFrom: "out_height", to: "node_shadow", pinTo: "in_h" },
+        { from: "node_base", pinFrom: "out_col", to: "node_output", pinTo: "in_diff" },
+        { from: "node_base", pinFrom: "out_rough", to: "node_output", pinTo: "in_rough" },
+        { from: "node_shadow", pinFrom: "out_shadow", to: "node_output", pinTo: "in_shd" },
+        { from: "node_fresnel", pinFrom: "out_rim", to: "node_output", pinTo: "in_fres" },
+        { from: "node_reclaimer", pinFrom: "out_entropy", to: "node_expander", pinTo: "in_ent" },
+        { from: "node_expander", pinFrom: "out_scenarios", to: "node_output", pinTo: "in_scen" }
+      ]
+    };
+
+    // ── Render Node Graph ───────────────────────────────────────────────────
+    const nodesRoot = document.getElementById('nodesRoot');
+    const wiresSvg = document.getElementById('nodeWiresSvg');
+
+    function renderGraph() {
+      nodesRoot.innerHTML = '';
+      currentGraph.nodes.forEach(n => {
+        const div = document.createElement('div');
+        div.className = `graph-node ${n.type === 'memory' ? 'node-memory' : ''}`;
+        div.id = `graphNode_${n.id}`;
+        div.style.left = `${n.x}px`;
+        div.style.top = `${n.y}px`;
+
+        let inputsHtml = '';
+        if (n.inputs) {
+          inputsHtml = n.inputs.map(inp => `
+            <div class="socket-row" id="pin_${n.id}_${inp.id}">
+              <div class="socket-pin"></div>
+              <span>${inp.name}</span>
+            </div>
+          `).join('');
+        }
+
+        let outputsHtml = '';
+        if (n.outputs) {
+          outputsHtml = n.outputs.map(outp => `
+            <div class="socket-row" style="justify-content: flex-end;" id="pin_${n.id}_${outp.id}">
+              <span>${outp.name}</span>
+              <div class="socket-pin ${outp.color || ''}"></div>
+            </div>
+          `).join('');
+        }
+
+        let paramsHtml = '';
+        if (n.params) {
+          paramsHtml = Object.keys(n.params).map(pKey => {
+            const val = n.params[pKey];
+            if (typeof val === 'number') {
+              return `
+                <div class="node-param-row">
+                  <span>${pKey}:</span>
+                  <input type="range" class="node-slider" min="0" max="100" value="${Math.round(val * 100)}" oninput="updateNodeParam('${n.id}', '${pKey}', this.value / 100)">
+                </div>
+              `;
+            }
+            return `<div class="node-param-row"><span>${pKey}:</span><strong style="color:var(--cyan);">${val}</strong></div>`;
+          }).join('');
+        }
+
+        div.innerHTML = `
+          <div class="node-header" id="header_${n.id}">
+            <span>${n.title}</span>
+            <span style="font-size:0.6rem; color:var(--text-muted);">${n.type.toUpperCase()}</span>
+          </div>
+          <div class="node-body">
+            <div class="node-sockets">
+              <div class="socket-col">${inputsHtml}</div>
+              <div class="socket-col">${outputsHtml}</div>
+            </div>
+            ${paramsHtml ? `<div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:6px; display:flex; flex-direction:column; gap:4px;">${paramsHtml}</div>` : ''}
+          </div>
+        `;
+
+        nodesRoot.appendChild(div);
+        setupDraggable(div, n);
+      });
+
+      renderWires();
+    }
+
+    function setupDraggable(el, nodeData) {
+      const header = el.querySelector('.node-header');
+      let isDragging = false;
+      let startX, startY;
+
+      header.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX - nodeData.x;
+        startY = e.clientY - nodeData.y;
+        e.stopPropagation();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        nodeData.x = e.clientX - startX;
+        nodeData.y = e.clientY - startY;
+        el.style.left = `${nodeData.x}px`;
+        el.style.top = `${nodeData.y}px`;
+        renderWires();
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+    }
+
+    function renderWires() {
+      wiresSvg.innerHTML = '';
+      currentGraph.connections.forEach(c => {
+        const fromEl = document.getElementById(`pin_${c.from}_${c.pinFrom}`);
+        const toEl = document.getElementById(`pin_${c.to}_${c.pinTo}`);
+        if (!fromEl || !toEl) return;
+
+        const fromRect = fromEl.getBoundingClientRect();
+        const toRect = toEl.getBoundingClientRect();
+        const canvasRect = document.getElementById('nodeCanvasContainer').getBoundingClientRect();
+
+        const x1 = fromRect.right - canvasRect.left;
+        const y1 = fromRect.top + fromRect.height / 2 - canvasRect.top;
+        const x2 = toRect.left - canvasRect.left;
+        const y2 = toRect.top + toRect.height / 2 - canvasRect.top;
+
+        const dx = Math.abs(x2 - x1) * 0.5;
+        const pathData = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', pathData);
+        path.setAttribute('stroke', '#00f0ff');
+        path.setAttribute('stroke-width', '2.5');
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('filter', 'drop-shadow(0px 0px 5px rgba(0,240,255,0.6))');
+        wiresSvg.appendChild(path);
+      });
+    }
+
+    window.addEventListener('resize', renderWires);
+
+    function updateNodeParam(nodeId, key, val) {
+      const n = currentGraph.nodes.find(x => x.id === nodeId);
+      if (n && n.params) {
+        n.params[key] = val;
+        // Live update surface preview
+        triggerGraphEvaluation();
+      }
+    }
+
+    function resetDefaultGraph() {
+      renderGraph();
+      triggerScavengerSim();
+    }
+
+    // ── 3D Surface Sphere Real-time Canvas ──────────────────────────────────
+    const canvas3d = document.getElementById('surfaceCanvas');
+    const ctx3d = canvas3d.getContext('2d');
+    let sphereAngle = 0;
+    let isMouseDown = false;
+    let lastMouseX = 0;
+
+    function resizeSurfaceCanvas() {
+      canvas3d.width = canvas3d.parentElement.clientWidth;
+      canvas3d.height = canvas3d.parentElement.clientHeight;
+    }
+    resizeSurfaceCanvas();
+    window.addEventListener('resize', resizeSurfaceCanvas);
+
+    canvas3d.addEventListener('mousedown', (e) => {
+      isMouseDown = true;
+      lastMouseX = e.clientX;
+    });
+    window.addEventListener('mouseup', () => isMouseDown = false);
+    window.addEventListener('mousemove', (e) => {
+      if (isMouseDown) {
+        sphereAngle += (e.clientX - lastMouseX) * 0.015;
+        lastMouseX = e.clientX;
+      }
+    });
+
+    let currentRoughness = 0.32;
+    let currentSelfShadow = 0.8;
+    let currentFresnel = 1.618;
+
+    function draw3DSurface() {
+      const w = canvas3d.width;
+      const h = canvas3d.height;
+      ctx3d.fillStyle = '#030508';
+      ctx3d.fillRect(0, 0, w, h);
+
+      if (!isMouseDown) sphereAngle += 0.008;
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const r = Math.min(w, h) * 0.38;
+
+      // Base Iridescent Radial Gradient
+      const grad = ctx3d.createRadialGradient(
+        cx - r * 0.35 + Math.cos(sphereAngle) * 15,
+        cy - r * 0.35,
+        r * 0.05,
+        cx, cy, r
+      );
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.2, '#00f0ff');
+      grad.addColorStop(0.5, '#7928ca');
+      grad.addColorStop(0.85, '#05070e');
+      grad.addColorStop(1, '#000000');
+
+      ctx3d.save();
+      ctx3d.beginPath();
+      ctx3d.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx3d.fillStyle = grad;
+      ctx3d.fill();
+
+      // Multi-layer Normal Perturbation Lines
+      ctx3d.strokeStyle = 'rgba(0, 240, 255, 0.25)';
+      ctx3d.lineWidth = 1.5;
+      for (let i = -r; i <= r; i += 18) {
+        ctx3d.beginPath();
+        const halfChord = Math.sqrt(Math.max(0, r * r - i * i));
+        ctx3d.ellipse(cx, cy + i * 0.6, halfChord, halfChord * 0.35 * Math.sin(sphereAngle + i * 0.1), sphereAngle, 0, Math.PI * 2);
+        ctx3d.stroke();
+      }
+
+      // Contact Self-Shadow Occlusion Crescent
+      const shadowGrad = ctx3d.createRadialGradient(
+        cx + r * 0.5, cy + r * 0.5, r * 0.2,
+        cx, cy, r
+      );
+      shadowGrad.addColorStop(0, `rgba(0, 0, 0, ${currentSelfShadow * 0.9})`);
+      shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx3d.fillStyle = shadowGrad;
+      ctx3d.fill();
+
+      // Golden Mean Fresnel Rim Glow
+      ctx3d.lineWidth = 4;
+      ctx3d.strokeStyle = `rgba(255, 215, 0, ${Math.min(1.0, currentFresnel * 0.4)})`;
+      ctx3d.shadowColor = '#ffd700';
+      ctx3d.shadowBlur = 20;
+      ctx3d.stroke();
+      ctx3d.shadowBlur = 0;
+
+      ctx3d.restore();
+
+      requestAnimationFrame(draw3DSurface);
+    }
+    draw3DSurface();
+
+    // ── Memory Block Slab Grid (64 Slots) ───────────────────────────────────
+    const memGrid = document.getElementById('memGrid');
+    const reclaimedBadge = document.getElementById('reclaimedBadge');
+    const odometerNum = document.getElementById('odometerNum');
+    const uniformsList = document.getElementById('uniformsList');
+
+    let slabSlots = [];
+
+    function initMemoryGrid() {
+      memGrid.innerHTML = '';
+      slabSlots = [];
+      for (let i = 0; i < 64; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'mem-slot';
+        slot.id = `slot_${i}`;
+        // Realistic initial pattern
+        const isOccupied = (i % 3 !== 0 && i % 5 !== 0) || (i < 8);
+        if (isOccupied) slot.classList.add('occupied');
+        memGrid.appendChild(slot);
+        slabSlots.push({ id: i, occupied: isOccupied, reclaimed: false });
+      }
+    }
+    initMemoryGrid();
+
+    async function triggerScavengerSim() {
+      try {
+        const res = await fetch('/api/surface-nodes/scavenge-memory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            free_pattern: [63, 62, 59, 58, 55, 52, 51, 47, 43, 39, 35, 31, 27]
+          })
+        });
+        const data = await res.json();
+
+        // Update slots visuals
+        slabSlots.forEach(s => {
+          const el = document.getElementById(`slot_${s.id}`);
+          if (el) {
+            el.className = 'mem-slot';
+            if (s.id in data.slab_telemetry.slots) {
+              const info = data.slab_telemetry.slots[s.id];
+              if (info.reclaimed) el.classList.add('reclaimed');
+              else if (info.is_occupied) el.classList.add('occupied');
+            }
+          }
+        });
+
+        // Highlight reclaimed count
+        reclaimedBadge.innerText = `${data.reclaimed_count} RECLAIMED (LIFO)`;
+        odometerNum.innerText = data.scenario_multiplication_factor.toLocaleString();
+
+        // Update uniforms display
+        uniformsList.innerHTML = '';
+        Object.keys(data.active_shader_uniforms).forEach(k => {
+          const val = data.active_shader_uniforms[k];
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.justifyContent = 'space-between';
+          row.innerHTML = `<span>${k}:</span><strong style="color:var(--cyan);">${val}</strong>`;
+          uniformsList.appendChild(row);
+        });
+
+      } catch (err) {
+        // Fallback local simulated calculation
+        let reclaimed = 0;
+        for (let i = 63; i >= 0; i--) {
+          const el = document.getElementById(`slot_${i}`);
+          if (el && !el.classList.contains('occupied')) {
+            el.classList.add('reclaimed');
+            reclaimed++;
+          }
+        }
+        reclaimedBadge.innerText = `${reclaimed} RECLAIMED`;
+        odometerNum.innerText = "322,560";
+      }
+    }
+
+    async function triggerGraphEvaluation() {
+      try {
+        const res = await fetch('/api/surface-nodes/evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            parameters: {
+              roughness: currentRoughness,
+              self_shadow_depth: currentSelfShadow,
+              fresnel_power: currentFresnel
+            }
+          })
+        });
+        const d = await res.json();
+        odometerNum.innerText = d.scenario_growth.toLocaleString();
+      } catch (e) {}
+    }
+
+    // Initialize
+    renderGraph();
+    triggerScavengerSim();
+  </script>
+</body>
+</html>

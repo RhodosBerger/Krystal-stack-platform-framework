@@ -12,6 +12,7 @@
 import time
 import re
 import ipaddress
+import urllib.parse
 from typing import Dict, List, Any, Optional, Tuple, Set
 from enum import Enum
 
@@ -386,7 +387,8 @@ class AdaptiveApplicationFirewall:
                 return False, incident
 
         # Combined Inspection Target (Path + Decoded Query + Body)
-        payload_to_inspect = f"{path} {body_text}"
+        unquoted_path = urllib.parse.unquote(path)
+        payload_to_inspect = f"{path} {unquoted_path} {body_text}"
 
         # 4. Path Traversal Check
         for p in self.PATH_TRAVERSAL_PATTERNS:

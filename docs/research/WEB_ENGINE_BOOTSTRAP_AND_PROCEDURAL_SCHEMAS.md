@@ -93,3 +93,16 @@ The Krystal-Bootstrap framework is backed by two formal JSON Schema definitions:
 2. [krystal_engine_bootstrap.schema.json](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/schemas/krystal_engine_bootstrap.schema.json): Governs scene graphs, camera viewports, spatial layout grids, modifier stacks, and post-processing.
 
 This schema ensures that **LLMs can generate, validate, and manipulate 3D web scenes with 100% syntactical guarantee**, eliminating hallucinated attribute names or broken scene graphs.
+
+---
+
+## 5. Architectural Invariants & Procedural Generation Standards
+
+All procedural generation components, instances, and generators must conform to the platform-wide architectural rules:
+- **Core Governance Rule**: [.agents/rules/consistent-procedural-generation-patterns.md](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/.agents/rules/consistent-procedural-generation-patterns.md)
+  - **The 6 Max HP Vital Invariant**: Hit points for any generated entity, garrison, or vehicle are strictly $\text{HP} \le 6$ and $\text{MaxHP} = 6$.
+  - **Axiomatic Determinism**: All generators must accept an optional deterministic `seed`.
+  - **Harmonic Proportions**: Scaling and color tensors derive from the Golden Ratio ($\phi = 1.61803398875$).
+  - **Tripartite Language Parity**: Identical schema representation across Janet DSL (`krystal_janet/`), Python `@dataclass`, and Java 21 `record`s.
+- **Actionable Workflow Skill**: [.agents/skills/procedural-generation-pipelines/SKILL.md](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/.agents/skills/procedural-generation-pipelines/SKILL.md)
+

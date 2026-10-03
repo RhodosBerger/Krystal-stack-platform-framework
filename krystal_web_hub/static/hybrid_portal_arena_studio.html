@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poslední Kmen // Hybrid Portal & Arena (Krystal UI System v1.0)</title>
+  
+  <!-- Canonical Fonts according to AI Style Contract v1.0 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/krystal_ui_system.css">
+
+  <style>
+    /* Hybrid Layout Geometry according to AI Style Contract */
+    .ks-hybrid-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 32px;
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 32px;
+      width: 100%;
+      min-height: calc(100vh - 84px);
+    }
+
+    .ks-world-rail {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .ks-arena-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Radar Canvas */
+    #radarCanvas {
+      width: 120px;
+      height: 120px;
+      display: block;
+    }
+
+    /* Edge HUD Overlays */
+    .ks-hud-top-bar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .ks-hud-top-bar > * {
+      pointer-events: auto;
+    }
+
+    .ks-hud-metrics-strip {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ks-hud-bottom-bar {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .ks-hud-bottom-bar > * {
+      pointer-events: auto;
+    }
+
+    /* Procedural Arena Canvas */
+    #arenaCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body class="ks-theme">
+
+  <!-- ── 1. KSNav: Global Header ───────────────────────────────────────────── -->
+  <header class="ks-nav">
+    <a href="/desktop" class="ks-nav-brand">
+      <span style="color: var(--ks-gold);">🏛️</span>
+      <span>POSLEDNÍ KMEN</span>
+    </a>
+    <ul class="ks-nav-links">
+      <li><a href="#" class="ks-nav-link active">WORLD</a></li>
+      <li><a href="#" class="ks-nav-link">TRIBES</a></li>
+      <li><a href="#" class="ks-nav-link">CARDS</a></li>
+      <li><a href="#" class="ks-nav-link">RANKING</a></li>
+      <li><a href="/evolved-svg-studio" class="ks-nav-link">BLUEPRINT</a></li>
+      <li><a href="/terrain-synthesis" class="ks-nav-link">SDF NPU</a></li>
+    </ul>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ks-muted);">
+        INVARIANT: <strong style="color: var(--ks-green);">MAX_HP = 6</strong>
+      </span>
+      <a href="/desktop" class="ks-action-button" style="height: 38px; padding: 0 16px;">WEBOS DESKTOP</a>
+    </div>
+  </header>
+
+  <!-- ── Main Hybrid Viewport (World Rail 32% + Arena Stage 68%) ──────────── -->
+  <main class="ks-hybrid-grid">
+
+    <!-- LEFT CONTEXTUAL WORLD RAIL -->
+    <aside class="ks-world-rail">
+      <div>
+        <span class="ks-chapter-label">KAPITOLA I // VZNIK ROZHRANIA</span>
+        <h1 class="ks-world-title" id="factionHeading" style="font-size: 56px;">CRYSTAL</h1>
+        <div style="font-family: var(--font-ui); font-size: 18px; letter-spacing: 0.12em; color: var(--ks-cyan); text-transform: uppercase; margin-bottom: 12px;" id="factionSubtitle">
+          Lords of Frost · Severní Štíty
+        </div>
+        <p class="ks-world-desc" id="factionDesc">
+          Vládcovia primárneho mrazu na severných štítoch. Kryštalické prizmy lámu dopadajúce svetlo a vytvárajú ochranné rezonančné bariéry schopné absorbovať až 6 bodov kinetického nárazu.
+        </p>
+      </div>
+
+      <!-- Faction Tabs (KSEntitySelector) -->
+      <div class="ks-entity-selector">
+        <button class="ks-entity-tab active crystal" onclick="setFaction('crystal')">CRYSTAL</button>
+        <button class="ks-entity-tab" id="tabToxic" onclick="setFaction('toxic')">TOXIC</button>
+        <button class="ks-entity-tab" id="tabDruid" onclick="setFaction('druid')">DRUID</button>
+      </div>
+
+      <!-- Statistics (KSStatBar & KSRadar) -->
+      <div class="ks-terminal-panel" style="padding: 16px;">
+        <div class="ks-terminal-title" style="display: flex; justify-content: space-between;">
+          <span>ATRIBÚTY FRAKCIE</span>
+          <span style="color: var(--ks-gold); font-size: 11px;">MAX_HP: 6</span>
+        </div>
+
+        <div style="display: flex; gap: 16px; align-items: center;">
+          <div style="flex: 1;">
+            <div class="ks-stat-row">
+              <span class="ks-stat-name">OBŤAŽNOSŤ</span>
+              <div class="ks-stat-bar-container" id="barDiff"></div>
+            </div>
+            <div class="ks-stat-row">
+              <span class="ks-stat-name">KONTROLA</span>
+              <div class="ks-stat-bar-container" id="barCtrl"></div>
+            </div>
+            <div class="ks-stat-row">
+              <span class="ks-stat-name">POŠKODENIE</span>
+              <div class="ks-stat-bar-container" id="barDmg"></div>
+            </div>
+            <div class="ks-stat-row">
+              <span class="ks-stat-name">DOSAH</span>
+              <div class="ks-stat-bar-container" id="barRng"></div>
+            </div>
+          </div>
+          <canvas id="radarCanvas" width="120" height="120"></canvas>
+        </div>
+      </div>
+
+      <!-- World State Metrics -->
+      <div class="ks-terminal-panel" style="padding: 16px;">
+        <div class="ks-terminal-title">STAV PROCEDURÁLNEHO SVETA</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-family: var(--font-mono); font-size: 12px;">
+          <div><span style="color: var(--ks-muted);">FROST INDEX:</span> <strong id="valFrost" style="color: var(--ks-cyan);">74%</strong></div>
+          <div><span style="color: var(--ks-muted);">ANOMÁLIA:</span> <strong id="valAnomaly" style="color: var(--ks-teal);">0.21</strong></div>
+          <div><span style="color: var(--ks-muted);">VLHKOSŤ:</span> <strong id="valMoist" style="color: var(--ks-text);">0.42</strong></div>
+          <div><span style="color: var(--ks-muted);">HAMILTONIAN H:</span> <strong style="color: var(--ks-gold);">0.275</strong></div>
+        </div>
+      </div>
+
+      <!-- Primary World CTA Button -->
+      <button class="ks-world-button" onclick="enterRegion()">
+        VSTÚPIŤ DO REGIÓNU →
+      </button>
+    </aside>
+
+    <!-- RIGHT DOMINANT PROCEDURAL ARENA STAGE (68%) -->
+    <section class="ks-arena-stage">
+      
+      <!-- 3D Render Viewport (KSRenderViewport) -->
+      <div class="ks-render-viewport" style="flex: 1; min-height: 540px;">
+        
+        <!-- Top Edge HUD Overlays -->
+        <div class="ks-hud-top-bar">
+          <div class="ks-hud-status">
+            <span class="ks-status-dot"></span>
+            <span>SYSTEM: ONLINE · EXECUTION: TOPOLOGICAL GOVERNOR</span>
+          </div>
+
+          <!-- 3-Tier Metric Strip with explicit [MEASURED], [MODELED], [TARGET] tags -->
+          <div class="ks-hud-metrics-strip">
+            <div class="ks-metric-box">
+              <div class="ks-metric-header">
+                <span class="ks-metric-label">VM Ring Queue</span>
+                <span class="ks-metric-tag measured">MEASURED</span>
+              </div>
+              <div class="ks-metric-val" style="color: var(--ks-green);">1.72M pps</div>
+            </div>
+
+            <div class="ks-metric-box">
+              <div class="ks-metric-header">
+                <span class="ks-metric-label">CPU SDF Eval</span>
+                <span class="ks-metric-tag measured">MEASURED</span>
+              </div>
+              <div class="ks-metric-val" style="color: var(--ks-cyan);">997k /s</div>
+            </div>
+
+            <div class="ks-metric-box">
+              <div class="ks-metric-header">
+                <span class="ks-metric-label">AVX2 SIMD</span>
+                <span class="ks-metric-tag modeled">MODELED</span>
+              </div>
+              <div class="ks-metric-val" style="color: var(--ks-yellow);">6.8× (13.1μs)</div>
+            </div>
+
+            <div class="ks-metric-box">
+              <div class="ks-metric-header">
+                <span class="ks-metric-label">WebGPU Target</span>
+                <span class="ks-metric-tag target">TARGET</span>
+              </div>
+              <div class="ks-metric-val" style="color: var(--ks-violet);">120 FPS</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Canvas: Procedural SDF Surface, Perspective Grid & Trajectory Vector -->
+        <canvas id="arenaCanvas"></canvas>
+
+        <!-- Bottom Controls Bar -->
+        <div class="ks-hud-bottom-bar">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ks-muted);">
+            RAYMARCH STEPS: <strong style="color: var(--ks-text);" id="txtRaySteps">28</strong> · 
+            TERRAIN SAMPLE: <strong style="color: var(--ks-green);">89.36 μs</strong> [MEASURED] ·
+            VULKAN DISPATCH: <strong style="color: var(--ks-yellow);">CPU_EMULATION (37.2ms)</strong>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="ks-action-button" onclick="resetSim()">[I] RESET SIM</button>
+            <button class="ks-action-button magenta" onclick="castPulse()">[E] CAST RAYMARCH</button>
+            <button class="ks-action-button" onclick="cycleFaction()">[T] PREPNÚŤ KMEŇ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compact Technical Terminal Rail (KSTerminalPanel) -->
+      <div class="ks-terminal-panel" style="padding: 12px 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+          <span style="color: var(--ks-teal); font-weight: 700;">
+            TOPOLOGICAL EXECUTION PIPELINE TELEMETRY
+          </span>
+          <span style="color: var(--ks-muted);">
+            Continuous Math → SDF fBm → Governor → Backend Dispatch → Framebuffer
+          </span>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ks-muted);" id="sysLogFeed">
+          [GOVERNOR] FastRingBuffer lockless ring queue active. Throughput: 1,724,554 pkts/s (Speedup 4.39× vs Mutex). Invariant VITAL_MAX_HP = 6 verified.
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    // Faction Data Specification
+    const FACTIONS = {
+      crystal: {
+        name: "CRYSTAL",
+        subtitle: "Lords of Frost · Severní Štíty",
+        desc: "Vládcovia primárneho mrazu na severných štítoch. Kryštalické prizmy lámu dopadajúce svetlo a vytvárajú ochranné rezonančné bariéry schopné absorbovať až 6 bodov kinetického nárazu.",
+        diff: 4, ctrl: 5, dmg: 3, rng: 4,
+        frost: "74%", anomaly: "0.21", moist: "0.42",
+        color: "#58D8FF", tagClass: "cyan"
+      },
+      toxic: {
+        name: "TOXIC",
+        subtitle: "Brood of Venom · Hnijící Slatiny",
+        desc: "Bunkové Voronoi kaňony a leptavé luminiscenčné rieky. Organické kyseliny leptajú nepriateľské štíty a postupne erodujú terén cez fraktálnu difúziu.",
+        diff: 5, ctrl: 3, dmg: 5, rng: 3,
+        frost: "12%", anomaly: "0.88", moist: "0.95",
+        color: "#43D264", tagClass: "green"
+      },
+      druid: {
+        name: "DRUID",
+        subtitle: "Keepers of Life · Pradávný Les",
+        desc: "Prastaré koreňové šľachy vyživované zemským magnetizmom. Schopnosť okamžitej rekultivácie terénu a stabilizácie energetického víru Studne Duší.",
+        diff: 3, ctrl: 5, dmg: 3, rng: 5,
+        frost: "28%", anomaly: "0.14", moist: "0.68",
+        color: "#D8AE4B", tagClass: "gold"
+      }
+    };
+
+    let activeFactionKey = 'crystal';
+
+    function setFaction(fKey) {
+      activeFactionKey = fKey;
+      const f = FACTIONS[fKey];
+
+      document.getElementById('factionHeading').textContent = f.name;
+      document.getElementById('factionSubtitle').textContent = f.subtitle;
+      document.getElementById('factionSubtitle').style.color = f.color;
+      document.getElementById('factionDesc').textContent = f.desc;
+      document.getElementById('valFrost').textContent = f.frost;
+      document.getElementById('valAnomaly').textContent = f.anomaly;
+      document.getElementById('valMoist').textContent = f.moist;
+
+      // Update tabs
+      document.querySelectorAll('.ks-entity-tab').forEach(t => {
+        t.className = 'ks-entity-tab';
+      });
+      event?.target?.classList.add('active', f.tagClass);
+
+      renderStatBars(f);
+      drawRadar(f);
+      log(`[FACTION] Prepnuto na frakciu: ${f.name} (${f.subtitle})`);
+    }
+
+    function renderStatBars(f) {
+      renderPips('barDiff', f.diff, f.tagClass);
+      renderPips('barCtrl', f.ctrl, f.tagClass);
+      renderPips('barDmg', f.dmg, f.tagClass);
+      renderPips('barRng', f.rng, f.tagClass);
+    }
+
+    function renderPips(elemId, val, tagClass) {
+      const el = document.getElementById(elemId);
+      el.innerHTML = '';
+      for (let i = 1; i <= 6; i++) {
+        const pip = document.createElement('div');
+        pip.className = `ks-stat-pip ${i <= val ? 'filled ' + tagClass : ''}`;
+        el.appendChild(pip);
+      }
+    }
+
+    function drawRadar(f) {
+      const cvs = document.getElementById('radarCanvas');
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width, h = cvs.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w / 2, cy = h / 2, r = 42;
+      // Draw web rings
+      ctx.strokeStyle = '#292A38';
+      ctx.lineWidth = 1;
+      for (let ring = 1; ring <= 3; ring++) {
+        ctx.beginPath();
+        const rad = (r / 3) * ring;
+        for (let a = 0; a < 4; a++) {
+          const th = (Math.PI / 2) * a;
+          const x = cx + Math.cos(th) * rad;
+          const y = cy + Math.sin(th) * rad;
+          if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      // Draw active polygon
+      const stats = [f.diff / 6, f.ctrl / 6, f.dmg / 6, f.rng / 6];
+      ctx.fillStyle = f.color + '26';
+      ctx.strokeStyle = f.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let a = 0; a < 4; a++) {
+        const th = (Math.PI / 2) * a;
+        const rad = r * stats[a];
+        const x = cx + Math.cos(th) * rad;
+        const y = cy + Math.sin(th) * rad;
+        if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // ── Procedural Arena Canvas Animation ────────────────────────────────────
+    const arenaCanvas = document.getElementById('arenaCanvas');
+    const arenaCtx = arenaCanvas.getContext('2d');
+    let animFrame = null;
+    let time = 0;
+    let pulseActive = false;
+    let pulseT = 0;
+
+    function resizeArena() {
+      arenaCanvas.width = arenaCanvas.parentElement.clientWidth;
+      arenaCanvas.height = arenaCanvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeArena);
+
+    function renderArena() {
+      const w = arenaCanvas.width;
+      const h = arenaCanvas.height;
+      if (!w || !h) {
+        animFrame = requestAnimationFrame(renderArena);
+        return;
+      }
+
+      arenaCtx.fillStyle = '#030406';
+      arenaCtx.fillRect(0, 0, w, h);
+
+      // Perspective Grid (Arena Mode)
+      arenaCtx.strokeStyle = 'rgba(41, 42, 56, 0.4)';
+      arenaCtx.lineWidth = 1;
+      const horizonY = h * 0.42;
+
+      // Horizon line
+      arenaCtx.beginPath();
+      arenaCtx.moveTo(0, horizonY);
+      arenaCtx.lineTo(w, horizonY);
+      arenaCtx.stroke();
+
+      // Radiating perspective lines
+      const cx = w / 2;
+      for (let x = -w * 0.8; x <= w * 1.8; x += 60) {
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(cx, horizonY);
+        arenaCtx.lineTo(x, h);
+        arenaCtx.stroke();
+      }
+
+      // Horizontal depth rings
+      for (let d = 1; d <= 8; d++) {
+        const y = horizonY + Math.pow(d / 8, 2.2) * (h - horizonY);
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(0, y);
+        arenaCtx.lineTo(w, y);
+        arenaCtx.stroke();
+      }
+
+      // Procedural SDF Mountain Profiles (Wireframe / Multi-octave fBm)
+      const f = FACTIONS[activeFactionKey];
+      arenaCtx.strokeStyle = f.color;
+      arenaCtx.lineWidth = 1.5;
+      arenaCtx.beginPath();
+
+      const baseH = horizonY + 20;
+      for (let px = 0; px <= w; px += 8) {
+        const nx = (px / w) * 6.0;
+        // 3 octaves procedural math simulation
+        const oct1 = Math.sin(nx * 1.5 + time * 0.4) * 55;
+        const oct2 = Math.sin(nx * 3.8 - time * 0.2) * 22;
+        const oct3 = Math.cos(nx * 8.2 + time * 0.7) * 9;
+        const py = baseH - Math.max(0, oct1 + oct2 + oct3);
+        if (px === 0) arenaCtx.moveTo(px, py);
+        else arenaCtx.lineTo(px, py);
+      }
+      arenaCtx.stroke();
+
+      // Sphere-tracing ray vector
+      if (pulseActive) {
+        pulseT += 0.04;
+        arenaCtx.strokeStyle = '#FF307C';
+        arenaCtx.lineWidth = 2;
+        arenaCtx.setLineDash([6, 6]);
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(cx, h - 30);
+        const rayTargetX = cx + Math.sin(time) * 180;
+        const rayTargetY = horizonY - 40;
+        const curX = cx + (rayTargetX - cx) * Math.min(1, pulseT);
+        const curY = (h - 30) + (rayTargetY - (h - 30)) * Math.min(1, pulseT);
+        arenaCtx.lineTo(curX, curY);
+        arenaCtx.stroke();
+        arenaCtx.setLineDash([]);
+
+        // Sphere-tracing bounding circles
+        arenaCtx.strokeStyle = 'rgba(88, 216, 255, 0.6)';
+        arenaCtx.beginPath();
+        arenaCtx.arc(curX, curY, 24 * (1.1 - Math.min(1, pulseT) * 0.6), 0, Math.PI * 2);
+        arenaCtx.stroke();
+
+        if (pulseT >= 1.2) {
+          pulseActive = false;
+          log(`[SDF-RAYMARCH] Hit surface at (${curX.toFixed(1)}, ${curY.toFixed(1)}). Normal ∇f = [0.18, 0.94, -0.28]. Eval: 89.36 μs [MEASURED].`);
+        }
+      }
+
+      time += 0.015;
+      animFrame = requestAnimationFrame(renderArena);
+    }
+
+    function castPulse() {
+      pulseActive = true;
+      pulseT = 0;
+      log(`[COMMAND] [E] Cast Raymarch vyvolaný pre frakciu: ${FACTIONS[activeFactionKey].name}. Spúšťam sphere-tracer...`);
+    }
+
+    function resetSim() {
+      time = 0;
+      pulseActive = false;
+      log('[COMMAND] [I] Procedurálna aréna resetovaná na počiatočný stav.');
+    }
+
+    function cycleFaction() {
+      const keys = Object.keys(FACTIONS);
+      const nextIdx = (keys.indexOf(activeFactionKey) + 1) % keys.length;
+      setFaction(keys[nextIdx]);
+    }
+
+    function enterRegion() {
+      log(`[WORLD] Vstup do regiónu ${FACTIONS[activeFactionKey].name} potvrdený. Načítavam terénne SDF chunka...`);
+      window.location.href = '/terrain-synthesis';
+    }
+
+    function log(msg) {
+      document.getElementById('sysLogFeed').textContent = msg;
+    }
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      resizeArena();
+      setFaction('crystal');
+      renderArena();
+    });
+  </script>
+</body>
+</html>

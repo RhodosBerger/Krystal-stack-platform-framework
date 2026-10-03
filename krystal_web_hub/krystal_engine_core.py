@@ -123,7 +123,21 @@ from krystal_web_hub.economic_engine import (
     GLOBAL_CEL_SHADING, GLOBAL_NCON_MARKETING,
     AerostatProfile, FloatingIslandNode,
     AerialBalloonIslandEngine, PlungingMortarArtilleryEngine, RogaloAndParachuteFlightEngine,
-    GLOBAL_BALLOON_ISLAND_ENGINE, GLOBAL_PLUNGING_MORTAR_ENGINE, GLOBAL_ROGALO_PARACHUTE_ENGINE
+    GLOBAL_BALLOON_ISLAND_ENGINE, GLOBAL_PLUNGING_MORTAR_ENGINE, GLOBAL_ROGALO_PARACHUTE_ENGINE,
+    CampaignChoice, CampaignChapter, EpicCampaignEngine, GLOBAL_EPIC_CAMPAIGN_ENGINE,
+    GLOBAL_MRP_HARMONIC_STREET_ENGINE, PINK_PANTHER_PALETTE, VITAL_MAX_HP, GOLDEN_RATIO,
+    GLOBAL_WORDPRESS_SECURITY, GLOBAL_PROJECTOR_ANALOG_BRIDGE, GLOBAL_PROCEDURAL_ISLAND_ENGINE, GLOBAL_JAVA_TRANSPILER,
+    GLOBAL_WORDPRESS_SUBDOMAIN_GATE,
+    GLOBAL_2FA_AUTHENTICATOR, TIME_STEP_SECONDS, TOKEN_DIGITS,
+    GLOBAL_VULKAN_IRIS_XE_ENGINE, GLOBAL_GREEK_BOHEMIA_ENGINE,
+    GLOBAL_QUADRATIC_TRANSFORMER, GLOBAL_SURFACE_NODE_ENGINE,
+    GLOBAL_CHINESE_ZODIAC_SECTOR_ENGINE,
+    GLOBAL_HIGH_FIDELITY_3D_ENGINE,
+    GLOBAL_WSL_EMULATION_SUBSYSTEM,
+    PosledniKmenBiome,
+    GLOBAL_TERRAIN_SYNTHESIS_ENGINE,
+    GLOBAL_EVOLVED_SVG_ENGINE,
+    GLOBAL_EXECUTION_ARCHITECTURE_ENGINE
 )
 from krystal_web_hub.economic_engine.ability_framework import (
     calculate_hex_distance, validate_target_range
@@ -1013,6 +1027,36 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/manual', '/design-manual', '/game_elements_design_manual.html'):
             self._serve_file(os.path.join(STATIC_DIR, "game_elements_design_manual.html"), "text/html")
             return
+        if path in ('/desktop', '/webos', '/krystal-os', '/os'):
+            self._serve_file(os.path.join(STATIC_DIR, "krystal_webos_desktop.html"), "text/html")
+            return
+        if path in ('/quadratic', '/quadratic-studio', '/quadratic-transformer'):
+            self._serve_file(os.path.join(STATIC_DIR, "quadratic_transformer_studio.html"), "text/html")
+            return
+        if path in ('/surface-nodes', '/surface-editor', '/surface-studio', '/node-editor'):
+            self._serve_file(os.path.join(STATIC_DIR, "surface_node_editor_studio.html"), "text/html")
+            return
+        if path in ('/chinese-zodiac-sectors', '/zodiac-sectors', '/terrestrial-phenomena', '/chinese-zodiac'):
+            self._serve_file(os.path.join(STATIC_DIR, "chinese_zodiac_sectors_studio.html"), "text/html")
+            return
+        if path in ('/high-fidelity-3d-studio', '/3d-studio', '/3d-display', '/3d-models'):
+            self._serve_file(os.path.join(STATIC_DIR, "high_fidelity_3d_studio.html"), "text/html")
+            return
+        if path in ('/wsl-emulator', '/wsl-studio', '/virtual-linux', '/wsl-terminal'):
+            self._serve_file(os.path.join(STATIC_DIR, "wsl_emulator_studio.html"), "text/html")
+            return
+        if path in ('/terrain-synthesis', '/continuous-world', '/npu-sdf-terrain', '/posledni-kmen-synthesis', '/sdf-terrain'):
+            self._serve_file(os.path.join(STATIC_DIR, "npu_sdf_terrain_studio.html"), "text/html")
+            return
+        if path in ('/evolved-svg-studio', '/svg-blueprint', '/vector-studio', '/posledni-kmen-svg'):
+            self._serve_file(os.path.join(STATIC_DIR, "evolved_svg_studio.html"), "text/html")
+            return
+        if path in ('/hybrid-portal-arena', '/hybrid-mode', '/krystal-ui-system', '/portal-arena'):
+            self._serve_file(os.path.join(STATIC_DIR, "hybrid_portal_arena_studio.html"), "text/html")
+            return
+        if path in ('/wordpress-subdomain-security', '/wp-subdomain-security', '/subdomain-security', '/wp-security-gate'):
+            self._serve_file(os.path.join(STATIC_DIR, "wordpress_subdomain_security_studio.html"), "text/html")
+            return
         if path.startswith('/static/'):
             rel_path = path[8:].lstrip('/\\')
             target = os.path.normpath(os.path.join(STATIC_DIR, rel_path))
@@ -1023,15 +1067,165 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             return
 
         # Health / Status
-        if path == '/api/status':
+        if path in ('/api/status', '/api/health'):
             self._send_json({
                 "status": "ONLINE",
+                "healthy": True,
+                "rules": {
+                    "max_hp": VITAL_MAX_HP
+                },
+                "vital_max_hp_rule": VITAL_MAX_HP,
                 "engine": "Krystal-Stack 3D CMS (Janet + Python)",
                 "port": 8089,
                 "native_janet": shutil.which("janet") is not None,
                 "cards_count": len(KMEN_CARDS),
                 "assets": os.listdir(ASSET_DIR) if os.path.exists(ASSET_DIR) else []
             })
+            return
+
+        # Vulkan Iris Xe Hardware & Memory Grid Telemetry
+        if path == '/api/vulkan-iris-xe/telemetry':
+            self._send_json(GLOBAL_VULKAN_IRIS_XE_ENGINE.get_full_telemetry())
+            return
+
+        # Greek Pantheon & Bohemian Coalitions
+        if path == '/api/greek-bohemia/pantheon':
+            self._send_json(GLOBAL_GREEK_BOHEMIA_ENGINE.get_pantheon_roster())
+            return
+
+        # Philosophical Memory Leveling Strategies
+        if path == '/api/greek-bohemia/memory-strategies':
+            self._send_json(GLOBAL_GREEK_BOHEMIA_ENGINE.get_philosophical_memory_axioms())
+            return
+
+        # Quadratic Variable Transformer & Latent x Bridge
+        if path == '/api/quadratic/domains':
+            self._send_json(GLOBAL_QUADRATIC_TRANSFORMER.get_domains())
+            return
+
+        if path == '/api/quadratic/golden-state':
+            self._send_json(GLOBAL_QUADRATIC_TRANSFORMER.evaluate_golden_mean())
+            return
+
+        # Surface Node Shader Composer & Reverse Memory Slot Scavenger
+        if path == '/api/surface-nodes/catalog':
+            self._send_json(GLOBAL_SURFACE_NODE_ENGINE.get_node_catalog())
+            return
+
+        if path == '/api/surface-nodes/default-graph':
+            self._send_json(GLOBAL_SURFACE_NODE_ENGINE.get_default_graph())
+            return
+
+        # ── CHINESE ZODIAC TERRESTRIAL PHENOMENA & SECTORS ──────────────────
+        if path == '/api/zodiac-sectors/all':
+            self._send_json({
+                "sectors": GLOBAL_CHINESE_ZODIAC_SECTOR_ENGINE.get_all_sectors(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/zodiac-sectors/cycle':
+            turn_val = 1
+            if parsed.query:
+                try:
+                    params = urllib.parse.parse_qs(parsed.query)
+                    turn_val = int(params.get("turn", [1])[0])
+                except Exception:
+                    turn_val = 1
+            self._send_json(GLOBAL_CHINESE_ZODIAC_SECTOR_ENGINE.evaluate_global_terrestrial_cycle(turn_val))
+            return
+
+        # ── HIGH-FIDELITY 3D DISPLAY & WSL MODEL PIPELINE ──────────────────
+        if path == '/api/3d-models/catalog':
+            self._send_json(GLOBAL_HIGH_FIDELITY_3D_ENGINE.get_catalog())
+            return
+
+        if path == '/api/3d-models/wsl-diagnostic':
+            self._send_json(GLOBAL_HIGH_FIDELITY_3D_ENGINE.run_wsl_dnf_diagnostic())
+            return
+
+        # ── WSL EMULATION SUBSYSTEM ENDPOINTS ──────────────────────────────
+        if path == '/api/wsl/subsystem-status':
+            self._send_json(GLOBAL_WSL_EMULATION_SUBSYSTEM.get_status())
+            return
+
+        if path == '/api/wsl/virtual-fs':
+            fs_summary = {
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "node_count": len(GLOBAL_WSL_EMULATION_SUBSYSTEM.vfs),
+                "nodes": [{"path": k, "is_dir": v.is_dir, "mode": v.mode} for k, v in GLOBAL_WSL_EMULATION_SUBSYSTEM.vfs.items()]
+            }
+            self._send_json(fs_summary)
+            return
+
+        # ── CONTINUOUS TERRAIN SYNTHESIS & NPU OPTIMIZATION ───────────────
+        if path == '/api/terrain-synthesis/telemetry':
+            self._send_json(GLOBAL_TERRAIN_SYNTHESIS_ENGINE.get_system_telemetry())
+            return
+
+        # ── EVOLVED HIGH-DETAIL SVG VECTOR ASSETS ──────────────────────────
+        if path == '/api/svg/catalog':
+            self._send_json({
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "golden_ratio": GOLDEN_RATIO,
+                "presets": [
+                    {"id": "master-blueprint", "title": "Poslední Kmen Celestial Island Master Blueprint", "format": "SVG", "aspect": "16:9", "url": "/api/svg/master-blueprint.svg"},
+                    {"id": "crystal-crest", "title": "Crystal Tribe Frost Spire Emblem", "format": "SVG", "aspect": "1:1", "url": "/api/svg/crystal-crest.svg"},
+                    {"id": "toxic-crest", "title": "Toxic Tribe Voronoi Serpent Emblem", "format": "SVG", "aspect": "1:1", "url": "/api/svg/toxic-crest.svg"},
+                    {"id": "druid-crest", "title": "Druid Tribe World Tree Emblem", "format": "SVG", "aspect": "1:1", "url": "/api/svg/druid-crest.svg"},
+                    {"id": "studna-dusi-crest", "title": "Studna Duší Celestial Vortex Singularity", "format": "SVG", "aspect": "1:1", "url": "/api/svg/studna-dusi-crest.svg"}
+                ]
+            })
+            return
+
+        if path == '/api/svg/master-blueprint.svg':
+            svg_content = GLOBAL_EVOLVED_SVG_ENGINE.generate_master_blueprint_svg()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/svg+xml; charset=utf-8")
+            self.send_header("Content-Length", str(len(svg_content.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(svg_content.encode('utf-8'))
+            return
+
+        if path == '/api/svg/crystal-crest.svg':
+            svg_content = GLOBAL_EVOLVED_SVG_ENGINE.generate_crystal_tribe_svg()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/svg+xml; charset=utf-8")
+            self.send_header("Content-Length", str(len(svg_content.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(svg_content.encode('utf-8'))
+            return
+
+        if path == '/api/svg/toxic-crest.svg':
+            svg_content = GLOBAL_EVOLVED_SVG_ENGINE.generate_toxic_tribe_svg()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/svg+xml; charset=utf-8")
+            self.send_header("Content-Length", str(len(svg_content.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(svg_content.encode('utf-8'))
+            return
+
+        if path == '/api/svg/druid-crest.svg':
+            svg_content = GLOBAL_EVOLVED_SVG_ENGINE.generate_druid_tribe_svg()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/svg+xml; charset=utf-8")
+            self.send_header("Content-Length", str(len(svg_content.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(svg_content.encode('utf-8'))
+            return
+
+        if path == '/api/svg/studna-dusi-crest.svg':
+            svg_content = GLOBAL_EVOLVED_SVG_ENGINE.generate_studna_dusi_svg()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/svg+xml; charset=utf-8")
+            self.send_header("Content-Length", str(len(svg_content.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(svg_content.encode('utf-8'))
+            return
+
+        # ── EXECUTION ARCHITECTURE & METRIC STRATIFICATION ─────────────────
+        if path == '/api/execution-architecture/metrics':
+            self._send_json(GLOBAL_EXECUTION_ARCHITECTURE_ENGINE.get_metrics_catalog())
             return
 
         # Cards Library
@@ -1715,6 +1909,145 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             })
             return
 
+        if path == '/api/campaign/chapters':
+            chapters = GLOBAL_EPIC_CAMPAIGN_ENGINE.get_all_chapters()
+            self._send_json({
+                "success": True,
+                "count": len(chapters),
+                "chapters": chapters
+            })
+            return
+
+        if path == '/api/campaign/codex':
+            codex = GLOBAL_EPIC_CAMPAIGN_ENGINE.get_codex()
+            self._send_json({
+                "success": True,
+                "codex": codex
+            })
+        if path == '/api/mrp/hierarchy/levels':
+            levels = GLOBAL_MRP_HARMONIC_STREET_ENGINE.get_hierarchy_levels()
+            self._send_json({
+                "success": True,
+                "count": len(levels),
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "golden_ratio": GOLDEN_RATIO,
+                "levels": levels
+            })
+            return
+
+        if path == '/api/mrp/regions':
+            regions = GLOBAL_MRP_HARMONIC_STREET_ENGINE.get_canonical_regions()
+            self._send_json({
+                "success": True,
+                "count": len(regions),
+                "regions": regions
+            })
+            return
+
+        if path == '/api/mrp/palette':
+            palette = GLOBAL_MRP_HARMONIC_STREET_ENGINE.get_pink_panther_palette()
+            self._send_json({
+                "success": True,
+                "palette": palette
+            })
+            return
+
+        if path == '/api/mrp/vehicles':
+            query = urllib.parse.parse_qs(parsed.query)
+            region_filter = query.get("region", [None])[0]
+            vehicles = GLOBAL_MRP_HARMONIC_STREET_ENGINE.get_active_vehicles(region_id=region_filter)
+            self._send_json({
+                "success": True,
+                "count": len(vehicles),
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "vehicles": vehicles
+            })
+            return
+
+        if path == '/api/mrp/manifesto':
+            manifesto = GLOBAL_MRP_HARMONIC_STREET_ENGINE.get_engine_manifesto()
+            self._send_json({
+                "success": True,
+                "manifesto": manifesto
+            })
+            return
+
+        if path == '/api/wordpress/security/status':
+            self._send_json({
+                "success": True,
+                "bbq_firewall": "ACTIVE_REGEX_INSPECTION",
+                "antispam_bee": {
+                    "honeypot_field": GLOBAL_WORDPRESS_SECURITY.honeypot_field_name,
+                    "min_submission_duration_sec": GLOBAL_WORDPRESS_SECURITY.min_submission_duration_sec,
+                    "zero_database_bloat": True
+                },
+                "wordfence_bruteforce": {
+                    "max_failed_attempts": GLOBAL_WORDPRESS_SECURITY.max_failed_attempts,
+                    "lockout_duration_sec": GLOBAL_WORDPRESS_SECURITY.lockout_duration_sec,
+                    "active_lockouts": len(GLOBAL_WORDPRESS_SECURITY._lockouts)
+                },
+                "cryptography": {
+                    "primary": "Argon2id (m=65536, t=3, p=4)",
+                    "fallback": "PBKDF2-HMAC-SHA512 (100k rounds)"
+                }
+            })
+            return
+
+        if path in ('/api/wordpress/subdomain/security-status', '/api/wp/subdomain/security-status'):
+            telemetry = GLOBAL_WORDPRESS_SUBDOMAIN_GATE.get_security_telemetry()
+            telemetry["success"] = True
+            self._send_json(telemetry)
+            return
+
+        if path == '/api/islands/realms':
+            realms = GLOBAL_PROCEDURAL_ISLAND_ENGINE.get_all_realms()
+            self._send_json({
+                "success": True,
+                "count": len(realms),
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "realms": realms
+            })
+            return
+
+        if path == '/api/projector/analog_stream/status':
+            frame = GLOBAL_PROJECTOR_ANALOG_BRIDGE.convert_analog_frame_to_npu_tensor(frame_index=1)
+            self._send_json({
+                "success": True,
+                "bridge_status": "ONLINE",
+                "analog_stream": frame
+            })
+            return
+
+        if path == '/api/transpiler/java/realms':
+            realms_dict = GLOBAL_PROCEDURAL_ISLAND_ENGINE._realms
+            java_code = GLOBAL_JAVA_TRANSPILER.generate_java_island_source(realms_dict)
+            self._send_json({
+                "success": True,
+                "language": "Java 21",
+                "features": ["records", "sealed_interfaces", "CompletableFuture", "ForkJoinPool"],
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "java_source": java_code
+            })
+        if path == '/api/auth/2fa/setup':
+            query = urllib.parse.parse_qs(parsed.query)
+            user = query.get("username", ["admin"])[0]
+            setup_data = GLOBAL_2FA_AUTHENTICATOR.setup_user_2fa(username=user)
+            self._send_json({
+                "success": True,
+                "two_factor_setup": setup_data
+            })
+            return
+
+        if path == '/api/auth/2fa/status':
+            query = urllib.parse.parse_qs(parsed.query)
+            user = query.get("username", ["admin"])[0]
+            status_data = GLOBAL_2FA_AUTHENTICATOR.get_user_status(username=user)
+            self._send_json({
+                "success": True,
+                "two_factor_status": status_data
+            })
+            return
+
         if path.startswith('/api/') and self._proxy_to_hub("GET"):
             return
         self._send_json({"error": f"Endpoint {path} not found"}, status=404)
@@ -1729,10 +2062,11 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         # ── Firewall Layer 7 Deep Packet Inspection ─────────────────
         client_ip = self.client_address[0] if hasattr(self, 'client_address') and self.client_address else "127.0.0.1"
         headers_dict = {k: v for k, v in self.headers.items()}
-        allowed, threat = GLOBAL_FIREWALL.inspect_request(client_ip, self.path, headers_dict, body_text=post_data)
-        if not allowed:
-            self._send_json({"error": "FORBIDDEN_BY_FIREWALL", "incident": threat}, status=403)
-            return
+        if path != '/api/wordpress/security/inspect_bbq':
+            allowed, threat = GLOBAL_FIREWALL.inspect_request(client_ip, self.path, headers_dict, body_text=post_data)
+            if not allowed:
+                self._send_json({"error": "FORBIDDEN_BY_FIREWALL", "incident": threat}, status=403)
+                return
 
         try:
             req_data = json.loads(post_data) if post_data else {}
@@ -3680,6 +4014,590 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 grapple_cable_length_max_m=max_cable
             )
             self._send_json({"success": True, "boarding": board_res})
+            return
+
+        if path == '/api/campaign/generate_mission':
+            tier = req_data.get("altitude_tier", "skybridge_midways")
+            threat = int(req_data.get("threat_level", 3))
+            weather = req_data.get("weather_condition", "totem_rift_lightning")
+            faction = req_data.get("enemy_faction", "toxic_tribe")
+
+            mission = GLOBAL_EPIC_CAMPAIGN_ENGINE.generate_procedural_mission(
+                altitude_tier=tier,
+                threat_level=threat,
+                weather_condition=weather,
+                enemy_faction=faction
+            )
+            self._send_json({"success": True, "mission": mission})
+            return
+
+        if path == '/api/campaign/simulate_operation':
+            c_id = req_data.get("chapter_id", "chapter_1_desert_caravan")
+            choice_id = req_data.get("chosen_choice_id", "choice_silent_drop")
+            p_hp = int(req_data.get("player_squad_hp", 6))
+            artillery = bool(req_data.get("artillery_active", True))
+            flight = bool(req_data.get("flight_support_active", True))
+
+            sim_res = GLOBAL_EPIC_CAMPAIGN_ENGINE.simulate_combat_operation(
+                chapter_id=c_id,
+                chosen_choice_id=choice_id,
+                player_squad_hp=p_hp,
+                artillery_active=artillery,
+                flight_support_active=flight
+            )
+            self._send_json({"success": True, "operation": sim_res})
+            return
+
+        if path == '/api/mrp/color_tint/harmonic':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            base_col = tuple(req_data.get("base_color", [236, 72, 153]))
+            step = int(req_data.get("step", 1))
+            weight = float(req_data.get("weight", 1.0))
+            style = req_data.get("style", "pink_panther_chic")
+            tint = GLOBAL_MRP_HARMONIC_STREET_ENGINE.compute_harmonic_color_tint(
+                base_color=base_col,
+                step=step,
+                weight=weight,
+                style=style
+            )
+            self._send_json({
+                "success": True,
+                "golden_ratio": GOLDEN_RATIO,
+                "tint": tint.to_dict()
+            })
+            return
+
+        if path == '/api/mrp/street_map/generate':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            r_id = req_data.get("region_id", "gotham_city")
+            gw = float(req_data.get("grid_width", 800.0))
+            gh = float(req_data.get("grid_height", 600.0))
+            s_seed = req_data.get("seed", None)
+            network = GLOBAL_MRP_HARMONIC_STREET_ENGINE.generate_procedural_street_network(
+                region_id=r_id,
+                grid_width=gw,
+                grid_height=gh,
+                seed=s_seed
+            )
+            self._send_json({
+                "success": True,
+                "street_network": network
+            })
+            return
+
+        if path == '/api/mrp/vehicles/simulate':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            v_id = req_data.get("vehicle_id", "panther_coupe_01")
+            dt = float(req_data.get("dt_seconds", 0.05))
+            throttle = float(req_data.get("throttle", 1.0))
+            steering = float(req_data.get("steering", 0.0))
+            handbrake = bool(req_data.get("handbrake", False))
+            drift_boost = bool(req_data.get("drift_boost", False))
+
+            try:
+                updated_veh = GLOBAL_MRP_HARMONIC_STREET_ENGINE.simulate_vehicle_tick(
+                    vehicle_id=v_id,
+                    dt_seconds=dt,
+                    throttle=throttle,
+                    steering=steering,
+                    handbrake=handbrake,
+                    drift_boost=drift_boost
+                )
+                self._send_json({
+                    "success": True,
+                    "vital_max_hp_rule": VITAL_MAX_HP,
+                    "vehicle": updated_veh
+                })
+            except KeyError as e:
+                self._send_json({"error": str(e)}, status=404)
+            return
+
+        if path == '/api/mrp/vehicles/damage':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            v_id = req_data.get("vehicle_id", "panther_coupe_01")
+            dmg = int(req_data.get("damage_amount", 1))
+            try:
+                veh = GLOBAL_MRP_HARMONIC_STREET_ENGINE.apply_damage_to_vehicle(v_id, dmg)
+                self._send_json({
+                    "success": True,
+                    "vital_max_hp_rule": VITAL_MAX_HP,
+                    "vehicle": veh
+                })
+            except KeyError as e:
+                self._send_json({"error": str(e)}, status=404)
+            return
+
+        if path == '/api/mrp/vehicles/repair':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            v_id = req_data.get("vehicle_id", "panther_coupe_01")
+            rep = int(req_data.get("repair_amount", 2))
+            try:
+                veh = GLOBAL_MRP_HARMONIC_STREET_ENGINE.repair_vehicle(v_id, rep)
+                self._send_json({
+                    "success": True,
+                    "vital_max_hp_rule": VITAL_MAX_HP,
+                    "vehicle": veh
+                })
+            except KeyError as e:
+                self._send_json({"error": str(e)}, status=404)
+            return
+
+        if path == '/api/wordpress/security/inspect_bbq':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            q_str = req_data.get("query_string", "")
+            req_uri = req_data.get("request_uri", "")
+            ua = req_data.get("user_agent", "")
+            res = GLOBAL_WORDPRESS_SECURITY.inspect_bbq_firewall(q_str, request_uri=req_uri, user_agent=ua)
+            self._send_json({"success": True, "result": res})
+            return
+
+        if path == '/api/wordpress/security/antispam_bee':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            f_data = req_data.get("form_data", {})
+            sub_ts = float(req_data.get("submission_timestamp_ms", time.time() * 1000.0 - 5000.0))
+            res = GLOBAL_WORDPRESS_SECURITY.evaluate_antispam_bee(f_data, submission_timestamp_ms=sub_ts)
+            self._send_json({"success": True, "result": res})
+            return
+
+        if path == '/api/wordpress/security/login_attempt':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            ip = req_data.get("ip", "127.0.0.1")
+            user = req_data.get("username", "admin")
+            is_success = bool(req_data.get("success", False))
+            res = GLOBAL_WORDPRESS_SECURITY.record_login_attempt(ip, user, is_success)
+            self._send_json({"success": True, "result": res})
+            return
+
+        if path in ('/api/wordpress/subdomain/verify-token', '/api/wp/subdomain/verify-token'):
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            token = req_data.get("token", "")
+            if not token:
+                auth_hdr = self.headers.get("Authorization", "")
+                if auth_hdr.startswith("Bearer "):
+                    token = auth_hdr[7:].strip()
+            ok, reason, session = GLOBAL_WORDPRESS_SUBDOMAIN_GATE.verify_signed_token(token)
+            if ok and session:
+                self._send_json({
+                    "success": True,
+                    "status": "VERIFIED",
+                    "reason": reason,
+                    "session": {
+                        "user_id": session.user_id,
+                        "username": session.username,
+                        "role": session.role,
+                        "subdomain": session.subdomain,
+                        "issued_at": session.issued_at,
+                        "vital_max_hp_rule": session.vital_max_hp
+                    }
+                })
+            else:
+                self._send_json({
+                    "success": False,
+                    "status": "REJECTED",
+                    "reason": reason,
+                    "vital_max_hp_rule": VITAL_MAX_HP
+                }, status=401)
+            return
+
+        if path in ('/api/wordpress/subdomain/generate-token', '/api/wp/subdomain/generate-token'):
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            uid = int(req_data.get("user_id", 1))
+            usr = str(req_data.get("username", "admin"))
+            rol = str(req_data.get("role", "administrator"))
+            sub = str(req_data.get("subdomain", "krystal.poslednikmen.cz"))
+            token = GLOBAL_WORDPRESS_SUBDOMAIN_GATE.create_signed_token(uid, usr, rol, sub)
+            self._send_json({
+                "success": True,
+                "token": token,
+                "subdomain": sub,
+                "user_id": uid,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/islands/geometry':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            r_id = req_data.get("realm_id", "denmark_heaven")
+            seed = int(req_data.get("seed", 42))
+            geo = GLOBAL_PROCEDURAL_ISLAND_ENGINE.generate_island_geometry(r_id, seed=seed)
+            self._send_json({"success": True, "vital_max_hp_rule": VITAL_MAX_HP, "geometry": geo})
+            return
+
+        if path == '/api/projector/analog_stream/sample':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            f_idx = int(req_data.get("frame_index", 1))
+            intensity = float(req_data.get("beam_intensity", 0.65))
+            noise = float(req_data.get("analog_noise_factor", 0.02))
+            frame = GLOBAL_PROJECTOR_ANALOG_BRIDGE.convert_analog_frame_to_npu_tensor(
+                frame_index=f_idx,
+                beam_intensity=intensity,
+                analog_noise_factor=noise
+            )
+            self._send_json({"success": True, "analog_frame": frame})
+            return
+
+        if path == '/api/auth/2fa/confirm':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            user = req_data.get("username", "admin")
+            tok = req_data.get("token", "")
+            res = GLOBAL_2FA_AUTHENTICATOR.confirm_user_2fa(username=user, submitted_token=tok)
+            self._send_json(res, status=200 if res.get("success") else 400)
+            return
+
+        if path == '/api/auth/2fa/verify':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            user = req_data.get("username", "admin")
+            tok = req_data.get("token_or_backup", "")
+            res = GLOBAL_2FA_AUTHENTICATOR.verify_credentials_2fa(username=user, token_or_backup=tok)
+            self._send_json(res, status=200 if res.get("authenticated") else 401)
+            return
+
+        if path == '/api/auth/2fa/challenge_number':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            user = req_data.get("username", "admin")
+            chal = GLOBAL_2FA_AUTHENTICATOR.create_number_matching_challenge(username=user)
+            self._send_json({
+                "success": True,
+                "challenge": chal
+            })
+            return
+
+        if path == '/api/auth/2fa/verify_number_match':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            c_id = req_data.get("challenge_id", "")
+            num = int(req_data.get("entered_number", 0))
+            res = GLOBAL_2FA_AUTHENTICATOR.verify_number_matching_challenge(challenge_id=c_id, entered_number=num)
+            self._send_json(res, status=200 if res.get("success") else 400)
+            return
+
+        # ── VULKAN IRIS XE CUSTOM ENGINE & CPU WHISPERER ENDPOINTS ────────────
+        if path == '/api/vulkan-iris-xe/simulate-dispatch':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            chunks = int(req_data.get("workload_chunks", 16))
+            load = float(req_data.get("eu_load_percent", 85.0))
+            res = GLOBAL_VULKAN_IRIS_XE_ENGINE.simulate_dispatch(workload_chunks=chunks, eu_load_percent=load)
+            self._send_json(res)
+            return
+
+        if path == '/api/vulkan-iris-xe/tune-whisperer':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            en_whisp = bool(req_data.get("enable_whisperer", True))
+            en_zero = bool(req_data.get("enable_zero_copy", True))
+            en_npu = bool(req_data.get("enable_npu", True))
+            en_ssd = bool(req_data.get("enable_ssd_prefetch", True))
+            res = GLOBAL_VULKAN_IRIS_XE_ENGINE.tune_whisperer(en_whisp, en_zero, en_npu, en_ssd)
+            self._send_json(res)
+            return
+
+        if path == '/api/vulkan-iris-xe/trigger-swap':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            coords = req_data.get("coordinates", [0, 0, 0])
+            coords_tuple = (int(coords[0]), int(coords[1]), int(coords[2])) if len(coords) >= 3 else (0, 0, 0)
+            res = GLOBAL_VULKAN_IRIS_XE_ENGINE.trigger_memory_swap(coords_tuple)
+            self._send_json(res)
+            return
+
+        # ── GREEK BOHEMIA PANTHEON & AUTONOMOUS MEMORY LEVELING POST ENDPOINTS ──
+        if path == '/api/greek-bohemia/simulate-leveling':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            axiom_ids = req_data.get("axiom_ids", None)
+            res = GLOBAL_GREEK_BOHEMIA_ENGINE.simulate_autonomous_memory_leveling(active_axiom_ids=axiom_ids)
+            self._send_json(res)
+            return
+
+        if path == '/api/greek-bohemia/form-pact':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            g_id = req_data.get("greek_deity_id", "zeus")
+            b_id = req_data.get("bohemian_ally_id", "perun")
+            title = req_data.get("pact_title", "Nový Diplomatický Pakt")
+            lore = req_data.get("lore", "Spojenie síl antického Grécka a pohanskej Bohemie.")
+            res = GLOBAL_GREEK_BOHEMIA_ENGINE.form_new_pact(g_id, b_id, title, lore)
+            self._send_json(res)
+            return
+
+        # ── QUADRATIC VARIABLE TRANSFORMER POST ENDPOINTS ───────────────────
+        if path == '/api/quadratic/solve-x':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            domain_id = req_data.get("domain_id", "memory_latency_ns")
+            val = float(req_data.get("value", 20.0))
+            try:
+                res = GLOBAL_QUADRATIC_TRANSFORMER.solve_latent_x(domain_id, val)
+                self._send_json(res)
+            except Exception as err:
+                self._send_json({"error": str(err)}, status=400)
+            return
+
+        if path == '/api/quadratic/convert':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            src = req_data.get("source_domain", "memory_latency_ns")
+            val = float(req_data.get("value", 20.0))
+            tgt = req_data.get("target_domain", "vram_allocation_mb")
+            try:
+                res = GLOBAL_QUADRATIC_TRANSFORMER.convert(src, val, tgt)
+                self._send_json(res)
+            except Exception as err:
+                self._send_json({"error": str(err)}, status=400)
+            return
+
+        if path == '/api/quadratic/convert-all':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            src = req_data.get("source_domain", "memory_latency_ns")
+            val = float(req_data.get("value", 20.0))
+            try:
+                res = GLOBAL_QUADRATIC_TRANSFORMER.convert_all(src, val)
+                self._send_json(res)
+            except Exception as err:
+                self._send_json({"error": str(err)}, status=400)
+            return
+
+        # ── SURFACE NODE SHADER & MEMORY RECLAIMER POST ENDPOINTS ──────────
+        if path == '/api/surface-nodes/evaluate':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            res = GLOBAL_SURFACE_NODE_ENGINE.evaluate_node_graph(req_data)
+            self._send_json(res)
+            return
+
+        if path == '/api/surface-nodes/scavenge-memory':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            alloc_p = req_data.get("alloc_pattern", None)
+            free_p = req_data.get("free_pattern", None)
+            res = GLOBAL_SURFACE_NODE_ENGINE.scavenge_and_generate_scenarios(alloc_pattern=alloc_p, free_pattern=free_p)
+            self._send_json(res)
+            return
+
+        # ── CHINESE ZODIAC SECTORS POST ENDPOINTS ──────────────────────────
+        if path == '/api/zodiac-sectors/trigger-phenomenon':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            sec_id = req_data.get("sector_id", "sector_01_rat")
+            intensity = float(req_data.get("intensity_delta", 0.35))
+            try:
+                res = GLOBAL_CHINESE_ZODIAC_SECTOR_ENGINE.trigger_phenomenon(sec_id, intensity)
+                self._send_json(res)
+            except Exception as err:
+                self._send_json({"error": str(err)}, status=400)
+            return
+
+        # ── HIGH-FIDELITY 3D DISPLAY & WSL POST ENDPOINTS ──────────────────
+        if path == '/api/3d-models/bake-model':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            target = req_data.get("model_target", "dragon")
+            try:
+                if target == "dragon":
+                    fpath = GLOBAL_HIGH_FIDELITY_3D_ENGINE.bake_crystal_dragon_sanctuary()
+                elif target == "astrolabe":
+                    fpath = GLOBAL_HIGH_FIDELITY_3D_ENGINE.bake_zodiac_celestial_astrolabe()
+                elif target == "titan":
+                    fpath = GLOBAL_HIGH_FIDELITY_3D_ENGINE.bake_cybernetic_titan_mech()
+                elif target == "tree":
+                    fpath = GLOBAL_HIGH_FIDELITY_3D_ENGINE.bake_biomorphic_tree_of_life()
+                else:
+                    fpath = GLOBAL_HIGH_FIDELITY_3D_ENGINE.bake_crystal_dragon_sanctuary()
+                self._send_json({
+                    "status": "BAKE_SUCCESS",
+                    "model_target": target,
+                    "filepath": fpath,
+                    "vital_max_hp_rule": VITAL_MAX_HP
+                })
+            except Exception as err:
+                self._send_json({"error": str(err)}, status=400)
+            return
+
+        if path == '/api/3d-models/wsl-validate':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            m_filename = req_data.get("filename", "crystal_dragon_sanctuary.obj")
+            try:
+                res = GLOBAL_HIGH_FIDELITY_3D_ENGINE.import_and_validate_model_via_wsl(m_filename)
+                self._send_json(res)
+            except Exception as err:
+                self._send_json({"error": str(err)}, status=400)
+            return
+
+        # ── WSL EMULATION SUBSYSTEM POST ENDPOINTS ─────────────────────────
+        if path == '/api/wsl/exec':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            cmd = req_data.get("command", "uname -a")
+            try:
+                res = GLOBAL_WSL_EMULATION_SUBSYSTEM.execute_command(cmd)
+                self._send_json(res)
+            except Exception as err:
+                self._send_json({"error": str(err)}, status=400)
+            return
+
+        if path == '/api/wsl/dnf-emulate':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            action = req_data.get("action", "install")
+            pkg_name = req_data.get("package", "assimp")
+            try:
+                if action == "install":
+                    res = GLOBAL_WSL_EMULATION_SUBSYSTEM.dnf.install(pkg_name)
+                elif action == "remove":
+                    res = GLOBAL_WSL_EMULATION_SUBSYSTEM.dnf.remove(pkg_name)
+                elif action == "repolist":
+                    res = {"repos": GLOBAL_WSL_EMULATION_SUBSYSTEM.dnf.repolist(), "vital_max_hp_rule": VITAL_MAX_HP}
+                else:
+                    res = {"installed": GLOBAL_WSL_EMULATION_SUBSYSTEM.dnf.list_installed(), "vital_max_hp_rule": VITAL_MAX_HP}
+                self._send_json(res)
+            except Exception as err:
+                self._send_json({"error": str(err)}, status=400)
+            return
+
+        # ── CONTINUOUS TERRAIN SYNTHESIS & NPU OPTIMIZATION POST ENDPOINTS ──
+        if path == '/api/terrain-synthesis/evaluate-sdf':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            origin = req_data.get("origin", [0.0, 5.0, 5.0])
+            direction = req_data.get("direction", [0.0, -0.7071, -0.7071])
+            biome_str = req_data.get("biome", "Crystal_Severni_Stity")
+            try:
+                biome_enum = PosledniKmenBiome(biome_str)
+            except Exception:
+                biome_enum = PosledniKmenBiome.CRYSTAL
+            try:
+                res = GLOBAL_TERRAIN_SYNTHESIS_ENGINE.raymarch(
+                    ray_origin=(float(origin[0]), float(origin[1]), float(origin[2])),
+                    ray_dir=(float(direction[0]), float(direction[1]), float(direction[2])),
+                    biome_key=biome_enum
+                )
+                self._send_json(asdict(res))
+            except Exception as err:
+                self._send_json({"error": str(err)}, status=400)
+            return
+
+        if path == '/api/terrain-synthesis/simulate-erosion':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            x = float(req_data.get("x", 2.0))
+            z = float(req_data.get("z", 2.0))
+            biome_str = req_data.get("biome", "Druid_Pradavny_Les")
+            try:
+                biome_enum = PosledniKmenBiome(biome_str)
+            except Exception:
+                biome_enum = PosledniKmenBiome.DRUID
+            try:
+                thermal = GLOBAL_TERRAIN_SYNTHESIS_ENGINE.evaluate_thermal_weathering(x, z, biome_key=biome_enum)
+                hydraulic = GLOBAL_TERRAIN_SYNTHESIS_ENGINE.evaluate_hydraulic_erosion(x, z, biome_key=biome_enum)
+                height = GLOBAL_TERRAIN_SYNTHESIS_ENGINE.evaluate_master_terrain(x, z, biome_key=biome_enum)
+                self._send_json({
+                    "height": round(height, 4),
+                    "thermal_weathering": thermal,
+                    "hydraulic_erosion": hydraulic,
+                    "vital_max_hp_rule": VITAL_MAX_HP
+                })
+            except Exception as err:
+                self._send_json({"error": str(err)}, status=400)
+            return
+
+        if path == '/api/terrain-synthesis/npu-driver-dispatch':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            enable_npu = req_data.get("enable_npu", True)
+            GLOBAL_TERRAIN_SYNTHESIS_ENGINE.npu_acceleration_enabled = bool(enable_npu)
+            telemetry = GLOBAL_TERRAIN_SYNTHESIS_ENGINE.get_system_telemetry()
+            self._send_json({
+                "status": "DISPATCH_CONFIGURED",
+                "npu_acceleration_enabled": GLOBAL_TERRAIN_SYNTHESIS_ENGINE.npu_acceleration_enabled,
+                "telemetry": telemetry,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
             return
 
         if path.startswith('/api/') and self._proxy_to_hub("POST", body=post_data.encode('utf-8') if isinstance(post_data, str) else post_data):

@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRYSTAL-STACK // MRP Harmonic Street Engine & Pink Panther Chic Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f0d13;
+      --bg-card: #18151f;
+      --bg-panel: #201c2b;
+      --border-card: #342a42;
+      --pink-panther: #ec4899;
+      --pink-glow: rgba(236, 72, 153, 0.35);
+      --hot-magenta: #db2777;
+      --blush-pastel: #f472b6;
+      --champagne-cream: #fef3c7;
+      --noir-charcoal: #18181b;
+      --gotham-slate: #334155;
+      --sin-crimson: #e11d48;
+      --vegas-gold: #f59e0b;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --radius-lg: 16px;
+      --radius-sm: 8px;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(236, 72, 153, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(219, 39, 119, 0.06) 0%, transparent 40%);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border-card);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, var(--pink-panther), var(--hot-magenta));
+      color: #fff;
+      font-weight: 900;
+      font-size: 14px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      box-shadow: 0 0 15px var(--pink-glow);
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 span.pink {
+      color: var(--pink-panther);
+      text-shadow: 0 0 12px var(--pink-glow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .nav-btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .nav-btn:hover {
+      border-color: var(--pink-panther);
+      box-shadow: 0 0 10px var(--pink-glow);
+      color: var(--pink-panther);
+    }
+
+    /* Layout Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--champagne-cream);
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 10px;
+    }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .tag-pink {
+      background: rgba(236, 72, 153, 0.2);
+      color: var(--pink-panther);
+      border: 1px solid rgba(236, 72, 153, 0.4);
+    }
+
+    .tag-gold {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--vegas-gold);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    /* Simulation Canvas Container */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      background: #09090b;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border-card);
+    }
+
+    canvas#streetCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+
+    .canvas-overlay-stats {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(15, 13, 19, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      pointer-events: none;
+    }
+
+    .canvas-overlay-stats span.val {
+      color: var(--pink-panther);
+      font-weight: 700;
+    }
+
+    .canvas-controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .controls-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn:hover {
+      background: rgba(236, 72, 153, 0.15);
+      border-color: var(--pink-panther);
+      color: var(--pink-panther);
+    }
+
+    .btn-pink {
+      background: linear-gradient(135deg, var(--pink-panther), var(--hot-magenta));
+      color: #fff;
+      border: none;
+      box-shadow: 0 0 12px var(--pink-glow);
+    }
+
+    .btn-pink:hover {
+      opacity: 0.95;
+      box-shadow: 0 0 18px var(--pink-glow);
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: rgba(225, 29, 72, 0.2);
+      border: 1px solid var(--sin-crimson);
+      color: #fda4af;
+    }
+
+    .btn-danger:hover {
+      background: var(--sin-crimson);
+      color: #fff;
+    }
+
+    /* Select Inputs */
+    select.styled-select {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select.styled-select:focus {
+      border-color: var(--pink-panther);
+    }
+
+    /* Vital Invariant Indicator */
+    .vital-hud {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      margin-top: 12px;
+      justify-content: space-between;
+    }
+
+    .vital-hearts {
+      display: flex;
+      gap: 6px;
+    }
+
+    .heart-pip {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: var(--sin-crimson);
+      display: inline-block;
+      box-shadow: 0 0 8px rgba(225, 29, 72, 0.5);
+      transition: var(--transition);
+    }
+
+    .heart-pip.lost {
+      background: #27272a;
+      box-shadow: none;
+      opacity: 0.4;
+    }
+
+    /* MRP Hierarchy Visualizer */
+    .mrp-level-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .mrp-level-item {
+      background: var(--bg-panel);
+      border-left: 4px solid var(--pink-panther);
+      border-top: 1px solid var(--border-card);
+      border-right: 1px solid var(--border-card);
+      border-bottom: 1px solid var(--border-card);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 12px 14px;
+      transition: var(--transition);
+    }
+
+    .mrp-level-item:hover {
+      background: #272235;
+      transform: translateX(4px);
+    }
+
+    .mrp-lvl-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .mrp-lvl-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--champagne-cream);
+    }
+
+    .mrp-analog {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .mrp-desc {
+      font-size: 12px;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    .mrp-rule {
+      font-size: 11px;
+      color: var(--blush-pastel);
+      font-family: 'Space Grotesk', monospace;
+      margin-top: 4px;
+    }
+
+    /* Art Showcase */
+    .art-showcase {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-card);
+      position: relative;
+    }
+
+    .art-showcase img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+      filter: contrast(108%) saturate(110%);
+    }
+
+    .art-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(15,13,19,0.95), transparent);
+      padding: 12px;
+      font-size: 12px;
+      color: var(--champagne-cream);
+    }
+
+    /* Harmonic Color Tint Tool */
+    .color-swatch-box {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px;
+      background: var(--bg-panel);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-card);
+      margin-top: 14px;
+    }
+
+    .swatch-preview {
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      background: var(--pink-panther);
+      box-shadow: 0 0 16px var(--pink-glow);
+      border: 2px solid var(--champagne-cream);
+      flex-shrink: 0;
+      transition: var(--transition);
+    }
+
+    .swatch-info {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .slider-row label {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    input[type=range] {
+      accent-color: var(--pink-panther);
+      width: 100%;
+    }
+
+    /* Regional Grid */
+    .regions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .region-chip {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .region-chip:hover, .region-chip.active {
+      border-color: var(--pink-panther);
+      background: rgba(236, 72, 153, 0.15);
+      color: #fff;
+      box-shadow: 0 0 10px var(--pink-glow);
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-card);
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-badge">MRP 5-TIER ENGINE</div>
+      <h1><span>Pink Panther</span> <span class="pink">Harmonic Street Studio</span></h1>
+    </div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-btn">← Mission Control Hub</a>
+      <a href="ncon_vorpx_marketing_studio.html" class="nav-btn">Ncon VorpX Studio</a>
+      <a href="/api/mrp/manifesto" target="_blank" class="nav-btn">API Manifesto</a>
+    </div>
+  </header>
+
+  <div class="dashboard-grid">
+    <!-- LEFT COLUMN: Canvas 2D Top-Down Driving Simulation -->
+    <div class="card">
+      <div class="card-title">
+        <span>2D TOP-DOWN STREET CRUISER // PROCEDURAL MAP</span>
+        <span class="tag tag-pink">CANVAS ENGINE v1.0</span>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="streetCanvas" width="800" height="480"></canvas>
+        <div class="canvas-overlay-stats">
+          <div>REGION: <span id="statRegion" class="val">Gotham City</span></div>
+          <div>CRUISER: <span id="statCruiser" class="val">Pink Panther 1964 GT</span></div>
+          <div>SPEED: <span id="statSpeed" class="val">0.0 km/h</span></div>
+          <div>HEADING: <span id="statHeading" class="val">0.0°</span></div>
+          <div>DRIFT FACTOR: <span id="statDrift" class="val">0.00</span></div>
+          <div>TIRE TRACTION: <span id="statTraction" class="val">NOMINAL</span></div>
+        </div>
+      </div>
+
+      <!-- Vital 6 Max HP Invariant HUD -->
+      <div class="vital-hud">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <strong style="font-size: 13px; color: var(--champagne-cream);">VITAL STATUS:</strong>
+          <span id="vitalBadge" class="tag tag-pink">OPERATIONAL</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 12px; color: var(--text-muted);">HP (MAX 6):</span>
+          <div class="vital-hearts" id="heartContainer">
+            <span class="heart-pip"></span>
+            <span class="heart-pip"></span>
+            <span class="heart-pip"></span>
+            <span class="heart-pip"></span>
+            <span class="heart-pip"></span>
+            <span class="heart-pip"></span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button class="btn btn-danger" onclick="damageCruiser(1)" title="Apply 1 Damage">-1 HP</button>
+          <button class="btn btn-pink" onclick="repairCruiser(2)" title="Pitstop Repair (+2 HP, max 6)">+2 HP REPAIR</button>
+        </div>
+      </div>
+
+      <!-- Controls & Driving Toolbar -->
+      <div class="canvas-controls-bar">
+        <div class="controls-group">
+          <label style="font-size: 12px; color: var(--text-muted);">SELECT REGION:</label>
+          <select id="regionSelect" class="styled-select" onchange="switchRegion(this.value)">
+            <option value="gotham_city">Gotham City</option>
+            <option value="arkham_city">Arkham City</option>
+            <option value="sin_city">Sin City</option>
+            <option value="las_vegas">Las Vegas</option>
+            <option value="alabama">Alabama</option>
+            <option value="ohio">Ohio</option>
+            <option value="florida">Florida</option>
+            <option value="australia">Australia</option>
+            <option value="canary_islands">Canary Islands</option>
+            <option value="bolivia">Bolivia</option>
+            <option value="ecuador">Ecuador</option>
+            <option value="peru">Peru</option>
+          </select>
+        </div>
+
+        <div class="controls-group">
+          <button class="btn" onclick="toggleDriveMode()"><span id="driveModeLabel">AUTO-CRUISE: ON</span></button>
+          <button class="btn" onclick="triggerDriftBoost()">DRIFT SLIDE</button>
+          <button class="btn" onclick="resetCruiserPosition()">RESET CAR</button>
+        </div>
+      </div>
+
+      <!-- Key controls guide -->
+      <div style="margin-top: 14px; font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
+        <span>🎮 <strong>Controls:</strong> [W / Up] Gas | [S / Down] Brake | [A / D / Left / Right] Steer | [Space] Handbrake Drift</span>
+        <span>Axiom: Golden Ratio &phi; = 1.61803398875</span>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Artwork, Harmonic Tints & MRP Hierarchy -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+
+      <!-- Key Artwork Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>PINK PANTHER SUAVE GRAPHIC AESTHETIC</span>
+          <span class="tag tag-gold">1960s NOIR CHIC</span>
+        </div>
+        <div class="art-showcase">
+          <img src="img/pink_panther_street_mrp_cars.jpg" alt="Pink Panther Suave Street Cruiser" onerror="this.src='img/epic_krystal_campaign_showcase.jpg'">
+          <div class="art-caption">
+            <strong>Diamond Heist Boulevard // Suave 2D Cruisers</strong><br>
+            Procedural Google Street Map contours with pastel magenta tints, noir shadows & gold accents.
+          </div>
+        </div>
+
+        <!-- 12 Canonical Regions Quick Selector -->
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">12 CANONICAL WORLD METROPOLISES (OSM BLUEPRINTS):</div>
+        <div class="regions-grid" id="regionsGridContainer">
+          <!-- Dynamically populated or static chips -->
+        </div>
+      </div>
+
+      <!-- Harmonic Color Tint Axiom Mixer -->
+      <div class="card">
+        <div class="card-title">
+          <span>HARMONIC COLOR AXIOMS (&phi; = 1.618)</span>
+          <span class="tag tag-pink">LEVEL 0 ROOT</span>
+        </div>
+
+        <div class="color-swatch-box">
+          <div class="swatch-preview" id="swatchBox"></div>
+          <div class="swatch-info">
+            <div>HEX: <span id="swatchHex" style="color: var(--pink-panther); font-weight: 700;">#ec4899</span></div>
+            <div>RGB: <span id="swatchRgb">rgb(236, 72, 153)</span></div>
+            <div>HARMONIC RATIO: <span id="swatchRatio" style="color: var(--champagne-cream);">0.6026</span></div>
+            <div id="swatchDesc" style="color: var(--text-muted); font-size: 11px;">Pink Panther Classic Accent</div>
+          </div>
+        </div>
+
+        <div class="slider-row">
+          <label><span>HARMONIC STEP (k &isin; [0, 4]):</span> <span id="stepVal">1</span></label>
+          <input type="range" id="tintStep" min="0" max="4" value="1" oninput="updateTintMixer()">
+        </div>
+
+        <div class="slider-row">
+          <label><span>TINT WEIGHT (0.0 &rarr; 1.0):</span> <span id="weightVal">1.0</span></label>
+          <input type="range" id="tintWeight" min="0" max="100" value="100" oninput="updateTintMixer()">
+        </div>
+
+        <div class="slider-row" style="margin-top: 12px;">
+          <label><span>AESTHETIC STYLE:</span></label>
+          <select id="tintStyle" class="styled-select" onchange="updateTintMixer()">
+            <option value="pink_panther_chic">Pink Panther Chic (Rose & Magenta)</option>
+            <option value="noir_monochrome">Noir Graphic Monochrome (Sin City)</option>
+            <option value="golden_champagne">Golden Champagne & Cream (Riviera)</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FULL WIDTH ROW: 5-Tier MRP Engine Hierarchy Recast -->
+  <div class="card">
+    <div class="card-title">
+      <span>RECAST MRP HIERARCHY &rarr; PROCEDURAL ENGINE ARCHITECTURE</span>
+      <span class="tag tag-gold">MRP BILL OF MATERIALS (BOM)</span>
+    </div>
+
+    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+      Traditional manufacturing MRP schedules raw materials into sub-assemblies and final products. 
+      In Krystal-Stack, MRP is recast into a <strong>5-tier procedural engine hierarchy</strong> governed by Golden Ratio axioms and the strict <strong>6 Max HP vital rule</strong>.
+    </div>
+
+    <div class="mrp-level-list" id="mrpLevelsContainer">
+      <!-- Populated via API or static fallback -->
+    </div>
+  </div>
+
+  <footer>
+    KRYSTAL-STACK PLATFORM // MRP HARMONIC STREET ENGINE // STRICT 6 MAX HP INVARIANT ACTIVE // &copy; 2026
+  </footer>
+
+  <script>
+    // -------------------------------------------------------------------------
+    // Canvas & 2D Physics Simulation
+    // -------------------------------------------------------------------------
+    const canvas = document.getElementById('streetCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let currentRegion = 'gotham_city';
+    let autoCruise = true;
+    let currentHp = 6;
+    const MAX_HP = 6;
+
+    // Cruiser state
+    const cruiser = {
+      x: 350,
+      y: 240,
+      heading: 0,        // degrees
+      velocity: 18,      // m/s
+      maxVelocity: 42,
+      acceleration: 8.5,
+      braking: 14.0,
+      turnRate: 110,
+      driftFactor: 0.65,
+      isDrifting: false,
+      skidmarks: [],
+      bodyColor: '#ec4899',
+      stripeColor: '#fef3c7'
+    };
+
+    // Keyboard state
+    const keys = {
+      forward: false,
+      backward: false,
+      left: false,
+      right: false,
+      handbrake: false
+    };
+
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowUp', 'KeyW'].includes(e.code)) keys.forward = true;
+      if (['ArrowDown', 'KeyS'].includes(e.code)) keys.backward = true;
+      if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
+      if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = true;
+      if (e.code === 'Space') { keys.handbrake = true; e.preventDefault(); }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (['ArrowUp', 'KeyW'].includes(e.code)) keys.forward = false;
+      if (['ArrowDown', 'KeyS'].includes(e.code)) keys.backward = false;
+      if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
+      if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
+      if (e.code === 'Space') keys.handbrake = false;
+    });
+
+    // Street Network vectors (Nodes, Edges, Parcels)
+    let streetNetwork = {
+      nodes: [],
+      edges: [],
+      parcels: []
+    };
+
+    const REGIONS_DATA = {
+      gotham_city: { name: "Gotham City", color: "#ec4899", asphalt: "#0f172a", weather: "rain", speed: 60 },
+      arkham_city: { name: "Arkham City", color: "#db2777", asphalt: "#09090b", weather: "mist", speed: 45 },
+      sin_city: { name: "Sin City", color: "#e11d48", asphalt: "#000000", weather: "noir", speed: 55 },
+      las_vegas: { name: "Las Vegas", color: "#f59e0b", asphalt: "#1c1917", weather: "neon", speed: 70 },
+      alabama: { name: "Alabama", color: "#f472b6", asphalt: "#292524", weather: "pines", speed: 90 },
+      ohio: { name: "Ohio", color: "#f472b6", asphalt: "#1e293b", weather: "overcast", speed: 65 },
+      florida: { name: "Florida", color: "#06b6d4", asphalt: "#334155", weather: "palms", speed: 80 },
+      australia: { name: "Australia", color: "#ea580c", asphalt: "#44403c", weather: "desert", speed: 110 },
+      canary_islands: { name: "Canary Islands", color: "#0284c7", asphalt: "#18181b", weather: "trade_winds", speed: 50 },
+      bolivia: { name: "Bolivia", color: "#059669", asphalt: "#27272a", weather: "cloud_forest", speed: 40 },
+      ecuador: { name: "Ecuador", color: "#10b981", asphalt: "#1e293b", weather: "equatorial", speed: 50 },
+      peru: { name: "Peru", color: "#d97706", asphalt: "#18181b", weather: "garua", speed: 60 }
+    };
+
+    function generateLocalNetwork(regionId) {
+      const reg = REGIONS_DATA[regionId] || REGIONS_DATA.gotham_city;
+      const w = canvas.width;
+      const h = canvas.height;
+      const nodes = [];
+      const edges = [];
+      const parcels = [];
+
+      // Grid or Serpentine
+      if (['bolivia', 'canary_islands', 'peru'].includes(regionId)) {
+        // Serpentine switchback
+        for (let i = 0; i < 9; i++) {
+          const t = i / 8;
+          const nx = 60 + (w - 120) * t;
+          const ny = (h / 2) + Math.sin(t * Math.PI * 3.5) * 140;
+          nodes.push({ id: `n_${i}`, x: nx, y: ny });
+        }
+        for (let i = 0; i < nodes.length - 1; i++) {
+          edges.push({ s: nodes[i], t: nodes[i + 1], lanes: 2 });
+        }
+      } else {
+        // Orthogonal Grid / Boulevard
+        const cols = 5;
+        const rows = 4;
+        const dx = w / (cols + 1);
+        const dy = h / (rows + 1);
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            nodes.push({ id: `n_${r}_${c}`, x: (c + 1) * dx, y: (r + 1) * dy });
+          }
+        }
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const idx = r * cols + c;
+            if (c < cols - 1) edges.push({ s: nodes[idx], t: nodes[idx + 1], lanes: (r % 2 === 0 ? 4 : 2) });
+            if (r < rows - 1) edges.push({ s: nodes[idx], t: nodes[idx + cols], lanes: 2 });
+          }
+        }
+      }
+
+      // Building parcels
+      for (let i = 0; i < 10; i++) {
+        parcels.push({
+          x: 40 + Math.random() * (w - 120),
+          y: 30 + Math.random() * (h - 100),
+          w: 45 + Math.random() * 50,
+          h: 35 + Math.random() * 45,
+          tint: (i % 2 === 0 ? reg.color : '#fef3c7')
+        });
+      }
+
+      streetNetwork = { nodes, edges, parcels };
+    }
+
+    function renderCanvas() {
+      const reg = REGIONS_DATA[currentRegion] || REGIONS_DATA.gotham_city;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Clear with asphalt background
+      ctx.fillStyle = reg.asphalt;
+      ctx.fillRect(0, 0, w, h);
+
+      // Ambient tint overlay
+      ctx.fillStyle = "rgba(236, 72, 153, 0.04)";
+      ctx.fillRect(0, 0, w, h);
+
+      // Draw Parcels (Buildings)
+      streetNetwork.parcels.forEach(p => {
+        ctx.fillStyle = "#16141c";
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.strokeStyle = p.tint;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(p.x, p.y, p.w, p.h);
+
+        // Neon Roof accent
+        ctx.fillStyle = p.tint;
+        ctx.globalAlpha = 0.15;
+        ctx.fillRect(p.x + 4, p.y + 4, p.w - 8, p.h - 8);
+        ctx.globalAlpha = 1.0;
+      });
+
+      // Draw Street Edges
+      streetNetwork.edges.forEach(e => {
+        ctx.strokeStyle = "#272430";
+        ctx.lineWidth = e.lanes === 4 ? 32 : 20;
+        ctx.beginPath();
+        ctx.moveTo(e.s.x, e.s.y);
+        ctx.lineTo(e.t.x, e.t.y);
+        ctx.stroke();
+
+        // Center line (Pink Panther dashed line)
+        ctx.strokeStyle = (currentRegion === 'sin_city' ? '#ffffff' : '#f472b6');
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([8, 8]);
+        ctx.beginPath();
+        ctx.moveTo(e.s.x, e.s.y);
+        ctx.lineTo(e.t.x, e.t.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      });
+
+      // Draw Intersections
+      streetNetwork.nodes.forEach(n => {
+        ctx.fillStyle = "#1e1a26";
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = reg.color;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // Draw Skidmarks
+      ctx.strokeStyle = "rgba(236, 72, 153, 0.4)";
+      ctx.lineWidth = 3;
+      cruiser.skidmarks.forEach(sm => {
+        ctx.beginPath();
+        ctx.moveTo(sm.x1, sm.y1);
+        ctx.lineTo(sm.x2, sm.y2);
+        ctx.stroke();
+      });
+
+      // Draw Cruiser Vehicle (Top-Down)
+      ctx.save();
+      ctx.translate(cruiser.x, cruiser.y);
+      ctx.rotate((cruiser.heading * Math.PI) / 180);
+
+      // Headlight cones
+      const grad = ctx.createRadialGradient(0, 0, 10, 45, 0, 70);
+      grad.addColorStop(0, "rgba(254, 243, 199, 0.45)");
+      grad.addColorStop(1, "rgba(254, 243, 199, 0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(16, -6);
+      ctx.lineTo(75, -28);
+      ctx.lineTo(75, 28);
+      ctx.lineTo(16, 6);
+      ctx.fill();
+
+      // Wheels
+      ctx.fillStyle = "#0a0a0c";
+      ctx.fillRect(-14, -12, 8, 4);
+      ctx.fillRect(10, -12, 8, 4);
+      ctx.fillRect(-14, 8, 8, 4);
+      ctx.fillRect(10, 8, 8, 4);
+
+      // Chassis Body (Pink Panther Classic GT)
+      ctx.fillStyle = cruiser.bodyColor;
+      ctx.shadowColor = "rgba(236, 72, 153, 0.6)";
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.roundRect(-18, -9, 36, 18, 5);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Champagne racing stripe
+      ctx.fillStyle = cruiser.stripeColor;
+      ctx.fillRect(-16, -2, 32, 4);
+
+      // Windshield & Rear glass
+      ctx.fillStyle = "#18181b";
+      ctx.fillRect(-2, -6, 10, 12);
+      ctx.fillRect(-12, -5, 6, 10);
+
+      // Tail lights
+      ctx.fillStyle = "#e11d48";
+      ctx.fillRect(-19, -8, 2, 4);
+      ctx.fillRect(-19, 4, 2, 4);
+
+      ctx.restore();
+    }
+
+    function updateSimulation(dt) {
+      if (currentHp <= 0) {
+        cruiser.velocity = 0;
+        return;
+      }
+
+      let throttle = 0;
+      let steer = 0;
+
+      if (autoCruise) {
+        throttle = 0.65;
+        steer = Math.sin(Date.now() / 900) * 0.35;
+      }
+
+      if (keys.forward) throttle += 1.0;
+      if (keys.backward) throttle -= 0.8;
+      if (keys.left) steer -= 1.0;
+      if (keys.right) steer += 1.0;
+
+      if (keys.handbrake) {
+        cruiser.isDrifting = true;
+        cruiser.velocity = Math.max(0, cruiser.velocity - cruiser.braking * 1.5 * dt);
+      } else if (throttle > 0) {
+        cruiser.velocity = Math.min(cruiser.maxVelocity, cruiser.velocity + cruiser.acceleration * throttle * dt);
+      } else if (throttle < 0) {
+        cruiser.velocity = Math.max(-8, cruiser.velocity - cruiser.braking * Math.abs(throttle) * dt);
+      } else {
+        cruiser.velocity = Math.max(0, cruiser.velocity - 2.0 * dt);
+      }
+
+      // Steering
+      const turnAmount = cruiser.turnRate * steer * dt;
+      cruiser.heading = (cruiser.heading + turnAmount) % 360;
+
+      // Drift physics & skidmarks
+      const rad = (cruiser.heading * Math.PI) / 180;
+      const driftAngle = rad + (cruiser.isDrifting ? 0.35 : 0);
+
+      const oldX = cruiser.x;
+      const oldY = cruiser.y;
+
+      cruiser.x += cruiser.velocity * Math.cos(driftAngle) * dt * 8.0;
+      cruiser.y += cruiser.velocity * Math.sin(driftAngle) * dt * 8.0;
+
+      // Wrap around canvas
+      if (cruiser.x < 0) cruiser.x = canvas.width;
+      if (cruiser.x > canvas.width) cruiser.x = 0;
+      if (cruiser.y < 0) cruiser.y = canvas.height;
+      if (cruiser.y > canvas.height) cruiser.y = 0;
+
+      // Record skidmarks if drifting
+      if (cruiser.isDrifting && cruiser.velocity > 5) {
+        cruiser.skidmarks.push({ x1: oldX, y1: oldY, x2: cruiser.x, y2: cruiser.y });
+        if (cruiser.skidmarks.length > 35) cruiser.skidmarks.shift();
+      }
+
+      // Update overlay HUD
+      document.getElementById('statSpeed').innerText = `${(cruiser.velocity * 3.6).toFixed(1)} km/h`;
+      document.getElementById('statHeading').innerText = `${cruiser.heading.toFixed(1)}°`;
+      document.getElementById('statDrift').innerText = cruiser.isDrifting ? "0.68 [SLIDING]" : "0.00";
+      document.getElementById('statTraction').innerText = cruiser.isDrifting ? "DRIFT ANGLE" : "GRIP HIGH";
+    }
+
+    let lastTime = performance.now();
+    function loop(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+      updateSimulation(dt);
+      renderCanvas();
+      requestAnimationFrame(loop);
+    }
+
+    // -------------------------------------------------------------------------
+    // Vital Status & 6 Max HP Rule
+    // -------------------------------------------------------------------------
+    function updateHeartsDisplay() {
+      const container = document.getElementById('heartContainer');
+      container.innerHTML = '';
+      for (let i = 0; i < MAX_HP; i++) {
+        const pip = document.createElement('span');
+        pip.className = 'heart-pip' + (i >= currentHp ? ' lost' : '');
+        container.appendChild(pip);
+      }
+
+      const badge = document.getElementById('vitalBadge');
+      if (currentHp === 0) {
+        badge.innerText = 'DESTROYED';
+        badge.className = 'tag btn-danger';
+      } else if (currentHp <= 2) {
+        badge.innerText = 'CRITICAL';
+        badge.className = 'tag tag-gold';
+      } else if (currentHp <= 4) {
+        badge.innerText = 'DAMAGED';
+        badge.className = 'tag tag-gold';
+      } else {
+        badge.innerText = 'OPERATIONAL';
+        badge.className = 'tag tag-pink';
+      }
+    }
+
+    function damageCruiser(amount) {
+      currentHp = Math.max(0, currentHp - amount);
+      updateHeartsDisplay();
+    }
+
+    function repairCruiser(amount) {
+      currentHp = Math.min(MAX_HP, currentHp + amount);
+      updateHeartsDisplay();
+    }
+
+    function toggleDriveMode() {
+      autoCruise = !autoCruise;
+      document.getElementById('driveModeLabel').innerText = autoCruise ? "AUTO-CRUISE: ON" : "MANUAL KEYS";
+    }
+
+    function triggerDriftBoost() {
+      cruiser.isDrifting = true;
+      cruiser.velocity = Math.min(cruiser.maxVelocity, cruiser.velocity + 10);
+      setTimeout(() => { cruiser.isDrifting = false; }, 1200);
+    }
+
+    function resetCruiserPosition() {
+      cruiser.x = canvas.width / 2;
+      cruiser.y = canvas.height / 2;
+      cruiser.heading = 0;
+      cruiser.velocity = 15;
+      cruiser.skidmarks = [];
+    }
+
+    function switchRegion(regionId) {
+      currentRegion = regionId;
+      document.getElementById('regionSelect').value = regionId;
+      const reg = REGIONS_DATA[regionId];
+      if (reg) {
+        document.getElementById('statRegion').innerText = reg.name;
+        cruiser.bodyColor = reg.color;
+      }
+      generateLocalNetwork(regionId);
+
+      // Update chips active state
+      document.querySelectorAll('.region-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.region === regionId);
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // Harmonic Tint Mixer
+    // -------------------------------------------------------------------------
+    const PHI = 1.61803398875;
+    const INV_PHI = 1.0 / PHI;
+
+    function updateTintMixer() {
+      const step = parseInt(document.getElementById('tintStep').value, 10);
+      const weight = parseInt(document.getElementById('tintWeight').value, 10) / 100.0;
+      const style = document.getElementById('tintStyle').value;
+
+      document.getElementById('stepVal').innerText = step;
+      document.getElementById('weightVal').innerText = weight.toFixed(2);
+
+      let rBase = 236, gBase = 72, bBase = 153;
+      let rScale = 1.0 + (step * INV_PHI * 0.35 * weight);
+      let gScale = 0.45 + (step * INV_PHI * 0.15 * weight);
+      let bScale = 0.72 + (step * INV_PHI * 0.22 * weight);
+
+      if (style === 'noir_monochrome') {
+        const mono = Math.round(0.299 * rBase + 0.587 * gBase + 0.114 * bBase);
+        rScale = 1.0 + (step * INV_PHI * 0.10 * weight);
+        gScale = 0.30;
+        bScale = 0.40;
+        rBase = mono; gBase = mono; bBase = mono;
+      } else if (style === 'golden_champagne') {
+        rScale = 1.10 + (step * INV_PHI * 0.20 * weight);
+        gScale = 0.90 + (step * INV_PHI * 0.15 * weight);
+        bScale = 0.40 + (step * INV_PHI * 0.10 * weight);
+      }
+
+      const r = Math.max(0, Math.min(255, Math.round(rBase * rScale)));
+      const g = Math.max(0, Math.min(255, Math.round(gBase * gScale)));
+      const b = Math.max(0, Math.min(255, Math.round(bBase * bScale)));
+
+      const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+      const ratio = ((r + g + b) / (3.0 * 255.0)).toFixed(4);
+
+      const swatch = document.getElementById('swatchBox');
+      swatch.style.backgroundColor = hex;
+      swatch.style.boxShadow = `0 0 16px ${hex}88`;
+
+      document.getElementById('swatchHex').innerText = hex;
+      document.getElementById('swatchRgb').innerText = `rgb(${r}, ${g}, ${b})`;
+      document.getElementById('swatchRatio').innerText = ratio;
+      document.getElementById('swatchDesc').innerText = `Harmonic Phi Tint (Step ${step}, Weight ${weight.toFixed(2)})`;
+
+      cruiser.bodyColor = hex;
+    }
+
+    // -------------------------------------------------------------------------
+    // MRP Hierarchy 5-Level Renderer
+    // -------------------------------------------------------------------------
+    const MRP_LEVELS_STATIC = [
+      {
+        id: 0,
+        name: "Level 0: Axiomatic Root & Harmonic Color Tints",
+        analog: "Master Production Schedule (MPS) & Root Product Spec",
+        desc: "Mathematical root deriving Pink Panther palette and golden ratio phi harmonic color tensors.",
+        rule: "Axiom: Strict phi = 1.61803398875; Max Step = 4; RGB clamp [0, 255]"
+      },
+      {
+        id: 1,
+        name: "Level 1: Macro Metropolises & Global Boundaries",
+        analog: "Major Subassemblies & Regional Distribution Hubs",
+        desc: "12 canonical world regions (Gotham, Arkham, Sin City, Vegas, Alabama, Ohio, Florida, Australia, Canaries, Bolivia, Ecuador, Peru).",
+        rule: "Axiom: Immutable GPS bounding boxes and regional asphalt/weather profiles"
+      },
+      {
+        id: 2,
+        name: "Level 2: Meso Street Networks & Google Street Map Blueprints",
+        analog: "Sub-components & Bill of Materials (BOM) Line Items",
+        desc: "Synthesizes vector street graphs, conduits, intersections, lane counts, and building block parcels.",
+        rule: "Axiom: Continuous Euclidean street segments; lane counts in [1, 8]"
+      },
+      {
+        id: 3,
+        name: "Level 3: Micro 2D Vehicles & Cruisers",
+        analog: "Work Centers, Finished Goods & Mobile Units",
+        desc: "Spawns 2D top-down vehicles with drift kinematics, acceleration curves, and steering.",
+        rule: "Axiom: Top-down 2D physics; velocity in [0, max_velocity]; drift angle bounded"
+      },
+      {
+        id: 4,
+        name: "Level 4: Execution & Strict 6 Max HP Vital Invariant",
+        analog: "Quality Assurance, Scrap Tolerances & Final Dispatch",
+        desc: "Governs unit health, armor absorption, repair intervals, and convoy garrison integrity.",
+        rule: "STRICT INVARIANT: max_hp == 6; 0 <= hp <= 6 for all units at all times"
+      }
+    ];
+
+    function renderMrpLevels() {
+      const container = document.getElementById('mrpLevelsContainer');
+      container.innerHTML = '';
+      MRP_LEVELS_STATIC.forEach(lvl => {
+        const item = document.createElement('div');
+        item.className = 'mrp-level-item';
+        item.innerHTML = `
+          <div class="mrp-lvl-header">
+            <span class="mrp-lvl-title">${lvl.name}</span>
+            <span class="mrp-analog">MRP Analog: ${lvl.analog}</span>
+          </div>
+          <div class="mrp-desc">${lvl.desc}</div>
+          <div class="mrp-rule">${lvl.rule}</div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function renderRegionChips() {
+      const container = document.getElementById('regionsGridContainer');
+      container.innerHTML = '';
+      Object.keys(REGIONS_DATA).forEach(rKey => {
+        const r = REGIONS_DATA[rKey];
+        const chip = document.createElement('div');
+        chip.className = 'region-chip' + (rKey === currentRegion ? ' active' : '');
+        chip.dataset.region = rKey;
+        chip.innerText = r.name;
+        chip.onclick = () => switchRegion(rKey);
+        container.appendChild(chip);
+      });
+    }
+
+    // Initialize Studio
+    window.addEventListener('DOMContentLoaded', () => {
+      generateLocalNetwork(currentRegion);
+      updateHeartsDisplay();
+      renderMrpLevels();
+      renderRegionChips();
+      updateTintMixer();
+      requestAnimationFrame(loop);
+    });
+  </script>
+</body>
+</html>

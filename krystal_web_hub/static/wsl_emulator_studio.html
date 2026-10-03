@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WSL Emulačný Subsystém // Krystal-Stack Linux Runtime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal-bootstrap.css">
+
+  <style>
+    :root {
+      --bg-dark: #050811;
+      --bg-panel: rgba(10, 16, 28, 0.9);
+      --border-cyan: rgba(0, 240, 255, 0.35);
+      --border-green: rgba(0, 255, 136, 0.4);
+      --border-gold: rgba(245, 158, 11, 0.4);
+      --cyan: #00f0ff;
+      --green: #00ff88;
+      --gold: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'JetBrains Mono', Consolas, monospace;
+      --font-ui: 'Outfit', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+      background-size: 100% 4px;
+      z-index: 999;
+      opacity: 0.35;
+    }
+
+    /* Top Header */
+    header.studio-header {
+      background: rgba(8, 12, 22, 0.95);
+      border-bottom: 1px solid var(--border-cyan);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 50;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+    }
+
+    .brand-group h1 {
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .brand-group h1 span {
+      color: var(--green);
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+    }
+
+    .brand-group p {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--cyan);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-action {
+      background: rgba(0, 255, 136, 0.12);
+      border: 1px solid var(--border-green);
+      color: var(--green);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: rgba(0, 255, 136, 0.25);
+      box-shadow: 0 0 14px var(--green);
+    }
+
+    .btn-action.cyan {
+      background: rgba(0, 240, 255, 0.12);
+      border-color: var(--border-cyan);
+      color: var(--cyan);
+    }
+
+    .btn-action.cyan:hover {
+      background: rgba(0, 240, 255, 0.25);
+      box-shadow: 0 0 14px var(--cyan);
+    }
+
+    /* Workspace Layout */
+    .studio-workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      height: calc(100vh - 54px);
+      overflow: hidden;
+    }
+
+    /* Left: Terminal Console */
+    .terminal-container {
+      background: #020408;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-cyan);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .terminal-toolbar {
+      background: rgba(12, 18, 30, 0.9);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .term-preset-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .term-preset-btn:hover {
+      background: rgba(0, 255, 136, 0.2);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    .terminal-output {
+      flex: 1;
+      padding: 16px 20px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      color: #00ff88;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      text-shadow: 0 0 5px rgba(0, 255, 136, 0.4);
+    }
+
+    .terminal-input-bar {
+      background: rgba(10, 16, 26, 0.95);
+      border-top: 1px solid var(--border-green);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .prompt-label {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--cyan);
+      white-space: nowrap;
+    }
+
+    .cmd-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #fff;
+    }
+
+    /* Right: Subsystem Inspector & VFS */
+    aside.studio-sidebar {
+      background: var(--bg-panel);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-block {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sidebar-block-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--gold);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .details-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .details-row .label { color: var(--text-muted); }
+    .details-row .val { color: #fff; font-weight: 600; }
+
+    /* VFS Tree List */
+    .vfs-tree {
+      background: #020408;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      max-height: 150px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .vfs-item {
+      color: #94a3b8;
+      cursor: pointer;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .vfs-item:hover {
+      color: var(--cyan);
+    }
+
+    .vfs-item.is-dir {
+      color: #ffd700;
+      font-weight: 700;
+    }
+
+    /* DNF Package Badges */
+    .pkg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .pkg-badge {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pkg-badge.installed {
+      border-color: rgba(0, 255, 136, 0.4);
+      background: rgba(0, 255, 136, 0.06);
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+
+  <!-- Top Header -->
+  <header class="studio-header">
+    <div class="brand-group">
+      <h1>WSL EMULAČNÝ SUBSYSTÉM <span>// VIRTUAL LINUX RUNTIME</span></h1>
+      <p>HYBRID PHYSICAL WSL2 / EMULATED POSIX ROOTFS · DNF 4.24 PACKAGE ENGINE</p>
+    </div>
+    <div class="header-actions">
+      <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--green);">INVARIANT: 6 MAX HP</span>
+      <a href="/high-fidelity-3d-studio" class="btn-action cyan" style="text-decoration:none;">🎨 3D DISPLEJ</a>
+      <a href="/desktop" class="btn-action" style="text-decoration:none;">🖥️ WEBOS</a>
+      <a href="/" class="btn-action cyan" style="text-decoration:none;">← HUB</a>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="studio-workspace">
+
+    <!-- Left: Virtual Linux Shell Terminal -->
+    <div class="terminal-container">
+      <!-- Toolbar with Preset Commands -->
+      <div class="terminal-toolbar">
+        <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--gold);">RÝCHLE PRÍKAZY:</span>
+        <button class="term-preset-btn" onclick="runPreset('uname -a')">uname -a</button>
+        <button class="term-preset-btn" onclick="runPreset('cat /etc/os-release')">os-release</button>
+        <button class="term-preset-btn" onclick="runPreset('dnf repolist')">dnf repolist</button>
+        <button class="term-preset-btn" onclick="runPreset('dnf install assimp')">dnf install assimp</button>
+        <button class="term-preset-btn" onclick="runPreset('dnf install blender')">dnf install blender</button>
+        <button class="term-preset-btn" onclick="runPreset('assimp info /mnt/c/godot_assets/crystal_dragon_sanctuary.obj')">assimp info</button>
+        <button class="term-preset-btn" onclick="runPreset('which dnf')">which dnf</button>
+        <button class="term-preset-btn" onclick="clearTerm()">clear</button>
+      </div>
+
+      <!-- Output Scroll Area -->
+      <div class="terminal-output" id="termOutput">=== KRYSTAL-STACK WSL EMULATION SUBSYSTEM v2.4 ===
+Kernel: 6.18.33.2-krystal-virtual-WSL2 (x86_64 POSIX Runtime)
+Virtual Rootfs: Fedora Linux 40 (Cloud Edition)
+Package Manager: DNF 4.24.0 (RPM-DB In-Memory)
+Platform Invariant: VITAL_MAX_HP = 6
+
+Type 'help' or click presets above to execute commands.
+</div>
+
+      <!-- Command Line Input -->
+      <div class="terminal-input-bar">
+        <span class="prompt-label">[root@krystal-wsl ~]#</span>
+        <input type="text" class="cmd-input" id="cmdInput" placeholder="Zadajte linuxový príkaz (napr. dnf install assimp, uname -a)..." autofocus onkeydown="handleInputKey(event)">
+        <button class="btn-action" onclick="submitCurrentCmd()">SPUSTIŤ</button>
+      </div>
+    </div>
+
+    <!-- Right: Sidebar Diagnostics -->
+    <aside class="studio-sidebar">
+
+      <!-- Subsystem Telemetry -->
+      <div class="sidebar-block">
+        <div class="sidebar-block-title">
+          <span>STAV SUBSYSTÉMU</span>
+          <span style="font-size: 0.65rem; color: var(--green); font-family: var(--font-mono);" id="subsystemBadge">ONLINE</span>
+        </div>
+        <div class="details-row"><span class="label">Režim behu:</span><span class="val" id="modeVal">Auto_Hybrid_Fallback</span></div>
+        <div class="details-row"><span class="label">Distribúcia:</span><span class="val" id="distroVal">Fedora Linux 40</span></div>
+        <div class="details-row"><span class="label">Fyzické WSL2:</span><span class="val" id="physWslVal" style="color:var(--cyan);">Detekované (Windows Host)</span></div>
+        <div class="details-row"><span class="label">Emulátor Subsystému:</span><span class="val" style="color:var(--green);">AKTÍVNY</span></div>
+        <div class="details-row"><span class="label">Pravidlo integrity:</span><span class="val" style="color:var(--green);">VITAL_MAX_HP = 6</span></div>
+      </div>
+
+      <!-- Virtual Filesystem (VFS) Tree -->
+      <div class="sidebar-block">
+        <div class="sidebar-block-title">
+          <span>VIRTUÁLNY ROOTFS (/proc, /etc, /mnt)</span>
+          <span style="font-size: 0.65rem; color: var(--cyan); font-family: var(--font-mono);" id="vfsCount">15 uzlov</span>
+        </div>
+        <div class="vfs-tree" id="vfsTree">
+          <div class="vfs-item is-dir">📁 /</div>
+          <div class="vfs-item is-dir">📁 /etc/dnf</div>
+          <div class="vfs-item" onclick="runPreset('cat /etc/os-release')">📄 /etc/os-release</div>
+          <div class="vfs-item" onclick="runPreset('cat /proc/version')">📄 /proc/version</div>
+          <div class="vfs-item is-dir">📁 /mnt/c/Krystal-stack-platform-framework</div>
+          <div class="vfs-item">📄 /usr/bin/dnf</div>
+        </div>
+      </div>
+
+      <!-- DNF Package Manager Status -->
+      <div class="sidebar-block" style="flex:1;">
+        <div class="sidebar-block-title">
+          <span>BALÍČKOVAČ DNF // BALÍKY</span>
+          <span style="font-size: 0.65rem; color: var(--gold); font-family: var(--font-mono);" id="pkgCount">Inštalované: 4</span>
+        </div>
+        <div class="pkg-grid" id="pkgGrid">
+          <div class="pkg-badge installed"><span>bash</span><span style="color:var(--green);">✓ 2MB</span></div>
+          <div class="pkg-badge installed"><span>dnf</span><span style="color:var(--green);">✓ 1MB</span></div>
+          <div class="pkg-badge installed"><span>python3</span><span style="color:var(--green);">✓ 15MB</span></div>
+          <div class="pkg-badge installed"><span>coreutils</span><span style="color:var(--green);">✓ 5MB</span></div>
+          <div class="pkg-badge" id="pkg-assimp"><span>assimp</span><span style="color:var(--text-muted);">8MB</span></div>
+          <div class="pkg-badge" id="pkg-blender"><span>blender</span><span style="color:var(--text-muted);">240MB</span></div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn-action" style="flex:1;" onclick="runPreset('dnf install assimp')">⚡ INŠTALOVAŤ ASSIMP</button>
+          <button class="btn-action cyan" style="flex:1;" onclick="fetchStatus()">🔄 OBNOVIŤ STAV</button>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <script>
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/wsl/subsystem-status');
+        const data = await res.json();
+        document.getElementById('modeVal').innerText = data.runtime_mode;
+        document.getElementById('distroVal').innerText = data.distro_flavor.split('(')[0];
+        document.getElementById('physWslVal').innerText = data.physical_wsl_detected ? "Dostupné (Host)" : "Emulované (Izolované)";
+        document.getElementById('pkgCount').innerText = `Inštalované: ${data.installed_packages_count}`;
+      } catch (e) {
+        console.error("Status load failed", e);
+      }
+    }
+
+    async function executeCmd(cmd) {
+      const term = document.getElementById('termOutput');
+      term.innerText += `\n[root@krystal-wsl ~]# ${cmd}\n`;
+      term.scrollTop = term.scrollHeight;
+
+      try {
+        const res = await fetch('/api/wsl/exec', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ command: cmd })
+        });
+        const d = await res.json();
+        if (d.stdout) term.innerText += d.stdout;
+        if (d.stderr) term.innerText += `[STDERR] ${d.stderr}`;
+
+        // Check if assimp was installed to update UI badge
+        if (cmd.includes('assimp') && cmd.includes('install')) {
+          const el = document.getElementById('pkg-assimp');
+          if (el) el.classList.add('installed');
+        }
+        if (cmd.includes('blender') && cmd.includes('install')) {
+          const el = document.getElementById('pkg-blender');
+          if (el) el.classList.add('installed');
+        }
+        fetchStatus();
+      } catch (e) {
+        term.innerText += `Chyba volania subsystému: ${e.message}\n`;
+      }
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function runPreset(cmd) {
+      document.getElementById('cmdInput').value = cmd;
+      submitCurrentCmd();
+    }
+
+    function submitCurrentCmd() {
+      const input = document.getElementById('cmdInput');
+      const val = input.value.trim();
+      if (!val) return;
+      executeCmd(val);
+      input.value = "";
+    }
+
+    function handleInputKey(e) {
+      if (e.key === 'Enter') {
+        submitCurrentCmd();
+      }
+    }
+
+    function clearTerm() {
+      document.getElementById('termOutput').innerText = "=== KRYSTAL-STACK WSL EMULATION SUBSYSTEM v2.4 ===\n";
+    }
+
+    window.onload = () => {
+      fetchStatus();
+    };
+  </script>
+</body>
+</html>

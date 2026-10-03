@@ -321,4 +321,125 @@ from .epic_campaign_and_content_engine import (
 
 GLOBAL_EPIC_CAMPAIGN_ENGINE = EpicCampaignEngine()
 
+from .mrp_harmonic_street_hierarchy import (
+    GOLDEN_RATIO,
+    INV_GOLDEN_RATIO,
+    VITAL_MAX_HP,
+    PINK_PANTHER_PALETTE,
+    HarmonicColorTint,
+    MRPHierarchyLevel,
+    WorldRegionMapSpec,
+    VehicleCruiser2D,
+    MRPHarmonicStreetEngine,
+    GLOBAL_MRP_HARMONIC_STREET_ENGINE
+)
+
+from .wordpress_security_and_java_transpiler import (
+    WordPressSecurityEngine,
+    ProjectorAnalogNpuBridge,
+    IslandRealm,
+    ProceduralIslandEngine,
+    KrystalJavaTranspiler,
+    SubdomainSession,
+    WordPressSubdomainSecurityGate,
+    GLOBAL_WORDPRESS_SECURITY,
+    GLOBAL_PROJECTOR_ANALOG_BRIDGE,
+    GLOBAL_PROCEDURAL_ISLAND_ENGINE,
+    GLOBAL_JAVA_TRANSPILER,
+    GLOBAL_WORDPRESS_SUBDOMAIN_GATE
+)
+
+from .microsoft_authenticator_2fa import (
+    TIME_STEP_SECONDS,
+    TOKEN_DIGITS,
+    compute_totp_token,
+    verify_totp_token,
+    generate_svg_qr_code,
+    NumberMatchingChallenge,
+    TwoFactorUserRecord,
+    MicrosoftAuthenticator2FAEngine,
+    GLOBAL_2FA_AUTHENTICATOR
+)
+
+from .vulkan_iris_xe_engine import (
+    IrisXeExecutionUnitsProfile,
+    CpuWhispererInstructionProfile,
+    MemoryGridTier,
+    MemoryHierarchyStatus,
+    VulkanIrisXeEngine,
+    GLOBAL_VULKAN_IRIS_XE_ENGINE
+)
+
+from .greek_bohemia_pantheon_and_memory_axioms import (
+    GreekDeity,
+    BohemianPaganAlly,
+    PantheonPact,
+    PhilosophicalMemoryAxiom,
+    GreekBohemiaMemoryEngine,
+    GLOBAL_GREEK_BOHEMIA_ENGINE
+)
+
+from .quadratic_variable_transformer import (
+    QuadraticDomain,
+    QuadraticVariableTransformer,
+    GLOBAL_QUADRATIC_TRANSFORMER
+)
+
+from .surface_node_shader_and_memory_reclaimer import (
+    MemorySlot,
+    MemoryBlockSlab,
+    SurfaceNodeShaderEngine,
+    GLOBAL_SURFACE_NODE_ENGINE
+)
+
+from .chinese_zodiac_terrestrial_sectors import (
+    ZodiacElement,
+    YinYang,
+    TerrestrialPhenomenon,
+    ZodiacSector,
+    CANONICAL_ZODIAC_SECTORS,
+    ChineseZodiacSectorEngine,
+    GLOBAL_CHINESE_ZODIAC_SECTOR_ENGINE
+)
+
+from .high_fidelity_3d_display_and_wsl_importer import (
+    DisplayFidelityMode,
+    HighFidelityDisplayPreset,
+    Mesh3DMetadata,
+    CANONICAL_DISPLAY_PRESETS,
+    HighFidelity3DAndWslEngine,
+    GLOBAL_HIGH_FIDELITY_3D_ENGINE
+)
+
+from .wsl_emulation_subsystem import (
+    LinuxDistroFlavor,
+    WslRuntimeMode,
+    VirtualPackage,
+    VirtualFsNode,
+    VirtualDnfEngine,
+    WslEmulationSubsystem,
+    GLOBAL_WSL_EMULATION_SUBSYSTEM
+)
+
+from .npu_sdf_terrain_and_driver_optimizer import (
+    PosledniKmenBiome,
+    BiomeParameters,
+    CANONICAL_BIOMES,
+    RaymarchHitResult,
+    NpuSdfTerrainAndDriverEngine,
+    GLOBAL_TERRAIN_SYNTHESIS_ENGINE
+)
+
+from .evolved_svg_vector_engine import (
+    EvolvedSvgVectorEngine,
+    GLOBAL_EVOLVED_SVG_ENGINE
+)
+
+from .krystal_execution_architecture_engine import (
+    MetricState,
+    PerformanceMetric,
+    KrystalExecutionArchitectureEngine,
+    GLOBAL_EXECUTION_ARCHITECTURE_ENGINE
+)
+
 

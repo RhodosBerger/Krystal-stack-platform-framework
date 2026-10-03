@@ -1,0 +1,408 @@
+/*
+ * KRYSTAL UI SYSTEM — CANONICAL STYLESHEET (AI STYLE CONTRACT v1.0)
+ * =============================================================================
+ * Deterministic design tokens, rectilinear geometry, 4px spacing grid,
+ * and the 14 Canonical UI Primitives for World, Arena, and Hybrid modes.
+ */
+
+:root {
+  /* ── Canonical Color Tokens ─────────────────────────────────────────────── */
+  --ks-black: #030406;        /* Arena / absolute background */
+  --ks-void: #070812;         /* Main application background */
+  --ks-navy: #101124;         /* Navigation / portal surfaces */
+  --ks-panel: #11131D;        /* Functional panels */
+  --ks-panel-soft: #171827;   /* Elevated content */
+  --ks-line: #292A38;         /* Structural borders (1px) */
+  --ks-text: #F1EFE8;         /* Primary text */
+  --ks-muted: #8D8997;        /* Secondary metadata */
+  --ks-gold: #D8AE4B;         /* World / navigation accent */
+  --ks-gold-hi: #F0D071;      /* Important fantasy CTA */
+  --ks-cyan: #58D8FF;         /* Crystal / system telemetry */
+  --ks-teal: #50EEE0;         /* Runtime state */
+  --ks-magenta: #FF307C;      /* Active ability / action */
+  --ks-green: #43D264;        /* Online / success state */
+  --ks-violet: #7548D8;       /* Spatial / debug geometry */
+  --ks-red: #FF4757;          /* Failure / damage */
+  --ks-yellow: #F59E0B;       /* Warning */
+
+  /* ── Geometry & Structural Radii ────────────────────────────────────────── */
+  --radius-ui: 2px;
+  --radius-control: 4px;
+  --radius-terminal: 4px;
+
+  /* ── Typography Roles ───────────────────────────────────────────────────── */
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-ui: 'Bebas Neue', 'Oswald', sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, monospace;
+}
+
+/* ── Reset & Base Styles ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body.ks-theme {
+  background-color: var(--ks-void);
+  color: var(--ks-text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Base 4px Spacing Classes ────────────────────────────────────────────── */
+.ks-gap-4 { gap: 4px; }
+.ks-gap-8 { gap: 8px; }
+.ks-gap-12 { gap: 12px; }
+.ks-gap-16 { gap: 16px; }
+.ks-gap-24 { gap: 24px; }
+.ks-gap-32 { gap: 32px; }
+
+/* ── 1. KSNav: Global Navigation Bar ─────────────────────────────────────── */
+.ks-nav {
+  height: 84px;
+  background-color: var(--ks-navy);
+  border-bottom: 1px solid var(--ks-line);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.ks-nav-brand {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--ks-text);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ks-nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+
+.ks-nav-link {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ks-muted);
+  text-decoration: none;
+  padding: 30px 0 28px 0;
+  position: relative;
+  transition: color 150ms ease;
+}
+
+.ks-nav-link:hover, .ks-nav-link.active {
+  color: var(--ks-text);
+}
+
+.ks-nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--ks-gold);
+}
+
+/* ── 2. KSWorldHero: Monumental Title & Editorial Asymmetry ──────────────── */
+.ks-world-hero {
+  padding: 48px 0 24px 0;
+}
+
+.ks-chapter-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ks-gold);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.ks-world-title {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 6vw, 96px);
+  line-height: 0.92;
+  font-weight: 900;
+  color: var(--ks-text);
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+
+.ks-world-desc {
+  font-size: 16px;
+  color: var(--ks-muted);
+  max-width: 540px;
+  line-height: 1.6;
+}
+
+/* ── 3. KSEntitySelector: Faction Picker ─────────────────────────────────── */
+.ks-entity-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.ks-entity-tab {
+  background: var(--ks-panel);
+  border: 1px solid var(--ks-line);
+  color: var(--ks-muted);
+  padding: 10px 20px;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: var(--radius-ui);
+  transition: all 150ms ease;
+}
+
+.ks-entity-tab:hover {
+  color: var(--ks-text);
+  border-color: var(--ks-muted);
+}
+
+.ks-entity-tab.active.crystal {
+  border-color: var(--ks-cyan);
+  color: var(--ks-cyan);
+  background: rgba(88, 216, 255, 0.08);
+}
+
+.ks-entity-tab.active.toxic {
+  border-color: var(--ks-green);
+  color: var(--ks-green);
+  background: rgba(67, 210, 100, 0.08);
+}
+
+.ks-entity-tab.active.druid {
+  border-color: var(--ks-gold);
+  color: var(--ks-gold);
+  background: rgba(216, 174, 75, 0.08);
+}
+
+/* ── 4. KSStatBar: Segmented Rectilinear Rating ──────────────────────────── */
+.ks-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ks-stat-name {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ks-muted);
+}
+
+.ks-stat-bar-container {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.ks-stat-pip {
+  width: 28px;
+  height: 6px;
+  background: var(--ks-line);
+  border-radius: 1px;
+}
+
+.ks-stat-pip.filled.cyan { background: var(--ks-cyan); }
+.ks-stat-pip.filled.gold { background: var(--ks-gold); }
+.ks-stat-pip.filled.green { background: var(--ks-green); }
+
+/* ── 5. KSRadar: Mathematical Radar Chart ────────────────────────────────── */
+.ks-radar-box {
+  width: 140px;
+  height: 140px;
+  position: relative;
+}
+
+/* ── 6. KSHudStatus: Edge-Anchored Minimal Telemetry ─────────────────────── */
+.ks-hud-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ks-teal);
+}
+
+.ks-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ks-green);
+  display: inline-block;
+}
+
+/* ── 7. KSRuntimeMetric: Metric Box with Verification State ──────────────── */
+.ks-metric-box {
+  background: var(--ks-panel);
+  border: 1px solid var(--ks-line);
+  border-radius: var(--radius-ui);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ks-metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ks-metric-label {
+  font-size: 11px;
+  color: var(--ks-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ks-metric-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.ks-metric-tag.measured {
+  background: rgba(67, 210, 100, 0.15);
+  color: var(--ks-green);
+  border: 1px solid var(--ks-green);
+}
+
+.ks-metric-tag.modeled {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--ks-yellow);
+  border: 1px solid var(--ks-yellow);
+}
+
+.ks-metric-tag.target {
+  background: rgba(117, 72, 216, 0.15);
+  color: var(--ks-violet);
+  border: 1px solid var(--ks-violet);
+}
+
+.ks-metric-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ks-text);
+  font-family: var(--font-mono);
+}
+
+/* ── 8. Buttons: World CTA vs System Action ──────────────────────────────── */
+.ks-world-button {
+  background: var(--ks-gold);
+  color: #000;
+  border: none;
+  height: 60px;
+  padding: 0 36px;
+  font-family: var(--font-ui);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  transition: background 150ms ease;
+}
+
+.ks-world-button:hover {
+  background: var(--ks-gold-hi);
+}
+
+.ks-action-button {
+  background: transparent;
+  color: var(--ks-cyan);
+  border: 1px solid var(--ks-cyan);
+  height: 48px;
+  padding: 0 24px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  transition: all 150ms ease;
+}
+
+.ks-action-button:hover {
+  background: rgba(88, 216, 255, 0.12);
+}
+
+.ks-action-button.magenta {
+  color: var(--ks-magenta);
+  border-color: var(--ks-magenta);
+}
+.ks-action-button.magenta:hover {
+  background: rgba(255, 48, 124, 0.12);
+}
+
+/* ── 9. KSRenderViewport: 3D Procedural Arena Stage ───────────────────────── */
+.ks-render-viewport {
+  background: var(--ks-black);
+  border: 1px solid var(--ks-line);
+  border-radius: var(--radius-ui);
+  position: relative;
+  overflow: hidden;
+  min-height: 480px;
+  width: 100%;
+}
+
+.ks-viewport-overlay {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ── 10. KSTerminalPanel: Monospace Telemetry Rail ────────────────────────── */
+.ks-terminal-panel {
+  background: var(--ks-panel);
+  border: 1px solid var(--ks-line);
+  border-radius: var(--radius-terminal);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ks-terminal-title {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ks-muted);
+  border-bottom: 1px solid var(--ks-line);
+  padding-bottom: 8px;
+}

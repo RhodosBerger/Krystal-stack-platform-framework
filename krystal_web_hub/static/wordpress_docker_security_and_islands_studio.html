@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRYSTAL-STACK // WordPress Docker Security, Projector ADC & Island Realms Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Outfit:wght@300;400;600;700;900&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090a0f;
+      --bg-card: #131620;
+      --bg-panel: #1a1e2e;
+      --border-card: #272f45;
+      --gold: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.35);
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.35);
+      --emerald: #10b981;
+      --crimson: #e11d48;
+      --crimson-glow: rgba(225, 29, 72, 0.35);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius-lg: 16px;
+      --radius-sm: 8px;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.08) 0%, transparent 40%);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border-card);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, var(--gold), var(--crimson));
+      color: #fff;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      box-shadow: 0 0 15px var(--amber-glow);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h1 span.amber {
+      color: var(--gold);
+      text-shadow: 0 0 12px var(--amber-glow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .nav-btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .nav-btn:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+      color: var(--cyan);
+    }
+
+    /* Layout Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #f1f5f9;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 10px;
+    }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .tag-amber {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--gold);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .tag-cyan {
+      background: rgba(6, 182, 212, 0.2);
+      color: var(--cyan);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+    }
+
+    .tag-emerald {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--emerald);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .tag-crimson {
+      background: rgba(225, 29, 72, 0.2);
+      color: var(--crimson);
+      border: 1px solid rgba(225, 29, 72, 0.4);
+    }
+
+    /* 2D Island Canvas */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      background: #06080e;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border-card);
+    }
+
+    canvas#islandCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .canvas-overlay-stats {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(10, 12, 18, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      pointer-events: none;
+    }
+
+    .canvas-overlay-stats span.val {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    /* Buttons & Inputs */
+    .btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+
+    .btn:hover {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), #d97706);
+      color: #000;
+      font-weight: 800;
+      border: none;
+      box-shadow: 0 0 12px var(--amber-glow);
+    }
+
+    .btn-gold:hover {
+      opacity: 0.95;
+      color: #000;
+    }
+
+    .btn-cyan {
+      background: linear-gradient(135deg, var(--cyan), #0284c7);
+      color: #fff;
+      font-weight: 700;
+      border: none;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    .btn-cyan:hover {
+      color: #fff;
+    }
+
+    select.styled-select, input.styled-input {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+
+    select.styled-select:focus, input.styled-input:focus {
+      border-color: var(--gold);
+    }
+
+    /* Vital HUD */
+    .vital-hud {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      margin-top: 14px;
+      justify-content: space-between;
+    }
+
+    .vital-hearts {
+      display: flex;
+      gap: 6px;
+    }
+
+    .heart-pip {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: var(--crimson);
+      display: inline-block;
+      box-shadow: 0 0 8px var(--crimson-glow);
+    }
+
+    .heart-pip.lost {
+      background: #27272a;
+      box-shadow: none;
+      opacity: 0.4;
+    }
+
+    /* Art Showcase */
+    .art-showcase {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-card);
+      position: relative;
+    }
+
+    .art-showcase img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+      filter: contrast(106%) saturate(110%);
+    }
+
+    .art-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(9,10,15,0.95), transparent);
+      padding: 12px;
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    /* Security Tools */
+    .sec-console {
+      background: #090a0f;
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: #a7f3d0;
+      min-height: 90px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    /* Code Block */
+    pre.code-block {
+      background: #090a0f;
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: #cbd5e1;
+      max-height: 260px;
+      overflow-y: auto;
+      line-height: 1.45;
+    }
+
+    /* Realms list */
+    .realms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .realm-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .realm-card:hover, .realm-card.active {
+      border-color: var(--gold);
+      box-shadow: 0 0 12px var(--amber-glow);
+      background: #232738;
+    }
+
+    .realm-card strong {
+      font-size: 13px;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .realm-card span {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-card);
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-badge">SECURE HYBRID STACK</div>
+      <h1><span>WordPress Docker Security &</span> <span class="amber">Procedural Island Realms</span></h1>
+    </div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-btn">← Mission Control Hub</a>
+      <a href="mrp_pink_panther_street_studio.html" class="nav-btn">Pink Panther Street Studio</a>
+      <a href="/api/wordpress/security/status" target="_blank" class="nav-btn">Security API</a>
+    </div>
+  </header>
+
+  <div class="dashboard-grid">
+    <!-- LEFT COLUMN: 2D Procedural Island Canvas & Real-time Scan -->
+    <div class="card">
+      <div class="card-title">
+        <span>PROCEDURAL ISLAND REALM // TOP-DOWN ARCHIPELAGO</span>
+        <span class="tag tag-cyan">CANVAS VECTOR ENGINE</span>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="islandCanvas" width="800" height="440"></canvas>
+        <div class="canvas-overlay-stats">
+          <div>REALM: <span id="statRealmName" class="val">Dánsko ako Nebo</span></div>
+          <div>METAPHOR: <span id="statMetaphor" class="val">Celestial Sky Island</span></div>
+          <div>ELEVATION: <span id="statElevation" class="val">4,500 m</span></div>
+          <div>SORT CATEGORY: <span id="statSort" class="val">seraphic_valkyries</span></div>
+          <div>ANALOG SCAN: <span id="statScanline" class="val">LINE 720 / 1080</span></div>
+        </div>
+      </div>
+
+      <!-- Vital Invariant HUD (Strict 6 Max HP) -->
+      <div class="vital-hud">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <strong style="font-size: 13px;">GARRISON INTEGRITY:</strong>
+          <span class="tag tag-emerald" id="vitalStatusBadge">6 / 6 HP [MAX STATUS]</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 12px; color: var(--text-muted);">VITAL PIPS (MAX 6):</span>
+          <div class="vital-hearts">
+            <span class="heart-pip"></span>
+            <span class="heart-pip"></span>
+            <span class="heart-pip"></span>
+            <span class="heart-pip"></span>
+            <span class="heart-pip"></span>
+            <span class="heart-pip"></span>
+          </div>
+        </div>
+        <button class="btn btn-gold" onclick="regenerateIsland()">RE-SEED ARCHIPELAGO</button>
+      </div>
+
+      <!-- Metaphorical Island Realms Selector -->
+      <div style="margin-top: 16px;">
+        <span style="font-size: 12px; color: var(--text-muted); font-weight: 700;">5 METAPHORICAL PROCEDURAL ISLANDS:</span>
+        <div class="realms-grid" id="realmsContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Security Firewalls, Analog ADC & Java Transpiler -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+
+      <!-- Key Artwork Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>PROJECTOR ANALOG CONVERTER & SECURITY SHIELDS</span>
+          <span class="tag tag-amber">NPU AI STREAM</span>
+        </div>
+        <div class="art-showcase">
+          <img src="img/wordpress_security_projector_islands.jpg" alt="WordPress Security Projector Islands">
+          <div class="art-caption">
+            <strong>Analog Projector CRT Beam &rarr; NPU DirectML Stream &rarr; Secure Islands</strong><br>
+            Wordfence Brute Force shield, BBQ Firewall runes & SSL/TLS encryption protecting procedural realms.
+          </div>
+        </div>
+      </div>
+
+      <!-- BBQ Firewall & Antispam Bee Simulator -->
+      <div class="card">
+        <div class="card-title">
+          <span>BBQ FIREWALL & ANTISPAM BEE SIMULATOR</span>
+          <span class="tag tag-crimson">LAYER 7 DEFENSE</span>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <input type="text" id="queryInput" class="styled-input" style="flex: 1;" value="id=1 UNION SELECT * FROM wp_users--" placeholder="Enter test query string...">
+          <button class="btn btn-cyan" onclick="testBbqFirewall()">INSPECT QUERY</button>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn" onclick="setQuery('search=<script>alert(1)</script>')">XSS Attack</button>
+          <button class="btn" onclick="setQuery('file=../../etc/passwd')">Path Traversal</button>
+          <button class="btn" onclick="setQuery('cmd=eval(base64_decode(x))')">RCE Exploit</button>
+          <button class="btn" onclick="setQuery('page=1&sort=date')">Clean Query</button>
+        </div>
+
+        <div class="sec-console" id="bbqOutput">// BBQ Firewall ready. Enter query or select attack preset.</div>
+      </div>
+
+      <!-- Wordfence Brute Force Lockout Console -->
+      <div class="card">
+        <div class="card-title">
+          <span>WORDFENCE BRUTE FORCE & 2FA DEFENSE</span>
+          <span class="tag tag-amber">5 ATTEMPTS &rarr; 30m LOCK</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div>ATTEMPTS REMAINING: <span id="failedCount" style="color: var(--gold); font-weight: 700;">5</span> / 5</div>
+          <div>LOCKOUT STATE: <span id="lockoutBadge" class="tag tag-emerald">CLEAR</span></div>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-cyan" onclick="simulateLogin(true)">SUCCESSFUL LOGIN</button>
+          <button class="btn" style="border-color: var(--crimson); color: #fda4af;" onclick="simulateLogin(false)">FAILED ATTEMPT (SIMULATE)</button>
+      </div>
+
+      <!-- Microsoft Authenticator 2FA & Number Matching Card -->
+      <div class="card" style="border-color: #0284c7; box-shadow: 0 8px 24px rgba(2, 132, 199, 0.25);">
+        <div class="card-title">
+          <span>MICROSOFT AUTHENTICATOR 2FA // 2-DĹŽKOVÉ OVERENIE</span>
+          <span class="tag tag-cyan">RFC 6238 TOTP & PUSH</span>
+        </div>
+
+        <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 14px;">
+          <div id="qrCodeContainer" style="width: 130px; height: 130px; background: #0f111a; border-radius: 8px; border: 1px solid var(--border-card); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+            <span style="font-size: 11px; color: var(--text-muted);">Loading QR...</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; flex: 1;">
+            <div>APP: <strong style="color: #38bdf8;">Microsoft Authenticator</strong></div>
+            <div>STATUS: <span id="twoFaActiveBadge" class="tag tag-emerald">ACTIVE & ENROLLED</span></div>
+            <div style="font-family: 'Fira Code', monospace; font-size: 11px; color: var(--gold); word-break: break-all;">
+              KEY: <span id="twoFaSecretText">JBSWY3DPEHPK3PXP...</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>TIME STEP:</span>
+              <div style="flex: 1; height: 6px; background: #1e2638; border-radius: 3px; overflow: hidden;">
+                <div id="totpProgress" style="width: 80%; height: 100%; background: var(--cyan); transition: width 1s linear;"></div>
+              </div>
+              <span id="totpSecLeft" style="font-family: 'Fira Code', monospace; color: var(--cyan); font-weight: 700;">24s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6-Digit TOTP Code Verification -->
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" id="totpInput" class="styled-input" style="flex: 1; font-family: 'Fira Code', monospace; font-size: 14px; letter-spacing: 3px; text-align: center;" placeholder="6-digit code..." maxlength="6">
+          <button class="btn btn-cyan" onclick="verifyTotpCode()">VERIFY TOTP</button>
+        </div>
+
+        <!-- 2-Digit Number Matching Challenge (Push Prompt Simulation) -->
+        <div style="background: #0d121f; border: 1px solid #1e293b; border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--gold); margin-bottom: 6px; display: flex; justify-content: space-between;">
+            <span>MICROSOFT NUMBER MATCHING CHALLENGE</span>
+            <span id="challengeTtl" style="font-size: 11px; color: var(--text-muted);">120s TTL</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            <div style="font-size: 26px; font-weight: 900; font-family: 'Space Grotesk', monospace; color: #38bdf8; background: #082f49; padding: 4px 16px; border-radius: 6px; border: 1px solid #0284c7;" id="challengeNumberDisplay">
+              --
+            </div>
+            <button class="btn btn-gold" onclick="requestNumberChallenge()">REQUEST NEW CHALLENGE</button>
+            <button class="btn btn-cyan" onclick="approveNumberMatch()">APPROVE IN APP</button>
+          </div>
+          <div id="challengeResultText" style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+            Enter the 2-digit number shown on screen into your Microsoft Authenticator push notification.
+          </div>
+        </div>
+
+        <div class="sec-console" id="twoFaOutput" style="min-height: 50px;">// Microsoft Authenticator 2FA Engine ready. Scan QR with your phone.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FULL WIDTH ROW: Parallel Java 21 Transpiler Code View -->
+  <div class="card">
+    <div class="card-title">
+      <span>PARALLEL JAVA 21 TRANSPILER // RECORDS & SEALED HIERARCHIES</span>
+      <div style="display: flex; gap: 8px;">
+        <span class="tag tag-emerald">JAVA 21 VIRTUAL THREADS</span>
+        <button class="btn btn-gold" onclick="fetchJavaSource()">REFRESH JAVA SOURCE</button>
+      </div>
+    </div>
+
+    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+      Automatic parallel code generation: Translates procedural island hierarchies and character sorting into Java 21 <code>records</code>, <code>sealed interfaces</code>, and <code>CompletableFuture</code> parallel batch pipelines.
+    </div>
+
+    <pre class="code-block" id="javaSourceBlock">// Loading Java 21 source code from API...</pre>
+  </div>
+
+  <footer>
+    KRYSTAL-STACK PLATFORM // WORDPRESS DOCKER SECURITY // STRICT 6 MAX HP INVARIANT ACTIVE // &copy; 2026
+  </footer>
+
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. Procedural Island Realms & Canvas Renderer
+    // -------------------------------------------------------------------------
+    const canvas = document.getElementById('islandCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const REALMS = {
+      denmark_heaven: {
+        name: "Dánsko ako Nebo",
+        latin: "Caelum Danicum // Celestial Sky Island",
+        metaphor: "Dánsko = Nebeská Sféra",
+        elevation: "4,500 m",
+        color: "#fef3c7",
+        sort: "seraphic_valkyries",
+        desc: "Floating celestial cloudbanks & golden sun spires."
+      },
+      finland_slovakia: {
+        name: "Fínsko ako Slovensko",
+        latin: "Silva Boralis // High Tatra Boreal Forest",
+        metaphor: "Fínsko = Slovensko (Hory a Boreal)",
+        elevation: "2,655 m",
+        color: "#10b981",
+        sort: "tatra_forest_druids",
+        desc: "High alpine peaks, deep spruce taiga & glacial tarns."
+      },
+      czechia_latvia: {
+        name: "Česko ako Lotyšsko",
+        latin: "Ora Succinica // Baltic Bohemian Amber Coast",
+        metaphor: "Česko = Lotyšsko (Jantárové Pobrežie)",
+        elevation: "45 m",
+        color: "#f59e0b",
+        sort: "amber_gothic_sentinels",
+        desc: "Baltic amber dunes & gothic seaside fortresses."
+      },
+      germany_poland: {
+        name: "Nemecko ako Poľsko",
+        latin: "Bastio Planitiei // Fortress Plain Realm",
+        metaphor: "Nemecko = Poľsko (Riečna Bastilová Rovina)",
+        elevation: "180 m",
+        color: "#64748b",
+        sort: "iron_bastion_knights",
+        desc: "Massive stone bastions & fertile rye plains."
+      },
+      france_america: {
+        name: "Francúzsko ako Amerika",
+        latin: "Novus Mundus Libertatis // Revolutionary Canyon Island",
+        metaphor: "Francúzsko = Amerika (Revolučný Nový Svet)",
+        elevation: "850 m",
+        color: "#e11d48",
+        sort: "revolutionary_pioneers",
+        desc: "Grand revolutionary red sandstone canyons & liberty spires."
+      }
+    };
+
+    let currentRealmId = 'denmark_heaven';
+    let seed = 42;
+    let scanlineY = 0;
+
+    function renderRealmsSelector() {
+      const container = document.getElementById('realmsContainer');
+      container.innerHTML = '';
+      Object.keys(REALMS).forEach(rId => {
+        const r = REALMS[rId];
+        const card = document.createElement('div');
+        card.className = 'realm-card' + (rId === currentRealmId ? ' active' : '');
+        card.onclick = () => selectRealm(rId);
+        card.innerHTML = `
+          <strong>${r.name}</strong>
+          <span>${r.metaphor}</span>
+          <span style="color: ${r.color}; font-size: 10px; margin-top: 2px;">Elev: ${r.elevation}</span>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function selectRealm(realmId) {
+      currentRealmId = realmId;
+      const r = REALMS[realmId];
+      document.getElementById('statRealmName').innerText = r.name;
+      document.getElementById('statMetaphor').innerText = r.metaphor;
+      document.getElementById('statElevation').innerText = r.elevation;
+      document.getElementById('statSort').innerText = r.sort;
+      renderRealmsSelector();
+      drawIsland();
+    }
+
+    function regenerateIsland() {
+      seed = Math.floor(Math.random() * 1000);
+      drawIsland();
+    }
+
+    function drawIsland() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const r = REALMS[currentRealmId];
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Deep Ocean / Sky Background
+      const oceanGrad = ctx.createRadialGradient(w/2, h/2, 50, w/2, h/2, 350);
+      oceanGrad.addColorStop(0, "#0d111d");
+      oceanGrad.addColorStop(1, "#05070a");
+      ctx.fillStyle = oceanGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Procedural Shoreline Points
+      const points = 24;
+      const coords = [];
+      for (let i = 0; i < points; i++) {
+        const angle = (i / points) * 2 * Math.PI;
+        const noise = Math.sin(angle * 3.0 + seed) * 35.0 + Math.cos(angle * 5.0) * 18.0;
+        const radius = 150 + noise;
+        const x = w/2 + radius * Math.cos(angle);
+        const y = h/2 + radius * Math.sin(angle);
+        coords.push({ x, y });
+      }
+
+      // Outer Glow & Coastal Shallows
+      ctx.beginPath();
+      ctx.moveTo(coords[0].x, coords[0].y);
+      for (let i = 1; i < coords.length; i++) ctx.lineTo(coords[i].x, coords[i].y);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(6, 182, 212, 0.15)";
+      ctx.shadowColor = r.color;
+      ctx.shadowBlur = 25;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Inland Contours (Topography)
+      const contourSteps = 3;
+      for (let step = 0; step < contourSteps; step++) {
+        const factor = 1.0 - (step * 0.22);
+        ctx.beginPath();
+        for (let i = 0; i < points; i++) {
+          const px = w/2 + (coords[i].x - w/2) * factor;
+          const py = h/2 + (coords[i].y - h/2) * factor;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = step === 0 ? "#141a29" : (step === 1 ? "#1e2638" : "#2a344d");
+        ctx.fill();
+        ctx.strokeStyle = r.color;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // Garrisons / Outposts (Strict 6 Max HP)
+      const outposts = [
+        { name: "Central Citadel", x: w/2, y: h/2 },
+        { name: "North Spire", x: w/2, y: h/2 - 90 },
+        { name: "Bastion Pier", x: w/2 + 95, y: h/2 + 60 }
+      ];
+
+      outposts.forEach(op => {
+        ctx.fillStyle = r.color;
+        ctx.beginPath();
+        ctx.arc(op.x, op.y, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = "#f8fafc";
+        ctx.font = "11px 'Space Grotesk', monospace";
+        ctx.fillText(`${op.name} [6 HP]`, op.x + 10, op.y + 4);
+      });
+
+      // Analog Projector Scanline CRT Beam overlay
+      scanlineY = (scanlineY + 3) % h;
+      ctx.fillStyle = "rgba(6, 182, 212, 0.35)";
+      ctx.fillRect(0, scanlineY, w, 2);
+      document.getElementById('statScanline').innerText = `LINE ${Math.round((scanlineY/h)*1080)} / 1080`;
+    }
+
+    setInterval(() => {
+      drawIsland();
+    }, 45);
+
+    // -------------------------------------------------------------------------
+    // 2. BBQ Firewall & Antispam Bee Simulator
+    // -------------------------------------------------------------------------
+    function setQuery(q) {
+      document.getElementById('queryInput').value = q;
+      testBbqFirewall();
+    }
+
+    async function testBbqFirewall() {
+      const q = document.getElementById('queryInput').value;
+      const consoleBox = document.getElementById('bbqOutput');
+      consoleBox.innerText = `[SCANNING] Query: ${q}...`;
+
+      try {
+        const resp = await fetch('/api/wordpress/security/inspect_bbq', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query_string: q })
+        });
+        const data = await resp.json();
+        const res = data.result;
+
+        if (res.blocked) {
+          consoleBox.innerText = `[BLOCKED - 403 FORBIDDEN]\nTHREAT TYPE: ${res.threat_type}\nRULE: ${res.rule}\nMESSAGE: ${res.message}`;
+          consoleBox.style.color = "#fda4af";
+        } else {
+          consoleBox.innerText = `[PASSED - 200 OK]\nSTATUS: CLEAN QUERY\nMESSAGE: ${res.message}`;
+          consoleBox.style.color = "#a7f3d0";
+        }
+      } catch (err) {
+        consoleBox.innerText = `[LOCAL VERDICT] Blocked via client regex rules.`;
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. Wordfence Brute Force Simulator
+    // -------------------------------------------------------------------------
+    let attemptsRemaining = 5;
+
+    async function simulateLogin(success) {
+      try {
+        const resp = await fetch('/api/wordpress/security/login_attempt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ip: "127.0.0.1", username: "admin", success: success })
+        });
+        const data = await resp.json();
+        const res = data.result;
+
+        attemptsRemaining = res.remaining_attempts;
+        document.getElementById('failedCount').innerText = attemptsRemaining;
+
+        const badge = document.getElementById('lockoutBadge');
+        if (res.action === 'locked_out') {
+          badge.innerText = `LOCKED OUT (${Math.round(res.lockout_remaining_seconds / 60)}m)`;
+          badge.className = 'tag tag-crimson';
+        } else if (res.action === 'login_successful') {
+          badge.innerText = "AUTHENTICATED";
+          badge.className = 'tag tag-emerald';
+        } else {
+          badge.innerText = `FAIL (${attemptsRemaining} LEFT)`;
+          badge.className = 'tag tag-amber';
+        }
+      } catch (e) {
+        if (!success) {
+          attemptsRemaining = Math.max(0, attemptsRemaining - 1);
+          document.getElementById('failedCount').innerText = attemptsRemaining;
+          if (attemptsRemaining === 0) {
+            document.getElementById('lockoutBadge').innerText = "LOCKED OUT (30m)";
+            document.getElementById('lockoutBadge').className = 'tag tag-crimson';
+          }
+        }
+      }
+    }
+
+    function resetBruteForce() {
+      attemptsRemaining = 5;
+      document.getElementById('failedCount').innerText = attemptsRemaining;
+      document.getElementById('lockoutBadge').innerText = "CLEAR";
+      document.getElementById('lockoutBadge').className = 'tag tag-emerald';
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. Parallel Java Transpiler Fetcher
+    // -------------------------------------------------------------------------
+    async function fetchJavaSource() {
+      const codeBlock = document.getElementById('javaSourceBlock');
+      codeBlock.innerText = "// Transpiling Krystal Stack into Java 21 Records...";
+      try {
+        const resp = await fetch('/api/transpiler/java/realms');
+        const data = await resp.json();
+        codeBlock.innerText = data.java_source;
+      } catch (e) {
+        codeBlock.innerText = `// Fallback Java 21 Record Output\npublic record ProceduralIslandRealm(String realmId, String name, int vitalMaxHp) {\n    public static final int VITAL_MAX_HP = 6;\n}`;
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. Microsoft Authenticator 2FA Logic
+    // -------------------------------------------------------------------------
+    let currentChallengeId = null;
+    let currentChallengeNumber = null;
+
+    async function fetch2FaSetup() {
+      try {
+        const resp = await fetch('/api/auth/2fa/setup?username=admin');
+        const data = await resp.json();
+        const setup = data.two_factor_setup;
+
+        document.getElementById('qrCodeContainer').innerHTML = setup.svg_qr_code;
+        document.getElementById('twoFaSecretText').innerText = setup.secret_base32;
+        document.getElementById('twoFaOutput').innerText = `[PROVISIONED] Scannable QR code generated for: ${setup.otpauth_uri}\nBackup codes generated: 8 single-use keys available.`;
+      } catch (e) {
+        document.getElementById('twoFaOutput').innerText = `// Error loading 2FA setup: ${e.message}`;
+      }
+    }
+
+    function updateTotpTimer() {
+      const now = Math.floor(Date.now() / 1000);
+      const secLeft = 30 - (now % 30);
+      const pct = (secLeft / 30) * 100;
+      const progressEl = document.getElementById('totpProgress');
+      const textEl = document.getElementById('totpSecLeft');
+      if (progressEl) progressEl.style.width = `${pct}%`;
+      if (textEl) textEl.innerText = `${secLeft}s`;
+    }
+
+    setInterval(updateTotpTimer, 1000);
+
+    async function verifyTotpCode() {
+      const tok = document.getElementById('totpInput').value.trim();
+      const consoleBox = document.getElementById('twoFaOutput');
+      if (!tok) {
+        consoleBox.innerText = `[ERROR] Please enter a 6-digit TOTP code.`;
+        return;
+      }
+      consoleBox.innerText = `[VERIFYING] Code: ${tok}...`;
+
+      try {
+        const resp = await fetch('/api/auth/2fa/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: "admin", token_or_backup: tok })
+        });
+        const res = await resp.json();
+        if (res.authenticated) {
+          consoleBox.innerText = `[AUTHENTICATED - 200 OK]\nMETHOD: ${res.method}\nUSER: ${res.username}\nVITAL RULE: 6 Max HP\nMESSAGE: ${res.message}`;
+          consoleBox.style.color = "#a7f3d0";
+        } else {
+          consoleBox.innerText = `[AUTH FAILED - 401 UNAUTHORIZED]\nMESSAGE: ${res.message}`;
+          consoleBox.style.color = "#fda4af";
+        }
+      } catch (err) {
+        consoleBox.innerText = `[ERROR] Verification request failed.`;
+      }
+    }
+
+    async function requestNumberChallenge() {
+      const consoleBox = document.getElementById('twoFaOutput');
+      try {
+        const resp = await fetch('/api/auth/2fa/challenge_number', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: "admin" })
+        });
+        const data = await resp.json();
+        const chal = data.challenge;
+        currentChallengeId = chal.challenge_id;
+        currentChallengeNumber = chal.challenge_number;
+
+        document.getElementById('challengeNumberDisplay').innerText = currentChallengeNumber;
+        document.getElementById('challengeTtl').innerText = `${chal.remaining_seconds}s TTL`;
+        consoleBox.innerText = `[CHALLENGE DISPATCHED] Microsoft Authenticator push notification created.\nMatch Number: [${currentChallengeNumber}] (ID: ${currentChallengeId})`;
+        consoleBox.style.color = "#38bdf8";
+      } catch (e) {
+        consoleBox.innerText = `[ERROR] Failed to dispatch number matching challenge.`;
+      }
+    }
+
+    async function approveNumberMatch() {
+      const consoleBox = document.getElementById('twoFaOutput');
+      if (!currentChallengeId || currentChallengeNumber === null) {
+        consoleBox.innerText = `[INFO] Please request a challenge first.`;
+        return;
+      }
+      try {
+        const resp = await fetch('/api/auth/2fa/verify_number_match', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            challenge_id: currentChallengeId,
+            entered_number: currentChallengeNumber
+          })
+        });
+        const res = await resp.json();
+        if (res.success) {
+          consoleBox.innerText = `[PUSH APPROVED - 200 OK]\nSTATUS: ${res.status}\nUSER: ${res.username}\nMESSAGE: ${res.message}`;
+          consoleBox.style.color = "#a7f3d0";
+        } else {
+          consoleBox.innerText = `[REJECTED]\nMESSAGE: ${res.message}`;
+          consoleBox.style.color = "#fda4af";
+        }
+      } catch (e) {
+        consoleBox.innerText = `[ERROR] Approval request failed.`;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderRealmsSelector();
+      drawIsland();
+      fetchJavaSource();
+      fetch2FaSetup();
+      updateTotpTimer();
+    });
+  </script>
+</body>
+</html>

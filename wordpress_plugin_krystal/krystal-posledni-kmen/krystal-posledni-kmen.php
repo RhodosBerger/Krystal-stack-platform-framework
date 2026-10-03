@@ -19,6 +19,7 @@ define( 'KRYSTAL_PYTHON_API_URL', 'http://localhost:8085/api' ); // Connects to 
 // 1. Include Core Classes
 require_once KRYSTAL_PLUGIN_DIR . 'includes/class-krystal-api.php';
 require_once KRYSTAL_PLUGIN_DIR . 'includes/class-krystal-shortcodes.php';
+require_once KRYSTAL_PLUGIN_DIR . 'includes/class-krystal-admin.php';
 
 // 2. Initialize Plugin
 function krystal_posledni_kmen_init() {
@@ -27,6 +28,9 @@ function krystal_posledni_kmen_init() {
 
     $krystal_shortcodes = new Krystal_Shortcodes();
     $krystal_shortcodes->init();
+
+    $krystal_admin = new Krystal_Admin_Settings();
+    $krystal_admin->init();
 }
 add_action( 'plugins_loaded', 'krystal_posledni_kmen_init' );
 

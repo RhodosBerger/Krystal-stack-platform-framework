@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRYSTAL-STACK // EPIC CAMPAIGN THEATER & SAGA STUDIO // BORDERLANDS & JUST CAUSE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Cinzel:wght@700;900&family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --borderlands-yellow: #facc15;
+      --borderlands-dark-yellow: #eab308;
+      --comic-black: #09090b;
+      --comic-dark: #18181b;
+      --comic-red: #ef4444;
+      --comic-orange: #f97316;
+      --comic-cyan: #06b6d4;
+      --comic-sky: #0284c7;
+      --comic-green: #22c55e;
+      --comic-purple: #a855f7;
+      --comic-border: 3.5px solid #09090b;
+      --comic-shadow: 6px 6px 0px #09090b;
+      --comic-shadow-lg: 10px 10px 0px #09090b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--borderlands-yellow);
+      background-image: 
+        radial-gradient(circle at 12% 18%, rgba(249, 115, 22, 0.28) 0%, transparent 40%),
+        radial-gradient(circle at 88% 82%, rgba(2, 132, 199, 0.24) 0%, transparent 40%),
+        repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(0, 0, 0, 0.04) 15px, rgba(0, 0, 0, 0.04) 30px);
+      color: var(--comic-black);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 24px;
+    }
+
+    /* TOP BANNER */
+    .comic-navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 12px;
+      box-shadow: var(--comic-shadow);
+      padding: 14px 24px;
+      margin-bottom: 24px;
+    }
+    .brand-logo {
+      font-family: 'Bangers', cursive;
+      font-size: 2.3rem;
+      letter-spacing: 2px;
+      color: var(--comic-black);
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0px var(--borderlands-dark-yellow);
+    }
+    .brand-logo span {
+      color: var(--comic-red);
+    }
+    .nav-tags {
+      display: flex;
+      gap: 12px;
+    }
+    .comic-badge {
+      background: var(--comic-black);
+      color: var(--borderlands-yellow);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 2px solid var(--comic-black);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .badge-vital {
+      background: var(--comic-red);
+      color: #ffffff;
+    }
+
+    /* HERO SHOWCASE SECTION */
+    .hero-container {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+    @media (max-width: 1024px) {
+      .hero-container { grid-template-columns: 1fr; }
+    }
+
+    .poster-panel {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 16px;
+      box-shadow: var(--comic-shadow-lg);
+      padding: 18px;
+      position: relative;
+    }
+    .poster-img-wrapper {
+      width: 100%;
+      height: 480px;
+      border: var(--comic-border);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      background: #000;
+    }
+    .poster-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .poster-img-wrapper:hover img {
+      transform: scale(1.02);
+    }
+    .poster-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: var(--borderlands-yellow);
+      border: var(--comic-border);
+      box-shadow: 4px 4px 0px var(--comic-black);
+      font-family: 'Bangers', cursive;
+      font-size: 1.25rem;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      transform: rotate(-3deg);
+    }
+    .poster-tagline {
+      margin-top: 14px;
+      font-family: 'Bangers', cursive;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+      color: var(--comic-black);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* RIGHT SUMMARY PANEL */
+    .summary-panel {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 16px;
+      box-shadow: var(--comic-shadow-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel-title {
+      font-family: 'Bangers', cursive;
+      font-size: 2.2rem;
+      letter-spacing: 1.5px;
+      color: var(--comic-black);
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+    .panel-subtitle {
+      font-size: 0.95rem;
+      color: #3f3f46;
+      line-height: 1.5;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .feature-card {
+      background: #fafafa;
+      border: 2px solid var(--comic-black);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 3px 3px 0px var(--comic-black);
+    }
+    .feature-card h4 {
+      font-family: 'Bangers', cursive;
+      font-size: 1.15rem;
+      color: var(--comic-black);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .feature-card p {
+      font-size: 0.82rem;
+      color: #52525b;
+      line-height: 1.35;
+    }
+
+    /* NAVIGATION TABS */
+    .tab-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 10px;
+      box-shadow: var(--comic-shadow);
+      font-family: 'Bangers', cursive;
+      font-size: 1.35rem;
+      letter-spacing: 1px;
+      padding: 10px 22px;
+      cursor: pointer;
+      color: var(--comic-black);
+      transition: all 0.15s ease;
+    }
+    .tab-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0px var(--comic-black);
+      background: var(--borderlands-yellow);
+    }
+    .tab-btn.active {
+      background: var(--comic-black);
+      color: var(--borderlands-yellow);
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px var(--comic-black);
+    }
+
+    /* TAB CONTENTS */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* SIMULATION & THEATER LAYOUT */
+    .sim-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap: 24px;
+    }
+    @media (max-width: 1024px) {
+      .sim-layout { grid-template-columns: 1fr; }
+    }
+
+    .controls-panel {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 14px;
+      box-shadow: var(--comic-shadow-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .controls-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .controls-group label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--comic-black);
+      display: flex;
+      justify-content: space-between;
+    }
+    .controls-group select, .controls-group input[type="range"], .controls-group input[type="text"] {
+      border: 2px solid var(--comic-black);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      background: #fafafa;
+    }
+
+    .btn-fire {
+      background: var(--comic-red);
+      color: #ffffff;
+      font-family: 'Bangers', cursive;
+      font-size: 1.5rem;
+      letter-spacing: 1.5px;
+      padding: 12px 20px;
+      border: var(--comic-border);
+      border-radius: 10px;
+      box-shadow: var(--comic-shadow);
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-fire:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0px var(--comic-black);
+      background: #dc2626;
+    }
+    .btn-fire:active {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0px var(--comic-black);
+    }
+
+    .display-panel {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 14px;
+      box-shadow: var(--comic-shadow-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* CANVAS THEATER */
+    .canvas-container {
+      width: 100%;
+      height: 420px;
+      border: var(--comic-border);
+      border-radius: 10px;
+      background: #09090b;
+      position: relative;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* TELEMETRY & LOG OUTPUT */
+    .telemetry-box {
+      background: #18181b;
+      color: #22c55e;
+      border: 2px solid var(--comic-black);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      min-height: 140px;
+      overflow-y: auto;
+      max-height: 240px;
+    }
+
+    /* HP HEARTS COMPONENT */
+    .vital-hearts {
+      display: flex;
+      gap: 6px;
+    }
+    .heart-pip {
+      width: 22px;
+      height: 22px;
+      background: var(--comic-red);
+      border: 2px solid var(--comic-black);
+      border-radius: 4px;
+      box-shadow: 2px 2px 0px var(--comic-black);
+      transition: all 0.3s ease;
+    }
+    .heart-pip.lost {
+      background: #a1a1aa;
+      transform: scale(0.85);
+      box-shadow: none;
+    }
+
+    /* CHAPTER CHOICES CARDS */
+    .choices-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .choice-card {
+      background: #fdfdfd;
+      border: 2px solid var(--comic-black);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 3px 3px 0px var(--comic-black);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .choice-card:hover {
+      background: #fef08a;
+      transform: translate(-1px, -1px);
+      box-shadow: 5px 5px 0px var(--comic-black);
+    }
+    .choice-card.selected {
+      border-color: var(--comic-red);
+      background: #fee2e2;
+    }
+    .choice-card h4 {
+      font-family: 'Bangers', cursive;
+      font-size: 1.25rem;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .choice-card p {
+      font-size: 0.85rem;
+      color: #4b5563;
+      margin-top: 4px;
+    }
+
+    /* CODEX STYLES */
+    .codex-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .codex-card {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 12px;
+      box-shadow: var(--comic-shadow);
+      padding: 18px;
+      position: relative;
+    }
+    .codex-card h3 {
+      font-family: 'Bangers', cursive;
+      font-size: 1.45rem;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+    .codex-card p {
+      font-size: 0.88rem;
+      color: #374151;
+      line-height: 1.45;
+      margin-bottom: 6px;
+    }
+    .codex-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 800;
+      background: var(--comic-black);
+      color: var(--borderlands-yellow);
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 6px;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 20px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      border-top: var(--comic-border);
+      color: var(--comic-black);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAV -->
+  <nav class="comic-navbar">
+    <div class="brand-logo">KRYSTAL-STACK // <span>EPIC CAMPAIGN THEATER</span></div>
+    <div class="nav-tags">
+      <span class="comic-badge badge-vital">VITAL MAX HP: 6</span>
+      <span class="comic-badge">BORDERLANDS ART</span>
+      <span class="comic-badge">JUST CAUSE KINETICS</span>
+      <span class="comic-badge">2026 EDITION</span>
+    </div>
+  </nav>
+
+  <!-- HERO POSTER & SUMMARY -->
+  <div class="hero-container">
+    <div class="poster-panel">
+      <div class="poster-badge">MASTERPIECE SHOWCASE // VZDUŠNÁ SÁGA</div>
+      <div class="poster-img-wrapper">
+        <img src="/static/img/epic_krystal_campaign_showcase.jpg" alt="Epic Krystal Campaign Key Art">
+      </div>
+      <div class="poster-tagline">
+        <span>VZDUŠNÉ BALÓNOVÉ PEVNOSTI, ROGALA, PADÁKY & TOTÉMOVÉ ANOMÁLIE</span>
+        <button class="comic-badge" onclick="window.open('/static/img/epic_krystal_campaign_showcase.jpg', '_blank')">FULL HD</button>
+      </div>
+    </div>
+
+    <div class="summary-panel">
+      <h1 class="panel-title">HLAVNÁ KAMPAŇ: SÁGA POSLEDNÉHO KMEŇA</h1>
+      <p class="panel-subtitle">
+        Vstúpte do najzaujímavejšieho taktického univerza, kde sa prepájajú vznášajúce sa pevnostné ostrovy,
+        vysoko-uhlové 240mm obliehacie mínomety, závesné klzáky Rogalo (delta-krídla so zbraňami),
+        nočné výsadky na padákoch, prepady kybernetických tiav a mystické anomálie totémov.
+      </p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h4>3 Epické Kapitoly</h4>
+          <p>Rozvetvené misie od púštnych kaňonov až po stratosférické pevnosti vo výške 380m.</p>
+        </div>
+        <div class="feature-card">
+          <h4>Procedurálny Generátor</h4>
+          <p>Nekonečné operácie s nastaviteľnou výškou, búrkovým počasím a škálovaním hrozieb.</p>
+        </div>
+        <div class="feature-card">
+          <h4>Živé Bojové Divadlo</h4>
+          <p>2D Canvas vizualizácia kombinovaného útoku s animáciou mínometov, rogál a bleskov.</p>
+        </div>
+        <div class="feature-card">
+          <h4>Kompletný Kódex & Bestiár</h4>
+          <p>Detailné záznamy o frakciách, aerostatoch, kyber-ťavách a Ncon VR vybavení.</p>
+        </div>
+      </div>
+
+      <div style="background:#f4f4f5; border:2px solid var(--comic-black); border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:12px;">
+        <span style="font-family:'Bangers', cursive; font-size:1.2rem; letter-spacing:1px;">STAV VELITEĽA:</span>
+        <div class="vital-hearts" id="playerHearts">
+          <div class="heart-pip" id="p-hp-1"></div>
+          <div class="heart-pip" id="p-hp-2"></div>
+          <div class="heart-pip" id="p-hp-3"></div>
+          <div class="heart-pip" id="p-hp-4"></div>
+          <div class="heart-pip" id="p-hp-5"></div>
+          <div class="heart-pip" id="p-hp-6"></div>
+        </div>
+        <span id="playerHpText" style="font-family:'JetBrains Mono', monospace; font-weight:800; margin-left:auto;">6 / 6 HP</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('tab-campaign')">⚔️ KAMPAŇOVÁ SÁGA (KAPITOLY)</button>
+    <button class="tab-btn" onclick="switchTab('tab-procedural')">🎲 PROCEDURÁLNY GENERÁTOR MISIÍ</button>
+    <button class="tab-btn" onclick="switchTab('tab-theater')">🎭 ŽIVÁ TAKTICKÁ MAPA (CANVAS THEATER)</button>
+    <button class="tab-btn" onclick="switchTab('tab-codex')">📖 LORE KÓDEX & BESTIÁR</button>
+  </div>
+
+  <!-- TAB 1: CAMPAIGN CHAPTERS -->
+  <div id="tab-campaign" class="tab-content active">
+    <div class="sim-layout">
+      <!-- CONTROLS & CHAPTER INFO -->
+      <div class="controls-panel">
+        <h2 style="font-family:'Bangers', cursive; font-size:1.75rem; letter-spacing:1px;">VÝBER KAMPAŇOVEJ KAPITOLY</h2>
+
+        <div class="controls-group">
+          <label>ZVOLENÁ KAPITOLA:</label>
+          <select id="selectChapter" onchange="loadSelectedChapter()">
+            <option value="chapter_1_desert_caravan">Kapitola 1: Krádež Aéterového Plameňa (Púštny Kaňon)</option>
+            <option value="chapter_2_totem_tempest">Kapitola 2: Búrka Totémov a Rozštiepenie Sektora (Rogala)</option>
+            <option value="chapter_3_citadel_siege">Kapitola 3: Obliehanie Balónovej Citadely (240mm Mínomet)</option>
+          </select>
+        </div>
+
+        <div id="chapterDetails" style="background:#fafafa; border:2px solid var(--comic-black); border-radius:8px; padding:12px;">
+          <h3 id="chapTitle" style="font-family:'Bangers', cursive; font-size:1.3rem;">Kapitola</h3>
+          <p id="chapNarrative" style="font-size:0.85rem; color:#4b5563; margin:6px 0; line-height:1.4;"></p>
+          <div style="font-family:'JetBrains Mono', monospace; font-size:0.8rem; color:#18181b;">
+            <strong>LOKÁCIA:</strong> <span id="chapLocation">--</span><br>
+            <strong>PRIMÁRNY CIEĽ:</strong> <span id="chapObjective">--</span><br>
+            <strong>ODMENA:</strong> <span id="chapReward">--</span>
+          </div>
+        </div>
+
+        <h3 style="font-family:'Bangers', cursive; font-size:1.35rem; margin-top:4px;">TAKTIKA & ROZVETVENÝ POSTUP:</h3>
+        <div class="choices-container" id="choicesList">
+          <!-- Dynamically filled -->
+        </div>
+
+        <button class="btn-fire" onclick="executeCampaignOperation()">
+          ⚡ SPUSTIŤ BOJOVÚ OPERÁCIU
+        </button>
+      </div>
+
+      <!-- OPERATION RESULTS & BATTLE LOG -->
+      <div class="display-panel">
+        <h3 style="font-family:'Bangers', cursive; font-size:1.4rem;">BOJOVÝ PROTOKOL A VÝSLEDOK OPERÁCIE</h3>
+        <div class="telemetry-box" id="campaignLog">
+          [VELITEĽSKÝ KANÁL PRIPRAVENÝ] Vyberte kapitolu, zvoľte taktický postup a zahájte bojovú operáciu.
+          Všetky jednotky a velitelia striktne rešpektujú vitálny invariant 6 Max HP!
+        </div>
+
+        <div id="rewardBox" style="background:#fef08a; border:2px solid var(--comic-black); border-radius:8px; padding:12px; display:none;">
+          <h4 style="font-family:'Bangers', cursive; font-size:1.25rem;">KORISŤ A ODMENY ZA MISIU</h4>
+          <p id="rewardSummary" style="font-family:'JetBrains Mono', monospace; font-size:0.85rem; font-weight:700;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: PROCEDURAL MISSION GENERATOR -->
+  <div id="tab-procedural" class="tab-content">
+    <div class="sim-layout">
+      <!-- MISSION GENERATOR INPUTS -->
+      <div class="controls-panel">
+        <h2 style="font-family:'Bangers', cursive; font-size:1.75rem; letter-spacing:1px;">PARAMETRE PROCEDURÁLNEJ MISIE</h2>
+
+        <div class="controls-group">
+          <label>VÝŠKOVÉ PÁSMO (ALTITUDE TIER):</label>
+          <select id="genAltitude">
+            <option value="canyon_dunes">Púštne Kaňony a Duny (0 - 80 m)</option>
+            <option value="skybridge_midways" selected>Nebeský Mostový Uzol (150 - 280 m)</option>
+            <option value="stratospheric_citadel">Stratosférická Balónová Citadela (300 - 500 m)</option>
+          </select>
+        </div>
+
+        <div class="controls-group">
+          <label>ÚROVEŇ OHROZENIA (THREAT 1-5): <span id="valGenThreat">3</span></label>
+          <input type="range" id="genThreat" min="1" max="5" value="3" oninput="document.getElementById('valGenThreat').textContent = this.value">
+        </div>
+
+        <div class="controls-group">
+          <label>POČASIE & HAZARD:</label>
+          <select id="genWeather">
+            <option value="totem_rift_lightning" selected>Totemová Búrka s Azúrovými Bleskami</option>
+            <option value="sandstorm_zero_vis">Piesočná Búrka (Nulová Viditeľnosť)</option>
+            <option value="thermal_updraft_gale">Horúci Termický Víchor (+6.5 m/s)</option>
+            <option value="calm_golden_hour">Pokojná Zlatá Hodina (Ideálna na Mínomet)</option>
+          </select>
+        </div>
+
+        <div class="controls-group">
+          <label>NEPRIATEĽSKÁ FRAKCIA:</label>
+          <select id="genFaction">
+            <option value="toxic_tribe" selected>Toxický Kmeň (Púštni Nájazdníci)</option>
+            <option value="crystal_tribe">Kryštálový Kmeň (Aéterové Balóny)</option>
+            <option value="druid_tribe">Druidský Kmeň (Zemské Ostrovy)</option>
+          </select>
+        </div>
+
+        <button class="btn-fire" style="background:var(--comic-purple);" onclick="generateMission()">
+          🎲 GENEROVAŤ NOVÚ MISIU
+        </button>
+      </div>
+
+      <!-- MISSION BRIEFING & SQUADS -->
+      <div class="display-panel">
+        <h3 style="font-family:'Bangers', cursive; font-size:1.4rem;">TAKTICKÝ BRIEFING MISIE</h3>
+        <div id="missionBriefingBox" class="telemetry-box" style="color:#fde047;">
+          [ŽIADNA GENERÁCIA] Nastavte parametre a stlačte GENEROVAŤ NOVÚ MISIU.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: CANVAS COMBAT THEATER -->
+  <div id="tab-theater" class="tab-content">
+    <div class="display-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <h2 style="font-family:'Bangers', cursive; font-size:1.8rem; letter-spacing:1px;">KOMBINÁCIA: BALÓNY, MÍNOMET, ROGALA, HÁK & ŤAVY</h2>
+        <div style="display:flex; gap:8px;">
+          <button class="comic-badge" style="background:var(--comic-red); color:#fff; cursor:pointer;" onclick="triggerTheaterMortar()">💣 PALBA MÍNOMETU</button>
+          <button class="comic-badge" style="background:var(--comic-sky); color:#fff; cursor:pointer;" onclick="triggerTheaterRogalo()">🦅 ŠTART ROGALA</button>
+          <button class="comic-badge" style="background:var(--comic-orange); color:#fff; cursor:pointer;" onclick="triggerTheaterGrapple()">🪝 JUST CAUSE HÁK</button>
+          <button class="comic-badge" style="background:var(--comic-cyan); color:#000; cursor:pointer;" onclick="triggerTheaterLightning()">⚡ BLESK TOTÉMU</button>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="theaterCanvas" width="900" height="420"></canvas>
+      </div>
+
+      <div class="telemetry-box" id="theaterTelemetry">
+        [DIVADLO BOJA AKTÍVNE] Interaktívna 2D simulácia kombinovaného boja.
+        Kliknite na tlačidlá vpravo hore pre odpálenie mínometného granátu, štart rogala, výstrel háku alebo záblesk totemu!
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: LORE CODEX & BESTIARY -->
+  <div id="tab-codex" class="tab-content">
+    <div style="margin-bottom:20px;">
+      <h2 style="font-family:'Bangers', cursive; font-size:2rem; letter-spacing:1px;">KÓDEX FRAKCIÍ, VOZIDIEL & TECHNOLÓGIE</h2>
+      <p style="font-size:0.95rem; color:#4b5563;">Kanonické záznamy univerza Posledného Kmeňa, aerostatiky a taktiky.</p>
+    </div>
+
+    <div class="codex-grid" id="codexContainer">
+      <!-- Dynamically filled -->
+    </div>
+  </div>
+
+  <footer>
+    KRYSTAL-STACK PLATFORM FRAMEWORK // BORDERLANDS CEL-SHADED CAMPAIGN THEATER // JUST CAUSE KINETICS<br>
+    STRICT 6 MAX HP VITAL INVARIANT // JANET AST COMPILER // NCON BY KORRADO
+  </footer>
+
+  <script>
+    let playerHp = 6;
+    let chaptersData = [];
+    let selectedChoiceId = null;
+
+    // Theater simulation state
+    let mortarShell = null;
+    let rogaloFlyer = null;
+    let grappleCable = null;
+    let lightningFlash = 0;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById(tabId);
+      if (target) target.classList.add('active');
+      const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if (btn) btn.classList.add('active');
+
+      if (tabId === 'tab-theater') initTheaterAnimation();
+    }
+
+    function updatePlayerHpDisplay(hp) {
+      playerHp = Math.max(0, Math.min(6, hp));
+      for (let i = 1; i <= 6; i++) {
+        const h = document.getElementById(`p-hp-${i}`);
+        if (h) {
+          if (i <= playerHp) h.classList.remove('lost');
+          else h.classList.add('lost');
+        }
+      }
+      document.getElementById('playerHpText').textContent = `${playerHp} / 6 HP`;
+    }
+
+    async function loadCampaignChapters() {
+      try {
+        const res = await fetch('/api/campaign/chapters');
+        const data = await res.json();
+        if (data.success && data.chapters) {
+          chaptersData = data.chapters;
+          loadSelectedChapter();
+        }
+      } catch (err) {
+        console.error('Failed to load chapters:', err);
+      }
+    }
+
+    function loadSelectedChapter() {
+      const select = document.getElementById('selectChapter');
+      const chapId = select.value;
+      const chapter = chaptersData.find(c => c.id === chapId) || chaptersData[0];
+      if (!chapter) return;
+
+      document.getElementById('chapTitle').textContent = `${chapter.title} — ${chapter.subtitle}`;
+      document.getElementById('chapNarrative').textContent = chapter.narrative_intro;
+      document.getElementById('chapLocation').textContent = chapter.location_name;
+      document.getElementById('chapObjective').textContent = chapter.primary_objective;
+      document.getElementById('chapReward').textContent = `${chapter.base_nuggets_reward} Aéterových Nugetov, ${chapter.base_xp_reward} XP`;
+
+      const choicesList = document.getElementById('choicesList');
+      choicesList.innerHTML = '';
+
+      chapter.choices.forEach((c, idx) => {
+        const div = document.createElement('div');
+        div.className = `choice-card ${idx === 0 ? 'selected' : ''}`;
+        div.onclick = () => selectChoice(c.id, div);
+        div.innerHTML = `
+          <h4>${c.label} <span style="font-family:'JetBrains Mono'; font-size:0.75rem; color:var(--comic-red);">+${c.reward_bonus_pct}% KORISŤ</span></h4>
+          <p>${c.description}</p>
+          <div style="font-family:'JetBrains Mono'; font-size:0.75rem; margin-top:4px; color:#6b7280;">
+            MODIFIKÁTOR: <strong>${c.tactical_modifier}</strong> | RIZIKO: <strong>${c.risk_level}</strong>
+          </div>
+        `;
+        choicesList.appendChild(div);
+        if (idx === 0) selectedChoiceId = c.id;
+      });
+    }
+
+    function selectChoice(choiceId, element) {
+      selectedChoiceId = choiceId;
+      document.querySelectorAll('.choice-card').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+    }
+
+    async function executeCampaignOperation() {
+      const chapId = document.getElementById('selectChapter').value;
+      const payload = {
+        chapter_id: chapId,
+        chosen_choice_id: selectedChoiceId,
+        player_squad_hp: playerHp,
+        artillery_active: true,
+        flight_support_active: true
+      };
+
+      try {
+        const res = await fetch('/api/campaign/simulate_operation', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success && data.operation) {
+          renderOperationResult(data.operation);
+        }
+      } catch (err) {
+        console.error('Operation simulation error:', err);
+      }
+    }
+
+    function renderOperationResult(op) {
+      const logBox = document.getElementById('campaignLog');
+      let html = `<span style="color:#facc15; font-weight:800; font-size:1rem;">[VÝSLEDOK: ${op.victory ? 'VÍŤAZSTVO' : 'PORÁŽKA'} // ${op.choice_made}]</span><br><br>`;
+      
+      op.combat_log.forEach(entry => {
+        html += `<strong>KOLO ${entry.round}:</strong> ${entry.player_action}<br>`;
+        html += `  ➔ Zásah nepriateľa: -${entry.damage_dealt_to_enemy} HP (Zostáva: ${entry.enemy_hp_remaining}/6)<br>`;
+        html += `  ➔ Utrpný protiúder: -${entry.damage_taken_by_player} HP (Hráč: ${entry.player_hp_remaining}/6)<br><br>`;
+      });
+
+      html += `<span style="color:#22c55e;">${op.summary_text}</span>`;
+      logBox.innerHTML = html;
+
+      updatePlayerHpDisplay(op.player_final_hp);
+
+      const rBox = document.getElementById('rewardBox');
+      const rSum = document.getElementById('rewardSummary');
+      rBox.style.display = 'block';
+      rSum.textContent = `Získané: +${op.rewards_awarded.aether_nuggets} Nugetov, +${op.rewards_awarded.experience_xp} XP | Vital Invariant: 6 Max HP Overený`;
+    }
+
+    async function generateMission() {
+      const tier = document.getElementById('genAltitude').value;
+      const threat = parseInt(document.getElementById('genThreat').value);
+      const weather = document.getElementById('genWeather').value;
+      const faction = document.getElementById('genFaction').value;
+
+      try {
+        const res = await fetch('/api/campaign/generate_mission', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ altitude_tier: tier, threat_level: threat, weather_condition: weather, enemy_faction: faction })
+        });
+        const data = await res.json();
+        if (data.success && data.mission) {
+          const m = data.mission;
+          const box = document.getElementById('missionBriefingBox');
+          box.innerHTML = `
+            <span style="color:#facc15; font-weight:800; font-size:1.1rem;">${m.mission_name}</span><br>
+            <strong>LOKÁCIA:</strong> ${m.location_name} (Y=${m.altitude_m}m) | <strong>THREAT:</strong> ${m.threat_level}/5<br>
+            <strong>POČASIE:</strong> ${m.weather} (Vietor: ${m.wind_speed_mps} m/s)<br>
+            <strong>NEPRIATEĽ:</strong> ${m.enemy_faction}<br><br>
+            <strong>ROZPOZNANÉ JEDNOTKY:</strong><br>
+            ${m.enemy_squads.map(s => `  • ${s.type} (Počet: ${s.count}, Životy oddielu: ${s.squad_hp}/6 HP)`).join('<br>')}<br><br>
+            <strong>ODMENA:</strong> ${m.rewards.aether_nuggets} Nugetov, ${m.rewards.gold} Zlata, ${m.rewards.experience_xp} XP<br><br>
+            <em>${m.tactical_briefing}</em>
+          `;
+        }
+      } catch (err) {
+        console.error('Mission generation error:', err);
+      }
+    }
+
+    async function loadCodex() {
+      try {
+        const res = await fetch('/api/campaign/codex');
+        const data = await res.json();
+        if (data.success && data.codex) {
+          renderCodex(data.codex);
+        }
+      } catch (err) {
+        console.error('Failed to load codex:', err);
+      }
+    }
+
+    function renderCodex(codex) {
+      const container = document.getElementById('codexContainer');
+      container.innerHTML = '';
+
+      // Factions
+      Object.values(codex.factions).forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'codex-card';
+        card.innerHTML = `
+          <div class="codex-badge" style="background:var(--comic-red); color:#fff;">FRAKCIA</div>
+          <h3>${f.name}</h3>
+          <p><strong>FILOZOFIA:</strong> ${f.philosophy}</p>
+          <p><strong>ZBRANE:</strong> ${f.favored_weapon}</p>
+          <p><strong>VZDUŠNÁ DOKTRÍNA:</strong> ${f.aerial_doctrine}</p>
+        `;
+        container.appendChild(card);
+      });
+
+      // Tech & Vehicles
+      Object.values(codex.vehicles_and_tech).forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'codex-card';
+        card.innerHTML = `
+          <div class="codex-badge" style="background:var(--comic-sky); color:#fff;">TECHNOLÓGIA / VOZIDLO</div>
+          <h3>${t.name}</h3>
+          <p>${t.description}</p>
+          ${t.vital_garrison_hp ? `<span class="codex-badge badge-vital">VITAL HP: ${t.vital_garrison_hp}/6</span>` : ''}
+          ${t.vital_pilot_hp ? `<span class="codex-badge badge-vital">PILOT HP: ${t.vital_pilot_hp}/6</span>` : ''}
+          ${t.vital_hp ? `<span class="codex-badge badge-vital">ŤAVA HP: ${t.vital_hp}/6</span>` : ''}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ── THEATER CANVAS ENGINE ─────────────────────────────────────────────
+    let theaterRunning = false;
+
+    function initTheaterAnimation() {
+      if (theaterRunning) return;
+      theaterRunning = true;
+      requestAnimationFrame(theaterLoop);
+    }
+
+    function triggerTheaterMortar() {
+      mortarShell = { x: 740, y: 120, vx: -5.5, vy: -7.0, active: true };
+      document.getElementById('theaterTelemetry').innerHTML = `
+        <span style="color:#ef4444; font-weight:800;">[BOOM!] 240mm MÍNOMET VYSTRELIL Z BALÓNOVÉHO OSTROVA (Y=280m)!</span><br>
+        Granát padá strmou parabolou priamo do kaňonu na nepriateľskú hliadku!
+      `;
+    }
+
+    function triggerTheaterRogalo() {
+      rogaloFlyer = { x: 120, y: 180, vx: 3.5, vy: -0.4, active: true };
+      document.getElementById('theaterTelemetry').innerHTML = `
+        <span style="color:#38bdf8; font-weight:800;">[ROGALO 'SKAG' VZLIETLO!]</span><br>
+        Bojovník na delta-krídle chytá stúpavý termický prúd a mieri na nepriateľský aerostat!
+      `;
+    }
+
+    function triggerTheaterGrapple() {
+      grappleCable = { progress: 0.0, active: true };
+      document.getElementById('theaterTelemetry').innerHTML = `
+        <span style="color:#f97316; font-weight:800;">[SLINGSHOT!] JUST CAUSE HÁK PRICHYTENÝ K MOSTOVEJ LÁVKE!</span><br>
+        Navíjanie lana 24 m/s s katapultovým výšvihom na vznášajúci sa ostrov!
+      `;
+    }
+
+    function triggerTheaterLightning() {
+      lightningFlash = 12;
+      document.getElementById('theaterTelemetry').innerHTML = `
+        <span style="color:#22d3ee; font-weight:800;">[KRA-KOOM!] TOTÉM VYŠIEL Z REZONANCIE (918 Hz)!</span><br>
+        Azúrový dimenzionálny blesk preťal kaňon a zasiahol anomálnu trhlinu!
+      `;
+    }
+
+    function theaterLoop() {
+      const canvas = document.getElementById('theaterCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Sky Background
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+      skyGrad.addColorStop(0, '#facc15');
+      skyGrad.addColorStop(0.6, '#fde047');
+      skyGrad.addColorStop(1, '#ea580c');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Distant Canyon Walls & Dunes
+      ctx.fillStyle = '#b45309';
+      ctx.beginPath();
+      ctx.moveTo(0, h - 70);
+      ctx.lineTo(200, h - 110);
+      ctx.lineTo(450, h - 80);
+      ctx.lineTo(700, h - 130);
+      ctx.lineTo(w, h - 90);
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.fill();
+
+      // Desert Ground
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(0, h - 45, w, 45);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#09090b';
+      ctx.strokeRect(0, h - 45, w, 45);
+
+      // Cyber Camel Caravan below
+      ctx.fillStyle = '#d97706';
+      for (let i = 0; i < 3; i++) {
+        const cx = 80 + (i * 55);
+        const cy = h - 55;
+        ctx.fillRect(cx, cy, 26, 16);
+        ctx.strokeRect(cx, cy, 26, 16);
+        ctx.fillRect(cx + 18, cy - 10, 8, 12); // Neck & head
+      }
+
+      // Floating Balloon Islands
+      // Left Island
+      drawBalloonIsland(ctx, 160, 160, 40, '#ef4444', 'Beta Roost');
+      // Right Fortified Mortar Island
+      drawBalloonIsland(ctx, 740, 140, 52, '#f97316', 'Alpha Mortar Bastion');
+      // Center Totem Island
+      drawBalloonIsland(ctx, 450, 180, 34, '#0284c7', 'Totem Spire');
+
+      // Suspension Skybridge between Left & Center, Center & Right
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = '#09090b';
+      ctx.beginPath();
+      ctx.moveTo(195, 170);
+      ctx.quadraticCurveTo(320, 205, 420, 190);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(480, 190);
+      ctx.quadraticCurveTo(610, 195, 695, 155);
+      ctx.stroke();
+
+      // Mortar Cannon on Right Island
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = '#09090b';
+      ctx.beginPath();
+      ctx.moveTo(730, 140);
+      ctx.lineTo(695, 105);
+      ctx.stroke();
+
+      // Crystalline Totem on Center Island
+      ctx.fillStyle = '#06b6d4';
+      ctx.beginPath();
+      ctx.moveTo(450, 130);
+      ctx.lineTo(465, 175);
+      ctx.lineTo(435, 175);
+      ctx.closePath();
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Lightning animation
+      if (lightningFlash > 0) {
+        ctx.strokeStyle = '#67e8f9';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(450, 130);
+        ctx.lineTo(430, 80);
+        ctx.lineTo(470, 40);
+        ctx.lineTo(450, 10);
+        ctx.stroke();
+        lightningFlash--;
+      }
+
+      // Mortar Shell Simulation
+      if (mortarShell && mortarShell.active) {
+        mortarShell.x += mortarShell.vx;
+        mortarShell.y += mortarShell.vy;
+        mortarShell.vy += 0.35; // Gravity plunge
+
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(mortarShell.x, mortarShell.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Smoke trail
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.beginPath();
+        ctx.arc(mortarShell.x - (mortarShell.vx * 2), mortarShell.y - (mortarShell.vy * 2), 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (mortarShell.y >= h - 45) {
+          mortarShell.active = false;
+          // Blast
+          ctx.fillStyle = '#facc15';
+          ctx.beginPath();
+          ctx.arc(mortarShell.x, h - 45, 26, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+
+      // Rogalo Flyer Simulation
+      if (rogaloFlyer && rogaloFlyer.active) {
+        rogaloFlyer.x += rogaloFlyer.vx;
+        rogaloFlyer.y += rogaloFlyer.vy;
+
+        // Delta wing triangle
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath();
+        ctx.moveTo(rogaloFlyer.x + 18, rogaloFlyer.y);
+        ctx.lineTo(rogaloFlyer.x - 16, rogaloFlyer.y - 12);
+        ctx.lineTo(rogaloFlyer.x - 16, rogaloFlyer.y + 12);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        if (rogaloFlyer.x > w + 20) rogaloFlyer.active = false;
+      }
+
+      // Grapple Cable
+      if (grappleCable && grappleCable.active) {
+        grappleCable.progress += 0.04;
+        const startX = 320;
+        const startY = 280;
+        const targetX = 450;
+        const targetY = 190;
+        const currX = startX + (targetX - startX) * Math.min(1.0, grappleCable.progress);
+        const currY = startY + (targetY - startY) * Math.min(1.0, grappleCable.progress);
+
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#facc15';
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(currX, currY);
+        ctx.stroke();
+
+        if (grappleCable.progress >= 1.0) grappleCable.active = false;
+      }
+
+      requestAnimationFrame(theaterLoop);
+    }
+
+    function drawBalloonIsland(ctx, x, y, radius, balloonColor, name) {
+      // Balloon
+      ctx.fillStyle = balloonColor;
+      ctx.beginPath();
+      ctx.arc(x, y - (radius * 1.2), radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#09090b';
+      ctx.stroke();
+
+      // Platform
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(x - (radius * 0.9), y, radius * 1.8, 16);
+      ctx.strokeRect(x - (radius * 0.9), y, radius * 1.8, 16);
+
+      // Label
+      ctx.font = '12px Bangers';
+      ctx.fillStyle = '#09090b';
+      ctx.fillText(name, x - (radius * 0.8), y + 30);
+    }
+
+    // Init on load
+    window.addEventListener('DOMContentLoaded', () => {
+      updatePlayerHpDisplay(6);
+      loadCampaignChapters();
+      loadCodex();
+    });
+  </script>
+</body>
+</html>

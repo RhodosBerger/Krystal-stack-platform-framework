@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krystal-Stack // Evolved High-Detail SVG Vector Studio & Blueprint</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal-bootstrap.css">
+
+  <style>
+    :root {
+      --bg-dark: #030611;
+      --bg-card: rgba(6, 12, 24, 0.9);
+      --border-blue: rgba(0, 180, 255, 0.4);
+      --border-amber: rgba(245, 158, 11, 0.4);
+      --border-green: rgba(0, 255, 136, 0.4);
+      --cyan: #00f0ff;
+      --amber: #f59e0b;
+      --green: #00ff88;
+      --magenta: #bf5af2;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-mono: 'JetBrains Mono', Consolas, monospace;
+      --font-ui: 'Outfit', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header.studio-header {
+      background: rgba(4, 8, 18, 0.95);
+      border-bottom: 2px solid var(--border-blue);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .doc-meta {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--cyan);
+      display: flex;
+      gap: 16px;
+      margin-top: 4px;
+    }
+    .doc-meta span { color: var(--text-muted); }
+    .doc-meta strong { color: #fff; }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-action {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--border-blue);
+      color: var(--cyan);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-action:hover {
+      background: rgba(0, 240, 255, 0.25);
+      box-shadow: 0 0 12px var(--cyan);
+    }
+    .btn-action.green {
+      background: rgba(0, 255, 136, 0.12);
+      border-color: var(--border-green);
+      color: var(--green);
+    }
+    .btn-action.amber {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: var(--border-amber);
+      color: var(--amber);
+    }
+
+    main.studio-main {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 1700px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .view-toggle-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-blue);
+      border-radius: 8px;
+      padding: 10px 16px;
+    }
+
+    .view-modes {
+      display: flex;
+      gap: 10px;
+    }
+
+    .mode-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-btn.active {
+      background: rgba(0, 240, 255, 0.2);
+      border-color: var(--cyan);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .display-viewport {
+      background: #010307;
+      border: 2px solid var(--border-blue);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      min-height: 640px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.8);
+    }
+
+    .display-viewport img, .display-viewport svg, .display-viewport object {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.2s ease-out;
+    }
+
+    /* Crests Strip */
+    .crests-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .crest-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-blue);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .crest-card img {
+      width: 140px;
+      height: 140px;
+    }
+
+    .crest-card h4 {
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+    }
+
+    .crest-card p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <header class="studio-header">
+    <div>
+      <h1 style="font-size: 1.1rem; font-weight: 900; letter-spacing: 1px;">
+        KRYSTAL-STACK // EVOLVED HIGH-DETAIL SVG VECTOR STUDIO
+      </h1>
+      <div class="doc-meta">
+        <div><span>DOC ID:</span> <strong>KRYSTAL-EVOLVED-SVG-2026</strong></div>
+        <div><span>AUTOR:</span> <strong>Dušan Kopecký</strong></div>
+        <div><span>FORMÁT:</span> <strong style="color:var(--cyan);">PURE VECTOR SVG & CONCEPT</strong></div>
+        <div><span>INVARIANT:</span> <strong style="color:var(--green);">VITAL_MAX_HP = 6</strong></div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="/api/svg/master-blueprint.svg" download="posledni_kmen_master_blueprint.svg" class="btn-action green">💾 STIAHNUŤ ČISTÉ SVG</a>
+      <a href="/terrain-synthesis" class="btn-action amber">🏔️ NPU TERÉN</a>
+      <a href="/desktop" class="btn-action">🖥️ WEBOS</a>
+    </div>
+  </header>
+
+  <main class="studio-main">
+    <div class="view-toggle-bar">
+      <div class="view-modes">
+        <button class="mode-btn active" id="btnModeConcept" onclick="switchMode('concept')">🌟 VYVINUTÁ GRAFICKÁ VERZIA (CONCEPT BLUEPRINT)</button>
+        <button class="mode-btn" id="btnModePureSvg" onclick="switchMode('puresvg')">📐 ČISTÝ PROCEDURÁLNY SVG VEKTOR</button>
+      </div>
+      <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--green);">
+        ⚡ 0 KB VRAM VÝPOČET · ŽIADNA RÉŽIA 3D DRIVERA · NEKONEČNÉ ROZLÍŠENIE
+      </div>
+    </div>
+
+    <!-- Main Display Viewport -->
+    <div class="display-viewport" id="viewportContainer">
+      <img id="mainDisplayImg" src="/static/img/evolved_svg_blueprint_posledni_kmen.jpg" alt="Evolved Master Blueprint">
+    </div>
+
+    <!-- Tribal Crests Strip -->
+    <div class="crests-grid">
+      <div class="crest-card" style="border-color: rgba(0, 240, 255, 0.4);">
+        <img src="/api/svg/crystal-crest.svg" alt="Crystal Crest">
+        <h4 style="color: #00f0ff;">CRYSTAL // SEVERNÍ ŠTÍTY</h4>
+        <p>Vládci mrazu · Ľadové prizmy a hrebeňový multifraktál</p>
+        <a href="/api/svg/crystal-crest.svg" download="crystal_crest.svg" class="btn-action">STIAHNUŤ SVG</a>
+      </div>
+
+      <div class="crest-card" style="border-color: rgba(0, 255, 136, 0.4);">
+        <img src="/api/svg/toxic-crest.svg" alt="Toxic Crest">
+        <h4 style="color: #00ff88;">TOXIC // HNIJÍCÍ SLATINY</h4>
+        <p>Bioluminiscenčný had · Voronoi kaňony a leptavé prúdy</p>
+        <a href="/api/svg/toxic-crest.svg" download="toxic_crest.svg" class="btn-action">STIAHNUŤ SVG</a>
+      </div>
+
+      <div class="crest-card" style="border-color: rgba(245, 158, 11, 0.4);">
+        <img src="/api/svg/druid-crest.svg" alt="Druid Crest">
+        <h4 style="color: #f59e0b;">DRUID // PRADÁVNÝ LES</h4>
+        <p>Posvätný strom života · Suťové kužele a erózne zárezy</p>
+        <a href="/api/svg/druid-crest.svg" download="druid_crest.svg" class="btn-action">STIAHNUŤ SVG</a>
+      </div>
+
+      <div class="crest-card" style="border-color: rgba(191, 90, 242, 0.4);">
+        <img src="/api/svg/studna-dusi-crest.svg" alt="Studna Duší Crest">
+        <h4 style="color: #bf5af2;">STUDNA DUŠÍ // SINGULARITA</h4>
+        <p>Kozmický vortex · Stabilizačné prstence v centre ostrova</p>
+        <a href="/api/svg/studna-dusi-crest.svg" download="studna_dusi_crest.svg" class="btn-action">STIAHNUŤ SVG</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function switchMode(mode) {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      const container = document.getElementById('viewportContainer');
+      if (mode === 'concept') {
+        document.getElementById('btnModeConcept').classList.add('active');
+        container.innerHTML = `<img id="mainDisplayImg" src="/static/img/evolved_svg_blueprint_posledni_kmen.jpg" alt="Evolved Master Blueprint">`;
+      } else {
+        document.getElementById('btnModePureSvg').classList.add('active');
+        container.innerHTML = `<object data="/api/svg/master-blueprint.svg" type="image/svg+xml" style="width: 100%; height: 680px;"></object>`;
+      }
+    }
+  </script>
+</body>
+</html>

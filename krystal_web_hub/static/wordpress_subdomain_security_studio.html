@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRYSTAL // WordPress Subdomain Security & Reverse Proxy Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/krystal_ui_system.css">
+    <style>
+        :root {
+            --bg-void: #06090e;
+            --bg-card: rgba(13, 19, 31, 0.85);
+            --border-card: rgba(216, 174, 75, 0.25);
+            --gold-bright: #d8ae4b;
+            --gold-glow: rgba(216, 174, 75, 0.35);
+            --cyan-accent: #58d8ff;
+            --green-active: #4ade80;
+            --red-alert: #f87171;
+            --text-dim: #8e9cae;
+            --font-display: 'Cinzel', serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-void);
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(216, 174, 75, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(88, 216, 255, 0.05) 0%, transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+            color: #f7f9fa;
+            font-family: var(--font-body);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .header-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            backdrop-filter: blur(12px);
+            border-radius: 4px;
+            padding: 18px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand-title {
+            font-family: var(--font-display);
+            font-size: 22px;
+            letter-spacing: 0.12em;
+            color: var(--gold-bright);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge-vital {
+            background: rgba(248, 113, 113, 0.15);
+            border: 1px solid var(--red-alert);
+            color: var(--red-alert);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 2px;
+            letter-spacing: 0.05em;
+        }
+
+        .telemetry-pills {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .pill {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 14px;
+            border-radius: 2px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-dim);
+            display: flex;
+            gap: 8px;
+        }
+
+        .pill b {
+            color: #f7f9fa;
+        }
+
+        .studio-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+        }
+
+        .panel-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 4px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            margin-bottom: 24px;
+        }
+
+        .panel-box:last-child {
+            margin-bottom: 0;
+        }
+
+        .panel-title {
+            font-family: var(--font-display);
+            font-size: 16px;
+            letter-spacing: 0.08em;
+            color: var(--gold-bright);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(216, 174, 75, 0.15);
+            padding-bottom: 8px;
+        }
+
+        /* Canvas Network Map */
+        #networkCanvas {
+            width: 100%;
+            height: 280px;
+            background: #040609;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 2px;
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f7f9fa;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            padding: 10px 12px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--gold-bright);
+            box-shadow: 0 0 10px var(--gold-glow);
+        }
+
+        .btn-action {
+            background: var(--gold-bright);
+            color: #06090e;
+            border: none;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.08em;
+            padding: 12px 20px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action:hover {
+            background: #e6c166;
+            box-shadow: 0 0 16px var(--gold-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--gold-bright);
+            border: 1px solid var(--border-card);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 8px 16px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(216, 174, 75, 0.1);
+        }
+
+        .token-display {
+            background: #040609;
+            border: 1px solid rgba(88, 216, 255, 0.2);
+            padding: 12px;
+            border-radius: 2px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--cyan-accent);
+            word-break: break-all;
+            margin-top: 8px;
+            min-height: 48px;
+        }
+
+        .log-terminal {
+            background: #040609;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            padding: 12px;
+            height: 220px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: #8395a7;
+            line-height: 1.6;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+        }
+
+        .log-ok { color: var(--green-active); }
+        .log-warn { color: var(--gold-bright); }
+        .log-err { color: var(--red-alert); }
+        .log-info { color: var(--cyan-accent); }
+
+        .code-block {
+            background: #040609;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: #cad3df;
+            white-space: pre;
+            overflow-x: auto;
+            line-height: 1.4;
+            max-height: 180px;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 6px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: rgba(216, 174, 75, 0.15);
+            color: var(--gold-bright);
+            border: 1px solid var(--border-card);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-bar">
+        <div class="brand-title">
+            <span>🏛️</span>
+            <span>KRYSTAL // WORDPRESS SUBDOMAIN SECURITY GATE</span>
+        </div>
+        <div class="telemetry-pills">
+            <div class="pill">SUBDOMAIN: <b id="subdomainDisplay">krystal.poslednikmen.cz</b></div>
+            <div class="pill">PORT: <b>8089 ⇄ 443</b></div>
+            <div class="pill">PROXY: <b id="proxyStatus">ONLINE</b></div>
+            <div class="badge-vital">VITAL HP: 6</div>
+        </div>
+    </header>
+
+    <main class="studio-grid">
+        <!-- Left Column: Live Traffic Map & BBQ Firewall Simulator -->
+        <div>
+            <!-- Live Topology Canvas -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <span>LIVE SUBDOMAIN REVERSE PROXY TOPOLOGY</span>
+                    <span style="font-size: 11px; font-family: var(--font-mono); color: var(--green-active);">● ACTIVE TLS 1.3</span>
+                </div>
+                <canvas id="networkCanvas" width="600" height="280"></canvas>
+                <div style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);">
+                    <span>TLS 1.3 / HSTS 63072000s</span>
+                    <span>BBQ Regex: ACTIVE</span>
+                    <span>Anti-Replay Window: 60s</span>
+                </div>
+            </div>
+
+            <!-- BBQ Firewall Attack Simulator -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <span>BBQ FIREWALL & BRUTE FORCE TESTER</span>
+                    <span style="font-size: 11px; font-family: var(--font-mono); color: var(--cyan-accent);">WAF SHIELD</span>
+                </div>
+                <div class="form-group">
+                    <label>Testovací Vzor Dopytu (SQLi, Traversal, RCE, XSS)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="attackPresetSelect" style="flex: 1;">
+                            <option value="safe">✓ Bezpečný legitímny dopyt (?view=pantheon&turn=3)</option>
+                            <option value="sqli">⚠️ SQL Injection (union select 1,2,password from wp_users)</option>
+                            <option value="traversal">⚠️ Path Traversal (../../../../etc/passwd)</option>
+                            <option value="rce">⚠️ Remote Code Exec (eval(base64_decode('...')))</option>
+                            <option value="xss">⚠️ Cross-Site Scripting (&lt;script&gt;alert(1)&lt;/script&gt;)</option>
+                        </select>
+                        <button class="btn-secondary" id="btnTestFirewall">Testovať WAF</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Simulovaná URI / Query String</label>
+                    <input type="text" id="customQueryInput" value="/api/islands/geometry?realm_id=denmark_heaven">
+                </div>
+                <div id="firewallResultBox" style="font-family: var(--font-mono); font-size: 12px; padding: 10px; border-radius: 2px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);">
+                    Stav WAF: Čaká na simuláciu...
+                </div>
+            </div>
+
+            <!-- Live Security Audit Log -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <span>SUBDOMAIN AUDIT & ACCESS STREAM</span>
+                    <button class="btn-secondary" id="btnClearLog" style="padding: 2px 8px; font-size: 10px;">Vymazať</button>
+                </div>
+                <div class="log-terminal" id="auditTerminal">
+                    <div class="log-entry log-ok">[SYSTEM INIT] Subdomain Security Gate inicializovaný na porte 8089.</div>
+                    <div class="log-entry log-info">[HMAC KEY] Zdieľaný kryptografický kľúč pre subdoménu načítaný.</div>
+                    <div class="log-entry log-ok">[VITAL INVARIANT] VITAL_MAX_HP = 6 zachovaný vo všetkých tokenoch a reláciách.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Subdomain Token Mint & Nginx/WP Snippets -->
+        <div>
+            <!-- HMAC Bearer Token Generator -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <span>SUBDOMAIN HMAC BEARER TOKEN MINT</span>
+                    <span style="font-size: 11px; font-family: var(--font-mono); color: var(--gold-bright);">RFC 6238 COMPLIANT</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>User ID (WP)</label>
+                        <input type="text" id="tokenUserId" value="101">
+                    </div>
+                    <div class="form-group">
+                        <label>Používateľské Meno</label>
+                        <input type="text" id="tokenUsername" value="bohemia_hero">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Rola vo WordPress</label>
+                        <select id="tokenRole">
+                            <option value="administrator">Administrator</option>
+                            <option value="player" selected>Player / Chieftain</option>
+                            <option value="subscriber">Subscriber</option>
+                            <option value="spectator">Spectator</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cieľová Subdoména</label>
+                        <input type="text" id="tokenSubdomain" value="krystal.poslednikmen.cz">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 8px;">
+                    <button class="btn-action" id="btnGenerateToken" style="flex: 1;">
+                        <span>Vygenerovať HMAC Token</span>
+                    </button>
+                    <button class="btn-secondary" id="btnVerifyToken" style="flex: 1;">
+                        <span>Overiť Token</span>
+                    </button>
+                </div>
+
+                <div class="token-display" id="tokenOutput">
+                    Kliknite na "Vygenerovať HMAC Token" pre vytvorenie podpísaného bearer tokenu pre subdoménu...
+                </div>
+            </div>
+
+            <!-- Configuration Snippets -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <span>NASADENIE: NGINX & WORDPRESS CONFIG</span>
+                    <button class="btn-secondary" id="btnCopySnippet" style="padding: 2px 8px; font-size: 10px;">Kopírovať</button>
+                </div>
+
+                <div class="tab-nav">
+                    <button class="tab-btn active" data-tab="nginx">Nginx Subdomain SSL</button>
+                    <button class="tab-btn" data-tab="wpconfig">wp-config.php</button>
+                    <button class="tab-btn" data-tab="shortcode">WP Shortcode</button>
+                </div>
+
+                <div class="code-block" id="snippetBlock"># Nginx Subdomain Configuration
+server {
+    listen 443 ssl http2;
+    server_name krystal.poslednikmen.cz;
+
+    ssl_certificate /etc/nginx/certs/subdomain_cert.pem;
+    ssl_certificate_key /etc/nginx/certs/subdomain_key.pem;
+
+    # Reverse proxy pre Krystal Engine Core
+    location /krystal-core/ {
+        rewrite ^/krystal-core/(.*)$ /$1 break;
+        proxy_pass http://127.0.0.1:8089;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header X-WP-Subdomain $host;
+    }
+
+    # WordPress CMS na subdoméne
+    location / {
+        proxy_pass http://127.0.0.1:80;
+    }
+}</div>
+            </div>
+
+            <!-- Quick Integration Guide -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <span>ARCHITEKTÚRA INTEGRÁCIE NA SUBDOMÉNE</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-dim); line-height: 1.7;">
+                    <p style="margin-bottom: 8px;">
+                        <b style="color: #f7f9fa;">1. DNS Nastavenie:</b> Vytvorte <code style="color: var(--gold-bright);">A</code> záznam smerujúci subdoménu (napr. <code style="color: var(--cyan-accent);">krystal.vasadomena.sk</code>) na verejnú IP vášho servera.
+                    </p>
+                    <p style="margin-bottom: 8px;">
+                        <b style="color: #f7f9fa;">2. SSL Certifikát:</b> Spustite <code style="color: var(--gold-bright);">certbot --nginx -d krystal.vasadomena.sk</code> pre bezplatný Let's Encrypt TLS certifikát.
+                    </p>
+                    <p style="margin-bottom: 8px;">
+                        <b style="color: #f7f9fa;">3. WordPress Plugin:</b> Aktivujte plugin <code style="color: var(--gold-bright);">krystal-posledni-kmen</code> v administrácii WordPress a vložte shortcode do stránky.
+                    </p>
+                    <p>
+                        <b style="color: #f7f9fa;">4. Zero Direct Exposure:</b> Port 8089 ostáva viazaný iba na <code style="color: var(--green-active);">127.0.0.1</code>; verejnosť pristupuje výhradne cez Nginx SSL port 443 s BBQ Firewallom!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- 1. Animated Network Topology Map (HTML5 Canvas) ---
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+        let animFrameId;
+        let packets = [];
+
+        const nodes = [
+            { id: 'client', name: 'Klient (Browser)', x: 60, y: 140, color: '#58d8ff', icon: '👤' },
+            { id: 'nginx', name: 'Nginx (Subdomain 443)', x: 230, y: 140, color: '#d8ae4b', icon: '🛡️' },
+            { id: 'wp', name: 'WordPress (CMS Auth)', x: 420, y: 80, color: '#38bdf8', icon: '🌐' },
+            { id: 'core', name: 'Krystal Engine (8089)', x: 420, y: 200, color: '#4ade80', icon: '⚡' }
+        ];
+
+        function spawnPacket() {
+            packets.push({
+                x: nodes[0].x,
+                y: nodes[0].y,
+                targetIdx: 1,
+                progress: 0,
+                speed: 0.02 + Math.random() * 0.015,
+                color: Math.random() > 0.3 ? '#4ade80' : '#d8ae4b'
+            });
+        }
+
+        setInterval(spawnPacket, 1200);
+
+        function renderNetwork() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Connection Lines
+            ctx.lineWidth = 1.5;
+            
+            // Client to Nginx
+            ctx.strokeStyle = 'rgba(88, 216, 255, 0.25)';
+            ctx.beginPath();
+            ctx.moveTo(nodes[0].x, nodes[0].y);
+            ctx.lineTo(nodes[1].x, nodes[1].y);
+            ctx.stroke();
+
+            // Nginx to WP
+            ctx.strokeStyle = 'rgba(216, 174, 75, 0.25)';
+            ctx.beginPath();
+            ctx.moveTo(nodes[1].x, nodes[1].y);
+            ctx.lineTo(nodes[2].x, nodes[2].y);
+            ctx.stroke();
+
+            // Nginx to Krystal Engine Core
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.25)';
+            ctx.beginPath();
+            ctx.moveTo(nodes[1].x, nodes[1].y);
+            ctx.lineTo(nodes[3].x, nodes[3].y);
+            ctx.stroke();
+
+            // Update & Draw Packets
+            for (let i = packets.length - 1; i >= 0; i--) {
+                const p = packets[i];
+                p.progress += p.speed;
+
+                let startNode, targetNode;
+                if (p.targetIdx === 1) {
+                    startNode = nodes[0];
+                    targetNode = nodes[1];
+                } else if (p.targetIdx === 2) {
+                    startNode = nodes[1];
+                    targetNode = nodes[2];
+                } else {
+                    startNode = nodes[1];
+                    targetNode = nodes[3];
+                }
+
+                p.x = startNode.x + (targetNode.x - startNode.x) * p.progress;
+                p.y = startNode.y + (targetNode.y - startNode.y) * p.progress;
+
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (p.progress >= 1) {
+                    if (p.targetIdx === 1) {
+                        p.targetIdx = Math.random() > 0.5 ? 2 : 3;
+                        p.progress = 0;
+                    } else {
+                        packets.splice(i, 1);
+                    }
+                }
+            }
+
+            // Draw Nodes
+            nodes.forEach(n => {
+                ctx.fillStyle = 'rgba(13, 19, 31, 0.9)';
+                ctx.strokeStyle = n.color;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, 22, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.font = '16px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(n.icon, n.x, n.y);
+
+                ctx.fillStyle = '#f7f9fa';
+                ctx.font = '11px JetBrains Mono';
+                ctx.fillText(n.name, n.x, n.y + 34);
+            });
+
+            animFrameId = requestAnimationFrame(renderNetwork);
+        }
+
+        renderNetwork();
+
+        // --- 2. Live Terminal Logging Helper ---
+        const terminal = document.getElementById('auditTerminal');
+        function logEvent(msg, type = 'ok') {
+            const el = document.createElement('div');
+            el.className = `log-entry log-${type}`;
+            const time = new Date().toLocaleTimeString();
+            el.innerText = `[${time}] ${msg}`;
+            terminal.appendChild(el);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        document.getElementById('btnClearLog').addEventListener('click', () => {
+            terminal.innerHTML = '';
+        });
+
+        // --- 3. BBQ Firewall Tester ---
+        const presetSelect = document.getElementById('attackPresetSelect');
+        const customQuery = document.getElementById('customQueryInput');
+        const firewallResult = document.getElementById('firewallResultBox');
+
+        const presetMap = {
+            safe: '/api/islands/geometry?realm_id=denmark_heaven&seed=42',
+            sqli: '/api/islands/geometry?realm_id=denmark_heaven%27%20union%20select%201,2,3--',
+            traversal: '/api/cards?file=../../../../etc/passwd',
+            rce: '/api/economy?action=eval(base64_decode(%27c3lzdGVt%27))',
+            xss: '/api/comments?name=%3Cscript%3Ealert(1)%3C/script%3E'
+        };
+
+        presetSelect.addEventListener('change', (e) => {
+            customQuery.value = presetMap[e.target.value] || '';
+        });
+
+        document.getElementById('btnTestFirewall').addEventListener('click', async () => {
+            const query = customQuery.value;
+            logEvent(`Testujem BBQ Firewall pre dopyt: ${query}`, 'info');
+
+            try {
+                const res = await fetch('/api/wordpress/security/inspect_bbq', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query_string: query, request_uri: query })
+                });
+                const data = await res.json();
+                const r = data.result;
+
+                if (!r.blocked) {
+                    firewallResult.style.borderColor = 'var(--green-active)';
+                    firewallResult.innerHTML = `<span style="color: var(--green-active);">✓ BEZPEČNÝ DOPYT:</span> Žiadne podozrivé vzory nezistené. Nginx dopyt prepustí.`;
+                    logEvent(`[PASS] BBQ Firewall schválil dopyt.`, 'ok');
+                } else {
+                    firewallResult.style.borderColor = 'var(--red-alert)';
+                    firewallResult.innerHTML = `<span style="color: var(--red-alert);">⛔ ÚTOK ZABLOKOVANÝ (403 FORBIDDEN):</span> Dôvod: ${r.threat_type} (${r.message})`;
+                    logEvent(`[BLOCKED] BBQ Firewall zablokoval útok: ${r.threat_type}`, 'err');
+                }
+            } catch (err) {
+                firewallResult.innerText = `Chyba volania WAF: ${err.message}`;
+            }
+        });
+
+        // --- 4. Subdomain HMAC Bearer Token Generator & Verifier ---
+        let currentToken = '';
+
+        document.getElementById('btnGenerateToken').addEventListener('click', async () => {
+            const uid = parseInt(document.getElementById('tokenUserId').value) || 1;
+            const usr = document.getElementById('tokenUsername').value || 'player_one';
+            const rol = document.getElementById('tokenRole').value || 'player';
+            const sub = document.getElementById('tokenSubdomain').value || 'krystal.poslednikmen.cz';
+
+            try {
+                const res = await fetch('/api/wordpress/subdomain/generate-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: uid, username: usr, role: rol, subdomain: sub })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentToken = data.token;
+                    document.getElementById('tokenOutput').innerText = currentToken;
+                    logEvent(`HMAC token vygenerovaný pre používateľa "${usr}" [${rol}] na subdoméne "${sub}"`, 'ok');
+                }
+            } catch (err) {
+                logEvent(`Chyba pri generovaní tokenu: ${err.message}`, 'err');
+            }
+        });
+
+        document.getElementById('btnVerifyToken').addEventListener('click', async () => {
+            if (!currentToken) {
+                alert('Najprv vygenerujte token!');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/wordpress/subdomain/verify-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: currentToken })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    logEvent(`[TOKEN VERIFIED] Platná relácia: ${data.session.username} (${data.session.role}) na ${data.session.subdomain}. VITAL HP: ${data.session.vital_max_hp_rule}`, 'ok');
+                } else {
+                    logEvent(`[TOKEN REJECTED] Odmietnutý token: ${data.reason}`, 'err');
+                }
+            } catch (err) {
+                logEvent(`Chyba pri overovaní tokenu: ${err.message}`, 'err');
+            }
+        });
+
+        // --- 5. Snippets Tab Navigation ---
+        const snippets = {
+            nginx: `# Nginx Subdomain Configuration
+server {
+    listen 443 ssl http2;
+    server_name krystal.poslednikmen.cz;
+
+    ssl_certificate /etc/nginx/certs/subdomain_cert.pem;
+    ssl_certificate_key /etc/nginx/certs/subdomain_key.pem;
+
+    # Reverse proxy pre Krystal Engine Core
+    location /krystal-core/ {
+        rewrite ^/krystal-core/(.*)$ /$1 break;
+        proxy_pass http://127.0.0.1:8089;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header X-WP-Subdomain $host;
+    }
+
+    # WordPress CMS na subdoméne
+    location / {
+        proxy_pass http://127.0.0.1:80;
+    }
+}`,
+            wpconfig: `// wp-config.php konfigurácia pre subdoménu Krystal-Stack
+define('WP_HOME', 'https://krystal.poslednikmen.cz');
+define('WP_SITEURL', 'https://krystal.poslednikmen.cz');
+define('COOKIE_DOMAIN', '.poslednikmen.cz'); // Umožňuje cross-subdomain auth
+define('FORCE_SSL_ADMIN', true);
+define('DISALLOW_FILE_EDIT', true);
+define('KRYSTAL_SUBDOMAIN_SECRET', 'krystal_wp_subdomain_secure_secret_2026');`,
+            shortcode: `<!-- WordPress Shortcodes pre Oxygen / Elementor / Gutenberg -->
+
+<!-- 1. Plný Subdomain Portál (s automatickou kontrolou prihlásenia) -->
+[krystal_subdomain_portal mode="hybrid" height="780px" require_login="true"]
+
+<!-- 2. WebOS Desktop Multitasking Window Manager -->
+[krystal_webos_desktop height="800px"]
+
+<!-- 3. Grécky Panteón & Bohemian Memory Axioms -->
+[krystal_subdomain_portal mode="pantheon" height="750px"]
+
+<!-- 4. Evolved SVG Master Blueprint Vector Studio -->
+[krystal_svg_blueprint height="700px"]`
+        };
+
+        const snippetBlock = document.getElementById('snippetBlock');
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                snippetBlock.innerText = snippets[btn.dataset.tab] || '';
+            });
+        });
+
+        document.getElementById('btnCopySnippet').addEventListener('click', () => {
+            navigator.clipboard.writeText(snippetBlock.innerText).then(() => {
+                logEvent('Konfiguračný kód skopírovaný do schránky.', 'info');
+            });
+        });
+    </script>
+</body>
+</html>

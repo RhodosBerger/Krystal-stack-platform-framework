@@ -224,7 +224,7 @@
         }
 
         /* =====================================================================
-           MAIN 3-COLUMN WORKSPACE WITH GAUSSIAN BLUR PANELS
+           MAIN 3-COLUMN WORKSPACE WITH RE-ORB HUD ARCHITECTURE
            ===================================================================== */
         .workspace-grid {
             display: grid;
@@ -233,6 +233,12 @@
             height: calc(100vh - 54px);
             overflow: hidden;
             position: relative;
+            transition: grid-template-columns 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* RE-ORB ZEN MODE: EXPANDS 3D GAME TO 100% SCREEN WIDTH */
+        .workspace-grid.zen-mode {
+            grid-template-columns: 0px 1fr 0px !important;
         }
 
         /* LEFT SIDEBAR: STRUCTURAL TREE & SCENE BUILDER */
@@ -245,6 +251,174 @@
             flex-direction: column;
             overflow: hidden;
             z-index: 20;
+            transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .workspace-grid.zen-mode aside.left-sidebar {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-100%);
+            border-right: none;
+        }
+
+        .workspace-grid.zen-mode aside.right-sidebar {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(100%);
+            border-left: none;
+        }
+
+        /* SLIDE-OUT OVERLAY DRAWERS IN ZEN MODE */
+        .workspace-grid.zen-mode aside.left-sidebar.drawer-open {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 320px;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
+            z-index: 500;
+            box-shadow: 15px 0 50px rgba(0, 0, 0, 0.85);
+            border-right: 1px solid var(--cyan);
+        }
+
+        .workspace-grid.zen-mode aside.right-sidebar.drawer-open {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 420px;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
+            z-index: 500;
+            box-shadow: -15px 0 50px rgba(0, 0, 0, 0.85);
+            border-left: 1px solid var(--cyan);
+        }
+
+        /* FLOATING EDGE ORBS (RE-ORB ACCESS TO DRAWERS) */
+        .floating-edge-orb {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(14, 20, 32, 0.85);
+            border: 1px solid var(--cyan);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            color: var(--cyan);
+            font-size: 19px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 16px var(--cyan-glow);
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: 45;
+        }
+
+        .floating-edge-orb:hover {
+            transform: scale(1.18);
+            background: rgba(102, 252, 241, 0.25);
+            box-shadow: 0 0 24px var(--cyan);
+        }
+
+        .floating-edge-orb.left-orb {
+            top: 85px;
+            left: 14px;
+        }
+
+        .floating-edge-orb.right-orb {
+            top: 85px;
+            right: 14px;
+        }
+
+        /* DOCK RE-ORB MINIMIZED STATE */
+        .hyper-dock-container.dock-minimized {
+            transform: translateY(calc(100% - 38px)) !important;
+            opacity: 0.92;
+        }
+
+        .hyper-dock-container.dock-minimized:hover {
+            transform: translateY(calc(100% - 46px)) !important;
+            opacity: 1;
+        }
+
+        .btn-dock-collapse {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--hyper-glass-border);
+            color: var(--cyan);
+            padding: 3px 10px;
+            border-radius: var(--hyper-squircle-pill);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-dock-collapse:hover {
+            background: rgba(102, 252, 241, 0.2);
+            border-color: var(--cyan);
+            color: #fff;
+        }
+
+        /* PURE 3D GAME VIEW (GHOST HUD) */
+        main.center-viewport.ghost-hud .viewport-hud,
+        main.center-viewport.ghost-hud .hyper-dock-container,
+        main.center-viewport.ghost-hud .viewport-bottom-info,
+        main.center-viewport.ghost-hud .floating-edge-orb {
+            opacity: 0.04 !important;
+            pointer-events: none !important;
+            transition: opacity 0.35s ease;
+        }
+
+        main.center-viewport.ghost-hud:hover .viewport-hud,
+        main.center-viewport.ghost-hud:hover .hyper-dock-container,
+        main.center-viewport.ghost-hud:hover .viewport-bottom-info,
+        main.center-viewport.ghost-hud:hover .floating-edge-orb {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        /* XIAOMI 14 & MOBILE BREAKPOINTS */
+        @media (max-width: 1200px) {
+            .workspace-grid {
+                grid-template-columns: 0px 1fr 0px !important;
+            }
+            aside.left-sidebar {
+                position: absolute;
+                left: 0; top: 0; bottom: 0;
+                width: 310px;
+                transform: translateX(-100%);
+                opacity: 0;
+                pointer-events: none;
+                z-index: 500;
+            }
+            aside.right-sidebar {
+                position: absolute;
+                right: 0; top: 0; bottom: 0;
+                width: 360px;
+                transform: translateX(100%);
+                opacity: 0;
+                pointer-events: none;
+                z-index: 500;
+            }
+            aside.left-sidebar.drawer-open {
+                transform: translateX(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+            aside.right-sidebar.drawer-open {
+                transform: translateX(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .hyper-dock-container {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
         }
 
         .sidebar-section {
@@ -1262,6 +1436,9 @@
         </div>
 
         <div class="header-actions">
+            <button class="btn-step-round" id="btnHdrZenToggle" onclick="toggleZenGameMode()" style="background: linear-gradient(135deg, #10b981, #06b6d4); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+                <span>👁️</span> PLNÁ ARÉNA (F)
+            </button>
             <button class="btn-step-round" id="btnHeaderEndTurn" onclick="executeEndTurn()" style="background: linear-gradient(135deg, #00f2fe, #4facfe); box-shadow: 0 4px 14px rgba(0, 242, 254, 0.4);">
                 <span>⚔️</span> UKONČIŤ ŤAH (AI ŤAH)
             </button>
@@ -1344,6 +1521,8 @@
                 </div>
 
                 <div class="viewport-tools">
+                    <button class="tool-btn highlight" id="btnZenToggle" onclick="toggleZenGameMode()" style="border-color: var(--neon-green); color: var(--neon-green); font-weight: bold;">👁️ PLNÁ ARÉNA (F)</button>
+                    <button class="tool-btn" id="btnGhostHudToggle" onclick="toggleGhostHud()">👻 PURE 3D (H)</button>
                     <button class="tool-btn active" id="btnGridToggle" onclick="toggleGrid()">GRID</button>
                     <button class="tool-btn" id="btnWireframe" onclick="toggleWireframe()">WIREFRAME</button>
                     <button class="tool-btn" onclick="resetCamera()">RESET CAM</button>
@@ -1353,6 +1532,14 @@
 
             <!-- WebGL Canvas Container -->
             <div id="webgl-canvas-container"></div>
+
+            <!-- RE-ORB FLOATING DRAWERS & FAST ACCESS -->
+            <button class="floating-edge-orb left-orb" id="orbLeftSidebar" onclick="toggleLeftDrawer()" title="Rozbaliť AI Bot SceneTree (L)">
+                <span>🌲</span>
+            </button>
+            <button class="floating-edge-orb right-orb" id="orbRightSidebar" onclick="toggleRightDrawer()" title="Rozbaliť Inspector & Bojové panely (R)">
+                <span>🔍</span>
+            </button>
 
             <!-- FLOATING COMBAT TEXT LAYER -->
             <div id="combat-text-layer"></div>
@@ -1365,6 +1552,7 @@
                         <span class="dock-subtitle" id="deckStatusSubtitle">BALÍČEK: 38 KARIET | ODKLADACÍ: 0</span>
                     </div>
                     <div class="dock-filters">
+                        <button class="btn-dock-collapse" onclick="toggleCardsDock()" id="btnDockToggle" style="margin-right: 6px;">⌄ SKRYŤ KARTY (C)</button>
                         <button class="dock-filter-btn active" id="btnFilterHand" onclick="switchDockMode('hand', this)">✋ MOJA RUKA (5)</button>
                         <button class="dock-filter-btn" id="btnFilterAll" onclick="switchDockMode('all', this)">📚 KATALÓG</button>
                         <button class="dock-filter-btn" onclick="filterDockCards('crystal', this)">💎 KRYŠTÁL</button>
@@ -1990,14 +2178,106 @@
             renderer.domElement.addEventListener('pointermove', onPointerMove);
             renderer.domElement.addEventListener('pointerdown', onPointerDown);
 
-            // ESC key to cancel aiming
+            // ESC key to cancel aiming, F for Zen Mode, H for Ghost HUD, C for Cards Dock, L/R for Drawers
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && targetingActive) {
-                    cancelAiming();
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
+                    return; // Don't intercept typing in inputs
+                }
+                if (e.key === 'Escape') {
+                    if (isLeftDrawerOpen || isRightDrawerOpen) {
+                        closeDrawers();
+                    } else if (targetingActive) {
+                        cancelAiming();
+                    }
+                } else if (e.key === 'f' || e.key === 'F') {
+                    toggleZenGameMode();
+                } else if (e.key === 'h' || e.key === 'H') {
+                    toggleGhostHud();
+                } else if (e.key === 'c' || e.key === 'C') {
+                    toggleCardsDock();
+                } else if (e.key === 'l' || e.key === 'L') {
+                    toggleLeftDrawer();
+                } else if (e.key === 'r' || e.key === 'R') {
+                    toggleRightDrawer();
                 }
             });
 
             animate();
+        }
+
+        // ── RE-ORB HUD ARCHITECTURE: FULL ARENA ZEN MODE & COLLAPSIBLE DRAWERS ──
+        let isZenMode = false;
+        let isGhostHud = false;
+        let isLeftDrawerOpen = false;
+        let isRightDrawerOpen = false;
+        let isDockCollapsed = false;
+
+        function toggleZenGameMode() {
+            isZenMode = !isZenMode;
+            const grid = document.querySelector('.workspace-grid');
+            const btn = document.getElementById('btnZenToggle');
+            const btnHdr = document.getElementById('btnHdrZenToggle');
+
+            if (isZenMode) {
+                grid.classList.add('zen-mode');
+                if (btn) btn.innerHTML = '👁️ ŠTANDARDNÉ OKNÁ (F)';
+                if (btnHdr) btnHdr.innerHTML = '<span>👁️</span> ŠTANDARD (F)';
+                closeDrawers();
+            } else {
+                grid.classList.remove('zen-mode');
+                if (btn) btn.innerHTML = '👁️ PLNÁ ARÉNA (F)';
+                if (btnHdr) btnHdr.innerHTML = '<span>👁️</span> PLNÁ ARÉNA (F)';
+                closeDrawers();
+            }
+            setTimeout(onResize, 50);
+            setTimeout(onResize, 380);
+        }
+
+        function toggleLeftDrawer() {
+            const leftSidebar = document.querySelector('aside.left-sidebar');
+            isLeftDrawerOpen = !isLeftDrawerOpen;
+            leftSidebar.classList.toggle('drawer-open', isLeftDrawerOpen);
+            if (isLeftDrawerOpen) {
+                document.querySelector('aside.right-sidebar').classList.remove('drawer-open');
+                isRightDrawerOpen = false;
+            }
+        }
+
+        function toggleRightDrawer() {
+            const rightSidebar = document.querySelector('aside.right-sidebar');
+            isRightDrawerOpen = !isRightDrawerOpen;
+            rightSidebar.classList.toggle('drawer-open', isRightDrawerOpen);
+            if (isRightDrawerOpen) {
+                document.querySelector('aside.left-sidebar').classList.remove('drawer-open');
+                isLeftDrawerOpen = false;
+            }
+        }
+
+        function closeDrawers() {
+            document.querySelector('aside.left-sidebar').classList.remove('drawer-open');
+            document.querySelector('aside.right-sidebar').classList.remove('drawer-open');
+            isLeftDrawerOpen = false;
+            isRightDrawerOpen = false;
+        }
+
+        function toggleCardsDock() {
+            const dock = document.getElementById('hyperDockContainer');
+            const btn = document.getElementById('btnDockToggle');
+            isDockCollapsed = !isDockCollapsed;
+            dock.classList.toggle('dock-minimized', isDockCollapsed);
+            if (btn) {
+                btn.innerHTML = isDockCollapsed ? '⌃ ROZBALIŤ KARTY (C)' : '⌄ SKRYŤ KARTY (C)';
+            }
+        }
+
+        function toggleGhostHud() {
+            isGhostHud = !isGhostHud;
+            const viewport = document.querySelector('main.center-viewport');
+            const btn = document.getElementById('btnGhostHudToggle');
+            viewport.classList.toggle('ghost-hud', isGhostHud);
+            if (btn) {
+                btn.innerHTML = isGhostHud ? '👻 ZOBRAZIŤ HUD (H)' : '👻 PURE 3D (H)';
+            }
         }
 
         function onResize() {

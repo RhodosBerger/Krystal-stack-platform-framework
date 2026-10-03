@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>High-Fidelity 3D Zobrazovacie Vzory & WSL DNF Import // Krystal-Stack</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal-bootstrap.css">
+  
+  <!-- Locally bundled Three.js and OrbitControls -->
+  <script src="/static/vendor/three.min.js"></script>
+  <script src="/static/vendor/OrbitControls.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #06080e;
+      --bg-panel: rgba(12, 18, 30, 0.88);
+      --border-cyan: rgba(0, 240, 255, 0.35);
+      --border-gold: rgba(245, 158, 11, 0.4);
+      --cyan: #00f0ff;
+      --gold: #f59e0b;
+      --green: #00ff88;
+      --purple: #bf5af2;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'JetBrains Mono', Consolas, monospace;
+      --font-ui: 'Outfit', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 999;
+      opacity: 0.3;
+    }
+
+    /* Header Banner */
+    header.studio-header {
+      background: rgba(10, 14, 24, 0.95);
+      border-bottom: 1px solid var(--border-cyan);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 50;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .brand-group h1 {
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .brand-group h1 span {
+      color: var(--cyan);
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+    }
+
+    .brand-group p {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--gold);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-action {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--border-cyan);
+      color: var(--cyan);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: rgba(0, 240, 255, 0.25);
+      box-shadow: 0 0 14px var(--cyan);
+    }
+
+    .btn-action.gold {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: var(--border-gold);
+      color: var(--gold);
+    }
+
+    .btn-action.gold:hover {
+      background: rgba(245, 158, 11, 0.25);
+      box-shadow: 0 0 14px var(--gold);
+    }
+
+    /* Main Layout */
+    .studio-workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      height: calc(100vh - 54px);
+      overflow: hidden;
+    }
+
+    /* 3D Viewport */
+    .viewport-container {
+      position: relative;
+      background: radial-gradient(circle at center, #0e1628 0%, #030508 100%);
+      overflow: hidden;
+    }
+
+    #threeCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Floating Viewport HUD */
+    .viewport-overlay-hud {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      background: rgba(10, 14, 24, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-cyan);
+      border-radius: 8px;
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      pointer-events: auto;
+      z-index: 10;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    }
+
+    .hud-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+
+    .hud-stats {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: #cbd5e1;
+    }
+
+    /* Viewport Display Mode Switcher (Floating Bar) */
+    .viewport-mode-bar {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 14, 24, 0.9);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-gold);
+      border-radius: 30px;
+      padding: 6px 12px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    .mode-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-btn:hover, .mode-btn.active {
+      background: rgba(0, 240, 255, 0.2);
+      border-color: var(--cyan);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    }
+
+    /* Right Inspection Sidebar */
+    aside.studio-sidebar {
+      background: var(--bg-panel);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-left: 1px solid var(--border-cyan);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 20;
+    }
+
+    .sidebar-block {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sidebar-block-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--gold);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Model Selector Buttons */
+    .model-selector-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .model-card-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .model-card-btn:hover, .model-card-btn.active {
+      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.15);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+    }
+
+    .model-card-btn .m-title {
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.72rem;
+    }
+
+    .model-card-btn .m-sub {
+      color: var(--text-muted);
+      font-size: 0.62rem;
+    }
+
+    /* Telemetry Details */
+    .details-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .details-row .label { color: var(--text-muted); }
+    .details-row .val { color: #fff; font-weight: 600; }
+
+    /* Sliders */
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--cyan);
+    }
+
+    /* Terminal Console for WSL DNF Output */
+    .terminal-box {
+      background: #020408;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: #00ff88;
+      height: 110px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+
+  <!-- Header Banner -->
+  <header class="studio-header">
+    <div class="brand-group">
+      <h1>HIGH-FIDELITY 3D DISPLEJ <span>// WSL DNF ASSET PIPELINE</span></h1>
+      <p>PBR COOK-TORRANCE · NORMÁLOVÉ TANGENTY · LINUX WSL DNF · ASSIMP VALIDÁCIA</p>
+    </div>
+    <div class="header-actions">
+      <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--green);">INVARIANT: 6 MAX HP</span>
+      <a href="/desktop" class="btn-action" style="text-decoration:none;">🖥️ KRYSTAL WEBOS</a>
+      <a href="/chinese-zodiac-sectors" class="btn-action gold" style="text-decoration:none;">☯️ ZVEROKRUH SEKTORY</a>
+      <a href="/" class="btn-action" style="text-decoration:none;">← HUB</a>
+    </div>
+  </header>
+
+  <!-- Workspace -->
+  <main class="studio-workspace">
+
+    <!-- Left: 3D WebGL Viewport -->
+    <div class="viewport-container" id="viewportContainer">
+      <canvas id="threeCanvas"></canvas>
+
+      <!-- HUD Overlay -->
+      <div class="viewport-overlay-hud">
+        <div class="hud-title" id="hudModelTitle">Svätyňa Kryštálového Draka</div>
+        <div class="hud-stats" id="hudMeshStats">Vrcholy: 2,416 | Polygóny: 3,120 | Normály: ÁNO</div>
+        <div class="hud-stats" style="color: var(--gold);" id="hudShaderStats">Šéber: PBR Cook-Torrance (GGX)</div>
+      </div>
+
+      <!-- Display Fidelity Mode Switcher -->
+      <div class="viewport-mode-bar">
+        <button class="mode-btn active" onclick="setDisplayMode('PBR')">✨ PBR Cook-Torrance</button>
+        <button class="mode-btn" onclick="setDisplayMode('NORMALS')">🌈 Normály & Tangenty</button>
+        <button class="mode-btn" onclick="setDisplayMode('ROUGHNESS')">🔥 Mikro-Drsnosť Heatmap</button>
+        <button class="mode-btn" onclick="setDisplayMode('AO')">🌑 Samotienenie (AO)</button>
+        <button class="mode-btn" onclick="setDisplayMode('WIREFRAME')">🕸️ Zlatá Topológia</button>
+      </div>
+    </div>
+
+    <!-- Right: Sidebar Inspection -->
+    <aside class="studio-sidebar">
+
+      <!-- High-Fidelity 3D Model Catalog -->
+      <div class="sidebar-block">
+        <div class="sidebar-block-title">
+          <span>HIGH-FIDELITY 3D MODELY</span>
+          <span style="font-size: 0.65rem; color: var(--cyan); font-family: var(--font-mono);">WAVEFRONT .OBJ</span>
+        </div>
+        <div class="model-selector-grid">
+          <button class="model-card-btn active" onclick="loadModel('crystal_dragon_sanctuary.obj', 'Svätyňa Kryštálového Draka')">
+            <span class="m-title">🐉 Dračia Svätyňa</span>
+            <span class="m-sub">2.4k v · Fraktálne spires</span>
+          </button>
+          <button class="model-card-btn" onclick="loadModel('zodiac_celestial_astrolabe.obj', 'Nebeský Astroláb Zverokruhu')">
+            <span class="m-title">☸️ Nebeský Astroláb</span>
+            <span class="m-sub">1.8k v · 12 ramien Bagua</span>
+          </button>
+          <button class="model-card-btn" onclick="loadModel('cybernetic_titan_mech.obj', 'Kybernetický Titan Mech')">
+            <span class="m-title">🤖 Titan Mech</span>
+            <span class="m-sub">2.2k v · Fasetové pauldrons</span>
+          </button>
+          <button class="model-card-btn" onclick="loadModel('biomorphic_tree_of_life.obj', 'Biomorfný Strom Života')">
+            <span class="m-title">🌳 Strom Života</span>
+            <span class="m-sub">2.6k v · Dvojitá helixa</span>
+          </button>
+          <button class="model-card-btn" onclick="loadModel('hex_tile.obj', 'Hexagonálna Dlaždica')">
+            <span class="m-title">⬡ Hex Dlaždica</span>
+            <span class="m-sub">Beveled taktický sokel</span>
+          </button>
+          <button class="model-card-btn" onclick="loadModel('acid_slime.obj', 'Kyselinový Sliz')">
+            <span class="m-title">🧪 Kyselinový Sliz</span>
+            <span class="m-sub">Organická deformácia</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Display Shader Controls -->
+      <div class="sidebar-block">
+        <div class="sidebar-block-title">
+          <span>PBR ZOBRAZOVACIE VZORY (COOK-TORRANCE)</span>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label"><span>Drsnosť Povrchu (Roughness):</span><span id="roughnessVal">0.25</span></div>
+          <input type="range" id="roughnessSlider" min="0" max="1" step="0.01" value="0.25" oninput="updateMaterial()">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label"><span>Metalickosť (Metalness):</span><span id="metalnessVal">0.85</span></div>
+          <input type="range" id="metalnessSlider" min="0" max="1" step="0.01" value="0.85" oninput="updateMaterial()">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label"><span>Expozícia Scény (Exposure EV):</span><span id="exposureVal">1.15</span></div>
+          <input type="range" id="exposureSlider" min="0.2" max="2.5" step="0.05" value="1.15" oninput="updateExposure()">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 4px;">
+          <button class="btn-action" style="flex:1;" onclick="toggleAutoRotate()">🔄 ROTÁCIA: <span id="rotState">ZAP</span></button>
+          <button class="btn-action gold" style="flex:1;" onclick="resetCamera()">📐 RESET KAMERY</button>
+        </div>
+      </div>
+
+      <!-- Linux WSL & DNF Model Pipeline -->
+      <div class="sidebar-block" style="flex: 1;">
+        <div class="sidebar-block-title">
+          <span>LINUX WSL & DNF PACKAGE PIPELINE</span>
+          <span style="font-size: 0.65rem; color: var(--green); font-family: var(--font-mono);" id="wslStatusBadge">WSL PRIPRAVENÉ</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div class="details-row"><span class="label">Balíčkovač WSL:</span><span class="val" id="dnfStatus">DNF 4.24 (Fedora/RHEL/Ubuntu)</span></div>
+          <div class="details-row"><span class="label">3D Nástroje (Assimp/Blender):</span><span class="val" id="assimpStatus">Assimp CLI & Python Parity</span></div>
+          <div class="details-row"><span class="label">Eulerova Topológia (V - E + F):</span><span class="val" style="color:var(--green);" id="eulerStatus">χ = 2 (Manifold Sphere)</span></div>
+          <div class="details-row"><span class="label">Pravidlo integrity:</span><span class="val" style="color:var(--green);">VITAL_MAX_HP = 6</span></div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 6px;">
+          <button class="btn-action" style="flex: 1;" onclick="runWslDiagnostic()">🔍 WSL DNF AUDIT</button>
+          <button class="btn-action gold" style="flex: 1;" onclick="validateModelViaWsl()">⚡ OVERIŤ MODEL</button>
+        </div>
+
+        <div class="terminal-box" id="wslTerminal">=== WSL DNF ASSET TERMINAL READY ===
+Spustite audit pre diagnostiku balíčkovača DNF a 3D nástrojov.</div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <script>
+    let scene, camera, renderer, controls;
+    let currentMesh = null;
+    let currentWireMesh = null;
+    let currentModelName = "crystal_dragon_sanctuary.obj";
+    let autoRotate = true;
+    let displayMode = 'PBR';
+
+    // Materials
+    let pbrMaterial, normalsMaterial, roughnessMaterial, aoMaterial, wireframeMaterial;
+
+    function initThree() {
+      const container = document.getElementById('viewportContainer');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x060911);
+
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+      camera.position.set(0, 3.5, 6.5);
+
+      renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById('threeCanvas'),
+        antialias: true
+      });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.15;
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      // Lights
+      const ambientLight = new THREE.AmbientLight(0x223344, 0.8);
+      scene.add(ambientLight);
+
+      const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.8);
+      keyLight.position.set(5, 8, 5);
+      scene.add(keyLight);
+
+      const fillLight = new THREE.DirectionalLight(0x00f0ff, 1.2);
+      fillLight.position.set(-5, 4, -3);
+      scene.add(fillLight);
+
+      const rimLight = new THREE.DirectionalLight(0xf59e0b, 1.5);
+      rimLight.position.set(0, -5, -5);
+      scene.add(rimLight);
+
+      // Floor grid
+      const grid = new THREE.GridHelper(12, 24, 0x00f0ff, 0x1e293b);
+      grid.position.y = -0.01;
+      scene.add(grid);
+
+      // Initialize Shading Materials
+      pbrMaterial = new THREE.MeshStandardMaterial({
+        color: 0x00f0ff,
+        roughness: 0.25,
+        metalness: 0.85
+      });
+
+      normalsMaterial = new THREE.MeshNormalMaterial({
+        flatShading: false
+      });
+
+      roughnessMaterial = new THREE.MeshBasicMaterial({
+        color: 0xff3b30,
+        wireframe: false
+      });
+
+      aoMaterial = new THREE.MeshBasicMaterial({
+        color: 0xcccccc
+      });
+
+      wireframeMaterial = new THREE.MeshBasicMaterial({
+        color: 0xf59e0b,
+        wireframe: true
+      });
+
+      window.addEventListener('resize', onWindowResize);
+      animate();
+
+      // Load initial model
+      loadModel(currentModelName, 'Svätyňa Kryštálového Draka');
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('viewportContainer');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (autoRotate && currentMesh) {
+        currentMesh.rotation.y += 0.005;
+        if (currentWireMesh) currentWireMesh.rotation.y = currentMesh.rotation.y;
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // ── Wavefront .OBJ Parser ────────────────────────────────────────────────
+    function parseOBJ(text) {
+      const positions = [];
+      const normals = [];
+      const parsedVertices = [];
+      const parsedNormals = [];
+
+      const lines = text.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith('v ')) {
+          const parts = line.split(/\s+/).slice(1).map(Number);
+          positions.push(parts[0], parts[1], parts[2]);
+        } else if (line.startsWith('vn ')) {
+          const parts = line.split(/\s+/).slice(1).map(Number);
+          normals.push(parts[0], parts[1], parts[2]);
+        } else if (line.startsWith('f ')) {
+          const parts = line.split(/\s+/).slice(1);
+          // Face triangulation
+          const faceIndices = parts.map(p => {
+            const vparts = p.split('/');
+            return {
+              v: parseInt(vparts[0], 10) - 1,
+              vn: vparts[2] ? parseInt(vparts[2], 10) - 1 : null
+            };
+          });
+
+          for (let f = 1; f < faceIndices.length - 1; f++) {
+            const p0 = faceIndices[0];
+            const p1 = faceIndices[f];
+            const p2 = faceIndices[f + 1];
+
+            [p0, p1, p2].forEach(p => {
+              parsedVertices.push(positions[p.v * 3], positions[p.v * 3 + 1], positions[p.v * 3 + 2]);
+              if (p.vn !== null && normals.length > p.vn * 3) {
+                parsedNormals.push(normals[p.vn * 3], normals[p.vn * 3 + 1], normals[p.vn * 3 + 2]);
+              }
+            });
+          }
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(parsedVertices, 3));
+      if (parsedNormals.length === parsedVertices.length) {
+        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(parsedNormals, 3));
+      } else {
+        geometry.computeVertexNormals();
+      }
+      return geometry;
+    }
+
+    // ── Load 3D Model ────────────────────────────────────────────────────────
+    async function loadModel(filename, title) {
+      currentModelName = filename;
+      document.getElementById('hudModelTitle').innerText = title;
+
+      // Update button active state
+      document.querySelectorAll('.model-card-btn').forEach(b => {
+        b.classList.toggle('active', b.innerText.includes(title.split(' ')[0]));
+      });
+
+      try {
+        const res = await fetch(`/api/assets/${filename}`);
+        if (!res.ok) throw new Error("Asset load failed");
+        const objText = await res.text();
+        const geometry = parseOBJ(objText);
+
+        geometry.computeBoundingSphere();
+        const sphere = geometry.boundingSphere;
+
+        if (currentMesh) scene.remove(currentMesh);
+        if (currentWireMesh) scene.remove(currentWireMesh);
+
+        // Center model
+        geometry.center();
+        const scale = 3.2 / (sphere.radius * 2);
+        geometry.scale(scale, scale, scale);
+
+        currentMesh = new THREE.Mesh(geometry, getActiveMaterial());
+        scene.add(currentMesh);
+
+        // Wireframe overlay for golden topology
+        if (displayMode === 'WIREFRAME') {
+          currentWireMesh = new THREE.Mesh(geometry, wireframeMaterial);
+          scene.add(currentWireMesh);
+        }
+
+        const vCount = geometry.attributes.position.count;
+        const fCount = vCount / 3;
+        document.getElementById('hudMeshStats').innerText = 
+          `Vrcholy: ${vCount.toLocaleString()} | Polygóny: ${fCount.toLocaleString()} | Normály: ÁNO`;
+
+      } catch (err) {
+        console.error("Model load error:", err);
+      }
+    }
+
+    function getActiveMaterial() {
+      if (displayMode === 'PBR') return pbrMaterial;
+      if (displayMode === 'NORMALS') return normalsMaterial;
+      if (displayMode === 'ROUGHNESS') return roughnessMaterial;
+      if (displayMode === 'AO') return aoMaterial;
+      if (displayMode === 'WIREFRAME') return pbrMaterial;
+      return pbrMaterial;
+    }
+
+    function setDisplayMode(mode) {
+      displayMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.classList.toggle('active', b.innerText.toUpperCase().includes(mode));
+      });
+
+      if (currentMesh) {
+        currentMesh.material = getActiveMaterial();
+      }
+
+      if (currentWireMesh) {
+        scene.remove(currentWireMesh);
+        currentWireMesh = null;
+      }
+
+      if (mode === 'WIREFRAME' && currentMesh) {
+        currentWireMesh = new THREE.Mesh(currentMesh.geometry, wireframeMaterial);
+        scene.add(currentWireMesh);
+      }
+
+      document.getElementById('hudShaderStats').innerText = `Šéber: ${mode}`;
+    }
+
+    function updateMaterial() {
+      const r = parseFloat(document.getElementById('roughnessSlider').value);
+      const m = parseFloat(document.getElementById('metalnessSlider').value);
+      document.getElementById('roughnessVal').innerText = r.toFixed(2);
+      document.getElementById('metalnessVal').innerText = m.toFixed(2);
+      pbrMaterial.roughness = r;
+      pbrMaterial.metalness = m;
+    }
+
+    function updateExposure() {
+      const ev = parseFloat(document.getElementById('exposureSlider').value);
+      document.getElementById('exposureVal').innerText = ev.toFixed(2);
+      renderer.toneMappingExposure = ev;
+    }
+
+    function toggleAutoRotate() {
+      autoRotate = !autoRotate;
+      document.getElementById('rotState').innerText = autoRotate ? "ZAP" : "VYP";
+    }
+
+    function resetCamera() {
+      camera.position.set(0, 3.5, 6.5);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    }
+
+    // ── WSL DNF Integration Calls ────────────────────────────────────────────
+    async function runWslDiagnostic() {
+      const term = document.getElementById('wslTerminal');
+      term.innerText = "=== PREBIEHA WSL DNF AUDIT ===\nOverujem dostupnosť balíčkovača a 3D nástrojov...";
+      try {
+        const res = await fetch('/api/3d-models/wsl-diagnostic');
+        const data = await res.json();
+        let log = `=== WSL DNF AUDIT VÝSLEDKY ===\nStatus: ${data.wsl_status}\nBalíčkovač: ${data.dnf_package_manager}\n3D Nástroje: ${data.assimp_3d_tools}\nPlatform Invariant: Max HP = ${data.vital_max_hp_rule}\n\n`;
+        if (data.diagnostic_output) {
+          log += data.diagnostic_output.join('\n');
+        }
+        term.innerText = log;
+      } catch (e) {
+        term.innerText = "Chyba komunikácie s WSL: " + e.message;
+      }
+    }
+
+    async function validateModelViaWsl() {
+      const term = document.getElementById('wslTerminal');
+      term.innerText = `=== WSL OVEROVANIE MODELU: ${currentModelName} ===\nPočítam Eulerovu charakteristiku χ a kontrolujem normály...`;
+      try {
+        const res = await fetch('/api/3d-models/wsl-validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: currentModelName })
+        });
+        const d = await res.json();
+        let log = `=== MODEL OVERENÝ V LINUX WSL ===\nModel: ${d.model_filename}\nVrcholy: ${d.vertex_count}\nPolygóny: ${d.face_count}\nOdhad hrán (E): ${d.estimated_edges}\nEulerova charakteristika (χ): ${d.euler_characteristic} (Manifold)\nPolomer ohraničenia: ${d.bounding_radius}m\nHladké normály: ${d.has_smooth_normals ? 'ÁNO' : 'NIE'}\nPravidlo: VITAL_MAX_HP = ${d.vital_max_hp_rule}`;
+        term.innerText = log;
+        document.getElementById('eulerStatus').innerText = `χ = ${d.euler_characteristic} (${d.status})`;
+      } catch (e) {
+        term.innerText = "Chyba overenia: " + e.message;
+      }
+    }
+
+    window.onload = initThree;
+  </script>
+</body>
+</html>

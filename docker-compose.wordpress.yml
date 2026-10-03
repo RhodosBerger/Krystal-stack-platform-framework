@@ -1,0 +1,104 @@
+# ==============================================================================
+# KRYSTAL-STACK: WORDPRESS BACKEND WITH RELATED FILESYSTEM & COMPREHENSIVE SECURITY
+# ==============================================================================
+# Orchestrates:
+#   1. WordPress CMS with mounted plugin & shared media asset filesystem.
+#   2. MySQL 8.0 transactional database.
+#   3. Nginx SSL/TLS Reverse Proxy with BBQ Firewall and Wordfence Brute Force rate limits.
+#   4. Krystal Core Engine & Janet Subproject MCP Bridge.
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  krystal_db:
+    image: mysql:8.0
+    container_name: krystal_mysql_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${WP_DB_NAME:-krystal_posledni_kmen}
+      MYSQL_USER: ${WP_DB_USER:-krystal_admin}
+      MYSQL_PASSWORD: ${WP_DB_PASSWORD:-KrystalSecurePass2026!}
+      MYSQL_ROOT_PASSWORD: ${WP_DB_ROOT_PASSWORD:-KrystalRootSecret2026!}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - krystal_backend_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  krystal_wordpress:
+    image: wordpress:6.5-php8.2-apache
+    container_name: krystal_wordpress_backend
+    restart: always
+    depends_on:
+      krystal_db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: krystal_db:3306
+      WORDPRESS_DB_NAME: ${WP_DB_NAME:-krystal_posledni_kmen}
+      WORDPRESS_DB_USER: ${WP_DB_USER:-krystal_admin}
+      WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD:-KrystalSecurePass2026!}
+      WORDPRESS_TABLE_PREFIX: wp_krystal_
+      # Security Configurations
+      WORDPRESS_CONFIG_EXTRA: |
+        define('DISALLOW_FILE_EDIT', true);
+        define('FORCE_SSL_ADMIN', true);
+        define('WP_AUTO_UPDATE_CORE', 'minor');
+        define('WP_MEMORY_LIMIT', '512M');
+    volumes:
+      # Related Filesystem Mounts
+      - wp_data:/var/www/html
+      - ./wordpress_plugin_krystal/krystal-posledni-kmen:/var/www/html/wp-content/plugins/krystal-posledni-kmen:rw
+      - ./krystal_web_hub/static/img:/var/www/html/wp-content/uploads/krystal_art_assets:ro
+      - ./docs:/var/www/html/wp-content/uploads/krystal_lore_docs:ro
+      - ./logs/wordpress:/var/log/apache2:rw
+    networks:
+      - krystal_backend_net
+
+  krystal_nginx_ssl:
+    image: nginx:alpine
+    container_name: krystal_nginx_security_proxy
+    restart: always
+    depends_on:
+      - krystal_wordpress
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx_bbq_security.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./krystal_web_hub/certs:/etc/nginx/certs:ro
+      - wp_data:/var/www/html:ro
+      - ./logs/nginx:/var/log/nginx:rw
+    networks:
+      - krystal_backend_net
+
+  krystal_engine_mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: krystal_engine_mcp_core
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+      KRYSTAL_VITAL_MAX_HP: 6
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./krystal_janet:/app/krystal_janet:ro
+      - ./krystal_web_hub/static/img:/app/krystal_web_hub/static/img:rw
+    networks:
+      - krystal_backend_net
+
+networks:
+  krystal_backend_net:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
+  wp_data:
+    driver: local

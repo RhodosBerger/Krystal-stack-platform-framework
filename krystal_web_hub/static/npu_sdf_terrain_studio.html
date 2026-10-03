@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krystal-Stack // Kontinuálna Matematika, SDF Raymarching & NPU Optimalizácia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal-bootstrap.css">
+
+  <style>
+    :root {
+      --bg-dark: #040711;
+      --bg-card: rgba(8, 14, 26, 0.88);
+      --border-blue: rgba(0, 180, 255, 0.35);
+      --border-amber: rgba(245, 158, 11, 0.4);
+      --border-green: rgba(0, 255, 136, 0.4);
+      --border-red: rgba(255, 70, 70, 0.5);
+      --cyan: #00f0ff;
+      --amber: #f59e0b;
+      --green: #00ff88;
+      --red: #ff4757;
+      --purple: #bf5af2;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-mono: 'JetBrains Mono', Consolas, monospace;
+      --font-ui: 'Outfit', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .blueprint-grid-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      background-image: 
+        linear-gradient(rgba(0, 180, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 180, 255, 0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      z-index: 1;
+    }
+
+    /* Master Top Header */
+    header.blueprint-header {
+      background: rgba(6, 10, 20, 0.95);
+      border-bottom: 2px solid var(--border-blue);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .doc-meta {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--cyan);
+      display: flex;
+      gap: 16px;
+    }
+
+    .doc-meta span { color: var(--text-muted); }
+    .doc-meta strong { color: #fff; }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-action {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--border-blue);
+      color: var(--cyan);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: rgba(0, 240, 255, 0.25);
+      box-shadow: 0 0 12px var(--cyan);
+    }
+
+    .btn-action.amber {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: var(--border-amber);
+      color: var(--amber);
+    }
+    .btn-action.amber:hover {
+      background: rgba(245, 158, 11, 0.25);
+      box-shadow: 0 0 12px var(--amber);
+    }
+
+    .btn-action.green {
+      background: rgba(0, 255, 136, 0.12);
+      border-color: var(--border-green);
+      color: var(--green);
+    }
+
+    /* Main Container */
+    main.studio-content {
+      position: relative;
+      z-index: 10;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 1700px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Grid Layout matching the attached photos */
+    .blueprint-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-blue);
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .panel-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+    }
+
+    .panel-title span.badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(0, 240, 255, 0.15);
+      color: var(--cyan);
+      border: 1px solid var(--border-blue);
+    }
+
+    /* Formula Blocks */
+    .formula-box {
+      background: rgba(2, 6, 14, 0.8);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: #7dd3fc;
+      line-height: 1.5;
+    }
+
+    .formula-box strong { color: #fff; }
+    .formula-box .highlight-amber { color: var(--amber); }
+    .formula-box .highlight-green { color: var(--green); }
+    .formula-box .highlight-red { color: var(--red); }
+
+    /* Biome Selectors (Poslední Kmen) */
+    .biome-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .biome-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .biome-chip:hover, .biome-chip.active {
+      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.15);
+      color: #fff;
+    }
+
+    .biome-chip.toxic:hover, .biome-chip.toxic.active {
+      border-color: var(--green);
+      background: rgba(0, 255, 136, 0.15);
+      color: #fff;
+    }
+
+    .biome-chip.druid:hover, .biome-chip.druid.active {
+      border-color: var(--amber);
+      background: rgba(245, 158, 11, 0.15);
+      color: #fff;
+    }
+
+    .biome-chip.well:hover, .biome-chip.well.active {
+      border-color: var(--purple);
+      background: rgba(191, 90, 242, 0.15);
+      color: #fff;
+    }
+
+    /* Workflow Strip */
+    .workflow-strip {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+    }
+
+    .wf-step {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+    }
+
+    .wf-step.active {
+      background: rgba(0, 240, 255, 0.18);
+      border-color: var(--cyan);
+      color: #fff;
+    }
+
+    /* Telemetry rows */
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .telemetry-row .label { color: var(--text-muted); }
+    .telemetry-row .val { color: #fff; font-weight: 700; }
+
+    /* Canvas Viewport */
+    .canvas-viewport {
+      background: #010307;
+      border: 1px solid var(--border-blue);
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+      height: 380px;
+      width: 100%;
+    }
+
+    canvas#terrainCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .canvas-overlay-hud {
+      position: absolute;
+      top: 10px;
+      left: 14px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--cyan);
+      pointer-events: none;
+      background: rgba(2, 6, 14, 0.75);
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="blueprint-grid-overlay"></div>
+
+  <!-- Master Top Header -->
+  <header class="blueprint-header">
+    <div>
+      <h1 style="font-size: 1.1rem; font-weight: 900; letter-spacing: 1px;">
+        KRYSTAL-STACK // KONTINUÁLNA MATEMATIKA, SDF RAYMARCHING & NPU OPTIMALIZÁCIA
+      </h1>
+      <div class="doc-meta">
+        <div><span>DOC ID:</span> <strong>KRYSTAL-NPU-SDF-2026</strong></div>
+        <div><span>AUTOR:</span> <strong>Dušan Kopecký</strong></div>
+        <div><span>INVARIANT:</span> <strong style="color:var(--green);">VITAL_MAX_HP = 6</strong></div>
+        <div><span>ZLATÝ REZ:</span> <strong>φ = 1.618</strong></div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-action green" id="btnNpuToggle" onclick="toggleNpu()">⚡ NPU TENSOR: AKTÍVNY</button>
+      <a href="/desktop" class="btn-action amber">🖥️ WEBOS</a>
+      <a href="/" class="btn-action">← HUB</a>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="studio-content">
+
+    <div class="blueprint-grid">
+
+      <!-- Panel 1: Continuous World Generation (Col 6) -->
+      <div class="panel" style="grid-column: span 6;">
+        <div class="panel-title">
+          <span>1. CONTINUOUS WORLD GENERATION</span>
+          <span class="badge">MATHEMATICAL MANIFOLD</span>
+        </div>
+
+        <p style="font-size: 0.75rem; color: var(--text-muted);">
+          Matematický základ nekonečných terénnych variet s multifraktálnou syntézou a zlomovými zónami.
+        </p>
+
+        <!-- Master Terrain Formula -->
+        <div class="formula-box">
+          <strong>H(x, z) = H₀ + A · [ (1 - w_ridge) · F_fBm(ωx) + w_ridge · R_ridge(ωx) ] · C_fault(x)</strong>
+        </div>
+
+        <!-- Biome Selector -->
+        <div>
+          <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--amber); display: block; margin-bottom: 6px;">
+            BIÓM KMEŇA (POSLEDNÍ KMEN):
+          </span>
+          <div class="biome-chips">
+            <div class="biome-chip active" id="chip-crystal" onclick="selectBiome('Crystal_Severni_Stity')">
+              ❄️ CRYSTAL (Severní štíty)
+            </div>
+            <div class="biome-chip toxic" id="chip-toxic" onclick="selectBiome('Toxic_Hnijici_Slatiny')">
+              🐍 TOXIC (Hnijící slatiny)
+            </div>
+            <div class="biome-chip druid" id="chip-druid" onclick="selectBiome('Druid_Pradavny_Les')">
+              🌿 DRUID (Pradávný les)
+            </div>
+            <div class="biome-chip well" id="chip-well" onclick="selectBiome('Studna_Dusi_Vortex')">
+              🌀 STUDNA DUŠÍ (Vortex)
+            </div>
+          </div>
+        </div>
+
+        <!-- Workflow Strip -->
+        <div class="workflow-strip">
+          <span style="color:var(--text-muted);">PIPELINE:</span>
+          <span class="wf-step active">Base fBm</span> →
+          <span class="wf-step active">Ridged</span> →
+          <span class="wf-step active">Fault Mask</span> →
+          <span class="wf-step active">Erosion</span> →
+          <span class="wf-step active">Final Terrain</span>
+        </div>
+
+        <!-- Biome Stats -->
+        <div style="margin-top: 4px;">
+          <div class="telemetry-row"><span class="label">Bázová elevácia (H₀):</span><span class="val" id="valH0">1.45</span></div>
+          <div class="telemetry-row"><span class="label">Amplitúda (A):</span><span class="val" id="valAmp">1.85</span></div>
+          <div class="telemetry-row"><span class="label">Váha hrebeňov (w_ridge):</span><span class="val" id="valWRidge">0.88</span></div>
+        </div>
+      </div>
+
+      <!-- Panel 2: SDF Raymarching Pipeline (Col 6) -->
+      <div class="panel" style="grid-column: span 6;">
+        <div class="panel-title">
+          <span>2. SDF RAYMARCHING PIPELINE</span>
+          <span class="badge">SPHERE-TRACING</span>
+        </div>
+
+        <p style="font-size: 0.75rem; color: var(--text-muted);">
+          Numerické trasovanie lúčov (sphere-tracing) s NPU akcelerovanou aproximáciou gradientu.
+        </p>
+
+        <!-- Raymarch Formula -->
+        <div class="formula-box">
+          <strong>r_i(t) = r₀ + t · d̂_i, &nbsp; t ∈ [t_min, t_max]</strong><br>
+          if <strong>f(p) &lt; ε_hit</strong> → surface hit &nbsp;|&nbsp; 
+          ∇f(p) ≈ 1/(2δ) · [ f(p + δe_k) - f(p - δe_k) ]
+        </div>
+
+        <!-- Cost comparison badge -->
+        <div style="background: rgba(0, 255, 136, 0.08); border: 1px solid var(--border-green); border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--green); font-weight: 700;">
+              CENA ZA JEDEN HIT (EVALUATIONS):
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #fff;">
+              Baseline CPU: <span style="color:var(--red);">1 + 6 = 7 volaní</span> → NPU Tensor: <span style="color:var(--green); font-weight: 800;">1 + 1 = 2 volania</span>
+            </div>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--green); font-weight: 900;">-71.4%</span>
+        </div>
+
+        <div style="margin-top: 4px;">
+          <div class="telemetry-row"><span class="label">Posledná vzdialenosť (t):</span><span class="val" id="valDistT">4.821 m</span></div>
+          <div class="telemetry-row"><span class="label">Bod dopadu (Hit Point):</span><span class="val" id="valHitPoint">(0.00, 1.48, -3.41)</span></div>
+          <div class="telemetry-row"><span class="label">Povrchový normál ∇f:</span><span class="val" id="valNormal">(0.12, 0.98, -0.15)</span></div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Coupled Erosion Models (Col 6) -->
+      <div class="panel" style="grid-column: span 6;">
+        <div class="panel-title">
+          <span>3. COUPLED EROSION MODELS</span>
+          <span class="badge">THERMAL + HYDRAULIC</span>
+        </div>
+
+        <!-- Thermal Weathering -->
+        <div class="formula-box">
+          <strong style="color:var(--amber);">A. Thermal Weathering (Talus Slope):</strong><br>
+          ΔH_thermal(x) = -K_talus · max(0, ||∇H(x)|| - tan θ_c)<br>
+          Kritický uhol: <strong>θ_c ≈ 35° (tan θ_c ≈ 0.70)</strong><br>
+          <span class="highlight-red">θ &gt; θ_c → ERODE (Odpadnutie skál)</span> &nbsp;|&nbsp; 
+          <span class="highlight-green">θ ≤ θ_c → DEPOSIT (Sedimentácia)</span>
+        </div>
+
+        <!-- Hydraulic Erosion -->
+        <div class="formula-box">
+          <strong style="color:var(--cyan);">B. Hydraulic Erosion & Channel Incision:</strong><br>
+          C(x) = K_c · ||v(x)|| · sin θ(x), &nbsp; sin θ ≈ ||∇H|| / √(1 + ||∇H||²)<br>
+          ℰ_hydraulic(x) = K_e · clamp(∇²H(x), -1.0, 1.0)
+        </div>
+
+        <div style="display:flex; gap: 8px;">
+          <button class="btn-action amber" style="flex:1;" onclick="simulateErosionStep()">⚡ SIMULOVAŤ KROK ERÓZIE</button>
+          <button class="btn-action" style="flex:1;" onclick="triggerRaymarch()">🎯 VYSTRELIŤ LÚČ (RAYMARCH)</button>
+        </div>
+      </div>
+
+      <!-- Panel 4: Hardware & Driver Optimization Harness (Col 6) -->
+      <div class="panel" style="grid-column: span 6;">
+        <div class="panel-title">
+          <span>SYSTEM ARCHITECTURE & EXECUTION PIPELINE</span>
+          <span class="badge">INTEL IRIS XE & NPU</span>
+        </div>
+
+        <div class="telemetry-row"><span class="label">Grafický akcelerátor:</span><span class="val" style="color:var(--cyan);">Intel Iris Xe (96 EUs / 672 vlákien)</span></div>
+        <div class="telemetry-row"><span class="label">NPU Tensor Engine:</span><span class="val" style="color:var(--green);">DirectML / OpenVINO (12.4 TOPS)</span></div>
+        <div class="telemetry-row"><span class="label">Legacy WDDM Driver Stall:</span><span class="val" style="color:var(--red);">185.0 μs</span></div>
+        <div class="telemetry-row"><span class="label">Krystal Zero-Copy Bypass:</span><span class="val" style="color:var(--green);">11.4 μs (16.2× zrýchlenie)</span></div>
+        <div class="telemetry-row"><span class="label">3D Grid Hierarchia:</span><span class="val">NPU SRAM ↔ L1/L2 ↔ Host DDR VRAM ↔ NVMe SSD</span></div>
+        <div class="telemetry-row"><span class="label">Pravidlo integrity:</span><span class="val" style="color:var(--green);">VITAL_MAX_HP = 6</span></div>
+      </div>
+
+      <!-- Live Interactive Viewport (Col 12) -->
+      <div class="panel" style="grid-column: span 12;">
+        <div class="panel-title">
+          <span>INTERAKTÍVNA VIZUALIZÁCIA TERÉNNEJ VARIETY & RAYMARCHINGU</span>
+          <span class="badge" id="renderModeBadge">REAL-TIME ISO PROJECTION</span>
+        </div>
+
+        <div class="canvas-viewport">
+          <div class="canvas-overlay-hud" id="hudStatus">
+            BIÓM: CRYSTAL (SEVERNÍ ŠTÍTY) | NPU TENSOR: ON | TALUS θ_c: 35°
+          </div>
+          <canvas id="terrainCanvas"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    let currentBiome = 'Crystal_Severni_Stity';
+    let npuActive = true;
+    let canvas, ctx;
+    let animTime = 0;
+
+    const biomeData = {
+      'Crystal_Severni_Stity': { h0: 1.45, amp: 1.85, wRidge: 0.88, color: '#00f0ff', name: 'Crystal' },
+      'Toxic_Hnijici_Slatiny': { h0: -0.25, amp: 0.75, wRidge: 0.20, color: '#00ff88', name: 'Toxic' },
+      'Druid_Pradavny_Les': { h0: 0.65, amp: 1.20, wRidge: 0.45, color: '#f59e0b', name: 'Druid' },
+      'Studna_Dusi_Vortex': { h0: 0.00, amp: 2.20, wRidge: 0.50, color: '#bf5af2', name: 'Studna Duší' }
+    };
+
+    function selectBiome(biomeKey) {
+      currentBiome = biomeKey;
+      document.querySelectorAll('.biome-chip').forEach(c => c.classList.remove('active'));
+      if (biomeKey.includes('Crystal')) document.getElementById('chip-crystal').classList.add('active');
+      if (biomeKey.includes('Toxic')) document.getElementById('chip-toxic').classList.add('active');
+      if (biomeKey.includes('Druid')) document.getElementById('chip-druid').classList.add('active');
+      if (biomeKey.includes('Studna')) document.getElementById('chip-well').classList.add('active');
+
+      const d = biomeData[biomeKey];
+      document.getElementById('valH0').innerText = d.h0;
+      document.getElementById('valAmp').innerText = d.amp;
+      document.getElementById('valWRidge').innerText = d.wRidge;
+
+      document.getElementById('hudStatus').innerText = 
+        `BIÓM: ${d.name.toUpperCase()} | NPU TENSOR: ${npuActive ? 'ON' : 'OFF'} | TALUS θ_c: 35°`;
+
+      triggerRaymarch();
+    }
+
+    async function toggleNpu() {
+      npuActive = !npuActive;
+      const btn = document.getElementById('btnNpuToggle');
+      if (npuActive) {
+        btn.innerText = "⚡ NPU TENSOR: AKTÍVNY";
+        btn.className = "btn-action green";
+      } else {
+        btn.innerText = "⚠️ NPU TENSOR: VYPNUTÝ (CPU STENCIL)";
+        btn.className = "btn-action amber";
+      }
+
+      await fetch('/api/terrain-synthesis/npu-driver-dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enable_npu: npuActive })
+      });
+      triggerRaymarch();
+    }
+
+    async function triggerRaymarch() {
+      try {
+        const res = await fetch('/api/terrain-synthesis/evaluate-sdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            origin: [0.0, 4.0, 4.0],
+            direction: [0.0, -0.7071, -0.7071],
+            biome: currentBiome
+          })
+        });
+        const d = await res.json();
+        document.getElementById('valDistT').innerText = `${d.hit_distance_t} m (${d.steps_taken} krokov, ${d.evaluations_count} eval)`;
+        document.getElementById('valHitPoint').innerText = `(${d.hit_point.join(', ')})`;
+        document.getElementById('valNormal').innerText = `(${d.surface_normal.join(', ')})`;
+      } catch (e) {
+        console.error("Raymarch request error", e);
+      }
+    }
+
+    async function simulateErosionStep() {
+      try {
+        const res = await fetch('/api/terrain-synthesis/simulate-erosion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ x: 2.0, z: 2.0, biome: currentBiome })
+        });
+        const d = await res.json();
+        alert(`Krok erózie pre bióm ${currentBiome}:\n` +
+              `Výška: ${d.height} m\n` +
+              `Sklon: ${d.thermal_weathering.slope_angle_deg}° (${d.thermal_weathering.action})\n` +
+              `Kapacita nánosu C: ${d.hydraulic_erosion.sediment_capacity_c}\n` +
+              `Invariant: VITAL_MAX_HP = ${d.vital_max_hp_rule}`);
+      } catch (e) {
+        console.error("Erosion error", e);
+      }
+    }
+
+    // ── Real-Time Canvas Renderer (Continuous Manifold + Sphere-Tracing Ray) ─
+    function initCanvas() {
+      canvas = document.getElementById('terrainCanvas');
+      ctx = canvas.getContext('2d');
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      requestAnimationFrame(renderLoop);
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+    }
+
+    function renderLoop(time) {
+      animTime = time * 0.001;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.fillStyle = '#020409';
+      ctx.fillRect(0, 0, w, h);
+
+      // Draw isometric terrain grid
+      const cols = 48;
+      const rows = 28;
+      const originX = w * 0.5;
+      const originY = h * 0.28;
+      const cellW = (w / cols) * 1.5;
+      const cellH = cellW * 0.5;
+
+      const d = biomeData[currentBiome];
+
+      for (let r = 0; r < rows; r++) {
+        ctx.beginPath();
+        for (let c = 0; c < cols; c++) {
+          const worldX = (c - cols * 0.5) * 0.35;
+          const worldZ = (r - rows * 0.5) * 0.35;
+
+          // Continuous height evaluation
+          const distC = Math.sqrt(worldX * worldX + worldZ * worldZ);
+          let elev = 0;
+
+          if (currentBiome.includes('Studna') || distC < 1.4) {
+            elev = -1.5 / (1.0 + distC * distC) + Math.sin(distC * 8.0 - animTime * 3.0) * 0.2;
+          } else {
+            const fbm = Math.sin(worldX * 0.8 + animTime * 0.2) * Math.cos(worldZ * 0.8);
+            const ridge = Math.abs(Math.sin(worldX * 0.5) * Math.cos(worldZ * 0.5)) * 1.2;
+            elev = (d.h0 + d.amp * ((1 - d.wRidge) * fbm + d.wRidge * ridge)) * 0.6;
+          }
+
+          const isoX = originX + (c - r) * cellW * 0.5;
+          const isoY = originY + (c + r) * cellH * 0.5 - elev * 45.0;
+
+          if (c === 0) ctx.moveTo(isoX, isoY);
+          else ctx.lineTo(isoX, isoY);
+        }
+        ctx.strokeStyle = (r % 4 === 0) ? d.color : 'rgba(0, 180, 255, 0.18)';
+        ctx.lineWidth = (r % 4 === 0) ? 1.5 : 0.8;
+        ctx.stroke();
+      }
+
+      // Draw Raymarching ray vector
+      const rayStartX = originX - 180;
+      const rayStartY = originY - 60;
+      const hitX = originX + Math.sin(animTime * 1.5) * 40;
+      const hitY = originY + 110;
+
+      ctx.beginPath();
+      ctx.moveTo(rayStartX, rayStartY);
+      ctx.lineTo(hitX, hitY);
+      ctx.strokeStyle = '#ff4757';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([6, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Sphere-tracing steps along ray
+      const steps = 7;
+      for (let s = 1; s <= steps; s++) {
+        const t = s / steps;
+        const px = rayStartX + (hitX - rayStartX) * t;
+        const py = rayStartY + (hitY - rayStartY) * t;
+        const radius = (1.0 - t) * 22 + 4;
+
+        ctx.beginPath();
+        ctx.arc(px, py, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = npuActive ? 'rgba(0, 255, 136, 0.4)' : 'rgba(255, 165, 0, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Hit point spark
+      ctx.beginPath();
+      ctx.arc(hitX, hitY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#00ff88';
+      ctx.fill();
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    window.onload = () => {
+      initCanvas();
+      triggerRaymarch();
+    };
+  </script>
+</body>
+</html>

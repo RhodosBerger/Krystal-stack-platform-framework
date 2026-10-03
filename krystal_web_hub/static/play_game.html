@@ -53,6 +53,39 @@
         .hero-info { padding: 1rem; }
         .stats { display: flex; justify-content: space-around; margin-top: 10px; font-weight: bold; }
         
+        .arena.selected-mode {
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+        .arena.selected-mode .hero-card:not(.active) {
+            display: none;
+        }
+        .arena.selected-mode .hero-card.active {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 6px;
+        }
+        .arena.selected-mode .hero-card.active .hero-img {
+            width: 64px;
+            height: 64px;
+            border-radius: 8px;
+        }
+        .arena.selected-mode .hero-card.active .hero-info {
+            padding: 0.2rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+            flex: 1;
+        }
+        .arena.selected-mode .hero-card.active .stats {
+            margin-top: 0;
+            gap: 1.2rem;
+        }
+        
         .combat-zone {
             display: none; /* hidden until hero selected */
             background: var(--panel);
@@ -147,7 +180,10 @@
 
     <!-- COMBAT ZONE (ACTIVE AFTER SELECTION) -->
     <div class="combat-zone" id="combat-zone">
-        <h2 style="text-align: center; margin-bottom: 20px;">Aréna (Deathmatch)</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;">Aréna (Deathmatch)</h2>
+            <button onclick="reopenHeroSelect()" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: var(--crystal); padding: 5px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;">🔄 Zmeniť Kmeň</button>
+        </div>
         
         <div class="ledger-panel">
             <div>
@@ -201,10 +237,14 @@
         function selectHero(tribe) {
             document.querySelectorAll('.hero-card').forEach(c => c.classList.remove('active'));
             document.querySelector(`.hero-card[data-tribe="${tribe}"]`).classList.add('active');
+            document.querySelector('.arena').classList.add('selected-mode');
             
             document.getElementById('combat-zone').style.display = 'block';
             log(`Vybral si si kmeň: ${tribe.toUpperCase()}. Boj sa začína!`);
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        function reopenHeroSelect() {
+            document.querySelector('.arena').classList.remove('selected-mode');
         }
 
         function playCard(name, cost, dmg) {

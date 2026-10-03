@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kvadratické Rovnice & Premenné cez Latentné x // Krystal-Stack</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal-bootstrap.css">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(16, 22, 34, 0.85);
+      --border-cyan: rgba(0, 240, 255, 0.35);
+      --border-gold: rgba(245, 158, 11, 0.4);
+      --cyan: #00f0ff;
+      --gold: #f59e0b;
+      --purple: #a855f7;
+      --green: #00ff88;
+      --magenta: #ff0055;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'JetBrains Mono', Consolas, monospace;
+      --font-ui: 'Outfit', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 60px;
+    }
+
+    /* Ambient Scanlines & Mesh */
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 99;
+      opacity: 0.5;
+    }
+
+    .header-banner {
+      background: linear-gradient(180deg, rgba(14, 20, 32, 0.95) 0%, rgba(7, 9, 14, 0.8) 100%);
+      border-bottom: 1px solid var(--border-cyan);
+      padding: 24px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .title-group h1 {
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #fff;
+    }
+
+    .title-group h1 span {
+      color: var(--cyan);
+      text-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+    }
+
+    .title-group p {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--gold);
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .hub-link {
+      color: var(--cyan);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      border: 1px solid var(--border-cyan);
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .hub-link:hover {
+      background: rgba(0, 240, 255, 0.15);
+      box-shadow: 0 0 12px var(--cyan);
+    }
+
+    /* Main Container */
+    .studio-container {
+      max-width: 1380px;
+      margin: 30px auto;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* Theory Math Bar */
+    .math-callout {
+      background: rgba(18, 24, 38, 0.7);
+      border: 1px solid var(--border-gold);
+      border-left: 5px solid var(--gold);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .math-callout strong {
+      color: var(--gold);
+    }
+
+    /* Dual Canvas Grid */
+    .canvas-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .canvas-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-cyan);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+    }
+
+    .canvas-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 10px;
+    }
+
+    .canvas-card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .canvas-badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(0, 240, 255, 0.15);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+    }
+
+    .canvas-wrapper {
+      width: 100%;
+      height: 320px;
+      background: #04060a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Slider & Probe Bar */
+    .probe-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-gold);
+      border-radius: 12px;
+      padding: 22px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .probe-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .probe-slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .probe-slider {
+      flex: 1;
+      height: 8px;
+      -webkit-appearance: none;
+      background: linear-gradient(90deg, #00f0ff 0%, #f59e0b 61.8%, #ff0055 100%);
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .probe-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 12px var(--cyan);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .probe-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .probe-val-display {
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--cyan);
+      min-width: 110px;
+    }
+
+    .btn-golden-mean {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(255, 215, 0, 0.25) 100%);
+      border: 1px solid var(--gold);
+      color: #ffd700;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-golden-mean:hover {
+      background: rgba(245, 158, 11, 0.4);
+      box-shadow: 0 0 15px var(--gold);
+      transform: translateY(-2px);
+    }
+
+    /* Live Multi-Domain Variable Cards */
+    .domain-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .domain-card {
+      background: rgba(14, 20, 32, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .domain-card:hover {
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .domain-card.vital-card {
+      border-color: rgba(0, 255, 136, 0.4);
+      background: rgba(0, 255, 136, 0.06);
+    }
+
+    .domain-card-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .domain-card-value {
+      font-family: var(--font-mono);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .domain-card-unit {
+      font-size: 0.75rem;
+      color: var(--cyan);
+      margin-left: 4px;
+    }
+
+    .domain-card-formula {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* Interactive Conversion Pipe */
+    .convert-pipe-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-cyan);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .convert-pipe-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .convert-select, .convert-input {
+      background: rgba(9, 12, 18, 0.9);
+      border: 1px solid var(--border-cyan);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .convert-select:focus, .convert-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 10px var(--gold);
+    }
+
+    .convert-arrow {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .btn-convert {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
+      border: 1px solid var(--cyan);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 10px 22px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-convert:hover {
+      background: rgba(0, 240, 255, 0.3);
+      box-shadow: 0 0 15px var(--cyan);
+      transform: translateY(-2px);
+    }
+
+    .convert-result-box {
+      background: rgba(4, 6, 10, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--green);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+
+  <!-- Header Banner -->
+  <header class="header-banner">
+    <div class="title-group">
+      <h1>KVADRATICKÉ ROVNICE <span>// PREVOD PREMENNÝCH CEZ x</span></h1>
+      <p>UNIFIED QUADRATIC MANIFOLD · LATENT x VARIABLE BRIDGE · VITAL MAX HP = 6</p>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <span class="canvas-badge" style="border-color: var(--green); color: var(--green);">INVARIANT: HP &le; 6</span>
+      <a href="/desktop" class="hub-link">🖥️ KRYSTAL WEBOS</a>
+      <a href="/" class="hub-link">← MISSION CONTROL</a>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    <!-- Math Theory Callout -->
+    <div class="math-callout">
+      <strong>TEORETICKÝ PRINCÍP MANIFOLDU:</strong> Rôznorodé fyzikálne, hardvérové a ekonomické veličiny (latencia RAM v <em>ns</em>, alokácia VRAM v <em>MB</em>, takt GPU v <em>MHz</em>, Hamiltonián <em>H</em>, trhová cena a životy <em>HP</em>) sú navzájom nekompatibilné. Kvadratická rovnica <code>V_i(x) = a_i&middot;x&sup2; + b_i&middot;x + c_i</code> umožňuje previesť ľubovoľnú pozorovanú hodnotu na normalizované <strong>latentné x</strong> cez diskriminant <code>&Delta; = b&sup2; - 4a(c - V)</code> a následne projektovať <strong>x</strong> do ľubovoľnej cieľovej veličiny s presným rešpektovaním invariantu <strong>6 Max HP</strong>.
+    </div>
+
+    <!-- Dual Canvas Visualizer -->
+    <div class="canvas-grid">
+      <!-- Canvas 1: Parabola, Discriminant & Roots -->
+      <div class="canvas-card">
+        <div class="canvas-card-header">
+          <div class="canvas-card-title">KVADRATICKÁ PARABOLA & DISKRIMINANT &Delta;</div>
+          <span class="canvas-badge" id="badgeDelta">&Delta; &gt; 0 (2 REÁLNE KORENE)</span>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="canvasParabola"></canvas>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);">
+          <span>Vrchol paraboly: <strong id="apexInfo" style="color: var(--gold);">-b / (2a)</strong></span>
+          <span>Latentné x: <strong id="currentXInfo" style="color: var(--cyan);">0.6180</strong></span>
+        </div>
+      </div>
+
+      <!-- Canvas 2: Multi-Domain Orbital Flux -->
+      <div class="canvas-card">
+        <div class="canvas-card-header">
+          <div class="canvas-card-title">HARMONICKÝ FLUX PREMENNÝCH CEZ PIVOT x</div>
+          <span class="canvas-badge">8 SPOJENÝCH DOMÉN</span>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="canvasFlux"></canvas>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);">
+          <span>Stredový pivot: <strong style="color: var(--cyan);">Latent State x</strong></span>
+          <span>Zlatý rez: <strong style="color: var(--gold);">&phi;<sup>-1</sup> &approx; 0.61803</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latent x Interactive Probe Slider -->
+    <div class="probe-bar">
+      <div class="probe-header">
+        <div>
+          <h3 style="font-size: 1.1rem; color: #fff;">INTERAKTÍVNA SONDA: PREDMET SKÚMANIA x</h3>
+          <p style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
+            Nastavte normalizovanú úroveň x &in; [0.0, 1.0] a sledujte okamžitý simultánny prepočet všetkých subsystémov.
+          </p>
+        </div>
+        <button class="btn-golden-mean" id="btnGoldenMean">
+          ⚖️ ZAMKNÚŤ ZLATÚ STREDNÚ CESTU (&phi;<sup>-1</sup> = 0.618)
+        </button>
+      </div>
+
+      <div class="probe-slider-wrap">
+        <span style="font-family: var(--font-mono); color: var(--cyan);">x = 0.0</span>
+        <input type="range" min="0" max="1000" value="618" class="probe-slider" id="probeSlider">
+        <span style="font-family: var(--font-mono); color: var(--magenta);">x = 1.0</span>
+        <div class="probe-val-display" id="probeDisplay">x = 0.618</div>
+      </div>
+    </div>
+
+    <!-- Live Multi-Domain Variable Cards -->
+    <div class="domain-cards-grid" id="domainCardsGrid">
+      <!-- Dynamically populated from JS -->
+    </div>
+
+    <!-- Cross-Domain Direct Conversion Pipe -->
+    <div class="convert-pipe-card">
+      <div class="canvas-card-header">
+        <div class="canvas-card-title">PRIAMA PREVODNÁ RÚRA (V_source &rarr; x &rarr; V_target)</div>
+        <span class="canvas-badge" style="color: var(--gold); border-color: var(--gold);">EXACT INVERSE QUADRATIC</span>
+      </div>
+
+      <div class="convert-pipe-row">
+        <div>
+          <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 4px;">ZDROJOVÁ VELIČINA:</label>
+          <select class="convert-select" id="selSourceDomain"></select>
+        </div>
+
+        <div>
+          <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 4px;">HODNOTA:</label>
+          <input type="number" class="convert-input" id="inpSourceValue" value="45.0" step="0.5" style="width: 110px;">
+        </div>
+
+        <div class="convert-arrow">&rarr; [x] &rarr;</div>
+
+        <div>
+          <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 4px;">CIEĽOVÁ VELIČINA:</label>
+          <select class="convert-select" id="selTargetDomain"></select>
+        </div>
+
+        <div style="align-self: flex-end;">
+          <button class="btn-convert" id="btnExecuteConvert">⚡ PREPOČÍTAŤ CEZ x</button>
+        </div>
+      </div>
+
+      <div class="convert-result-box" id="convertResultBox">
+        > Pripravené na prevod. Zadajte zdrojovú hodnotu a kliknite na 'Prepočítať cez x'.
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ── Canonical Domain Definitions (Mirrors Python & Janet Engine) ──────────
+    const DOMAINS = {
+      "memory_latency_ns": {
+        name: "Pamäťová Latencia",
+        unit: "ns",
+        a: 85.0, b: 15.0, c: 5.2,
+        min: 5.0, max: 120.0,
+        eval: (x) => Math.min(120.0, Math.max(5.0, 85.0 * x * x + 15.0 * x + 5.2))
+      },
+      "vram_allocation_mb": {
+        name: "Zdieľaná VRAM",
+        unit: "MB",
+        a: 3200.0, b: 4800.0, c: 256.0,
+        min: 256.0, max: 8256.0,
+        eval: (x) => Math.min(8256.0, Math.max(256.0, 3200.0 * x * x + 4800.0 * x + 256.0))
+      },
+      "gpu_clock_mhz": {
+        name: "Takt Intel Iris Xe",
+        unit: "MHz",
+        a: -400.0, b: 1050.0, c: 800.0,
+        min: 800.0, max: 1450.0,
+        eval: (x) => Math.min(1450.0, Math.max(800.0, -400.0 * x * x + 1050.0 * x + 800.0))
+      },
+      "hamiltonian_h": {
+        name: "Hamiltonián H",
+        unit: "energy",
+        a: 0.85, b: 0.20, c: 0.05,
+        min: 0.05, max: 1.20,
+        eval: (x) => Math.min(1.20, Math.max(0.05, 0.85 * x * x + 0.20 * x + 0.05))
+      },
+      "market_price_credits": {
+        name: "Trhová Cena AMM",
+        unit: "cr",
+        a: 120.0, b: 30.0, c: 10.0,
+        min: 10.0, max: 160.0,
+        eval: (x) => Math.min(160.0, Math.max(10.0, 120.0 * x * x + 30.0 * x + 10.0))
+      },
+      "vital_hp": {
+        name: "Životy Kmeňa (Max 6 HP)",
+        unit: "HP",
+        a: -3.5, b: -1.5, c: 6.0,
+        min: 0.0, max: 6.0,
+        eval: (x) => Math.min(6.0, Math.max(0.0, -3.5 * x * x - 1.5 * x + 6.0))
+      },
+      "terrain_altitude_m": {
+        name: "Nadmorská Výška",
+        unit: "m",
+        a: 1200.0, b: 600.0, c: 50.0,
+        min: 50.0, max: 1850.0,
+        eval: (x) => Math.min(1850.0, Math.max(50.0, 1200.0 * x * x + 600.0 * x + 50.0))
+      },
+      "system_entropy_s": {
+        name: "Systémová Entropia",
+        unit: "bits",
+        a: 0.45, b: 0.55, c: 0.02,
+        min: 0.02, max: 1.02,
+        eval: (x) => Math.min(1.02, Math.max(0.02, 0.45 * x * x + 0.55 * x + 0.02))
+      }
+    };
+
+    let currentLatentX = 0.61803;
+
+    // ── Setup DOM & Selectors ───────────────────────────────────────────────
+    const probeSlider = document.getElementById('probeSlider');
+    const probeDisplay = document.getElementById('probeDisplay');
+    const btnGoldenMean = document.getElementById('btnGoldenMean');
+    const cardsGrid = document.getElementById('domainCardsGrid');
+    const selSrc = document.getElementById('selSourceDomain');
+    const selTgt = document.getElementById('selTargetDomain');
+    const inpVal = document.getElementById('inpSourceValue');
+    const btnConv = document.getElementById('btnExecuteConvert');
+    const convResultBox = document.getElementById('convertResultBox');
+
+    // Populate Selectors
+    Object.keys(DOMAINS).forEach(key => {
+      const opt1 = document.createElement('option');
+      opt1.value = key;
+      opt1.innerText = `${DOMAINS[key].name} (${DOMAINS[key].unit})`;
+      selSrc.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = key;
+      opt2.innerText = `${DOMAINS[key].name} (${DOMAINS[key].unit})`;
+      selTgt.appendChild(opt2);
+    });
+    selSrc.value = "memory_latency_ns";
+    selTgt.value = "vital_hp";
+
+    // Build Cards
+    function renderCards() {
+      cardsGrid.innerHTML = '';
+      Object.keys(DOMAINS).forEach(key => {
+        const d = DOMAINS[key];
+        const val = d.eval(currentLatentX);
+        const card = document.createElement('div');
+        card.className = `domain-card ${key === 'vital_hp' ? 'vital-card' : ''}`;
+        card.id = `card-${key}`;
+        card.innerHTML = `
+          <div class="domain-card-label">${d.name.toUpperCase()}</div>
+          <div class="domain-card-value">
+            <span id="val-${key}">${val.toFixed(key === 'hamiltonian_h' || key === 'system_entropy_s' || key === 'vital_hp' ? 3 : 1)}</span>
+            <span class="domain-card-unit">${d.unit}</span>
+          </div>
+          <div class="domain-card-formula">V(x) = ${d.a}x&sup2; + ${d.b}x + ${d.c}</div>
+        `;
+        cardsGrid.appendChild(card);
+      });
+    }
+
+    function updateCardValues() {
+      Object.keys(DOMAINS).forEach(key => {
+        const d = DOMAINS[key];
+        const val = d.eval(currentLatentX);
+        const el = document.getElementById(`val-${key}`);
+        if (el) el.innerText = val.toFixed(key === 'hamiltonian_h' || key === 'system_entropy_s' || key === 'vital_hp' ? 3 : 1);
+      });
+      document.getElementById('currentXInfo').innerText = currentLatentX.toFixed(4);
+    }
+
+    renderCards();
+
+    // Slider Event
+    probeSlider.addEventListener('input', (e) => {
+      currentLatentX = parseFloat(e.target.value) / 1000.0;
+      probeDisplay.innerText = `x = ${currentLatentX.toFixed(3)}`;
+      updateCardValues();
+    });
+
+    btnGoldenMean.addEventListener('click', () => {
+      currentLatentX = 0.61803;
+      probeSlider.value = 618;
+      probeDisplay.innerText = `x = 0.618`;
+      updateCardValues();
+    });
+
+    // ── Execute Conversion Pipe via REST API or local fallback ──────────────
+    btnConv.addEventListener('click', async () => {
+      const src = selSrc.value;
+      const tgt = selTgt.value;
+      const val = parseFloat(inpVal.value);
+
+      convResultBox.innerHTML = `> Riešim kvadratickú rovnicu pre ${DOMAINS[src].name} = ${val} ${DOMAINS[src].unit}...`;
+
+      try {
+        const res = await fetch('/api/quadratic/convert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source_domain: src, value: val, target_domain: tgt })
+        });
+        const d = await res.json();
+        convResultBox.innerHTML = `
+          <strong>[ÚSPEŠNÁ KVADRATICKÁ TRANSFORMÁCIA]:</strong><br>
+          * Zdroj: <strong>${d.source.name}</strong> = ${d.source.value} ${d.source.unit}<br>
+          * Vypočítané latentné x: <strong style="color: var(--cyan); font-size: 1.1rem;">x = ${d.latent_bridge_x}</strong> (Diskriminant &Delta; = ${d.discriminant_delta})<br>
+          * Prepočet na cieľ: <strong>${d.target.name}</strong> = <strong style="color: var(--gold); font-size: 1.1rem;">${d.target.value} ${d.target.unit}</strong><br>
+          * Pipeline: <code>${d.conversion_pipeline}</code><br>
+          * Vital Max HP Rule: <span style="color: var(--green); font-weight: bold;">${d.vital_max_hp_rule} HP</span> (Invariant dodržaný)
+        `;
+        // Sync probe slider to extracted x
+        if (d.latent_bridge_x !== null) {
+          currentLatentX = Math.max(0, Math.min(1, d.latent_bridge_x));
+          probeSlider.value = Math.round(currentLatentX * 1000);
+          probeDisplay.innerText = `x = ${currentLatentX.toFixed(3)}`;
+          updateCardValues();
+        }
+      } catch (err) {
+        // Fallback local solver
+        const sDom = DOMAINS[src];
+        const tDom = DOMAINS[tgt];
+        const cEff = sDom.c - val;
+        const delta = sDom.b * sDom.b - 4.0 * sDom.a * cEff;
+        let xSol = 0.5;
+        if (delta >= 0) {
+          xSol = (-sDom.b + Math.sqrt(delta)) / (2.0 * sDom.a);
+          if (xSol < 0 || xSol > 1) xSol = (-sDom.b - Math.sqrt(delta)) / (2.0 * sDom.a);
+        }
+        xSol = Math.max(0, Math.min(1, xSol));
+        const tVal = tDom.eval(xSol);
+        convResultBox.innerHTML = `
+          <strong>[LOKÁLNY KVADRATICKÝ PREPOČET (FALLBACK)]:</strong><br>
+          * Extrahované x: <strong>${xSol.toFixed(4)}</strong> (&Delta; = ${delta.toFixed(2)})<br>
+          * Cieľová hodnota: <strong>${tDom.name} = ${tVal.toFixed(2)} ${tDom.unit}</strong> (Invariant 6 HP chránený)
+        `;
+      }
+    });
+
+    // ── Canvas 1: Parabola, Roots & Latent Marker ───────────────────────────
+    const cvsParabola = document.getElementById('canvasParabola');
+    const ctxParabola = cvsParabola.getContext('2d');
+    function resizeParabola() {
+      cvsParabola.width = cvsParabola.parentElement.clientWidth;
+      cvsParabola.height = cvsParabola.parentElement.clientHeight;
+    }
+    resizeParabola();
+    window.addEventListener('resize', resizeParabola);
+
+    function drawParabola() {
+      const w = cvsParabola.width;
+      const h = cvsParabola.height;
+      ctxParabola.fillStyle = '#04060a';
+      ctxParabola.fillRect(0, 0, w, h);
+
+      // Grid lines
+      ctxParabola.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctxParabola.lineWidth = 1;
+      for (let x = 0; x < w; x += 40) {
+        ctxParabola.beginPath(); ctxParabola.moveTo(x, 0); ctxParabola.lineTo(x, h); ctxParabola.stroke();
+      }
+      for (let y = 0; y < h; y += 40) {
+        ctxParabola.beginPath(); ctxParabola.moveTo(0, y); ctxParabola.lineTo(w, y); ctxParabola.stroke();
+      }
+
+      // Selected Domain Parabola (Memory Latency by default)
+      const d = DOMAINS["memory_latency_ns"];
+      const margin = 50;
+      const plotW = w - margin * 2;
+      const plotH = h - margin * 2;
+
+      // Draw Parabola curve
+      ctxParabola.beginPath();
+      ctxParabola.strokeStyle = '#00f0ff';
+      ctxParabola.lineWidth = 2.5;
+      ctxParabola.shadowColor = '#00f0ff';
+      ctxParabola.shadowBlur = 12;
+
+      for (let i = 0; i <= plotW; i++) {
+        const xNorm = i / plotW;
+        const v = d.eval(xNorm);
+        const yPx = h - margin - ((v - d.min) / (d.max - d.min)) * plotH;
+        if (i === 0) ctxParabola.moveTo(margin + i, yPx);
+        else ctxParabola.lineTo(margin + i, yPx);
+      }
+      ctxParabola.stroke();
+      ctxParabola.shadowBlur = 0;
+
+      // Draw Latent x vertical probe line
+      const probeXPx = margin + currentLatentX * plotW;
+      const currentV = d.eval(currentLatentX);
+      const probeYPx = h - margin - ((currentV - d.min) / (d.max - d.min)) * plotH;
+
+      ctxParabola.beginPath();
+      ctxParabola.setLineDash([4, 4]);
+      ctxParabola.strokeStyle = '#f59e0b';
+      ctxParabola.moveTo(probeXPx, margin);
+      ctxParabola.lineTo(probeXPx, h - margin);
+      ctxParabola.stroke();
+      ctxParabola.setLineDash([]);
+
+      // Point at curve
+      ctxParabola.beginPath();
+      ctxParabola.arc(probeXPx, probeYPx, 6, 0, Math.PI * 2);
+      ctxParabola.fillStyle = '#f59e0b';
+      ctxParabola.shadowColor = '#f59e0b';
+      ctxParabola.shadowBlur = 15;
+      ctxParabola.fill();
+      ctxParabola.shadowBlur = 0;
+
+      // Text annotation
+      ctxParabola.fillStyle = '#fff';
+      ctxParabola.font = '11px JetBrains Mono';
+      ctxParabola.fillText(`x=${currentLatentX.toFixed(3)} | V=${currentV.toFixed(1)} ${d.unit}`, probeXPx + 10, probeYPx - 10);
+
+      requestAnimationFrame(drawParabola);
+    }
+    drawParabola();
+
+    // ── Canvas 2: Multi-Domain Orbital Flux ─────────────────────────────────
+    const cvsFlux = document.getElementById('canvasFlux');
+    const ctxFlux = cvsFlux.getContext('2d');
+    function resizeFlux() {
+      cvsFlux.width = cvsFlux.parentElement.clientWidth;
+      cvsFlux.height = cvsFlux.parentElement.clientHeight;
+    }
+    resizeFlux();
+    window.addEventListener('resize', resizeFlux);
+
+    let fluxAngle = 0;
+    const domainKeys = Object.keys(DOMAINS);
+
+    function drawFlux() {
+      const w = cvsFlux.width;
+      const h = cvsFlux.height;
+      ctxFlux.fillStyle = '#04060a';
+      ctxFlux.fillRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const radius = Math.min(w, h) * 0.38;
+
+      fluxAngle += 0.015;
+
+      // Central Latent x Sun
+      ctxFlux.beginPath();
+      ctxFlux.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctxFlux.fillStyle = '#00f0ff';
+      ctxFlux.shadowColor = '#00f0ff';
+      ctxFlux.shadowBlur = 25;
+      ctxFlux.fill();
+      ctxFlux.shadowBlur = 0;
+
+      ctxFlux.fillStyle = '#07090e';
+      ctxFlux.font = 'bold 12px JetBrains Mono';
+      ctxFlux.textAlign = 'center';
+      ctxFlux.textBaseline = 'middle';
+      ctxFlux.fillText('x', cx, cy);
+
+      // Orbiting Domain Nodes
+      const count = domainKeys.length;
+      for (let i = 0; i < count; i++) {
+        const angle = fluxAngle + (i * Math.PI * 2) / count;
+        const nx = cx + Math.cos(angle) * radius;
+        const ny = cy + Math.sin(angle) * radius;
+
+        // Connecting quadratic bezier flux line
+        ctxFlux.beginPath();
+        ctxFlux.moveTo(cx, cy);
+        const midX = (cx + nx) / 2 + Math.sin(fluxAngle * 2 + i) * 15;
+        const midY = (cy + ny) / 2 + Math.cos(fluxAngle * 2 + i) * 15;
+        ctxFlux.quadraticCurveTo(midX, midY, nx, ny);
+        ctxFlux.strokeStyle = i % 2 === 0 ? 'rgba(0, 240, 255, 0.4)' : 'rgba(245, 158, 11, 0.4)';
+        ctxFlux.lineWidth = 1.5;
+        ctxFlux.stroke();
+
+        // Node Circle
+        ctxFlux.beginPath();
+        ctxFlux.arc(nx, ny, 14, 0, Math.PI * 2);
+        ctxFlux.fillStyle = i === 5 ? '#00ff88' : (i % 2 === 0 ? '#00f0ff' : '#f59e0b');
+        ctxFlux.fill();
+
+        // Label
+        const d = DOMAINS[domainKeys[i]];
+        const currentVal = d.eval(currentLatentX);
+        ctxFlux.fillStyle = '#fff';
+        ctxFlux.font = '10px JetBrains Mono';
+        ctxFlux.fillText(`${d.unit}: ${currentVal.toFixed(0)}`, nx, ny + 22);
+      }
+
+      requestAnimationFrame(drawFlux);
+    }
+    drawFlux();
+  </script>
+</body>
+</html>
