@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AERIAL SKY-ISLANDS // ROGALO, PADÁKY & BALÓNOVÝ MÍNOMET // BORDERLANDS & JUST CAUSE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Cinzel:wght@700;900&family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --borderlands-yellow: #facc15;
+      --borderlands-dark-yellow: #eab308;
+      --comic-black: #09090b;
+      --comic-dark: #18181b;
+      --comic-red: #ef4444;
+      --comic-orange: #f97316;
+      --comic-cyan: #06b6d4;
+      --comic-sky: #0284c7;
+      --comic-green: #22c55e;
+      --comic-border: 3.5px solid #09090b;
+      --comic-shadow: 6px 6px 0px #09090b;
+      --comic-shadow-lg: 10px 10px 0px #09090b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--borderlands-yellow);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(249, 115, 22, 0.25) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(2, 132, 199, 0.2) 0%, transparent 40%),
+        repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(0, 0, 0, 0.04) 15px, rgba(0, 0, 0, 0.04) 30px);
+      color: var(--comic-black);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 24px;
+    }
+
+    /* TOP BANNER */
+    .comic-navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 12px;
+      box-shadow: var(--comic-shadow);
+      padding: 14px 24px;
+      margin-bottom: 24px;
+    }
+    .brand-logo {
+      font-family: 'Bangers', cursive;
+      font-size: 2.2rem;
+      letter-spacing: 2px;
+      color: var(--comic-black);
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0px var(--borderlands-dark-yellow);
+    }
+    .brand-logo span {
+      color: var(--comic-red);
+    }
+    .nav-tags {
+      display: flex;
+      gap: 12px;
+    }
+    .comic-badge {
+      background: var(--comic-black);
+      color: var(--borderlands-yellow);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 2px solid var(--comic-black);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .badge-vital {
+      background: var(--comic-red);
+      color: #ffffff;
+    }
+
+    /* HERO SHOWCASE SECTION */
+    .hero-container {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+    @media (max-width: 1024px) {
+      .hero-container { grid-template-columns: 1fr; }
+    }
+
+    .poster-panel {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 16px;
+      box-shadow: var(--comic-shadow-lg);
+      padding: 18px;
+      position: relative;
+    }
+    .poster-img-wrapper {
+      width: 100%;
+      height: 480px;
+      border: var(--comic-border);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      background: #000;
+    }
+    .poster-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .poster-img-wrapper:hover img {
+      transform: scale(1.02);
+    }
+    .poster-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: var(--borderlands-yellow);
+      border: var(--comic-border);
+      box-shadow: 4px 4px 0px var(--comic-black);
+      font-family: 'Bangers', cursive;
+      font-size: 1.25rem;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      transform: rotate(-3deg);
+    }
+    .poster-tagline {
+      margin-top: 14px;
+      font-family: 'Bangers', cursive;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+      color: var(--comic-black);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* RIGHT SUMMARY PANEL */
+    .summary-panel {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 16px;
+      box-shadow: var(--comic-shadow-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel-title {
+      font-family: 'Bangers', cursive;
+      font-size: 2.1rem;
+      letter-spacing: 1.5px;
+      color: var(--comic-black);
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+    .panel-subtitle {
+      font-size: 0.95rem;
+      color: #3f3f46;
+      line-height: 1.5;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .feature-card {
+      background: #fafafa;
+      border: 2px solid var(--comic-black);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 3px 3px 0px var(--comic-black);
+    }
+    .feature-card h4 {
+      font-family: 'Bangers', cursive;
+      font-size: 1.15rem;
+      color: var(--comic-black);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .feature-card p {
+      font-size: 0.82rem;
+      color: #52525b;
+      line-height: 1.35;
+    }
+
+    /* NAVIGATION TABS */
+    .tab-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 10px;
+      box-shadow: var(--comic-shadow);
+      font-family: 'Bangers', cursive;
+      font-size: 1.35rem;
+      letter-spacing: 1px;
+      padding: 10px 22px;
+      cursor: pointer;
+      color: var(--comic-black);
+      transition: all 0.15s ease;
+    }
+    .tab-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0px var(--comic-black);
+      background: var(--borderlands-yellow);
+    }
+    .tab-btn.active {
+      background: var(--comic-black);
+      color: var(--borderlands-yellow);
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px var(--comic-black);
+    }
+
+    /* TAB CONTENTS */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* MAIN SIMULATION SECTION */
+    .sim-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap: 24px;
+    }
+    @media (max-width: 1024px) {
+      .sim-layout { grid-template-columns: 1fr; }
+    }
+
+    .controls-panel {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 14px;
+      box-shadow: var(--comic-shadow-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .controls-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .controls-group label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--comic-black);
+      display: flex;
+      justify-content: space-between;
+    }
+    .controls-group input[type="range"] {
+      accent-color: var(--comic-red);
+      height: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .controls-group select, .controls-group input[type="number"] {
+      border: 2px solid var(--comic-black);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      background: #fafafa;
+    }
+
+    .btn-fire {
+      background: var(--comic-red);
+      color: #ffffff;
+      font-family: 'Bangers', cursive;
+      font-size: 1.5rem;
+      letter-spacing: 1.5px;
+      padding: 12px 20px;
+      border: var(--comic-border);
+      border-radius: 10px;
+      box-shadow: var(--comic-shadow);
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-fire:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0px var(--comic-black);
+      background: #dc2626;
+    }
+    .btn-fire:active {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0px var(--comic-black);
+    }
+
+    .display-panel {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 14px;
+      box-shadow: var(--comic-shadow-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* CANVAS ARENA */
+    .canvas-container {
+      width: 100%;
+      height: 380px;
+      border: var(--comic-border);
+      border-radius: 10px;
+      background: #09090b;
+      position: relative;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* TELEMETRY & LOG OUTPUT */
+    .telemetry-box {
+      background: #18181b;
+      color: #22c55e;
+      border: 2px solid var(--comic-black);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      min-height: 140px;
+      overflow-y: auto;
+      max-height: 220px;
+    }
+
+    /* HP VITAL BAR */
+    .vital-hp-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f4f4f5;
+      border: 2px solid var(--comic-black);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .vital-hearts {
+      display: flex;
+      gap: 6px;
+    }
+    .heart-pip {
+      width: 22px;
+      height: 22px;
+      background: var(--comic-red);
+      border: 2px solid var(--comic-black);
+      border-radius: 4px;
+      box-shadow: 2px 2px 0px var(--comic-black);
+      transition: all 0.3s ease;
+    }
+    .heart-pip.lost {
+      background: #a1a1aa;
+      transform: scale(0.85);
+      box-shadow: none;
+    }
+
+    /* ISLAND CARDS */
+    .islands-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .island-card {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 12px;
+      box-shadow: var(--comic-shadow);
+      padding: 16px;
+      position: relative;
+    }
+    .island-card.has-mortar {
+      border-color: var(--comic-red);
+    }
+    .island-badge {
+      font-family: 'Bangers', cursive;
+      font-size: 0.9rem;
+      background: var(--comic-black);
+      color: var(--borderlands-yellow);
+      padding: 4px 8px;
+      border-radius: 6px;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+    .island-card h3 {
+      font-family: 'Bangers', cursive;
+      font-size: 1.35rem;
+      letter-spacing: 0.8px;
+      color: var(--comic-black);
+      margin-bottom: 6px;
+      max-width: 80%;
+    }
+    .island-metric {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #3f3f46;
+      margin: 4px 0;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* SKYBRIDGE LIST */
+    .bridges-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      margin-top: 12px;
+    }
+    .bridges-table th, .bridges-table td {
+      border: 2px solid var(--comic-black);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .bridges-table th {
+      background: var(--comic-black);
+      color: var(--borderlands-yellow);
+      font-family: 'Bangers', cursive;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+    }
+    .bridges-table td {
+      background: #ffffff;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 20px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      border-top: var(--comic-border);
+      color: var(--comic-black);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAV -->
+  <nav class="comic-navbar">
+    <div class="brand-logo">KRYSTAL-STACK // <span>AERIAL BALLOONS & MORTARS</span></div>
+    <div class="nav-tags">
+      <span class="comic-badge badge-vital">VITAL MAX HP: 6</span>
+      <span class="comic-badge">BORDERLANDS SHADING</span>
+      <span class="comic-badge">JUST CAUSE PHYSICS</span>
+      <span class="comic-badge">ROGALLO & CHUTE</span>
+    </div>
+  </nav>
+
+  <!-- HERO POSTER & SUMMARY -->
+  <div class="hero-container">
+    <div class="poster-panel">
+      <div class="poster-badge">OFFICIAL KEY ART // 2026 EDITION</div>
+      <div class="poster-img-wrapper">
+        <img src="/static/img/balloon_island_mortar_rogalo_poster.jpg" alt="Aerial Balloon Island Mortar and Rogalo Key Art">
+      </div>
+      <div class="poster-tagline">
+        <span>VZNÁŠAJÚCE SA OSTROVY, 240mm MÍNOMET, ROGALA & JUST CAUSE HÁKY</span>
+        <button class="comic-badge" onclick="window.open('/static/img/balloon_island_mortar_rogalo_poster.jpg', '_blank')">FULL POSTER [HD]</button>
+      </div>
+    </div>
+
+    <div class="summary-panel">
+      <h1 class="panel-title">VZDUŠNÝ BOJOVÝ EKOSYSTÉM: BALÓNY, CESTY & MÍNOMET</h1>
+      <p class="panel-subtitle">
+        Procedurálne generovaný svet prepájajúci vznášajúce sa skalnaté ostrovy nesené obrími aerostatmi,
+        zavesené lanové a oceľové mosty (nebeské cesty), ťažké obliehacie mínomety pália z výšky 280 metrov
+        a akrobatický pohyb na rogalách a riaditeľných padákoch s vystreľovacími hákmi.
+      </p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h4>Vznášajúce sa Ostrovy</h4>
+          <p>Tepelné a aéterické balóny s plynom nesú opevnené platformy spojené visutými cestami.</p>
+        </div>
+        <div class="feature-card">
+          <h4>Obliehací Mínomet</h4>
+          <p>Vysoko-uhlová balistika s gravitačným urýchlením z výšky 280 m. Pádová kinetická energia.</p>
+        </div>
+        <div class="feature-card">
+          <h4>Rogalo (Delta-Wing)</h4>
+          <p>Kĺzavosť 7.5:1, termické vzostupné prúdy a aerodynamický dolet naprieč sektormi.</p>
+        </div>
+        <div class="feature-card">
+          <h4>Padáky & Grapple</h4>
+          <p>Riaditeľný padák s brzdným odporom (5.2 m/s) a JC pritiahnutie hákom k ostrovu.</p>
+        </div>
+      </div>
+
+      <div class="vital-hp-bar">
+        <span style="font-family:'Bangers', cursive; font-size:1.2rem; letter-spacing:1px;">CIEĽOVÝ ODDIEĽ / POSÁDKA:</span>
+        <div class="vital-hearts" id="targetHearts">
+          <div class="heart-pip" id="hp-1"></div>
+          <div class="heart-pip" id="hp-2"></div>
+          <div class="heart-pip" id="hp-3"></div>
+          <div class="heart-pip" id="hp-4"></div>
+          <div class="heart-pip" id="hp-5"></div>
+          <div class="heart-pip" id="hp-6"></div>
+        </div>
+        <span id="targetHpText" style="font-family:'JetBrains Mono', monospace; font-weight:800; margin-left:auto;">6 / 6 HP</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('tab-mortar')">🎯 OBLIEHACÍ MÍNOMET (PLUNGING FIRE)</button>
+    <button class="tab-btn" onclick="switchTab('tab-islands')">🎈 NEBESKÉ OSTROVY & CESTY (SKYBRIDGES)</button>
+    <button class="tab-btn" onclick="switchTab('tab-flight')">🦅 ROGALO & RIADITEĽNÝ PADÁK (FLIGHT)</button>
+    <button class="tab-btn" onclick="switchTab('tab-grapple')">🪝 JUST CAUSE GRAPPLE & SLINGSHOT</button>
+  </div>
+
+  <!-- TAB 1: PLUNGING MORTAR SIMULATION -->
+  <div id="tab-mortar" class="tab-content active">
+    <div class="sim-layout">
+      <!-- CONTROLS -->
+      <div class="controls-panel">
+        <h2 style="font-family:'Bangers', cursive; font-size:1.75rem; letter-spacing:1px;">PALBNÝ POČÍTAČ MÍNOMETU</h2>
+        
+        <div class="controls-group">
+          <label>VÝŠKA OSTROVA (ELEVATION): <span id="valElev">280 m</span></label>
+          <input type="range" id="inputElev" min="100" max="500" value="280" oninput="updateMortarUI()">
+        </div>
+
+        <div class="controls-group">
+          <label>ÚSŤOVÁ RÝCHLOSŤ (MUZZLE VELOCITY): <span id="valV0">82 m/s</span></label>
+          <input type="range" id="inputV0" min="50" max="130" value="82" oninput="updateMortarUI()">
+        </div>
+
+        <div class="controls-group">
+          <label>ELEVAČNÝ UHOL (PITCH): <span id="valPitch">65°</span></label>
+          <input type="range" id="inputPitch" min="45" max="85" value="65" oninput="updateMortarUI()">
+        </div>
+
+        <div class="controls-group">
+          <label>BOČNÝ VIETOR (WIND DRIFT): <span id="valWind">4.5 m/s (90°)</span></label>
+          <input type="range" id="inputWind" min="0" max="15" value="4.5" step="0.5" oninput="updateMortarUI()">
+        </div>
+
+        <div class="controls-group">
+          <label>VZDIALENOSŤ CIEĽA (TARGET DISTANCE): <span id="valDist">450 m</span></label>
+          <input type="range" id="inputDist" min="150" max="750" value="450" step="10" oninput="updateMortarUI()">
+        </div>
+
+        <div class="controls-group">
+          <label>KALIBER MÍNOMETU: <span id="valCaliber">240 mm</span></label>
+          <select id="selectCaliber" onchange="updateMortarUI()">
+            <option value="120">120 mm Poľný Mínomet (Rýchla Kadencia)</option>
+            <option value="180">180 mm Ťažký Bombardér</option>
+            <option value="240" selected>240 mm Pevnostný Obliehací Mínomet</option>
+          </select>
+        </div>
+
+        <button class="btn-fire" onclick="fireMortar()">
+          💣 VYSTRELIŤ MÍNOMETNÝ GRANÁT
+        </button>
+      </div>
+
+      <!-- VISUAL CANVAS & TELEMETRY -->
+      <div class="display-panel">
+        <h3 style="font-family:'Bangers', cursive; font-size:1.4rem;">BALISTICKÁ TRAJEKTÓRIA (2D VÝŠKOVÝ PROFIL)</h3>
+        <div class="canvas-container">
+          <canvas id="mortarCanvas" width="700" height="380"></canvas>
+        </div>
+        <div class="telemetry-box" id="mortarTelemetry">
+          [SYSTÉM MÍNOMETU PRIPRAVENÝ] Nastavte parametre námeru a stlačte VYSTRELIŤ.
+          Gravitačné zrýchlenie pri páde z 280m dramaticky zvyšuje prierazný účinok.
+          Všetky zásahy striktne rešpektujú pravidlo 6 Max HP!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: SKY-ISLANDS & BRIDGES -->
+  <div id="tab-islands" class="tab-content">
+    <div class="islands-grid" id="islandsGrid">
+      <!-- Dynamically filled -->
+    </div>
+
+    <div class="display-panel" style="margin-top: 24px;">
+      <h2 style="font-family:'Bangers', cursive; font-size:1.75rem; letter-spacing:1px;">NEBESKÉ CESTY // VISUTÉ LANOVÉ MOSTY (SKYBRIDGES)</h2>
+      <p style="font-size:0.9rem; color:#52525b;">Zoznam prepájacích mostov medzi vznášajúcimi sa balónovými ostrovmi.</p>
+      
+      <table class="bridges-table">
+        <thead>
+          <tr>
+            <th>MOST ID</th>
+            <th>ZDROJOVÝ OSTROV</th>
+            <th>CIEĽOVÝ OSTROV</th>
+            <th>TYP PREMOSTENIA</th>
+            <th>DĹŽKA (m)</th>
+            <th>KOLÍSANIE</th>
+            <th>ZIPLINE</th>
+            <th>AKCIA</th>
+          </tr>
+        </thead>
+        <tbody id="bridgesTableBody">
+          <!-- Dynamically filled -->
+        </tbody>
+      </table>
+
+      <div class="telemetry-box" id="bridgeTelemetry" style="margin-top: 14px;">
+        [NEBESKÉ CESTY AKTÍVNE] Vyberte most a simulujte prechod pešo, behom alebo cez rýchly Zipline.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: ROGALLO GLIDER & PARACHUTE FLIGHT -->
+  <div id="tab-flight" class="tab-content">
+    <div class="sim-layout">
+      <!-- FLIGHT CONTROLS -->
+      <div class="controls-panel">
+        <h2 style="font-family:'Bangers', cursive; font-size:1.75rem; letter-spacing:1px;">LETOVÁ DYNAMIKA: ROGALO & PADÁK</h2>
+
+        <div class="controls-group">
+          <label>TYP ZARIADENIA:</label>
+          <select id="flightVehicleType" onchange="toggleFlightControls()">
+            <option value="rogallo_hang_glider">Rogalo (Flexibilné Delta-Krídlo, 7.5:1)</option>
+            <option value="steerable_parachute">Riaditeľný Padák (Vysoký Odpor, 5.2 m/s)</option>
+          </select>
+        </div>
+
+        <div class="controls-group">
+          <label>ŠTARTOVNÁ VÝŠKA: <span id="valLaunchAlt">340 m</span></label>
+          <input type="range" id="inputLaunchAlt" min="100" max="600" value="340" oninput="updateFlightUI()">
+        </div>
+
+        <div class="controls-group" id="grpAirspeed">
+          <label>LETOVÁ RÝCHLOSŤ: <span id="valAirspeed">18 m/s</span></label>
+          <input type="range" id="inputAirspeed" min="10" max="35" value="18" oninput="updateFlightUI()">
+        </div>
+
+        <div class="controls-group" id="grpThermal">
+          <label>TERMIKA (VZSOSTUPNÝ PRÚD): <span id="valThermal">+3.2 m/s</span></label>
+          <input type="range" id="inputThermal" min="0" max="8" value="3.2" step="0.2" oninput="updateFlightUI()">
+        </div>
+
+        <div class="controls-group" id="grpCanopy" style="display:none;">
+          <label>PLOCHA PADÁKU: <span id="valCanopy">28 m²</span></label>
+          <input type="range" id="inputCanopy" min="18" max="45" value="28" oninput="updateFlightUI()">
+        </div>
+
+        <button class="btn-fire" style="background:var(--comic-sky);" onclick="simulateFlight()">
+          🦅 SPUSTIŤ LETOVÚ SIMULÁCIU
+        </button>
+      </div>
+
+      <!-- FLIGHT CANVAS & TELEMETRY -->
+      <div class="display-panel">
+        <h3 style="font-family:'Bangers', cursive; font-size:1.4rem;">PROFIL KLESANIA A KĹZANIA VZDUCHOM</h3>
+        <div class="canvas-container">
+          <canvas id="flightCanvas" width="700" height="380"></canvas>
+        </div>
+        <div class="telemetry-box" id="flightTelemetry">
+          [LETOVÝ POČÍTAČ PRIPRAVENÝ] Rogalo využíva aerodynamickú kĺzavosť a termické prúdy.
+          Padák zaručuje bezpečné pristátie s terminálnou rýchlosťou ~5.2 m/s.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: JUST CAUSE GRAPPLE & SLINGSHOT -->
+  <div id="tab-grapple" class="tab-content">
+    <div class="sim-layout">
+      <!-- GRAPPLE CONTROLS -->
+      <div class="controls-panel">
+        <h2 style="font-family:'Bangers', cursive; font-size:1.75rem; letter-spacing:1px;">JUST CAUSE HÁK NA BALÓNOVÝ OSTROV</h2>
+
+        <div class="controls-group">
+          <label>CIEĽOVÝ OSTROV:</label>
+          <select id="selectGrappleTarget">
+            <option value="island_alpha">Alpha Bastion (Mínometná Citadela, Y=280m)</option>
+            <option value="island_beta">Beta Roost (Rogalo Letisko, Y=340m)</option>
+            <option value="island_gamma">Gamma Foundry (Tepelný Balón, Y=220m)</option>
+            <option value="island_delta">Delta Spire (Aéterová Veža, Y=380m)</option>
+          </select>
+        </div>
+
+        <div class="controls-group">
+          <label>POZÍCIA HRDINU (VÝŠKA Y): <span id="valHeroAlt">230 m</span></label>
+          <input type="range" id="inputHeroAlt" min="50" max="400" value="230" oninput="updateGrappleUI()">
+        </div>
+
+        <div class="controls-group">
+          <label>MAX DĹŽKA LANA: <span id="valCableLen">80 m</span></label>
+          <input type="range" id="inputCableLen" min="40" max="120" value="80" oninput="updateGrappleUI()">
+        </div>
+
+        <button class="btn-fire" style="background:var(--comic-orange);" onclick="executeGrappleBoarding()">
+          🪝 VYSTRELIŤ HÁK A PRITIAHNUŤ SA
+        </button>
+      </div>
+
+      <!-- GRAPPLE VISUAL & TELEMETRY -->
+      <div class="display-panel">
+        <h3 style="font-family:'Bangers', cursive; font-size:1.4rem;">PRITIAHNUTIE K NEBESKÉMU OSTROVU & SLINGSHOT</h3>
+        <div class="canvas-container">
+          <canvas id="grappleCanvas" width="700" height="380"></canvas>
+        </div>
+        <div class="telemetry-box" id="grappleTelemetry">
+          [SYSTÉM HÁKU ONLINE] Vystreľte Just Cause hák k nosnému balónu alebo spodnej plošine ostrova.
+          Po dosiahnutí vrcholu (apex) sa uvoľní katapultový impulz pre plynulý prechod do letu na rogale alebo padáku.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    KRYSTAL-STACK PLATFORM FRAMEWORK // BORDERLANDS CEL-SHADED SKY-ISLAND ARTILLERY & JUST CAUSE KINETICS<br>
+    VITAL MAX HP INVARIANT: 6 // JANET AST ENGINE BRIDGE // NCON BY KORRADO COMPATIBLE
+  </footer>
+
+  <script>
+    let currentTargetHp = 6;
+    let islandNetworkData = null;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById(tabId);
+      if (target) target.classList.add('active');
+      const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if (btn) btn.classList.add('active');
+
+      if (tabId === 'tab-mortar') drawMortarStatic();
+      if (tabId === 'tab-islands') loadIslandsNetwork();
+      if (tabId === 'tab-flight') drawFlightStatic();
+      if (tabId === 'tab-grapple') drawGrappleStatic();
+    }
+
+    function updateTargetHpDisplay(hp) {
+      currentTargetHp = Math.max(0, Math.min(6, hp));
+      for (let i = 1; i <= 6; i++) {
+        const heart = document.getElementById(`hp-${i}`);
+        if (heart) {
+          if (i <= currentTargetHp) {
+            heart.classList.remove('lost');
+          } else {
+            heart.classList.add('lost');
+          }
+        }
+      }
+      document.getElementById('targetHpText').textContent = `${currentTargetHp} / 6 HP`;
+    }
+
+    function updateMortarUI() {
+      document.getElementById('valElev').textContent = document.getElementById('inputElev').value + ' m';
+      document.getElementById('valV0').textContent = document.getElementById('inputV0').value + ' m/s';
+      document.getElementById('valPitch').textContent = document.getElementById('inputPitch').value + '°';
+      document.getElementById('valWind').textContent = document.getElementById('inputWind').value + ' m/s (90°)';
+      document.getElementById('valDist').textContent = document.getElementById('inputDist').value + ' m';
+      document.getElementById('valCaliber').textContent = document.getElementById('selectCaliber').value + ' mm';
+    }
+
+    async function fireMortar() {
+      const elev = parseFloat(document.getElementById('inputElev').value);
+      const v0 = parseFloat(document.getElementById('inputV0').value);
+      const pitch = parseFloat(document.getElementById('inputPitch').value);
+      const wind = parseFloat(document.getElementById('inputWind').value);
+      const dist = parseFloat(document.getElementById('inputDist').value);
+      const caliber = parseFloat(document.getElementById('selectCaliber').value);
+
+      const payload = {
+        island_elevation_m: elev,
+        muzzle_velocity_mps: v0,
+        pitch_angle_deg: pitch,
+        yaw_angle_deg: 0.0,
+        shell_caliber_mm: caliber,
+        wind_speed_mps: wind,
+        wind_direction_deg: 90.0,
+        target_dist_m: dist,
+        target_initial_hp: currentTargetHp
+      };
+
+      try {
+        const res = await fetch('/api/aerial/mortar/fire_plunge', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success && data.mortar_fire) {
+          renderMortarTrajectory(data.mortar_fire);
+        }
+      } catch (err) {
+        console.error('Mortar fire error:', err);
+      }
+    }
+
+    function renderMortarTrajectory(shot) {
+      const canvas = document.getElementById('mortarCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Draw background sky
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#0284c7');
+      grad.addColorStop(0.7, '#38bdf8');
+      grad.addColorStop(1, '#eab308');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Draw ground
+      ctx.fillStyle = '#18181b';
+      ctx.fillRect(0, h - 30, w, 30);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#000000';
+      ctx.strokeRect(0, h - 30, w, 30);
+
+      // Scale factors
+      const maxDist = Math.max(700, shot.horizontal_range_m * 1.25);
+      const maxAlt = 550;
+      const scaleX = (w - 120) / maxDist;
+      const scaleY = (h - 70) / maxAlt;
+
+      // Draw Floating Balloon Island at start
+      const islandX = 50;
+      const islandY = (h - 30) - (shot.elevation_advantage_m * scaleY);
+
+      // Balloon envelope
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.arc(islandX, islandY - 35, 25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#000000';
+      ctx.stroke();
+
+      // Platform
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(islandX - 25, islandY, 50, 14);
+      ctx.strokeRect(islandX - 25, islandY, 50, 14);
+
+      // Mortar Barrel
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#000000';
+      ctx.beginPath();
+      ctx.moveTo(islandX + 5, islandY);
+      ctx.lineTo(islandX + 22, islandY - 14);
+      ctx.stroke();
+
+      // Draw Target at dist
+      const targetScreenX = 50 + (shot.target_dist_m * scaleX);
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(targetScreenX - 12, h - 50, 24, 20);
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(targetScreenX - 12, h - 50, 24, 20);
+
+      // Trajectory points
+      const pts = shot.trajectory_points;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      pts.forEach((pt, idx) => {
+        const px = 50 + (pt.x * scaleX);
+        const py = (h - 30) - (pt.y * scaleY);
+        if (idx === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Impact explosion
+      const impactX = 50 + (shot.horizontal_range_m * scaleX);
+      const impactY = h - 30;
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.arc(impactX, impactY, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#ef4444';
+      ctx.stroke();
+
+      // Update target HP & Telemetry
+      updateTargetHpDisplay(shot.target_remaining_hp);
+
+      const tele = document.getElementById('mortarTelemetry');
+      tele.innerHTML = `
+        <span style="color:#facc15; font-weight:800;">[PALBA DOKONČENÁ // VÝSLEDOK: ${shot.hit_quality}]</span><br>
+        - Elevácia ostrova: ${shot.elevation_advantage_m} m | Doba letu: ${shot.flight_time_sec} s<br>
+        - Dopadová rýchlosť: ${shot.impact_speed_mps} m/s (gravitačné zrýchlenie)<br>
+        - Kinetická energia pádu: ${shot.plunging_kinetic_energy_kj} kJ<br>
+        - Vzdialenosť dopadu: ${shot.horizontal_range_m} m (Odchýlka od cieľa: ${shot.miss_distance_m} m)<br>
+        - Udelené poškodenie: ${shot.damage_inflicted} HP (Zostávajúce HP cieľa: ${shot.target_remaining_hp} / 6)<br>
+        - Vital Invariant 6 Max HP overený: <span style="color:#22c55e;">${shot.vital_max_hp_rule_observed ? 'ÁNO (100% ZHODA)' : 'CHYBA'}</span>
+      `;
+    }
+
+    function drawMortarStatic() {
+      const canvas = document.getElementById('mortarCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#facc15';
+      ctx.font = '20px Bangers';
+      ctx.fillText('PRIPRAVENÝ NA VÝPOČET PALBY MÍNOMETU Z BALÓNOVÉHO OSTROVA', 60, 190);
+    }
+
+    async function loadIslandsNetwork() {
+      try {
+        const res = await fetch('/api/aerial/islands/network');
+        const data = await res.json();
+        if (data.success && data.network) {
+          islandNetworkData = data.network;
+          renderIslands(data.network.islands);
+          renderBridges(data.network.skybridges);
+        }
+      } catch (err) {
+        console.error('Failed to load islands network:', err);
+      }
+    }
+
+    function renderIslands(islands) {
+      const container = document.getElementById('islandsGrid');
+      container.innerHTML = '';
+
+      Object.values(islands).forEach(isl => {
+        const card = document.createElement('div');
+        card.className = `island-card ${isl.mortar_equipped ? 'has-mortar' : ''}`;
+        card.innerHTML = `
+          <div class="island-badge">${isl.mortar_equipped ? '💣 CITADELA S MÍNOMETOM' : '🎈 VZNÁŠAJÚCI SA DOCK'}</div>
+          <h3>${isl.name}</h3>
+          <div class="island-metric"><span>NADMORSKÁ VÝŠKA:</span><strong>${isl.altitude_m} m</strong></div>
+          <div class="island-metric"><span>CELKOVÁ HMOTNOSŤ:</span><strong>${isl.island_mass_kg.toLocaleString()} kg</strong></div>
+          <div class="island-metric"><span>AEROSTAT TYP:</span><strong>${isl.aerostat_type}</strong></div>
+          <div class="island-metric"><span>OBRANNÉ VEŽE:</span><strong>${isl.defense_turrets}x Kanón</strong></div>
+          <div class="island-metric"><span>GARRISON VITAL HP:</span><strong style="color:var(--comic-red);">${isl.garrison_hp} / 6 HP</strong></div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderBridges(bridges) {
+      const tbody = document.getElementById('bridgesTableBody');
+      tbody.innerHTML = '';
+
+      bridges.forEach(b => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${b.id}</strong></td>
+          <td>${b.source_island}</td>
+          <td>${b.target_island}</td>
+          <td>${b.bridge_type}</td>
+          <td>${b.length_m} m</td>
+          <td>${(b.sway_factor * 100).toFixed(0)}%</td>
+          <td>${b.has_zipline ? '✅ ÁNO' : '❌ NIE'}</td>
+          <td>
+            <button class="comic-badge" onclick="traverseBridge('${b.id}', 'walk')">🚶 KROK</button>
+            <button class="comic-badge" style="background:var(--comic-sky);" onclick="traverseBridge('${b.id}', 'zipline')">⚡ ZIPLINE</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function traverseBridge(bridgeId, method) {
+      try {
+        const res = await fetch('/api/aerial/skybridge/traverse', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ bridge_id: bridgeId, traveler_weight_kg: 85.0, method: method })
+        });
+        const data = await res.json();
+        if (data.success && data.traversal) {
+          const t = data.traversal;
+          const tele = document.getElementById('bridgeTelemetry');
+          tele.innerHTML = `
+            <span style="color:#facc15; font-weight:800;">[PRECHOD MOSTOM: ${t.bridge_id} // METÓDA: ${t.method.toUpperCase()}]</span><br>
+            - Rýchlosť pohybu: ${t.speed_mps} m/s | Čas prechodu: ${t.traversal_time_sec} sekúnd<br>
+            - Index nestability (kolísanie vetrom): ${t.instability_index}<br>
+            - Bezpečný prechod zaručený: <span style="color:#22c55e;">${t.safe_crossing ? 'ÁNO' : 'RIZIKO PÁDU'}</span>
+          `;
+        }
+      } catch (err) {
+        console.error('Bridge traversal error:', err);
+      }
+    }
+
+    function toggleFlightControls() {
+      const vtype = document.getElementById('flightVehicleType').value;
+      const grpAirspeed = document.getElementById('grpAirspeed');
+      const grpThermal = document.getElementById('grpThermal');
+      const grpCanopy = document.getElementById('grpCanopy');
+
+      if (vtype === 'rogallo_hang_glider') {
+        grpAirspeed.style.display = 'flex';
+        grpThermal.style.display = 'flex';
+        grpCanopy.style.display = 'none';
+      } else {
+        grpAirspeed.style.display = 'none';
+        grpThermal.style.display = 'none';
+        grpCanopy.style.display = 'flex';
+      }
+    }
+
+    function updateFlightUI() {
+      document.getElementById('valLaunchAlt').textContent = document.getElementById('inputLaunchAlt').value + ' m';
+      document.getElementById('valAirspeed').textContent = document.getElementById('inputAirspeed').value + ' m/s';
+      document.getElementById('valThermal').textContent = '+' + document.getElementById('inputThermal').value + ' m/s';
+      document.getElementById('valCanopy').textContent = document.getElementById('inputCanopy').value + ' m²';
+    }
+
+    async function simulateFlight() {
+      const vtype = document.getElementById('flightVehicleType').value;
+      const alt = parseFloat(document.getElementById('inputLaunchAlt').value);
+      const payload = {
+        vehicle_type: vtype,
+        launch_altitude_m: alt,
+        deployment_altitude_m: alt,
+        initial_airspeed_mps: parseFloat(document.getElementById('inputAirspeed').value),
+        glide_ratio: 7.5,
+        thermal_updraft_mps: parseFloat(document.getElementById('inputThermal').value),
+        canopy_area_m2: parseFloat(document.getElementById('inputCanopy').value),
+        flight_duration_sec: 45.0,
+        descent_duration_sec: 35.0
+      };
+
+      try {
+        const res = await fetch('/api/aerial/flight/simulate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success && data.flight_simulation) {
+          renderFlightSimulation(data.flight_simulation);
+        }
+      } catch (err) {
+        console.error('Flight sim error:', err);
+      }
+    }
+
+    function renderFlightSimulation(sim) {
+      const canvas = document.getElementById('flightCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Background sky
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#0284c7');
+      grad.addColorStop(1, '#fde047');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Ground
+      ctx.fillStyle = '#18181b';
+      ctx.fillRect(0, h - 30, w, 30);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#000000';
+      ctx.strokeRect(0, h - 30, w, 30);
+
+      const isRogalo = sim.vehicle_type === 'rogallo_hang_glider';
+      const pts = isRogalo ? sim.flight_points : sim.descent_points;
+
+      const maxDist = isRogalo ? Math.max(600, sim.total_glide_distance_m * 1.15) : 250;
+      const maxAlt = 500;
+      const scaleX = (w - 120) / maxDist;
+      const scaleY = (h - 70) / maxAlt;
+
+      // Path
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = isRogalo ? '#ef4444' : '#09090b';
+      ctx.beginPath();
+      pts.forEach((pt, idx) => {
+        const dist = isRogalo ? pt.distance_m : pt.lateral_drift_m;
+        const px = 50 + (dist * scaleX);
+        const py = (h - 30) - (pt.altitude_m * scaleY);
+        if (idx === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+
+      // Draw glider or chute icon at end
+      const last = pts[pts.length - 1];
+      const endDist = isRogalo ? last.distance_m : last.lateral_drift_m;
+      const endX = 50 + (endDist * scaleX);
+      const endY = (h - 30) - (last.altitude_m * scaleY);
+
+      if (isRogalo) {
+        // Delta wing triangle
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.moveTo(endX + 16, endY);
+        ctx.lineTo(endX - 16, endY - 10);
+        ctx.lineTo(endX - 16, endY + 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#000000';
+        ctx.stroke();
+      } else {
+        // Parachute dome
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(endX, endY - 12, 14, Math.PI, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#000000';
+        ctx.stroke();
+      }
+
+      const tele = document.getElementById('flightTelemetry');
+      if (isRogalo) {
+        tele.innerHTML = `
+          <span style="color:#facc15; font-weight:800;">[ROGALO GLIDE SIMULÁCIA // KĹZAVOSŤ ${sim.glide_ratio}:1]</span><br>
+          - Štartovná výška: ${sim.launch_altitude_m} m | Konečná výška: ${sim.final_altitude_m} m (Zmena: ${sim.altitude_delta_m} m)<br>
+          - Celkový preletený horizontálny dolet: ${sim.total_glide_distance_m} m<br>
+          - Vzostupná termika aktívna: <span style="color:#22c55e;">${sim.thermal_lift_active ? 'ÁNO (STÚPANIE)' : 'KLESAJÚCI PROFIL'}</span>
+        `;
+      } else {
+        tele.innerHTML = `
+          <span style="color:#facc15; font-weight:800;">[RIADITEĽNÝ PADÁK // BRZDNÝ ODPOR]</span><br>
+          - Výška otvorenia: ${sim.deployment_altitude_m} m | Terminálna rýchlosť: ${sim.terminal_velocity_mps} m/s<br>
+          - Plocha vrchlíka: ${sim.canopy_area_m2} m² | Bočný drift riadením: ${sim.total_lateral_drift_m} m<br>
+          - Bezpečné mäkké pristátie: <span style="color:#22c55e;">${sim.soft_landing_guaranteed ? 'ZARUČENÉ (<6.0 m/s)' : 'TVRDÝ DOPAD'}</span>
+        `;
+      }
+    }
+
+    function drawFlightStatic() {
+      const canvas = document.getElementById('flightCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#facc15';
+      ctx.font = '20px Bangers';
+      ctx.fillText('PRIPRAVENÝ NA LETOVÚ SIMULÁCIU ROGALA ALEBO RIADITEĽNÉHO PADÁKU', 60, 190);
+    }
+
+    function updateGrappleUI() {
+      document.getElementById('valHeroAlt').textContent = document.getElementById('inputHeroAlt').value + ' m';
+      document.getElementById('valCableLen').textContent = document.getElementById('inputCableLen').value + ' m';
+    }
+
+    async function executeGrappleBoarding() {
+      const islId = document.getElementById('selectGrappleTarget').value;
+      const heroAlt = parseFloat(document.getElementById('inputHeroAlt').value);
+      const maxLen = parseFloat(document.getElementById('inputCableLen').value);
+
+      const islAltMap = {
+        'island_alpha': 280.0,
+        'island_beta': 340.0,
+        'island_gamma': 220.0,
+        'island_delta': 380.0
+      };
+      const targetAlt = islAltMap[islId] || 280.0;
+
+      const payload = {
+        hero_pos: [0.0, heroAlt, 40.0],
+        target_island_id: islId,
+        target_island_pos: [0.0, targetAlt, 0.0],
+        grapple_cable_length_max_m: maxLen
+      };
+
+      try {
+        const res = await fetch('/api/aerial/grapple/island_board', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success && data.boarding) {
+          renderGrappleAnimation(data.boarding, heroAlt, targetAlt);
+        }
+      } catch (err) {
+        console.error('Grapple error:', err);
+      }
+    }
+
+    function renderGrappleAnimation(b, heroAlt, targetAlt) {
+      const canvas = document.getElementById('grappleCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Background
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#0c4a6e');
+      grad.addColorStop(1, '#0284c7');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Hero Position
+      const hx = 180;
+      const hy = h - 60 - ((heroAlt / 400.0) * (h - 120));
+
+      // Island Position
+      const ix = 520;
+      const iy = h - 60 - ((targetAlt / 400.0) * (h - 120));
+
+      // Balloon and Island Platform
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(ix, iy - 45, 35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#000';
+      ctx.stroke();
+
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(ix - 40, iy, 80, 20);
+      ctx.strokeRect(ix - 40, iy, 80, 20);
+
+      // Cable
+      if (b.status === 'hook_attached_and_reeled') {
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = '#facc15';
+        ctx.beginPath();
+        ctx.moveTo(hx, hy);
+        ctx.lineTo(ix, iy);
+        ctx.stroke();
+
+        // Slingshot velocity vector
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = '#22c55e';
+        ctx.beginPath();
+        ctx.moveTo(ix, iy);
+        ctx.lineTo(ix + 50, iy - 40);
+        ctx.stroke();
+      }
+
+      // Hero
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(hx, hy, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#000';
+      ctx.stroke();
+
+      const tele = document.getElementById('grappleTelemetry');
+      if (b.status === 'hook_attached_and_reeled') {
+        tele.innerHTML = `
+          <span style="color:#facc15; font-weight:800;">[JUST CAUSE HÁK PRICHYTENÝ // PRITIAHNUTIE PREBIEHA]</span><br>
+          - Vzdialenosť k ostrovu: ${b.distance_m} m | Čas pritiahnutia lanom: ${b.pull_time_sec} s<br>
+          - Apex Slingshot katapultový impulz: +${b.slingshot_boost_mps} m/s<br>
+          - Následná akcia: ${b.recommended_next_action}<br>
+          - Vital Invariant 6 Max HP posádky zachovaný.
+        `;
+      } else {
+        tele.innerHTML = `
+          <span style="color:#ef4444; font-weight:800;">[HÁK NEDOSIAHOL CIEĽ // OUT OF RANGE]</span><br>
+          - Vzdialenosť: ${b.distance_m} m (Limit lana: ${b.max_cable_length_m} m)<br>
+          - Odporúčanie: Vystúpte vyššie na Rogale alebo využite stúpavý termický prúd.
+        `;
+      }
+    }
+
+    function drawGrappleStatic() {
+      const canvas = document.getElementById('grappleCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#facc15';
+      ctx.font = '20px Bangers';
+      ctx.fillText('PRIPRAVENÝ NA JUST CAUSE PRITIAHNUTIE HÁKOM K BALÓNOVÉMU OSTROVU', 60, 190);
+    }
+
+    // Init on load
+    window.addEventListener('DOMContentLoaded', () => {
+      updateMortarUI();
+      drawMortarStatic();
+      loadIslandsNetwork();
+    });
+  </script>
+</body>
+</html>

@@ -25,6 +25,7 @@ import urllib.parse
 import urllib.request
 import urllib.error
 import mimetypes
+from dataclasses import asdict
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
     daemon_threads = True
@@ -115,7 +116,14 @@ from krystal_web_hub.economic_engine import (
     GLOBAL_VISUAL_PHENOMENA, GLOBAL_SPELL_PROJECTION,
     GLOBAL_ANOMALY_DETECTOR, GLOBAL_TOTEM_MANAGER,
     CANONICAL_MULLIGAN_CARDS, MulliganPhaseManager, CombinatorialTacticalMoveEngine,
-    GLOBAL_MULLIGAN_MANAGER, GLOBAL_COMBINATORIAL_ENGINE
+    GLOBAL_MULLIGAN_MANAGER, GLOBAL_COMBINATORIAL_ENGINE,
+    VorpXVRBridgeEngine, JustCauseKineticPhysicsEngine,
+    BorderlandsCelShadingEngine, NconProductMarketingEngine,
+    GLOBAL_VORPX_VR_BRIDGE, GLOBAL_JUSTCAUSE_PHYSICS,
+    GLOBAL_CEL_SHADING, GLOBAL_NCON_MARKETING,
+    AerostatProfile, FloatingIslandNode,
+    AerialBalloonIslandEngine, PlungingMortarArtilleryEngine, RogaloAndParachuteFlightEngine,
+    GLOBAL_BALLOON_ISLAND_ENGINE, GLOBAL_PLUNGING_MORTAR_ENGINE, GLOBAL_ROGALO_PARACHUTE_ENGINE
 )
 from krystal_web_hub.economic_engine.ability_framework import (
     calculate_hex_distance, validate_target_range
@@ -1662,6 +1670,48 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                     "slow_to_root_projectile_combo",
                     "sector_freeze_aoe_control"
                 ]
+            })
+            return
+
+        if path == '/api/vr/headsets/profiles':
+            profiles = VorpXVRBridgeEngine.get_headset_profiles()
+            self._send_json({
+                "success": True,
+                "count": len(profiles),
+                "profiles": profiles
+            })
+            return
+
+        if path == '/api/marketing/ncon_product/specs':
+            pkg = NconProductMarketingEngine.get_marketing_package()
+            self._send_json({
+                "success": True,
+                "marketing": pkg
+            })
+            return
+
+        if path == '/api/graphics/cel_shading/spec':
+            spec = BorderlandsCelShadingEngine.get_cel_shading_uniforms()
+            self._send_json({
+                "success": True,
+                "spec": spec
+            })
+            return
+
+        if path == '/api/aerial/islands/network':
+            network = GLOBAL_BALLOON_ISLAND_ENGINE.get_island_network()
+            self._send_json({
+                "success": True,
+                "network": network
+            })
+            return
+
+        if path == '/api/aerial/balloons/profiles':
+            profiles = GLOBAL_BALLOON_ISLAND_ENGINE.get_aerostat_profiles()
+            self._send_json({
+                "success": True,
+                "count": len(profiles),
+                "profiles": profiles
             })
             return
 
@@ -3484,6 +3534,152 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 available_hand=GLOBAL_MULLIGAN_MANAGER.opening_hand
             )
             self._send_json({"success": True, **sim_res})
+            return
+
+        if path == '/api/vr/stereo_projection':
+            headset_id = req_data.get("headset_id", "ncon_by_korrado")
+            custom_ipd = req_data.get("custom_ipd_mm", None)
+            cam_pos = req_data.get("camera_pos", [0.0, 1.7, 0.0])
+            res = VorpXVRBridgeEngine.compute_stereoscopic_projection(
+                headset_id=headset_id,
+                custom_ipd_mm=float(custom_ipd) if custom_ipd is not None else None,
+                world_camera_pos=tuple(cam_pos[:3])
+            )
+            self._send_json({"success": True, "projection": res})
+            return
+
+        if path == '/api/physics/grapple_tether/simulate':
+            origin = req_data.get("origin_pos", [0.0, 1.7, 0.0])
+            target = req_data.get("target_pos", [15.0, 1.0, 20.0])
+            p_mass = float(req_data.get("player_mass_kg", 85.0))
+            t_mass = float(req_data.get("target_mass_kg", 50.0))
+            reel_n = float(req_data.get("reel_in_force_n", 1200.0))
+            tether_res = JustCauseKineticPhysicsEngine.simulate_grapple_tether(
+                origin_pos=tuple(origin[:3]),
+                target_pos=tuple(target[:3]),
+                player_mass_kg=p_mass,
+                target_mass_kg=t_mass,
+                reel_in_force_n=reel_n
+            )
+            self._send_json({"success": True, "tether": tether_res})
+            return
+
+        if path == '/api/physics/slingshot/simulate':
+            v_curr = float(req_data.get("current_velocity_mps", 18.0))
+            tension = float(req_data.get("tether_tension_n", 1200.0))
+            p_mass = float(req_data.get("player_mass_kg", 85.0))
+            angle = float(req_data.get("release_angle_deg", 25.0))
+            boost_res = JustCauseKineticPhysicsEngine.simulate_slingshot_momentum(
+                current_velocity_mps=v_curr,
+                tether_tension_n=tension,
+                player_mass_kg=p_mass,
+                release_angle_deg=angle
+            )
+            self._send_json({"success": True, "slingshot": boost_res})
+            return
+
+        if path == '/api/physics/wingsuit_glide/simulate':
+            alt = float(req_data.get("drop_altitude_m", 150.0))
+            speed = float(req_data.get("airspeed_mps", 35.0))
+            pitch = float(req_data.get("dive_pitch_deg", -12.0))
+            glide_res = JustCauseKineticPhysicsEngine.simulate_wingsuit_glide(
+                drop_altitude_m=alt,
+                airspeed_mps=speed,
+                dive_pitch_deg=pitch
+            )
+            self._send_json({"success": True, "glide": glide_res})
+            return
+
+        if path == '/api/aerial/balloons/buoyancy':
+            p_id = req_data.get("profile_id", "ironclad_siege_island")
+            payload = float(req_data.get("current_payload_kg", 12000.0))
+            try:
+                buoyancy_res = GLOBAL_BALLOON_ISLAND_ENGINE.compute_buoyancy(p_id, payload)
+                self._send_json({"success": True, "buoyancy": buoyancy_res})
+            except Exception as e:
+                self._send_json({"success": False, "error": str(e)}, status=400)
+            return
+
+        if path == '/api/aerial/mortar/fire_plunge':
+            elev = float(req_data.get("island_elevation_m", 280.0))
+            v0 = float(req_data.get("muzzle_velocity_mps", 82.0))
+            pitch = float(req_data.get("pitch_angle_deg", 65.0))
+            yaw = float(req_data.get("yaw_angle_deg", 0.0))
+            caliber = float(req_data.get("shell_caliber_mm", 240.0))
+            w_speed = float(req_data.get("wind_speed_mps", 4.5))
+            w_dir = float(req_data.get("wind_direction_deg", 90.0))
+            target_dist = float(req_data.get("target_dist_m", 450.0))
+            target_hp = int(req_data.get("target_initial_hp", 6))
+
+            mortar_res = GLOBAL_PLUNGING_MORTAR_ENGINE.fire_plunging_mortar(
+                island_elevation_m=elev,
+                muzzle_velocity_mps=v0,
+                pitch_angle_deg=pitch,
+                yaw_angle_deg=yaw,
+                shell_caliber_mm=caliber,
+                wind_speed_mps=w_speed,
+                wind_direction_deg=w_dir,
+                target_dist_m=target_dist,
+                target_initial_hp=target_hp
+            )
+            self._send_json({"success": True, "mortar_fire": mortar_res})
+            return
+
+        if path == '/api/aerial/flight/simulate':
+            v_type = req_data.get("vehicle_type", "rogallo_hang_glider")
+            if v_type == "rogallo_hang_glider":
+                launch_alt = float(req_data.get("launch_altitude_m", 340.0))
+                speed = float(req_data.get("initial_airspeed_mps", 18.0))
+                g_ratio = float(req_data.get("glide_ratio", 7.5))
+                thermal = float(req_data.get("thermal_updraft_mps", 3.2))
+                duration = float(req_data.get("flight_duration_sec", 45.0))
+                headwind = float(req_data.get("wind_headwind_mps", 2.0))
+                sim_res = GLOBAL_ROGALO_PARACHUTE_ENGINE.simulate_rogallo_glider(
+                    launch_altitude_m=launch_alt,
+                    initial_airspeed_mps=speed,
+                    glide_ratio=g_ratio,
+                    thermal_updraft_mps=thermal,
+                    flight_duration_sec=duration,
+                    wind_headwind_mps=headwind
+                )
+            else:
+                dep_alt = float(req_data.get("deployment_altitude_m", 280.0))
+                mass = float(req_data.get("payload_mass_kg", 85.0))
+                area = float(req_data.get("canopy_area_m2", 28.0))
+                drag = float(req_data.get("drag_coefficient", 1.45))
+                steer = float(req_data.get("steer_lateral_mps", 3.5))
+                dur = float(req_data.get("descent_duration_sec", 35.0))
+                sim_res = GLOBAL_ROGALO_PARACHUTE_ENGINE.simulate_steerable_parachute(
+                    deployment_altitude_m=dep_alt,
+                    payload_mass_kg=mass,
+                    canopy_area_m2=area,
+                    drag_coefficient=drag,
+                    steer_lateral_mps=steer,
+                    descent_duration_sec=dur
+                )
+            self._send_json({"success": True, "flight_simulation": sim_res})
+            return
+
+        if path == '/api/aerial/skybridge/traverse':
+            b_id = req_data.get("bridge_id", "bridge_alpha_beta")
+            weight = float(req_data.get("traveler_weight_kg", 85.0))
+            method = req_data.get("method", "walk")
+            trav_res = GLOBAL_BALLOON_ISLAND_ENGINE.traverse_skybridge(b_id, weight, method)
+            self._send_json({"success": True, "traversal": trav_res})
+            return
+
+        if path == '/api/aerial/grapple/island_board':
+            hero_pos = req_data.get("hero_pos", [0.0, 220.0, 50.0])
+            island_id = req_data.get("target_island_id", "island_alpha")
+            island_pos = req_data.get("target_island_pos", [0.0, 280.0, 0.0])
+            max_cable = float(req_data.get("grapple_cable_length_max_m", 80.0))
+            board_res = GLOBAL_ROGALO_PARACHUTE_ENGINE.execute_just_cause_grapple_to_balloon_island(
+                hero_initial_pos=tuple(hero_pos[:3]),
+                target_island_id=island_id,
+                target_island_pos=tuple(island_pos[:3]),
+                grapple_cable_length_max_m=max_cable
+            )
+            self._send_json({"success": True, "boarding": board_res})
             return
 
         if path.startswith('/api/') and self._proxy_to_hub("POST", body=post_data.encode('utf-8') if isinstance(post_data, str) else post_data):

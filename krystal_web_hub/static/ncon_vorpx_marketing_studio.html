@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NCON BY KORRADO // VORPX VR & JUST CAUSE KINETIC LAUNCHPAD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Cinzel:wght@700;900&family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --borderlands-yellow: #facc15;
+      --borderlands-dark-yellow: #eab308;
+      --comic-black: #09090b;
+      --comic-dark: #18181b;
+      --comic-red: #ef4444;
+      --comic-orange: #f97316;
+      --comic-cyan: #06b6d4;
+      --comic-border: 3.5px solid #09090b;
+      --comic-shadow: 6px 6px 0px #09090b;
+      --comic-shadow-lg: 10px 10px 0px #09090b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--borderlands-yellow);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(249, 115, 22, 0.25) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(239, 68, 68, 0.2) 0%, transparent 40%),
+        repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(0, 0, 0, 0.04) 15px, rgba(0, 0, 0, 0.04) 30px);
+      color: var(--comic-black);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 24px;
+    }
+
+    /* TOP BANNER */
+    .comic-navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 12px;
+      box-shadow: var(--comic-shadow);
+      padding: 14px 24px;
+      margin-bottom: 24px;
+    }
+    .brand-logo {
+      font-family: 'Bangers', cursive;
+      font-size: 2.2rem;
+      letter-spacing: 2px;
+      color: var(--comic-black);
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0px var(--borderlands-dark-yellow);
+    }
+    .brand-logo span {
+      color: var(--comic-red);
+      text-shadow: 2px 2px 0px var(--comic-black);
+    }
+
+    .badge-pills {
+      display: flex;
+      gap: 12px;
+    }
+    .comic-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 2px solid var(--comic-black);
+      background: var(--borderlands-yellow);
+      box-shadow: 2px 2px 0px var(--comic-black);
+      text-transform: uppercase;
+    }
+    .comic-pill.red { background: var(--comic-red); color: #fff; }
+    .comic-pill.cyan { background: var(--comic-cyan); color: #000; }
+
+    .nav-btn {
+      text-decoration: none;
+      font-family: 'Bangers', cursive;
+      font-size: 1.15rem;
+      letter-spacing: 1px;
+      padding: 8px 18px;
+      border-radius: 8px;
+      background: var(--comic-black);
+      color: var(--borderlands-yellow);
+      border: 2px solid var(--comic-black);
+      box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
+      transition: all 0.15s ease;
+    }
+    .nav-btn:hover {
+      background: var(--comic-red);
+      color: #fff;
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0px var(--comic-black);
+    }
+
+    /* HERO SECTION */
+    .hero-container {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 16px;
+      box-shadow: var(--comic-shadow-lg);
+      padding: 28px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .hero-title {
+      font-family: 'Bangers', cursive;
+      font-size: 3.6rem;
+      line-height: 1.05;
+      letter-spacing: 2px;
+      color: var(--comic-black);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .hero-title .highlight {
+      color: var(--comic-red);
+      background: var(--borderlands-yellow);
+      padding: 0 8px;
+      border: 2px solid var(--comic-black);
+      box-shadow: 3px 3px 0px var(--comic-black);
+      display: inline-block;
+      transform: rotate(-2deg);
+    }
+
+    .hero-tagline {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #3f3f46;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .poster-frame {
+      border: var(--comic-border);
+      border-radius: 12px;
+      box-shadow: var(--comic-shadow);
+      overflow: hidden;
+      background: var(--comic-black);
+      position: relative;
+    }
+    .poster-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    .poster-img:hover {
+      transform: scale(1.02);
+    }
+
+    /* ACTION BUTTONS */
+    .comic-btn {
+      font-family: 'Bangers', cursive;
+      font-size: 1.3rem;
+      letter-spacing: 1.5px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: var(--comic-border);
+      box-shadow: var(--comic-shadow);
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .comic-btn:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 8px 8px 0px var(--comic-black);
+    }
+    .comic-btn.red { background: var(--comic-red); color: #fff; }
+    .comic-btn.yellow { background: var(--borderlands-yellow); color: var(--comic-black); }
+    .comic-btn.cyan { background: var(--comic-cyan); color: var(--comic-black); }
+
+    /* LAYOUT GRID */
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .comic-card {
+      background: #ffffff;
+      border: var(--comic-border);
+      border-radius: 14px;
+      box-shadow: var(--comic-shadow);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid var(--comic-black);
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-family: 'Bangers', cursive;
+      font-size: 1.6rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* CANVAS SANDBOX */
+    .canvas-wrapper {
+      width: 100%;
+      height: 320px;
+      background: #fef08a;
+      border: var(--comic-border);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 14px;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* TABLE */
+    .comic-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 10px;
+    }
+    .comic-table th {
+      background: var(--comic-black);
+      color: var(--borderlands-yellow);
+      font-family: 'Bangers', cursive;
+      font-size: 1.05rem;
+      letter-spacing: 1px;
+      padding: 8px 12px;
+      text-align: left;
+      border: 2px solid var(--comic-black);
+    }
+    .comic-table td {
+      padding: 9px 12px;
+      border: 2px solid var(--comic-black);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+    .comic-table tr:nth-child(even) {
+      background: rgba(250, 204, 21, 0.15);
+    }
+    .comic-table tr.highlight-ncon {
+      background: rgba(239, 68, 68, 0.15);
+      border: 3px solid var(--comic-red);
+    }
+
+    /* PRICING GRID */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .price-box {
+      border: var(--comic-border);
+      border-radius: 10px;
+      padding: 16px;
+      background: #fff;
+      box-shadow: 4px 4px 0px var(--comic-black);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .price-box.featured {
+      background: #fef9c3;
+      border-color: var(--comic-red);
+      box-shadow: 6px 6px 0px var(--comic-red);
+    }
+    .price-title {
+      font-family: 'Bangers', cursive;
+      font-size: 1.3rem;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .price-amount {
+      font-family: 'Bangers', cursive;
+      font-size: 2.2rem;
+      color: var(--comic-red);
+      margin-bottom: 10px;
+    }
+    .price-desc {
+      font-size: 0.78rem;
+      color: #52525b;
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+
+    /* TELEMETRY LOG */
+    .telemetry-box {
+      background: var(--comic-dark);
+      border: var(--comic-border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      color: #facc15;
+      height: 150px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <div class="comic-navbar">
+    <div class="brand-logo">NCON <span>BY KORRADO</span> // VORPX VR</div>
+    <div class="badge-pills">
+      <div class="comic-pill red">JUST CAUSE KINETICS</div>
+      <div class="comic-pill cyan">130° FOV // DUAL 4K</div>
+      <div class="comic-pill">BORDERLANDS CEL-SHADING</div>
+    </div>
+    <a href="/index.html" class="nav-btn">← SPÄŤ DO HUB-U</a>
+  </div>
+
+  <!-- HERO SECTION WITH OFFICIAL GENERATIVE AI KEY ART -->
+  <div class="hero-container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-title">
+          SWING FREE.<br>
+          <span class="highlight">CAUSE CHAOS.</span>
+        </div>
+        <p class="hero-tagline">
+          Predstavujeme <strong>Ncon by Korrado</strong> — revolučný VorpX VR hardvérový mostík a kinetický fyzikálny engine. Šialená voľnosť s dvojitým grapplom v štýle Just Cause a dychberúci Borderlands cel-shaded komiksový vizuál priamo na vašom HTC Vive Pro, Meta Quest alebo vlajkovom headsete Ncon!
+        </p>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="comic-btn red" onclick="triggerTetherImpact()">
+            💥 VYSTRELIŤ TETHER & ODPÁLIŤ BAREL
+          </button>
+          <button class="comic-btn cyan" onclick="triggerSlingshotWingsuit()">
+            🦅 SLINGSHOT DO WINGSUITU
+          </button>
+        </div>
+      </div>
+
+      <div class="poster-frame">
+        <img src="/static/img/ncon_borderlands_justcause_poster.jpg" alt="Ncon by Korrado Poster" class="poster-img">
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN STUDIO GRID -->
+  <div class="studio-grid">
+
+    <!-- COL 1: KINETIC PHYSICS SANDBOX (Just Cause) -->
+    <div class="comic-card">
+      <div class="card-header-bar">
+        <div class="card-title">JUST CAUSE // KINETICKÝ GRAPPLE & WINGSUIT SIMULÁTOR</div>
+        <div class="comic-pill red" id="physics-status">TETHER READY</div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas id="physics-canvas"></canvas>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+        <button class="comic-btn yellow" style="flex: 1;" onclick="triggerTetherImpact()">
+          ⛓ ZATIAHNUŤ LANÁ (REEL-IN)
+        </button>
+        <button class="comic-btn cyan" style="flex: 1;" onclick="triggerSlingshotWingsuit()">
+          🚀 SLINGSHOT BOOST
+        </button>
+      </div>
+
+      <div class="telemetry-box" id="physics-telemetry">
+        [INIT] Just Cause Fyzikálny Engine aktívny.<br>
+        • Grapple Hook: 1200 N ťažná sila lanového navijaku.<br>
+        • Wingsuit Gliding Ratio: 3.5 : 1 (Aerodynamický sklz Gaie).
+      </div>
+    </div>
+
+    <!-- COL 2: VORPX VR HEADSET COMPARISON & STEREO VIEWPORT -->
+    <div class="comic-card">
+      <div class="card-header-bar">
+        <div class="card-title">VORPX VR // HARDVÉROVÉ POROVNANIE & STEREOSKOPIA</div>
+        <select id="headset-select" onchange="onHeadsetChange()" style="font-family: 'JetBrains Mono', monospace; font-weight: 700; padding: 6px 10px; border: 2px solid #000; border-radius: 6px;">
+          <option value="ncon_by_korrado">Ncon by Korrado Ultra-VR (130° FOV)</option>
+          <option value="htc_vive_pro">HTC Vive Pro (PC VR)</option>
+          <option value="meta_quest">Meta Quest 3 (Standalone / Link)</option>
+        </select>
+      </div>
+
+      <table class="comic-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>HTC Vive Pro</th>
+            <th>Meta Quest 3</th>
+            <th>Ncon by Korrado</th>
+          </tr>
+        </thead>
+        <tbody id="comparison-table-body">
+          <!-- Populated dynamically via /api/marketing/ncon_product/specs -->
+        </tbody>
+      </table>
+
+      <div style="margin-top: 16px; padding: 12px; background: #fef08a; border: 2px solid #000; border-radius: 8px;">
+        <div style="font-family: 'Bangers', cursive; font-size: 1.15rem; margin-bottom: 4px;">VORPX 3D STEREOSKOPICKÝ PROJEKTOR (GODOT 4 UNIFORMS):</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: #18181b;" id="vr-uniforms-box">
+          Načítavam parametre stereoskopie...
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PRICING & LAUNCH BUNDLES -->
+  <div class="hero-container" style="padding: 24px;">
+    <div class="card-title" style="font-size: 2rem; margin-bottom: 6px;">
+      NCON BY KORRADO // PREDAJNÉ BALÍKY & MARKETINGOVÁ PONUKA
+    </div>
+    <p style="font-size: 0.9rem; font-weight: 600; color: #52525b; margin-bottom: 16px;">
+      Oficiálna výbava pre fanúšikov extrémneho pohybu, grapplu, VorpX injekcie a Borderlands estetiky.
+    </p>
+
+    <div class="pricing-grid" id="pricing-container">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+
+  <script>
+    let currentHeadset = 'ncon_by_korrado';
+    let tetherState = {
+      playerPos: [50, 160],
+      barrelPos: [260, 220],
+      buggyPos: [360, 240],
+      isPulling: false,
+      isFlyingWingsuit: false,
+      explosionTriggered: false
+    };
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      initPhysicsCanvas();
+      await loadMarketingSpecs();
+      await loadVRStereoProjection();
+    });
+
+    // ── LOAD SPECS ────────────────────────────────────────────────────────────
+    async function loadMarketingSpecs() {
+      try {
+        const res = await fetch('/api/marketing/ncon_product/specs');
+        const data = await res.json();
+        if (data.success && data.marketing) {
+          const m = data.marketing;
+
+          // Comparison table
+          const tbody = document.getElementById('comparison-table-body');
+          tbody.innerHTML = '';
+          m.hardware_comparison_table.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${row.feature}</td>
+              <td>${row.htc_vive_pro}</td>
+              <td>${row.meta_quest_3}</td>
+              <td style="color: var(--comic-red); font-weight: 800;">${row.ncon_by_korrado}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          // Pricing grid
+          const pgrid = document.getElementById('pricing-container');
+          pgrid.innerHTML = '';
+          m.pricing_tiers.forEach((tier, idx) => {
+            const box = document.createElement('div');
+            box.className = `price-box ${idx === 1 ? 'featured' : ''}`;
+            box.innerHTML = `
+              <div>
+                <div class="price-title">${tier.tier_name}</div>
+                <div class="price-amount">€${tier.price_eur.toFixed(0)}</div>
+                <div class="price-desc">${tier.contents}</div>
+              </div>
+              <button class="comic-btn ${idx === 1 ? 'red' : 'yellow'}" style="width: 100%; font-size: 1.05rem;" onclick="alert('Objednávka balíka ${tier.tier_name} zaradená do produkčného radu Korrado!')">
+                PRED-OBJEDNAŤ
+              </button>
+            `;
+            pgrid.appendChild(box);
+          });
+        }
+      } catch (err) {
+        console.error("Chyba načítania marketingu:", err);
+      }
+    }
+
+    // ── VORPX STEREO PROJECTION ───────────────────────────────────────────────
+    async function onHeadsetChange() {
+      currentHeadset = document.getElementById('headset-select').value;
+      await loadVRStereoProjection();
+    }
+
+    async function loadVRStereoProjection() {
+      try {
+        const res = await fetch('/api/vr/stereo_projection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ headset_id: currentHeadset, custom_ipd_mm: 63.5 })
+        });
+        const data = await res.json();
+        if (data.success && data.projection) {
+          const p = data.projection;
+          document.getElementById('vr-uniforms-box').innerHTML = `
+            <strong>Headset:</strong> ${p.headset_name} (${p.fov_degrees}° FOV, ${p.refresh_rate_hz} Hz)<br>
+            <strong>Rozlíšenie:</strong> ${p.resolution_per_eye[0]} x ${p.resolution_per_eye[1]} per eye | <strong>IPD:</strong> ${p.ipd_used_mm} mm<br>
+            <strong>K1/K2 Optické Skreslenie:</strong> ${p.godot_optical_shader_uniforms.k1_distortion} / ${p.godot_optical_shader_uniforms.k2_distortion}<br>
+            <strong>Eye Shift:</strong> L: ${p.left_eye_camera.position[0]}m | R: ${p.right_eye_camera.position[0]}m
+          `;
+        }
+      } catch (err) {
+        console.error("Chyba stereo projekcie:", err);
+      }
+    }
+
+    // ── KINETIC PHYSICS INTERACTIONS ─────────────────────────────────────────
+    async function triggerTetherImpact() {
+      try {
+        const res = await fetch('/api/physics/grapple_tether/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            origin_pos: [0, 1.7, 0],
+            target_pos: [12, 0, 0],
+            player_mass_kg: 85,
+            target_mass_kg: 45,
+            reel_in_force_n: 1400
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.tether) {
+          const t = data.tether;
+          logPhysics(`💥 TETHER ZATIAHNUTÝ! Ťahová sila 1400 N. Zrýchlenie barelu: ${t.target_acceleration_mps2} m/s²! Kinetická energia: ${t.impact_kinetic_energy_j} J -> BAREL DETONOVAL!`);
+          tetherState.isPulling = true;
+          tetherState.explosionTriggered = true;
+          drawPhysics();
+          setTimeout(() => {
+            tetherState.isPulling = false;
+            drawPhysics();
+          }, 1500);
+        }
+      } catch (err) {
+        console.error("Chyba tethere:", err);
+      }
+    }
+
+    async function triggerSlingshotWingsuit() {
+      try {
+        const res = await fetch('/api/physics/slingshot/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            current_velocity_mps: 18.0,
+            tether_tension_n: 1400.0,
+            player_mass_kg: 85.0,
+            release_angle_deg: 25.0
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.slingshot) {
+          const s = data.slingshot;
+          logPhysics(`🚀 SLINGSHOT BOOST! Rýchlosť zvýšená z ${s.initial_velocity_mps} m/s na ${s.boosted_velocity_mps} m/s (+${s.kinetic_energy_boost_pct}% kinetická energia)! Prechod do wingsuit kĺzania (L/D 3.5:1).`);
+          tetherState.isFlyingWingsuit = true;
+          drawPhysics();
+          setTimeout(() => {
+            tetherState.isFlyingWingsuit = false;
+            drawPhysics();
+          }, 2000);
+        }
+      } catch (err) {
+        console.error("Chyba slingshotu:", err);
+      }
+    }
+
+    function logPhysics(msg) {
+      const box = document.getElementById('physics-telemetry');
+      box.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + box.innerHTML;
+    }
+
+    // ── 2D CANVAS PHYSICS VISUALIZER ─────────────────────────────────────────
+    let pCanvas, pCtx;
+    function initPhysicsCanvas() {
+      pCanvas = document.getElementById('physics-canvas');
+      pCtx = pCanvas.getContext('2d');
+      resizePhysicsCanvas();
+      window.addEventListener('resize', resizePhysicsCanvas);
+    }
+
+    function resizePhysicsCanvas() {
+      if (!pCanvas) return;
+      pCanvas.width = pCanvas.parentElement.clientWidth;
+      pCanvas.height = pCanvas.parentElement.clientHeight;
+      drawPhysics();
+    }
+
+    function drawPhysics() {
+      if (!pCtx || !pCanvas) return;
+      const w = pCanvas.width;
+      const h = pCanvas.height;
+
+      pCtx.clearRect(0, 0, w, h);
+
+      // Yellow Desert Floor with Cel-Shaded Contours
+      pCtx.fillStyle = '#fef08a';
+      pCtx.fillRect(0, 0, w, h);
+
+      // Ground line with ink border
+      pCtx.fillStyle = '#ca8a04';
+      pCtx.fillRect(0, h - 50, w, 50);
+      pCtx.strokeStyle = '#09090b';
+      pCtx.lineWidth = 3;
+      pCtx.beginPath();
+      pCtx.moveTo(0, h - 50);
+      pCtx.lineTo(w, h - 50);
+      pCtx.stroke();
+
+      // Comic-book Crosshatching on ground
+      pCtx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+      pCtx.lineWidth = 1.5;
+      for (let x = 0; x < w; x += 18) {
+        pCtx.beginPath();
+        pCtx.moveTo(x, h - 50);
+        pCtx.lineTo(x + 12, h);
+        pCtx.stroke();
+      }
+
+      // Draw Hero (Left / Airborne in Wingsuit)
+      const px = tetherState.isFlyingWingsuit ? w * 0.45 : w * 0.2;
+      const py = tetherState.isFlyingWingsuit ? h * 0.35 : h * 0.55;
+
+      // Hero Body
+      pCtx.fillStyle = '#09090b';
+      pCtx.beginPath();
+      pCtx.arc(px, py, 14, 0, Math.PI * 2);
+      pCtx.fill();
+
+      // Wingsuit Wings
+      if (tetherState.isFlyingWingsuit) {
+        pCtx.fillStyle = '#f97316';
+        pCtx.strokeStyle = '#09090b';
+        pCtx.lineWidth = 2.5;
+        pCtx.beginPath();
+        pCtx.moveTo(px, py - 10);
+        pCtx.lineTo(px - 35, py + 12);
+        pCtx.lineTo(px, py + 10);
+        pCtx.closePath();
+        pCtx.fill();
+        pCtx.stroke();
+
+        pCtx.beginPath();
+        pCtx.moveTo(px, py - 10);
+        pCtx.lineTo(px + 35, py + 12);
+        pCtx.lineTo(px, py + 10);
+        pCtx.closePath();
+        pCtx.fill();
+        pCtx.stroke();
+      }
+
+      // Ncon VR Visor on Hero
+      pCtx.fillStyle = '#06b6d4';
+      pCtx.fillRect(px - 6, py - 6, 12, 6);
+      pCtx.strokeStyle = '#000';
+      pCtx.lineWidth = 1.5;
+      pCtx.strokeRect(px - 6, py - 6, 12, 6);
+
+      // Hero Label
+      pCtx.fillStyle = '#09090b';
+      pCtx.font = 'bold 12px "Bangers"';
+      pCtx.fillText(tetherState.isFlyingWingsuit ? "WINGSUIT GLIDE (3.5:1)" : "HERO (NCON VR)", px - 25, py - 20);
+
+      // Draw Explosive Barrels (Target)
+      const bx = w * 0.65;
+      const by = h - 75;
+
+      pCtx.fillStyle = '#ef4444';
+      pCtx.fillRect(bx, by, 24, 30);
+      pCtx.strokeStyle = '#09090b';
+      pCtx.lineWidth = 3;
+      pCtx.strokeRect(bx, by, 24, 30);
+
+      pCtx.fillStyle = '#fff';
+      pCtx.font = 'bold 10px "Bangers"';
+      pCtx.fillText("TNT", bx + 3, by + 18);
+
+      // Draw Grapple Tether Line
+      pCtx.strokeStyle = '#09090b';
+      pCtx.lineWidth = tetherState.isPulling ? 4 : 2;
+      pCtx.beginPath();
+      pCtx.moveTo(px, py);
+      pCtx.lineTo(bx + 12, by + 15);
+      pCtx.stroke();
+
+      // Slingshot / Tension Arc
+      if (tetherState.isPulling) {
+        pCtx.strokeStyle = '#f97316';
+        pCtx.lineWidth = 2;
+        pCtx.setLineDash([4, 4]);
+        pCtx.beginPath();
+        pCtx.moveTo(px, py);
+        pCtx.quadraticCurveTo((px + bx) / 2, py - 40, bx + 12, by + 15);
+        pCtx.stroke();
+        pCtx.setLineDash([]);
+      }
+
+      // Explosion Shockwave
+      if (tetherState.explosionTriggered) {
+        pCtx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+        pCtx.strokeStyle = '#dc2626';
+        pCtx.lineWidth = 3;
+        pCtx.beginPath();
+        pCtx.arc(bx + 12, by + 15, 45, 0, Math.PI * 2);
+        pCtx.fill();
+        pCtx.stroke();
+
+        pCtx.fillStyle = '#dc2626';
+        pCtx.font = 'bold 22px "Bangers"';
+        pCtx.fillText("BOOM!!", bx - 10, by - 15);
+      }
+    }
+  </script>
+</body>
+</html>

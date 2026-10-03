@@ -291,3 +291,34 @@ from .combinatorial_tactical_moves_and_mulligan import (
     GLOBAL_MULLIGAN_MANAGER,
     GLOBAL_COMBINATORIAL_ENGINE
 )
+from .vorpx_vr_and_justcause_physics import (
+    VorpXVRBridgeEngine,
+    JustCauseKineticPhysicsEngine,
+    BorderlandsCelShadingEngine,
+    NconProductMarketingEngine,
+    GLOBAL_VORPX_VR_BRIDGE,
+    GLOBAL_JUSTCAUSE_PHYSICS,
+    GLOBAL_CEL_SHADING,
+    GLOBAL_NCON_MARKETING
+)
+from .aerial_balloons_and_rogalo_mortar_physics import (
+    AerostatProfile,
+    FloatingIslandNode,
+    AerialBalloonIslandEngine,
+    PlungingMortarArtilleryEngine,
+    RogaloAndParachuteFlightEngine
+)
+
+GLOBAL_BALLOON_ISLAND_ENGINE = AerialBalloonIslandEngine()
+GLOBAL_PLUNGING_MORTAR_ENGINE = PlungingMortarArtilleryEngine()
+GLOBAL_ROGALO_PARACHUTE_ENGINE = RogaloAndParachuteFlightEngine()
+
+from .epic_campaign_and_content_engine import (
+    CampaignChoice,
+    CampaignChapter,
+    EpicCampaignEngine
+)
+
+GLOBAL_EPIC_CAMPAIGN_ENGINE = EpicCampaignEngine()
+
+
