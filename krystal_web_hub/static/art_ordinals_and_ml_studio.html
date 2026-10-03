@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRYSTAL-STACK // ART AUCTIONS, ORDINALS & EVOLUTIONARY ML STUDIO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #06080e;
+      --card-bg: rgba(15, 21, 35, 0.82);
+      --card-border: rgba(102, 252, 241, 0.22);
+      --cyan: #66fcf1;
+      --cyan-glow: rgba(102, 252, 241, 0.4);
+      --purple: #9d4edd;
+      --gold: #ffd700;
+      --crimson: #ff3366;
+      --green: #00ff88;
+      --amber: #ffaa00;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(157, 78, 221, 0.2) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(102, 252, 241, 0.16) 0%, transparent 50%),
+        linear-gradient(180deg, #06080e 0%, #0a0f1d 100%);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 24px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 28px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      margin-bottom: 24px;
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+    .brand-title span { color: var(--cyan); text-shadow: 0 0 12px var(--cyan-glow); }
+
+    .header-pills {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill.cyan { border-color: var(--cyan); color: var(--cyan); }
+    .pill.gold { border-color: var(--gold); color: var(--gold); }
+    .pill.green { border-color: var(--green); color: var(--green); }
+    .pill.purple { border-color: var(--purple); color: var(--purple); }
+
+    .nav-btn {
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: rgba(102, 252, 241, 0.12);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover {
+      background: var(--cyan);
+      color: #06080e;
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    /* ── GRID SYSTEM ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .card-title span.sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* ── SECTION 1: PAINTING AUCTIONS ── */
+    .auction-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .auction-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 16px;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .auction-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 215, 0, 0.15);
+    }
+
+    .auction-img-preview {
+      width: 100%;
+      height: 120px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1e1e38 0%, #2a1b4e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      position: relative;
+    }
+    .auction-img-preview .icon { font-size: 2.2rem; }
+
+    .rarity-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .rarity-badge.Legendary { background: rgba(255, 215, 0, 0.2); color: var(--gold); border: 1px solid var(--gold); }
+    .rarity-badge.Masterpiece { background: rgba(157, 78, 221, 0.2); color: var(--purple); border: 1px solid var(--purple); }
+    .rarity-badge.Celestial { background: rgba(102, 252, 241, 0.2); color: var(--cyan); border: 1px solid var(--cyan); }
+
+    .lot-title { font-family: 'Cinzel', serif; font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .lot-artist { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; }
+
+    .bid-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .bid-row .price { color: var(--gold); font-weight: 700; }
+    .bid-row .buyout { color: var(--cyan); font-weight: 700; }
+
+    .action-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-gold {
+      background: rgba(255, 215, 0, 0.15);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+    .btn-gold:hover { background: var(--gold); color: #000; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+
+    .btn-cyan {
+      background: rgba(102, 252, 241, 0.15);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+    }
+    .btn-cyan:hover { background: var(--cyan); color: #000; box-shadow: 0 0 10px var(--cyan-glow); }
+
+    /* ── SECTION 2: ORDINALS PROTOCOL ── */
+    .ordinals-box {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 14px;
+      max-height: 240px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      color: #94a3b8;
+    }
+    .ord-item {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .ord-item:hover, .ord-item.active { background: rgba(102, 252, 241, 0.08); border-radius: 4px; }
+    .ord-item .id { color: var(--cyan); font-weight: 700; }
+    .ord-item .hash { color: #64748b; font-size: 0.7rem; }
+
+    .witness-view {
+      background: #04060a;
+      border: 1px solid rgba(157, 78, 221, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: #cbd5e1;
+      word-break: break-all;
+      margin-top: 8px;
+    }
+
+    /* ── SECTION 3: CONTENT REPLAY LEVEL SNAPSHOTS ── */
+    .replay-levels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .replay-level-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .replay-level-card .lvl-title { font-weight: 700; font-size: 0.85rem; color: #fff; margin-bottom: 4px; }
+    .replay-level-card .lvl-hash { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--green); word-break: break-all; margin-top: 4px; }
+
+    /* ── SECTION 4: MULTI-DIMENSIONAL HERO MATRICES ── */
+    .matrix-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .dim-btn {
+      padding: 6px 14px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.2s ease;
+    }
+    .dim-btn.active {
+      background: rgba(102, 252, 241, 0.2);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .matrix-canvas-container {
+      background: #030508;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      overflow-x: auto;
+      margin-bottom: 12px;
+    }
+
+    .matrix-grid-table {
+      border-collapse: collapse;
+      margin: 0 auto;
+    }
+    .matrix-cell {
+      width: 28px;
+      height: 28px;
+      text-align: center;
+      font-size: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.15s ease;
+    }
+
+    /* ── SECTION 5: EVOLUTIONARY PHYSICS CANVAS ── */
+    #evoCanvas {
+      width: 100%;
+      height: 220px;
+      background: #040711;
+      border-radius: 8px;
+      border: 1px solid rgba(157, 78, 221, 0.25);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    /* ── SECTION 6: CONGESTION CONTROLLER (AIMD) ── */
+    .aimd-gauge-wrap {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .gauge-block {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: center;
+    }
+    .gauge-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-top: 4px;
+    }
+    .gauge-val.amber { color: var(--amber); }
+    .gauge-val.green { color: var(--green); }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--purple));
+      width: 20%;
+      transition: width 0.3s ease;
+    }
+
+    /* Modal / Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--cyan);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: none;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <h1 class="brand-title">KRYSTAL<span>STACK</span> // ART, ORDINALS & EVOLUTIONARY ML</h1>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+        Aukcie obrazov • Bitcoin Ordinals witness export • Perceptuálne snimky replays • 5x2..90x120 Matice • AIMD Kongezie
+      </div>
+    </div>
+    <div class="header-pills">
+      <div class="pill gold" id="pillAuctions">🎨 Aktívne aukcie: 3</div>
+      <div class="pill cyan" id="pillOrdinals">📜 Ordinals: 0</div>
+      <div class="pill purple" id="pillFps">⚡ 60 Hz Stream</div>
+      <div class="pill green" id="pillAimd">📡 Okno: 20</div>
+      <a href="/static/index.html" class="nav-btn">← Control Deck</a>
+    </div>
+  </header>
+
+  <!-- DASHBOARD TOP GRID -->
+  <div class="dashboard-grid">
+
+    <!-- ── LEFT: PAINTING AUCTIONS ── -->
+    <div class="card">
+      <div class="card-title">
+        <div>🎨 Aukcie Generatívnych Obrazov a Trofejí</div>
+        <span class="sub">Aukčný dom s prihadzovaním a okamžitým odkupom (Buyout)</span>
+      </div>
+      <div class="auction-list" id="auctionListContainer">
+        <!-- Rendered by JS -->
+      </div>
+      <div style="margin-top: 16px; display: flex; gap: 10px;">
+        <button class="btn btn-cyan" onclick="createSampleAuction()">+ Vytvoriť Novú Aukciu Maľby</button>
+        <button class="btn btn-gold" onclick="fetchAuctions()">🔄 Obnoviť Aukcie</button>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: ORDINALS PROTOCOL EXPORTER ── -->
+    <div class="card">
+      <div class="card-title">
+        <div>📜 Aether & Bitcoin Ordinals Protocol</div>
+        <span class="sub">Inskripcie digitálnych artefaktov s Witness Script Envelopes</span>
+      </div>
+      <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+        Kliknutím vyberte ordinal a skopírujte Bitcoin Script obálku (OP_FALSE OP_IF ... OP_ENDIF):
+      </div>
+      <div class="ordinals-box" id="ordinalsList">
+        <div style="text-align: center; padding: 20px;">Načítavam inskripcie...</div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <button class="btn btn-cyan" onclick="inscribeSelectedArt()">✒ Inskribovať Maľbu ako Ordinal</button>
+        <button class="btn btn-gold" onclick="copyWitnessScript()">📋 Kopírovať Script Hex</button>
+      </div>
+
+      <div style="font-size: 0.72rem; color: var(--cyan); font-weight: 600;">Bitcoin Witness Script Obálka (ASM & HEX):</div>
+      <div class="witness-view" id="witnessHexView">
+        0063036f72640118746578742f706c61696e3b636861727365743d7574662d380020...68
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DASHBOARD BOTTOM GRID -->
+  <div class="dashboard-grid">
+
+    <!-- ── LEFT: MULTI-DIMENSIONAL HERO MATRICES & VARIABLE SAMPLING FREQUENCY ── -->
+    <div class="card">
+      <div class="card-title">
+        <div>🎛 Multi-dimenzionálne Matice Hrdinov & Sledy Frekvencií</div>
+        <span class="sub">5x2, 4x5, 30x20 a 90x120 senzorické tenzory</span>
+      </div>
+
+      <!-- Controls -->
+      <div class="matrix-controls">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Počet hrdinov:</span>
+        <input type="range" id="heroCountSlider" min="1" max="12" value="4" oninput="updateHeroCount(this.value)" style="width: 110px;">
+        <span id="heroCountVal" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--cyan); font-weight: 700;">4 Hrdinovia</span>
+
+        <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 10px;">Rozmer:</span>
+        <button class="dim-btn" onclick="selectDimension('5x2', this)">5x2</button>
+        <button class="dim-btn active" onclick="selectDimension('4x5', this)">4x5</button>
+        <button class="dim-btn" onclick="selectDimension('30x20', this)">30x20</button>
+        <button class="dim-btn" onclick="selectDimension('90x120', this)">90x120</button>
+      </div>
+
+      <!-- Sampling Frequency Schedule Banner -->
+      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(102, 252, 241, 0.06); border: 1px solid rgba(102, 252, 241, 0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;">
+        <div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Dynamická Snímacia Frekvencia:</div>
+          <div id="freqScheduleDisplay" style="font-family: 'Cinzel', serif; font-size: 1.05rem; font-weight: 700; color: var(--cyan);">
+            ⚡ 60 Hz // COMBAT_TACTICAL (16.6 ms tick)
+          </div>
+        </div>
+        <div style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #94a3b8;">
+          Hlavička: <span id="streamHeaderMagic" style="color: var(--gold);">KRYS_FPS\x01</span><br>
+          CRC32: <span id="streamCrc32" style="color: var(--green);">c4a89f10</span>
+        </div>
+      </div>
+
+      <!-- Matrix Canvas/Table Preview -->
+      <div class="matrix-canvas-container" id="matrixContainer">
+        <!-- Rendered heatmap -->
+      </div>
+      <div id="matrixMetaDesc" style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+        4 Target Zones x 5 Stances (20 Buniek) procedurálne modulovaných sínusom a azimutom.
+      </div>
+    </div>
+
+    <!-- ── RIGHT: EVOLUTIONARY PHYSICS & AIMD CONGESTION CONTROL ── -->
+    <div class="card">
+      <div class="card-title">
+        <div>🧬 Evolučná Kinematika & AIMD Kongezie Udalostí</div>
+        <span class="sub">Genetický algoritmus pre fyziku pohybu s reguláciou toku</span>
+      </div>
+
+      <!-- Canvas for trajectory -->
+      <canvas id="evoCanvas" width="500" height="220"></canvas>
+
+      <!-- AIMD Stats -->
+      <div class="aimd-gauge-wrap">
+        <div class="gauge-block">
+          <div style="font-size: 0.72rem; color: var(--text-muted);">Okno (AIMD Window)</div>
+          <div class="gauge-val" id="aimdWindowVal">20</div>
+        </div>
+        <div class="gauge-block">
+          <div style="font-size: 0.72rem; color: var(--text-muted);">Hĺbka Fronty (Queue)</div>
+          <div class="gauge-val amber" id="aimdQueueVal">0 / 100</div>
+        </div>
+        <div class="gauge-block">
+          <div style="font-size: 0.72rem; color: var(--text-muted);">Fitness Skóre</div>
+          <div class="gauge-val green" id="evoFitnessVal">94.8%</div>
+        </div>
+      </div>
+
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="aimdProgressBar"></div>
+      </div>
+
+      <div style="margin-top: 14px; display: flex; gap: 8px;">
+        <button class="btn btn-purple" onclick="runEvolutionStep()" style="border: 1px solid var(--purple); background: rgba(157, 78, 221, 0.15); color: #fff;">
+          ⚡ Evolvovať Generáciu Kinematiky
+        </button>
+        <button class="btn btn-cyan" onclick="dispatchCongestionBatch()">
+          📦 Odoslať Dávku (AIMD Dispatch)
+        </button>
+      </div>
+
+      <!-- Level Replay Snapshot Bar -->
+      <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">
+          Unikátny Perceptuálny Snímok Levelu (Level Snapshot):
+        </div>
+        <div id="activeSnapshotHash" style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--green); word-break: break-all;">
+          sha256: 4f9b8c2d1e0a7f6e3c8b5a4d9e2f1a0b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="toast" id="toastBox">Správa</div>
+
+  <script>
+    let currentHeroCount = 4;
+    let currentDim = '4x5';
+    let activeLots = [];
+    let selectedLotId = null;
+    let ordinalsData = [];
+    let evoTrajectory = [];
+
+    // On Load
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchAuctions();
+      fetchOrdinals();
+      fetchHeroMatrices();
+      fetchCongestionStatus();
+      drawEvoCanvas();
+    });
+
+    function showToast(msg) {
+      const t = document.getElementById('toastBox');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+
+    // ── 1. AUCTIONS ──
+    async function fetchAuctions() {
+      try {
+        const res = await fetch('/api/art/auctions?status=active');
+        const data = await res.json();
+        if (data.success && data.lots) {
+          activeLots = data.lots;
+          renderAuctions();
+          document.getElementById('pillAuctions').innerText = `🎨 Aktívne aukcie: ${data.count}`;
+        }
+      } catch (e) {
+        console.warn('Aukcie nedostupné:', e);
+      }
+    }
+
+    function renderAuctions() {
+      const c = document.getElementById('auctionListContainer');
+      c.innerHTML = '';
+      activeLots.forEach(lot => {
+        const card = document.createElement('div');
+        card.className = 'auction-card';
+        card.innerHTML = `
+          <div class="auction-img-preview">
+            <span class="icon">🖼</span>
+            <span class="rarity-badge ${lot.rarity}">${lot.rarity}</span>
+          </div>
+          <div class="lot-title">${lot.title}</div>
+          <div class="lot-artist">Autor: ${lot.artist} (${lot.style})</div>
+          <div class="bid-row">
+            <span>Aktuálna ponuka:</span>
+            <span class="price">${lot.current_bid} AET</span>
+          </div>
+          <div class="bid-row">
+            <span>Okamžitý odkup:</span>
+            <span class="buyout">${lot.buyout_price} AET</span>
+          </div>
+          <div style="font-size: 0.7rem; color: #64748b; margin-top: 4px;">
+            Dražiteľ: ${lot.highest_bidder || 'Žiadny'} • ${lot.bids_count || 0} ponúk
+          </div>
+          <div class="action-btn-row">
+            <button class="btn btn-gold" onclick="placeBid('${lot.id}', ${lot.current_bid + 25})">+25 AET Prihodiť</button>
+            <button class="btn btn-cyan" onclick="buyoutLot('${lot.id}')">Kúpiť ihneď</button>
+          </div>
+        `;
+        c.appendChild(card);
+      });
+      if (activeLots.length > 0 && !selectedLotId) {
+        selectedLotId = activeLots[0].id;
+      }
+    }
+
+    async function placeBid(lotId, amount) {
+      try {
+        const res = await fetch('/api/art/auctions/bid', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lot_id: lotId,
+            bidder: 'MasterDuelist_Player',
+            amount: amount
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Ponuka ${amount} AET prijatá!`);
+          fetchAuctions();
+        } else {
+          showToast(`Chyba: ${data.error || 'Nemožno prihit'}`);
+        }
+      } catch (e) {
+        showToast('Chyba komunikácie');
+      }
+    }
+
+    async function buyoutLot(lotId) {
+      const lot = activeLots.find(l => l.id === lotId);
+      if (!lot) return;
+      placeBid(lotId, lot.buyout_price);
+    }
+
+    async function createSampleAuction() {
+      try {
+        const res = await fetch('/api/art/auctions/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `Generatívna Kozmická Aréna #${Math.floor(Math.random()*900 + 100)}`,
+            artist: 'Krystal Neural Painter',
+            style: 'Aetheric Cyber-Gothic',
+            rarity: 'Legendary',
+            starting_bid: 120,
+            buyout_price: 450,
+            resolution: '3840x2160'
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Nová aukcia bola úspešne zalistovaná!');
+          fetchAuctions();
+        }
+      } catch (e) {
+        showToast('Chyba vytvorenia aukcie');
+      }
+    }
+
+    // ── 2. ORDINALS ──
+    async function fetchOrdinals() {
+      try {
+        const res = await fetch('/api/ordinals/list');
+        const data = await res.json();
+        if (data.success) {
+          ordinalsData = data.inscriptions || [];
+          document.getElementById('pillOrdinals').innerText = `📜 Ordinals: ${data.count}`;
+          renderOrdinalsList();
+        }
+      } catch (e) {
+        console.warn('Ordinals nedostupné:', e);
+      }
+    }
+
+    function renderOrdinalsList() {
+      const box = document.getElementById('ordinalsList');
+      if (ordinalsData.length === 0) {
+        box.innerHTML = '<div style="text-align:center; padding: 16px; color:#64748b;">Žiadne inskribované ordinaly. Kliknite na "Inskribovať Maľbu".</div>';
+        return;
+      }
+      box.innerHTML = '';
+      ordinalsData.forEach((ord, idx) => {
+        const d = document.createElement('div');
+        d.className = `ord-item ${idx === 0 ? 'active' : ''}`;
+        d.onclick = () => selectOrdinal(ord);
+        d.innerHTML = `
+          <div style="display:flex; justify-content:space-between;">
+            <span class="id">${ord.id} (#${ord.inscription_number})</span>
+            <span style="color:var(--gold); font-size:0.7rem;">Sat: ${ord.sat_ordinal_index}</span>
+          </div>
+          <div class="hash">SHA256: ${ord.content_sha256}</div>
+        `;
+        box.appendChild(d);
+      });
+      if (ordinalsData.length > 0) {
+        selectOrdinal(ordinalsData[0]);
+      }
+    }
+
+    function selectOrdinal(ord) {
+      document.querySelectorAll('.ord-item').forEach(el => el.classList.remove('active'));
+      const view = document.getElementById('witnessHexView');
+      view.innerText = `[ASM WITNESS ENVELOPE]\n${ord.witness_asm}\n\n[BITCOIN SCRIPT RAW HEX]\n${ord.witness_envelope_hex}`;
+    }
+
+    async function inscribeSelectedArt() {
+      try {
+        const res = await fetch('/api/ordinals/inscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            art_lot_id: selectedLotId || 'sample_lot',
+            content_payload: `KRYSTAL-STACK ARTIFACT // PERCEPTUAL SNAPSHOT HASH // SEED_${Date.now()}`,
+            content_type: 'image/png;perceptual_hash=sha256',
+            owner_address: 'bc1p_krystal_master_collector_99'
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Inskripcia ${data.inscription.id} vytvorená!`);
+          fetchOrdinals();
+        }
+      } catch (e) {
+        showToast('Chyba pri inskribovaní');
+      }
+    }
+
+    function copyWitnessScript() {
+      const text = document.getElementById('witnessHexView').innerText;
+      navigator.clipboard.writeText(text);
+      showToast('Bitcoin Witness Script bol skopírovaný do schránky!');
+    }
+
+    // ── 3. HERO MATRICES & FREQUENCY ──
+    function updateHeroCount(val) {
+      currentHeroCount = parseInt(val);
+      document.getElementById('heroCountVal').innerText = `${currentHeroCount} Hrdinovia`;
+      fetchHeroMatrices();
+    }
+
+    function selectDimension(dim, btn) {
+      currentDim = dim;
+      document.querySelectorAll('.dim-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      fetchHeroMatrices();
+    }
+
+    async function fetchHeroMatrices() {
+      try {
+        const res = await fetch('/api/ml/hero_matrices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hero_count: currentHeroCount,
+            target_dims: currentDim,
+            battle_intensity: 0.65
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          // Update frequency display
+          const sched = data.sampling_frequency_schedule;
+          document.getElementById('freqScheduleDisplay').innerText = `⚡ ${sched.effective_hz} Hz // ${sched.mode} (${sched.clock_interval_ms} ms tick)`;
+          document.getElementById('pillFps').innerText = `⚡ ${sched.effective_hz} Hz Stream`;
+          document.getElementById('streamHeaderMagic').innerText = data.frame_stream_header.magic;
+          document.getElementById('streamCrc32').innerText = data.frame_stream_header.crc32_hex;
+
+          renderMatrixGrid(data.matrices[currentDim]);
+        }
+      } catch (e) {
+        console.warn('Chyba matíc:', e);
+      }
+    }
+
+    function renderMatrixGrid(matData) {
+      const container = document.getElementById('matrixContainer');
+      const meta = document.getElementById('matrixMetaDesc');
+      if (!matData) return;
+
+      meta.innerText = `${matData.description} (Celkom: ${matData.total_cells} buniek, Fázová modulácia: ${matData.phase_modulation} rad)`;
+
+      const sample = matData.preview_sample || matData.matrix;
+      if (!sample || sample.length === 0) return;
+
+      let html = '<table class="matrix-grid-table">';
+      sample.forEach(row => {
+        html += '<tr>';
+        row.forEach(val => {
+          // Color interpolate based on value between -1.0 and +1.0
+          const norm = (val + 1.0) / 2.0;
+          const r = Math.round(norm * 102);
+          const g = Math.round(norm * 252);
+          const b = Math.round(norm * 241);
+          const bg = `rgba(${r}, ${g}, ${b}, ${0.15 + norm * 0.45})`;
+          html += `<td class="matrix-cell" style="background:${bg}; color:#fff;" title="${val}">${val.toFixed(2)}</td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</table>';
+      container.innerHTML = html;
+    }
+
+    // ── 4. EVOLUTIONARY PHYSICS & AIMD CONGESTION ──
+    async function runEvolutionStep() {
+      try {
+        const res = await fetch('/api/ml/evolutionary_physics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            generations: 4,
+            friction: 0.04,
+            gravity: 9.81,
+            collision_target: [12.0, 0.0, 6.0]
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.best_individual) {
+          evoTrajectory = data.best_individual.trajectory || [];
+          document.getElementById('evoFitnessVal').innerText = `${data.best_individual.fitness} pts`;
+          drawEvoCanvas();
+          fetchCongestionStatus();
+          showToast(`Generácia ${data.final_generation} skonvergovala!`);
+        }
+      } catch (e) {
+        showToast('Chyba simulácie genetickej fyziky');
+      }
+    }
+
+    async function dispatchCongestionBatch() {
+      try {
+        const res = await fetch('/api/ml/congestion_dispatch', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Odoslaných ${data.dispatch.dispatched_count} genetických eventov!`);
+          fetchCongestionStatus();
+        }
+      } catch (e) {
+        showToast('Chyba dispečingu');
+      }
+    }
+
+    async function fetchCongestionStatus() {
+      try {
+        const res = await fetch('/api/ml/congestion_control');
+        const data = await res.json();
+        if (data.success) {
+          const s = data.congestion_status;
+          document.getElementById('aimdWindowVal').innerText = s.window_size;
+          document.getElementById('aimdQueueVal').innerText = `${s.queue_depth} / ${s.max_queue_threshold}`;
+          document.getElementById('pillAimd').innerText = `📡 Okno: ${s.window_size}`;
+
+          const pct = Math.min(100, Math.round((s.queue_depth / s.max_queue_threshold) * 100));
+          document.getElementById('aimdProgressBar').style.width = `${pct}%`;
+        }
+      } catch (e) {
+        console.warn('AIMD nedostupný:', e);
+      }
+    }
+
+    function drawEvoCanvas() {
+      const cvs = document.getElementById('evoCanvas');
+      const ctx = cvs.getContext('2d');
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+      // Grid lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < cvs.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cvs.height); ctx.stroke();
+      }
+      for (let y = 0; y < cvs.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cvs.width, y); ctx.stroke();
+      }
+
+      // Draw target
+      const targetX = cvs.width - 60;
+      const targetY = 80;
+      ctx.fillStyle = '#ff3366';
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = '10px Inter';
+      ctx.fillText('TARGET (Collision)', targetX - 45, targetY - 14);
+
+      // If no trajectory yet, create sample path
+      let points = evoTrajectory;
+      if (!points || points.length === 0) {
+        points = [
+          [0, 0, 0], [2, 0, 1.2], [5, 0, 2.5], [8, 0, 3.2], [11, 0, 4.1], [12, 0, 6.0]
+        ];
+      }
+
+      // Draw trajectory path
+      ctx.strokeStyle = '#66fcf1';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = 'rgba(102, 252, 241, 0.6)';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+
+      const startX = 40;
+      const startY = cvs.height - 40;
+      ctx.moveTo(startX, startY);
+
+      points.forEach((pt, i) => {
+        const px = startX + (pt[0] * 32);
+        const py = startY - (pt[2] * 22);
+        ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Draw waypoint nodes
+      points.forEach((pt, i) => {
+        const px = startX + (pt[0] * 32);
+        const py = startY - (pt[2] * 22);
+        ctx.fillStyle = i === points.length - 1 ? '#00ff88' : '#9d4edd';
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRYSTAL-STACK // ZODIAC SKY, OPTICS ZOOM, IMMUNITIES & GRID MATRICES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #06080e;
+      --card-bg: rgba(15, 21, 35, 0.78);
+      --card-border: rgba(102, 252, 241, 0.25);
+      --cyan: #66fcf1;
+      --cyan-glow: rgba(102, 252, 241, 0.45);
+      --purple: #9d4edd;
+      --gold: #ffd700;
+      --crimson: #ff3366;
+      --green: #00ff88;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 20% 15%, rgba(157, 78, 221, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 80% 85%, rgba(102, 252, 241, 0.15) 0%, transparent 50%),
+        linear-gradient(180deg, #06080e 0%, #0c111d 100%);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 26px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      margin-bottom: 24px;
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.55rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+    .brand-title span {
+      color: var(--cyan);
+      text-shadow: 0 0 15px var(--cyan-glow);
+    }
+
+    .badge-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+    }
+    .badge.cyan { border-color: var(--cyan); color: var(--cyan); }
+    .badge.gold { border-color: var(--gold); color: var(--gold); }
+    .badge.purple { border-color: var(--purple); color: var(--purple); }
+    .badge.green { border-color: var(--green); color: var(--green); }
+
+    .nav-links a {
+      color: var(--cyan);
+      text-decoration: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      margin-left: 14px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { text-shadow: 0 0 8px var(--cyan); }
+
+    /* ── DASHBOARD GRID ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 1200px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .panel-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      margin-bottom: 24px;
+    }
+
+    .panel-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.15rem;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+
+    /* ── 1. ZODIAC CELESTIAL SKY WHEEL ── */
+    .zodiac-wheel-container {
+      position: relative;
+      width: 100%;
+      height: 320px;
+      background: radial-gradient(circle at center, #111a2e 0%, #060912 70%);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .zodiac-ring {
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      border: 2px dashed rgba(102, 252, 241, 0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.5s ease-out;
+    }
+
+    .zodiac-center {
+      width: 90px;
+      height: 90px;
+      background: radial-gradient(circle, var(--gold) 0%, #b8860b 80%);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+      z-index: 5;
+    }
+    .zodiac-center .sun-icon { font-size: 1.6rem; }
+    .zodiac-center .active-sign-name {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #07090e;
+      text-transform: uppercase;
+    }
+
+    .constellation-node {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      background: rgba(13, 17, 26, 0.85);
+      border: 1px solid var(--cyan);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .constellation-node:hover, .constellation-node.active {
+      background: var(--cyan);
+      color: #05070e;
+      box-shadow: 0 0 15px var(--cyan);
+      transform: scale(1.3);
+    }
+
+    .zodiac-info-box {
+      margin-top: 14px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    /* ── 2. OPTICS ZOOM VIEWPORT ── */
+    .optics-viewport {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      background: #04060a;
+      border: 1px solid var(--cyan);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9);
+    }
+
+    .crosshair-h {
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      background: rgba(102, 252, 241, 0.4);
+    }
+    .crosshair-v {
+      position: absolute;
+      width: 1px;
+      height: 100%;
+      background: rgba(102, 252, 241, 0.4);
+    }
+    .reticle-ring {
+      position: absolute;
+      border: 1px solid var(--cyan);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+    .reticle-outer { width: 140px; height: 140px; border-style: dashed; }
+    .reticle-inner { width: 40px; height: 40px; border-color: var(--crimson); }
+
+    .zoom-scene-target {
+      position: absolute;
+      font-size: 2.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .optics-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .zoom-btn {
+      flex: 1;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .zoom-btn.active {
+      background: var(--cyan);
+      color: #06080e;
+      font-weight: 700;
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    /* ── 3. GRID PRESETS & NUMEROLOGY ── */
+    .grid-tab-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .grid-tab {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .grid-tab.active {
+      background: var(--gold);
+      color: #07090e;
+      font-weight: 700;
+      border-color: var(--gold);
+    }
+
+    .matrix-display {
+      background: #05070c;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px;
+      display: grid;
+      gap: 4px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .matrix-cell {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .matrix-cell:hover {
+      background: rgba(102, 252, 241, 0.2);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+    .matrix-cell.occupied {
+      background: rgba(157, 78, 221, 0.25);
+      border-color: var(--purple);
+      color: #fff;
+    }
+    .matrix-cell.plus-slot {
+      background: rgba(0, 255, 136, 0.15);
+      border-color: var(--green);
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    /* ── 4. PLUS INVENTORY SYSTEM ── */
+    .plus-inv-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 255, 136, 0.08);
+      border: 1px solid var(--green);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+    .btn-add-plus {
+      background: linear-gradient(135deg, var(--green), #00b359);
+      border: none;
+      color: #05070e;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-add-plus:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+    }
+
+    /* ── 5. IMMUNITY RESISTANCES ── */
+    .immunity-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .immunity-item {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+    .immunity-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 4px;
+    }
+    .meter-bar {
+      width: 100%;
+      height: 6px;
+      background: #1b2434;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%;
+      background: var(--cyan);
+      transition: width 0.3s;
+    }
+    .meter-fill.immune { background: var(--green); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1 class="brand-title">KRYSTAL<span>STACK</span> // ZODIAC & VERDY</h1>
+      <div class="badge-bar">
+        <span class="badge cyan">[ 12 ZVEROKRUHOV NA OBLOHE ]</span>
+        <span class="badge gold">[ VERDY: 3x3, 2x5, 6x5, 12x9, 16:9, 21:19 ]</span>
+        <span class="badge purple">[ ZOOM OPTIKA 1x - 16x ]</span>
+        <span class="badge green">[ '+' V INVENTÁRI ]</span>
+        <span class="badge">[ IMUNITNÉ SYSTÉMY ]</span>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="/" target="_blank">[ HUB HOME ]</a>
+      <a href="/static/archetype_helper_matrix.html" target="_blank">[ 40 ARCHETYPOV ]</a>
+      <a href="/game" target="_blank">[ 3D GAME ]</a>
+      <a href="/manual" target="_blank">[ DESIGN MANUÁL ]</a>
+    </div>
+  </header>
+
+  <div class="dashboard-grid">
+
+    <!-- ── LEFT 1: ZODIAC CELESTIAL SKY ── -->
+    <div class="panel-card">
+      <div class="panel-title">
+        <span>✨ Zverokruhy na Oblohe & Nočná Rotácia</span>
+        <span class="badge gold" id="activeZodiacBadge">♈ BARAN (OHEŇ)</span>
+      </div>
+
+      <div class="zodiac-wheel-container">
+        <div class="zodiac-center">
+          <span class="sun-icon">☀️</span>
+          <span class="active-sign-name" id="centerSignName">Aries</span>
+        </div>
+        <div class="zodiac-ring" id="zodiacRing">
+          <!-- 12 Constellation Nodes positioned via trig -->
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: center; margin-top: 12px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted);">Uhol Oblohy:</span>
+        <input type="range" min="0" max="359" value="0" style="flex:1;" class="range-slider" id="skyAngleSlider" oninput="onSkyAngleChange(this.value)">
+        <span class="badge cyan" id="skyAngleVal">0°</span>
+      </div>
+
+      <div class="zodiac-info-box" id="zodiacDetails">
+        <div style="font-family: 'Cinzel', serif; font-weight: 700; color: #fff; font-size: 0.95rem;" id="zodiacTitle">Baran (Aries) - Oheň / Mars</div>
+        <div style="font-size: 0.8rem; color: var(--gold); margin-top: 2px;" id="zodiacBlessing">Požehnanie: +12 Mierenie, +8 Vystupovanie</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;" id="zodiacEffect">Bojový zápal: +1 k čistému poškodeniu zbrane.</div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT 1: EQUIPMENT ZOOM & OPTICS ── -->
+    <div class="panel-card">
+      <div class="panel-title">
+        <span>🔭 Zoom pri Lepšom Vybavení</span>
+        <span class="badge cyan" id="zoomFactorBadge">1.0x ZOOM</span>
+      </div>
+
+      <div class="optics-viewport" id="opticsViewport">
+        <div class="crosshair-h"></div>
+        <div class="crosshair-v"></div>
+        <div class="reticle-ring reticle-outer" id="reticleOuter"></div>
+        <div class="reticle-ring reticle-inner" id="reticleInner"></div>
+        <div class="zoom-scene-target" id="zoomTarget">🎯</div>
+      </div>
+
+      <div class="optics-controls">
+        <button class="zoom-btn active" id="zbtn1" onclick="setOpticsTier(1)">Tier 1 (1.0x)</button>
+        <button class="zoom-btn" id="zbtn2" onclick="setOpticsTier(2)">Tier 2 (1.5x)</button>
+        <button class="zoom-btn" id="zbtn3" onclick="setOpticsTier(3)">Tier 3 (2.5x)</button>
+        <button class="zoom-btn" id="zbtn4" onclick="setOpticsTier(4)">Tier 4 (4.0x)</button>
+        <button class="zoom-btn" id="zbtn5" onclick="setOpticsTier(5)">Tier 5 (8.0x)</button>
+      </div>
+
+      <div class="zodiac-info-box" id="opticsDetails">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:700; color:#fff;" id="opticsName">Holé Oči / Základný Zrak</span>
+          <span class="badge purple" id="fovBadge">FOV: 75.0°</span>
+        </div>
+        <div style="font-size:0.78rem; color:var(--cyan); margin-top:4px;" id="aimBonusText">Presnosť zamerania: +0 (Základné zameriavanie)</div>
+        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;" id="weakPointText">Zameriavanie slabín: Neaktívne (Vyžaduje Tier 3+)</div>
+      </div>
+    </div>
+
+    <!-- ── LEFT 2: GRID PRESETS (VERDY: 3x3, 2x5, 6x5, 12x9, 16:9, 21:19) ── -->
+    <div class="panel-card">
+      <div class="panel-title">
+        <span>📐 Verdy & Taktické Matice</span>
+        <span class="badge gold" id="gridPresetBadge">6x5 (30 BUNIEK)</span>
+      </div>
+
+      <div class="grid-tab-bar">
+        <button class="grid-tab" id="tab_3x3" onclick="switchGrid('3x3')">3x3 (Quickbelt)</button>
+        <button class="grid-tab" id="tab_2x5" onclick="switchGrid('2x5')">2x5 (Pouch)</button>
+        <button class="grid-tab active" id="tab_6x5" onclick="switchGrid('6x5')">6x5 (Backpack)</button>
+        <button class="grid-tab" id="tab_12x9" onclick="switchGrid('12x9')">12x9 (Armory)</button>
+        <button class="grid-tab" id="tab_16:9" onclick="switchGrid('16:9')">16:9 (Arena)</button>
+        <button class="grid-tab" id="tab_21:19" onclick="switchGrid('21:19')">21:19 (Ultrawide)</button>
+      </div>
+
+      <div class="matrix-display" id="matrixDisplay">
+        <!-- Rendered grid cells -->
+      </div>
+
+      <div class="zodiac-info-box" id="gridNumerologyDetails" style="margin-top: 10px;">
+        <div style="display:flex; justify-content:space-between;">
+          <span style="font-weight:700; color:#fff;" id="gridTitleText">Standard Backpack Grid (6x5)</span>
+          <span class="badge" id="gridAspectBadge">Pomer: 6:5</span>
+        </div>
+        <div style="font-size:0.78rem; color:var(--gold); margin-top:4px;" id="numerologyRootText">Pytagorejský koreň: 3 | Kapacita: 30 slotov</div>
+        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;" id="gridPurposeText">30-miestny batoh dobrodruha a bojovníka.</div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT 2: '+' V INVENTÁRI & IMUNITNÉ SYSTÉMY ── -->
+    <div class="panel-card">
+      <div class="panel-title">
+        <span>🎒 '+' v Inventári & Imunitné Systémy</span>
+        <span class="badge green" id="invTotalCapBadge">KAPACITA: 40</span>
+      </div>
+
+      <div class="plus-inv-summary">
+        <div>
+          <div style="font-weight:700; color:#fff;">Prémiové '+' Sloty Batohu</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">Bezváhové aéterické priehradky (+5 slotov za token)</div>
+        </div>
+        <button class="btn-add-plus" onclick="addPlusSlotToken()">+ PRIDAŤ '+' TOKEN</button>
+      </div>
+
+      <div class="panel-title" style="font-size:0.95rem; margin-top:16px;">
+        <span>🛡️ Imunitné Odolnosti & Ward Mitigácia</span>
+        <span class="badge" style="border-color:var(--cyan); color:var(--cyan);">WARD: 6 / 6 HP</span>
+      </div>
+
+      <div class="immunity-grid">
+        <div class="immunity-item">
+          <div class="immunity-header">
+            <span>Kyselina & Jed (Acid)</span>
+            <span style="color:var(--green);" id="immAcid">100% IMMUNE</span>
+          </div>
+          <div class="meter-bar"><div class="meter-fill immune" style="width:100%;"></div></div>
+        </div>
+
+        <div class="immunity-item">
+          <div class="immunity-header">
+            <span>Oheň & Spálenie (Fire)</span>
+            <span style="color:var(--cyan);" id="immFire">50% RESIST</span>
+          </div>
+          <div class="meter-bar"><div class="meter-fill" style="width:50%;"></div></div>
+        </div>
+
+        <div class="immunity-item">
+          <div class="immunity-header">
+            <span>Mráz & Ľad (Frost)</span>
+            <span style="color:var(--cyan);" id="immFrost">40% RESIST</span>
+          </div>
+          <div class="meter-bar"><div class="meter-fill" style="width:40%;"></div></div>
+        </div>
+
+        <div class="immunity-item">
+          <div class="immunity-header">
+            <span>Omráčenie (Stun)</span>
+            <span style="color:var(--cyan);" id="immStun">30% RESIST</span>
+          </div>
+          <div class="meter-bar"><div class="meter-fill" style="width:30%;"></div></div>
+        </div>
+
+        <div class="immunity-item">
+          <div class="immunity-header">
+            <span>Krvácanie (Bleed)</span>
+            <span style="color:var(--cyan);" id="immBleed">60% RESIST</span>
+          </div>
+          <div class="meter-bar"><div class="meter-fill" style="width:60%;"></div></div>
+        </div>
+
+        <div class="immunity-item">
+          <div class="immunity-header">
+            <span>Strach / Zastrašenie (Fear)</span>
+            <span style="color:var(--green);" id="immFear">100% IMMUNE</span>
+          </div>
+          <div class="meter-bar"><div class="meter-fill immune" style="width:100%;"></div></div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; display:flex; gap:8px;">
+        <button class="zoom-btn" style="background:rgba(255,51,102,0.15); border-color:var(--crimson); color:#fff;" onclick="testAilmentAttack('poison_acid')">
+          💥 Test Jedového Zásahu (Acid 8)
+        </button>
+        <button class="zoom-btn" style="background:rgba(255,215,0,0.15); border-color:var(--gold); color:#fff;" onclick="testPrereqCheck()">
+          📜 Overiť Predpoklady Výbavy
+        </button>
+      </div>
+
+      <div class="zodiac-info-box" id="combatLog" style="margin-top:10px; font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#94a3b8;">
+        Imunitný systém pripravený. Vyberte akciu.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // State
+    let constellations = [];
+    let currentAngle = 0;
+    let currentGridPreset = "6x5";
+    let plusTokens = 2;
+    let baseCapacity = 30;
+
+    const ZODIAC_SIGNS_DATA = [
+      { id: "aries", name: "Baran", sym: "♈", elem: "Oheň", deg: 0 },
+      { id: "taurus", name: "Býk", sym: "♉", elem: "Zem", deg: 30 },
+      { id: "gemini", name: "Blíženci", sym: "♊", elem: "Vzduch", deg: 60 },
+      { id: "cancer", name: "Rak", sym: "♋", elem: "Voda", deg: 90 },
+      { id: "leo", name: "Lev", sym: "♌", elem: "Oheň / Sol", deg: 120 },
+      { id: "virgo", name: "Panna", sym: "♍", elem: "Aéter", deg: 150 },
+      { id: "libra", name: "Váhy", sym: "♎", elem: "Rovnováha", deg: 180 },
+      { id: "scorpio", name: "Škorpión", sym: "♏", elem: "Jed", deg: 210 },
+      { id: "sagittarius", name: "Strelec", sym: "♐", elem: "Oheň", deg: 240 },
+      { id: "capricorn", name: "Kozorožec", sym: "♑", elem: "Zem", deg: 270 },
+      { id: "aquarius", name: "Vodnár", sym: "♒", elem: "Kozmické Vlny", deg: 300 },
+      { id: "pisces", name: "Ryby", sym: "♓", elem: "Astrálne Hĺbky", deg: 330 }
+    ];
+
+    async function init() {
+      setupZodiacNodes();
+      switchGrid("6x5");
+      fetchZodiacSky();
+      fetchInventoryPlus();
+    }
+
+    function setupZodiacNodes() {
+      const ring = document.getElementById('zodiacRing');
+      ring.innerHTML = '';
+      const r = 110;
+      const center = 130;
+
+      ZODIAC_SIGNS_DATA.forEach((s, idx) => {
+        const rad = (s.deg - 90) * (Math.PI / 180);
+        const x = center + r * Math.cos(rad) - 16;
+        const y = center + r * Math.sin(rad) - 16;
+
+        const node = document.createElement('div');
+        node.className = `constellation-node ${idx === 0 ? 'active' : ''}`;
+        node.id = `znode_${s.id}`;
+        node.style.left = `${x}px`;
+        node.style.top = `${y}px`;
+        node.innerText = s.sym;
+        node.onclick = () => selectZodiacSign(s);
+        ring.appendChild(node);
+      });
+    }
+
+    function selectZodiacSign(sign) {
+      document.querySelectorAll('.constellation-node').forEach(n => n.classList.remove('active'));
+      const n = document.getElementById(`znode_${sign.id}`);
+      if (n) n.classList.add('active');
+
+      document.getElementById('centerSignName').innerText = sign.name;
+      document.getElementById('activeZodiacBadge').innerText = `${sign.sym} ${sign.name.toUpperCase()} (${sign.elem.toUpperCase()})`;
+      document.getElementById('skyAngleSlider').value = sign.deg;
+      document.getElementById('skyAngleVal').innerText = `${sign.deg}°`;
+
+      document.getElementById('zodiacTitle').innerText = `${sign.name} (${sign.id.toUpperCase()}) - ${sign.elem}`;
+      document.getElementById('zodiacRing').style.transform = `rotate(${-sign.deg}deg)`;
+    }
+
+    function onSkyAngleChange(deg) {
+      currentAngle = parseInt(deg);
+      document.getElementById('skyAngleVal').innerText = `${currentAngle}°`;
+      document.getElementById('zodiacRing').style.transform = `rotate(${-currentAngle}deg)`;
+
+      const idx = Math.floor(currentAngle / 30) % 12;
+      const sign = ZODIAC_SIGNS_DATA[idx];
+      selectZodiacSign(sign);
+    }
+
+    async function fetchZodiacSky() {
+      try {
+        const resp = await fetch('/api/cosmic/zodiac_sky');
+        const data = await resp.json();
+        if (data.success && data.zodiac_sky) {
+          const z = data.zodiac_sky.active_constellation;
+          document.getElementById('zodiacTitle').innerText = `${z.name_sk} (${z.id.toUpperCase()}) - ${z.element}`;
+          document.getElementById('zodiacBlessing').innerText = `Požehnanie: Aim +${z.attribute_blessing.aim || 10}, Vystupovanie +${z.attribute_blessing.appearance || 8}`;
+          document.getElementById('zodiacEffect').innerText = z.signature_effect;
+        }
+      } catch (e) {
+        console.warn("Zodiac API offline");
+      }
+    }
+
+    // ── OPTICS ZOOM ──
+    async function setOpticsTier(tier) {
+      document.querySelectorAll('.zoom-btn').forEach((b, i) => b.classList.toggle('active', (i + 1) === tier));
+
+      try {
+        const resp = await fetch('/api/equipment/optics_zoom', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gear_tier: tier, target_distance_hex: 4 })
+        });
+        const data = await resp.json();
+        if (data.success && data.optics) {
+          const o = data.optics;
+          document.getElementById('zoomFactorBadge').innerText = `${o.zoom_multiplier}x ZOOM`;
+          document.getElementById('opticsName').innerText = o.optics_name;
+          document.getElementById('fovBadge').innerText = `FOV: ${o.field_of_view_degrees}°`;
+          document.getElementById('aimBonusText').innerText = `Presnosť zamerania: +${o.net_aim_bonus} (Chirurgický zásah)`;
+          document.getElementById('weakPointText').innerText = o.weak_point_targetable 
+            ? "Zameriavanie slabín: AKTÍVNE (Garantovaný zásah hlavy)" 
+            : "Zameriavanie slabín: Neaktívne (Vyžaduje Tier 3+)";
+
+          // Zoom viewport scale
+          const scale = 1.0 + (o.zoom_multiplier - 1.0) * 0.45;
+          document.getElementById('zoomTarget').style.transform = `scale(${scale})`;
+          document.getElementById('reticleOuter').style.transform = `scale(${1 / scale})`;
+        }
+      } catch (e) {
+        console.warn("Optics API offline");
+      }
+    }
+
+    // ── GRID MATRICES (3x3, 2x5, 6x5, 12x9, 16:9, 21:19) ──
+    const GRID_PRESETS = {
+      "3x3": { cols: 3, rows: 3, slots: 9, title: "Core Runic Quickbelt (3x3)", ratio: "1:1", root: 9 },
+      "2x5": { cols: 2, rows: 5, slots: 10, title: "Tactical Familiar Pouch (2x5)", ratio: "2:5", root: 1 },
+      "6x5": { cols: 6, rows: 5, slots: 30, title: "Standard Backpack Grid (6x5)", ratio: "6:5", root: 3 },
+      "12x9": { cols: 12, rows: 9, slots: 108, title: "Zodiac Grand Armory (12x9)", ratio: "4:3", root: 9 },
+      "16:9": { cols: 16, rows: 9, slots: 144, title: "Widescreen Combat Arena (16:9)", ratio: "16:9", root: 9 },
+      "21:19": { cols: 21, rows: 19, slots: 399, title: "Ultrawide Numerology Grid (21:19)", ratio: "21:19", root: 3 }
+    };
+
+    function switchGrid(preset) {
+      currentGridPreset = preset;
+      document.querySelectorAll('.grid-tab').forEach(t => t.classList.remove('active'));
+      const tab = document.getElementById(`tab_${preset}`);
+      if (tab) tab.classList.add('active');
+
+      const spec = GRID_PRESETS[preset] || GRID_PRESETS["6x5"];
+      document.getElementById('gridPresetBadge').innerText = `${preset.toUpperCase()} (${spec.slots} BUNIEK)`;
+      document.getElementById('gridTitleText').innerText = spec.title;
+      document.getElementById('gridAspectBadge').innerText = `Pomer: ${spec.ratio}`;
+      document.getElementById('numerologyRootText').innerText = `Pytagorejský koreň: ${spec.root} | Kapacita: ${spec.slots} slotov`;
+
+      // Render cells
+      const container = document.getElementById('matrixDisplay');
+      container.innerHTML = '';
+      container.style.gridTemplateColumns = `repeat(${spec.cols}, minmax(14px, 1fr))`;
+
+      for (let i = 0; i < spec.slots; i++) {
+        const cell = document.createElement('div');
+        const isPlus = (i >= spec.slots - 5);
+        cell.className = `matrix-cell ${isPlus ? 'plus-slot' : ''}`;
+        cell.innerText = isPlus ? `+${i + 1}` : (i + 1);
+        container.appendChild(cell);
+      }
+    }
+
+    // ── PLUS INVENTORY ──
+    async function fetchInventoryPlus() {
+      try {
+        const resp = await fetch('/api/inventory/plus_status');
+        const data = await resp.json();
+        if (data.success && data.inventory) {
+          const inv = data.inventory;
+          baseCapacity = inv.base_slots;
+          plusTokens = inv.plus_tokens;
+          document.getElementById('invTotalCapBadge').innerText = `KAPACITA: ${inv.total_capacity}`;
+        }
+      } catch (e) {
+        console.warn("Inventory API offline");
+      }
+    }
+
+    async function addPlusSlotToken() {
+      try {
+        const resp = await fetch('/api/inventory/plus_slots', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: "add_token", count: 1 })
+        });
+        const data = await resp.json();
+        if (data.success && data.inventory) {
+          const inv = data.inventory;
+          document.getElementById('invTotalCapBadge').innerText = `KAPACITA: ${inv.total_capacity}`;
+          document.getElementById('combatLog').innerText = 
+            `[PLUS INVENTÁR] Pridaný '+' token! Odomknutých ďalších +5 slotov. Nová kapacita: ${inv.total_capacity}.`;
+        }
+      } catch (e) {
+        console.warn("Add plus token failed");
+      }
+    }
+
+    async function testAilmentAttack(type) {
+      try {
+        const resp = await fetch('/api/combat/immunity_check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            race_id: "toxic",
+            ailment_type: type,
+            raw_potency: 8,
+            active_ward: 6
+          })
+        });
+        const data = await resp.json();
+        if (data.success && data.ailment_mitigation) {
+          const m = data.ailment_mitigation;
+          document.getElementById('combatLog').innerHTML = 
+            `<span style="color:var(--green); font-weight:700;">[STATUS: ${m.status}]</span> ${m.feedback}`;
+        }
+      } catch (e) {
+        console.warn("Immunity check failed");
+      }
+    }
+
+    async function testPrereqCheck() {
+      try {
+        const resp = await fetch('/api/system/prerequisites_check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hero_id: "m_cold_15",
+            requirements: {
+              attributes: { aim: 25, appearance: 30 },
+              min_tier: 3
+            }
+          })
+        });
+        const data = await resp.json();
+        if (data.success && data.prerequisites) {
+          const p = data.prerequisites;
+          document.getElementById('combatLog').innerHTML = 
+            `<span style="color:var(--gold); font-weight:700;">[PREDPOKLADY: ${p.eligible ? 'SPLNENÉ' : 'NESPLNENÉ'}]</span> ` +
+            `Splnenie: ${p.fulfillment_percentage}%. Kontroly: ${p.checks_passed}/${p.checks_total}.`;
+        }
+      } catch (e) {
+        console.warn("Prereq check failed");
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

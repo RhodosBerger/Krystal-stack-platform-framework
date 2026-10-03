@@ -253,7 +253,7 @@ class AdaptiveApplicationFirewall:
 
     # Malicious signatures (Regex patterns compiled)
     SQLI_PATTERNS = [
-        re.compile(r"(\%27)|(\')|(\-\-)|(\%23)|(#)", re.IGNORECASE),
+        re.compile(r"(\%27)|(\')|(\-\-\s)|(\%23)|(#\s+)", re.IGNORECASE),
         re.compile(r"\b(UNION(\s+ALL)?\s+SELECT|INSERT\s+INTO|DROP\s+(TABLE|DATABASE)|ALTER\s+TABLE)\b", re.IGNORECASE),
         re.compile(r"\b(OR\s+1\s*=\s*1|AND\s+1\s*=\s*1)\b", re.IGNORECASE),
         re.compile(r"\b(SLEEP\s*\(|BENCHMARK\s*\()", re.IGNORECASE)

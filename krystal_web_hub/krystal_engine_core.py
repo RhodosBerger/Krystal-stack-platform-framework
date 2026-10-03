@@ -99,7 +99,23 @@ from krystal_web_hub.economic_engine import (
     NocturnalAtmosphereEngine, EntropyWeatherEngine, ArborMycorrhizalNetwork,
     DimensionalPortalsAndMirrors, TWELVE_APOSTLES, ANGELIC_GUARDIANS, ApostlesAndAngelsRegistry,
     RACES_CATALOG, MALE_ARCHETYPES_20, FEMALE_ARCHETYPES_20, ALL_40_REPRESENTATIVES,
-    HELPERS_120_CATALOG, HELPERS_BY_ID, HELPERS_BY_INDEX, ArchetypeAndHelperEngine
+    HELPERS_120_CATALOG, HELPERS_BY_ID, HELPERS_BY_INDEX, ArchetypeAndHelperEngine,
+    DamageAilmentType, ImmunityStatus, ZODIAC_CONSTELLATIONS, GRID_PRESET_SPECS,
+    SacredNumerologyEngine, ImmunitySystemEngine, ZodiacSkyEngine,
+    EquipmentZoomOpticsEngine, PlusInventoryEngine, PrerequisitesValidator,
+    PaintingAuctionHouseEngine, AetherOrdinalsProtocolEngine,
+    ContentReplayEngine, HeroMatrixEngine, FrameRateEncodingProtocol,
+    EvolutionaryPhysicsEngine, EventStreamCongestionController,
+    GLOBAL_PAINTING_AUCTIONS, GLOBAL_ORDINALS_PROTOCOL,
+    MetaverseAssetType, OrderType, MetaverseMarketplaceEngine,
+    GraniteAndEdgeLLMEngine, GLOBAL_METAVERSE_MARKET, GLOBAL_GRANITE_LLM,
+    VisualPhenomenonType, SpellProjectionType, SectorAnomalyType,
+    TotemStatus, SectorTotem, VisualPhenomenaEngine,
+    SpellProjectionEngine, AnomalyDetectorSensorArray, SectorTotemManager,
+    GLOBAL_VISUAL_PHENOMENA, GLOBAL_SPELL_PROJECTION,
+    GLOBAL_ANOMALY_DETECTOR, GLOBAL_TOTEM_MANAGER,
+    CANONICAL_MULLIGAN_CARDS, MulliganPhaseManager, CombinatorialTacticalMoveEngine,
+    GLOBAL_MULLIGAN_MANAGER, GLOBAL_COMBINATORIAL_ENGINE
 )
 from krystal_web_hub.economic_engine.ability_framework import (
     calculate_hex_distance, validate_target_range
@@ -112,6 +128,8 @@ GLOBAL_AD_EXCHANGE = SecureAdExchangeProtocol()
 GLOBAL_MONITORING_CLUSTER = MonitoringClusterEngine()
 GLOBAL_FIREWALL = AdaptiveApplicationFirewall(requests_per_minute=300, ban_duration_sec=600.0)
 GLOBAL_BOT_TRANSMITTER = BotTransmitter("bot_prime_explorer", channel_freq_mhz=433.92)
+GLOBAL_PLUS_INVENTORY = PlusInventoryEngine(preset="6x5", plus_tokens=2)
+GLOBAL_EVO_PHYSICS = EvolutionaryPhysicsEngine(population_size=16)
 
 def world_pos_to_hex(coords):
     if not coords or not isinstance(coords, (list, tuple)):
@@ -1432,6 +1450,219 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 self._send_json({"success": True, "helper": helper})
             else:
                 self._send_json({"success": False, "error": "Helper not found"}, status=404)
+            return
+
+        # ── ZODIAC, GRIDS & PLUS INVENTORY (GET) ─────────────────────────────
+        if path == '/api/cosmic/zodiac_sky':
+            qs = urllib.parse.parse_qs(parsed.query)
+            t_str = qs.get("time_sec", [""])[0]
+            t_sec = float(t_str) if t_str else time.time()
+            zodiac_res = ZodiacSkyEngine.get_celestial_zodiac(t_sec)
+            self._send_json({
+                "success": True,
+                "zodiac_sky": zodiac_res,
+                "all_constellations": list(ZODIAC_CONSTELLATIONS.values())
+            })
+            return
+
+        if path == '/api/system/grid_matrices':
+            grids_list = []
+            for name, spec in GRID_PRESET_SPECS.items():
+                res = SacredNumerologyEngine.evaluate_grid_resonance(name)
+                grids_list.append({**spec, "resonance": res})
+            self._send_json({
+                "success": True,
+                "count": len(GRID_PRESET_SPECS),
+                "grid_matrices": grids_list
+            })
+            return
+
+        if path == '/api/inventory/plus_status':
+            self._send_json({
+                "success": True,
+                "inventory": GLOBAL_PLUS_INVENTORY.to_dict()
+            })
+            return
+
+        # ── ART AUCTIONS & ORDINALS (GET) ────────────────────────────────────
+        if path == '/api/art/auctions':
+            qs = urllib.parse.parse_qs(parsed.query)
+            st = qs.get("status", ["active"])[0]
+            lots = GLOBAL_PAINTING_AUCTIONS.list_lots(status=st)
+            self._send_json({
+                "success": True,
+                "count": len(lots),
+                "status_filter": st,
+                "lots": lots
+            })
+            return
+
+        if path == '/api/ordinals/list':
+            inscriptions = GLOBAL_ORDINALS_PROTOCOL.list_inscriptions()
+            self._send_json({
+                "success": True,
+                "count": len(inscriptions),
+                "inscriptions": inscriptions
+            })
+            return
+
+        if path == '/api/ordinals/export':
+            qs = urllib.parse.parse_qs(parsed.query)
+            insc_id = qs.get("inscription_id", [""])[0]
+            if not insc_id:
+                # Return all exported envelopes
+                exported = [GLOBAL_ORDINALS_PROTOCOL.export_ordinal(i["id"]) for i in GLOBAL_ORDINALS_PROTOCOL.list_inscriptions()]
+                self._send_json({"success": True, "count": len(exported), "exported_ordinals": exported})
+            else:
+                exp = GLOBAL_ORDINALS_PROTOCOL.export_ordinal(insc_id)
+                if exp:
+                    self._send_json({"success": True, "exported_ordinal": exp})
+                else:
+                    self._send_json({"success": False, "error": f"Inscription {insc_id} not found"}, status=404)
+            return
+
+        # ── CONTENT REPLAY & LEVEL SNAPSHOTS (GET) ───────────────────────────
+        if path == '/api/replay/records':
+            matches = GLOBAL_CONTENT_REPLAY.list_matches()
+            self._send_json({
+                "success": True,
+                "count": len(matches),
+                "matches": matches
+            })
+            return
+
+        if path == '/api/replay/level':
+            qs = urllib.parse.parse_qs(parsed.query)
+            m_id = qs.get("match_id", [""])[0]
+            lvl_idx = int(qs.get("level_idx", [0])[0])
+            segment = GLOBAL_CONTENT_REPLAY.get_level_segment(m_id, lvl_idx)
+            if segment:
+                self._send_json({"success": True, "level_segment": segment})
+            else:
+                self._send_json({"success": False, "error": f"Level segment not found for {m_id}:{lvl_idx}"}, status=404)
+            return
+
+        # ── ML CONGESTION CONTROL (GET) ──────────────────────────────────────
+        if path == '/api/ml/congestion_control':
+            self._send_json({
+                "success": True,
+                "congestion_status": GLOBAL_CONGESTION_CONTROLLER.get_status()
+            })
+            return
+
+        # ── METAVERSE MARKETPLACE & GRANITE LLM (GET) ────────────────────────
+        if path == '/api/metaverse/market/catalog':
+            cat = GLOBAL_METAVERSE_MARKET.get_catalog()
+            self._send_json({
+                "success": True,
+                "count": len(cat),
+                "catalog": cat
+            })
+            return
+
+        if path == '/api/metaverse/market/orderbook':
+            qs = urllib.parse.parse_qs(parsed.query)
+            pair = qs.get("pair", ["LAND_042/AET"])[0]
+            ob = GLOBAL_METAVERSE_MARKET.get_order_book(pair)
+            self._send_json({"success": True, "order_book": ob})
+            return
+
+        if path == '/api/metaverse/market/amm_pools':
+            pools = GLOBAL_METAVERSE_MARKET.get_amm_pools()
+            self._send_json({
+                "success": True,
+                "count": len(pools),
+                "pools": pools
+            })
+            return
+
+        if path == '/api/metaverse/llm/models':
+            models = GLOBAL_GRANITE_LLM.get_registered_models()
+            self._send_json({
+                "success": True,
+                "count": len(models),
+                "models": models
+            })
+            return
+
+        if path == '/api/metaverse/llm/budget':
+            qs = urllib.parse.parse_qs(parsed.query)
+            m_key = qs.get("model_key", ["ibm-granite-3.1-4b-instruct-2026"])[0]
+            budget = GLOBAL_GRANITE_LLM.verify_hardware_budget(m_key)
+            self._send_json({"success": True, "budget": budget})
+            return
+
+        if path == '/api/totems/sector_status':
+            qs = urllib.parse.parse_qs(parsed.query)
+            sector_id = qs.get("sector_id", [None])[0]
+            totems = GLOBAL_TOTEM_MANAGER.get_totems(sector_id)
+            self._send_json({
+                "success": True,
+                "count": len(totems),
+                "vital_hp_invariant": 6,
+                "totems": totems
+            })
+            return
+
+        if path == '/api/totems/anomalies':
+            anomalies = GLOBAL_ANOMALY_DETECTOR.get_active_anomalies()
+            self._send_json({
+                "success": True,
+                "count": len(anomalies),
+                "anomalies": anomalies
+            })
+            return
+
+        if path == '/api/totems/phenomena_catalog':
+            catalog = GLOBAL_VISUAL_PHENOMENA.get_all_phenomena_catalog()
+            self._send_json({
+                "success": True,
+                "count": len(catalog),
+                "phenomena": catalog
+            })
+            return
+
+        if path == '/api/totems/spell_catalog':
+            spells = SpellProjectionEngine.SPELL_CATALOG
+            self._send_json({
+                "success": True,
+                "count": len(spells),
+                "spells": spells
+            })
+            return
+
+        if path == '/api/cards/mulligan/hand':
+            self._send_json({
+                "success": True,
+                "count": len(GLOBAL_MULLIGAN_MANAGER.opening_hand),
+                "selected_count": len(GLOBAL_MULLIGAN_MANAGER.selected_indices),
+                "selected_indices": list(GLOBAL_MULLIGAN_MANAGER.selected_indices),
+                "hand": GLOBAL_MULLIGAN_MANAGER.opening_hand,
+                "is_completed": GLOBAL_MULLIGAN_MANAGER.is_completed
+            })
+            return
+
+        if path == '/api/cards/mulligan/catalog':
+            self._send_json({
+                "success": True,
+                "count": len(CANONICAL_MULLIGAN_CARDS),
+                "cards": CANONICAL_MULLIGAN_CARDS
+            })
+            return
+
+        if path == '/api/tactical/combinatorial_moves/specs':
+            self._send_json({
+                "success": True,
+                "total_combinations": CombinatorialTacticalMoveEngine.TOTAL_COMBINATORIAL_STATES,
+                "formula": "2^18 = 512 macro-branches x 512 spatial paths = 262,144 tactical combinations",
+                "vital_max_hp_rule": 6,
+                "evaluated_mechanics": [
+                    "hero_move_1_and_escort_unit_1",
+                    "connecting_crystal_conduit_extension",
+                    "slow_to_root_projectile_combo",
+                    "sector_freeze_aoe_control"
+                ]
+            })
             return
 
         if path.startswith('/api/') and self._proxy_to_hub("GET"):
@@ -2855,6 +3086,404 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "composite_build": composite,
                 "duel_result": duel_res
             })
+            return
+
+        # ── COMBAT IMMUNITY & RESISTANCE (POST) ──────────────────────────────
+        if path == '/api/combat/immunity_check':
+            race_id = req_data.get("race_id", "crystal")
+            ailment_str = req_data.get("ailment_type", "poison_acid")
+            raw_pot = int(req_data.get("raw_potency", 3))
+            gear_res = req_data.get("gear_resists", {})
+            ward_hp = int(req_data.get("active_ward", 6))
+
+            try:
+                ailment_enum = DamageAilmentType(ailment_str)
+            except ValueError:
+                ailment_enum = DamageAilmentType.POISON_ACID
+
+            profile = ImmunitySystemEngine.build_hero_immunity_profile(race_id, gear_res, ward_hp)
+            mitigation_res = ImmunitySystemEngine.resolve_ailment_attack(ailment_enum, raw_pot, profile)
+
+            self._send_json({
+                "success": True,
+                "immunity_profile": profile,
+                "ailment_mitigation": mitigation_res
+            })
+            return
+
+        # ── EQUIPMENT OPTICS & ZOOM (POST) ──────────────────────────────────
+        if path == '/api/equipment/optics_zoom':
+            tier = int(req_data.get("gear_tier", 1))
+            dist = int(req_data.get("target_distance_hex", 3))
+            optics_res = EquipmentZoomOpticsEngine.calculate_zoom_optics(tier, dist)
+            self._send_json({"success": True, "optics": optics_res})
+            return
+
+        # ── PLUS INVENTORY EXPANSION (POST) ─────────────────────────────────
+        if path == '/api/inventory/plus_slots':
+            action = req_data.get("action", "view")
+            if action == "add_token":
+                cnt = int(req_data.get("count", 1))
+                GLOBAL_PLUS_INVENTORY.add_plus_token(cnt)
+            elif action == "store":
+                s_idx = int(req_data.get("slot_index", 0))
+                i_data = req_data.get("item_data", {"name": "Aéterový Kryštál"})
+                GLOBAL_PLUS_INVENTORY.store_item(s_idx, i_data)
+
+            self._send_json({
+                "success": True,
+                "inventory": GLOBAL_PLUS_INVENTORY.to_dict()
+            })
+            return
+
+        # ── PREREQUISITES VALIDATION (POST) ──────────────────────────────────
+        if path == '/api/system/prerequisites_check':
+            hero_prof = req_data.get("hero_profile", {})
+            hero_id = req_data.get("hero_id")
+            if hero_id and not hero_prof:
+                hero_prof = ArchetypeAndHelperEngine.get_character(hero_id) or {}
+            reqs = req_data.get("requirements", {})
+            val_res = PrerequisitesValidator.validate_prerequisites(hero_prof, reqs)
+            self._send_json({"success": True, "prerequisites": val_res})
+            return
+
+        # ── ART AUCTIONS (POST) ──────────────────────────────────────────────
+        if path == '/api/art/auctions/create':
+            title = req_data.get("title", "Nová Aéterická Maľba")
+            artist = req_data.get("artist", "Krystal Generative Artisan")
+            style = req_data.get("style", "Aetheric High-Renaissance")
+            rarity = req_data.get("rarity", "Legendary")
+            starting_bid = int(req_data.get("starting_bid", 100))
+            buyout_price = int(req_data.get("buyout_price", 400))
+            resolution = req_data.get("resolution", "1920x1080")
+            img_url = req_data.get("image_url", "/api/assets/paintings/default.png")
+
+            lot = GLOBAL_PAINTING_AUCTIONS.create_lot(
+                title=title,
+                artist=artist,
+                style=style,
+                rarity=rarity,
+                starting_bid=starting_bid,
+                buyout_price=buyout_price,
+                resolution=resolution,
+                image_url=img_url
+            )
+            self._send_json({"success": True, "lot": lot})
+            return
+
+        if path == '/api/art/auctions/bid':
+            lot_id = req_data.get("lot_id", "")
+            bidder = req_data.get("bidder", "Anonymous Collector")
+            amount = int(req_data.get("amount", 0))
+
+            res = GLOBAL_PAINTING_AUCTIONS.place_bid(lot_id=lot_id, bidder=bidder, amount=amount)
+            if res.get("success"):
+                self._send_json(res)
+            else:
+                self._send_json(res, status=400)
+            return
+
+        # ── AETHER ORDINALS PROTOCOL (POST) ──────────────────────────────────
+        if path == '/api/ordinals/inscribe':
+            art_lot_id = req_data.get("art_lot_id")
+            content_payload = req_data.get("content_payload", "Krystal Ordinal Genesis Inscription")
+            content_type = req_data.get("content_type", "text/plain;charset=utf-8")
+            owner_address = req_data.get("owner_address", "bc1p_krystal_stack_aether_inscription")
+
+            insc = GLOBAL_ORDINALS_PROTOCOL.inscribe(
+                art_lot_id=art_lot_id,
+                content_payload=content_payload,
+                content_type=content_type,
+                owner_address=owner_address
+            )
+            exported = GLOBAL_ORDINALS_PROTOCOL.export_ordinal(insc["id"])
+            self._send_json({
+                "success": True,
+                "inscription": insc,
+                "exported_ordinal": exported
+            })
+            return
+
+        # ── CONTENT REPLAY & LEVEL FRAGMENTATION (POST) ──────────────────────
+        if path == '/api/replay/record_level':
+            m_id = req_data.get("match_id", "match_alpha")
+            lvl_name = req_data.get("level_name", "Aréna Zmrazených Špicov")
+            lvl_idx = int(req_data.get("level_idx", 1))
+            seed = req_data.get("seed", 42)
+            hero_cnt = int(req_data.get("hero_count", 4))
+            events = req_data.get("events", [{"type": "level_init", "tick": 0}])
+            v_layers = req_data.get("visual_layers", {"lighting": "dusk", "fog_density": 0.4})
+
+            segment = GLOBAL_CONTENT_REPLAY.record_level_segment(
+                match_id=m_id,
+                level_name=lvl_name,
+                level_idx=lvl_idx,
+                level_seed=seed,
+                hero_count=hero_cnt,
+                action_events=events,
+                visual_layers=v_layers
+            )
+            self._send_json({"success": True, "level_segment": segment})
+            return
+
+        # ── HERO MATRICES & VARIABLE SAMPLING FREQUENCY (POST) ───────────────
+        if path == '/api/ml/hero_matrices':
+            hero_cnt = int(req_data.get("hero_count", 1))
+            target_dim = req_data.get("target_dims", "all")
+            intensity = float(req_data.get("battle_intensity", 0.5))
+
+            dimensions = ["5x2", "4x5", "30x20", "90x120"] if target_dim == "all" else [target_dim]
+            matrices_out = {}
+            for dim in dimensions:
+                if dim in ["5x2", "4x5", "30x20", "90x120"]:
+                    matrices_out[dim] = HeroMatrixEngine.generate_matrix_for_hero_count(hero_count=hero_cnt, dim_key=dim)
+
+            # Sampling frequency schedule
+            freq_sched = FrameRateEncodingProtocol.compute_sampling_frequency_schedule(hero_count=hero_cnt, battle_intensity=intensity)
+            header = FrameRateEncodingProtocol.pack_stream_header(total_frames=120, base_hz=freq_sched["effective_hz"], channel_count=hero_cnt)
+
+            self._send_json({
+                "success": True,
+                "hero_count": hero_cnt,
+                "sampling_frequency_schedule": freq_sched,
+                "frame_stream_header": header,
+                "matrices": matrices_out
+            })
+            return
+
+        # ── EVOLUTIONARY PHYSICS & KINEMATICS (POST) ──────────────────────────
+        if path == '/api/ml/evolutionary_physics':
+            gens = int(req_data.get("generations", 5))
+            friction = float(req_data.get("friction", 0.05))
+            gravity = float(req_data.get("gravity", 9.81))
+            collision_target = req_data.get("collision_target", [10.0, 0.0, 5.0])
+
+            GLOBAL_EVO_PHYSICS.friction = friction
+            GLOBAL_EVO_PHYSICS.gravity = gravity
+            GLOBAL_EVO_PHYSICS.collision_target = tuple(collision_target)
+
+            history = []
+            for g in range(gens):
+                res = GLOBAL_EVO_PHYSICS.evolve_generation()
+                history.append(res)
+                # Enqueue generation event to Congestion Controller
+                GLOBAL_CONGESTION_CONTROLLER.push_event({
+                    "type": "evolution_generation_completed",
+                    "generation": res["generation"],
+                    "best_fitness": res["best_fitness"],
+                    "avg_fitness": res["avg_fitness"]
+                })
+
+            best_summary = GLOBAL_EVO_PHYSICS.get_best_individual()
+            self._send_json({
+                "success": True,
+                "generations_run": gens,
+                "final_generation": GLOBAL_EVO_PHYSICS.generation,
+                "best_individual": best_summary,
+                "history": history
+            })
+            return
+
+        # ── CONGESTION CONTROL DISPATCH (POST) ───────────────────────────────
+        if path == '/api/ml/congestion_dispatch':
+            dispatch_res = GLOBAL_CONGESTION_CONTROLLER.dispatch_batch()
+            self._send_json({
+                "success": True,
+                "dispatch": dispatch_res
+            })
+        # ── METAVERSE MARKETPLACE & GRANITE LLM (POST) ───────────────────────
+        if path == '/api/metaverse/market/order':
+            pair = req_data.get("pair", "LAND_042/AET")
+            o_type = req_data.get("order_type", OrderType.LIMIT_BUY.value)
+            price = float(req_data.get("price", 100.0))
+            amount = float(req_data.get("amount", 1.0))
+            trader = req_data.get("trader", "metaverse_player")
+
+            res = GLOBAL_METAVERSE_MARKET.place_order(pair, o_type, price, amount, trader)
+            self._send_json(res)
+            return
+
+        if path == '/api/metaverse/market/amm_swap':
+            pool_id = req_data.get("pool_id", "pool_aet_gold")
+            token_in = req_data.get("token_in", "AET")
+            amount_in = float(req_data.get("amount_in", 10.0))
+            slippage = float(req_data.get("slippage_tolerance", 0.05))
+
+            res = GLOBAL_METAVERSE_MARKET.execute_amm_swap(pool_id, token_in, amount_in, slippage)
+            if res.get("success"):
+                self._send_json(res)
+            else:
+                self._send_json(res, status=400)
+            return
+
+        if path == '/api/metaverse/llm/market_eval':
+            pair = req_data.get("pair", "LAND_042/AET")
+            model_key = req_data.get("model_key", "ibm-granite-3.1-4b-instruct-2026")
+            ob = GLOBAL_METAVERSE_MARKET.get_order_book(pair)
+            res = GLOBAL_GRANITE_LLM.evaluate_market_sentiment(pair, ob, model_key)
+            self._send_json({"success": True, "evaluation": res})
+            return
+
+        if path == '/api/metaverse/llm/merchant_barter':
+            offered_item = req_data.get("offered_item", "Kryštálové Brnenie")
+            offered_val = float(req_data.get("offered_nominal_val", 120.0))
+            requested_item = req_data.get("requested_item", "Aéterová Batéria")
+            requested_val = float(req_data.get("requested_nominal_val", 100.0))
+            merchant_name = req_data.get("merchant_archetype", "Aéterový Obchodník z Citadely")
+            greed = float(req_data.get("greed_factor", 0.15))
+            model_key = req_data.get("model_key", "ibm-granite-3.0-2b-instruct")
+
+            res = GLOBAL_GRANITE_LLM.simulate_merchant_barter(
+                offered_item=offered_item,
+                offered_nominal_val=offered_val,
+                requested_item=requested_item,
+                requested_nominal_val=requested_val,
+                merchant_archetype=merchant_name,
+                greed_factor=greed,
+                model_key=model_key
+            )
+            self._send_json({"success": True, "barter": res})
+            return
+
+        if path == '/api/metaverse/llm/manipulation_audit':
+            events = req_data.get("order_events", [])
+            model_key = req_data.get("model_key", "ibm-granite-3.1-4b-instruct-2026")
+            res = GLOBAL_GRANITE_LLM.detect_market_manipulation(events, model_key)
+            self._send_json({"success": True, "audit": res})
+            return
+
+        if path == '/api/totems/spell_projection':
+            spell_key = req_data.get("spell_key", "frost_crystal_nova")
+            caster_origin = req_data.get("caster_origin", [0.0, 0.0])
+            heading_deg = float(req_data.get("heading_deg", 0.0))
+            sector_id = req_data.get("sector_id", None)
+
+            totems = GLOBAL_TOTEM_MANAGER.get_totems(sector_id)
+            projection_res = GLOBAL_SPELL_PROJECTION.project_spell(
+                spell_key=spell_key,
+                caster_origin=tuple(caster_origin[:2]),
+                target_heading_deg=heading_deg,
+                totems_in_sector=totems
+            )
+            impact_results = []
+            for hit in projection_res.get("affected_totems", []):
+                t_impact = GLOBAL_TOTEM_MANAGER.apply_spell_impact_to_totem(
+                    totem_id=hit["totem_id"],
+                    spell_element=hit["element"],
+                    potency=projection_res["damage_potency"],
+                    hit_factor=hit["hit_effectiveness"]
+                )
+                impact_results.append(t_impact)
+
+            self._send_json({
+                "success": True,
+                "projection": projection_res,
+                "totem_impacts": impact_results
+            })
+            return
+
+        if path == '/api/totems/trigger_anomaly':
+            sector_id = req_data.get("sector_id", "sector_north_crystal")
+            anomaly_type = req_data.get("anomaly_type", SectorAnomalyType.DIMENSIONAL_RIFT.value)
+            epicenter = req_data.get("epicenter", [0.0, -8.66])
+            magnitude = float(req_data.get("magnitude", 0.75))
+            duration_sec = float(req_data.get("duration_sec", 60.0))
+
+            anomaly = GLOBAL_ANOMALY_DETECTOR.trigger_anomaly(
+                sector_id=sector_id,
+                anomaly_type=anomaly_type,
+                epicenter_coords=tuple(epicenter[:2]),
+                magnitude=magnitude,
+                duration_sec=duration_sec
+            )
+
+            affected_totems = []
+            for totem in GLOBAL_TOTEM_MANAGER.get_totems(sector_id):
+                res = GLOBAL_TOTEM_MANAGER.apply_anomaly_flux_to_totem(
+                    totem_id=totem["id"],
+                    anomaly_type=anomaly_type,
+                    magnitude=magnitude
+                )
+                affected_totems.append(res)
+
+            self._send_json({
+                "success": True,
+                "anomaly": anomaly,
+                "totem_responses": affected_totems
+            })
+            return
+
+        if path == '/api/totems/detect_anomalies':
+            sector_id = req_data.get("sector_id", "sector_north_crystal")
+            sector_totems = GLOBAL_TOTEM_MANAGER.get_totems(sector_id)
+            scan_results = GLOBAL_ANOMALY_DETECTOR.scan_sector(sector_id, sector_totems)
+            self._send_json({
+                "success": True,
+                "scan": scan_results
+            })
+            return
+
+        if path == '/api/totems/attune':
+            totem_id = req_data.get("totem_id", "totem_north_crystal")
+            caster_tribe = req_data.get("caster_tribe", "crystal")
+            channel_energy = float(req_data.get("channel_energy", 25.0))
+            attune_res = GLOBAL_TOTEM_MANAGER.attune_totem(
+                totem_id=totem_id,
+                caster_tribe=caster_tribe,
+                channel_energy=channel_energy
+            )
+            self._send_json(attune_res)
+            return
+
+        if path == '/api/totems/phenomenon':
+            phenom_type = req_data.get("phenomenon_type", VisualPhenomenonType.CHROMATIC_ABERRATION_BURST.value)
+            coords = req_data.get("coordinates", [0.0, 0.0, 0.0])
+            intensity = float(req_data.get("intensity", 0.8))
+            freq = float(req_data.get("resonance_frequency_hz", 432.0))
+            p_data = GLOBAL_VISUAL_PHENOMENA.generate_phenomenon(
+                phenomenon_type=phenom_type,
+                coordinates=tuple(coords[:3]),
+                intensity=intensity,
+                resonance_hz=freq
+            )
+            self._send_json({
+                "success": True,
+                "phenomenon": p_data
+            })
+            return
+
+        if path == '/api/cards/mulligan/toggle':
+            card_idx = int(req_data.get("card_index", 0))
+            res = GLOBAL_MULLIGAN_MANAGER.toggle_card_selection(card_idx)
+            self._send_json({"success": True, **res})
+            return
+
+        if path == '/api/cards/mulligan/exchange':
+            indices = req_data.get("indices", None)
+            res = GLOBAL_MULLIGAN_MANAGER.execute_mulligan(indices)
+            self._send_json(res)
+            return
+
+        if path == '/api/cards/mulligan/reset':
+            GLOBAL_MULLIGAN_MANAGER.deal_initial_hand()
+            self._send_json({
+                "success": True,
+                "message": "Mulligan hand reset to canonical initial draw",
+                "hand": GLOBAL_MULLIGAN_MANAGER.opening_hand
+            })
+            return
+
+        if path == '/api/tactical/combinatorial_moves/simulate':
+            hero_pos = req_data.get("hero_pos", [0, -2])
+            enemy_pos = req_data.get("enemy_pos", [0, 2])
+            crystals = req_data.get("crystals", None)
+            sim_res = GLOBAL_COMBINATORIAL_ENGINE.simulate_256k_combinations(
+                hero_pos=tuple(hero_pos[:2]),
+                enemy_pos=tuple(enemy_pos[:2]),
+                active_crystals=[tuple(c[:2]) for c in crystals] if crystals else None,
+                available_hand=GLOBAL_MULLIGAN_MANAGER.opening_hand
+            )
+            self._send_json({"success": True, **sim_res})
             return
 
         if path.startswith('/api/') and self._proxy_to_hub("POST", body=post_data.encode('utf-8') if isinstance(post_data, str) else post_data):

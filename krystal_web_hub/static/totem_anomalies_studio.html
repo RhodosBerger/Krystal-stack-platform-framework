@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRYSTAL-STACK // SECTOR TOTEMS & SPELL ANOMALY OBSERVATORY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #050811;
+      --card-bg: rgba(13, 20, 36, 0.85);
+      --card-border: rgba(102, 252, 241, 0.22);
+      --cyan: #66fcf1;
+      --cyan-glow: rgba(102, 252, 241, 0.45);
+      --purple: #9d4edd;
+      --purple-glow: rgba(157, 78, 221, 0.4);
+      --gold: #ffd700;
+      --crimson: #ff3366;
+      --green: #00ff88;
+      --amber: #ffaa00;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(157, 78, 221, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(102, 252, 241, 0.15) 0%, transparent 45%),
+        linear-gradient(180deg, #050811 0%, #090e1f 100%);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 22px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 26px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      margin-bottom: 22px;
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.45rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+    .brand-title span { color: var(--cyan); text-shadow: 0 0 12px var(--cyan-glow); }
+
+    .header-pills {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill.cyan { border-color: var(--cyan); color: var(--cyan); }
+    .pill.gold { border-color: var(--gold); color: var(--gold); }
+    .pill.green { border-color: var(--green); color: var(--green); }
+    .pill.purple { border-color: var(--purple); color: var(--purple); }
+    .pill.crimson { border-color: var(--crimson); color: var(--crimson); }
+
+    .nav-btn {
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: rgba(102, 252, 241, 0.12);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover {
+      background: var(--cyan);
+      color: #050811;
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    .layout-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 10px;
+    }
+    .card-title .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Sector Totems List */
+    .totem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .totem-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 16px;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+    .totem-card:hover {
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 252, 241, 0.15);
+    }
+    .totem-card.overcharged {
+      border-color: var(--gold);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
+    }
+    .totem-card.corrupted {
+      border-color: var(--crimson);
+      box-shadow: 0 0 15px rgba(255, 51, 102, 0.25);
+    }
+    .totem-card.nullified {
+      border-color: var(--purple);
+      opacity: 0.8;
+    }
+
+    .totem-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .totem-name {
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .totem-status-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .badge-attuned { background: rgba(0, 255, 136, 0.15); color: var(--green); border: 1px solid var(--green); }
+    .badge-overcharged { background: rgba(255, 215, 0, 0.15); color: var(--gold); border: 1px solid var(--gold); }
+    .badge-corrupted { background: rgba(255, 51, 102, 0.15); color: var(--crimson); border: 1px solid var(--crimson); }
+    .badge-nullified { background: rgba(157, 78, 221, 0.15); color: var(--purple); border: 1px solid var(--purple); }
+
+    .totem-stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+    .totem-stat-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .res-bar-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      margin: 8px 0 12px 0;
+      overflow: hidden;
+    }
+    .res-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--purple));
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+    .res-bar-fill.gold {
+      background: linear-gradient(90deg, var(--amber), var(--gold));
+    }
+    .res-bar-fill.crimson {
+      background: linear-gradient(90deg, #880022, var(--crimson));
+    }
+
+    .buff-desc {
+      font-size: 0.76rem;
+      color: #cbd5e1;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      border-left: 3px solid var(--cyan);
+    }
+
+    .totem-btn-row {
+      display: flex;
+      gap: 8px;
+    }
+    .action-btn {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid var(--cyan);
+      background: rgba(102, 252, 241, 0.12);
+      color: var(--cyan);
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    .action-btn:hover {
+      background: var(--cyan);
+      color: #050811;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    .action-btn.gold {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.12);
+      color: var(--gold);
+    }
+    .action-btn.gold:hover {
+      background: var(--gold);
+      color: #050811;
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+    }
+    .action-btn.crimson {
+      border-color: var(--crimson);
+      background: rgba(255, 51, 102, 0.12);
+      color: var(--crimson);
+    }
+    .action-btn.crimson:hover {
+      background: var(--crimson);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(255, 51, 102, 0.4);
+    }
+
+    /* Radar / Projection Canvas */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      background: #020409;
+      border: 1px solid rgba(102, 252, 241, 0.18);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .form-select, .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+    }
+    .form-select:focus, .form-input:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .slider {
+      flex: 1;
+      accent-color: var(--cyan);
+      cursor: pointer;
+    }
+
+    /* Code & JSON Display */
+    .code-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      color: #a5f3fc;
+      max-height: 250px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .telemetry-log {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      background: #02050e;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 12px;
+      height: 160px;
+      overflow-y: auto;
+    }
+    .telemetry-entry {
+      margin-bottom: 4px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+      padding-bottom: 3px;
+    }
+    .telemetry-entry .ts { color: var(--text-muted); }
+    .telemetry-entry .tag-cyan { color: var(--cyan); }
+    .telemetry-entry .tag-gold { color: var(--gold); }
+    .telemetry-entry .tag-crimson { color: var(--crimson); }
+
+    /* Meter Gauge */
+    .stability-meter {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+    .stability-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--green);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <div class="brand-title">KRYSTAL-STACK // <span>SECTOR TOTEMS & SPELL ANOMALIES</span></div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Procedural Shaders, Conical/Beam Projections & Hex Spatial Anomaly Array</p>
+    </div>
+    <div class="header-pills">
+      <div class="pill gold">★ VITAL MAX HP: 6</div>
+      <div class="pill green" id="pill-sectors">5 SECTORS ATTUNED</div>
+      <div class="pill cyan" id="pill-stability">STABILITY: 100%</div>
+      <a href="/index.html" class="nav-btn">← SPÄŤ DO HUB-U</a>
+    </div>
+  </header>
+
+  <!-- MAIN GRID -->
+  <div class="layout-grid">
+
+    <!-- COL 1: SECTOR TOTEMS STATUS (Span 7) -->
+    <div class="card" style="grid-column: span 7;">
+      <div class="card-title">
+        <span>STRATEGICKÉ SEKTOROVÉ TOTEMY</span>
+        <span class="tag">5 SEKTOROV // ATTUNEMENT & RESONANCE</span>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+        Každý totem kotví frekvenčnú matricu sektora. Kúzla rovnakej afinity aktivujú <strong>Pretlak (Overcharge)</strong> pri rezonancii &gt; 85%. Kúzla nepriateľských elementov poškodzujú najprv Ward Shield, pričom vitálny limit 6 Max HP zostáva zachovaný.
+      </p>
+
+      <div class="totem-grid" id="totems-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- COL 2: SPELL PROJECTION & TACTICAL RADAR (Span 5) -->
+    <div class="card" style="grid-column: span 5;">
+      <div class="card-title">
+        <span>PROJEKCIE KÚZIEL & GEOMETRICKÝ ZÁSAH</span>
+        <span class="tag">CONICAL / RADIAL / BALLISTIC BEAM</span>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="projection-canvas"></canvas>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          <span>Katalóg Kúziel</span>
+          <span id="spell-elem-badge" style="color: var(--cyan);">ELEMENT: CRYSTAL</span>
+        </div>
+        <select class="form-select" id="select-spell" onchange="onSpellChange()">
+          <option value="frost_crystal_nova">Mrazivá Kryštálová Nova (Kónické AoE 45°)</option>
+          <option value="toxic_miasma_eruption">Erupcia Toxickej Miazmy (Radiálny Dekál 8m)</option>
+          <option value="druid_thorn_wrath">Hnev Prastarých Tŕňov (Radiálny Dekál 7.5m)</option>
+          <option value="aether_cosmic_lance">Kozmická Aéterová Kopija (Balistický Lúč 18m)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          <span>Uhol Zamerania (Heading)</span>
+          <span id="heading-label">90°</span>
+        </div>
+        <div class="slider-row">
+          <input type="range" min="0" max="360" value="90" class="slider" id="heading-slider" oninput="updateHeading(this.value)">
+        </div>
+      </div>
+
+      <button class="action-btn" style="padding: 12px; font-size: 0.9rem;" onclick="castSpellProjection()">
+        ⚡ VYSTRELIŤ PROJEKCIU KÚZLA NA TOTEMY
+      </button>
+
+      <div style="margin-top: 14px;" id="spell-result-box"></div>
+    </div>
+
+    <!-- ROW 2: PROCEDURAL VISUAL PHENOMENA SHADERS (Span 6) -->
+    <div class="card" style="grid-column: span 6;">
+      <div class="card-title">
+        <span>PROCEDURÁLNE VIZUÁLNE JAVY & SHADERY</span>
+        <span class="tag">GODOT 4 VISUALSHADER / GPUPARTICLES3D</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Vizuálny Jav (Atmosférická Anomália)</label>
+        <select class="form-select" id="select-phenomenon" onchange="generatePhenomenonPreview()">
+          <option value="chromatic_aberration_burst">Chromatická Aberrácia (Optická Refrakcia)</option>
+          <option value="aetheric_aurora_stream">Aéterová Polárna Žiara (Plazmový Prúd)</option>
+          <option value="st_elmos_plasma_discharge">Oheň Svätého Eliáša (Korónový Výboj)</option>
+          <option value="gravitational_lens_warp">Gravitačná Šošovka (Singularitný Zlom)</option>
+          <option value="volumetric_void_fog">Objemová Hmlovina Prázdnoty (Absorpcia Svetla)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          <span>Intenzita Zjavenia (0.1 - 1.0)</span>
+          <span id="intensity-val">0.85</span>
+        </div>
+        <input type="range" min="10" max="100" value="85" class="slider" oninput="updateIntensity(this.value)">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Generované Uniformy Shadere (Godot 4 ShaderParams):</label>
+        <div class="code-box" id="shader-params-box">Načítavam parametre shadere...</div>
+      </div>
+    </div>
+
+    <!-- ROW 2: ANOMALY SENSOR ARRAY & DETECTOR (Span 6) -->
+    <div class="card" style="grid-column: span 6;">
+      <div class="card-title">
+        <span>DETEKTOR PRIESTOROVÝCH ANOMÁLIÍ</span>
+        <span class="tag">GRADIENT DIVERGENCE & RESONANCE FLUX</span>
+      </div>
+
+      <div class="stability-meter">
+        <div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Index Stability Sektora</div>
+          <div class="stability-val" id="stability-display">100.0%</div>
+        </div>
+        <div style="flex: 1;">
+          <div class="res-bar-container" style="height: 10px;">
+            <div class="res-bar-fill" id="stability-bar" style="width: 100%;"></div>
+          </div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">
+            Gradient Divergence: <span id="gradient-val" style="color: var(--cyan);">0.000</span> | Drift: <span id="drift-val" style="color: var(--gold);">0.00 Hz</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <div>
+          <label class="form-label">Typ Anomálie</label>
+          <select class="form-select" id="select-anomaly-type">
+            <option value="dimensional_rift">Dimenzionálny Zlom</option>
+            <option value="entropy_storm">Entropická Búrka</option>
+            <option value="ley_line_surge">Pretlak Ley-Line Línií</option>
+            <option value="void_corruption_zone">Zóna Korupcie Prázdnoty</option>
+            <option value="chrono_dilation_warp">Časová Dilatácia</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Cieľový Sektor</label>
+          <select class="form-select" id="select-anomaly-sector">
+            <option value="sector_north_crystal">Severný Kryštálový Sektor</option>
+            <option value="sector_south_toxic">Južný Toxický Sektor</option>
+            <option value="sector_east_druid">Východný Druidský Sektor</option>
+            <option value="sector_west_sulfur">Západný Sírový Sektor</option>
+            <option value="sector_center_citadel">Centrálna Citadela (Nexus)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+        <button class="action-btn crimson" onclick="triggerAnomaly()">
+          ⚠ VYVOLAŤ ANOMÁLIU V SEKTORE
+        </button>
+        <button class="action-btn" onclick="scanSectorAnomalies()">
+          📡 SKENOVAŤ SENZOROVÉ POLE
+        </button>
+      </div>
+
+      <div class="telemetry-log" id="telemetry-terminal">
+        <div class="telemetry-entry">
+          <span class="ts">[INIT]</span> <span class="tag-cyan">Senzorové pole online.</span> 5 sektorov v základnej frekvencii.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── STATE ────────────────────────────────────────────────────────────────
+    let currentTotems = [];
+    let activeAnomalies = [];
+    let currentSpell = "frost_crystal_nova";
+    let headingDegrees = 90;
+    let spellIntensity = 0.85;
+
+    // ── INITIALIZATION ────────────────────────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', async () => {
+      initCanvas();
+      await fetchTotemStatus();
+      await generatePhenomenonPreview();
+      await scanSectorAnomalies();
+      drawRadar();
+    });
+
+    // ── FETCH SECTOR STATUS ──────────────────────────────────────────────────
+    async function fetchTotemStatus() {
+      try {
+        const res = await fetch('/api/totems/sector_status');
+        const data = await res.json();
+        if (data.success && data.totems) {
+          currentTotems = data.totems;
+          renderTotemCards(currentTotems);
+          drawRadar();
+        }
+      } catch (err) {
+        logTelemetry("ERROR", "Chyba načítania sektorov: " + err.message, "crimson");
+      }
+    }
+
+    function renderTotemCards(totems) {
+      const container = document.getElementById('totems-container');
+      container.innerHTML = '';
+
+      totems.forEach(t => {
+        const card = document.createElement('div');
+        const statusClass = t.status.toLowerCase();
+        card.className = `totem-card ${statusClass}`;
+
+        let badgeClass = 'badge-attuned';
+        if (t.status === 'overcharged') badgeClass = 'badge-overcharged';
+        if (t.status === 'corrupted') badgeClass = 'badge-corrupted';
+        if (t.status === 'nullified') badgeClass = 'badge-nullified';
+
+        let resBarClass = '';
+        if (t.resonance_charge >= 85) resBarClass = 'gold';
+        if (t.status === 'corrupted') resBarClass = 'crimson';
+
+        card.innerHTML = `
+          <div class="totem-header">
+            <span class="totem-name">${t.name}</span>
+            <span class="totem-status-badge ${badgeClass}">${t.status}</span>
+          </div>
+
+          <div class="totem-stat-row">
+            <span>Životy (Max 6 Invariant):</span>
+            <span class="totem-stat-val" style="color: ${t.hp <= 2 ? 'var(--crimson)' : 'var(--green)'};">${t.hp} / 6 HP</span>
+          </div>
+          <div class="totem-stat-row">
+            <span>Ward Štít:</span>
+            <span class="totem-stat-val" style="color: var(--cyan);">${t.ward_shield} WARD</span>
+          </div>
+          <div class="totem-stat-row">
+            <span>Frekvencia Rezonancie:</span>
+            <span class="totem-stat-val">${t.current_frequency_hz} Hz <span style="font-size: 0.7rem; color: var(--text-muted);">(Základ: ${t.base_frequency_hz} Hz)</span></span>
+          </div>
+
+          <div class="totem-stat-row" style="margin-top: 6px;">
+            <span>Nabitie Rezonancie:</span>
+            <span class="totem-stat-val">${t.resonance_charge}%</span>
+          </div>
+          <div class="res-bar-container">
+            <div class="res-bar-fill ${resBarClass}" style="width: ${t.resonance_charge}%;"></div>
+          </div>
+
+          <div class="buff-desc">
+            <strong>Aura (${t.aura_radius_hex} hex):</strong> ${t.buff_effect}
+          </div>
+
+          <div class="totem-btn-row">
+            <button class="action-btn gold" onclick="attuneTotem('${t.id}')">
+              ✦ Naladiť / Harmonizovať (+25 Energy)
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ── ATTUNE TOTEM ─────────────────────────────────────────────────────────
+    async function attuneTotem(totemId) {
+      try {
+        const res = await fetch('/api/totems/attune', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ totem_id: totemId, caster_tribe: 'crystal', channel_energy: 25.0 })
+        });
+        const data = await res.json();
+        if (data.success) {
+          logTelemetry("ATTUNE", `Totem ${totemId} bol úspešne zharmonizovaný na ${data.resonance_charge}% rezonancie!`, "gold");
+          await fetchTotemStatus();
+        }
+      } catch (err) {
+        logTelemetry("ERROR", "Chyba ladenia: " + err.message, "crimson");
+      }
+    }
+
+    // ── SPELL PROJECTION & RADAR ─────────────────────────────────────────────
+    function onSpellChange() {
+      currentSpell = document.getElementById('select-spell').value;
+      const elemBadge = document.getElementById('spell-elem-badge');
+      if (currentSpell === 'frost_crystal_nova') elemBadge.textContent = 'ELEMENT: CRYSTAL (CONE 45°)';
+      if (currentSpell === 'toxic_miasma_eruption') elemBadge.textContent = 'ELEMENT: TOXIC (RADIAL 8M)';
+      if (currentSpell === 'druid_thorn_wrath') elemBadge.textContent = 'ELEMENT: DRUID (RADIAL 7.5M)';
+      if (currentSpell === 'aether_cosmic_lance') elemBadge.textContent = 'ELEMENT: NEXUS (BEAM 18M)';
+      drawRadar();
+    }
+
+    function updateHeading(val) {
+      headingDegrees = parseInt(val);
+      document.getElementById('heading-label').textContent = `${headingDegrees}°`;
+      drawRadar();
+    }
+
+    async function castSpellProjection() {
+      try {
+        const res = await fetch('/api/totems/spell_projection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            spell_key: currentSpell,
+            caster_origin: [0.0, 0.0],
+            heading_deg: headingDegrees
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const proj = data.projection;
+          const hitCount = proj.totems_affected_count;
+          logTelemetry("SPELL", `Vystrelené: ${proj.spell_name} (Smer: ${proj.heading_degrees}°). Zásah ${hitCount} totemov!`, "cyan");
+          
+          let boxHtml = `
+            <div style="background: rgba(102, 252, 241, 0.08); border: 1px solid var(--cyan); border-radius: 8px; padding: 12px; font-size: 0.8rem;">
+              <strong style="color: var(--cyan);">Výsledok Projekcie:</strong> ${proj.spell_name}<br>
+              Zasiahnutých Totemov: <strong>${hitCount}</strong><br>
+          `;
+          if (hitCount > 0) {
+            proj.affected_totems.forEach(hit => {
+              boxHtml += `<div style="margin-top: 4px; color: #a5f3fc;">• ${hit.totem_name} (Vzdialenosť: ${hit.distance_m}m, Efektivita: ${Math.round(hit.hit_effectiveness * 100)}%)</div>`;
+            });
+          }
+          boxHtml += `</div>`;
+          document.getElementById('spell-result-box').innerHTML = boxHtml;
+
+          await fetchTotemStatus();
+          drawRadar(proj);
+        }
+      } catch (err) {
+        logTelemetry("ERROR", "Chyba projekcie kúzla: " + err.message, "crimson");
+      }
+    }
+
+    // ── PROCEDURAL PHENOMENA PREVIEW ─────────────────────────────────────────
+    function updateIntensity(val) {
+      spellIntensity = val / 100.0;
+      document.getElementById('intensity-val').textContent = spellIntensity.toFixed(2);
+      generatePhenomenonPreview();
+    }
+
+    async function generatePhenomenonPreview() {
+      const pType = document.getElementById('select-phenomenon').value;
+      try {
+        const res = await fetch('/api/totems/phenomenon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phenomenon_type: pType,
+            coordinates: [0.0, 0.0, 1.5],
+            intensity: spellIntensity,
+            resonance_frequency_hz: 432.0
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.phenomenon) {
+          document.getElementById('shader-params-box').textContent = JSON.stringify(data.phenomenon, null, 2);
+        }
+      } catch (err) {
+        document.getElementById('shader-params-box').textContent = "Chyba generovania: " + err.message;
+      }
+    }
+
+    // ── ANOMALY DETECTION & TRIGGER ──────────────────────────────────────────
+    async function triggerAnomaly() {
+      const anomType = document.getElementById('select-anomaly-type').value;
+      const sectorId = document.getElementById('select-anomaly-sector').value;
+
+      try {
+        const res = await fetch('/api/totems/trigger_anomaly', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sector_id: sectorId,
+            anomaly_type: anomType,
+            magnitude: 0.85,
+            duration_sec: 60.0
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          logTelemetry("ANOMALY", `V sektore ${sectorId} vyvolaná anomália ${anomType} (Magnitúda: ${data.anomaly.magnitude})!`, "crimson");
+          await scanSectorAnomalies();
+          await fetchTotemStatus();
+        }
+      } catch (err) {
+        logTelemetry("ERROR", "Chyba vyvolania anomálie: " + err.message, "crimson");
+      }
+    }
+
+    async function scanSectorAnomalies() {
+      const sectorId = document.getElementById('select-anomaly-sector').value;
+      try {
+        const res = await fetch('/api/totems/detect_anomalies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sector_id: sectorId })
+        });
+        const data = await res.json();
+        if (data.success && data.scan) {
+          const scan = data.scan;
+          const stab = scan.sector_stability_index;
+          document.getElementById('stability-display').textContent = `${stab}%`;
+          document.getElementById('stability-bar').style.width = `${stab}%`;
+          document.getElementById('pill-stability').textContent = `STABILITY: ${stab}%`;
+
+          if (stab < 60) {
+            document.getElementById('stability-display').style.color = 'var(--crimson)';
+            document.getElementById('stability-bar').style.background = 'var(--crimson)';
+          } else {
+            document.getElementById('stability-display').style.color = 'var(--green)';
+            document.getElementById('stability-bar').style.background = 'linear-gradient(90deg, var(--cyan), var(--purple))';
+          }
+
+          if (scan.sensor_readings && scan.sensor_readings.length > 0) {
+            const first = scan.sensor_readings[0];
+            document.getElementById('gradient-val').textContent = first.gradient_flux.toFixed(3);
+            document.getElementById('drift-val').textContent = `${first.frequency_drift_hz.toFixed(2)} Hz`;
+            logTelemetry("SCAN", `Sken sektora: zistených ${scan.anomalies_detected_count} aktívnych anomálií! Stabilita: ${stab}%`, "gold");
+          } else {
+            document.getElementById('gradient-val').textContent = "0.000";
+            document.getElementById('drift-val').textContent = "0.00 Hz";
+            logTelemetry("SCAN", `Sektor stabilný. Žiadne kritické anomálie.`, "cyan");
+          }
+        }
+      } catch (err) {
+        logTelemetry("ERROR", "Chyba skenovania: " + err.message, "crimson");
+      }
+    }
+
+    function logTelemetry(type, msg, color) {
+      const terminal = document.getElementById('telemetry-terminal');
+      const timeStr = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = 'telemetry-entry';
+      div.innerHTML = `<span class="ts">[${timeStr}]</span> <span class="tag-${color}">[${type}]</span> ${msg}`;
+      terminal.appendChild(div);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // ── 2D CANVAS RADAR RENDERER ─────────────────────────────────────────────
+    let canvas, ctx;
+    function initCanvas() {
+      canvas = document.getElementById('projection-canvas');
+      ctx = canvas.getContext('2d');
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+    }
+
+    function resizeCanvas() {
+      if (!canvas) return;
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      drawRadar();
+    }
+
+    function drawRadar(activeProjection = null) {
+      if (!ctx || !canvas) return;
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const scale = 11.0; // 1 meter = 11 pixels
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Draw Grid Circles
+      ctx.strokeStyle = 'rgba(102, 252, 241, 0.12)';
+      ctx.lineWidth = 1;
+      for (let r = 30; r < Math.max(w, h); r += 40) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Draw Crosshairs
+      ctx.strokeStyle = 'rgba(102, 252, 241, 0.2)';
+      ctx.beginPath();
+      ctx.moveTo(cx, 0); ctx.lineTo(cx, h);
+      ctx.moveTo(0, cy); ctx.lineTo(w, cy);
+      ctx.stroke();
+
+      // Draw Totems
+      currentTotems.forEach(t => {
+        const [tx, ty] = t.world_pos || [0, 0];
+        const screenX = cx + tx * scale;
+        const screenY = cy + ty * scale;
+
+        // Totem Aura Ring
+        ctx.fillStyle = 'rgba(102, 252, 241, 0.06)';
+        if (t.status === 'overcharged') ctx.fillStyle = 'rgba(255, 215, 0, 0.12)';
+        if (t.status === 'corrupted') ctx.fillStyle = 'rgba(255, 51, 102, 0.12)';
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, (t.aura_radius_hex || 2) * 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Totem Icon Marker
+        ctx.fillStyle = '#66fcf1';
+        if (t.status === 'overcharged') ctx.fillStyle = '#ffd700';
+        if (t.status === 'corrupted') ctx.fillStyle = '#ff3366';
+        if (t.status === 'nullified') ctx.fillStyle = '#9d4edd';
+
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Label
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText(t.name.split(' ')[0], screenX + 10, screenY - 4);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fillText(`${t.hp}/6 HP | ${t.ward_shield}W`, screenX + 10, screenY + 8);
+      });
+
+      // Draw Caster at Center
+      ctx.fillStyle = '#ffd700';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Heading Vector & Projection Cone / Beam
+      const headingRad = (headingDegrees * Math.PI) / 180;
+      const dirX = Math.cos(headingRad);
+      const dirY = Math.sin(headingRad);
+
+      if (currentSpell === 'frost_crystal_nova') {
+        // Conical AoE 45 deg
+        const halfAngle = (45.0 * Math.PI) / 180;
+        const coneDist = 12.0 * scale;
+
+        ctx.fillStyle = 'rgba(102, 252, 241, 0.18)';
+        ctx.strokeStyle = '#66fcf1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, coneDist, headingRad - halfAngle, headingRad + halfAngle);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else if (currentSpell === 'aether_cosmic_lance') {
+        // Beam 18m
+        const beamDist = 18.0 * scale;
+        const endX = cx + dirX * beamDist;
+        const endY = cy + dirY * beamDist;
+
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 4;
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      } else {
+        // Radial Decal 8m
+        const blastDist = 8.0 * scale;
+        ctx.fillStyle = currentSpell === 'toxic_miasma_eruption' ? 'rgba(0, 255, 136, 0.18)' : 'rgba(157, 78, 221, 0.18)';
+        ctx.strokeStyle = currentSpell === 'toxic_miasma_eruption' ? '#00ff88' : '#9d4edd';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, blastDist, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRYSTAL-STACK // METAVERSE MARKET & 2B / 4B IBM GRANITE LLM STUDIO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #050811;
+      --card-bg: rgba(13, 20, 36, 0.85);
+      --card-border: rgba(102, 252, 241, 0.22);
+      --cyan: #66fcf1;
+      --cyan-glow: rgba(102, 252, 241, 0.45);
+      --purple: #9d4edd;
+      --gold: #ffd700;
+      --crimson: #ff3366;
+      --green: #00ff88;
+      --amber: #ffaa00;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(157, 78, 221, 0.18) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(102, 252, 241, 0.15) 0%, transparent 45%),
+        linear-gradient(180deg, #050811 0%, #090e1f 100%);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 22px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 26px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      margin-bottom: 22px;
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.45rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+    .brand-title span { color: var(--cyan); text-shadow: 0 0 12px var(--cyan-glow); }
+
+    .header-pills {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill.cyan { border-color: var(--cyan); color: var(--cyan); }
+    .pill.gold { border-color: var(--gold); color: var(--gold); }
+    .pill.green { border-color: var(--green); color: var(--green); }
+    .pill.purple { border-color: var(--purple); color: var(--purple); }
+
+    .nav-btn {
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: rgba(102, 252, 241, 0.12);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover {
+      background: var(--cyan);
+      color: #050811;
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+      margin-bottom: 22px;
+    }
+    @media (max-width: 1200px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .card-title span.sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* ── ASSET CATALOG ── */
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .asset-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .asset-card:hover, .asset-card.active {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.06);
+      transform: translateY(-2px);
+    }
+    .asset-type-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .asset-type-badge.virtual_land { background: rgba(0, 255, 136, 0.15); color: var(--green); border: 1px solid var(--green); }
+    .asset-type-badge.avatar_cosmetic { background: rgba(157, 78, 221, 0.2); color: var(--purple); border: 1px solid var(--purple); }
+    .asset-type-badge.compute_epoch { background: rgba(102, 252, 241, 0.15); color: var(--cyan); border: 1px solid var(--cyan); }
+    .asset-type-badge.ordinal_relic { background: rgba(255, 215, 0, 0.2); color: var(--gold); border: 1px solid var(--gold); }
+
+    .asset-name { font-weight: 700; font-size: 0.85rem; color: #fff; margin-bottom: 4px; }
+    .asset-price { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--gold); }
+
+    /* ── ORDER BOOK ── */
+    .orderbook-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      margin-bottom: 12px;
+    }
+    .orderbook-table th {
+      text-align: left;
+      padding: 6px 8px;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .orderbook-table td {
+      padding: 4px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .orderbook-table tr.bid-row td { color: var(--green); }
+    .orderbook-table tr.ask-row td { color: var(--crimson); }
+
+    .spread-banner {
+      background: rgba(0,0,0,0.4);
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 6px;
+      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin: 8px 0;
+    }
+
+    /* ── AMM WIDGET ── */
+    .amm-box {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+    .amm-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .amm-input {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+    }
+    .amm-select {
+      background: #0f172a;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+    }
+
+    /* ── GRANITE LLM CONTROLS ── */
+    .model-selector-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .model-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .model-btn.active {
+      background: rgba(157, 78, 221, 0.18);
+      border-color: var(--purple);
+      box-shadow: 0 0 12px rgba(157, 78, 221, 0.4);
+    }
+    .model-btn .name { font-weight: 700; font-size: 0.82rem; color: #fff; margin-bottom: 2px; }
+    .model-btn .specs { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-muted); }
+
+    .granite-bubble {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(157, 78, 221, 0.3);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    .granite-bubble .title {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      color: var(--purple);
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .merchant-dialogue-box {
+      background: #020408;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.85rem;
+      color: #f8fafc;
+      margin-bottom: 14px;
+      font-style: italic;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-cyan {
+      background: rgba(102, 252, 241, 0.15);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+    }
+    .btn-cyan:hover { background: var(--cyan); color: #000; box-shadow: 0 0 10px var(--cyan-glow); }
+
+    .btn-purple {
+      background: rgba(157, 78, 221, 0.18);
+      color: #e0aaff;
+      border: 1px solid var(--purple);
+    }
+    .btn-purple:hover { background: var(--purple); color: #fff; box-shadow: 0 0 12px rgba(157, 78, 221, 0.5); }
+
+    .btn-gold {
+      background: rgba(255, 215, 0, 0.15);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+    .btn-gold:hover { background: var(--gold); color: #000; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--cyan);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: none;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <h1 class="brand-title">KRYSTAL<span>STACK</span> // METAVERSE MARKET & IBM GRANITE LLM</h1>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+        Multi-asset metaverzové trhy • AMM konštantný produkt (x*y=k) • Max 2B Edge & 4B IBM Granite LLM (2026 buildy)
+      </div>
+    </div>
+    <div class="header-pills">
+      <div class="pill purple" id="pillModel">🤖 Granite 4B (2026)</div>
+      <div class="pill cyan" id="pillVram">⚡ VRAM: 2.42 GB</div>
+      <div class="pill gold" id="pillAmm">💧 AMM: x*y=k</div>
+      <div class="pill green" id="pillStatus">✅ Edge Approved</div>
+      <a href="/static/index.html" class="nav-btn">← Control Deck</a>
+    </div>
+  </header>
+
+  <!-- GENERATIVE AI GAME VISUAL PREVIEWS GALLERY -->
+  <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; backdrop-filter: blur(14px); box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div style="font-family: 'Cinzel', serif; font-size: 1.05rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+        <span>🎮 GENERATÍVNY NÁHĽAD HERNÝCH VIZUÁLOV (AI CONCEPT SUITE)</span>
+        <span style="font-size: 0.72rem; color: var(--gold); border: 1px solid var(--gold); padding: 2px 8px; border-radius: 12px; font-family: 'JetBrains Mono', monospace;">16:9 8K Master</span>
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-muted);">
+        Vygenerované cez Generatívnu AI pre Krystal-Stack Metaverzum
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+      <div style="border-radius: 10px; overflow: hidden; border: 1px solid rgba(102, 252, 241, 0.3); background: #000; position: relative; transition: transform 0.2s ease;">
+        <img src="/static/img/metaverse_market_spire.jpg" alt="Metaverse Market Spire" style="width: 100%; height: 160px; object-fit: cover; display: block;">
+        <div style="padding: 8px 12px; background: rgba(13, 20, 36, 0.95); border-top: 1px solid rgba(255,255,255,0.08);">
+          <div style="font-weight: 700; font-size: 0.8rem; color: var(--cyan);">1. Metaverse Market Spire</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Citadela Krystalu, holografické order booky & aéterové stánky.</div>
+        </div>
+      </div>
+      <div style="border-radius: 10px; overflow: hidden; border: 1px solid rgba(157, 78, 221, 0.3); background: #000; position: relative; transition: transform 0.2s ease;">
+        <img src="/static/img/hex_tactical_arena.jpg" alt="3D Hex Tactical Arena" style="width: 100%; height: 160px; object-fit: cover; display: block;">
+        <div style="padding: 8px 12px; background: rgba(13, 20, 36, 0.95); border-top: 1px solid rgba(255,255,255,0.08);">
+          <div style="font-weight: 700; font-size: 0.8rem; color: var(--purple);">2. 3D Hex Taktická Aréna</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Paladin, Alchymista a Šaman proti bossu na hexagonálnej sieti.</div>
+        </div>
+      </div>
+      <div style="border-radius: 10px; overflow: hidden; border: 1px solid rgba(255, 215, 0, 0.3); background: #000; position: relative; transition: transform 0.2s ease;">
+        <img src="/static/img/celestial_ordinal_painting.jpg" alt="12 Apostles Ordinal Masterpiece" style="width: 100%; height: 160px; object-fit: cover; display: block;">
+        <div style="padding: 8px 12px; background: rgba(13, 20, 36, 0.95); border-top: 1px solid rgba(255,255,255,0.08);">
+          <div style="font-weight: 700; font-size: 0.8rem; color: var(--gold);">3. 12 Apoštolov & Zrkadlo</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Renesančná kozmická maľba pripravená na Bitcoin Ordinal inskripciu.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+
+    <!-- ── LEFT: METAVERSE MARKETPLACE & ORDER BOOK ── -->
+    <div class="card">
+      <div class="card-title">
+        <div>🏛 Metaverzové Trhovisko & Order Book</div>
+        <span class="sub">Pozemky, Wearables, Aéterová Energia & NPU Epochy</span>
+      </div>
+
+      <!-- Asset Catalog -->
+      <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">Katalóg Metaverzových Aktív:</div>
+      <div class="catalog-grid" id="catalogGrid">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Order Book -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-weight: 700; font-size: 0.85rem; color: #fff;">Order Book: <span id="currentPairTitle" style="color: var(--cyan);">LAND_042/AET</span></span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--gold);" id="midpointDisplay">Stred: 450.0 AET</span>
+      </div>
+
+      <table class="orderbook-table">
+        <thead>
+          <tr>
+            <th>Typ</th>
+            <th>Cena (AET)</th>
+            <th>Množstvo</th>
+            <th>Trhovec</th>
+          </tr>
+        </thead>
+        <tbody id="orderbookBody">
+          <!-- Bids & Asks rendered by JS -->
+        </tbody>
+      </table>
+
+      <div class="spread-banner">
+        <span>Rozpätie (Spread): <b id="spreadPctDisplay" style="color: var(--cyan);">3.2%</b></span>
+        <span>24h Objem: <b style="color: var(--green);">14,850 AET</b></span>
+      </div>
+
+      <!-- Order Placement Form -->
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <input type="number" id="orderPriceInput" class="amm-input" placeholder="Cena (AET)" value="450.0" step="1">
+        <input type="number" id="orderAmtInput" class="amm-input" placeholder="Množstvo" value="1.0" step="0.5">
+        <button class="btn btn-green" onclick="placeOrder('limit_buy')" style="background: rgba(0, 255, 136, 0.15); color: var(--green); border: 1px solid var(--green);">Kúpiť (Bid)</button>
+        <button class="btn btn-crimson" onclick="placeOrder('limit_sell')" style="background: rgba(255, 51, 102, 0.15); color: var(--crimson); border: 1px solid var(--crimson);">Predať (Ask)</button>
+      </div>
+
+      <!-- AMM Pool Widget -->
+      <div class="amm-box">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+          <span style="font-weight: 700; font-size: 0.85rem; color: var(--gold);">💧 AMM Constant Product Swap (x * y = k)</span>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">Poplatok: 0.3%</span>
+        </div>
+        <div class="amm-input-row">
+          <input type="number" id="ammAmtIn" class="amm-input" value="10" placeholder="Množstvo Vstupu">
+          <select id="ammPoolSelect" class="amm-select" onchange="updatePoolInfo()">
+            <option value="pool_aet_gold">AET → GOLD (Rezervy: 10k / 100k)</option>
+            <option value="pool_sat_aet">AET → SAT (Rezervy: 5k / 500k)</option>
+          </select>
+          <button class="btn btn-gold" onclick="executeAmmSwap()">Vymeniť (Swap)</button>
+        </div>
+        <div id="ammOutputPreview" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted);">
+          Odhadovaný výstup: ~99.1 GOLD • Slippage: <0.1%
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT: 2B & 4B IBM GRANITE 2026 LLM EVALUATION ── -->
+    <div class="card">
+      <div class="card-title">
+        <div>🧠 2B Edge & 4B IBM Granite LLM Evaluator</div>
+        <span class="sub">Modelové buildy z roku 2026 pre analýzu trhu, sentiment & barter</span>
+      </div>
+
+      <!-- Model Selection -->
+      <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">Výber Lokálneho / Edge LLM Modelu:</div>
+      <div class="model-selector-bar">
+        <div class="model-btn active" id="btn_granite_4b" onclick="selectModel('ibm-granite-3.1-4b-instruct-2026', this)">
+          <div class="name">IBM Granite 3.1 4B (2026)</div>
+          <div class="specs">4.1B param • 2.42 GB VRAM • 128k ctx</div>
+        </div>
+        <div class="model-btn" id="btn_granite_2b" onclick="selectModel('ibm-granite-3.0-2b-instruct', this)">
+          <div class="name">IBM Granite 3.0 2B</div>
+          <div class="specs">2.0B param • 1.18 GB VRAM • 8k ctx</div>
+        </div>
+        <div class="model-btn" id="btn_danube_2b" onclick="selectModel('edge-danube-2b-quant', this)">
+          <div class="name">H2O Danube-3 2B</div>
+          <div class="specs">1.8B param • 1.05 GB VRAM • Mobile</div>
+        </div>
+        <div class="model-btn" id="btn_granite_quant" onclick="selectModel('ibm-granite-4b-financial-quant', this)">
+          <div class="name">Granite 4B Market-Quant</div>
+          <div class="specs">4.1B param • 2.55 GB VRAM • GPTQ</div>
+        </div>
+      </div>
+
+      <!-- Market Sentiment Evaluation Bubble -->
+      <div class="granite-bubble">
+        <div class="title">
+          <span>Trhový Sentiment & Cenová Predikcia</span>
+          <span id="sentimentBadge" style="color: var(--green);">BULLISH (82.5%)</span>
+        </div>
+        <div id="graniteReasoningText" style="color: #cbd5e1; font-size: 0.8rem; margin-bottom: 8px;">
+          [IBM Granite 2026 Reasoning]: Pre pár LAND_042/AET detegovaná silná nákupná hĺbka. Spread 3.2% indikuje zdravú trhovú likviditu.
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-purple" onclick="evalMarketWithGranite()">🔍 Re-evaluovať Trh s Granite</button>
+          <button class="btn btn-cyan" onclick="auditManipulation()">🛡 Audit Manipulácie (Wash-Trade)</button>
+        </div>
+      </div>
+
+      <!-- Autonomous NPC Merchant Barter Simulator -->
+      <div class="card-title" style="margin-top: 10px; margin-bottom: 10px;">
+        <div style="font-size: 0.95rem;">🤝 Barterové Vyjednávanie s NPC Obchodníkom</div>
+        <span class="sub">Autonómny agent riadený 2B/4B Granite</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+        <div>
+          <label style="font-size: 0.72rem; color: var(--text-muted);">Tvoja Ponuka (Item):</label>
+          <input type="text" id="barterOfferItem" class="amm-input" value="Kryštálový Meč +4" style="width: 100%;">
+          <input type="number" id="barterOfferVal" class="amm-input" value="160" placeholder="Hodnota AET" style="width: 100%; margin-top: 4px;">
+        </div>
+        <div>
+          <label style="font-size: 0.72rem; color: var(--text-muted);">Požadovaný Item:</label>
+          <input type="text" id="barterReqItem" class="amm-input" value="Aéterová Batéria 100k" style="width: 100%;">
+          <input type="number" id="barterReqVal" class="amm-input" value="100" placeholder="Hodnota AET" style="width: 100%; margin-top: 4px;">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-size: 0.75rem; color: var(--text-muted);">Obchodník: <b>Aéterový Zbrojmajster</b></span>
+        <button class="btn btn-gold" onclick="simulateBarter()">💬 Odoslať Ponuku Obchodníkovi</button>
+      </div>
+
+      <div class="merchant-dialogue-box" id="merchantDialogueDisplay">
+        „Vitaj, cestovateľ. Ponúkni mi férový tovar a dohoda z roku 2026 je naša. Čo mi nesieš?“
+      </div>
+
+      <div id="barterVerdictBadge" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--cyan); text-align: right;">
+        Stav: PRIPRAVENÝ NA VYJEDNÁVANIE
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="toast" id="toastBox">Správa</div>
+
+  <script>
+    let activeModelKey = "ibm-granite-3.1-4b-instruct-2026";
+    let catalogItems = [];
+    let currentPair = "LAND_042/AET";
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchCatalog();
+      fetchOrderBook();
+      fetchAmmPools();
+      evalMarketWithGranite();
+    });
+
+    function showToast(msg) {
+      const t = document.getElementById('toastBox');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+
+    // ── 1. CATALOG & ORDER BOOK ──
+    async function fetchCatalog() {
+      try {
+        const res = await fetch('/api/metaverse/market/catalog');
+        const data = await res.json();
+        if (data.success && data.catalog) {
+          catalogItems = data.catalog;
+          renderCatalog();
+        }
+      } catch (e) {
+        console.warn('Katalóg nedostupný:', e);
+      }
+    }
+
+    function renderCatalog() {
+      const grid = document.getElementById('catalogGrid');
+      grid.innerHTML = '';
+      catalogItems.forEach((item, idx) => {
+        const d = document.createElement('div');
+        d.className = `asset-card ${idx === 0 ? 'active' : ''}`;
+        d.onclick = () => selectAsset(item, d);
+        d.innerHTML = `
+          <span class="asset-type-badge ${item.asset_type}">${item.asset_type.replace('_', ' ')}</span>
+          <div class="asset-name">${item.name}</div>
+          <div class="asset-price">${item.base_price_aet} AET</div>
+        `;
+        grid.appendChild(d);
+      });
+    }
+
+    function selectAsset(item, cardEl) {
+      document.querySelectorAll('.asset-card').forEach(c => c.classList.remove('active'));
+      cardEl.classList.add('active');
+      currentPair = item.id.startsWith('land') ? "LAND_042/AET" : (item.id.startsWith('avatar') ? "CLOAK/AET" : "COMPUTE/GOLD");
+      document.getElementById('currentPairTitle').innerText = currentPair;
+      document.getElementById('orderPriceInput').value = item.base_price_aet;
+      fetchOrderBook();
+      evalMarketWithGranite();
+    }
+
+    async function fetchOrderBook() {
+      try {
+        const res = await fetch(`/api/metaverse/market/orderbook?pair=${encodeURIComponent(currentPair)}`);
+        const data = await res.json();
+        if (data.success && data.order_book) {
+          renderOrderBook(data.order_book);
+        }
+      } catch (e) {
+        console.warn('Orderbook nedostupný:', e);
+      }
+    }
+
+    function renderOrderBook(ob) {
+      const tbody = document.getElementById('orderbookBody');
+      tbody.innerHTML = '';
+
+      document.getElementById('midpointDisplay').innerText = `Stred: ${ob.midpoint_price} AET`;
+      document.getElementById('spreadPctDisplay').innerText = `${ob.spread_percentage}%`;
+
+      // Render Asks (first 3)
+      (ob.asks_depth || []).slice(0, 3).reverse().forEach(ask => {
+        tbody.innerHTML += `
+          <tr class="ask-row">
+            <td>ASK (Predaj)</td>
+            <td>${ask.price}</td>
+            <td>${ask.amount}</td>
+            <td>${ask.trader}</td>
+          </tr>
+        `;
+      });
+
+      // Render Bids (first 3)
+      (ob.bids_depth || []).slice(0, 3).forEach(bid => {
+        tbody.innerHTML += `
+          <tr class="bid-row">
+            <td>BID (Nákup)</td>
+            <td>${bid.price}</td>
+            <td>${bid.amount}</td>
+            <td>${bid.trader}</td>
+          </tr>
+        `;
+      });
+    }
+
+    async function placeOrder(orderType) {
+      const price = parseFloat(document.getElementById('orderPriceInput').value);
+      const amt = parseFloat(document.getElementById('orderAmtInput').value);
+      try {
+        const res = await fetch('/api/metaverse/market/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pair: currentPair,
+            order_type: orderType,
+            price: price,
+            amount: amt,
+            trader: 'player_sovereign'
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Objednávka ${orderType} zalistovaná! (Vyplnené: ${data.order.filled}/${data.order.amount})`);
+          fetchOrderBook();
+          evalMarketWithGranite();
+        }
+      } catch (e) {
+        showToast('Chyba zadania objednávky');
+      }
+    }
+
+    // ── 2. AMM POOLS & SWAP ──
+    async function fetchAmmPools() {
+      try {
+        const res = await fetch('/api/metaverse/market/amm_pools');
+        const data = await res.json();
+        if (data.success && data.pools) {
+          updatePoolInfo();
+        }
+      } catch (e) {
+        console.warn('AMM nedostupný:', e);
+      }
+    }
+
+    function updatePoolInfo() {
+      const sel = document.getElementById('ammPoolSelect').value;
+      const amt = parseFloat(document.getElementById('ammAmtIn').value) || 10;
+      if (sel === 'pool_aet_gold') {
+        const est = Math.round(amt * 9.94 * 10) / 10;
+        document.getElementById('ammOutputPreview').innerText = `Odhadovaný výstup: ~${est} GOLD • Slippage: <0.1%`;
+      } else {
+        const est = Math.round(amt * 99.4 * 10) / 10;
+        document.getElementById('ammOutputPreview').innerText = `Odhadovaný výstup: ~${est} SAT • Slippage: <0.1%`;
+      }
+    }
+
+    async function executeAmmSwap() {
+      const poolId = document.getElementById('ammPoolSelect').value;
+      const amt = parseFloat(document.getElementById('ammAmtIn').value) || 10;
+      try {
+        const res = await fetch('/api/metaverse/market/amm_swap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pool_id: poolId,
+            token_in: 'AET',
+            amount_in: amt,
+            slippage_tolerance: 0.05
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Swap úspešný: ${data.amount_in} AET → ${data.amount_out} ${data.token_out}!`);
+          updatePoolInfo();
+        } else {
+          showToast(`Chyba swapu: ${data.error}`);
+        }
+      } catch (e) {
+        showToast('Chyba komunikácie AMM');
+      }
+    }
+
+    // ── 3. GRANITE LLM EVALUATION ──
+    function selectModel(modelKey, btnEl) {
+      activeModelKey = modelKey;
+      document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+
+      if (modelKey.includes('2b')) {
+        document.getElementById('pillModel').innerText = '🤖 Granite 2B Edge';
+        document.getElementById('pillVram').innerText = '⚡ VRAM: 1.18 GB';
+      } else {
+        document.getElementById('pillModel').innerText = '🤖 Granite 4B (2026)';
+        document.getElementById('pillVram').innerText = '⚡ VRAM: 2.42 GB';
+      }
+
+      evalMarketWithGranite();
+    }
+
+    async function evalMarketWithGranite() {
+      try {
+        const res = await fetch('/api/metaverse/llm/market_eval', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pair: currentPair,
+            model_key: activeModelKey
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.evaluation) {
+          const ev = data.evaluation;
+          document.getElementById('sentimentBadge').innerText = `${ev.sentiment} (${ev.confidence_score_pct}%)`;
+          document.getElementById('sentimentBadge').style.color = ev.sentiment.includes('BULLISH') ? 'var(--green)' : 'var(--amber)';
+          document.getElementById('graniteReasoningText').innerText = ev.granite_structured_reasoning;
+        }
+      } catch (e) {
+        console.warn('Chyba Granite evaluácie:', e);
+      }
+    }
+
+    async function simulateBarter() {
+      const offItem = document.getElementById('barterOfferItem').value;
+      const offVal = parseFloat(document.getElementById('barterOfferVal').value);
+      const reqItem = document.getElementById('barterReqItem').value;
+      const reqVal = parseFloat(document.getElementById('barterReqVal').value);
+
+      try {
+        const res = await fetch('/api/metaverse/llm/merchant_barter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            offered_item: offItem,
+            offered_nominal_val: offVal,
+            requested_item: reqItem,
+            requested_nominal_val: reqVal,
+            merchant_archetype: 'Aéterový Zbrojmajster',
+            greed_factor: 0.12,
+            model_key: activeModelKey
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.barter) {
+          const b = data.barter;
+          document.getElementById('merchantDialogueDisplay').innerText = b.merchant_dialogue;
+          document.getElementById('barterVerdictBadge').innerText = `Verdikt: ${b.verdict} (Parita: ${b.value_parity_ratio})`;
+          document.getElementById('barterVerdictBadge').style.color = b.verdict === 'ACCEPTED' ? 'var(--green)' : (b.verdict === 'COUNTER_OFFER' ? 'var(--gold)' : 'var(--crimson)');
+          showToast(`Obchodník: ${b.verdict}`);
+        }
+      } catch (e) {
+        showToast('Chyba simulácie barteru');
+      }
+    }
+
+    async function auditManipulation() {
+      try {
+        const res = await fetch('/api/metaverse/llm/manipulation_audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model_key: activeModelKey,
+            order_events: [
+              { action: "CANCEL", lifespan_sec: 0.4, trader: "whale_node" },
+              { action: "TRADE", buyer: "player_1", seller: "player_2", amount: 2, price: 450 }
+            ]
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.audit) {
+          showToast(`Audit integrity: ${data.audit.audit_verdict} (Riziko: ${data.audit.risk_score_pct}%)`);
+        }
+      } catch (e) {
+        showToast('Chyba auditu');
+      }
+    }
+  </script>
+</body>
+</html>
