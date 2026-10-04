@@ -1,0 +1,55 @@
+{
+  "vital_max_hp_rule": 6,
+  "models": [
+    {
+      "id": "robot_expressive",
+      "filename": "RobotExpressive.glb",
+      "local_path": "res://assets/models/RobotExpressive.glb",
+      "file_size_bytes": 463988,
+      "name": "Krystal Cybernetic Robot Expressive",
+      "category": "Character",
+      "animations": [
+        "Idle",
+        "Walking",
+        "Running",
+        "Dance",
+        "Death",
+        "Sitting",
+        "Standing",
+        "Jump",
+        "Yes",
+        "No",
+        "Wave",
+        "Punch",
+        "ThumbsUp"
+      ],
+      "description": "Rigged humanoid robot with 13 rich skeletal animation clips, ideal for Godot 4.x 3D character controllers."
+    },
+    {
+      "id": "cesium_man",
+      "filename": "CesiumMan.glb",
+      "local_path": "res://assets/models/CesiumMan.glb",
+      "file_size_bytes": 490956,
+      "name": "Cesium Humanoid Explorer",
+      "category": "Character",
+      "animations": [
+        "Anim_0_Walk"
+      ],
+      "description": "Rigged humanoid walker with standard bone hierarchy and walking cycle animation."
+    },
+    {
+      "id": "fox_quadruped",
+      "filename": "Fox.glb",
+      "local_path": "res://assets/models/Fox.glb",
+      "file_size_bytes": 162852,
+      "name": "Sovereign Fox Quadruped",
+      "category": "Creature",
+      "animations": [
+        "Survey",
+        "Walk",
+        "Run"
+      ],
+      "description": "Rigged quadruped mammal with Survey (idle alert), Walk, and Run animation cycles."
+    }
+  ]
+}

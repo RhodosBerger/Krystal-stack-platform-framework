@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://c_dual_rig_tpl_03"]
+
+[ext_resource type="Script" path="res://scripts/DualCameraRig3D.gd" id="1_dual_ctrl"]
+
+[node name="DualCameraRig3D" type="Node3D"]
+script = ExtResource("1_dual_ctrl")
+initial_mode = 0
+transition_duration = 0.65
+perspective_default_fov = 75.0
+perspective_distance = 8.0
+orthographic_default_size = 14.0
+
+[node name="PitchPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="PitchPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+current = true
+fov = 75.0
+size = 14.0
+near = 0.1
+far = 500.0

@@ -1,0 +1,74 @@
+[gd_scene load_steps=8 format=3 uid="uid://c_anim_showcase_01"]
+
+[ext_resource type="PackedScene" path="res://scenes/templates/DualCameraRig3D.tscn" id="1_dual_rig"]
+[ext_resource type="PackedScene" path="res://assets/models/RobotExpressive.glb" id="2_robot"]
+[ext_resource type="PackedScene" path="res://assets/models/Fox.glb" id="3_fox"]
+[ext_resource type="PackedScene" path="res://assets/models/CesiumMan.glb" id="4_human"]
+
+[sub_resource type="Environment" id="Environment_dark"]
+background_mode = 1
+background_color = Color(0.04, 0.05, 0.08, 1)
+ambient_light_color = Color(0.12, 0.16, 0.25, 1)
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.8
+glow_bloom = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.08, 0.1, 0.14, 1)
+metallic = 0.6
+roughness = 0.25
+uv1_scale = Vector3(20, 20, 20)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+material = SubResource("StandardMaterial3D_floor")
+size = Vector2(80, 80)
+
+[node name="AnimatedModelShowcase" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_dark")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 8, 14, 8)
+light_color = Color(0.95, 0.98, 1, 1)
+light_energy = 1.8
+shadow_enabled = true
+
+[node name="FloorGrid" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_floor")
+
+[node name="RobotExpressiveInstance" parent="." instance=ExtResource("2_robot")]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0, 0, 0)
+
+[node name="FoxInstance" parent="." instance=ExtResource("3_fox")]
+transform = Transform3D(0.02, 0, 0, 0, 0.02, 0, 0, 0, 0.02, 3.5, 0, 0.5)
+
+[node name="CesiumManInstance" parent="." instance=ExtResource("4_human")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, -3.5, 0, 0.5)
+
+[node name="DualCameraRig3D" parent="." instance=ExtResource("1_dual_rig")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+perspective_distance = 9.0
+orthographic_default_size = 15.0
+
+[node name="ShowcaseHUD" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="PanelContainer" parent="ShowcaseHUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 360.0
+offset_bottom = 150.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ShowcaseHUD/Panel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="ShowcaseHUD/Panel/VBoxContainer"]
+layout_mode = 2
+text = "KRYSTAL GODOT 3D ANIMATION & CAMERA RIG"
+
+[node name="Controls" type="Label" parent="ShowcaseHUD/Panel/VBoxContainer"]
+layout_mode = 2
+text = "[1] Perspective Action | [2] Isometric Orthographic
+[3] Top-Down Tactical  | [Tab] Toggle Projection
+[R-Click Drag] Orbit   | [Wheel] Smooth Zoom"

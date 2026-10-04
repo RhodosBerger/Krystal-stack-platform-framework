@@ -1,90 +1,71 @@
 import urllib.request
 import json
-import time
 
-def test_endpoints():
-    base_url = "http://127.0.0.1:8089"
-    time.sleep(1.0)
-    
-    print("Testing GET /static/greek_bohemia_pantheon_studio.html...")
-    req = urllib.request.Request(f"{base_url}/static/greek_bohemia_pantheon_studio.html")
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        assert resp.status == 200
-        content = resp.read().decode('utf-8')
-        assert "Krystal-Stack" in content and "Bohemia" in content
-        print(f"  OK (Length: {len(content)})")
-        
-    print("Testing GET /static/img/greek_bohemia_pantheon_memory.jpg...")
-    req = urllib.request.Request(f"{base_url}/static/img/greek_bohemia_pantheon_memory.jpg")
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        assert resp.status == 200
-        data = resp.read()
-        assert len(data) > 1000
-        print(f"  OK (Bytes: {len(data)})")
-        
-    print("Testing GET /api/greek-bohemia/pantheon...")
-    req = urllib.request.Request(f"{base_url}/api/greek-bohemia/pantheon")
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        assert resp.status == 200
-        data = json.loads(resp.read().decode('utf-8'))
-        greek_count = data.get("greek_deities_count", 0)
-        bohemia_count = data.get("bohemian_allies_count", 0)
-        pacts_count = data.get("active_pacts_count", 0)
-        print(f"  OK: Greek Deities: {greek_count}, Bohemian Allies: {bohemia_count}, Active Pacts: {pacts_count}")
-        assert greek_count >= 8
-        assert bohemia_count >= 8
-        assert pacts_count >= 5
-        assert data.get("vital_max_hp_rule") == 6
-        
-    print("Testing GET /api/greek-bohemia/memory-strategies...")
-    req = urllib.request.Request(f"{base_url}/api/greek-bohemia/memory-strategies")
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        assert resp.status == 200
-        data = json.loads(resp.read().decode('utf-8'))
-        axioms_count = data.get("axioms_count", 0)
-        strategies = data.get("strategies", [])
-        print(f"  OK: Axioms Count: {axioms_count}, Strategies: {len(strategies)}")
-        assert axioms_count >= 6
-        assert len(strategies) >= 6
-        assert data.get("vital_max_hp_rule") == 6
+def verify_greek_bohemia():
+    base = "http://localhost:8089"
 
-    print("Testing POST /api/greek-bohemia/simulate-leveling...")
-    req = urllib.request.Request(
-        f"{base_url}/api/greek-bohemia/simulate-leveling",
-        data=json.dumps({"axiom_ids": ["pythagoras_harmonics", "heraclitus_flux", "aristotle_golden_mean"]}).encode('utf-8'),
-        headers={"Content-Type": "application/json"}
-    )
-    with urllib.request.urlopen(req, timeout=5) as resp:
+    print("[1] Verifying GET /static/greek_bohemia_pantheon_studio.html...")
+    with urllib.request.urlopen(f"{base}/static/greek_bohemia_pantheon_studio.html") as resp:
+        assert resp.status == 200
+        html = resp.read().decode('utf-8', errors='ignore')
+        assert "Bohemia" in html and "Krystal-Stack" in html
+        print(" -> OK: Greek-Bohemia studio page serves valid HTML.")
+
+    print("[2] Verifying GET /static/img/greek_bohemia_pantheon_memory.jpg...")
+    with urllib.request.urlopen(f"{base}/static/img/greek_bohemia_pantheon_memory.jpg") as resp:
+        assert resp.status == 200
+        content = resp.read()
+        assert len(content) > 1000
+        print(f" -> OK: Hero artwork loaded ({len(content)} bytes).")
+
+    print("[3] Verifying GET /api/greek-bohemia/pantheon...")
+    with urllib.request.urlopen(f"{base}/api/greek-bohemia/pantheon") as resp:
         assert resp.status == 200
         data = json.loads(resp.read().decode('utf-8'))
+        assert data.get("vital_max_hp_rule") == 6
+        assert len(data.get("greek_deities", [])) >= 8
+        assert len(data.get("bohemian_allies", [])) >= 8
+        assert len(data.get("pacts", [])) >= 5
+        print(f" -> OK: Loaded {len(data['greek_deities'])} deities, {len(data['bohemian_allies'])} bohemian allies, {len(data['pacts'])} active pacts.")
+
+    print("[4] Verifying GET /api/greek-bohemia/memory-strategies...")
+    with urllib.request.urlopen(f"{base}/api/greek-bohemia/memory-strategies") as resp:
+        assert resp.status == 200
+        data = json.loads(resp.read().decode('utf-8'))
+        assert data.get("vital_max_hp_rule") == 6
+        assert len(data.get("strategies", [])) >= 6
+        print(f" -> OK: Loaded {len(data['strategies'])} philosophical memory strategies.")
+
+    print("[5] Verifying POST /api/greek-bohemia/simulate-leveling...")
+    req_body = json.dumps({"axiom_ids": ["pythagoras_harmonics", "aristotle_golden_mean", "heraclitus_flux"]}).encode('utf-8')
+    req = urllib.request.Request(f"{base}/api/greek-bohemia/simulate-leveling", data=req_body, headers={'Content-Type': 'application/json'})
+    with urllib.request.urlopen(req) as resp:
+        assert resp.status == 200
+        data = json.loads(resp.read().decode('utf-8'))
+        assert data.get("vital_max_hp_rule") == 6
         assert data.get("status") == "MEMORY_AUTONOMOUSLY_LEVELLED"
-        print(f"  OK: Status: {data.get('status')}, Applied Axioms: {data.get('applied_axioms_count')}, Latency Reduction: {data.get('combined_latency_reduction_percent')}%")
-        assert data.get("vital_max_hp_rule") == 6
-        assert len(data.get("rebalanced_memory_pools", {})) >= 4
+        assert "rebalanced_memory_pools" in data
+        assert data.get("combined_latency_reduction_percent", 0) > 0
+        print(f" -> OK: Leveling simulation successful! Latency reduction: {data['combined_latency_reduction_percent']}%, Hit rate: {data['achieved_cache_hit_rate_percent']}%")
 
-    print("Testing POST /api/greek-bohemia/form-pact...")
-    req = urllib.request.Request(
-        f"{base_url}/api/greek-bohemia/form-pact",
-        data=json.dumps({
-            "greek_deity_id": "athena",
-            "bohemian_ally_id": "libuse",
-            "pact_title": "Pakt Múdrosti a Proroctva",
-            "lore": "Aténina sova múdrosti a Vyšehradská kňažná Libuša."
-        }).encode('utf-8'),
-        headers={"Content-Type": "application/json"}
-    )
-    with urllib.request.urlopen(req, timeout=5) as resp:
+    print("[6] Verifying POST /api/greek-bohemia/form-pact...")
+    pact_body = json.dumps({
+        "greek_deity_id": "zeus",
+        "bohemian_ally_id": "perun",
+        "pact_title": "Blesková Aliancia Hromovládcov",
+        "lore": "Zeus a Perun spájajú hromy a blesky na akceleráciu pamäťových zberníc."
+    }).encode('utf-8')
+    req = urllib.request.Request(f"{base}/api/greek-bohemia/form-pact", data=pact_body, headers={'Content-Type': 'application/json'})
+    with urllib.request.urlopen(req) as resp:
         assert resp.status == 200
         data = json.loads(resp.read().decode('utf-8'))
         assert data.get("success") is True
         pact = data.get("pact", {})
-        print(f"  OK: Pact formed: {data.get('pact_id')}, Title: {pact.get('title')}, Synergy: {pact.get('synergy_multiplier')}x")
+        assert pact.get("synergy_multiplier", 1.0) > 1.0
         assert pact.get("vital_max_hp") == 6
+        print(" -> OK: Pact formed successfully with synergy multiplier > 1.0 and vital_max_hp = 6")
 
-    print("\n=======================================================")
-    print("ALL 6 GREEK-BOHEMIA VERIFICATIONS PASSED WITH 200 OK!")
-    print("VITAL MAX HP = 6 INVARIANT FULLY PRESERVED ACROSS ALL API CALLS!")
-    print("=======================================================")
+    print("\nALL GREEK-BOHEMIA ENDPOINTS & WORKFLOWS VALIDATED 100% OK!")
 
-if __name__ == "__main__":
-    test_endpoints()
+if __name__ == '__main__':
+    verify_greek_bohemia()

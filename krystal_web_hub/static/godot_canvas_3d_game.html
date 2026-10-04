@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRYSTAL-STACK // GODOT CANVAS & 3D TAKTICKÁ ARÉNA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #06080d;
+            --panel-glass: rgba(12, 17, 28, 0.85);
+            --border-neon: rgba(0, 243, 255, 0.4);
+            --cyan-accent: #00f3ff;
+            --cyan-glow: rgba(0, 243, 255, 0.35);
+            --gold-bright: #ffd700;
+            --gold-glow: rgba(255, 215, 0, 0.35);
+            --green-acid: #39ff14;
+            --purple-mystic: #a855f7;
+            --red-alert: #ff453a;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --font-main: 'Outfit', sans-serif;
+            --font-code: 'Fira Code', monospace;
+            --font-title: 'Cinzel', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Godot Engine Style Header */
+        header.engine-header {
+            background: linear-gradient(180deg, rgba(20, 28, 45, 0.95) 0%, rgba(10, 14, 24, 0.9) 100%);
+            border-bottom: 1px solid var(--border-neon);
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .engine-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--cyan-accent), #2563eb);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #000;
+            font-size: 16px;
+            box-shadow: 0 0 12px var(--cyan-glow);
+        }
+
+        .title-box h1 {
+            font-family: var(--font-title);
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            background: linear-gradient(90deg, var(--cyan-accent), var(--gold-bright));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title-box span {
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 0.8px;
+            font-family: var(--font-code);
+        }
+
+        .hud-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-badge {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 4px 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .stat-badge .lbl {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .stat-badge .val {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .hearts-display {
+            color: var(--red-alert);
+            letter-spacing: 2px;
+            font-size: 14px;
+        }
+
+        /* Main Viewport & Workspace */
+        .workspace-container {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 3D WebGL Canvas Layer */
+        #webgl-viewport {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            cursor: grab;
+        }
+
+        #webgl-viewport:active {
+            cursor: grabbing;
+        }
+
+        /* Godot 2D Canvas Layer (Control Nodes) */
+        .godot-canvas-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px;
+        }
+
+        .interactive-hud {
+            pointer-events: auto;
+        }
+
+        /* Left Floating Sidebar: Godot Scene Tree */
+        .scene-tree-panel {
+            position: absolute;
+            left: 16px;
+            top: 16px;
+            width: 270px;
+            max-height: calc(100% - 170px);
+            background: var(--panel-glass);
+            border: 1px solid var(--border-neon);
+            border-radius: 10px;
+            backdrop-filter: blur(16px);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            overflow-y: auto;
+        }
+
+        .panel-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gold-bright);
+            letter-spacing: 1px;
+        }
+
+        .tree-node-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-family: var(--font-code);
+            padding: 3px 6px;
+            border-radius: 4px;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .tree-node-item:hover {
+            background: rgba(0, 243, 255, 0.15);
+            color: var(--cyan-accent);
+        }
+
+        .tree-node-item.selected {
+            background: rgba(0, 243, 255, 0.25);
+            color: var(--cyan-accent);
+            border-left: 2px solid var(--cyan-accent);
+        }
+
+        /* Right Floating Sidebar: Ballistics & TSCN Inspector */
+        .right-inspector-panel {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            width: 310px;
+            max-height: calc(100% - 170px);
+            background: var(--panel-glass);
+            border: 1px solid var(--border-neon);
+            border-radius: 10px;
+            backdrop-filter: blur(16px);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            overflow-y: auto;
+        }
+
+        .radar-card {
+            background: rgba(10, 15, 26, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 11px;
+            font-family: var(--font-code);
+        }
+
+        .radar-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .radar-lbl {
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .radar-val {
+            font-weight: 700;
+            color: var(--cyan-accent);
+        }
+
+        .tscn-viewer {
+            background: #020408;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: var(--font-code);
+            font-size: 9.5px;
+            color: #38bdf8;
+            height: 140px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.35;
+        }
+
+        /* Bottom Action Dock (Cards & Tactical Actions) */
+        .bottom-action-dock {
+            width: 100%;
+            max-width: 980px;
+            margin: 0 auto;
+            background: var(--panel-glass);
+            border: 1px solid var(--border-neon);
+            border-radius: 14px;
+            backdrop-filter: blur(20px);
+            padding: 12px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            margin-bottom: 6px;
+        }
+
+        .dock-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, rgba(20, 30, 50, 0.9) 0%, rgba(10, 16, 30, 0.95) 100%);
+            border: 1px solid var(--border-neon);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-action:hover {
+            border-color: var(--cyan-accent);
+            box-shadow: 0 0 14px var(--cyan-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-action.active {
+            background: var(--cyan-accent);
+            color: #000;
+            box-shadow: 0 0 16px var(--cyan-glow);
+        }
+
+        .btn-action.gold {
+            border-color: var(--gold-bright);
+        }
+
+        .btn-action.gold:hover {
+            border-color: var(--gold-bright);
+            box-shadow: 0 0 14px var(--gold-glow);
+        }
+
+        .btn-action.red {
+            border-color: var(--red-alert);
+        }
+
+        .btn-action.red:hover {
+            background: var(--red-alert);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(255, 69, 58, 0.4);
+        }
+
+        .combat-log-ticker {
+            font-family: var(--font-code);
+            font-size: 11px;
+            color: var(--gold-bright);
+            max-width: 380px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Engine Telemetry -->
+    <header class="engine-header">
+        <div class="brand-section">
+            <div class="engine-logo">G4</div>
+            <div class="title-box">
+                <h1>GODOT 4 CANVAS &amp; 3D TAKTICKÁ ARÉNA</h1>
+                <span>POSLEDNI_KMEN_ARENA.TSCN // 19-HEX PBR RUNTIME</span>
+            </div>
+        </div>
+
+        <div class="hud-stats">
+            <div class="stat-badge">
+                <span class="lbl">Ťah:</span>
+                <span class="val" id="hudTurn">1</span>
+            </div>
+            <div class="stat-badge">
+                <span class="lbl">Hráč AP:</span>
+                <span class="val" id="hudAp" style="color: var(--cyan-accent);">💎 💎 💎 (3)</span>
+            </div>
+            <div class="stat-badge">
+                <span class="lbl">Hráč HP (Max 6):</span>
+                <span class="hearts-display" id="hudPlayerHp">❤️❤️❤️❤️❤️❤️</span>
+            </div>
+            <div class="stat-badge">
+                <span class="lbl">Súper HP (Max 6):</span>
+                <span class="hearts-display" id="hudEnemyHp">❤️❤️❤️❤️❤️❤️</span>
+            </div>
+            <button class="btn-action gold" id="btnResetArena" style="padding: 4px 10px; font-size: 11px;">REŠTART</button>
+        </div>
+    </header>
+
+    <!-- Workspace: 3D Canvas + 2D Overlay -->
+    <div class="workspace-container">
+        <!-- 3D Three.js WebGL Canvas matching Godot 4.3 PBR -->
+        <div id="webgl-viewport"></div>
+
+        <!-- 2D Godot CanvasLayer Overlay -->
+        <div class="godot-canvas-layer">
+            <!-- Left: Godot Scene Tree Nodes -->
+            <div class="scene-tree-panel interactive-hud">
+                <div class="panel-heading">
+                    <span>GODOT SCENE HIERARCHY</span>
+                    <span style="font-size: 9px; color: var(--green-acid);">● ONLINE</span>
+                </div>
+                <div class="tree-node-item selected">📦 PosledniKmenArena (Node3D)</div>
+                <div class="tree-node-item" style="padding-left: 16px;">☀️ TacticalSun (DirectionalLight3D)</div>
+                <div class="tree-node-item" style="padding-left: 16px;">🔷 HexGrid (19 Hex Nodes)</div>
+                <div class="tree-node-item" style="padding-left: 28px;">💠 StandardMaterial3D_cryst (Cyan)</div>
+                <div class="tree-node-item" style="padding-left: 28px;">🧪 StandardMaterial3D_slime (Acid)</div>
+                <div class="tree-node-item" style="padding-left: 28px;">🪵 StandardMaterial3D_bark (Druid)</div>
+                <div class="tree-node-item" style="padding-left: 28px;">⬛ StandardMaterial3D_basalt (Volcanic)</div>
+                <div class="tree-node-item" style="padding-left: 16px;">✨ CrystalSpireBase (Node3D)</div>
+                <div class="tree-node-item" style="padding-left: 28px;">💎 SpireShard (PrismMesh)</div>
+                <div class="tree-node-item" style="padding-left: 28px;">💡 SpireLight (OmniLight3D, 2.5E)</div>
+                <div class="tree-node-item" style="padding-left: 28px;">🎆 SpireAuraParticles (GPUParticles3D)</div>
+                <div class="tree-node-item" style="padding-left: 16px;">🧙 PlayerHero (Krystal Vanguard)</div>
+                <div class="tree-node-item" style="padding-left: 16px;">👾 EnemyHero (Toxic Corruptor)</div>
+            </div>
+
+            <!-- Right: Ballistics Radar & Godot .TSCN Inspector -->
+            <div class="right-inspector-panel interactive-hud">
+                <div class="panel-heading">
+                    <span>BALLISTICKÝ RADAR // GODOT PBR</span>
+                </div>
+                <div class="radar-card">
+                    <div class="radar-item">
+                        <span class="radar-lbl">AZIMUT (θ):</span>
+                        <span class="radar-val" id="radAzimuth">0.866 / 0.500</span>
+                    </div>
+                    <div class="radar-item">
+                        <span class="radar-lbl">ELEVAČNÝ SKLON:</span>
+                        <span class="radar-val" id="radElevation">tan(φ): 1.428</span>
+                    </div>
+                    <div class="radar-item">
+                        <span class="radar-lbl">APEX VRCHOL:</span>
+                        <span class="radar-val" id="radApex">4.85 m</span>
+                    </div>
+                    <div class="radar-item">
+                        <span class="radar-lbl">STRMOSŤ (COT):</span>
+                        <span class="radar-val" id="radCot">cot(φ): 0.700</span>
+                    </div>
+                </div>
+
+                <div class="panel-heading" style="margin-top: 6px;">
+                    <span>GODOT 4 .TSCN SCÉNA</span>
+                    <button class="btn-action" style="padding: 2px 6px; font-size: 9px;" id="btnCopyTscn">KOPÍROVAŤ</button>
+                </div>
+                <div class="tscn-viewer" id="tscnCodeViewer">// Načítavam posledni_kmen_arena.tscn...</div>
+            </div>
+
+            <!-- Bottom: Action Dock & Combat Log -->
+            <div class="bottom-action-dock interactive-hud">
+                <div class="dock-actions">
+                    <button class="btn-action active" id="btnModeMove" onclick="selectAction('move')">
+                        <span>🏃</span> PRESUNÚŤ (1 AP)
+                    </button>
+                    <button class="btn-action" id="btnModeStrike" onclick="selectAction('strike')">
+                        <span>⚔️</span> ÚDER (1 AP, 2 DMG)
+                    </button>
+                    <button class="btn-action" id="btnModeMortar" onclick="selectAction('mortar_shot')">
+                        <span>💣</span> MAŽIAR (1 AP, 3 DMG)
+                    </button>
+                    <button class="btn-action gold" id="btnModeHeal" onclick="selectAction('heal')">
+                        <span>💖</span> REZONANCIA (+2 HP)
+                    </button>
+                    <button class="btn-action red" id="btnEndTurn" onclick="executeEndTurn()">
+                        <span>⏭️</span> UKONČIŤ ŤAH
+                    </button>
+                </div>
+
+                <div class="combat-log-ticker" id="tickerMsg">
+                    [SYSTÉM] Vyberte hex na aréne pre vykonanie akcie.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendor Dependencies: Three.js and OrbitControls -->
+    <script src="/static/vendor/three.min.js"></script>
+    <script src="/static/vendor/OrbitControls.js"></script>
+
+    <script>
+        // =====================================================================
+        // THREE.JS 3D CANVAS & GODOT 4 SCENE ENGINE
+        // =====================================================================
+        let scene, camera, renderer, controls;
+        let hexMeshes = [];
+        let playerMesh, enemyMesh, spireMesh, spireLight, particleSystem;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let hoveredHex = null;
+        let selectedAction = 'move';
+
+        let gameState = {
+            turn: 1,
+            playerHp: 6,
+            enemyHp: 6,
+            ap: 3,
+            playerCoords: [0, -2],
+            enemyCoords: [0, 2],
+            hexes: []
+        };
+
+        const MATERIALS = {
+            cryst: new THREE.MeshStandardMaterial({
+                color: 0x66fcf1,
+                roughness: 0.15,
+                metalness: 0.85,
+                emissive: 0x00f3ff,
+                emissiveIntensity: 0.6
+            }),
+            slime: new THREE.MeshStandardMaterial({
+                color: 0x39ff14,
+                roughness: 0.05,
+                metalness: 0.1,
+                emissive: 0x22c55e,
+                emissiveIntensity: 0.5
+            }),
+            bark: new THREE.MeshStandardMaterial({
+                color: 0x8b4513,
+                roughness: 0.85,
+                metalness: 0.05,
+                emissive: 0xffd700,
+                emissiveIntensity: 0.3
+            }),
+            basalt: new THREE.MeshStandardMaterial({
+                color: 0x1e293b,
+                roughness: 0.65,
+                metalness: 0.45,
+                emissive: 0x38bdf8,
+                emissiveIntensity: 0.3
+            })
+        };
+
+        function init3D() {
+            const container = document.getElementById('webgl-viewport');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x05070c);
+            scene.fog = new THREE.FogExp2(0x05070c, 0.022);
+
+            camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 1000);
+            camera.position.set(0, 16, 18);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.05;
+            controls.target.set(0, 0, 0);
+
+            // Lighting matching Godot TacticalSun
+            const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambient);
+
+            const tacticalSun = new THREE.DirectionalLight(0xfffaed, 1.25);
+            tacticalSun.position.set(12, 24, 12);
+            tacticalSun.castShadow = true;
+            tacticalSun.shadow.mapSize.width = 2048;
+            tacticalSun.shadow.mapSize.height = 2048;
+            scene.add(tacticalSun);
+
+            // Grid plane
+            const gridHelper = new THREE.GridHelper(32, 32, 0x1e293b, 0x0f172a);
+            gridHelper.position.y = -0.22;
+            scene.add(gridHelper);
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            renderer.domElement.addEventListener('pointermove', onPointerMove);
+            renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+            // Animate
+            requestAnimationFrame(animate);
+        }
+
+        async function loadArenaSceneData() {
+            try {
+                const res = await fetch('/api/godot/arena-scene');
+                const data = await res.json();
+                if (data.success) {
+                    gameState.hexes = data.hexes;
+                    gameState.playerHp = data.player_hero.hp;
+                    gameState.enemyHp = data.enemy_hero.hp;
+                    gameState.ap = data.player_hero.ap;
+                    gameState.playerCoords = [data.player_hero.q, data.player_hero.r];
+                    gameState.enemyCoords = [data.enemy_hero.q, data.enemy_hero.r];
+                    gameState.turn = data.turn_number;
+
+                    document.getElementById('tscnCodeViewer').textContent = data.raw_tscn_preview;
+
+                    buildGodotHexGrid(data.hexes);
+                    buildGodotCrystalSpire();
+                    buildHeroes();
+                    updateHUD();
+                }
+            } catch (err) {
+                console.error("Error loading arena scene:", err);
+            }
+        }
+
+        function buildGodotHexGrid(hexes) {
+            // Hex cylinder geometry (radial segments = 6)
+            const hexGeom = new THREE.CylinderGeometry(1.5, 1.5, 0.4, 6);
+
+            hexes.forEach(h => {
+                let mat = MATERIALS.basalt;
+                if (h.material === 'StandardMaterial3D_cryst') mat = MATERIALS.cryst;
+                if (h.material === 'StandardMaterial3D_slime') mat = MATERIALS.slime;
+                if (h.material === 'StandardMaterial3D_bark') mat = MATERIALS.bark;
+
+                const hexMesh = new THREE.Mesh(hexGeom, mat.clone());
+                hexMesh.position.set(h.x, 0, h.z);
+                hexMesh.receiveShadow = true;
+                hexMesh.userData = { q: h.q, r: h.r, biome: h.biome, origEmissive: hexMesh.material.emissive.getHex() };
+
+                scene.add(hexMesh);
+                hexMeshes.push(hexMesh);
+            });
+        }
+
+        function buildGodotCrystalSpire() {
+            // Prism mesh crystal spire
+            const spireGeom = new THREE.ConeGeometry(0.8, 2.8, 4);
+            const spireMat = MATERIALS.cryst.clone();
+            spireMat.emissiveIntensity = 1.2;
+
+            spireMesh = new THREE.Mesh(spireGeom, spireMat);
+            spireMesh.position.set(1.73, 1.4, 3.0);
+            spireMesh.castShadow = true;
+            scene.add(spireMesh);
+
+            // Spire OmniLight3D
+            spireLight = new THREE.PointLight(0x00f3ff, 2.5, 8.0);
+            spireLight.position.set(1.73, 2.5, 3.0);
+            scene.add(spireLight);
+
+            // Spire Particle Fountain
+            const particleCount = 60;
+            const pGeom = new THREE.BufferGeometry();
+            const pPos = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                pPos[i] = 1.73 + (Math.random() - 0.5) * 1.2;
+                pPos[i + 1] = 0.5 + Math.random() * 2.5;
+                pPos[i + 2] = 3.0 + (Math.random() - 0.5) * 1.2;
+            }
+            pGeom.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+            const pMat = new THREE.PointsMaterial({ color: 0x00f3ff, size: 0.08, transparent: true, opacity: 0.8 });
+            particleSystem = new THREE.Points(pGeom, pMat);
+            scene.add(particleSystem);
+        }
+
+        function buildHeroes() {
+            // Player Hero (Crystal Vanguard)
+            const pGeom = new THREE.CylinderGeometry(0.4, 0.6, 1.8, 8);
+            const pMat = new THREE.MeshStandardMaterial({ color: 0x00f3ff, metalness: 0.8, roughness: 0.2 });
+            playerMesh = new THREE.Mesh(pGeom, pMat);
+            playerMesh.castShadow = true;
+            scene.add(playerMesh);
+
+            // Enemy Hero (Toxic Corruptor)
+            const eGeom = new THREE.DodecahedronGeometry(0.7);
+            const eMat = new THREE.MeshStandardMaterial({ color: 0xff453a, metalness: 0.3, roughness: 0.6 });
+            enemyMesh = new THREE.Mesh(eGeom, eMat);
+            enemyMesh.castShadow = true;
+            scene.add(enemyMesh);
+
+            updateHeroPositions();
+        }
+
+        function updateHeroPositions() {
+            const pHex = hexMeshes.find(m => m.userData.q === gameState.playerCoords[0] && m.userData.r === gameState.playerCoords[1]);
+            if (pHex) {
+                playerMesh.position.set(pHex.position.x, 1.1, pHex.position.z);
+            }
+            const eHex = hexMeshes.find(m => m.userData.q === gameState.enemyCoords[0] && m.userData.r === gameState.enemyCoords[1]);
+            if (eHex) {
+                enemyMesh.position.set(eHex.position.x, 1.1, eHex.position.z);
+            }
+        }
+
+        function onPointerMove(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(hexMeshes);
+
+            if (intersects.length > 0) {
+                const hit = intersects[0].object;
+                if (hoveredHex !== hit) {
+                    if (hoveredHex) hoveredHex.material.emissive.setHex(hoveredHex.userData.origEmissive);
+                    hoveredHex = hit;
+                    hoveredHex.material.emissive.setHex(0xffffff);
+                }
+            } else {
+                if (hoveredHex) {
+                    hoveredHex.material.emissive.setHex(hoveredHex.userData.origEmissive);
+                    hoveredHex = null;
+                }
+            }
+        }
+
+        async function onPointerDown(event) {
+            if (event.button !== 0 || !hoveredHex) return;
+
+            const q = hoveredHex.userData.q;
+            const r = hoveredHex.userData.r;
+
+            // Trigger tactical action
+            try {
+                const res = await fetch('/api/godot/tactical-action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action_type: selectedAction, target_q: q, target_r: r })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('tickerMsg').innerText = `[AKCIA] ${data.message}`;
+                    gameState.playerHp = data.player_hp;
+                    gameState.enemyHp = data.enemy_hp;
+                    gameState.ap = data.remaining_ap;
+                    if (selectedAction === 'move') {
+                        gameState.playerCoords = [q, r];
+                        updateHeroPositions();
+                    }
+                    updateHUD();
+                } else {
+                    document.getElementById('tickerMsg').innerText = `[CHYBA] ${data.error}`;
+                }
+            } catch (err) {
+                console.error("Action error:", err);
+            }
+        }
+
+        function selectAction(type) {
+            selectedAction = type;
+            ['btnModeMove', 'btnModeStrike', 'btnModeMortar', 'btnModeHeal'].forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            if (type === 'move') document.getElementById('btnModeMove').classList.add('active');
+            if (type === 'strike') document.getElementById('btnModeStrike').classList.add('active');
+            if (type === 'mortar_shot') document.getElementById('btnModeMortar').classList.add('active');
+            if (type === 'heal') document.getElementById('btnModeHeal').classList.add('active');
+
+            document.getElementById('tickerMsg').innerText = `Režim: ${type.toUpperCase()}. Kliknite na hex na aréne.`;
+        }
+
+        async function executeEndTurn() {
+            document.getElementById('tickerMsg').innerText = `Ukončujem ťah... AI vykonáva protiútok...`;
+            try {
+                const res = await fetch('/api/godot/ai-counter', { method: 'POST', body: '{}' });
+                const data = await res.json();
+                if (data.success) {
+                    gameState.playerHp = data.player_hp;
+                    gameState.enemyHp = data.enemy_hp;
+                    gameState.turn = data.turn_number;
+                    gameState.ap = 3;
+                    document.getElementById('tickerMsg').innerText = `[AI] ${data.ai_action}`;
+                    updateHUD();
+                }
+            } catch (err) {
+                console.error("End turn error:", err);
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('hudTurn').innerText = gameState.turn;
+
+            // AP rendering
+            const apGems = '💎 '.repeat(gameState.ap) + '◽ '.repeat(3 - gameState.ap);
+            document.getElementById('hudAp').innerText = `${apGems} (${gameState.ap})`;
+
+            // Hearts capped strictly to 6
+            const pHp = Math.max(0, Math.min(6, gameState.playerHp));
+            const eHp = Math.max(0, Math.min(6, gameState.enemyHp));
+            document.getElementById('hudPlayerHp').innerText = '❤️'.repeat(pHp) + '🖤'.repeat(6 - pHp);
+            document.getElementById('hudEnemyHp').innerText = '❤️'.repeat(eHp) + '🖤'.repeat(6 - eHp);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('webgl-viewport');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            // Pulsing crystal spire
+            if (spireMesh) {
+                spireMesh.rotation.y += 0.01;
+                spireLight.intensity = 2.0 + Math.sin(Date.now() / 400) * 0.8;
+            }
+
+            // Particle drift
+            if (particleSystem) {
+                const positions = particleSystem.geometry.attributes.position.array;
+                for (let i = 1; i < positions.length; i += 3) {
+                    positions[i] += 0.015;
+                    if (positions[i] > 3.2) positions[i] = 0.5;
+                }
+                particleSystem.geometry.attributes.position.needsUpdate = true;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Reset
+        document.getElementById('btnResetArena').addEventListener('click', async () => {
+            const res = await fetch('/api/godot/reset', { method: 'POST', body: '{}' });
+            await loadArenaSceneData();
+            document.getElementById('tickerMsg').innerText = `Aréna obnovená. Plný stav: 6/6 HP.`;
+        });
+
+        // Copy TSCN
+        document.getElementById('btnCopyTscn').addEventListener('click', () => {
+            const text = document.getElementById('tscnCodeViewer').textContent;
+            navigator.clipboard.writeText(text).then(() => alert("Godot 4 .TSCN skopírovaný do schránky!"));
+        });
+
+        // Initialize
+        init3D();
+        loadArenaSceneData();
+    </script>
+</body>
+</html>

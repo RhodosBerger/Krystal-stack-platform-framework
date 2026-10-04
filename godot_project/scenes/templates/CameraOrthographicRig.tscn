@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://c_ortho_rig_tpl_02"]
+
+[ext_resource type="Script" path="res://scripts/OrthographicCameraController.gd" id="1_ortho_ctrl"]
+
+[node name="CameraOrthographicRig" type="Node3D"]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0)
+script = ExtResource("1_ortho_ctrl")
+default_ortho_size = 12.0
+pan_speed = 18.0
+
+[node name="PitchPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.816497, 0.57735, 0, -0.57735, 0.816497, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="PitchPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 25)
+projection = 1
+size = 12.0
+near = 0.1
+far = 500.0

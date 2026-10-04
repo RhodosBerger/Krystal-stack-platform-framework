@@ -139,6 +139,23 @@ from krystal_web_hub.economic_engine import (
     GLOBAL_EVOLVED_SVG_ENGINE,
     GLOBAL_EXECUTION_ARCHITECTURE_ENGINE
 )
+from krystal_web_hub.economic_engine.sovereign_citadel_gameplay import (
+    GLOBAL_SOVEREIGN_CITADEL_ENGINE
+)
+from krystal_web_hub.economic_engine.godot_canvas_arena_engine import (
+    GLOBAL_GODOT_CANVAS_ARENA
+)
+from krystal_web_hub.economic_engine.godot_interior_surface_node_engine import (
+    GLOBAL_GODOT_INTERIOR_NODE_ENGINE
+)
+from krystal_web_hub.economic_engine.cnc_machining_and_drawing_engine import (
+    GLOBAL_CNC_ENGINE,
+    CANONICAL_TOOLS,
+    CANONICAL_MATERIALS
+)
+from krystal_web_hub.economic_engine.godot_asset_and_camera_pipeline import (
+    GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE
+)
 from krystal_web_hub.economic_engine.ability_framework import (
     calculate_hex_distance, validate_target_range
 )
@@ -1057,6 +1074,21 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/wordpress-subdomain-security', '/wp-subdomain-security', '/subdomain-security', '/wp-security-gate'):
             self._serve_file(os.path.join(STATIC_DIR, "wordpress_subdomain_security_studio.html"), "text/html")
             return
+        if path in ('/sovereign-citadel', '/citadel-game', '/sovereign-citadel-game', '/citadel-defense'):
+            self._serve_file(os.path.join(STATIC_DIR, "sovereign_citadel_game_studio.html"), "text/html")
+            return
+        if path in ('/godot-canvas-3d', '/godot-game', '/godot-canvas', '/posledni-kmen-3d', '/arena-3d', '/godot_canvas_3d_game.html'):
+            self._serve_file(os.path.join(STATIC_DIR, "godot_canvas_3d_game.html"), "text/html")
+            return
+        if path in ('/interior-surface-node-editor', '/interior-nodes', '/interior-world-generator', '/godot-interior-nodes', '/interior-editor'):
+            self._serve_file(os.path.join(STATIC_DIR, "godot_interior_surface_node_studio.html"), "text/html")
+            return
+        if path in ('/cnc-simulator', '/cnc-drawing', '/cnc', '/cnc_drawing_simulator.html'):
+            self._serve_file(os.path.join(STATIC_DIR, "cnc_drawing_simulator.html"), "text/html")
+            return
+        if path in ('/godot-camera-studio', '/godot-assets', '/godot-camera', '/godot_camera_and_asset_studio.html'):
+            self._serve_file(os.path.join(STATIC_DIR, "godot_camera_and_asset_studio.html"), "text/html")
+            return
         if path.startswith('/static/'):
             rel_path = path[8:].lstrip('/\\')
             target = os.path.normpath(os.path.join(STATIC_DIR, rel_path))
@@ -1098,6 +1130,44 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_GREEK_BOHEMIA_ENGINE.get_philosophical_memory_axioms())
             return
 
+        # Godot 3D Animated Models & Camera Presets
+        if path == '/api/godot/models':
+            self._send_json(GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE.get_models_catalog())
+            return
+
+        if path in ('/api/godot/camera/templates', '/api/godot/camera-templates'):
+            self._send_json(GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE.get_camera_templates())
+            return
+
+        if path.startswith('/api/godot/projection-matrices'):
+            fov = 75.0
+            ortho_size = 14.0
+            if '?' in path:
+                query_str = path.split('?', 1)[1]
+                for part in query_str.split('&'):
+                    if '=' in part:
+                        k, v = part.split('=', 1)
+                        if k == 'fov':
+                            try: fov = float(v)
+                            except: pass
+                        elif k == 'ortho_size':
+                            try: ortho_size = float(v)
+                            except: pass
+            self._send_json(GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE.compute_projection_matrices(fov, ortho_size))
+            return
+
+        if path.startswith('/api/godot/package-manager/query'):
+            q = "camera"
+            if '?' in path:
+                query_str = path.split('?', 1)[1]
+                for part in query_str.split('&'):
+                    if '=' in part:
+                        k, v = part.split('=', 1)
+                        if k in ('q', 'query'):
+                            q = urllib.parse.unquote(v)
+            self._send_json(GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE.query_godot_asset_lib(q))
+            return
+
         # Quadratic Variable Transformer & Latent x Bridge
         if path == '/api/quadratic/domains':
             self._send_json(GLOBAL_QUADRATIC_TRANSFORMER.get_domains())
@@ -1115,6 +1185,43 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path == '/api/surface-nodes/default-graph':
             self._send_json(GLOBAL_SURFACE_NODE_ENGINE.get_default_graph())
             return
+
+        # Godot Interior Surface & Procedural World Node Engine
+        if path == '/api/interior-nodes/catalog':
+            self._send_json(GLOBAL_GODOT_INTERIOR_NODE_ENGINE.get_node_catalog())
+            return
+
+        if path == '/api/interior-nodes/default-graph':
+            self._send_json(GLOBAL_GODOT_INTERIOR_NODE_ENGINE.get_current_graph())
+            return
+
+        if path == '/api/interior-nodes/godot-export':
+            self._send_json({
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "godot_tscn": GLOBAL_GODOT_INTERIOR_NODE_ENGINE.generate_godot_scene_tscn(),
+                "godot_gdscript": GLOBAL_GODOT_INTERIOR_NODE_ENGINE.generate_godot_gdscript()
+            })
+            return
+
+        # ── CNC DRAWING & MACHINING SIMULATOR ─────────────────────────────────
+        if path == '/api/cnc/catalog':
+            from dataclasses import asdict
+            self._send_json({
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "tools": {k: asdict(v) for k, v in CANONICAL_TOOLS.items()},
+                "materials": {k: asdict(v) for k, v in CANONICAL_MATERIALS.items()},
+                "presets": GLOBAL_CNC_ENGINE.get_preset_drawings()
+            })
+            return
+
+        if path == '/api/cnc/presets':
+            self._send_json({
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "presets": GLOBAL_CNC_ENGINE.get_preset_drawings()
+            })
+            return
+
+
 
         # ── CHINESE ZODIAC TERRESTRIAL PHENOMENA & SECTORS ──────────────────
         if path == '/api/zodiac-sectors/all':
@@ -1226,6 +1333,11 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         # ── EXECUTION ARCHITECTURE & METRIC STRATIFICATION ─────────────────
         if path == '/api/execution-architecture/metrics':
             self._send_json(GLOBAL_EXECUTION_ARCHITECTURE_ENGINE.get_metrics_catalog())
+            return
+
+        # ── GODOT 4 CANVAS & 3D ARENA ENDPOINTS (GET) ──────────────────────
+        if path == '/api/godot/arena-scene':
+            self._send_json(GLOBAL_GODOT_CANVAS_ARENA.get_arena_scene_data())
             return
 
         # Cards Library
@@ -1997,6 +2109,10 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             telemetry = GLOBAL_WORDPRESS_SUBDOMAIN_GATE.get_security_telemetry()
             telemetry["success"] = True
             self._send_json(telemetry)
+            return
+
+        if path in ('/api/citadel/state', '/api/citadel/status'):
+            self._send_json(GLOBAL_SOVEREIGN_CITADEL_ENGINE.get_state())
             return
 
         if path == '/api/islands/realms':
@@ -4245,6 +4361,65 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             })
             return
 
+        if path == '/api/citadel/play-card':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            cid = req_data.get("card_id", "")
+            coords = req_data.get("target_coords", None)
+            res = GLOBAL_SOVEREIGN_CITADEL_ENGINE.play_card(cid, target_coords=coords)
+            self._send_json(res)
+            return
+
+        if path == '/api/citadel/spawn-wave':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            wn = int(req_data.get("wave_number", 1))
+            res = GLOBAL_SOVEREIGN_CITADEL_ENGINE.spawn_wave(wn)
+            self._send_json({"success": True, "wave_number": wn, "invaders": res})
+            return
+
+        if path == '/api/citadel/tick':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            dt = float(req_data.get("delta_time", 0.05))
+            state = GLOBAL_SOVEREIGN_CITADEL_ENGINE.update_simulation_tick(dt)
+            self._send_json(state)
+            return
+
+        if path == '/api/citadel/reset':
+            state = GLOBAL_SOVEREIGN_CITADEL_ENGINE.reset_game()
+            self._send_json(state)
+            return
+
+        # ── GODOT 4 CANVAS & 3D ARENA ENDPOINTS (POST) ─────────────────────
+        if path == '/api/godot/tactical-action':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            act = req_data.get("action_type", "move")
+            t_q = int(req_data.get("target_q", 0))
+            t_r = int(req_data.get("target_r", 0))
+            res = GLOBAL_GODOT_CANVAS_ARENA.execute_tactical_action(act, t_q, t_r)
+            self._send_json(res)
+            return
+
+        if path == '/api/godot/ai-counter':
+            res = GLOBAL_GODOT_CANVAS_ARENA.execute_ai_counter_turn()
+            self._send_json(res)
+            return
+
+        if path == '/api/godot/reset':
+            res = GLOBAL_GODOT_CANVAS_ARENA.reset_arena()
+            self._send_json(res)
+            return
+
         if path == '/api/islands/geometry':
             try:
                 req_data = json.loads(post_data) if post_data else {}
@@ -4378,6 +4553,28 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(res)
             return
 
+        # ── GODOT 3D ASSETS, CAMERA & ADDON INSTALLATION POST ENDPOINTS ──
+        if path == '/api/godot/camera/configure':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            template_id = req_data.get("template_id", "tps_orbit")
+            custom_overrides = req_data.get("overrides", None)
+            res = GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE.configure_camera(template_id, custom_overrides)
+            self._send_json(res)
+            return
+
+        if path == '/api/godot/package-manager/install':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            package_id = req_data.get("package_id", "camera-controller-3d")
+            res = GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE.install_addon_package(package_id)
+            self._send_json(res)
+            return
+
         # ── QUADRATIC VARIABLE TRANSFORMER POST ENDPOINTS ───────────────────
         if path == '/api/quadratic/solve-x':
             try:
@@ -4442,6 +4639,60 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             res = GLOBAL_SURFACE_NODE_ENGINE.scavenge_and_generate_scenarios(alloc_pattern=alloc_p, free_pattern=free_p)
             self._send_json(res)
             return
+
+        # Godot Interior Surface & Procedural World Node Engine
+        if path in ('/api/interior-nodes/evaluate-graph', '/api/interior-nodes/generate-world'):
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            res = GLOBAL_GODOT_INTERIOR_NODE_ENGINE.evaluate_graph(req_data)
+            self._send_json(res)
+            return
+
+        # ── CNC DRAWING & MACHINING POST ENDPOINTS ────────────────────────────
+        if path == '/api/cnc/generate-gcode':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            entities = req_data.get("entities", [])
+            tool_id = req_data.get("tool_id", "t1_endmill_3mm")
+            material_id = req_data.get("material_id", "al_6061")
+            prog_name = req_data.get("program_name", "KRYSTAL_CNC_JOB")
+            target_depth = float(req_data.get("target_depth", 3.0))
+
+            toolpath = GLOBAL_CNC_ENGINE.generate_toolpath(entities, tool_id, material_id, target_depth)
+            res = GLOBAL_CNC_ENGINE.generate_gcode(toolpath, tool_id, material_id, prog_name)
+            self._send_json(res)
+            return
+
+        if path == '/api/cnc/simulate-toolpath':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            entities = req_data.get("entities", [])
+            tool_id = req_data.get("tool_id", "t1_endmill_3mm")
+            material_id = req_data.get("material_id", "al_6061")
+            target_depth = float(req_data.get("target_depth", 3.0))
+
+            res = GLOBAL_CNC_ENGINE.simulate_machining(entities, tool_id, material_id, target_depth)
+            self._send_json(res)
+            return
+
+        if path == '/api/cnc/speeds-and-feeds':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            tool_id = req_data.get("tool_id", "t1_endmill_3mm")
+            material_id = req_data.get("material_id", "al_6061")
+            res = GLOBAL_CNC_ENGINE.calculate_speeds_and_feeds(tool_id, material_id)
+            self._send_json(res)
+            return
+
+
 
         # ── CHINESE ZODIAC SECTORS POST ENDPOINTS ──────────────────────────
         if path == '/api/zodiac-sectors/trigger-phenomenon':

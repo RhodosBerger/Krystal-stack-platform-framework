@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://c_persp_rig_tpl_01"]
+
+[ext_resource type="Script" path="res://scripts/PerspectiveCameraController.gd" id="1_persp_ctrl"]
+
+[node name="CameraPerspectiveRig" type="Node3D"]
+script = ExtResource("1_persp_ctrl")
+default_distance = 6.0
+default_fov = 75.0
+
+[node name="PitchPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="PitchPivot"]
+spring_length = 6.0
+margin = 0.25
+
+[node name="Camera3D" type="Camera3D" parent="PitchPivot/SpringArm3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)
+current = true
+fov = 75.0
+near = 0.1
+far = 500.0

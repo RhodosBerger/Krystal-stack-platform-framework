@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRYSTAL-STACK // CITADELA SUVERÉNNEHO ŠTÍTU (SOVEREIGN CITADEL DEFENSE)</title>
+    <style>
+        :root {
+            --bg-dark: #07090e;
+            --panel-bg: rgba(13, 17, 27, 0.88);
+            --gold-bright: #d4af37;
+            --gold-glow: rgba(212, 175, 55, 0.4);
+            --cyan-accent: #00f3ff;
+            --cyan-glow: rgba(0, 243, 255, 0.4);
+            --purple-mystic: #a855f7;
+            --red-alert: #ef4444;
+            --green-active: #10b981;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border-neon: rgba(0, 243, 255, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top Navigation Header */
+        header {
+            background: linear-gradient(180deg, rgba(20, 25, 40, 0.95) 0%, rgba(10, 13, 22, 0.9) 100%);
+            border-bottom: 1px solid var(--border-neon);
+            padding: 10px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--cyan-accent);
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .brand-title {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            background: linear-gradient(90deg, var(--cyan-accent), var(--gold-bright));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.8px;
+        }
+
+        .hud-stats {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .stat-pill {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .stat-val {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .hp-hearts {
+            color: var(--red-alert);
+            letter-spacing: 3px;
+            font-size: 14px;
+        }
+
+        /* Main Game Layout */
+        main {
+            flex: 1;
+            display: flex;
+            gap: 16px;
+            padding: 16px 24px;
+            max-width: 1560px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Battlefield Canvas Area */
+        .battlefield-panel {
+            flex: 3;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-neon);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+
+        .canvas-container {
+            position: relative;
+            flex: 1;
+            min-height: 580px;
+            background: #020408;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Card Hand Bar */
+        .cards-bar {
+            background: rgba(10, 14, 24, 0.95);
+            border-top: 1px solid rgba(0, 243, 255, 0.2);
+            padding: 12px 18px;
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            align-items: center;
+            min-height: 150px;
+        }
+
+        .game-card {
+            width: 150px;
+            height: 126px;
+            background: linear-gradient(135deg, rgba(20, 28, 48, 0.9) 0%, rgba(12, 17, 30, 0.95) 100%);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.04);
+            border-color: var(--cyan-accent);
+            box-shadow: 0 8px 24px var(--cyan-glow);
+        }
+
+        .game-card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gold-bright);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-cost {
+            background: #2563eb;
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        .card-desc {
+            font-size: 9.5px;
+            color: var(--text-dim);
+            line-height: 1.35;
+            margin: 4px 0;
+        }
+
+        .card-meta {
+            font-size: 8.5px;
+            color: var(--cyan-accent);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Side Info & Logs Panel */
+        .sidebar-panel {
+            flex: 1.1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-box {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .panel-title {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--gold-bright);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 6px;
+        }
+
+        .artwork-preview {
+            width: 100%;
+            height: 180px;
+            border-radius: 8px;
+            border: 1px solid var(--border-neon);
+            object-fit: cover;
+            box-shadow: 0 4px 16px rgba(0, 243, 255, 0.2);
+            margin-bottom: 10px;
+        }
+
+        .pylon-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--cyan-accent);
+            font-size: 12px;
+        }
+
+        .terminal-log {
+            background: #030712;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 10px;
+            height: 160px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 11px;
+            color: #38bdf8;
+            line-height: 1.45;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid var(--cyan-accent);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--cyan-accent);
+            color: #000;
+            box-shadow: 0 0 12px var(--cyan-glow);
+        }
+
+        .btn-gold {
+            border-color: var(--gold-bright);
+        }
+
+        .btn-gold:hover {
+            background: var(--gold-bright);
+            color: #000;
+            box-shadow: 0 0 12px var(--gold-glow);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header & Live Telemetry -->
+    <header>
+        <div class="brand-container">
+            <img src="/static/img/wordpress_subdomain_security_shield.jpg" class="brand-logo" alt="Citadel Core">
+            <div>
+                <div class="brand-title">CITADELA SUVERÉNNEHO ŠTÍTU // KRYSTAL DEFENSE</div>
+                <div class="brand-subtitle">HERNÝ OBSAH INŠPIROVANÝ KRYPTOGRAFICKÝM OPEVNENÍM SUBDOMÉNY</div>
+            </div>
+        </div>
+
+        <div class="hud-stats">
+            <div class="stat-pill">
+                <span class="stat-label">Vlna:</span>
+                <span class="stat-val" id="hudWave">1 / 10</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-label">Skóre:</span>
+                <span class="stat-val" id="hudScore" style="color: var(--gold-bright);">0</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-label">Jadro HP (Max 6):</span>
+                <span class="hp-hearts" id="hudHp">❤️❤️❤️❤️❤️❤️</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-label">Aegis Štít:</span>
+                <span class="stat-val" id="hudShield" style="color: var(--cyan-accent);">4.0 / 12</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-label">Mana:</span>
+                <span class="stat-val" id="hudMana" style="color: #60a5fa;">10 / 10</span>
+            </div>
+            <button class="btn btn-gold" id="btnResetGame">REŠTART</button>
+        </div>
+    </header>
+
+    <!-- Main Game Area -->
+    <main>
+        <!-- Battlefield Canvas + Cards -->
+        <div class="battlefield-panel">
+            <div class="canvas-container" id="canvasWrapper">
+                <canvas id="gameCanvas" width="900" height="580"></canvas>
+            </div>
+
+            <!-- Card Hand -->
+            <div class="cards-bar" id="cardsContainer">
+                <!-- Dynamically populated cards -->
+            </div>
+        </div>
+
+        <!-- Sidebar: Graphic Reference & Telemetry -->
+        <div class="sidebar-panel">
+            <!-- Source Graphic Display -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <span>ZDROJOVÁ GRAFIKA // CITADELA</span>
+                    <span style="font-size: 10px; color: var(--green-active);">AKTÍVNA V HRE</span>
+                </div>
+                <img src="/static/img/wordpress_subdomain_security_shield.jpg" class="artwork-preview" alt="Sovereign Shield Citadel">
+                <div style="font-size: 11px; color: var(--text-dim); line-height: 1.4;">
+                    Pevnosť suverénnej subdomény transformovaná do taktickej obrany. Dve veže (Slovanský Perún a Helénska Aténa) bránia kryptografickú bránu s pravidlom <b>VITAL_MAX_HP = 6</b>.
+                </div>
+            </div>
+
+            <!-- Defending Pylons Info -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <span>OBRANNÉ VEŽE (PYLÓNY)</span>
+                </div>
+                <div class="pylon-row">
+                    <div>
+                        <b style="color: var(--cyan-accent);">Perun's Slavic Mortar:</b>
+                        <div style="font-size: 10px; color: var(--text-dim);">Oblúkový mažiarny blesk (AoE)</div>
+                    </div>
+                    <span id="pylonLeftStats" style="font-weight: 700;">0 kills</span>
+                </div>
+                <div class="pylon-row" style="border-left-color: var(--gold-bright);">
+                    <div>
+                        <b style="color: var(--gold-bright);">Athena's Tactical Beam:</b>
+                        <div style="font-size: 10px; color: var(--text-dim);">Prierazný laserový lúč (Slow)</div>
+                    </div>
+                    <span id="pylonRightStats" style="font-weight: 700;">0 kills</span>
+                </div>
+            </div>
+
+            <!-- Event Log -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <span>BOJOVÝ DENNÍK UDALOSTÍ</span>
+                    <button class="btn" style="padding: 2px 8px; font-size: 10px;" id="btnClearLog">VYMAZAŤ</button>
+                </div>
+                <div class="terminal-log" id="combatLog">
+                    [SYSTEM] Citadela suverénneho štítu inicializovaná.<br>
+                    [RULE] Invariant VITAL_MAX_HP = 6 aktívny.<br>
+                    [DEFENSE] Obe veže sú online a cielia infiltrujúce pakety.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- 1. Game Engine State & Telemetry ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const combatLog = document.getElementById('combatLog');
+
+        let gameState = {
+            wave: 1,
+            score: 0,
+            hp: 6,
+            shield: 4.0,
+            mana: 10,
+            isGameOver: false,
+            isVictory: false,
+            invaders: [],
+            projectiles: [],
+            cards: [],
+            pylons: []
+        };
+
+        function logEvent(msg, type = 'info') {
+            const el = document.createElement('div');
+            const time = new Date().toLocaleTimeString();
+            el.innerHTML = `<span style="color: #64748b;">[${time}]</span> ${msg}`;
+            combatLog.appendChild(el);
+            combatLog.scrollTop = combatLog.scrollHeight;
+        }
+
+        // --- 2. Load State from Backend ---
+        async function fetchCitadelState() {
+            try {
+                const res = await fetch('/api/citadel/state');
+                const data = await res.json();
+                if (data.success) {
+                    gameState.wave = data.wave_number;
+                    gameState.score = data.score;
+                    gameState.hp = data.citadel.hp;
+                    gameState.shield = data.citadel.shield;
+                    gameState.mana = data.citadel.mana;
+                    gameState.isGameOver = data.is_game_over;
+                    gameState.isVictory = data.is_victory;
+                    gameState.invaders = data.invaders || [];
+                    gameState.projectiles = data.projectiles || [];
+                    gameState.cards = data.hand_cards || [];
+                    gameState.pylons = data.pylons || [];
+                    updateHUD();
+                    renderCards();
+                }
+            } catch (err) {
+                console.error("Fetch citadel state failed:", err);
+            }
+        }
+
+        // --- 3. UI Updates ---
+        function updateHUD() {
+            document.getElementById('hudWave').innerText = `${gameState.wave} / 10`;
+            document.getElementById('hudScore').innerText = gameState.score;
+            document.getElementById('hudShield').innerText = `${gameState.shield.toFixed(1)} / 12`;
+            document.getElementById('hudMana').innerText = `${gameState.mana} / 10`;
+
+            // Hearts rendering strictly capped to 6
+            const hearts = '❤️'.repeat(Math.max(0, Math.min(6, gameState.hp))) + '🖤'.repeat(Math.max(0, 6 - gameState.hp));
+            document.getElementById('hudHp').innerText = hearts;
+
+            if (gameState.pylons.length >= 2) {
+                document.getElementById('pylonLeftStats').innerText = `${gameState.pylons[0].kills} kills`;
+                document.getElementById('pylonRightStats').innerText = `${gameState.pylons[1].kills} kills`;
+            }
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+
+            gameState.cards.forEach(card => {
+                const cardEl = document.createElement('div');
+                const canAfford = gameState.mana >= card.mana_cost;
+                cardEl.className = `game-card ${canAfford ? '' : 'disabled'}`;
+
+                cardEl.innerHTML = `
+                    <div class="card-header">
+                        <span class="card-title">${card.name}</span>
+                        <span class="card-cost">${card.mana_cost} M</span>
+                    </div>
+                    <div class="card-desc">${card.description}</div>
+                    <div class="card-meta">${card.archetype}</div>
+                `;
+
+                if (canAfford) {
+                    cardEl.addEventListener('click', () => playCard(card.id));
+                }
+
+                container.appendChild(cardEl);
+            });
+        }
+
+        async function playCard(cardId) {
+            logEvent(`Zahrávam kartu: <b style="color: var(--gold-bright);">${cardId}</b>`);
+            try {
+                const res = await fetch('/api/citadel/play-card', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ card_id: cardId, target_coords: { x: 450, y: 240 } })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    logEvent(`[ÚČINOK] ${data.details.message}`);
+                    await fetchCitadelState();
+                } else {
+                    logEvent(`[CHYBA] ${data.error}`);
+                }
+            } catch (err) {
+                console.error("Play card failed:", err);
+            }
+        }
+
+        // --- 4. Canvas Rendering Loop ---
+        const backdropImg = new Image();
+        backdropImg.src = '/static/img/wordpress_subdomain_security_shield.jpg';
+
+        function renderGameCanvas() {
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // 1. Draw Background (Subdued Artwork)
+            ctx.save();
+            ctx.fillStyle = '#05070d';
+            ctx.fillRect(0, 0, w, h);
+
+            if (backdropImg.complete) {
+                ctx.globalAlpha = 0.22;
+                ctx.drawImage(backdropImg, 0, 0, w, h);
+                ctx.globalAlpha = 1.0;
+            }
+
+            // Grid lines overlay
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < w; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, h);
+                ctx.stroke();
+            }
+            for (let y = 0; y < h; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+
+            // 2. Draw Defensive Gateway Core (450, 480)
+            const coreX = 450;
+            const coreY = 480;
+
+            // Pulsing Holographic Shield
+            const pulse = Math.sin(Date.now() / 300) * 4;
+            ctx.beginPath();
+            ctx.arc(coreX, coreY, 65 + pulse, 0, Math.PI * 2);
+            ctx.strokeStyle = gameState.shield > 0 ? 'rgba(0, 243, 255, 0.8)' : 'rgba(239, 68, 68, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = gameState.shield > 0 ? '#00f3ff' : '#ef4444';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Citadel Base Gate
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(coreX, coreY, 45, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'var(--gold-bright)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Core Symbol
+            ctx.fillStyle = 'var(--gold-bright)';
+            ctx.font = 'bold 12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('AEGIS GATE', coreX, coreY - 6);
+            ctx.font = '10px Consolas';
+            ctx.fillStyle = 'var(--cyan-accent)';
+            ctx.fillText(`SHLD: ${gameState.shield.toFixed(1)}`, coreX, coreY + 12);
+
+            // 3. Draw Left and Right Pylons
+            drawPylon(180, 380, "Perun's Mortar", '#00f3ff');
+            drawPylon(720, 380, "Athena's Beam", '#d4af37');
+
+            // 4. Draw Invading Siege Packets
+            gameState.invaders.forEach(inv => {
+                ctx.save();
+                ctx.translate(inv.x, inv.y);
+
+                // Color based on type
+                let color = '#ef4444';
+                let radius = 10;
+                if (inv.type === 'xss_swarm') { color = '#f59e0b'; radius = 7; }
+                if (inv.type === 'rce_stalker') { color = '#a855f7'; radius = 9; }
+                if (inv.type === 'ddos_colossus') { color = '#dc2626'; radius = 18; }
+
+                if (inv.is_frozen) {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#38bdf8';
+                    color = '#38bdf8';
+                }
+
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // HP Bar above unit
+                const hpPct = Math.max(0, inv.hp / inv.max_hp);
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(-15, -radius - 8, 30, 4);
+                ctx.fillStyle = color;
+                ctx.fillRect(-15, -radius - 8, 30 * hpPct, 4);
+
+                ctx.restore();
+            });
+
+            // 5. Draw Projectiles & Laser Beams
+            gameState.projectiles.forEach(pr => {
+                ctx.strokeStyle = pr.type === 'mortar_arc' ? '#00f3ff' : '#d4af37';
+                ctx.lineWidth = pr.type === 'mortar_arc' ? 2 : 3;
+                ctx.beginPath();
+                ctx.moveTo(pr.start_x, pr.start_y);
+                ctx.lineTo(pr.target_x, pr.target_y);
+                ctx.stroke();
+            });
+
+            ctx.restore();
+        }
+
+        function drawPylon(x, y, name, accentColor) {
+            ctx.save();
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.arc(x, y, 22, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Pylon crystal core
+            ctx.fillStyle = accentColor;
+            ctx.beginPath();
+            ctx.arc(x, y, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.font = '10px Segoe UI';
+            ctx.fillStyle = '#f8fafc';
+            ctx.textAlign = 'center';
+            ctx.fillText(name, x, y + 36);
+            ctx.restore();
+        }
+
+        // --- 5. Tick Cycle & Loop ---
+        setInterval(async () => {
+            if (!gameState.isGameOver && !gameState.isVictory) {
+                try {
+                    const res = await fetch('/api/citadel/tick', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ delta_time: 0.05 })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        gameState.wave = data.wave_number;
+                        gameState.score = data.score;
+                        gameState.hp = data.citadel.hp;
+                        gameState.shield = data.citadel.shield;
+                        gameState.mana = data.citadel.mana;
+                        gameState.invaders = data.invaders || [];
+                        gameState.projectiles = data.projectiles || [];
+                        gameState.isGameOver = data.is_game_over;
+                        gameState.isVictory = data.is_victory;
+                        updateHUD();
+                    }
+                } catch (err) {
+                    console.error("Simulation tick error:", err);
+                }
+            }
+        }, 80);
+
+        function animationLoop() {
+            renderGameCanvas();
+            requestAnimationFrame(animationLoop);
+        }
+
+        // --- 6. Controls ---
+        document.getElementById('btnResetGame').addEventListener('click', async () => {
+            logEvent(`Reštartujem obrannú kampaň...`);
+            const res = await fetch('/api/citadel/reset', { method: 'POST', body: '{}' });
+            await fetchCitadelState();
+            logEvent(`Citadela obnovená. HP: 6/6.`);
+        });
+
+        document.getElementById('btnClearLog').addEventListener('click', () => {
+            combatLog.innerHTML = '';
+        });
+
+        // Initialize
+        fetchCitadelState().then(() => {
+            animationLoop();
+        });
+    </script>
+</body>
+</html>

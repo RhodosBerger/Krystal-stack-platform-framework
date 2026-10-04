@@ -442,4 +442,36 @@ from .krystal_execution_architecture_engine import (
     GLOBAL_EXECUTION_ARCHITECTURE_ENGINE
 )
 
+from .godot_interior_surface_node_engine import (
+    InteriorMaterialPattern,
+    PreGenTree,
+    PreGenBuilding,
+    PreGenCitySuperblock,
+    PreGenSoilLayer,
+    ProceduralNode,
+    GodotInteriorSurfaceNodeEngine,
+    GLOBAL_GODOT_INTERIOR_NODE_ENGINE
+)
+
+from .cnc_machining_and_drawing_engine import (
+    CNCTool,
+    CNCMaterial,
+    CNCEntity,
+    CNCToolpathPoint,
+    CNCDrawingAndMachiningEngine,
+    CANONICAL_TOOLS,
+    CANONICAL_MATERIALS,
+    GLOBAL_CNC_ENGINE
+)
+
+from .godot_asset_and_camera_pipeline import (
+    GodotAnimatedModel,
+    CameraPresetConfig,
+    GodotAssetAndCameraPipeline,
+    GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE
+)
+
+
+
+
 
