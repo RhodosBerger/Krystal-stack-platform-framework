@@ -142,6 +142,9 @@ from krystal_web_hub.economic_engine import (
 from krystal_web_hub.economic_engine.sovereign_citadel_gameplay import (
     GLOBAL_SOVEREIGN_CITADEL_ENGINE
 )
+from krystal_web_hub.economic_engine.minecraft_glsl_shader_architecture import (
+    GLOBAL_MINECRAFT_SHADER_ENGINE
+)
 from krystal_web_hub.economic_engine.godot_canvas_arena_engine import (
     GLOBAL_GODOT_CANVAS_ARENA
 )
@@ -1130,8 +1133,17 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_GREEK_BOHEMIA_ENGINE.get_philosophical_memory_axioms())
             return
 
+        # Minecraft GLSL Shaders & Godot 4 Pipeline Catalog
+        if path == '/api/minecraft-shaders/catalog':
+            self._send_json(GLOBAL_MINECRAFT_SHADER_ENGINE.get_full_catalog())
+            return
+
+        if path.startswith('/api/minecraft-shaders/simulate-pipeline'):
+            self._send_json(GLOBAL_MINECRAFT_SHADER_ENGINE.simulate_pipeline_run())
+            return
+
         # Godot 3D Animated Models & Camera Presets
-        if path == '/api/godot/models':
+        if path in ('/api/godot/models', '/api/godot/models/catalog'):
             self._send_json(GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE.get_models_catalog())
             return
 

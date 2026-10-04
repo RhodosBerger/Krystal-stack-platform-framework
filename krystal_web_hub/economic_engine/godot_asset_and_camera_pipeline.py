@@ -353,5 +353,73 @@ class GodotAssetAndCameraPipeline:
                 "vital_max_hp_rule": VITAL_MAX_HP
             }
 
+    def configure_camera(self, template_id: str = "perspective_action_follow", overrides: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Configures camera template parameters with optional custom overrides."""
+        alias_map = {
+            "tps_orbit": "perspective_action_follow",
+            "isometric": "orthographic_true_isometric",
+            "tactical": "orthographic_topdown_tactical",
+            "cinematic": "perspective_cinematic_wide"
+        }
+        actual_id = alias_map.get(template_id, template_id)
+        preset = self._camera_presets.get(actual_id)
+        if not preset:
+            preset = self._camera_presets.get("perspective_action_follow")
+        
+        cfg = asdict(preset)
+        if overrides and isinstance(overrides, dict):
+            for k, v in overrides.items():
+                if k in cfg and k != "vital_max_hp":
+                    cfg[k] = v
+        cfg["vital_max_hp"] = VITAL_MAX_HP
+        return {
+            "success": True,
+            "template_id": template_id,
+            "resolved_preset_id": preset.preset_id,
+            "camera": cfg,
+            "vital_max_hp_rule": VITAL_MAX_HP
+        }
+
+    def install_addon_package(self, package_id: str) -> Dict[str, Any]:
+        """Installs or stages an addon package for Godot 4.x."""
+        known_packages = {
+            "camera-controller-3d": {
+                "name": "Camera Controller 3D",
+                "version": "1.2.0",
+                "install_path": "res://addons/camera_controller/",
+                "description": "Godot 4.x Third-person orbital and isometric dual-mode camera rig."
+            },
+            "krystal-model-loader": {
+                "name": "Krystal 3D Model Loader & LOD",
+                "version": "2.0.0",
+                "install_path": "res://addons/krystal_model_loader/",
+                "description": "Streaming GLTF / GLB / FBX asynchronous mesh instantiator with LOD rings."
+            },
+            "hex-arena-navmesh": {
+                "name": "Hexagonal Arena Navigation Mesh 3D",
+                "version": "1.0.4",
+                "install_path": "res://addons/hex_navmesh/",
+                "description": "Tactical hex-based 3D pathfinding with dynamic heightfield obstacles."
+            }
+        }
+        pkg = known_packages.get(package_id, {
+            "name": package_id,
+            "version": "1.0.0",
+            "install_path": f"res://addons/{package_id}/",
+            "description": f"Custom Godot 4 addon package: {package_id}."
+        })
+        return {
+            "success": True,
+            "package_id": package_id,
+            "package": {
+                **pkg,
+                "status": "installed",
+                "is_activated": True,
+                "vital_max_hp": VITAL_MAX_HP
+            },
+            "vital_max_hp_rule": VITAL_MAX_HP
+        }
+
 # Global singleton
 GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE = GodotAssetAndCameraPipeline()
+
