@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRYSTAL-STACK // GAME LANGUAGE API FETCHER & TACTICAL CONTROLLER</title>
+    <style>
+        :root {
+            --bg-dark: #07090e;
+            --panel-bg: rgba(14, 18, 28, 0.88);
+            --gold-bright: #d4af37;
+            --gold-glow: rgba(212, 175, 55, 0.4);
+            --cyan-accent: #00f3ff;
+            --cyan-glow: rgba(0, 243, 255, 0.4);
+            --purple-mystic: #a855f7;
+            --red-alert: #ef4444;
+            --green-active: #10b981;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border-neon: rgba(0, 243, 255, 0.35);
+            --squircle: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(0, 243, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 45%);
+        }
+
+        /* Top Navigation Header */
+        header {
+            background: linear-gradient(180deg, rgba(18, 24, 38, 0.95) 0%, rgba(10, 13, 22, 0.9) 100%);
+            border-bottom: 1px solid var(--border-neon);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #00f3ff, #8a2be2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+            color: #fff;
+            box-shadow: 0 0 14px var(--cyan-glow);
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            background: linear-gradient(90deg, var(--cyan-accent), var(--gold-bright));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.8px;
+        }
+
+        .hud-stats {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .stat-pill {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .stat-val {
+            font-weight: 800;
+            color: var(--cyan-accent);
+        }
+
+        .hp-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .hp-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green-active);
+            box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+        }
+
+        .hp-dot.lost {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: none;
+        }
+
+        /* Main Workspace Layout */
+        main {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 20px;
+            padding: 20px 24px;
+            flex: 1;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--squircle);
+            backdrop-filter: blur(20px);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 10px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--cyan-accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Tactical Canvas Viewport */
+        .viewport-wrapper {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            background: radial-gradient(circle at center, #0f172a 0%, #06080e 100%);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+        }
+
+        canvas#tacticalCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .viewport-overlay {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: none;
+        }
+
+        .overlay-badge {
+            background: rgba(10, 15, 25, 0.85);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: var(--cyan-accent);
+            font-family: monospace;
+        }
+
+        /* Command Input Bar */
+        .command-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .cmd-input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .cmd-input:focus {
+            border-color: var(--cyan-accent);
+            box-shadow: 0 0 12px var(--cyan-glow);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #00f3ff, #0088cc);
+            border: none;
+            border-radius: 10px;
+            padding: 0 22px;
+            color: #07090e;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            box-shadow: 0 0 12px var(--cyan-glow);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.15);
+        }
+
+        .quick-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 4px 10px;
+            font-size: 11px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .chip:hover {
+            background: rgba(0, 243, 255, 0.15);
+            border-color: var(--cyan-accent);
+            color: #fff;
+        }
+
+        /* Daemon Controls Strip */
+        .daemon-strip {
+            background: rgba(10, 15, 25, 0.6);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .daemon-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+
+        .status-indicator.active {
+            background: var(--green-active);
+            box-shadow: 0 0 8px var(--green-active);
+        }
+
+        .btn-toggle-daemon {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            padding: 4px 12px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-toggle-daemon.running {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--red-alert);
+            color: var(--red-alert);
+        }
+
+        /* Right Column: Parsed Inspector & Audit Log */
+        .inspector-box {
+            background: rgba(10, 14, 22, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .inspector-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .inspector-key {
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .inspector-val {
+            font-family: monospace;
+            color: var(--cyan-accent);
+            font-weight: 700;
+        }
+
+        .feedback-bubble {
+            background: rgba(0, 243, 255, 0.08);
+            border-left: 3px solid var(--cyan-accent);
+            padding: 10px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #e2e8f0;
+        }
+
+        .audit-scroll {
+            height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 4px;
+        }
+
+        .audit-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .audit-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+        }
+
+        .audit-item {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 11px;
+            transition: all 0.15s;
+        }
+
+        .audit-item:hover {
+            border-color: rgba(0, 243, 255, 0.3);
+            background: rgba(15, 23, 42, 0.85);
+        }
+
+        .audit-header {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-dim);
+            font-family: monospace;
+        }
+
+        .audit-action {
+            color: var(--gold-bright);
+            font-weight: 700;
+        }
+
+        .audit-text {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-container">
+            <div class="brand-badge">⚡</div>
+            <div>
+                <div class="brand-title">KRYSTAL LANGUAGE API FETCHER & CONTROLLER</div>
+                <div class="brand-subtitle">Autonomous Multilingual Intent-to-API Bridge • Invariant: VITAL_MAX_HP = 6</div>
+            </div>
+        </div>
+
+        <div class="hud-stats">
+            <div class="stat-pill">
+                <span class="stat-label">HERO VITALITY:</span>
+                <div class="hp-dots" id="hpDots">
+                    <div class="hp-dot"></div><div class="hp-dot"></div><div class="hp-dot"></div>
+                    <div class="hp-dot"></div><div class="hp-dot"></div><div class="hp-dot"></div>
+                </div>
+                <span class="stat-val" id="hpText">6/6 HP</span>
+            </div>
+
+            <div class="stat-pill">
+                <span class="stat-label">MANA:</span>
+                <span class="stat-val" id="manaText">8/10</span>
+            </div>
+
+            <div class="stat-pill">
+                <span class="stat-label">ATMOSPHERE:</span>
+                <span class="stat-val" id="weatherText">Clear (12.0h)</span>
+            </div>
+
+            <div class="stat-pill">
+                <span class="stat-label">CAMERA RIG:</span>
+                <span class="stat-val" id="camText">Action Follow</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Left Column: Tactical Canvas & Command Input -->
+        <section class="glass-panel">
+            <div class="panel-header">
+                <div class="panel-title">🕹️ Real-Time Battlefield Viewport & Language Execution</div>
+                <div style="font-size: 11px; color: var(--gold-bright); font-weight: 700;">HEX MATRIX 19 SECTORS</div>
+            </div>
+
+            <div class="viewport-wrapper">
+                <canvas id="tacticalCanvas"></canvas>
+                <div class="viewport-overlay">
+                    <div class="overlay-badge" id="heroOverlay">HERO: [0, 0]</div>
+                    <div class="overlay-badge" id="cameraOverlay">CAM: PERSPECTIVE</div>
+                    <div class="overlay-badge" id="weatherOverlay">SKY: SUNNY 12:00</div>
+                </div>
+            </div>
+
+            <div class="command-bar">
+                <div class="input-row">
+                    <input type="text" id="cmdInput" class="cmd-input" placeholder="Zadajte príkaz v slovenčine alebo angličtine (napr. 'Zahraj Kryštálový Štít na seba')..." />
+                    <button class="btn-submit" id="btnExecute">ODOSLAŤ ➔</button>
+                </div>
+
+                <div class="quick-chips">
+                    <div class="chip" onclick="setCommand('Zahraj kartu Kryštálový Meteor na hex [1, -2]')">☄️ Kryštálový Meteor</div>
+                    <div class="chip" onclick="setCommand('Zahraj kartu Kryštálový Štít na seba')">🛡️ Kryštálový Štít</div>
+                    <div class="chip" onclick="setCommand('Presuň hrdinu na hex [2, 0]')">🏃 Presunúť Hrdinu</div>
+                    <div class="chip" onclick="setCommand('Prepnúť kameru na izometrický pohľad')">📐 Izometrická Kamera</div>
+                    <div class="chip" onclick="setCommand('Prepnúť kameru na akčný 3rd person follow')">🎥 Akčná Kamera</div>
+                    <div class="chip" onclick="setCommand('Nastav počasie na búrku a čas na polnoc')">⛈️ Búrka & Polnoc</div>
+                    <div class="chip" onclick="setCommand('Nastav počasie na jasno a čas na poludnie')">☀️ Jasno & Poludnie</div>
+                    <div class="chip" onclick="setCommand('Vystreľ z moždiara na sektor 3')">🎯 Moždiarová Paľba</div>
+                    <div class="chip" onclick="setCommand('Postav slovanský mažiar na vežu 1')">🏰 Opevniť Citadelu</div>
+                    <div class="chip" onclick="setCommand('Vyvolaj CesiumMan na pozíciu [0, 1]')">🤖 Spawn CesiumMan</div>
+                    <div class="chip" onclick="setCommand('Aký je stav môjho hrdinu a zápasu?')">❓ Stav Zápasu</div>
+                    <div class="chip" onclick="setCommand('Ukonči kolo')">⏳ Ukončiť Kolo</div>
+                </div>
+
+                <div class="daemon-strip">
+                    <div class="daemon-status">
+                        <div class="status-indicator" id="daemonLed"></div>
+                        <span>AUTONOMOUS LANGUAGE API FETCHER: <strong id="daemonStatusText">OFFLINE</strong></span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-toggle-daemon" id="btnFetchOnce" onclick="fetchRemoteOnce()">JEDNORÁZOVÝ FETCH</button>
+                        <button class="btn-toggle-daemon" id="btnToggleDaemon" onclick="toggleDaemon()">SPUSTIŤ AUTONÓMNEHO FETCHER-A</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Semantic Intent Inspector & Audit Trail -->
+        <section class="glass-panel">
+            <div class="panel-header">
+                <div class="panel-title">🧠 Semantic Intent & Game API Dispatch Inspector</div>
+                <div style="font-size: 11px; color: var(--cyan-accent); font-family: monospace;">PORT 8089 LIVE</div>
+            </div>
+
+            <div class="inspector-box">
+                <div class="inspector-row">
+                    <span class="inspector-key">PARSED INTENT:</span>
+                    <span class="inspector-val" id="inspectType">READY</span>
+                </div>
+                <div class="inspector-row">
+                    <span class="inspector-key">CONFIDENCE:</span>
+                    <span class="inspector-val" id="inspectConf">1.00</span>
+                </div>
+                <div class="inspector-row">
+                    <span class="inspector-key">DISPATCHED API:</span>
+                    <span class="inspector-val" id="inspectApi">None</span>
+                </div>
+                <div class="inspector-row">
+                    <span class="inspector-key">LATENCY:</span>
+                    <span class="inspector-val" id="inspectLatency">0.0 ms</span>
+                </div>
+            </div>
+
+            <div class="feedback-bubble" id="feedbackBubble">
+                👋 Vitajte v Game Language API Fetcher Štúdiu! Môžete zadať príkaz hlasom alebo textom. Systém preloží vašu intenciu priamo na volanie interných herných endpointov.
+            </div>
+
+            <div class="panel-header" style="margin-top: 10px;">
+                <div class="panel-title" style="font-size: 12px; color: var(--gold-bright);">📜 Audit Log Vykonaných Príkazov</div>
+                <span style="font-size: 10px; color: var(--text-dim);" id="auditCount">0 PRÍKAZOV</span>
+            </div>
+
+            <div class="audit-scroll" id="auditList">
+                <!-- Log entries injected here -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // State
+        let heroPos = [0, 0];
+        let heroHp = 6;
+        let heroMana = 8;
+        let weather = "Clear";
+        let timeOfDay = 12.0;
+        let cameraPreset = "perspective_action_follow";
+        let daemonActive = false;
+
+        // Canvas Setup
+        const canvas = document.getElementById("tacticalCanvas");
+        const ctx = canvas.getContext("2d");
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            drawTacticalArena();
+        }
+        window.addEventListener("resize", resizeCanvas);
+
+        // Hex Math
+        const HEX_RADIUS = 34;
+        const HEX_COORDS = [
+            [0, 0], [1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1],
+            [2, 0], [2, -1], [2, -2], [1, -2], [0, -2], [-1, -1], [-2, 0],
+            [-2, 1], [-2, 2], [-1, 2], [0, 2], [1, 1]
+        ];
+
+        function hexToPixel(q, r) {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const x = cx + HEX_RADIUS * Math.sqrt(3) * (q + r / 2);
+            const y = cy + HEX_RADIUS * (3 / 2) * r;
+            return { x, y };
+        }
+
+        function drawHex(x, y, radius, fillColor, strokeColor) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 180) * (60 * i - 30);
+                const hx = x + radius * Math.cos(angle);
+                const hy = y + radius * Math.sin(angle);
+                if (i === 0) ctx.moveTo(hx, hy);
+                else ctx.lineTo(hx, hy);
+            }
+            ctx.closePath();
+            ctx.fillStyle = fillColor;
+            ctx.fill();
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        function drawTacticalArena() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Sky / Weather Tint
+            if (weather === "Thunderstorm" || timeOfDay < 6 || timeOfDay > 20) {
+                ctx.fillStyle = "rgba(4, 6, 14, 0.85)";
+            } else if (weather === "Rain" || weather === "Overcast") {
+                ctx.fillStyle = "rgba(12, 18, 30, 0.6)";
+            } else {
+                ctx.fillStyle = "rgba(15, 23, 42, 0.4)";
+            }
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Hex Grid
+            HEX_COORDS.forEach(([q, r]) => {
+                const { x, y } = hexToPixel(q, r);
+                const isHeroHex = (q === heroPos[0] && r === heroPos[1]);
+                const fill = isHeroHex ? "rgba(0, 243, 255, 0.25)" : "rgba(30, 41, 59, 0.45)";
+                const stroke = isHeroHex ? "#00f3ff" : "rgba(255, 255, 255, 0.12)";
+                drawHex(x, y, HEX_RADIUS - 2, fill, stroke);
+
+                // Coordinate label
+                ctx.fillStyle = isHeroHex ? "#00f3ff" : "rgba(255, 255, 255, 0.3)";
+                ctx.font = "10px monospace";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(`${q},${r}`, x, y + 14);
+            });
+
+            // Draw Hero Avatar
+            const heroPix = hexToPixel(heroPos[0], heroPos[1]);
+            ctx.beginPath();
+            ctx.arc(heroPix.x, heroPix.y - 4, 12, 0, Math.PI * 2);
+            ctx.fillStyle = "#00f3ff";
+            ctx.shadowColor = "#00f3ff";
+            ctx.shadowBlur = 12;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Crown / Hero icon
+            ctx.fillStyle = "#07090e";
+            ctx.font = "12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("♜", heroPix.x, heroPix.y - 4);
+        }
+
+        // Set Command into input
+        function setCommand(text) {
+            document.getElementById("cmdInput").value = text;
+            executeCommand();
+        }
+
+        // Send Command to Server
+        async function executeCommand() {
+            const input = document.getElementById("cmdInput");
+            const text = input.value.trim();
+            if (!text) return;
+
+            try {
+                const resp = await fetch("/api/game/language/control", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: text, execute_api: true })
+                });
+                const data = await resp.json();
+                handleExecutionResult(data);
+                input.value = "";
+            } catch (err) {
+                console.error("Execution failed: ", err);
+                document.getElementById("feedbackBubble").innerText = "Chyba komunikácie s backendom: " + err;
+            }
+        }
+
+        function handleExecutionResult(data) {
+            // Update Inspector
+            document.getElementById("inspectType").innerText = data.intent ? data.intent.command_type : "N/A";
+            document.getElementById("inspectConf").innerText = data.intent ? data.intent.confidence.toFixed(2) : "1.00";
+            document.getElementById("inspectApi").innerText = data.api_action_executed || "None";
+            document.getElementById("inspectLatency").innerText = (data.execution_time_ms || 0) + " ms";
+            document.getElementById("feedbackBubble").innerText = data.game_feedback || "Príkaz spracovaný.";
+
+            // Apply Diff
+            if (data.state_diff) {
+                const d = data.state_diff;
+                if (d.new_pos) heroPos = d.new_pos;
+                if (d.hero_mana !== undefined) heroMana = d.hero_mana;
+                if (d.mana !== undefined) heroMana = d.mana;
+                if (d.weather) weather = d.weather;
+                if (d.time_of_day !== undefined) timeOfDay = d.time_of_day;
+                if (d.camera_preset) cameraPreset = d.camera_preset;
+            }
+
+            updateHUD();
+            drawTacticalArena();
+            fetchHistory();
+        }
+
+        function updateHUD() {
+            // HP Dots
+            const hpDots = document.getElementById("hpDots");
+            hpDots.innerHTML = "";
+            for (let i = 0; i < 6; i++) {
+                const dot = document.createElement("div");
+                dot.className = "hp-dot" + (i >= heroHp ? " lost" : "");
+                hpDots.appendChild(dot);
+            }
+            document.getElementById("hpText").innerText = `${heroHp}/6 HP`;
+            document.getElementById("manaText").innerText = `${heroMana}/10`;
+            document.getElementById("weatherText").innerText = `${weather} (${timeOfDay.toFixed(1)}h)`;
+            document.getElementById("camText").innerText = cameraPreset.replace("perspective_", "").replace("orthographic_", "");
+
+            document.getElementById("heroOverlay").innerText = `HERO: [${heroPos[0]}, ${heroPos[1]}]`;
+            document.getElementById("cameraOverlay").innerText = `CAM: ${cameraPreset.toUpperCase()}`;
+            document.getElementById("weatherOverlay").innerText = `SKY: ${weather.toUpperCase()} ${timeOfDay.toFixed(1)}H`;
+        }
+
+        async function fetchHistory() {
+            try {
+                const resp = await fetch("/api/game/language/history?limit=15");
+                const data = await resp.json();
+                const list = document.getElementById("auditList");
+                list.innerHTML = "";
+                if (data.history) {
+                    document.getElementById("auditCount").innerText = `${data.history.length} PRÍKAZOV`;
+                    data.history.forEach(item => {
+                        const div = document.createElement("div");
+                        div.className = "audit-item";
+                        div.innerHTML = `
+                            <div class="audit-header">
+                                <span class="audit-action">${item.api_action_executed || 'NO_API'}</span>
+                                <span>${item.execution_time_ms || 0}ms</span>
+                            </div>
+                            <div class="audit-text">"${item.intent ? item.intent.raw_text : 'N/A'}"</div>
+                            <div style="color: var(--text-dim); font-size: 10px;">${item.game_feedback}</div>
+                        `;
+                        list.appendChild(div);
+                    });
+                }
+            } catch (err) {
+                console.error("Fetch history failed", err);
+            }
+        }
+
+        async function fetchRemoteOnce() {
+            try {
+                const resp = await fetch("/api/game/language/fetch-and-execute", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({})
+                });
+                const data = await resp.json();
+                if (data.results && data.results.length > 0) {
+                    handleExecutionResult(data.results[0]);
+                }
+            } catch (err) {
+                console.error("Remote fetch failed", err);
+            }
+        }
+
+        async function toggleDaemon() {
+            const nextState = !daemonActive;
+            try {
+                const resp = await fetch("/api/game/language/fetcher-daemon", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: nextState ? "start" : "stop", interval_s: 3.0 })
+                });
+                const data = await resp.json();
+                daemonActive = data.daemon_running;
+                const led = document.getElementById("daemonLed");
+                const text = document.getElementById("daemonStatusText");
+                const btn = document.getElementById("btnToggleDaemon");
+
+                if (daemonActive) {
+                    led.className = "status-indicator active";
+                    text.innerText = "BEŽÍ (3s POLL)";
+                    btn.className = "btn-toggle-daemon running";
+                    btn.innerText = "ZASTAVIŤ FETCHER-A";
+                } else {
+                    led.className = "status-indicator";
+                    text.innerText = "OFFLINE";
+                    btn.className = "btn-toggle-daemon";
+                    btn.innerText = "SPUSTIŤ AUTONÓMNEHO FETCHER-A";
+                }
+            } catch (err) {
+                console.error("Toggle daemon failed", err);
+            }
+        }
+
+        // Init
+        document.getElementById("btnExecute").addEventListener("click", executeCommand);
+        document.getElementById("cmdInput").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") executeCommand();
+        });
+
+        setTimeout(() => {
+            resizeCanvas();
+            updateHUD();
+            fetchHistory();
+        }, 100);
+    </script>
+</body>
+</html>

@@ -159,6 +159,23 @@ from krystal_web_hub.economic_engine.cnc_machining_and_drawing_engine import (
 from krystal_web_hub.economic_engine.godot_asset_and_camera_pipeline import (
     GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE
 )
+from krystal_web_hub.economic_engine.game_language_api_fetcher import (
+    GLOBAL_GAME_LANGUAGE_FETCHER
+)
+from krystal_web_hub.economic_engine.procedural_city_composition_engine import (
+    GLOBAL_CITY_COMPOSITION_ENGINE
+)
+from krystal_web_hub.economic_engine.multi_sector_city_matrix import (
+    GLOBAL_METROPOLIS_ENGINE
+)
+from krystal_web_hub.economic_engine.skeuomorphic_procedural_engine import (
+    GLOBAL_SKEUOMORPHIC_ENGINE,
+    SkeuomorphicProceduralEngine,
+    SkeuomorphicItemType,
+    CharacterArchetype,
+    RoomArchetype,
+    MATERIAL_SUBSTRATES
+)
 from krystal_web_hub.economic_engine.ability_framework import (
     calculate_hex_distance, validate_target_range
 )
@@ -1092,6 +1109,24 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/godot-camera-studio', '/godot-assets', '/godot-camera', '/godot_camera_and_asset_studio.html'):
             self._serve_file(os.path.join(STATIC_DIR, "godot_camera_and_asset_studio.html"), "text/html")
             return
+        if path in ('/game-language-studio', '/language-control', '/game-language', '/game-language-fetcher'):
+            self._serve_file(os.path.join(STATIC_DIR, "game_language_control_studio.html"), "text/html")
+            return
+        if path in (
+            '/city', '/city/', '/city-studio', '/city-studio/', '/city_studio', '/city_studio/',
+            '/city-composer', '/city_composer', '/city-composer-studio', '/city_composer_studio',
+            '/city_composer_studio.html', '/metropolis', '/metropolis/', '/composer', '/cities'
+        ):
+            self._serve_file(os.path.join(STATIC_DIR, "city_composer_studio.html"), "text/html")
+            return
+        if path in (
+            '/skeuomorphic', '/skeuomorphic/', '/skeuo', '/skeuo/', '/skeuomorphic-studio', '/skeuomorphic-studio/',
+            '/skeuomorphic_studio', '/skeuomorphic_studio/', '/skeuomorphic_studio.html',
+            '/real-world', '/realworld', '/studio-skeuo', '/skeuomorph'
+        ):
+            self._serve_file(os.path.join(STATIC_DIR, "skeuomorphic_studio.html"), "text/html")
+            return
+
         if path.startswith('/static/'):
             rel_path = path[8:].lstrip('/\\')
             target = os.path.normpath(os.path.join(STATIC_DIR, rel_path))
@@ -1180,6 +1215,27 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE.query_godot_asset_lib(q))
             return
 
+        # ── GAME LANGUAGE API FETCHER & CONTROLLER GET ENDPOINTS ────────────
+        if path in ('/api/game/language/catalog', '/api/game/language/capabilities'):
+            self._send_json(GLOBAL_GAME_LANGUAGE_FETCHER.get_capabilities_catalog())
+            return
+
+        if path in ('/api/game/language/history', '/api/game/language/logs'):
+            limit = 50
+            if '?' in path:
+                try:
+                    q_str = path.split('?', 1)[1]
+                    for part in q_str.split('&'):
+                        if part.startswith('limit='):
+                            limit = int(part.split('=', 1)[1])
+                except Exception:
+                    pass
+            self._send_json({
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "history": GLOBAL_GAME_LANGUAGE_FETCHER.get_history(limit)
+            })
+            return
+
         # Quadratic Variable Transformer & Latent x Bridge
         if path == '/api/quadratic/domains':
             self._send_json(GLOBAL_QUADRATIC_TRANSFORMER.get_domains())
@@ -1215,7 +1271,277 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── Procedural City Composition & Multi-Sector Metropolis ────────
+        if path.rstrip('/') == '/api/city/compose':
+            params = urllib.parse.parse_qs(parsed.query)
+            seed = int(params.get('seed', [42])[0])
+            name = params.get('name', ['Neo-Praha Golden Spires'])[0]
+            biome = params.get('biome', ['bohemian_cyber_noir'])[0]
+            w = float(params.get('width', [240.0])[0])
+            d = float(params.get('depth', [240.0])[0])
+            comp = GLOBAL_CITY_COMPOSITION_ENGINE.paint_city_composition(
+                seed=seed, city_name=name, style_biome=biome, canvas_width_m=w, canvas_depth_m=d
+            )
+            self._send_json({
+                "status": "OK",
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "composition": {
+                    "id": comp.composition_id,
+                    "city_name": comp.city_name,
+                    "style_biome": comp.style_biome,
+                    "seed": comp.seed,
+                    "canvas_width_m": comp.canvas_width_m,
+                    "canvas_depth_m": comp.canvas_depth_m,
+                    "focal_point_x": round(comp.focal_point_x, 2),
+                    "focal_point_z": round(comp.focal_point_z, 2),
+                    "total_assets": comp.total_assets_count,
+                    "vital_hp_verified": comp.vital_max_hp_invariant_verified,
+                    "golden_ratio_score": comp.golden_ratio_adherence_score,
+                    "ascii_skyline": comp.ascii_skyline_view,
+                    "ascii_plan": comp.ascii_plan_view
+                }
+            })
+            return
+
+        if path.rstrip('/') == '/api/city/metropolis':
+            params = urllib.parse.parse_qs(parsed.query)
+            seed = int(params.get('seed', [101])[0])
+            cols = int(params.get('cols', [3])[0])
+            rows = int(params.get('rows', [3])[0])
+            name = params.get('name', ['Neo-Praha Veľká Metropola'])[0]
+            metro = GLOBAL_METROPOLIS_ENGINE.build_metropolis(
+                seed=seed, metropolis_name=name, grid_cols=cols, grid_rows=rows
+            )
+            sectors_data = [
+                {
+                    "gx": gx, "gz": gz,
+                    "biome": sec.district_biome.value,
+                    "origin_x": sec.world_origin_x,
+                    "origin_z": sec.world_origin_z,
+                    "assets_count": sec.composition.total_assets_count
+                }
+                for (gx, gz), sec in metro.sectors.items()
+            ]
+            self._send_json({
+                "status": "OK",
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "metropolis": {
+                    "metropolis_id": metro.metropolis_id,
+                    "name": metro.metropolis_name,
+                    "seed": metro.seed,
+                    "grid_dim": list(metro.grid_dim),
+                    "total_width_m": metro.total_world_width_m,
+                    "total_depth_m": metro.total_world_depth_m,
+                    "total_assets": metro.total_assets_count,
+                    "traffic_agents_count": len(metro.kinetic_traffic_fleet),
+                    "vital_hp_verified": metro.vital_max_hp_verified,
+                    "golden_score": metro.golden_ratio_balance_score,
+                    "ascii_map": metro.metropolis_ascii_map,
+                    "sectors": sectors_data
+                }
+            })
+            return
+
+        if path.rstrip('/') == '/api/city/ascii_skyline':
+            params = urllib.parse.parse_qs(parsed.query)
+            seed = int(params.get('seed', [42])[0])
+            comp = GLOBAL_CITY_COMPOSITION_ENGINE.paint_city_composition(seed=seed)
+            self._send_text(comp.ascii_skyline_view)
+            return
+
+        if path.rstrip('/') == '/api/city/ascii_plan':
+            params = urllib.parse.parse_qs(parsed.query)
+            seed = int(params.get('seed', [42])[0])
+            comp = GLOBAL_CITY_COMPOSITION_ENGINE.paint_city_composition(seed=seed)
+            self._send_text(comp.ascii_plan_view)
+            return
+
+        if path.rstrip('/') == '/api/city/export_godot':
+            params = urllib.parse.parse_qs(parsed.query)
+            seed = int(params.get('seed', [42])[0])
+            is_metro = params.get('metro', ['0'])[0] == '1'
+            if is_metro:
+                metro = GLOBAL_METROPOLIS_ENGINE.build_metropolis(seed=seed)
+                tscn = GLOBAL_METROPOLIS_ENGINE.export_metropolis_to_godot_tscn(metro)
+            else:
+                comp = GLOBAL_CITY_COMPOSITION_ENGINE.paint_city_composition(seed=seed)
+                tscn = GLOBAL_CITY_COMPOSITION_ENGINE.export_to_godot_tscn(comp)
+            self._send_text(tscn)
+            return
+
+        if path.rstrip('/') == '/api/city/export_java':
+            params = urllib.parse.parse_qs(parsed.query)
+            seed = int(params.get('seed', [42])[0])
+            comp = GLOBAL_CITY_COMPOSITION_ENGINE.paint_city_composition(seed=seed)
+            self._send_text(GLOBAL_CITY_COMPOSITION_ENGINE.export_to_java_records(comp))
+            return
+
+        if path.rstrip('/') == '/api/city/export_janet':
+            params = urllib.parse.parse_qs(parsed.query)
+            seed = int(params.get('seed', [42])[0])
+            comp = GLOBAL_CITY_COMPOSITION_ENGINE.paint_city_composition(seed=seed)
+            self._send_text(GLOBAL_CITY_COMPOSITION_ENGINE.export_to_janet_dsl(comp))
+            return
+
+        # ── Skeuomorphic Procedural Synthesis ────────────────────────────
+        if path.rstrip('/') == '/api/skeuomorphic/catalog':
+            cat = GLOBAL_SKEUOMORPHIC_ENGINE.get_catalog()
+            self._send_json({"status": "OK", "catalog": cat})
+            return
+
+        if path.rstrip('/') == '/api/skeuomorphic/item':
+            params = urllib.parse.parse_qs(parsed.query)
+            item_type_str = params.get('type', ['alchemist_leather_grimoire'])[0]
+            seed = int(params.get('seed', [42])[0])
+            try:
+                item_type = SkeuomorphicItemType(item_type_str.lower())
+            except ValueError:
+                item_type = SkeuomorphicItemType.ALCHEMIST_LEATHER_GRIMOIRE
+            item = GLOBAL_SKEUOMORPHIC_ENGINE.synthesize_item(item_type, seed=seed)
+            svg = GLOBAL_SKEUOMORPHIC_ENGINE.render_item_svg(item)
+            ascii_art = GLOBAL_SKEUOMORPHIC_ENGINE.render_item_tactile_ascii(item)
+            self._send_json({
+                "status": "OK",
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "item": {
+                    "id": item.item_id,
+                    "type": item.item_type.value,
+                    "name": item.display_name,
+                    "seed": item.seed,
+                    "vital_hp": item.vital_max_hp,
+                    "material": item.primary_substrate.value,
+                    "weight_kg": round(item.mass_weight_kg, 3),
+                    "dimensions_cm": list(item.bounding_dimensions_cm),
+                    "components": [
+                        {"name": c.part_name, "substrate": c.substrate.value, "color": c.color_hex}
+                        for c in item.components
+                    ],
+                    "functional_joinery": item.functional_joinery,
+                    "wear_patina": round(item.wear_patina_factor, 3),
+                    "svg": svg,
+                    "ascii": ascii_art
+                }
+            })
+            return
+
+        if path.rstrip('/') == '/api/skeuomorphic/character':
+            params = urllib.parse.parse_qs(parsed.query)
+            archetype_str = params.get('type', ['bohemian_alchemist_hero'])[0]
+            seed = int(params.get('seed', [108])[0])
+            try:
+                archetype = CharacterArchetype(archetype_str.lower())
+            except ValueError:
+                archetype = CharacterArchetype.BOHEMIAN_ALCHEMIST_HERO
+            ch = GLOBAL_SKEUOMORPHIC_ENGINE.synthesize_character(archetype, seed=seed)
+            svg = GLOBAL_SKEUOMORPHIC_ENGINE.render_character_svg(ch)
+            self._send_json({
+                "status": "OK",
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "character": {
+                    "id": ch.character_id,
+                    "archetype": ch.archetype.value,
+                    "name": ch.character_name,
+                    "seed": ch.seed,
+                    "vital_hp": ch.vital_max_hp,
+                    "total_height_cm": ch.total_height_cm,
+                    "head_height_cm": round(ch.head_height_cm, 2),
+                    "head_ratio": ch.vitruvian_head_ratio,
+                    "garment_layers": [
+                        {"layer": g.layer_level, "item": g.garment_name, "substrate": g.substrate.value, "seam": g.seam_type}
+                        for g in ch.garment_layers
+                    ],
+                    "equipped_items": [i.display_name for i in ch.equipped_items],
+                    "svg": svg,
+                    "ascii": ch.tactile_ascii_silhouette
+                }
+            })
+            return
+
+        if path.rstrip('/') == '/api/skeuomorphic/room':
+            params = urllib.parse.parse_qs(parsed.query)
+            room_type_str = params.get('type', ['alchemist_workshop_chamber'])[0]
+            seed = int(params.get('seed', [256])[0])
+            try:
+                room_type = RoomArchetype(room_type_str.lower())
+            except ValueError:
+                room_type = RoomArchetype.ALCHEMIST_WORKSHOP_CHAMBER
+            room = GLOBAL_SKEUOMORPHIC_ENGINE.synthesize_room(room_type, seed=seed)
+            svg = GLOBAL_SKEUOMORPHIC_ENGINE.render_room_svg(room)
+            self._send_json({
+                "status": "OK",
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "room": {
+                    "id": room.room_id,
+                    "archetype": room.room_type.value,
+                    "name": room.room_name,
+                    "seed": room.seed,
+                    "width_m": room.width_m,
+                    "length_m": room.length_m,
+                    "height_m": room.height_m,
+                    "golden_ratio_adherence": round(room.golden_ratio_adherence, 4),
+                    "primary_material": room.primary_material.value,
+                    "secondary_material": room.secondary_material.value,
+                    "architectural_features": room.architectural_features,
+                    "furniture_props": [i.display_name for i in room.furniture_props],
+                    "svg": svg,
+                    "ascii": room.elevation_ascii
+                }
+            })
+            return
+
+        if path.rstrip('/') == '/api/skeuomorphic/export_godot':
+            params = urllib.parse.parse_qs(parsed.query)
+            cat = params.get('category', ['item'])[0]
+            typ = params.get('type', ['alchemist_leather_grimoire'])[0]
+            seed = int(params.get('seed', [42])[0])
+            if cat == 'character':
+                try:
+                    arch = CharacterArchetype(typ.lower())
+                except ValueError:
+                    arch = CharacterArchetype.BOHEMIAN_ALCHEMIST_HERO
+                obj = GLOBAL_SKEUOMORPHIC_ENGINE.synthesize_character(arch, seed=seed)
+            elif cat == 'room':
+                try:
+                    rarch = RoomArchetype(typ.lower())
+                except ValueError:
+                    rarch = RoomArchetype.ALCHEMIST_WORKSHOP_CHAMBER
+                obj = GLOBAL_SKEUOMORPHIC_ENGINE.synthesize_room(rarch, seed=seed)
+            else:
+                try:
+                    ityp = SkeuomorphicItemType(typ.lower())
+                except ValueError:
+                    ityp = SkeuomorphicItemType.ALCHEMIST_LEATHER_GRIMOIRE
+                obj = GLOBAL_SKEUOMORPHIC_ENGINE.synthesize_item(ityp, seed=seed)
+            tscn = GLOBAL_SKEUOMORPHIC_ENGINE.export_to_godot_tscn(obj)
+            self._send_text(tscn)
+            return
+
+        if path.rstrip('/') == '/api/skeuomorphic/export_java':
+            params = urllib.parse.parse_qs(parsed.query)
+            typ = params.get('type', ['alchemist_leather_grimoire'])[0]
+            seed = int(params.get('seed', [42])[0])
+            try:
+                ityp = SkeuomorphicItemType(typ.lower())
+            except ValueError:
+                ityp = SkeuomorphicItemType.ALCHEMIST_LEATHER_GRIMOIRE
+            item = GLOBAL_SKEUOMORPHIC_ENGINE.synthesize_item(ityp, seed=seed)
+            self._send_text(GLOBAL_SKEUOMORPHIC_ENGINE.export_to_java_records(item))
+            return
+
+        if path.rstrip('/') == '/api/skeuomorphic/export_janet':
+            params = urllib.parse.parse_qs(parsed.query)
+            typ = params.get('type', ['alchemist_leather_grimoire'])[0]
+            seed = int(params.get('seed', [42])[0])
+            try:
+                ityp = SkeuomorphicItemType(typ.lower())
+            except ValueError:
+                ityp = SkeuomorphicItemType.ALCHEMIST_LEATHER_GRIMOIRE
+            item = GLOBAL_SKEUOMORPHIC_ENGINE.synthesize_item(ityp, seed=seed)
+            self._send_text(GLOBAL_SKEUOMORPHIC_ENGINE.export_to_janet_dsl(item))
+            return
+
         # ── CNC DRAWING & MACHINING SIMULATOR ─────────────────────────────────
+
         if path == '/api/cnc/catalog':
             from dataclasses import asdict
             self._send_json({
@@ -4585,6 +4911,72 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             package_id = req_data.get("package_id", "camera-controller-3d")
             res = GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE.install_addon_package(package_id)
             self._send_json(res)
+            return
+
+        # ── GAME LANGUAGE API FETCHER & CONTROLLER POST ENDPOINTS ───────────
+        if path == '/api/game/language/control':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            prompt = req_data.get("prompt") or req_data.get("text") or req_data.get("command", "")
+            execute_api = bool(req_data.get("execute_api", True))
+            res = GLOBAL_GAME_LANGUAGE_FETCHER.execute_command(prompt, execute_api=execute_api)
+            self._send_json(asdict(res))
+            return
+
+        if path == '/api/game/language/query':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            query_str = req_data.get("query") or req_data.get("text") or req_data.get("prompt", "")
+            res = GLOBAL_GAME_LANGUAGE_FETCHER.query_game_state(query_str)
+            self._send_json(res)
+            return
+
+        if path == '/api/game/language/fetch-and-execute':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            api_url = req_data.get("source_api_url", None)
+            custom_prompt = req_data.get("custom_prompt", None)
+            results = GLOBAL_GAME_LANGUAGE_FETCHER.fetch_and_execute_remote(
+                source_api_url=api_url,
+                custom_prompt=custom_prompt
+            )
+            self._send_json({
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "executed_count": len(results),
+                "results": [asdict(r) for r in results]
+            })
+            return
+
+        if path == '/api/game/language/fetcher-daemon':
+            try:
+                req_data = json.loads(post_data) if post_data else {}
+            except Exception:
+                req_data = {}
+            action = req_data.get("action", "status")
+            if action == "start":
+                interval = float(req_data.get("interval_s", 3.0))
+                GLOBAL_GAME_LANGUAGE_FETCHER.start_fetcher_daemon(interval)
+            elif action == "stop":
+                GLOBAL_GAME_LANGUAGE_FETCHER.stop_fetcher_daemon()
+            elif action == "configure":
+                if "source_api_url" in req_data:
+                    GLOBAL_GAME_LANGUAGE_FETCHER.config.source_api_url = req_data["source_api_url"]
+                if "poll_interval_s" in req_data:
+                    GLOBAL_GAME_LANGUAGE_FETCHER.config.poll_interval_s = float(req_data["poll_interval_s"])
+                if "default_language" in req_data:
+                    GLOBAL_GAME_LANGUAGE_FETCHER.config.default_language = req_data["default_language"]
+
+            self._send_json({
+                "vital_max_hp_rule": VITAL_MAX_HP,
+                "daemon_running": GLOBAL_GAME_LANGUAGE_FETCHER._daemon_running,
+                "config": asdict(GLOBAL_GAME_LANGUAGE_FETCHER.config)
+            })
             return
 
         # ── QUADRATIC VARIABLE TRANSFORMER POST ENDPOINTS ───────────────────

@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3 uid="uid://krystal_23646"]
+
+[ext_resource type="Shader" path="res://shaders/photorealistic_raymarch_godot.gdshader" id="1_shader"]
+[ext_resource type="Script" path="res://scripts/GodotHardwareBridge.gd" id="2_bridge"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_stage"]
+shader = ExtResource("1_shader")
+shader_parameter/u_max_steps = 64
+shader_parameter/u_epsilon = 0.002
+shader_parameter/u_coxeter_folds = 6
+shader_parameter/u_fresnel_factor = 0.88
+shader_parameter/u_bayer_dither_strength = 0.65
+shader_parameter/u_gold_alchemical = Color(1, 0.843, 0, 1)
+shader_parameter/u_crystal_cyan = Color(0, 0.941, 1, 1)
+shader_parameter/u_light_dir = Vector3(0.577, 0.577, -0.577)
+
+[node name="PhotorealisticRaymarchStage" type="Node2D"]
+
+[node name="RaymarchCanvas" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_stage")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HardwareBridge" type="Node" parent="."]
+script = ExtResource("2_bridge")
+hub_url = "http://127.0.0.1:8080/api/whisperer/calculator"

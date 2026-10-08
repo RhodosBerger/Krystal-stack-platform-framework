@@ -22,6 +22,24 @@ from .godot_theoretical_formulas import (
     fuse_cards,
     compact_godot_ast
 )
+from .extended_theoretical_functions import (
+    evaluate_quadratic_transduction,
+    solve_quadratic_latent_x,
+    calculate_plunging_artillery_ballistics,
+    evaluate_mortar_dispersion_ellipse,
+    detect_minkowski_spacetime_intersection,
+    evaluate_bullet_time_dilation,
+    evaluate_multioctave_terrain_elevation,
+    calculate_coupled_terrain_erosion,
+    evaluate_dihedral_coxeter_fold,
+    calculate_schlick_fresnel_and_chromatic,
+    evaluate_dopamine_set_matrix_criticality,
+    calculate_cadence_combo_multiplier,
+    calculate_warhammer_wound_probability,
+    calculate_damage_expectation_and_variance,
+    evaluate_biome_partition_of_unity,
+    classify_whittaker_biome_phase_space
+)
 from .procedural_render_config import (
     PROCEDURAL_PBR_PRESETS,
     PROCEDURAL_MESH_PRESETS,
@@ -469,6 +487,101 @@ from .godot_asset_and_camera_pipeline import (
     CameraPresetConfig,
     GodotAssetAndCameraPipeline,
     GLOBAL_GODOT_ASSET_AND_CAMERA_PIPELINE
+)
+
+from .game_language_api_fetcher import (
+    GameCommandType,
+    LanguageCommandIntent,
+    LanguageExecutionResult,
+    LanguageFetcherConfig,
+    GameLanguageApiFetcher,
+    GLOBAL_GAME_LANGUAGE_FETCHER
+)
+
+from .procedural_city_composition_engine import (
+    AssetCategory,
+    AssetBrush,
+    ASSET_BRUSH_CATALOG,
+    CityAssetInstance,
+    CompositionLayer,
+    ProceduralCityComposition,
+    ProceduralCityCompositionEngine,
+    GLOBAL_CITY_COMPOSITION_ENGINE
+)
+
+from .multi_sector_city_matrix import (
+    DistrictBiome,
+    DistrictSpec,
+    DISTRICT_SPECS,
+    KineticTrafficAgent,
+    CitySectorNode,
+    MultiSectorMetropolis,
+    MultiSectorMetropolisEngine,
+    GLOBAL_METROPOLIS_ENGINE
+)
+
+from .skeuomorphic_procedural_engine import (
+    MaterialSubstrate,
+    MATERIAL_SUBSTRATES,
+    SkeuomorphicItemType,
+    ItemComponent,
+    SkeuomorphicItem,
+    CharacterArchetype,
+    ClothingLayer,
+    SkeuomorphicCharacter,
+    RoomArchetype,
+    SkeuomorphicRoom,
+    SkeuomorphicProceduralEngine,
+    GLOBAL_SKEUOMORPHIC_ENGINE
+)
+
+from .code_gene_neural_compositor import (
+    BAYER_4X4,
+    BAYER_8X8,
+    BoundedRenderingVolume,
+    CodeGeneTopology,
+    CodeGeneState,
+    CodeGeneDynamicsModel,
+    ProceduralRasterMixer,
+    CodeGeneNeuralCompositor
+)
+
+from .google_maps_urban_extractor import (
+    UrbanBuilding,
+    UrbanRoadSegment,
+    UrbanCitySector,
+    CANONICAL_REAL_CITIES,
+    GoogleMapsUrbanExtractor,
+    GLOBAL_GOOGLE_MAPS_EXTRACTOR
+)
+
+from .achievement_narrative_engine import (
+    AchievementCategory,
+    AchievementTier,
+    AchievementReward,
+    AchievementDefinition,
+    CANONICAL_ACHIEVEMENTS,
+    LLMRuntimeBackend,
+    HardwareTelemetrySnapshot,
+    TelemetryGovernor,
+    LoreStoryEntry,
+    AchievementNarrativeEngine,
+    GLOBAL_ACHIEVEMENT_NARRATIVE_ENGINE
+)
+
+from .speculative_engine_frontiers import (
+    BoundedChunk,
+    InfiniteRollingVolumeEngine,
+    CollisionObstacleAABB,
+    KineticPlayerState,
+    NeuroSymbolicPhysicsGovernor,
+    ValidatedChronicleTokenStream,
+    StateConstrainedLoreSynthesizer,
+    HardwareBusState,
+    MemoryBandwidthGovernor,
+    Transpiled3DScene,
+    BidirectionalAsciiSpatialTranspiler,
+    GLOBAL_SPECULATIVE_FRONTIERS
 )
 
 

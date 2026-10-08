@@ -1,0 +1,110 @@
+{
+  "template_id": "TPL_KALEIDOSCOPIC_IFS_HOLOGRAPHIC_QUANTUM_6F",
+  "name": "Dihedral Kaleidoscopic IFS Fold × Quantum Interference Hologram",
+  "geometric_instance": {
+    "id": "KALEIDOSCOPIC_IFS",
+    "name": "Dihedral Kaleidoscopic IFS Fold",
+    "category": "sacred_geometry",
+    "symmetry_group": "D6 (Hexagonal Dihedral)",
+    "formula": "p = abs(p), rotate(pi/N), fold across plane normals n=(cos a, sin a, 0)",
+    "default_params": {
+      "folds": 6,
+      "scale": 1.85,
+      "offset": 1.1
+    },
+    "composition_rules": {
+      "mirror_folds": 6,
+      "fresnel_reflectance": 0.88,
+      "depth_layers": 24
+    },
+    "preferred_glyphs": [
+      "*",
+      "✦",
+      "✧",
+      "✶",
+      "✹",
+      "✺",
+      "/",
+      "\\",
+      "|",
+      "-"
+    ]
+  },
+  "artistic_instance": {
+    "id": "HOLOGRAPHIC_QUANTUM",
+    "name": "Quantum Interference Hologram",
+    "primary_palette": {
+      "r": 0,
+      "g": 255,
+      "b": 180
+    },
+    "accent_palette": {
+      "r": 180,
+      "g": 80,
+      "b": 255
+    },
+    "background_tint": {
+      "r": 2,
+      "g": 3,
+      "b": 8
+    },
+    "chromatic_aberration": 0.012,
+    "scanline_density": 240.0,
+    "glyph_ramp": " ·∙∘⋄◇◈◆█",
+    "hud_elements": [
+      "INTERFERENCE_WAVE",
+      "HE-NE_LASER_632NM",
+      "PARALLAX_SLICES"
+    ]
+  },
+  "composition_rules": {
+    "mirror_folds": 6,
+    "fold_angle_deg": 30.0,
+    "fold_angle_rad": 0.5236,
+    "recursion_depth": 24,
+    "fresnel_reflectance": 0.88,
+    "golden_harmonic_scale": 0.92293,
+    "symmetry_group": "D6 (Dihedral 12-fold symmetry)"
+  },
+  "vulkan_shader_uniforms": {
+    "u_mirror_folds": 6,
+    "u_fold_angle": 0.5235987755982988,
+    "u_recursion_limit": 24,
+    "u_fresnel_factor": 0.88,
+    "u_chromatic_aberration": 0.012,
+    "u_scanline_density": 240.0,
+    "u_primary_color": [
+      0.0,
+      1.0,
+      0.7058823529411765,
+      1.0
+    ],
+    "u_accent_color": [
+      0.7058823529411765,
+      0.3137254901960784,
+      1.0,
+      1.0
+    ]
+  },
+  "ascii_config": {
+    "glyph_ramp": " ·∙∘⋄◇◈◆█",
+    "preferred_glyphs": [
+      "*",
+      "✦",
+      "✧",
+      "✶",
+      "✹",
+      "✺",
+      "/",
+      "\\",
+      "|",
+      "-"
+    ],
+    "hud_elements": [
+      "INTERFERENCE_WAVE",
+      "HE-NE_LASER_632NM",
+      "PARALLAX_SLICES"
+    ]
+  },
+  "custom_notes": ""
+}

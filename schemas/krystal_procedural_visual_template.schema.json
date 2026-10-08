@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KrystalProceduralVisualTemplate",
+  "description": "Schema for Krystal Procedural Visual Template System v1.0. Encodes narrative-rich, procedurally textured world specifications and prompts.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "template_id",
+    "scene_identity",
+    "world_environment",
+    "procedural_structure",
+    "texture_stack",
+    "action_event",
+    "atmosphere",
+    "lighting",
+    "camera_composition",
+    "style_render_mode",
+    "quality_detail",
+    "negative_constraints"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "template_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_]+$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "scene_identity": {
+      "type": "object",
+      "required": ["scene_type", "core_theme", "narrative_role"],
+      "properties": {
+        "scene_type": {
+          "type": "string",
+          "enum": [
+            "ancient ritual",
+            "procedural arena",
+            "biome world",
+            "holographic shrine",
+            "sacred mirror chamber",
+            "ASCII hologram landscape",
+            "citadel bastion",
+            "orbital sanctuary"
+          ]
+        },
+        "core_theme": {
+          "type": "string",
+          "enum": [
+            "crystal",
+            "toxic",
+            "druid",
+            "alchemy",
+            "cyber-ritual",
+            "frost",
+            "volcanic",
+            "biomechanical",
+            "quantum",
+            "astral"
+          ]
+        },
+        "narrative_role": {
+          "type": "string",
+          "enum": [
+            "awakening",
+            "invasion",
+            "transformation",
+            "summoning",
+            "collapse",
+            "emergence",
+            "stabilization",
+            "portal activation",
+            "resonance"
+          ]
+        }
+      }
+    },
+    "world_environment": {
+      "type": "object",
+      "required": ["environment", "scale", "terrain_logic"],
+      "properties": {
+        "environment": {
+          "type": "string"
+        },
+        "scale": {
+          "type": "string",
+          "enum": [
+            "intimate",
+            "monumental",
+            "infinite",
+            "cathedral-scale",
+            "planetary",
+            "cosmic"
+          ]
+        },
+        "terrain_logic": {
+          "type": "string"
+        }
+      }
+    },
+    "procedural_structure": {
+      "type": "object",
+      "required": ["procedural_forms"],
+      "properties": {
+        "procedural_forms": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "fractal_dimension": {
+          "type": "number",
+          "minimum": 1.0,
+          "maximum": 4.0
+        },
+        "dihedral_folds": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 32
+        },
+        "octaves": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        }
+      }
+    },
+    "texture_stack": {
+      "type": "object",
+      "required": [
+        "base_material",
+        "secondary_material",
+        "micro_surface_detail",
+        "edge_behavior",
+        "reflectivity_roughness",
+        "emission",
+        "atmospheric_particles"
+      ],
+      "properties": {
+        "base_material": { "type": "string" },
+        "secondary_material": { "type": "string" },
+        "micro_surface_detail": { "type": "string" },
+        "edge_behavior": { "type": "string" },
+        "reflectivity_roughness": { "type": "string" },
+        "emission": { "type": "string" },
+        "atmospheric_particles": { "type": "string" }
+      }
+    },
+    "action_event": {
+      "type": "object",
+      "required": [
+        "primary_event",
+        "cause",
+        "visible_transformation",
+        "environmental_response",
+        "motion_cues",
+        "narrative_traces"
+      ],
+      "properties": {
+        "primary_event": { "type": "string" },
+        "cause": { "type": "string" },
+        "visible_transformation": { "type": "string" },
+        "environmental_response": { "type": "string" },
+        "motion_cues": { "type": "string" },
+        "narrative_traces": { "type": "string" }
+      }
+    },
+    "temporal_layer": {
+      "type": "object",
+      "required": ["before", "during", "after"],
+      "properties": {
+        "before": { "type": "string" },
+        "during": { "type": "string" },
+        "after": { "type": "string" }
+      }
+    },
+    "atmosphere": {
+      "type": "object",
+      "required": ["atmosphere", "mood", "weather_medium", "depth_effects"],
+      "properties": {
+        "atmosphere": { "type": "string" },
+        "mood": { "type": "string" },
+        "weather_medium": { "type": "string" },
+        "depth_effects": { "type": "string" }
+      }
+    },
+    "lighting": {
+      "type": "object",
+      "required": [
+        "primary_light",
+        "secondary_light",
+        "accent_light",
+        "shadow_behavior"
+      ],
+      "properties": {
+        "primary_light": { "type": "string" },
+        "secondary_light": { "type": "string" },
+        "accent_light": { "type": "string" },
+        "shadow_behavior": { "type": "string" }
+      }
+    },
+    "camera_composition": {
+      "type": "object",
+      "required": [
+        "camera_angle",
+        "framing",
+        "primary_focal_point",
+        "secondary_focal_points",
+        "scale_references",
+        "composition"
+      ],
+      "properties": {
+        "camera_angle": { "type": "string" },
+        "framing": { "type": "string" },
+        "primary_focal_point": { "type": "string" },
+        "secondary_focal_points": { "type": "string" },
+        "scale_references": { "type": "string" },
+        "composition": { "type": "string" }
+      }
+    },
+    "style_render_mode": {
+      "type": "object",
+      "required": ["render_mode", "surface_style"],
+      "properties": {
+        "render_mode": { "type": "string" },
+        "surface_style": { "type": "string" }
+      }
+    },
+    "quality_detail": {
+      "type": "object",
+      "required": [
+        "detail_level",
+        "texture_richness",
+        "world_coherence",
+        "visual_density"
+      ],
+      "properties": {
+        "detail_level": { "type": "string" },
+        "texture_richness": { "type": "string" },
+        "world_coherence": { "type": "string" },
+        "visual_density": { "type": "string" }
+      }
+    },
+    "negative_constraints": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

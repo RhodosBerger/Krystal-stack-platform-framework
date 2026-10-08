@@ -22,7 +22,7 @@ class JanetSExpressionParser:
     @staticmethod
     def strip_comments(code: str) -> str:
         out = []
-        in_string = False
+        string_delim = None
         in_comment = False
         for i, char in enumerate(code):
             if char == '\n':
@@ -30,21 +30,25 @@ class JanetSExpressionParser:
                 out.append(char)
             elif in_comment:
                 continue
-            elif char == '"':
-                bs_count = 0
-                k = i - 1
-                while k >= 0 and code[k] == '\\':
-                    bs_count += 1
-                    k -= 1
-                if bs_count % 2 == 0:
-                    in_string = not in_string
-                out.append(char)
-            elif char == '`':
-                in_string = not in_string
-                out.append(char)
-            elif char == '#' and not in_string:
-                in_comment = True
+            elif string_delim is None:
+                if char == '#':
+                    in_comment = True
+                elif char in ('"', '`'):
+                    string_delim = char
+                    out.append(char)
+                else:
+                    out.append(char)
             else:
+                if string_delim == '"' and char == '"':
+                    bs_count = 0
+                    k = i - 1
+                    while k >= 0 and code[k] == '\\':
+                        bs_count += 1
+                        k -= 1
+                    if bs_count % 2 == 0:
+                        string_delim = None
+                elif string_delim == '`' and char == '`':
+                    string_delim = None
                 out.append(char)
         return "".join(out)
 
@@ -94,29 +98,32 @@ class JanetValidator:
 
         # Check bracket/paren balance
         counts = {"(": 0, ")": 0, "[": 0, "]": 0, "{": 0, "}": 0}
-        in_string = False
+        string_delim = None
         in_comment = False
 
         for i, char in enumerate(content):
-            if char == '#' and not in_string:
-                in_comment = True
-            elif char == '\n':
+            if char == '\n':
                 in_comment = False
             elif in_comment:
                 continue
-            elif char == '"':
-                bs_count = 0
-                k = i - 1
-                while k >= 0 and content[k] == '\\':
-                    bs_count += 1
-                    k -= 1
-                if bs_count % 2 == 0:
-                    in_string = not in_string
-            elif char == '`':
-                in_string = not in_string
-            elif not in_string:
-                if char in counts:
+            elif string_delim is None:
+                if char == '#':
+                    in_comment = True
+                elif char in ('"', '`'):
+                    string_delim = char
+                elif char in counts:
                     counts[char] += 1
+            else:
+                if string_delim == '"' and char == '"':
+                    bs_count = 0
+                    k = i - 1
+                    while k >= 0 and content[k] == '\\':
+                        bs_count += 1
+                        k -= 1
+                    if bs_count % 2 == 0:
+                        string_delim = None
+                elif string_delim == '`' and char == '`':
+                    string_delim = None
 
         balanced = (
             counts["("] == counts[")"] and

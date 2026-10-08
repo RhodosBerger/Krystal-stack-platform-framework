@@ -7,8 +7,31 @@ let scanlinesActive = true;
 
 // ── 1. Initialization ───────────────────────────────────────────────────
 
+let krystalWorker = null;
+
+function initKrystalWorker() {
+  if (window.Worker) {
+    try {
+      krystalWorker = new Worker("/static/krystal_worker.js");
+      krystalWorker.onmessage = (e) => {
+        const msg = e.data;
+        if (msg.type === "FRAME_PROCESSED") {
+          renderProcessedFrame(msg);
+        } else if (msg.type === "INITIALIZED") {
+          console.log("[MainThread] Krystal Worker initialized: VITAL_MAX_HP =", msg.vitalHp);
+        }
+      };
+      krystalWorker.postMessage({ type: "INIT" });
+    } catch (err) {
+      console.warn("[MainThread] Web Worker fallback to main thread:", err);
+      krystalWorker = null;
+    }
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initClock();
+  initKrystalWorker();
   initEventSource();
   fetchVulkanStatus();
   loadIntel("score");
@@ -122,7 +145,11 @@ function initEventSource() {
 
     try {
       const payload = JSON.parse(event.data);
-      renderFrame(payload);
+      if (krystalWorker) {
+        krystalWorker.postMessage({ type: "PROCESS_FRAME", payload: payload });
+      } else {
+        renderFrame(payload);
+      }
     } catch (e) {
       console.error("Payload parse error:", e);
     }
@@ -137,6 +164,25 @@ function initEventSource() {
 }
 
 // ── 3. Frame Rendering & Gauges ──────────────────────────────────────────
+
+function renderProcessedFrame(msg) {
+  renderFrame({
+    ascii: msg.ascii,
+    fps: msg.fps,
+    mode: msg.mode,
+    entropy: typeof msg.entropy === "object" ? msg.entropy : {
+      spatial: msg.density || 0,
+      temporal: 0.1,
+      total: typeof msg.entropy === "number" ? msg.entropy : (msg.density || 0),
+      coherence: 1.0 - (msg.density || 0)
+    },
+    governor: msg.governor,
+    backpressure: msg.backpressure,
+    cognitive_phase: msg.cognitive_phase,
+    hamiltonian_energy: msg.hamiltonian_energy,
+    vulkan: msg.vulkan
+  });
+}
 
 function renderFrame(payload) {
   // Update ASCII Canvas

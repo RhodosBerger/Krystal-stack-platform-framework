@@ -1,0 +1,147 @@
+{
+  "8080": {
+    "online": false,
+    "paths": {
+      "/": {
+        "error": "<urlopen error timed out>"
+      },
+      "/api/health": {
+        "error": "<urlopen error timed out>"
+      },
+      "/api/status": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city/": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city-studio": {
+        "error": "<urlopen error timed out>"
+      },
+      "/static/city_composer_studio.html": {
+        "error": "<urlopen error timed out>"
+      },
+      "/static/index.html": {
+        "error": "<urlopen error timed out>"
+      }
+    }
+  },
+  "8089": {
+    "online": false,
+    "paths": {
+      "/": {
+        "error": "<urlopen error timed out>"
+      },
+      "/api/health": {
+        "error": "<urlopen error timed out>"
+      },
+      "/api/status": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city/": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city-studio": {
+        "error": "<urlopen error timed out>"
+      },
+      "/static/city_composer_studio.html": {
+        "error": "<urlopen error timed out>"
+      },
+      "/static/index.html": {
+        "error": "<urlopen error timed out>"
+      }
+    }
+  },
+  "8000": {
+    "online": false,
+    "paths": {
+      "/": {
+        "error": "<urlopen error timed out>"
+      },
+      "/api/health": {
+        "error": "<urlopen error timed out>"
+      },
+      "/api/status": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city/": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city-studio": {
+        "error": "<urlopen error timed out>"
+      },
+      "/static/city_composer_studio.html": {
+        "error": "<urlopen error timed out>"
+      },
+      "/static/index.html": {
+        "error": "<urlopen error timed out>"
+      }
+    }
+  },
+  "3000": {
+    "online": false,
+    "paths": {
+      "/": {
+        "error": "<urlopen error timed out>"
+      },
+      "/api/health": {
+        "error": "<urlopen error timed out>"
+      },
+      "/api/status": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city/": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city-studio": {
+        "error": "<urlopen error timed out>"
+      },
+      "/static/city_composer_studio.html": {
+        "error": "<urlopen error timed out>"
+      },
+      "/static/index.html": {
+        "error": "<urlopen error timed out>"
+      }
+    }
+  },
+  "5000": {
+    "online": false,
+    "paths": {
+      "/": {
+        "error": "<urlopen error timed out>"
+      },
+      "/api/health": {
+        "error": "<urlopen error timed out>"
+      },
+      "/api/status": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city/": {
+        "error": "<urlopen error timed out>"
+      },
+      "/city-studio": {
+        "error": "<urlopen error timed out>"
+      },
+      "/static/city_composer_studio.html": {
+        "error": "<urlopen error timed out>"
+      },
+      "/static/index.html": {
+        "error": "<urlopen error timed out>"
+      }
+    }
+  }
+}

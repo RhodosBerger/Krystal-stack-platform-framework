@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRYSTAL // Skeuomorphic Procedural Synthesis Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0c0a09;
+            --bg-panel: rgba(23, 20, 18, 0.88);
+            --bg-card: rgba(30, 26, 23, 0.78);
+            --border-dim: rgba(255, 255, 255, 0.08);
+            --border-brass: rgba(217, 119, 6, 0.35);
+            --brass-gold: #d97706;
+            --champagne-brass: #b45309;
+            --damascus-steel: #64748b;
+            --bohemian-walnut: #451a03;
+            --saddle-leather: #92400e;
+            --blown-glass: #0d9488;
+            --travertine-stone: #e2e8f0;
+            --emerald-green: #22c55e;
+            --text-main: #f5f5f4;
+            --text-muted: #a8a29e;
+            --font-ui: 'Outfit', sans-serif;
+            --font-serif: 'Cinzel', serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(217, 119, 6, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(13, 148, 136, 0.10) 0%, transparent 45%),
+                linear-gradient(to bottom, #0c0a09, #171412);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 18px 32px;
+            background: rgba(18, 15, 13, 0.90);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-dim);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, var(--brass-gold), #78350f);
+            color: white;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
+            letter-spacing: 1.5px;
+            font-family: var(--font-mono);
+            box-shadow: 0 0 12px rgba(217, 119, 6, 0.3);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #ffffff, #fef3c7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-dim);
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: var(--border-brass);
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: var(--emerald-green);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--emerald-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--emerald-green);
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        main {
+            flex: 1;
+            padding: 24px 32px;
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+            max-width: 1800px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fef3c7;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+
+        .category-tab {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-dim);
+            color: var(--text-muted);
+            padding: 10px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .category-tab.active {
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.25), rgba(120, 53, 15, 0.25));
+            border-color: var(--brass-gold);
+            color: #fef3c7;
+            box-shadow: 0 0 12px rgba(217, 119, 6, 0.2);
+        }
+
+        .control-group {
+            margin-bottom: 16px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-dim);
+            color: #fff;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: var(--font-mono);
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--brass-gold);
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--brass-gold);
+        }
+
+        .slider-val {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--brass-gold);
+            width: 48px;
+            text-align: right;
+        }
+
+        .btn-generate {
+            width: 100%;
+            background: linear-gradient(135deg, #d97706, #b45309);
+            border: none;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(217, 119, 6, 0.35);
+            transition: all 0.2s ease;
+            margin-top: 8px;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.5);
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .materials-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .material-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-dim);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .material-swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-right: 8px;
+        }
+
+        .canvas-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .view-tabs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-dim);
+            padding-bottom: 12px;
+        }
+
+        .view-tab {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-tab.active {
+            background: rgba(217, 119, 6, 0.15);
+            border-color: var(--border-brass);
+            color: #fef3c7;
+        }
+
+        .viewport-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 480px;
+            position: relative;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .svg-container {
+            width: 100%;
+            max-width: 680px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.7));
+        }
+
+        .ascii-container {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.4;
+            color: #fef3c7;
+            background: #090706;
+            padding: 24px 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(217, 119, 6, 0.25);
+            white-space: pre;
+            overflow-x: auto;
+            max-width: 100%;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .code-container {
+            width: 100%;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            background: #090706;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-dim);
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            max-height: 480px;
+            overflow-y: auto;
+        }
+
+        .specs-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .spec-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .spec-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .spec-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fef3c7;
+            font-family: var(--font-mono);
+        }
+
+        .export-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .btn-export {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-dim);
+            color: var(--text-muted);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-export:hover {
+            background: rgba(217, 119, 6, 0.2);
+            border-color: var(--border-brass);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-brand">
+            <span class="brand-badge">SKEUOMORPHIC 3.0</span>
+            <div>
+                <h1 class="header-title">Skeuomorphic Procedural Synthesis Studio</h1>
+                <div class="header-subtitle">Fyzická realita namiesto abstraktných fraktálov • Zlatý Rez &phi; = 1.61803 • VITAL_MAX_HP = 6</div>
+            </div>
+        </div>
+        <div class="header-nav">
+            <a href="/" class="nav-btn">Hub</a>
+            <a href="/city" class="nav-btn">City Composer</a>
+            <a href="/arena" class="nav-btn">Godot Extension</a>
+            <div class="status-pill">
+                <span class="status-dot"></span>
+                <span>PHYSICAL SYNTHESIS READY</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">🏛️ Syntézny Model</span>
+                </div>
+
+                <div class="category-tabs">
+                    <button class="category-tab active" id="tab-item" onclick="selectCategory('item')">Predmety</button>
+                    <button class="category-tab" id="tab-char" onclick="selectCategory('character')">Postavy</button>
+                    <button class="category-tab" id="tab-room" onclick="selectCategory('room')">Priestory</button>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Archetyp / Typ Assetu</label>
+                    <select id="type-select" onchange="generateAsset()"></select>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Deterministický Seed (S)</span>
+                        <span class="slider-val" id="seed-val">42</span>
+                    </div>
+                    <div class="slider-row">
+                        <input type="range" id="seed-slider" min="1" max="999" value="42" oninput="updateSeed(this.value)">
+                        <input type="number" id="seed-num" min="1" max="999" value="42" style="width: 70px;" oninput="updateSeed(this.value)">
+                    </div>
+                </div>
+
+                <button class="btn-generate" onclick="generateAsset()">⚡ Vygenerovať Skeuomorfný Asset</button>
+            </div>
+
+            <!-- Material Substrates Legend -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">🧱 Fyzické Substráty</span>
+                    <span style="font-size: 11px; color: var(--text-muted);">PBR + Normály</span>
+                </div>
+                <div class="materials-legend" id="materials-legend">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Invariant Guarantee -->
+            <div class="panel" style="background: rgba(34, 197, 94, 0.05); border-color: rgba(34, 197, 94, 0.2);">
+                <div style="font-size: 12px; font-weight: 700; color: var(--emerald-green); margin-bottom: 4px;">
+                    ✓ DETERMINISTICKÁ GARANCIA PRAVIDIEL
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+                    Všetky vygenerované artefakty, výstroj aj postavy prísne dodržiavajú vitálny invariant <code>VITAL_MAX_HP = 6</code> a ergonomickú kánonu zlatého rezu.
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <section class="canvas-area">
+            <div class="view-tabs">
+                <button class="view-tab active" id="view-svg-btn" onclick="switchView('svg')">🎨 Vektorový SVG Render</button>
+                <button class="view-tab" id="view-ascii-btn" onclick="switchView('ascii')">🔤 Taktilná ASCII Silueta</button>
+                <button class="view-tab" id="view-specs-btn" onclick="switchView('specs')">📋 Fyzické Vlastnosti & Spoje</button>
+                <button class="view-tab" id="view-code-btn" onclick="switchView('code')">💻 Godot & Multi-Substrát Kód</button>
+            </div>
+
+            <div class="viewport-card">
+                <!-- SVG View -->
+                <div id="view-svg" class="svg-container">
+                    <div style="color: var(--text-muted);">Generovanie skeuomorfného náhľadu...</div>
+                </div>
+
+                <!-- ASCII View -->
+                <div id="view-ascii" class="ascii-container" style="display: none;"></div>
+
+                <!-- Specs View -->
+                <div id="view-specs" style="display: none; width: 100%;">
+                    <div class="specs-grid" id="specs-grid"></div>
+                </div>
+
+                <!-- Code View -->
+                <div id="view-code" style="display: none; width: 100%;">
+                    <div class="export-actions">
+                        <button class="btn-export" onclick="loadExport('godot')">Godot 4 (.tscn)</button>
+                        <button class="btn-export" onclick="loadExport('java')">Java 21 Record</button>
+                        <button class="btn-export" onclick="loadExport('janet')">Janet DSL</button>
+                    </div>
+                    <pre class="code-container" id="code-content"></pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let currentCategory = 'item';
+        let currentView = 'svg';
+        let currentData = null;
+        let catalog = null;
+
+        const ITEM_OPTIONS = [
+            { id: 'alchemist_leather_grimoire', label: 'Alchemist Leather Grimoire' },
+            { id: 'forged_damascus_dagger', label: 'Forged Damascus Dagger (Athame)' },
+            { id: 'brass_astrolabe_sextant', label: 'Brass Astrolabe Sextant' },
+            { id: 'potion_crystal_flask', label: 'Potion Crystal Phial' }
+        ];
+
+        const CHAR_OPTIONS = [
+            { id: 'bohemian_alchemist_hero', label: 'Bohemian Alchemist Hero (8-Head)' },
+            { id: 'crystal_knight_guardian', label: 'Crystal Knight Guardian (8-Head)' },
+            { id: 'druid_woodland_ranger', label: 'Druid Woodland Ranger (8-Head)' }
+        ];
+
+        const ROOM_OPTIONS = [
+            { id: 'alchemist_workshop_chamber', label: 'Alchemist Workshop Chamber' },
+            { id: 'master_forge_armory', label: 'Guildhall Master Forge Armory' },
+            { id: 'gothic_library_studio', label: 'Gothic Scriptorium & Observatory' }
+        ];
+
+        async function init() {
+            populateOptions();
+            await loadCatalog();
+            await generateAsset();
+        }
+
+        function populateOptions() {
+            const sel = document.getElementById('type-select');
+            sel.innerHTML = '';
+            let opts = [];
+            if (currentCategory === 'item') opts = ITEM_OPTIONS;
+            else if (currentCategory === 'character') opts = CHAR_OPTIONS;
+            else opts = ROOM_OPTIONS;
+
+            opts.forEach(o => {
+                const opt = document.createElement('option');
+                opt.value = o.id;
+                opt.textContent = o.label;
+                sel.appendChild(opt);
+            });
+        }
+
+        function selectCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+            if (cat === 'item') document.getElementById('tab-item').classList.add('active');
+            else if (cat === 'character') document.getElementById('tab-char').classList.add('active');
+            else document.getElementById('tab-room').classList.add('active');
+            populateOptions();
+            generateAsset();
+        }
+
+        function updateSeed(val) {
+            document.getElementById('seed-val').textContent = val;
+            document.getElementById('seed-slider').value = val;
+            document.getElementById('seed-num').value = val;
+            generateAsset();
+        }
+
+        const DEFAULT_MATERIALS = {
+            "AGED_BOHEMIAN_WALNUT": { name: "Aged Bohemian Walnut", density_g_cm3: 0.68, color_hex: "#3e2723" },
+            "FORGED_DAMASCUS_STEEL": { name: "Forged Damascus Steel", density_g_cm3: 7.85, color_hex: "#4a5568" },
+            "SADDLE_STITCHED_LEATHER": { name: "Saddle-Stitched Leather", density_g_cm3: 0.95, color_hex: "#78350f" },
+            "TARNISHED_CHAMPAGNE_BRASS": { name: "Tarnished Champagne Brass", density_g_cm3: 8.45, color_hex: "#b45309" },
+            "ALCHEMICAL_BLOWN_GLASS": { name: "Alchemical Blown Glass", density_g_cm3: 2.50, color_hex: "#0d9488" },
+            "ILLUMINATED_PARCHMENT": { name: "Illuminated Calf Parchment", density_g_cm3: 0.85, color_hex: "#fef3c7" },
+            "ROMAN_TRAVERTINE_STONE": { name: "Roman Travertine Stone", density_g_cm3: 2.71, color_hex: "#e2e8f0" }
+        };
+
+        async function loadCatalog() {
+            try {
+                const res = await fetch('/api/skeuomorphic/catalog');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'OK') {
+                        catalog = data.catalog;
+                        renderMaterialsLegend(catalog.materials);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log('Catalog API fallback to client defaults');
+            }
+            renderMaterialsLegend(DEFAULT_MATERIALS);
+        }
+
+        function renderMaterialsLegend(mats) {
+            const el = document.getElementById('materials-legend');
+            el.innerHTML = '';
+            for (const [key, m] of Object.entries(mats)) {
+                const row = document.createElement('div');
+                row.className = 'material-item';
+                row.innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        <div class="material-swatch" style="background: ${m.color_hex};"></div>
+                        <span>${m.name}</span>
+                    </div>
+                    <span style="color: var(--text-muted); font-family: var(--font-mono);">${m.density_g_cm3} g/cm³</span>
+                `;
+                el.appendChild(row);
+            }
+        }
+
+        function generateLocalFallback(category, typ, seed) {
+            const PHI = 1.61803398875;
+            if (category === 'item') {
+                if (typ === 'forged_damascus_dagger') {
+                    return {
+                        id: `item_dagger_${seed}`,
+                        type: typ,
+                        name: "Forged Damascus Dagger (Athame)",
+                        seed: seed,
+                        vital_hp: 6,
+                        material: "FORGED_DAMASCUS_STEEL",
+                        weight_kg: 0.68,
+                        dimensions_cm: [34.0, 4.8, 2.2],
+                        components: [
+                            { name: "Damascus Blade", substrate: "FORGED_DAMASCUS_STEEL", color: "#4a5568" },
+                            { name: "Champagne Brass Crossguard", substrate: "TARNISHED_CHAMPAGNE_BRASS", color: "#b45309" },
+                            { name: "Turned Walnut Grip", substrate: "AGED_BOHEMIAN_WALNUT", color: "#3e2723" },
+                            { name: "Faceted Pommel", substrate: "TARNISHED_CHAMPAGNE_BRASS", color: "#d97706" }
+                        ],
+                        functional_joinery: "Tapered Tang with Peened Brass Pommel & Mortised Crossguard",
+                        wear_patina: 0.12,
+                        svg: `<svg viewBox="0 0 600 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#475569"/><stop offset="50%" stop-color="#cbd5e1"/><stop offset="100%" stop-color="#334155"/></linearGradient>
+                                <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#b45309"/></linearGradient>
+                                <linearGradient id="walnut" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#2d150b"/><stop offset="50%" stop-color="#542e18"/><stop offset="100%" stop-color="#1f0c05"/></linearGradient>
+                                <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000" flood-opacity="0.8"/></filter>
+                            </defs>
+                            <g filter="url(#sh)">
+                                <path d="M 300 60 Q 306 180 322 330 L 278 330 Q 294 180 300 60 Z" fill="url(#blade)" stroke="#1e293b" stroke-width="2"/>
+                                <line x1="300" y1="75" x2="300" y2="325" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+                                <rect x="230" y="328" width="140" height="24" rx="6" fill="url(#brass)" stroke="#78350f" stroke-width="2"/>
+                                <rect x="282" y="352" width="36" height="110" rx="8" fill="url(#walnut)" stroke="#0f0502" stroke-width="2"/>
+                                <circle cx="300" cy="480" r="22" fill="url(#brass)" stroke="#78350f" stroke-width="2"/>
+                                <circle cx="300" cy="480" r="10" fill="#78350f"/>
+                            </g>
+                        </svg>`,
+                        ascii: "       /\\\n      /  \\\n     | || |\n     | || |\n    ========\n      |##|\n      (==)"
+                    };
+                } else if (typ === 'brass_astrolabe_sextant') {
+                    return {
+                        id: `item_astrolabe_${seed}`,
+                        type: typ,
+                        name: "Navigational Celestial Astrolabe",
+                        seed: seed,
+                        vital_hp: 6,
+                        material: "TARNISHED_CHAMPAGNE_BRASS",
+                        weight_kg: 2.30,
+                        dimensions_cm: [28.0, 28.0, 4.5],
+                        components: [
+                            { name: "Outer Mater Ring", substrate: "TARNISHED_CHAMPAGNE_BRASS", color: "#b45309" },
+                            { name: "Celestial Rete Cutouts", substrate: "TARNISHED_CHAMPAGNE_BRASS", color: "#d97706" },
+                            { name: "Rotating Alidade Sight", substrate: "FORGED_DAMASCUS_STEEL", color: "#4a5568" }
+                        ],
+                        functional_joinery: "Turned Brass Pivot Pin with Wedged Cotter Key & Suspension Shackle",
+                        wear_patina: 0.18,
+                        svg: `<svg viewBox="0 0 600 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="astbrass" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fde68a"/><stop offset="50%" stop-color="#d97706"/><stop offset="100%" stop-color="#78350f"/></linearGradient>
+                                <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000" flood-opacity="0.8"/></filter>
+                            </defs>
+                            <g filter="url(#sh)">
+                                <circle cx="300" cy="70" r="22" fill="none" stroke="url(#astbrass)" stroke-width="8"/>
+                                <circle cx="300" cy="330" r="210" fill="#1c1917" stroke="url(#astbrass)" stroke-width="20"/>
+                                <circle cx="300" cy="330" r="185" fill="none" stroke="#fde68a" stroke-width="2" stroke-dasharray="4,6"/>
+                                <circle cx="300" cy="330" r="140" fill="none" stroke="url(#astbrass)" stroke-width="4"/>
+                                <circle cx="270" cy="310" r="60" fill="none" stroke="#fde68a" stroke-width="3"/>
+                                <rect x="130" y="322" width="340" height="16" rx="4" fill="#cbd5e1" stroke="#334155" stroke-width="2" transform="rotate(-32 300 330)"/>
+                                <circle cx="300" cy="330" r="14" fill="#fde68a" stroke="#78350f" stroke-width="3"/>
+                            </g>
+                        </svg>`,
+                        ascii: "      /---\\\n    .-' + '-.\n   / (\\ | /) \\\n  | ---(+)--- |\n   \\ (/ | \\) /\n    '-. _ .-' \n       ---   "
+                    };
+                } else if (typ === 'potion_crystal_flask') {
+                    return {
+                        id: `item_flask_${seed}`,
+                        type: typ,
+                        name: "Elixir Blown Glass Phial",
+                        seed: seed,
+                        vital_hp: 6,
+                        material: "ALCHEMICAL_BLOWN_GLASS",
+                        weight_kg: 0.42,
+                        dimensions_cm: [12.0, 12.0, 22.0],
+                        components: [
+                            { name: "Fluted Glass Body", substrate: "ALCHEMICAL_BLOWN_GLASS", color: "#0d9488" },
+                            { name: "Turned Walnut Stopper", substrate: "AGED_BOHEMIAN_WALNUT", color: "#3e2723" },
+                            { name: "Saddle Leather Harness", substrate: "SADDLE_STITCHED_LEATHER", color: "#78350f" }
+                        ],
+                        functional_joinery: "Ground Glass Tapered Neck with Wax-Sealed Walnut Stopper",
+                        wear_patina: 0.08,
+                        svg: `<svg viewBox="0 0 600 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="glass" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#0f766e" stop-opacity="0.8"/><stop offset="50%" stop-color="#2dd4bf" stop-opacity="0.3"/><stop offset="100%" stop-color="#042f2e" stop-opacity="0.9"/></linearGradient>
+                                <linearGradient id="potion" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#065f46"/><stop offset="100%" stop-color="#10b981"/></linearGradient>
+                                <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000" flood-opacity="0.8"/></filter>
+                            </defs>
+                            <g filter="url(#sh)">
+                                <rect x="272" y="100" width="56" height="50" rx="4" fill="#542e18" stroke="#1f0c05" stroke-width="2"/>
+                                <rect x="265" y="150" width="70" height="24" rx="6" fill="#fbbf24" stroke="#92400e" stroke-width="2"/>
+                                <path d="M 276 174 L 276 250 Q 180 340 180 440 Q 180 520 300 520 Q 420 520 420 440 Q 420 340 324 174 Z" fill="url(#glass)" stroke="#5eead4" stroke-width="4"/>
+                                <path d="M 210 440 Q 210 500 300 500 Q 390 500 390 440 Q 390 380 300 380 Q 210 380 210 440 Z" fill="url(#potion)" opacity="0.85"/>
+                                <path d="M 230 380 L 370 380" stroke="#78350f" stroke-width="6" stroke-dasharray="8,4"/>
+                            </g>
+                        </svg>`,
+                        ascii: "     [===] (Cork)\n      | | \n     /   \\\n    | ~~~ |\n    | VIT |\n     \\___/ "
+                    };
+                } else {
+                    return {
+                        id: `item_grimoire_${seed}`,
+                        type: typ,
+                        name: "Alchemist's Bound Tome",
+                        seed: seed,
+                        vital_hp: 6,
+                        material: "SADDLE_STITCHED_LEATHER",
+                        weight_kg: 1.85,
+                        dimensions_cm: [21.0, 33.98, 5.5],
+                        components: [
+                            { name: "Heavy Leather Cover", substrate: "SADDLE_STITCHED_LEATHER", color: "#78350f" },
+                            { name: "Tooled Brass Hasp & Hinges", substrate: "TARNISHED_CHAMPAGNE_BRASS", color: "#b45309" },
+                            { name: "Gilded Calf Vellum Pages", substrate: "ILLUMINATED_PARCHMENT", color: "#fef3c7" }
+                        ],
+                        functional_joinery: "Four-Cord Linen Spine Sewing with Brass Corner Bosses & Riveted Hasp",
+                        wear_patina: 0.15,
+                        svg: `<svg viewBox="0 0 600 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="leather" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#451a03"/><stop offset="50%" stop-color="#78350f"/><stop offset="100%" stop-color="#2d150b"/></linearGradient>
+                                <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#b45309"/></linearGradient>
+                                <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000" flood-opacity="0.8"/></filter>
+                            </defs>
+                            <g filter="url(#sh)">
+                                <rect x="150" y="80" width="300" height="440" rx="14" fill="url(#leather)" stroke="#270f03" stroke-width="4"/>
+                                <rect x="170" y="100" width="260" height="400" rx="8" fill="none" stroke="#fde68a" stroke-width="2" stroke-dasharray="6,4"/>
+                                <circle cx="300" cy="300" r="70" fill="none" stroke="url(#brass)" stroke-width="3"/>
+                                <polygon points="300,240 355,335 245,335" fill="none" stroke="#fde68a" stroke-width="2"/>
+                                <polygon points="300,360 355,265 245,265" fill="none" stroke="#fde68a" stroke-width="2"/>
+                                <rect x="420" y="270" width="46" height="60" rx="6" fill="url(#brass)" stroke="#78350f" stroke-width="2"/>
+                            </g>
+                        </svg>`,
+                        ascii: "+====================+\n| .----------------. |\n| |  ~ LIBER VITAE ~ | |\n| |  /\\  PHI: 1.618  | |\n| | <()> ALCHEMY     | |\n| |  \\/  [BRASS CLASP]  |\n| '----------------' |\n+====================+"
+                    };
+                }
+            } else if (category === 'character') {
+                return {
+                    id: `char_${typ}_${seed}`,
+                    archetype: typ,
+                    name: typ === 'crystal_knight_guardian' ? "Knight Commander of the Resonant Order" : (typ === 'druid_woodland_ranger' ? "Highland Warden of Bohemian Glades" : "Alchemist Master of Prague"),
+                    seed: seed,
+                    vital_hp: 6,
+                    total_height_cm: typ === 'crystal_knight_guardian' ? 194.0 : (typ === 'druid_woodland_ranger' ? 176.0 : 182.0),
+                    head_height_cm: (typ === 'crystal_knight_guardian' ? 194.0 : (typ === 'druid_woodland_ranger' ? 176.0 : 182.0)) / 8.0,
+                    vitruvian_head_ratio: 8.0,
+                    garment_layers: [
+                        { layer: "inner", item: "Linen Chemise", substrate: "ILLUMINATED_PARCHMENT", seam_type: "French Seam" },
+                        { layer: "middle", item: "Tailored Leather Jerkin", substrate: "SADDLE_STITCHED_LEATHER", seam_type: "Saddle Stitch" },
+                        { layer: "outer", item: "Scholar Heavy Wool Robe", substrate: "AGED_BOHEMIAN_WALNUT", seam_type: "Double-Welted" },
+                        { layer: "accessory", item: "Brass Sextant Harness", substrate: "TARNISHED_CHAMPAGNE_BRASS", seam_type: "Riveted" }
+                    ],
+                    equipped_items: ["Alchemist's Bound Tome", "Forged Damascus Dagger (Athame)", "Elixir Blown Glass Phial"],
+                    svg: `<svg viewBox="0 0 600 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="robe" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1e1b4b"/><stop offset="100%" stop-color="#312e81"/></linearGradient>
+                            <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#b45309"/></linearGradient>
+                            <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000" flood-opacity="0.8"/></filter>
+                        </defs>
+                        <g filter="url(#sh)">
+                            <ellipse cx="300" cy="115" rx="32" ry="42" fill="#fed7aa" stroke="#9a3412" stroke-width="2"/>
+                            <path d="M 268 95 Q 300 70 332 95 Q 338 150 262 150 Z" fill="#451a03"/>
+                            <path d="M 260 160 L 340 160 L 370 360 L 230 360 Z" fill="url(#robe)" stroke="#1e1b4b" stroke-width="3"/>
+                            <rect x="260" y="270" width="80" height="16" rx="4" fill="#78350f" stroke="url(#brass)" stroke-width="2"/>
+                            <path d="M 230 360 L 370 360 L 390 530 L 210 530 Z" fill="#1e1b4b" stroke="#0f172a" stroke-width="3"/>
+                            <rect x="240" y="528" width="45" height="24" rx="4" fill="#78350f"/>
+                            <rect x="315" y="528" width="45" height="24" rx="4" fill="#78350f"/>
+                        </g>
+                    </svg>`,
+                    ascii: "     (o o)     [Scholar Hood]\n    /| _ |\\    [Leather Jerkin]\n   / |   | \\   [Brass Clasp]\n  *  |===|  *  [Grimoire in Pouch]\n     | | |     [Heavy Woolen Skirt]\n     |_|_|     [Saddle Boots]"
+                };
+            } else {
+                return {
+                    id: `room_${typ}_${seed}`,
+                    archetype: typ,
+                    name: typ === 'master_forge_armory' ? "Guildhall Master Weaponsmith Forge" : (typ === 'gothic_library_studio' ? "Gothic Scriptorium & Optical Observatorium" : "Old Town Alchemist Laboratory"),
+                    seed: seed,
+                    width_m: 8.0,
+                    length_m: 8.0 * PHI,
+                    height_m: 4.5,
+                    golden_ratio_adherence: 0.998,
+                    primary_material: "ROMAN_TRAVERTINE_STONE",
+                    secondary_material: "AGED_BOHEMIAN_WALNUT",
+                    architectural_features: [
+                        "Heavy Bohemian Walnut Ceiling Rafters",
+                        "Roman Travertine Ashlar Masonry Fireplace",
+                        "Leaded Stained Glass Oriel Window",
+                        "Turned Walnut Workbench & Chemical Retorts",
+                        "Hand-Blown Glass Alembics and Phials"
+                    ],
+                    furniture_props: ["Alchemist's Bound Tome", "Forged Damascus Dagger (Athame)", "Elixir Blown Glass Phial"],
+                    svg: `<svg viewBox="0 0 600 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#334155"/><stop offset="100%" stop-color="#1e293b"/></linearGradient>
+                            <linearGradient id="wood" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#2d150b"/><stop offset="100%" stop-color="#542e18"/></linearGradient>
+                            <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000" flood-opacity="0.8"/></filter>
+                        </defs>
+                        <g filter="url(#sh)">
+                            <rect x="40" y="40" width="520" height="520" fill="url(#wall)" stroke="#475569" stroke-width="4"/>
+                            <rect x="40" y="40" width="520" height="60" fill="url(#wood)" stroke="#1f0c05" stroke-width="2"/>
+                            <line x1="140" y1="40" x2="140" y2="100" stroke="#000" stroke-width="3"/>
+                            <line x1="260" y1="40" x2="260" y2="100" stroke="#000" stroke-width="3"/>
+                            <line x1="380" y1="40" x2="380" y2="100" stroke="#000" stroke-width="3"/>
+                            <line x1="500" y1="40" x2="500" y2="100" stroke="#000" stroke-width="3"/>
+                            <path d="M 230 160 Q 300 120 370 160 L 370 300 L 230 300 Z" fill="#0f766e" stroke="#2dd4bf" stroke-width="3" opacity="0.6"/>
+                            <rect x="120" y="380" width="360" height="130" rx="8" fill="url(#wood)" stroke="#0f0502" stroke-width="3"/>
+                        </g>
+                    </svg>`,
+                    ascii: "+===================================================+\n|   [=== BOHEMIAN WALNUT CEILING RAFTERS ===]       |\n|                                                   |\n|  |#####|      (Oriel Leaded Glass)     |#####|    |\n|  |#####|          .--------.           |#####|    |\n|  |HEARTH|         | [+][+] |          |HERBS|    |\n|  |FIRE |          '--------'           |RACK |    |\n|  |_____|   ========================    |_____|    |\n|            | WORKBENCH & RETORTS  |               |\n|            |  [Flask]   [Grimoire]|               |\n|~~~~~~~~~~~~'----------------------'~~~~~~~~~~~~~~~|\n+===================================================+"
+                };
+            }
+        }
+
+        async function generateAsset() {
+            const typ = document.getElementById('type-select').value;
+            const seed = parseInt(document.getElementById('seed-slider').value);
+            let url = `/api/skeuomorphic/${currentCategory}?type=${typ}&seed=${seed}`;
+
+            try {
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'OK') {
+                        currentData = data[currentCategory];
+                        renderView();
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log('Generating via client-side procedural synthesis fallback');
+            }
+            currentData = generateLocalFallback(currentCategory, typ, seed);
+            renderView();
+        }
+
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`view-${view}-btn`).classList.add('active');
+
+            document.getElementById('view-svg').style.display = view === 'svg' ? 'flex' : 'none';
+            document.getElementById('view-ascii').style.display = view === 'ascii' ? 'block' : 'none';
+            document.getElementById('view-specs').style.display = view === 'specs' ? 'block' : 'none';
+            document.getElementById('view-code').style.display = view === 'code' ? 'block' : 'none';
+
+            renderView();
+        }
+
+        function renderView() {
+            if (!currentData) return;
+
+            if (currentView === 'svg') {
+                document.getElementById('view-svg').innerHTML = currentData.svg;
+            } else if (currentView === 'ascii') {
+                document.getElementById('view-ascii').textContent = currentData.ascii;
+            } else if (currentView === 'specs') {
+                renderSpecs();
+            } else if (currentView === 'code') {
+                loadExport('godot');
+            }
+        }
+
+        function renderSpecs() {
+            const grid = document.getElementById('specs-grid');
+            grid.innerHTML = '';
+            
+            const addSpec = (title, val) => {
+                const b = document.createElement('div');
+                b.className = 'spec-box';
+                b.innerHTML = `<div class="spec-title">${title}</div><div class="spec-value">${val}</div>`;
+                grid.appendChild(b);
+            };
+
+            addSpec('Názov Artefaktu', currentData.name);
+            addSpec('Základný Invariant', `VITAL_MAX_HP = ${currentData.vital_hp}`);
+            addSpec('Deterministický Seed', currentData.seed);
+
+            if (currentCategory === 'item') {
+                addSpec('Fyzická Hmotnosť', `${currentData.weight_kg} kg`);
+                addSpec('Rozmery (Š × D × V)', `${currentData.dimensions_cm.join(' × ')} cm`);
+                addSpec('Primárny Substrát', currentData.material);
+                addSpec('Konštrukčné Spoje', currentData.functional_joinery);
+                addSpec('Komponenty', currentData.components.map(c => c.name).join(', '));
+            } else if (currentCategory === 'character') {
+                addSpec('Výška Postavy', `${currentData.total_height_cm} cm`);
+                addSpec('Vitruviánska Hlava', `${currentData.head_height_cm} cm (1/8 výšky)`);
+                addSpec('Vrstvy Oblečenia', currentData.garment_layers.map(g => `${g.layer}: ${g.item}`).join(' | '));
+                addSpec('Vybavené Predmety', currentData.equipped_items.join(', '));
+            } else {
+                addSpec('Rozmery Priestoru', `${currentData.width_m}m × ${currentData.length_m}m × ${currentData.height_m}m`);
+                addSpec('Zlatý Rez (Dĺžka/Šírka)', `${currentData.golden_ratio_adherence}`);
+                addSpec('Murivo & Rafters', `${currentData.primary_material} / ${currentData.secondary_material}`);
+                addSpec('Architektonické Prvky', currentData.architectural_features.join(', '));
+            }
+        }
+
+        async function loadExport(kind) {
+            const typ = document.getElementById('type-select').value;
+            const seed = document.getElementById('seed-slider').value;
+            const codeEl = document.getElementById('code-content');
+            codeEl.textContent = 'Generujem export...';
+            try {
+                const res = await fetch(`/api/skeuomorphic/export_${kind}?category=${currentCategory}&type=${typ}&seed=${seed}`);
+                if (res.ok) {
+                    const text = await res.text();
+                    codeEl.textContent = text;
+                    return;
+                }
+            } catch (e) {
+                console.log('Generating local export template');
+            }
+
+            if (kind === 'godot') {
+                codeEl.textContent = `[gd_scene format=3 uid="uid://krystal_skeuomorphic_${typ}"]\n\n[node name="${currentData.name}" type="Node3D"]\nmetadata/skeuomorphic = true\nmetadata/vital_max_hp = 6\nmetadata/golden_ratio = 1.61803398875\n\n[node name="PhysicalMesh" type="MeshInstance3D" parent="."]\n[node name="CollisionShape3D" type="CollisionShape3D" parent="."]\n`;
+            } else if (kind === 'java') {
+                codeEl.textContent = `package com.krystal.skeuomorphic;\n\npublic record SkeuomorphicItemRecord(\n    String id,\n    String name,\n    double weightKg,\n    int vitalMaxHp\n) {\n    public static final int VITAL_MAX_HP = 6;\n    public static final double GOLDEN_RATIO = 1.61803398875;\n}\n`;
+            } else {
+                codeEl.textContent = `(def VITAL-MAX-HP 6)\n(def GOLDEN-RATIO 1.61803398875)\n\n(def asset @{:name "${currentData.name}" :vital-hp VITAL-MAX-HP :seed ${seed}})\n`;
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

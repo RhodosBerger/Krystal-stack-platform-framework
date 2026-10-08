@@ -69,13 +69,15 @@ class MimicObject:
         name: str,
         category: str,
         description: str,
-        preferred_glyphs: str = " ░▒▓█"
+        preferred_glyphs: str = " ░▒▓█",
+        vital_max_hp: int = 6
     ):
         self.object_id = object_id
         self.name = name
         self.category = category
         self.description = description
         self.preferred_glyphs = preferred_glyphs
+        self.vital_max_hp = min(6, max(1, vital_max_hp))
         self.parts: List[MimicPart] = []
 
     def add_part(self, part: MimicPart) -> "MimicObject":
@@ -176,6 +178,7 @@ class MimicObject:
             "name": self.name,
             "category": self.category,
             "description": self.description,
+            "vital_max_hp": self.vital_max_hp,
             "parts_count": len(self.parts),
             "parts": [
                 {
@@ -372,14 +375,224 @@ def build_retro_solar_explorer() -> MimicObject:
     return obj
 
 
+# ─── Real-World Urban Aesthetic Recipes ──────────────────────────────────────
+
+def build_historic_tenement_facade() -> MimicObject:
+    """European historic 4-story residential tenement with rusticated plinth, window bays, cornices, and mansard roof."""
+    obj = MimicObject(
+        "HISTORIC_TENEMENT_FACADE",
+        "Historic European Tenement Facade",
+        "urban_architecture",
+        "Classical multi-story residential building with ground-floor ashlar plinth, rhythmic window bays, and mansard roof.",
+        preferred_glyphs=" ░▒▓█",
+        vital_max_hp=6
+    )
+    p_base = MimicPart("RusticatedPlinth", lambda p: sdf_box(p, (1.2, 0.4, 0.45)), offset=(0, -0.8, 0))
+    p_base.add_modifier(BevelModifier("PlinthBevel", radius=0.04))
+    obj.add_part(p_base)
+
+    p_shaft = MimicPart("HabitableShaft", lambda p: sdf_box(p, (1.15, 0.75, 0.4)), offset=(0, 0.4, 0))
+    obj.add_part(p_shaft)
+
+    p_windows = MimicPart("WindowRecesses", lambda p: sdf_box(p, (0.16, 0.22, 0.15)), offset=(-0.65, 0.4, 0.35), is_subtraction=True)
+    p_windows.add_modifier(ArrayModifier("WindowGridX", count=3, offset=(0.65, 0, 0)))
+    p_windows.add_modifier(ArrayModifier("WindowGridY", count=2, offset=(0, 0.45, 0)))
+    obj.add_part(p_windows)
+
+    p_cornice = MimicPart("DecorativeCornice", lambda p: sdf_box(p, (1.25, 0.08, 0.48)), offset=(0, 1.18, 0))
+    p_cornice.add_modifier(BevelModifier("CorniceBevel", radius=0.02))
+    obj.add_part(p_cornice)
+
+    p_roof = MimicPart("MansardRoof", lambda p: sdf_capped_cone(p, h=0.45, r1=1.2, r2=0.85), offset=(0, 1.65, 0))
+    p_roof.add_modifier(MirrorModifier("MirrorDormers", use_x=True))
+    obj.add_part(p_roof)
+
+    return obj
+
+
+def build_ornate_cast_iron_streetlamp() -> MimicObject:
+    """Authentic 19th-century cast-iron gas/electric street lamp with fluted column and glazed lantern."""
+    obj = MimicObject(
+        "ORNATE_CAST_IRON_STREETLAMP",
+        "Ornate Cast-Iron Street Lamp",
+        "urban_furniture",
+        "Authentic 19th-century fluted cast-iron lamp with curved scroll brackets and glazed hexagonal lantern housing.",
+        preferred_glyphs=" ░▒▓█",
+        vital_max_hp=6
+    )
+    p_base = MimicPart("HexPedestal", lambda p: sdf_hex_prism(p, h=0.25, r=0.22), offset=(0, -0.9, 0))
+    p_base.add_modifier(BevelModifier("PedestalBevel", radius=0.03))
+    obj.add_part(p_base)
+
+    p_col = MimicPart("FlutedColumn", lambda p: sdf_capped_cone(p, h=0.8, r1=0.09, r2=0.05), offset=(0, 0.0, 0))
+    obj.add_part(p_col)
+
+    p_brackets = MimicPart("ScrollBrackets", lambda p: sdf_torus(p, r1=0.22, r2=0.03), offset=(0.22, 0.75, 0))
+    p_brackets.add_modifier(MirrorModifier("MirrorBrackets", use_x=True))
+    obj.add_part(p_brackets)
+
+    p_lantern = MimicPart("LanternHousing", lambda p: sdf_hex_prism(p, h=0.28, r=0.18), offset=(0, 1.0, 0))
+    p_lantern.add_modifier(BevelModifier("LanternBevel", radius=0.02))
+    obj.add_part(p_lantern)
+
+    p_finial = MimicPart("FinialSpike", lambda p: sdf_capped_cone(p, h=0.15, r1=0.04, r2=0.005), offset=(0, 1.35, 0))
+    obj.add_part(p_finial)
+
+    return obj
+
+
+def build_town_square_clocktower() -> MimicObject:
+    """Civic Gothic/Renaissance clocktower with ashlar shaft, 4-dial clock gallery, and copper spire."""
+    obj = MimicObject(
+        "TOWN_SQUARE_CLOCKTOWER",
+        "Town Square Civic Clocktower",
+        "civic_monuments",
+        "Dominant urban clocktower with rusticated ashlar base, 4 cardinal gilded dials, belfry arcade, and copper spire.",
+        preferred_glyphs=" ░▒▓█",
+        vital_max_hp=6
+    )
+    p_base = MimicPart("AshlarBase", lambda p: sdf_box(p, (0.85, 0.6, 0.85)), offset=(0, -1.2, 0))
+    p_base.add_modifier(BevelModifier("BaseBevel", radius=0.05))
+    obj.add_part(p_base)
+
+    p_shaft = MimicPart("TowerShaft", lambda p: sdf_box(p, (0.75, 1.5, 0.75)), offset=(0, 0.6, 0))
+    p_shaft.add_modifier(BevelModifier("ShaftBevel", radius=0.03))
+    obj.add_part(p_shaft)
+
+    p_belfry = MimicPart("BelfryGallery", lambda p: sdf_box(p, (0.82, 0.45, 0.82)), offset=(0, 2.3, 0))
+    p_belfry.add_modifier(BevelModifier("BelfryBevel", radius=0.02))
+    obj.add_part(p_belfry)
+
+    p_dials = MimicPart("ClockDials", lambda p: sdf_cylinder(v_rot_x(p, 1.5708), r=0.32, h=0.04), offset=(0, 2.3, 0.83))
+    p_dials.add_modifier(ArrayModifier("RadialDials", count=4, radial=True, radial_axis="y"))
+    obj.add_part(p_dials)
+
+    p_spire = MimicPart("CopperSpire", lambda p: sdf_capped_cone(p, h=1.0, r1=0.75, r2=0.02), offset=(0, 3.4, 0))
+    obj.add_part(p_spire)
+
+    return obj
+
+
+def build_canal_stone_bridge() -> MimicObject:
+    """Arched travertine stone bridge crossing urban canals with balustrades and pedestrian roadway."""
+    obj = MimicObject(
+        "CANAL_STONE_BRIDGE",
+        "Travertine Canal Arch Bridge",
+        "civic_infrastructure",
+        "Arched stone masonry bridge spanning water canals with classical balustrade parapets and cobbled crown.",
+        preferred_glyphs=" ░▒▓█",
+        vital_max_hp=6
+    )
+    p_deck = MimicPart("BridgeDeck", lambda p: sdf_box(p, (1.8, 0.35, 0.8)), offset=(0, 0, 0))
+    p_deck.add_modifier(BevelModifier("DeckBevel", radius=0.04))
+    obj.add_part(p_deck)
+
+    p_arch = MimicPart("WaterArchVault", lambda p: sdf_cylinder(v_rot_x(p, 1.5708), r=0.75, h=0.85), offset=(0, -0.4, 0), is_subtraction=True)
+    obj.add_part(p_arch)
+
+    p_balustrade = MimicPart("BalustradeParapet", lambda p: sdf_box(p, (1.85, 0.22, 0.08)), offset=(0, 0.45, 0.72))
+    p_balustrade.add_modifier(MirrorModifier("MirrorBalustrade", use_z=True))
+    obj.add_part(p_balustrade)
+
+    p_piers = MimicPart("BankAbutments", lambda p: sdf_box(p, (0.4, 0.6, 0.85)), offset=(1.8, -0.2, 0))
+    p_piers.add_modifier(MirrorModifier("MirrorAbutments", use_x=True))
+    obj.add_part(p_piers)
+
+    return obj
+
+
+def build_urban_linden_tree() -> MimicObject:
+    """Deciduous urban avenue tree with natural tapered trunk and displacement-sculpted foliage canopy."""
+    obj = MimicObject(
+        "URBAN_LINDEN_TREE",
+        "Urban European Linden Tree",
+        "biophilic_infill",
+        "Cultivated urban street tree with textured bark, spreading branch collar, and organic foliage canopy.",
+        preferred_glyphs=" ░▒▓█",
+        vital_max_hp=6
+    )
+    p_trunk = MimicPart("TrunkBase", lambda p: sdf_capped_cone(p, h=0.75, r1=0.15, r2=0.08), offset=(0, -0.5, 0))
+    p_trunk.add_modifier(DeformModifier("TrunkTaper", deform_type="TAPER", factor=0.12))
+    obj.add_part(p_trunk)
+
+    p_crown = MimicPart("CanopyVolume", lambda p: sdf_sphere(p, r=0.78), offset=(0, 0.65, 0))
+    p_crown.add_modifier(DisplaceModifier("FoliageLeaves", strength=0.14, frequency=3.2))
+    obj.add_part(p_crown)
+
+    p_skirt = MimicPart("LowerCanopyTier", lambda p: sdf_sphere(p, r=0.58), offset=(0, 0.25, 0))
+    p_skirt.add_modifier(DisplaceModifier("SkirtDisplace", strength=0.1, frequency=4.0))
+    obj.add_part(p_skirt)
+
+    return obj
+
+
+def build_bronze_civic_monument() -> MimicObject:
+    """Historical town square monument with stepped granite plinth and patinated bronze sculpture silhouette."""
+    obj = MimicObject(
+        "BRONZE_CIVIC_MONUMENT",
+        "Town Square Bronze Monument",
+        "civic_monuments",
+        "Stepped Bohemian granite plinth supporting a heroic bronze equestrian/civic statue silhouette.",
+        preferred_glyphs=" ░▒▓█",
+        vital_max_hp=6
+    )
+    p_plinth = MimicPart("SteppedPlinth", lambda p: sdf_box(p, (0.85, 0.12, 0.7)), offset=(0, -0.7, 0))
+    p_plinth.add_modifier(ArrayModifier("PlinthSteps", count=3, offset=(0, -0.15, 0)))
+    obj.add_part(p_plinth)
+
+    p_die = MimicPart("SculptedPedestal", lambda p: sdf_box(p, (0.55, 0.45, 0.42)), offset=(0, -0.2, 0))
+    p_die.add_modifier(BevelModifier("PedestalBevel", radius=0.04))
+    obj.add_part(p_die)
+
+    p_statue = MimicPart("BronzeEquestrianStatue", lambda p: sdf_round_box(p, (0.32, 0.42, 0.38), r=0.08), offset=(0, 0.55, 0))
+    p_statue.add_modifier(DeformModifier("StatueDynamicPose", deform_type="TAPER", factor=0.15))
+    obj.add_part(p_statue)
+
+    return obj
+
+
+def build_street_cafe_kiosk() -> MimicObject:
+    """Classic octagonal street café kiosk with striped canvas awning, cast iron posts, and brass serving counter."""
+    obj = MimicObject(
+        "STREET_CAFE_KIOSK",
+        "Street Café Pavilion Kiosk",
+        "urban_furniture",
+        "Octagonal European street kiosk with striped canvas canopy, wrought-iron frame, and serving bar.",
+        preferred_glyphs=" ░▒▓█",
+        vital_max_hp=6
+    )
+    p_body = MimicPart("KioskBody", lambda p: sdf_hex_prism(p, h=0.55, r=0.55), offset=(0, -0.3, 0))
+    p_body.add_modifier(BevelModifier("BodyBevel", radius=0.03))
+    obj.add_part(p_body)
+
+    p_canopy = MimicPart("CanvasAwning", lambda p: sdf_capped_cone(p, h=0.25, r1=0.82, r2=0.45), offset=(0, 0.42, 0))
+    p_canopy.add_modifier(SolidifyModifier("CanopyThickness", thickness=0.03))
+    obj.add_part(p_canopy)
+
+    p_counter = MimicPart("ServiceCounter", lambda p: sdf_box(p, (0.42, 0.05, 0.18)), offset=(0, -0.05, 0.58))
+    p_counter.add_modifier(ArrayModifier("RadialCounters", count=3, radial=True, radial_axis="y"))
+    obj.add_part(p_counter)
+
+    return obj
+
+
 # Catalog of pre-assembled recipes
 RECIPES_CATALOG: Dict[str, Callable[[], MimicObject]] = {
+    # Sci-Fi / Tactical Archetypes
     "CYBER_TURRET_MK4": build_cyber_turret_mk4,
     "MECH_WALKER_TITAN": build_mech_walker_titan,
     "ANCIENT_OBELISK_MONOLITH": build_ancient_obelisk_monolith,
     "BIOMECHANICAL_XENODRONE": build_biomechanical_xenodrone,
     "CYBERPUNK_DATA_SPIRE": build_cyberpunk_data_spire,
-    "RETRO_SOLAR_EXPLORER": build_retro_solar_explorer
+    "RETRO_SOLAR_EXPLORER": build_retro_solar_explorer,
+    # Real-World Urban Aesthetic Elements
+    "HISTORIC_TENEMENT_FACADE": build_historic_tenement_facade,
+    "ORNATE_CAST_IRON_STREETLAMP": build_ornate_cast_iron_streetlamp,
+    "TOWN_SQUARE_CLOCKTOWER": build_town_square_clocktower,
+    "CANAL_STONE_BRIDGE": build_canal_stone_bridge,
+    "URBAN_LINDEN_TREE": build_urban_linden_tree,
+    "BRONZE_CIVIC_MONUMENT": build_bronze_civic_monument,
+    "STREET_CAFE_KIOSK": build_street_cafe_kiosk
 }
 
 def get_recipe(recipe_id: str) -> Optional[MimicObject]:

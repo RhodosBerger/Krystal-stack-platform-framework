@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRYSTAL // City Composition & Multi-Asset Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #09090b;
+            --bg-panel: rgba(18, 18, 24, 0.88);
+            --bg-card: rgba(24, 24, 32, 0.75);
+            --border-dim: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(244, 114, 182, 0.35);
+            --pink-panther: #f472b6;
+            --deep-magenta: #db2777;
+            --cyber-cyan: #06b6d4;
+            --amber-gold: #f59e0b;
+            --emerald-green: #22c55e;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --font-ui: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(219, 39, 119, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.10) 0%, transparent 45%),
+                linear-gradient(to bottom, #09090b, #0c0a10);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 18px 32px;
+            background: rgba(10, 10, 14, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-dim);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, var(--deep-magenta), var(--cyber-cyan));
+            color: white;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
+            letter-spacing: 1.5px;
+            font-family: var(--font-mono);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #ffffff, #fbcfe8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: var(--emerald-green);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--emerald-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--emerald-green);
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+            padding: 24px 32px;
+            flex: 1;
+        }
+
+        .sidebar-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-box {
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-dim);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .panel-box h3 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--pink-panther);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .control-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input[type="number"], select, input[type="text"] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            color: white;
+            padding: 10px 12px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--pink-panther);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--deep-magenta), #be185d);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(219, 39, 119, 0.35);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(219, 39, 119, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-dim);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-mono);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--border-highlight);
+        }
+
+        .btn-export-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dim);
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .metric-val {
+            font-size: 18px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            color: var(--cyber-cyan);
+            margin-top: 4px;
+        }
+
+        .metric-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .canvas-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .view-tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-dim);
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: rgba(244, 114, 182, 0.15);
+            color: var(--pink-panther);
+            border: 1px solid var(--border-highlight);
+        }
+
+        .ascii-frame {
+            background: #000000;
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.25;
+            color: #d4d4d8;
+            white-space: pre;
+            overflow-x: auto;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        .ascii-frame::before {
+            content: "KRYSTAL NEURAL ASCII RASTERIZER // GPU BUFFER";
+            position: absolute;
+            top: 6px;
+            right: 12px;
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .map-interactive-container {
+            width: 100%;
+            height: 480px;
+            background: #050508;
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #cityCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .tooltip-card {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            background: rgba(18, 18, 24, 0.95);
+            border: 1px solid var(--pink-panther);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-brand">
+            <span class="brand-badge">KRYSTAL-STACK</span>
+            <div>
+                <h1 class="header-title">City Composition & Multi-Asset Studio</h1>
+                <p class="header-subtitle">„Mesto ako Kreslená Kompozícia Assetov“ // Golden Ratio &amp; 7-Layer Depth</p>
+            </div>
+        </div>
+        <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>VITAL_MAX_HP = 6 (VERIFIED)</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="sidebar-controls">
+            <div class="panel-box">
+                <h3>Parametre Kompozície <span>φ = 1.618</span></h3>
+                
+                <div class="control-group">
+                    <label>Deterministický Seed</label>
+                    <input type="number" id="inputSeed" value="42" min="1" max="9999999">
+                </div>
+
+                <div class="control-group">
+                    <label>Architektonický Bióm</label>
+                    <select id="selectBiome">
+                        <option value="bohemian_cyber_noir">Bohemian Cyber Noir</option>
+                        <option value="downtown_cyber_spires">Downtown Cyber Spires</option>
+                        <option value="historic_gothic_quarter">Historic Gothic Quarter</option>
+                        <option value="industrial_docks_canal">Industrial Docks &amp; Canal</option>
+                        <option value="residential_terraces">Residential Garden Terraces</option>
+                        <option value="biophilic_central_park">Biophilic Central Park</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Režim Rozvrhnutia</label>
+                    <select id="selectMode">
+                        <option value="single_240">Jednotlivé Plátno (240m × 240m)</option>
+                        <option value="metro_3x3">Metropola 3×3 Sektory (720m × 720m)</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" id="btnSynthesize">
+                    <span>✦</span> Vygenerovať Kompozíciu
+                </button>
+            </div>
+
+            <div class="panel-box">
+                <h3>Telemetria Kompozície</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-sub">Celkovo Assetov</div>
+                        <div class="metric-val" id="valTotalAssets">52</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-sub">Zlatý Rez Adherencia</div>
+                        <div class="metric-val" id="valGoldenScore" style="color: var(--pink-panther);">100%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-sub">Fokálny Bod (X, Z)</div>
+                        <div class="metric-val" id="valFocalPoint">28.3m, -15m</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-sub">Kinetické Vozidlá</div>
+                        <div class="metric-val" id="valCruisers">5 (HP=6)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-box">
+                <h3>Multi-Substrate Export</h3>
+                <div class="btn-export-group">
+                    <button class="btn-secondary" id="btnExportGodot">📦 Godot 4 .tscn</button>
+                    <button class="btn-secondary" id="btnExportJava">☕ Java 21</button>
+                    <button class="btn-secondary" id="btnExportJanet">λ Janet DSL</button>
+                    <button class="btn-secondary" id="btnRandomSeed">🎲 Náhodný Seed</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div class="view-tabs">
+                <button class="tab-btn active" data-tab="skyline">Panoráma (Side Skyline)</button>
+                <button class="tab-btn" data-tab="plan">Urbanistický Pôdorys (Plan View)</button>
+                <button class="tab-btn" data-tab="interactive">2D Interaktívna Mapa</button>
+            </div>
+
+            <div id="viewSkyline" class="view-content">
+                <div class="ascii-frame" id="asciiSkylineContent">Generujem kompozíciu...</div>
+            </div>
+
+            <div id="viewPlan" class="view-content" style="display: none;">
+                <div class="ascii-frame" id="asciiPlanContent">Generujem pôdorys...</div>
+            </div>
+
+            <div id="viewInteractive" class="view-content" style="display: none;">
+                <div class="map-interactive-container">
+                    <canvas id="cityCanvas"></canvas>
+                    <div class="tooltip-card" id="tooltipCard">Pohybujte myšou po mape pre inšpekciu assetov...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentComposition = null;
+
+        async function fetchComposition() {
+            const seed = document.getElementById("inputSeed").value;
+            const biome = document.getElementById("selectBiome").value;
+            const mode = document.getElementById("selectMode").value;
+
+            try {
+                if (mode === "metro_3x3") {
+                    const res = await fetch(`/api/city/metropolis?seed=${seed}&cols=3&rows=3`);
+                    const data = await res.json();
+                    if (data.status === "OK") {
+                        const metro = data.metropolis;
+                        document.getElementById("valTotalAssets").innerText = metro.total_assets;
+                        document.getElementById("valGoldenScore").innerText = (metro.golden_score * 100).toFixed(1) + "%";
+                        document.getElementById("valFocalPoint").innerText = "3x3 Grid";
+                        document.getElementById("valCruisers").innerText = `${metro.traffic_agents_count} (HP=6)`;
+                        document.getElementById("asciiPlanContent").innerText = metro.ascii_map;
+                        document.getElementById("asciiSkylineContent").innerText = 
+                            "Metropolis 3x3 Tactical Map zobrazená v záložke 'Urbanistický Pôdorys'.";
+                    }
+                } else {
+                    const res = await fetch(`/api/city/compose?seed=${seed}&biome=${biome}&width=240&depth=240`);
+                    const data = await res.json();
+                    if (data.status === "OK") {
+                        currentComposition = data.composition;
+                        document.getElementById("valTotalAssets").innerText = currentComposition.total_assets;
+                        document.getElementById("valGoldenScore").innerText = (currentComposition.golden_ratio_score * 100).toFixed(1) + "%";
+                        document.getElementById("valFocalPoint").innerText = `${currentComposition.focal_point_x}m, ${currentComposition.focal_point_z}m`;
+                        document.getElementById("valCruisers").innerText = "5 (HP=6)";
+
+                        document.getElementById("asciiSkylineContent").innerText = currentComposition.ascii_skyline;
+                        document.getElementById("asciiPlanContent").innerText = currentComposition.ascii_plan;
+
+                        draw2DCanvas();
+                    }
+                }
+            } catch (err) {
+                console.error("Fetch error:", err);
+            }
+        }
+
+        // Tab Switching
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                const tab = btn.dataset.tab;
+                document.getElementById("viewSkyline").style.display = tab === "skyline" ? "block" : "none";
+                document.getElementById("viewPlan").style.display = tab === "plan" ? "block" : "none";
+                document.getElementById("viewInteractive").style.display = tab === "interactive" ? "block" : "none";
+                if (tab === "interactive") {
+                    draw2DCanvas();
+                }
+            });
+        });
+
+        // 2D Canvas Visualization
+        function draw2DCanvas() {
+            const canvas = document.getElementById("cityCanvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            const w = canvas.parentElement.clientWidth;
+            const h = canvas.parentElement.clientHeight;
+            canvas.width = w;
+            canvas.height = h;
+
+            // Background
+            ctx.fillStyle = "#09090d";
+            ctx.fillRect(0, 0, w, h);
+
+            // Coordinate grid
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+            ctx.lineWidth = 1;
+            for (let x = 0; x < w; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+            }
+            for (let y = 0; y < h; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            // Central Grand Boulevard
+            const cx = w / 2;
+            const cy = h / 2;
+            ctx.fillStyle = "#1e1e24";
+            ctx.fillRect(cx - 24, 0, 48, h);
+            ctx.fillRect(0, cy - 16, w, 32);
+
+            // Canal Basin
+            ctx.fillStyle = "rgba(2, 132, 199, 0.4)";
+            ctx.fillRect(cx + 40, cy - 90, 32, 180);
+
+            // Focal point glow
+            const grad = ctx.createRadialGradient(cx + 60, cy - 30, 5, cx + 60, cy - 30, 80);
+            grad.addColorStop(0, "rgba(6, 182, 212, 0.5)");
+            grad.addColorStop(1, "transparent");
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx + 60, cy - 30, 80, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Focal Spire Marker
+            ctx.fillStyle = "#06b6d4";
+            ctx.beginPath();
+            ctx.arc(cx + 60, cy - 30, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Clocktower Counterweight
+            ctx.fillStyle = "#f59e0b";
+            ctx.beginPath();
+            ctx.arc(cx - 70, cy - 60, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Central Fountain
+            ctx.fillStyle = "#38bdf8";
+            ctx.beginPath();
+            ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Cruisers
+            ctx.fillStyle = "#f472b6";
+            ctx.fillRect(cx - 10, cy + 40, 6, 14);
+            ctx.fillRect(cx + 6, cy - 80, 6, 14);
+        }
+
+        // Event Handlers
+        document.getElementById("btnSynthesize").addEventListener("click", fetchComposition);
+        document.getElementById("btnRandomSeed").addEventListener("click", () => {
+            document.getElementById("inputSeed").value = Math.floor(Math.random() * 90000) + 100;
+            fetchComposition();
+        });
+
+        document.getElementById("btnExportGodot").addEventListener("click", () => {
+            const seed = document.getElementById("inputSeed").value;
+            const isMetro = document.getElementById("selectMode").value === "metro_3x3" ? "1" : "0";
+            window.open(`/api/city/export_godot?seed=${seed}&metro=${isMetro}`, '_blank');
+        });
+
+        document.getElementById("btnExportJava").addEventListener("click", () => {
+            const seed = document.getElementById("inputSeed").value;
+            window.open(`/api/city/export_java?seed=${seed}`, '_blank');
+        });
+
+        document.getElementById("btnExportJanet").addEventListener("click", () => {
+            const seed = document.getElementById("inputSeed").value;
+            window.open(`/api/city/export_janet?seed=${seed}`, '_blank');
+        });
+
+        // Initialize on load
+        window.addEventListener("DOMContentLoaded", fetchComposition);
+    </script>
+</body>
+</html>
