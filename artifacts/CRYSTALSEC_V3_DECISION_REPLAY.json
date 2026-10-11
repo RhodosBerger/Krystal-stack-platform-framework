@@ -1,0 +1,287 @@
+{
+  "package_id": "CRYSTALSEC-V3-CANONICAL-REPLAY-001",
+  "timestamp": 1791748800.0,
+  "state_dict": {
+    "health_vector_H": {
+      "value": 0.88,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "dH_dt": {
+      "value": -0.02,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "junction_temperature_c": {
+      "value": 68.5,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "memory_contention": {
+      "value": 0.42,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "queue_pressure": {
+      "value": 0.35,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "gpu_frame_time_ms": {
+      "value": 0.52,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "gpu_kernel_time_ms": {
+      "value": 0.38,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "gpu_readback_time_ms": {
+      "value": 0.0,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "D_divergence": {
+      "value": 0.18,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 0.95,
+      "validity": true
+    },
+    "oracle_confidence": {
+      "value": 0.95,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "oracle_RCA": {
+      "value": "NUMERICAL_DRIFT",
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "gpu_recovery_state": {
+      "value": "NOMINAL",
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "fault_active": {
+      "value": false,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "telemetry_sampling_rate_hz": {
+      "value": 25.0,
+      "timestamp": 1791748800.0,
+      "source": "VERIFIED_ORACLE",
+      "confidence": 1.0,
+      "validity": true
+    },
+    "vital_max_hp": 6
+  },
+  "decision_dict": {
+    "decision_id": "DEC-CS3-1791748800-0001",
+    "timestamp": 1791748800.0,
+    "input_state_hash": "2f25ca7e4b9a76146fff0ee5b114620bccd29cc4e8c149cc03c0f6ba9e8c0dab",
+    "sigma_strain": 0.4167,
+    "strain_regime": "ELEVATED",
+    "reachable_mechanisms": [
+      "HYPERVIGILANCE",
+      "RATIONALIZATION"
+    ],
+    "candidate_actions": [
+      {
+        "action_id": "ACT-NOMINAL-DISPATCH",
+        "action_type": "NOMINAL_GPU_DISPATCH",
+        "mechanism": "SUBLIMATION",
+        "base_weight": 1.0,
+        "stress_weight": 1.0,
+        "estimated_cost_us": 350.0,
+        "safety_criticality": 0.2,
+        "epistemic_uncertainty": 0.1,
+        "controlled_variable": "compute_backend",
+        "proposed_value": "VULKAN_GPU",
+        "expected_effect": "Sustain GPU resident compute graph",
+        "rollback_action": "ACT-FAILOVER-CPU",
+        "allowed": true,
+        "blocked_reason": null,
+        "wspt_ratio": 0.002857
+      },
+      {
+        "action_id": "ACT-BURST-TELEMETRY",
+        "action_type": "TELEMETRY_BURST_TRIGGER",
+        "mechanism": "HYPERVIGILANCE",
+        "base_weight": 1.5,
+        "stress_weight": 2.4983,
+        "estimated_cost_us": 120.0,
+        "safety_criticality": 0.8,
+        "epistemic_uncertainty": 0.25,
+        "controlled_variable": "telemetry_sampling_rate_hz",
+        "proposed_value": 50.0,
+        "expected_effect": "Increase telemetry frequency to observe rapid dynamics",
+        "rollback_action": "ACT-RESTORE-TELEMETRY-RATE",
+        "allowed": true,
+        "blocked_reason": null,
+        "wspt_ratio": 0.020819
+      },
+      {
+        "action_id": "ACT-SPECULATIVE-DEPTH-TUNE",
+        "action_type": "SPECULATIVE_DEPTH_TUNING",
+        "mechanism": "RATIONALIZATION",
+        "base_weight": 0.8,
+        "stress_weight": 1.1697,
+        "estimated_cost_us": 80.0,
+        "safety_criticality": 0.6,
+        "epistemic_uncertainty": 0.15,
+        "controlled_variable": "speculative_depth",
+        "proposed_value": 16,
+        "expected_effect": "Reduce raymarching step budget from 32 to 16",
+        "rollback_action": "ACT-RESTORE-DEPTH-32",
+        "allowed": true,
+        "blocked_reason": null,
+        "wspt_ratio": 0.014621
+      }
+    ],
+    "wspt_ranking": [
+      {
+        "action_id": "ACT-BURST-TELEMETRY",
+        "action_type": "TELEMETRY_BURST_TRIGGER",
+        "mechanism": "HYPERVIGILANCE",
+        "base_weight": 1.5,
+        "stress_weight": 2.4983,
+        "estimated_cost_us": 120.0,
+        "safety_criticality": 0.8,
+        "epistemic_uncertainty": 0.25,
+        "controlled_variable": "telemetry_sampling_rate_hz",
+        "proposed_value": 50.0,
+        "expected_effect": "Increase telemetry frequency to observe rapid dynamics",
+        "rollback_action": "ACT-RESTORE-TELEMETRY-RATE",
+        "allowed": true,
+        "blocked_reason": null,
+        "wspt_ratio": 0.020819
+      },
+      {
+        "action_id": "ACT-SPECULATIVE-DEPTH-TUNE",
+        "action_type": "SPECULATIVE_DEPTH_TUNING",
+        "mechanism": "RATIONALIZATION",
+        "base_weight": 0.8,
+        "stress_weight": 1.1697,
+        "estimated_cost_us": 80.0,
+        "safety_criticality": 0.6,
+        "epistemic_uncertainty": 0.15,
+        "controlled_variable": "speculative_depth",
+        "proposed_value": 16,
+        "expected_effect": "Reduce raymarching step budget from 32 to 16",
+        "rollback_action": "ACT-RESTORE-DEPTH-32",
+        "allowed": true,
+        "blocked_reason": null,
+        "wspt_ratio": 0.014621
+      },
+      {
+        "action_id": "ACT-NOMINAL-DISPATCH",
+        "action_type": "NOMINAL_GPU_DISPATCH",
+        "mechanism": "SUBLIMATION",
+        "base_weight": 1.0,
+        "stress_weight": 1.0,
+        "estimated_cost_us": 350.0,
+        "safety_criticality": 0.2,
+        "epistemic_uncertainty": 0.1,
+        "controlled_variable": "compute_backend",
+        "proposed_value": "VULKAN_GPU",
+        "expected_effect": "Sustain GPU resident compute graph",
+        "rollback_action": "ACT-FAILOVER-CPU",
+        "allowed": true,
+        "blocked_reason": null,
+        "wspt_ratio": 0.002857
+      }
+    ],
+    "counterfactual_results": [
+      {
+        "action_id": "ACT-BURST-TELEMETRY",
+        "predicted_sigma": 0.4167,
+        "predicted_temperature_c": 68.5,
+        "predicted_divergence": 0.18,
+        "predicted_latency_ms": 0.55,
+        "predicted_queue_pressure": 0.35,
+        "perturbed_sigma": 0.5,
+        "perturbed_temp_c": 73.5,
+        "perturbed_safe": true,
+        "robust_safety_margin": 21.5
+      },
+      {
+        "action_id": "ACT-SPECULATIVE-DEPTH-TUNE",
+        "predicted_sigma": 0.3167,
+        "predicted_temperature_c": 66.5,
+        "predicted_divergence": 0.18,
+        "predicted_latency_ms": 0.36,
+        "predicted_queue_pressure": 0.35,
+        "perturbed_sigma": 0.38,
+        "perturbed_temp_c": 71.5,
+        "perturbed_safe": true,
+        "robust_safety_margin": 23.5
+      },
+      {
+        "action_id": "ACT-NOMINAL-DISPATCH",
+        "predicted_sigma": 0.4167,
+        "predicted_temperature_c": 68.5,
+        "predicted_divergence": 0.18,
+        "predicted_latency_ms": 0.52,
+        "predicted_queue_pressure": 0.35,
+        "perturbed_sigma": 0.5,
+        "perturbed_temp_c": 73.5,
+        "perturbed_safe": true,
+        "robust_safety_margin": 21.5
+      }
+    ],
+    "selected_action": {
+      "action_id": "ACT-SPECULATIVE-DEPTH-TUNE",
+      "action_type": "SPECULATIVE_DEPTH_TUNING",
+      "mechanism": "RATIONALIZATION",
+      "base_weight": 0.8,
+      "stress_weight": 1.1697,
+      "estimated_cost_us": 80.0,
+      "safety_criticality": 0.6,
+      "epistemic_uncertainty": 0.15,
+      "controlled_variable": "speculative_depth",
+      "proposed_value": 16,
+      "expected_effect": "Reduce raymarching step budget from 32 to 16",
+      "rollback_action": "ACT-RESTORE-DEPTH-32",
+      "allowed": true,
+      "blocked_reason": null,
+      "wspt_ratio": 0.014621
+    },
+    "invariant_gate_result": {
+      "approved": true,
+      "tier": 1,
+      "robust_score": -0.2954
+    },
+    "confidence": 0.95,
+    "evidence_level": "SIMULATION_VERIFIED",
+    "veto_reason": null,
+    "vital_max_hp": 6
+  },
+  "software_version": "CrystalSec-3.0.0-Phase3"
+}
