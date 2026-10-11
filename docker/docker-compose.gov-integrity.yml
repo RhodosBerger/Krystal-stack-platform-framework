@@ -1,0 +1,112 @@
+version: '3.8'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# KRYSTAL-STACK GOVERNMENT-GRADE RESOURCE INTEGRITY & ISOLATION COMPOSE
+# Normative Specification for Public Procurement, ISO 13849 & NIST 800-53
+# ─────────────────────────────────────────────────────────────────────────────
+
+networks:
+  gov-integrity-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+services:
+  # ───────────────────────────────────────────────────────────────────────────
+  # 1. NODE.JS ORCHESTRATOR & LIFECYCLE DISPATCHER
+  # ───────────────────────────────────────────────────────────────────────────
+  gov-orchestrator:
+    image: node:20-alpine
+    container_name: gov_orchestrator
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - ../logs/gov_audit:/var/log/krystal_audit
+    command: ["node", "krystal_kernel/gov_orchestrator.js"]
+    ports:
+      - "8090:8090"
+    environment:
+      - NODE_ENV=production
+      - KRYSTAL_AUDIT_LOG_DIR=/var/log/krystal_audit
+      - KRYSTAL_WORKER_URL=http://gov-worker:8089
+      - QUEUE_MAX_DEPTH_SLA=200
+      - P95_LATENCY_BUDGET_MS=25
+      - P99_LATENCY_BUDGET_MS=50
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - gov-integrity-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8090/health/vector"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # 2. HARDENED WORKER WITH STRICT CGROUPS V2 ALLOCATION & CPU PINNING
+  # ───────────────────────────────────────────────────────────────────────────
+  gov-worker:
+    image: python:3.11-slim
+    container_name: gov_worker
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - ../logs/gov_audit:/var/log/krystal_audit
+    command: ["python3", "-u", "-m", "krystal_kernel.resource_integrity_engine"]
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CGROUP_V2_AUDIT_STRICT=1
+      - ZERO_SILENT_THROTTLING=1
+      - VITAL_MAX_HP=6
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1024M
+        reservations:
+          cpus: '2.0'
+          memory: 1024M
+    # Strict isolation guards
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - gov-integrity-net
+    depends_on:
+      - gov-orchestrator
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import sys; from krystal_kernel.resource_integrity_engine import GLOBAL_RESOURCE_INTEGRITY_GOVERNOR; sys.exit(0 if GLOBAL_RESOURCE_INTEGRITY_GOVERNOR.ledger.verify_integrity() else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 2
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # 3. FAULT INJECTION LAB (CHAOS & RECOVERY CONTROLLER)
+  # ───────────────────────────────────────────────────────────────────────────
+  gov-fault-lab:
+    image: python:3.11-slim
+    container_name: gov_fault_lab
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["python3", "-u", "-c", "import time; print('[FAULT_LAB] Active. Ready for controlled chaos experiments.'); time.sleep(86400)"]
+    environment:
+      - CHAOS_TARGET=gov_worker
+      - BLAST_RADIUS_LIMIT=WORKER_PROCESSING_CORE
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - gov-integrity-net
+    depends_on:
+      - gov-worker

@@ -712,6 +712,9 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "posledni_kmen_visual_studio.html", "text/html")
             return
+        elif norm_path in ("/cloud-backoffice", "/backoffice", "/cloud_backoffice_studio.html", "/evidence"):
+            self.serve_file(STATIC_DIR / "cloud_backoffice_studio.html", "text/html")
+            return
         elif norm_path in ("/builder", "/studio-3d", "/godot_builder_extension.html", "/godot-builder"):
             self.serve_file(STATIC_DIR / "godot_builder_extension.html", "text/html")
             return
@@ -2198,6 +2201,77 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             else:
                 self.send_json({"status": "ERROR", "message": "Schema file not found."})
 
+        # ── API: Cloud Back-Office, Validation Chains & Evidence ────
+        elif norm_path in ("/api/backoffice/dashboard", "/api/backoffice/status"):
+            from krystal_web_hub.cloud_backoffice_service import GLOBAL_CLOUD_BACKOFFICE_SERVICE
+            self.send_json(GLOBAL_CLOUD_BACKOFFICE_SERVICE.get_dashboard_summary())
+            return
+
+        elif norm_path == "/api/backoffice/validation-chains":
+            from krystal_web_hub.cloud_backoffice_service import GLOBAL_CLOUD_BACKOFFICE_SERVICE
+            q = parse_qs(parsed.query)
+            status_filter = q.get("status", [None])[0]
+            self.send_json({"status": "OK", "chains": GLOBAL_CLOUD_BACKOFFICE_SERVICE.list_validation_chains(status_filter)})
+            return
+
+        elif norm_path == "/api/backoffice/ledger":
+            from krystal_web_hub.cloud_backoffice_service import GLOBAL_CLOUD_BACKOFFICE_SERVICE
+            self.send_json(GLOBAL_CLOUD_BACKOFFICE_SERVICE.get_ledger_blocks())
+            return
+
+        elif norm_path == "/api/backoffice/resource-contracts":
+            from krystal_web_hub.cloud_backoffice_service import GLOBAL_CLOUD_BACKOFFICE_SERVICE
+            self.send_json(GLOBAL_CLOUD_BACKOFFICE_SERVICE.get_resource_contracts_summary())
+            return
+
+        elif norm_path == "/api/backoffice/export-compliance-report":
+            from krystal_web_hub.cloud_backoffice_service import GLOBAL_CLOUD_BACKOFFICE_SERVICE
+            q = parse_qs(parsed.query)
+            fmt = q.get("format", ["json"])[0]
+            rep = GLOBAL_CLOUD_BACKOFFICE_SERVICE.export_compliance_report(format_type=fmt)
+            if fmt == "markdown":
+                self.send_text(rep.get("markdown_content", ""), content_type="text/markdown; charset=utf-8")
+            else:
+                self.send_json(rep)
+            return
+
+        # ── API: Epistemic Research Architecture ────────────────────
+        elif norm_path == "/api/research/ontology":
+            from krystal_kernel.ontology_compiler import build_default_krystal_kernel_ontology
+            compiler = build_default_krystal_kernel_ontology()
+            self.send_json(compiler.compile())
+            return
+
+        elif norm_path == "/api/research/pareto-configurations":
+            from krystal_kernel.mathematical_composition_engine import GLOBAL_COMPOSITION_ENGINE
+            candidates = GLOBAL_COMPOSITION_ENGINE.search_pareto_configurations()
+            self.send_json({"status": "OK", "pareto_candidates": [c.to_dict() for c in candidates]})
+            return
+
+        elif norm_path == "/api/research/digital-mirror":
+            from krystal_kernel.digital_mirror_synchronizer import GLOBAL_DIGITAL_MIRROR
+            self.send_json({
+                "status": "OK",
+                "is_frozen": GLOBAL_DIGITAL_MIRROR.is_auto_optimization_frozen,
+                "freeze_reason": GLOBAL_DIGITAL_MIRROR.freeze_reason,
+                "desired_graph": GLOBAL_DIGITAL_MIRROR.g_desired.to_dict(),
+                "observed_graph": GLOBAL_DIGITAL_MIRROR.g_observed.to_dict(),
+                "drift_events_count": len(GLOBAL_DIGITAL_MIRROR.drift_history)
+            })
+            return
+
+        # ── API: CrystalSec 2.0 Adaptive Telemetry ──────────────────
+        elif norm_path == "/api/crystalsec/telemetry/resolution":
+            from krystal_kernel.adaptive_telemetry_resolution import GLOBAL_ADAPTIVE_TELEMETRY
+            self.send_json({
+                "status": "OK",
+                "mode": GLOBAL_ADAPTIVE_TELEMETRY.current_mode.value,
+                "sampling_rate_hz": GLOBAL_ADAPTIVE_TELEMETRY.current_sampling_rate_hz,
+                "theta_threshold": GLOBAL_ADAPTIVE_TELEMETRY.theta_threshold,
+                "transients_count": len(GLOBAL_ADAPTIVE_TELEMETRY.transient_history)
+            })
+            return
+
         # ── API: Poslední Kmen Tactical Arena Catalog & Match State ───
         elif norm_path in ("/api/game/archetypes_catalog", "/api/game/catalog", "/api/duel/catalog"):
             from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
@@ -2692,6 +2766,54 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             thrash = float(data.get("thrashing_index", rep.thrashing_index))
             res = GLOBAL_VISUAL_COPILOT_GENERATOR.generate_all_targets(cs_rate=cs, cpu_pct=cpu, thrashing_idx=thrash)
             self.send_json({"status": "OK", "result": res})
+            return
+
+        # ── API: Cloud Back-Office Validation Chain Runner ─────────
+        elif self.path in ("/api/backoffice/validate", "/api/backoffice/run-chain"):
+            from krystal_web_hub.cloud_backoffice_service import GLOBAL_CLOUD_BACKOFFICE_SERVICE
+            cert_dict = GLOBAL_CLOUD_BACKOFFICE_SERVICE.run_live_validation(data)
+            self.send_json(cert_dict)
+            return
+
+        # ── API: Epistemic Experiment Planner ──────────────────────
+        elif self.path in ("/api/research/plan-experiment", "/api/research/experiment/design"):
+            from krystal_kernel.experiment_planner import GLOBAL_EXPERIMENT_PLANNER
+            from krystal_kernel.resource_integrity_engine import CompetingHypothesis
+            anomaly_desc = str(data.get("anomaly", "Phase variance and thermal lag"))
+            hypos = [
+                CompetingHypothesis(h.get("code", f"H{i}"), h.get("name", "Hypothesis"), h.get("signature", {}), h.get("falsification", ""))
+                for i, h in enumerate(data.get("hypotheses", []))
+            ]
+            proposal = GLOBAL_EXPERIMENT_PLANNER.design_minimum_discriminating_experiment(
+                anomaly_description=anomaly_desc,
+                hypotheses=hypos,
+                current_telemetry=data.get("telemetry", {})
+            )
+            self.send_json({"status": "OK", "proposal": proposal.to_dict()})
+            return
+
+        # ── API: CrystalSec 2.0 LLM Execution Plane & Copilot ───────
+        elif self.path in ("/api/crystalsec/execution-plane/trace", "/api/crystalsec/trace"):
+            from krystal_kernel.crystalsec_llm_execution_plane import GLOBAL_LLM_EXECUTION_PLANE, ControlledVariables
+            prompt_str = str(data.get("prompt", "M03 S12000 G01 X100.0 Y50.0 F1200"))
+            action_str = str(data.get("action", "CNC_DISPATCH"))
+            cv_data = data.get("controlled_vars", {})
+            cv = ControlledVariables(
+                threads=int(cv_data.get("threads", 4)),
+                streams=int(cv_data.get("streams", 2)),
+                batch_size=int(cv_data.get("batch_size", 1))
+            )
+            trace = GLOBAL_LLM_EXECUTION_PLANE.execute_and_trace_command(prompt=prompt_str, target_action=action_str, controlled_vars=cv)
+            self.send_json({"status": "OK", "trace": trace.to_dict()})
+            return
+
+        elif self.path in ("/api/crystalsec/copilot/reason", "/api/crystalsec/copilot/analyze"):
+            from krystal_kernel.llm_research_copilot import GLOBAL_RESEARCH_COPILOT
+            metric = str(data.get("metric", "tail_latency_ms"))
+            delta = float(data.get("delta_pct", 31.0))
+            telem = data.get("telemetry", {})
+            res = GLOBAL_RESEARCH_COPILOT.analyze_divergence_and_propose_experiment(anomaly_metric=metric, delta_pct=delta, current_telemetry=telem)
+            self.send_json({"status": "OK", "analysis": res.to_dict()})
             return
 
         # ── API: Keras Dual-Domain Tensor Inference ──────────────────

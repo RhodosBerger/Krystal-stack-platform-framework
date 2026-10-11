@@ -1,0 +1,55 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# KRYSTAL LINUX REFERENCE CONTAINER IMAGE (ARCH LINUX BASED)
+# Normative Specification for Government-Grade Real-Time Determinism & Isolation
+# Profiles: GOV_DETERMINISTIC_RT | EDGE_FLEET_HEADLESS | STUDIO_WORKSTATION_HYBRID
+# ─────────────────────────────────────────────────────────────────────────────
+
+FROM archlinux:latest AS krystal-arch-base
+
+# 1. Initialize Pacman & Install Hardened System Stack
+RUN pacman-key --init && \
+    pacman -Syu --noconfirm && \
+    pacman -S --noconfirm \
+        base-devel \
+        python \
+        python-pip \
+        nodejs \
+        npm \
+        iproute2 \
+        procps-ng \
+        util-linux \
+        libcap \
+        ca-certificates && \
+    pacman -Scc --noconfirm
+
+# 2. Setup Dedicated Real-Time & Security Group/User
+RUN groupadd -g 1001 krystal && \
+    useradd -u 1001 -g krystal -m -s /bin/bash krystal
+
+# 3. Configure Real-Time Limits for cgroups & PREEMPT_RT
+RUN mkdir -p /etc/security/limits.d /etc/systemd/system /run/krystal /var/log/krystal_audit && \
+    echo "@krystal soft rtprio 99" >> /etc/security/limits.d/99-krystal-rt.conf && \
+    echo "@krystal hard rtprio 99" >> /etc/security/limits.d/99-krystal-rt.conf && \
+    echo "@krystal soft memlock unlimited" >> /etc/security/limits.d/99-krystal-rt.conf && \
+    echo "@krystal hard memlock unlimited" >> /etc/security/limits.d/99-krystal-rt.conf && \
+    chown -R krystal:krystal /run/krystal /var/log/krystal_audit
+
+# 4. Copy Application Framework & Install Runtime Dependencies
+WORKDIR /opt/krystal-stack
+COPY . /opt/krystal-stack/
+
+RUN chown -R krystal:krystal /opt/krystal-stack
+
+# 5. Environment Variables & Profile Selection
+ENV PYTHONUNBUFFERED=1 \
+    NODE_ENV=production \
+    KRYSTAL_LINUX_PROFILE=GOV_DETERMINISTIC_RT \
+    KRYSTAL_AUDIT_LOG_DIR=/var/log/krystal_audit
+
+USER krystal
+
+# Expose API Dispatcher (8090) and Prometheus Telemetry (9100)
+EXPOSE 8090 9100
+
+# Default entrypoint: Run unified Arch Linux API Dispatcher & Node.js Orchestrator
+CMD ["python3", "-u", "-c", "import sys; from krystal_kernel.arch_linux_dispatcher import GLOBAL_ARCH_LINUX_DISPATCHER; print('[KRYSTAL_ARCH_LINUX] Dispatcher active with profile:', GLOBAL_ARCH_LINUX_DISPATCHER.active_profile_type.value); import time; time.sleep(86400)"]

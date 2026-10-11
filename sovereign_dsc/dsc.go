@@ -322,7 +322,7 @@ func ResolveEngineState(state *EngineState, instruction EngineInstruction) (*Eng
 		}
 
 		effectiveV := instruction.AppliedVoltage + vMod
-		if effectiveV < 0.0 {
+		if math.IsNaN(effectiveV) || math.IsInf(effectiveV, 0) || effectiveV < 0.0 {
 			effectiveV = 0.0
 		}
 

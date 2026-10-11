@@ -274,8 +274,16 @@ class SovereignHTIBBridge:
 
         # 4. Ohm's Law Physical Calculation (I = V / R_eff)
         elif instr_type == "APPLY_OHM_VOLTAGE":
-            target_id = instruction["target_id"]
-            applied_v = float(instruction.get("applied_voltage", 0.0))
+            target_id = instruction.get("target_id", "")
+            raw_v = instruction.get("applied_voltage", 0.0)
+            try:
+                val = float(raw_v)
+                if math.isnan(val) or math.isinf(val):
+                    applied_v = 0.0
+                else:
+                    applied_v = max(0.0, val)
+            except (ValueError, TypeError):
+                applied_v = 0.0
 
             target = self.entities.get(target_id)
             if not target:
