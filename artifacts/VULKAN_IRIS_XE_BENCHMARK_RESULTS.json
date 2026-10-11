@@ -1,0 +1,131 @@
+{
+  "cpu_baseline_96x40": {
+    "mean_ms": 46.995,
+    "median_ms": 47.299,
+    "stdev_ms": 5.672,
+    "p95_ms": 56.724,
+    "p99_ms": 58.759,
+    "cv": 0.1207,
+    "fps": 21.28
+  },
+  "gpu_96x40": {
+    "total_frame": {
+      "mean_ms": 2.309,
+      "median_ms": 2.1,
+      "stdev_ms": 0.66,
+      "p95_ms": 3.627,
+      "p99_ms": 4.46,
+      "cv": 0.286,
+      "fps": 433.13
+    },
+    "kernel_wait": {
+      "mean_ms": 0.321,
+      "median_ms": 0.3,
+      "stdev_ms": 0.06,
+      "p95_ms": 0.433,
+      "p99_ms": 0.468,
+      "cv": 0.1866,
+      "fps": 3120.12
+    },
+    "host_readback": {
+      "mean_ms": 1.814,
+      "median_ms": 1.567,
+      "stdev_ms": 0.639,
+      "p95_ms": 3.067,
+      "p99_ms": 3.928,
+      "cv": 0.3521,
+      "fps": 551.34
+    },
+    "speedup_vs_cpu": 20.35
+  },
+  "gpu_160x90": {
+    "total_frame": {
+      "mean_ms": 14.747,
+      "median_ms": 9.921,
+      "stdev_ms": 11.001,
+      "p95_ms": 36.983,
+      "p99_ms": 46.585,
+      "cv": 0.7459,
+      "fps": 67.81
+    },
+    "kernel_wait": {
+      "mean_ms": 3.543,
+      "median_ms": 0.431,
+      "stdev_ms": 6.107,
+      "p95_ms": 17.044,
+      "p99_ms": 21.872,
+      "cv": 1.7233,
+      "fps": 282.21
+    },
+    "host_readback": {
+      "mean_ms": 10.411,
+      "median_ms": 8.831,
+      "stdev_ms": 6.711,
+      "p95_ms": 18.788,
+      "p99_ms": 34.804,
+      "cv": 0.6446,
+      "fps": 96.05
+    },
+    "speedup_vs_cpu": null
+  },
+  "gpu_320x180": {
+    "total_frame": {
+      "mean_ms": 28.697,
+      "median_ms": 27.325,
+      "stdev_ms": 3.349,
+      "p95_ms": 34.482,
+      "p99_ms": 37.474,
+      "cv": 0.1167,
+      "fps": 34.85
+    },
+    "kernel_wait": {
+      "mean_ms": 0.545,
+      "median_ms": 0.491,
+      "stdev_ms": 0.249,
+      "p95_ms": 1.011,
+      "p99_ms": 1.437,
+      "cv": 0.4558,
+      "fps": 1833.85
+    },
+    "host_readback": {
+      "mean_ms": 27.24,
+      "median_ms": 26.262,
+      "stdev_ms": 3.238,
+      "p95_ms": 33.014,
+      "p99_ms": 36.129,
+      "cv": 0.1189,
+      "fps": 36.71
+    },
+    "speedup_vs_cpu": null
+  },
+  "correctness": {
+    "status": "VERIFIED",
+    "resolution": [
+      96,
+      40
+    ],
+    "total_pixels": 3840,
+    "glyph_matches": 3840,
+    "color_matches": 3840,
+    "metrics": {
+      "glyph_match_ratio": 1.0,
+      "pixel_match_ratio": 1.0,
+      "mean_absolute_error": 0.0,
+      "max_error": 0,
+      "output_hash": "7b7108d84da50e6b88f458bcfc668265069715f8ffdb9f1d34713190dcdddbd5"
+    },
+    "timings": {
+      "prep_time_ms": 1.699,
+      "submit_time_ms": 0.036,
+      "wait_time_ms": 0.385,
+      "readback_time_ms": 1.69,
+      "frame_time_ms": 3.81
+    }
+  },
+  "observer_effect": {
+    "with_telemetry_ms": 2.19,
+    "no_telemetry_ms": 2.208,
+    "overhead_ms": -0.018,
+    "overhead_pct": -0.82
+  }
+}

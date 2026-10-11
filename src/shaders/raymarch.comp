@@ -1,0 +1,103 @@
+#version 450
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+layout(std430, binding = 0) buffer GlyphOutput {
+    uint out_glyphs[];
+};
+
+layout(std430, binding = 1) buffer RgbOutput {
+    uint out_colors[];
+};
+
+layout(std140, binding = 2) uniform UniformParameters {
+    vec4 cam_pos;            // xyz: pos, w: unused
+    vec4 cam_orientation;    // xyzw
+    uint res_width;          // offset 32
+    uint res_height;         // offset 36
+    uint speculative_depth;  // offset 40
+    uint mirror_folds;       // offset 44
+    float time;              // offset 48
+    float entropy_threshold; // offset 52
+    float pad0;              // offset 56
+    float pad1;              // offset 60
+} ubo;
+
+void main() {
+    uint x = gl_GlobalInvocationID.x;
+    uint y = gl_GlobalInvocationID.y;
+    if (x >= ubo.res_width || y >= ubo.res_height) {
+        return;
+    }
+    uint idx = y * ubo.res_width + x;
+
+    float aspect = (float(ubo.res_width) / float(ubo.res_height)) * 0.52;
+    vec3 light_dir = vec3(0.577, 0.577, -0.577);
+
+    float screen_x = ((float(x) / float(ubo.res_width)) * 2.0 - 1.0) * aspect;
+    float screen_y = (1.0 - (float(y) / float(ubo.res_height)) * 2.0);
+
+    float rd_len = sqrt(screen_x * screen_x + screen_y * screen_y + 4.0);
+    vec3 rd = vec3(screen_x / rd_len, screen_y / rd_len, 2.0 / rd_len);
+
+    float r1 = 1.05 + 0.1 * sin(ubo.time * 1.5);
+    float r2 = 0.38;
+    float core_r = 0.55 + 0.12 * sin(ubo.time * 3.5);
+
+    vec3 p = ubo.cam_pos.xyz;
+    float dist = 0.0;
+    bool hit = false;
+    uint max_steps = min(ubo.speculative_depth, 24u);
+
+    for (uint i = 0u; i < max_steps; ++i) {
+        vec3 p_step = ubo.cam_pos.xyz + rd * dist;
+
+        float theta = ubo.time * 1.2;
+        float c = cos(theta);
+        float s = sin(theta);
+        vec3 r_p = vec3(p_step.x * c + p_step.z * s, p_step.y, -p_step.x * s + p_step.z * c);
+
+        float qx = sqrt(r_p.x * r_p.x + r_p.z * r_p.z) - r1;
+        float qy = r_p.y;
+        float d_torus = sqrt(qx * qx + qy * qy) - r2;
+
+        float d_core = length(p_step) - core_r;
+
+        float k = 0.3;
+        float h = clamp(k - abs(d_torus - d_core), 0.0, k) / k;
+        float d = min(d_torus, d_core) - h * h * k * 0.25;
+
+        if (d < 0.005) {
+            hit = true;
+            p = p_step;
+            break;
+        }
+        dist += d;
+        if (dist > 7.0) {
+            break;
+        }
+    }
+
+    if (hit) {
+        float eps = 0.003;
+        float nx = (sqrt((p.x + eps)*(p.x + eps) + p.z*p.z) - r1) - (sqrt(p.x*p.x + p.z*p.z) - r1);
+        float ny = p.y;
+        float nz = (sqrt(p.x*p.x + (p.z + eps)*(p.z + eps)) - r1) - (sqrt(p.x*p.x + p.z*p.z) - r1);
+        float mag = sqrt(nx * nx + ny * ny + nz * nz);
+        vec3 norm = (mag > 1e-5) ? vec3(nx / mag, ny / mag, nz / mag) : vec3(0.0, 1.0, 0.0);
+
+        float diff = max(0.0, dot(norm, light_dir));
+        float rim = 1.0 - max(0.0, -dot(norm, rd));
+        float luma = clamp(diff * 0.75 + rim * 0.5, 0.0, 1.0);
+
+        uint glyph_idx = uint(clamp(int(luma * 4.0), 0, 4));
+        out_glyphs[idx] = glyph_idx;
+
+        uint r = uint(255.0 * luma);
+        uint g = uint(40.0 + 160.0 * rim);
+        uint b = uint(120.0 + 130.0 * diff);
+        out_colors[idx] = (r << 16) | (g << 8) | b;
+    } else {
+        out_glyphs[idx] = 0u;
+        out_colors[idx] = 0x0A0F19u;
+    }
+}
