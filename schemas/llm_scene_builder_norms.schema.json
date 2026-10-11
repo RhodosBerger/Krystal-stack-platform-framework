@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KrystalLLMSceneBuilderNorms",
+  "description": "Standardized schema and normative specification for LLM-driven procedural scene generation, Keras anomaly inspection, and 8,000+ object scene construction on Intel 11th Gen+ Iris Xe UMA platforms.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scene_id",
+    "context",
+    "preset_id",
+    "object_budget",
+    "generator_metadata",
+    "spatial_envelope",
+    "instances",
+    "vital_invariants"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0-NORMATIVE"
+    },
+    "scene_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_-]+$"
+    },
+    "context": {
+      "type": "string",
+      "enum": [
+        "TACTICAL_ARENA",
+        "OPENWORLD_BIOME",
+        "URBAN_CITADEL",
+        "SKEUOMORPHIC_DUNGEON"
+      ]
+    },
+    "preset_id": {
+      "type": "string",
+      "enum": [
+        "PRESET_TACTICAL_ARENA_8K",
+        "PRESET_OPENWORLD_BIOME_8K",
+        "PRESET_URBAN_METROPOLIS_8K",
+        "PRESET_SKEUOMORPHIC_DUNGEON_8K"
+      ]
+    },
+    "object_budget": {
+      "type": "object",
+      "required": ["target_instances", "min_instances", "max_instances"],
+      "properties": {
+        "target_instances": { "type": "integer", "minimum": 8000 },
+        "min_instances": { "type": "integer", "minimum": 1000 },
+        "max_instances": { "type": "integer", "maximum": 65536 }
+      }
+    },
+    "generator_metadata": {
+      "type": "object",
+      "required": ["author_llm", "seed", "timestamp_ns", "generation_latency_ms"],
+      "properties": {
+        "author_llm": { "type": "string" },
+        "prompt_tokens": { "type": "integer" },
+        "seed": { "type": "integer" },
+        "timestamp_ns": { "type": "integer" },
+        "generation_latency_ms": { "type": "number" }
+      }
+    },
+    "spatial_envelope": {
+      "type": "object",
+      "required": ["bounds_min", "bounds_max", "max_density_per_m2", "cell_partition_size_m"],
+      "properties": {
+        "bounds_min": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+        "bounds_max": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+        "max_density_per_m2": { "type": "number" },
+        "cell_partition_size_m": { "type": "number" }
+      }
+    },
+    "instances": {
+      "type": "array",
+      "description": "Spatial instances forming the scene hierarchy.",
+      "items": {
+        "type": "object",
+        "required": ["id", "archetype", "position", "rotation_euler", "scale", "material_pbr"],
+        "properties": {
+          "id": { "type": "string" },
+          "archetype": { "type": "string" },
+          "position": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+          "rotation_euler": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+          "scale": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+          "bounding_radius": { "type": "number" },
+          "material_pbr": {
+            "type": "object",
+            "properties": {
+              "albedo": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 4 },
+              "metallic": { "type": "number", "minimum": 0, "maximum": 1 },
+              "roughness": { "type": "number", "minimum": 0, "maximum": 1 },
+              "emission_energy": { "type": "number", "minimum": 0 }
+            }
+          }
+        }
+      }
+    },
+    "vital_invariants": {
+      "type": "object",
+      "required": ["vital_max_hp", "z_fighting_prevention_epsilon_m", "canary_guard_active", "intel_iris_xe_uma_aligned"],
+      "properties": {
+        "vital_max_hp": { "type": "integer", "const": 6 },
+        "z_fighting_prevention_epsilon_m": { "type": "number", "minimum": 0.005 },
+        "canary_guard_active": { "type": "boolean", "const": true },
+        "intel_iris_xe_uma_aligned": { "type": "boolean", "const": true }
+      }
+    }
+  }
+}

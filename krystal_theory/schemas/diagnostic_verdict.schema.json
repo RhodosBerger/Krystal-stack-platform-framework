@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "diagnostic_verdict.schema.json",
+  "title": "Diagnostický verdikt",
+  "description": "Výsledok jedného vyhodnotenia hypotézy. Schéma vynucuje: (1) slovenský stav zodpovedá stavu rail enginu, (2) MEASURED verdikt má stroj/dátum/počet behov, (3) MODELED (syntetický) verdikt smie hodnotiť len silu diagnostiky ('diagnostic_power'), nikdy samotný systém ani prístroj. Pozri 05_telemetria_ako_diagnostika.md §5.4, §5.6.",
+  "type": "object",
+  "required": ["hypothesis", "status", "engine_status", "provenance", "scope", "date", "statistics"],
+  "additionalProperties": false,
+  "properties": {
+    "hypothesis": {"type": "string", "pattern": "^H-[A-Z]+[0-9]+$"},
+    "rail": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$"},
+    "rail_output": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}\\.[a-z][a-z0-9_]{0,31}$"},
+    "status": {"enum": ["NEZAMIETNUTÉ", "ZAMIETNUTÉ", "NEROZHODNUTÉ"]},
+    "engine_status": {"enum": ["NOT_REJECTED", "REJECTED", "INCONCLUSIVE"]},
+    "provenance": {"enum": ["MEASURED", "MODELED"]},
+    "scope": {"enum": ["system", "instrument", "diagnostic_power"], "description": "diagnostic_power = beh na syntetických dátach so známou pravdou; ukazuje, či test vie zamietnuť, nie či hypotéza platí."},
+    "date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "measured_on": {"$ref": "telemetry_signal.schema.json#/$defs/measured_on"},
+    "statistics": {
+      "type": "object",
+      "additionalProperties": {"type": ["number", "string", "boolean", "null"]}
+    },
+    "expected_status": {"enum": ["NEZAMIETNUTÉ", "ZAMIETNUTÉ"], "description": "Len pre diagnostic_power: čo by mal test vrátiť pri známej pravde."},
+    "notes": {"type": "string"}
+  },
+  "allOf": [
+    {
+      "anyOf": [
+        {"properties": {"status": {"const": "NEZAMIETNUTÉ"}, "engine_status": {"const": "NOT_REJECTED"}}},
+        {"properties": {"status": {"const": "ZAMIETNUTÉ"}, "engine_status": {"const": "REJECTED"}}},
+        {"properties": {"status": {"const": "NEROZHODNUTÉ"}, "engine_status": {"const": "INCONCLUSIVE"}}}
+      ]
+    },
+    {
+      "anyOf": [
+        {"properties": {"provenance": {"const": "MEASURED"}}, "required": ["measured_on"]},
+        {"properties": {"provenance": {"const": "MODELED"}, "scope": {"const": "diagnostic_power"}}, "required": ["expected_status"]}
+      ]
+    }
+  ]
+}

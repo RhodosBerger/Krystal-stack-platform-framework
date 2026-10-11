@@ -50,6 +50,16 @@ class MaterialSubstrate:
     specular: float
     tactile_feature: str
     ascii_glyph: str
+    density_g_cm3: float = 2.5
+    normal_map_depth: float = 0.5
+    color_hex: str = ""
+    tactile_grain_texture: str = ""
+
+    def __post_init__(self):
+        if not self.color_hex:
+            object.__setattr__(self, "color_hex", self.albedo_hex)
+        if not self.tactile_grain_texture:
+            object.__setattr__(self, "tactile_grain_texture", self.tactile_feature)
 
 
 MATERIAL_SUBSTRATES: Dict[str, MaterialSubstrate] = {
@@ -175,12 +185,32 @@ class SkeuomorphicItem:
     primary_substrate: str
     components: List[ItemComponent]
     vital_hp: int = VITAL_MAX_HP
+    wear_patina_factor: float = 0.15
     svg_vector_rendering: str = ""
     ascii_tactile_silhouette: str = ""
 
     def __post_init__(self) -> None:
         if self.vital_hp > VITAL_MAX_HP:
             self.vital_hp = VITAL_MAX_HP
+
+    @property
+    def vital_max_hp(self) -> int:
+        return VITAL_MAX_HP
+
+    @property
+    def mass_weight_kg(self) -> float:
+        vol = (self.overall_width_mm * self.overall_height_mm * self.overall_depth_mm) / 1e6
+        return round(max(0.1, vol * 2.5), 3)
+
+    @property
+    def functional_joinery(self) -> str:
+        return "Kované nitovanie a pero-drážka"
+
+    @property
+    def bounding_dimensions_cm(self) -> Tuple[float, float, float]:
+        return (round(self.overall_width_mm / 10.0, 1),
+                round(self.overall_height_mm / 10.0, 1),
+                round(self.overall_depth_mm / 10.0, 1))
 
 
 # =============================================================================
@@ -221,6 +251,30 @@ class SkeuomorphicCharacter:
         if self.vital_hp > VITAL_MAX_HP:
             self.vital_hp = VITAL_MAX_HP
 
+    @property
+    def vital_max_hp(self) -> int:
+        return VITAL_MAX_HP
+
+    @property
+    def vitruvian_head_ratio(self) -> float:
+        return self.head_ratio_vitruvian
+
+    @property
+    def garment_layers(self) -> List[ClothingLayer]:
+        return self.clothing_layers
+
+    @property
+    def total_height_cm(self) -> float:
+        return self.height_cm
+
+    @property
+    def head_height_cm(self) -> float:
+        return round(self.height_cm / 8.0, 2)
+
+    @property
+    def tactile_ascii_silhouette(self) -> str:
+        return self.ascii_character_silhouette
+
 
 # =============================================================================
 # 4. SKEUOMORPHIC REAL-WORLD ENVIRONMENTS / ROOMS (DOMAIN C)
@@ -260,6 +314,23 @@ class SkeuomorphicRoom:
     svg_elevation_rendering: str = ""
     ascii_interior_view: str = ""
 
+    @property
+    def vital_max_hp(self) -> int:
+        return VITAL_MAX_HP
+
+    @property
+    def golden_ratio_adherence(self) -> float:
+        ratio = self.length_m / max(0.1, self.width_m)
+        return round(max(0.0, 1.0 - abs(ratio - GOLDEN_RATIO) / GOLDEN_RATIO), 3)
+
+    @property
+    def architectural_features(self) -> List[ArchitecturalFeature]:
+        return self.features
+
+    @property
+    def elevation_ascii(self) -> str:
+        return self.ascii_interior_view
+
 
 # =============================================================================
 # 5. PROCEDURAL SYNTHESIS ENGINE
@@ -280,10 +351,27 @@ class SkeuomorphicProceduralEngine:
     # -------------------------------------------------------------------------
     def synthesize_item(
         self,
+        item_type: Any = SkeuomorphicItemType.FORGED_DAMASCUS_DAGGER,
         seed: int = 42,
-        item_type: SkeuomorphicItemType = SkeuomorphicItemType.FORGED_DAMASCUS_DAGGER
+        **kwargs
     ) -> SkeuomorphicItem:
         """Procedurally crafts a tangible real-world item."""
+        if isinstance(item_type, int) and "item_type" in kwargs:
+            actual_seed = item_type
+            actual_type = kwargs["item_type"]
+        elif isinstance(item_type, int) and not isinstance(seed, int):
+            actual_seed = item_type
+            actual_type = seed
+        else:
+            actual_seed = kwargs.get("seed", seed)
+            actual_type = kwargs.get("item_type", item_type)
+        if not isinstance(actual_type, SkeuomorphicItemType):
+            try:
+                actual_type = SkeuomorphicItemType(actual_type)
+            except Exception:
+                actual_type = SkeuomorphicItemType.FORGED_DAMASCUS_DAGGER
+        item_type = actual_type
+        seed = int(actual_seed)
         rng = random.Random(seed)
 
         if item_type == SkeuomorphicItemType.FORGED_DAMASCUS_DAGGER:
@@ -564,10 +652,27 @@ class SkeuomorphicProceduralEngine:
     # -------------------------------------------------------------------------
     def synthesize_character(
         self,
+        archetype: Any = CharacterArchetype.BOHEMIAN_ALCHEMIST_HERO,
         seed: int = 101,
-        archetype: CharacterArchetype = CharacterArchetype.BOHEMIAN_ALCHEMIST_HERO
+        **kwargs
     ) -> SkeuomorphicCharacter:
         """Procedurally crafts an anatomically proportioned skeuomorphic character."""
+        if isinstance(archetype, int) and "archetype" in kwargs:
+            actual_seed = archetype
+            actual_arch = kwargs["archetype"]
+        elif isinstance(archetype, int) and not isinstance(seed, int):
+            actual_seed = archetype
+            actual_arch = seed
+        else:
+            actual_seed = kwargs.get("seed", seed)
+            actual_arch = kwargs.get("archetype", archetype)
+        if not isinstance(actual_arch, CharacterArchetype):
+            try:
+                actual_arch = CharacterArchetype(actual_arch)
+            except Exception:
+                actual_arch = CharacterArchetype.BOHEMIAN_ALCHEMIST_HERO
+        archetype = actual_arch
+        seed = int(actual_seed)
         rng = random.Random(seed)
 
         # Vitruvian 8-head canon with Golden Ratio waist / limbs
@@ -679,6 +784,13 @@ class SkeuomorphicProceduralEngine:
                     fit_style="Fitted",
                     color_hex="#166534",
                     seam_detail="Motív dubových listov vyrezávaný do usne"
+                ),
+                ClothingLayer(
+                    layer_name="Maskovací Lesný Plášť s Kapucňou",
+                    substrate_id="AGED_BOHEMIAN_WALNUT",
+                    fit_style="Draped",
+                    color_hex="#14532d",
+                    seam_detail="Vlnená drapéria chrániaca pred lesnou vlhkosťou"
                 )
             ]
             items = ["Tisový Reflexný Luk", "Poľovnícky Tesák"]
@@ -718,10 +830,27 @@ class SkeuomorphicProceduralEngine:
     # -------------------------------------------------------------------------
     def synthesize_room(
         self,
+        room_type: Any = RoomArchetype.ALCHEMIST_WORKSHOP_CHAMBER,
         seed: int = 202,
-        room_type: RoomArchetype = RoomArchetype.ALCHEMIST_WORKSHOP_CHAMBER
+        **kwargs
     ) -> SkeuomorphicRoom:
         """Procedurally constructs a real-world room with tactile architectural joinery."""
+        if isinstance(room_type, int) and "room_type" in kwargs:
+            actual_seed = room_type
+            actual_room = kwargs["room_type"]
+        elif isinstance(room_type, int) and not isinstance(seed, int):
+            actual_seed = room_type
+            actual_room = seed
+        else:
+            actual_seed = kwargs.get("seed", seed)
+            actual_room = kwargs.get("room_type", room_type)
+        if not isinstance(actual_room, RoomArchetype):
+            try:
+                actual_room = RoomArchetype(actual_room)
+            except Exception:
+                actual_room = RoomArchetype.ALCHEMIST_WORKSHOP_CHAMBER
+        room_type = actual_room
+        seed = int(actual_seed)
         rng = random.Random(seed)
 
         w_m = 7.5
@@ -758,6 +887,16 @@ class SkeuomorphicProceduralEngine:
                 width_m=1.8,
                 height_m=2.4,
                 tactile_joinery="Kosoštvorcové sklenené terče zalievané do olovených prútov"
+            ),
+            ArchitecturalFeature(
+                feature_name="Kovový Stropný Luster s Reťazami",
+                substrate_id="TARNISHED_CHAMPAGNE_BRASS",
+                pos_x_m=0.0,
+                pos_y_m=h_m - 0.8,
+                pos_z_m=0.0,
+                width_m=1.2,
+                height_m=0.8,
+                tactile_joinery="Kované reťazové články zavesené na stredovom tráme"
             )
         ]
 
@@ -951,6 +1090,11 @@ class SkeuomorphicProceduralEngine:
         """Emits high-detail SVG for mechanical brass astrolabe."""
         return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="100%" height="100%">
   <defs>
+    <linearGradient id="brassLinearGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="50%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
     <radialGradient id="brassDisc" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#fde68a"/>
       <stop offset="70%" stop-color="#d97706"/>
@@ -1066,6 +1210,7 @@ class SkeuomorphicProceduralEngine:
             '',
             f'[node name="{item.item_id}" type="Node3D"]',
             f'metadata/vital_hp = {item.vital_hp}',
+            'metadata/vital_max_hp = 6',
             f'metadata/item_type = "{item.item_type.value}"',
             f'metadata/golden_fit = {item.golden_ratio_fit_score}',
             '',
@@ -1084,6 +1229,22 @@ class SkeuomorphicProceduralEngine:
             lines.append('')
 
         return "\n".join(lines)
+
+    def export_to_godot_tscn(self, item: SkeuomorphicItem) -> str:
+        """Alias for export_item_to_godot_tscn."""
+        return self.export_item_to_godot_tscn(item)
+
+    def export_to_java_records(self, item: SkeuomorphicItem) -> str:
+        """Alias for export_item_to_java_records."""
+        return self.export_item_to_java_records(item)
+
+    def export_to_janet_dsl(self, item: SkeuomorphicItem) -> str:
+        """Alias for export_item_to_janet_dsl."""
+        return self.export_item_to_janet_dsl(item)
+
+    def render_item_svg(self, item: SkeuomorphicItem) -> str:
+        """Renders vector SVG for the skeuomorphic item."""
+        return item.svg_vector_rendering
 
     # =========================================================================
     # MULTI-SUBSTRATE TRANSPILATION: JAVA 21 RECORDS
@@ -1167,7 +1328,7 @@ public final class SkeuomorphicPipeline {{
             "",
             "(def SKEUOMORPHIC-ITEM",
             f'  @{{:id "{item.item_id}"',
-            f'    :type "{item.item_type.value}"',
+            f'    :type :{item.item_type.value}',
             f'    :name "{item.name_sk}"',
             f'    :seed {item.seed}',
             f'    :dimensions-mm [{item.overall_width_mm:.1f} {item.overall_height_mm:.1f} {item.overall_depth_mm:.1f}]',

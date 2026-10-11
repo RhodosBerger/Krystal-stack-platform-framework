@@ -39,7 +39,8 @@ QUADRATIC_DOMAIN_REGISTRY: Dict[str, Dict[str, Any]] = {
     "market_price_credits": {"a": 120.0, "b": 30.0, "c": 10.0, "v_min": 10.0, "v_max": 160.0},
     "vital_hp": {"a": -3.5, "b": -1.5, "c": 6.0, "v_min": 0.0, "v_max": 6.0},
     "terrain_altitude_m": {"a": 1200.0, "b": 600.0, "c": 50.0, "v_min": 50.0, "v_max": 1850.0},
-    "system_entropy_s": {"a": 0.45, "b": 0.55, "c": 0.02, "v_min": 0.02, "v_max": 1.02}
+    "system_entropy_s": {"a": 0.45, "b": 0.55, "c": 0.02, "v_min": 0.02, "v_max": 1.02},
+    "cnc_tip_temperature_c": {"a": -0.001, "b": 2.9, "c": 400.0, "v_min": 20.0, "v_max": 950.0}
 }
 
 def evaluate_quadratic_transduction(domain_id: str, x: float) -> float:
@@ -61,20 +62,33 @@ def evaluate_quadratic_transduction(domain_id: str, x: float) -> float:
 
     return round(bounded, 4)
 
-def solve_quadratic_latent_x(domain_id: str, value: float) -> Tuple[float, float, bool]:
+def solve_quadratic_latent_x(
+    domain_or_a: Any,
+    value_or_b: float,
+    c: Optional[float] = None,
+    target_v: Optional[float] = None
+) -> Tuple[float, float, bool]:
     """
     Inverse extraction: a * x^2 + b * x + (c - V) = 0.
+    Supports polymorphic invocation:
+    - solve_quadratic_latent_x(domain_id: str, value: float)
+    - solve_quadratic_latent_x(a: float, b: float, c: float, target_v: float)
     Returns: (selected_x, discriminant_delta, is_real)
     If Delta < 0, projects onto parabolic apex x = -b / (2a) to prevent complex singularities.
     """
-    if domain_id not in QUADRATIC_DOMAIN_REGISTRY:
-        raise KeyError(f"Unknown quadratic domain: {domain_id}")
-
-    spec = QUADRATIC_DOMAIN_REGISTRY[domain_id]
-    v_target = max(spec["v_min"], min(spec["v_max"], float(value)))
-    a = spec["a"]
-    b = spec["b"]
-    c_eff = spec["c"] - v_target
+    if c is not None and target_v is not None:
+        a = float(domain_or_a)
+        b = float(value_or_b)
+        c_eff = float(c) - float(target_v)
+    else:
+        domain_id = str(domain_or_a)
+        if domain_id not in QUADRATIC_DOMAIN_REGISTRY:
+            raise KeyError(f"Unknown quadratic domain: {domain_id}")
+        spec = QUADRATIC_DOMAIN_REGISTRY[domain_id]
+        v_target = float(value_or_b)
+        a = spec["a"]
+        b = spec["b"]
+        c_eff = spec["c"] - v_target
 
     # Degenerate linear case
     if abs(a) < 1e-12:

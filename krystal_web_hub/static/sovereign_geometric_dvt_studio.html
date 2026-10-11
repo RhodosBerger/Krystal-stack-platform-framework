@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sovereign Engine: Geometric DVT Studio & DSC Runtime</title>
+  <link rel="stylesheet" href="/static/krystal_ui_system.css">
+  <link rel="stylesheet" href="/static/krystal_window_manager.css">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --card-bg: rgba(13, 17, 27, 0.88);
+      --border-glow: rgba(0, 240, 255, 0.25);
+      --neon-cyan: #00f0ff;
+      --neon-amber: #ffaa00;
+      --neon-red: #ff3366;
+      --neon-green: #00ff88;
+      --neon-purple: #bd00ff;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-dark);
+      color: #e0e8f5;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+
+    #app-container {
+      display: grid;
+      grid-template-columns: 380px 1fr 360px;
+      grid-template-rows: 64px 1fr 38px;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Top Bar */
+    header {
+      grid-column: 1 / -1;
+      background: rgba(10, 14, 23, 0.95);
+      border-bottom: 1px solid var(--border-glow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      margin: 0;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    }
+
+    .conduct-badge-header {
+      font-family: 'Consolas', monospace;
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 4px;
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid var(--neon-green);
+      color: var(--neon-green);
+      letter-spacing: 1px;
+    }
+
+    /* Left Sidebar: Compiler & Topology */
+    .sidebar-left {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Main Viewport: Three.js Canvas */
+    .viewport-center {
+      position: relative;
+      background: radial-gradient(circle at center, #111827 0%, #050811 100%);
+      overflow: hidden;
+    }
+
+    #three-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .viewport-overlay-badges {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .layer-badge {
+      font-family: 'Consolas', monospace;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 3px;
+      background: rgba(0, 0, 0, 0.6);
+      border-left: 3px solid var(--neon-cyan);
+      color: #cbd5e1;
+    }
+
+    /* Right Sidebar: DSC & Telemetry */
+    .sidebar-right {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: rgba(18, 24, 38, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .section-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .btn:hover {
+      background: rgba(0, 240, 255, 0.28);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+    }
+
+    .btn-hazard {
+      background: rgba(255, 51, 102, 0.12);
+      border-color: var(--neon-red);
+      color: var(--neon-red);
+    }
+    .btn-hazard:hover {
+      background: rgba(255, 51, 102, 0.28);
+      box-shadow: 0 0 12px rgba(255, 51, 102, 0.4);
+    }
+
+    .slider-group {
+      margin-bottom: 12px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+
+    input[type=range] {
+      width: 100%;
+      height: 5px;
+      background: #1e293b;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      cursor: pointer;
+    }
+
+    /* Terminal Console */
+    .console-log {
+      font-family: 'Consolas', monospace;
+      font-size: 0.75rem;
+      line-height: 1.4;
+      background: rgba(5, 8, 14, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      padding: 10px;
+      height: 130px;
+      overflow-y: auto;
+      color: #94a3b8;
+    }
+    .log-info { color: #38bdf8; }
+    .log-warn { color: #fbbf24; }
+    .log-err  { color: #f87171; }
+    .log-ok   { color: #4ade80; }
+
+    /* Footer */
+    footer {
+      grid-column: 1 / -1;
+      background: #050811;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+  </style>
+
+  <!-- Vendor Scripts -->
+  <script src="/static/vendor/three.min.js"></script>
+  <script src="/static/vendor/OrbitControls.js"></script>
+  <!-- Sovereign DVT Modules -->
+  <script src="/static/js/sovereign_dvt/geometric_compiler.js"></script>
+  <script src="/static/js/sovereign_dvt/adaptive_render_pipeline.js"></script>
+</head>
+<body>
+  <div id="app-container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <span style="font-size: 1.4rem;">⬡</span>
+        <h1>Sovereign Engine: Geometric DVT Studio</h1>
+        <span style="font-size: 0.75rem; color: #64748b; border-left: 1px solid #334155; padding-left: 10px;">
+          Go DSC / Python HTIB / WebGL DVT
+        </span>
+      </div>
+      <div id="header-conduct-badge" class="conduct-badge-header">
+        [ACT] [!LCK] [CNF] [!HAZ] [VIT 6HP]
+      </div>
+    </header>
+
+    <!-- Left Sidebar: Geometric Compiler -->
+    <aside class="sidebar-left">
+      <div class="section-card">
+        <div class="section-title">
+          <span>Hexagonal Mesh Blueprint</span>
+          <span style="color: var(--neon-cyan);">q, r Topológia</span>
+        </div>
+        <p style="font-size: 0.78rem; color: #94a3b8; margin: 0 0 10px 0;">
+          Kompilácia deklaratívneho blueprintu do hexagonálnej siete s Boolean Hex Ops a prealokovaným 96B packed bufferom.
+        </p>
+        <button id="btn-recompile" class="btn" style="width: 100%;">Kompilovať Citadela Blueprint</button>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">
+          <span>Pauli Exclusion Guard</span>
+          <span style="color: var(--neon-amber);">Layer [A_CENTER]</span>
+        </div>
+        <p style="font-size: 0.78rem; color: #94a3b8; margin: 0 0 10px 0;">
+          Striktný zákaz kolízie entít na hladine standees (Z=0.5). Pokus o umiestnenie na obsadený hex vyvolá okamžitý fallback.
+        </p>
+        <button id="btn-test-pauli-valid" class="btn" style="width: 100%; margin-bottom: 8px;">Umiestniť na Voľný Hex (1, 1)</button>
+        <button id="btn-test-pauli-violation" class="btn btn-hazard" style="width: 100%;">Test Kolízie Pauli (0, 0) [Hazard]</button>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">
+          <span>4-Úrovňový Z-Index</span>
+          <span style="color: #cbd5e1;">Z-Layers</span>
+        </div>
+        <div style="font-size: 0.75rem; display: flex; flex-direction: column; gap: 6px;">
+          <div><strong style="color: #38bdf8;">[A_BASE] (Z=0.0):</strong> Terénne hex dlaždice a biom</div>
+          <div><strong style="color: #a855f7;">[A_AURA_RING] (Z=0.1):</strong> Selekčné a hazardné prstence</div>
+          <div><strong style="color: #4ade80;">[A_CENTER] (Z=0.5):</strong> Standees & Veže (Pauli Guard)</div>
+          <div><strong style="color: #fbbf24;">[A_OVERHEAD] (Z=1.2):</strong> Statusové runy a HP bary</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">Kompilátor & Log Udalostí</div>
+        <div id="compiler-log" class="console-log"></div>
+      </div>
+    </aside>
+
+    <!-- Center Viewport: Three.js WebGL -->
+    <main class="viewport-center">
+      <div class="viewport-overlay-badges">
+        <div class="layer-badge">PROFILE: <span id="overlay-profile" style="color: var(--neon-cyan);">STANDARD_LIVING_STANDEES</span></div>
+        <div class="layer-badge">INSTANCES: <span id="overlay-instances" style="color: var(--neon-green);">19</span> | 96B Packed Buffer</div>
+        <div class="layer-badge">UNIFORM COMMIT: <span id="overlay-throttle" style="color: var(--neon-amber);">20 Hz Throttled</span></div>
+      </div>
+      <canvas id="three-canvas"></canvas>
+    </main>
+
+    <!-- Right Sidebar: DSC Physics & Adaptive Pipeline -->
+    <aside class="sidebar-right">
+      <div class="section-card">
+        <div class="section-title">
+          <span>Adaptívna Telemetria</span>
+          <span id="active-profile-badge" style="color: var(--neon-cyan);">Profile 2</span>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label"><span>Snímkovacia Frekvencia (FPS)</span><span id="val-fps">60 FPS</span></div>
+          <input type="range" id="slider-fps" min="15" max="60" value="60">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label"><span>Záťaž CPU (%)</span><span id="val-cpu">35%</span></div>
+          <input type="range" id="slider-cpu" min="5" max="100" value="35">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label"><span>Teplota Vretena / CPU (°C)</span><span id="val-temp">55°C</span></div>
+          <input type="range" id="slider-temp" min="30" max="95" value="55">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label"><span>Entropia Systému (H)</span><span id="val-entropy">0.20</span></div>
+          <input type="range" id="slider-entropy" min="0" max="100" value="20">
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">
+          <span>Ohmov Zákon Fyziky (DSC)</span>
+          <span style="color: var(--neon-cyan);">I = V / R_eff</span>
+        </div>
+        <p style="font-size: 0.75rem; color: #94a3b8; margin: 0 0 8px 0;">
+          R_eff = max(0.1, R_target + R_reactions). Saturačná aritmetika 0..6 HP.
+        </p>
+
+        <div class="slider-group">
+          <div class="slider-label"><span>Aplikované Napätie V (Volty)</span><span id="val-voltage">6.0 V</span></div>
+          <input type="range" id="slider-voltage" min="1" max="24" value="6">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <button id="btn-add-reaction" class="btn" style="flex: 1; font-size: 0.75rem;">+ Reakcia LIFO (+2R)</button>
+          <button id="btn-fire-voltage" class="btn" style="flex: 1; font-size: 0.75rem; border-color: var(--neon-green); color: var(--neon-green);">Aplikovať V</button>
+        </div>
+
+        <div style="font-size: 0.78rem; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px;">
+          <div>Efektívny Odpor: <span id="disp-r" style="color: var(--neon-cyan);">2.0 Ω</span></div>
+          <div>Vypočítaný Prúd I: <span id="disp-i" style="color: var(--neon-amber);">3.0 A</span></div>
+          <div>Cieľové Zdravie: <span id="disp-hp" style="color: var(--neon-green);">6 / 6 HP</span></div>
+          <div>LIFO Zásobník Prerušení: <span id="disp-stack-depth" style="color: #cbd5e1;">0 reakcií</span></div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">DSC Transakčný Log</div>
+        <div id="dsc-log" class="console-log"></div>
+      </div>
+    </aside>
+
+    <!-- Footer -->
+    <footer>
+      <div>Sovereign Engine v4.8 | Deterministický Stavový Kontrolér (Go DSC) & DVT Shader Pipeline</div>
+      <div>Invariant VITAL_MAX_HP == 6 prísne vynútený | Nulová alokácia v render slučke</div>
+    </footer>
+  </div>
+
+  <script>
+    // ── INITIALIZATION & RUNTIME ORCHESTRATION ──────────────────────────────
+    const compiler = new window.SovereignGeometric.GeometricCompiler();
+    const pipeline = new window.AdaptiveRenderPipeline();
+
+    // Elements
+    const canvas = document.getElementById("three-canvas");
+    const compilerLog = document.getElementById("compiler-log");
+    const dscLog = document.getElementById("dsc-log");
+    const headerBadge = document.getElementById("header-conduct-badge");
+    const overlayProfile = document.getElementById("overlay-profile");
+    const overlayInstances = document.getElementById("overlay-instances");
+    const profileBadge = document.getElementById("active-profile-badge");
+
+    function logCompiler(msg, type = "info") {
+      const el = document.createElement("div");
+      el.className = `log-${type}`;
+      el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      compilerLog.appendChild(el);
+      compilerLog.scrollTop = compilerLog.scrollHeight;
+    }
+
+    function logDSC(msg, type = "info") {
+      const el = document.createElement("div");
+      el.className = `log-${type}`;
+      el.textContent = `[DSC] ${msg}`;
+      dscLog.appendChild(el);
+      dscLog.scrollTop = dscLog.scrollHeight;
+    }
+
+    // ── THREE.JS SETUP ──────────────────────────────────────────────────────
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07090e, 0.035);
+
+    const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+    camera.position.set(0, 14, 18);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI / 2.1;
+
+    // Lighting
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambLight);
+
+    const dirLight = new THREE.DirectionalLight(0x00f0ff, 1.2);
+    dirLight.position.set(10, 20, 10);
+    scene.add(dirLight);
+
+    const pointLight = new THREE.PointLight(0xffaa00, 1.5, 30);
+    pointLight.position.set(0, 3, 0);
+    scene.add(pointLight);
+
+    // Grid Floor Helper
+    const gridHelper = new THREE.GridHelper(40, 40, 0x1e293b, 0x0f172a);
+    gridHelper.position.y = -0.5;
+    scene.add(gridHelper);
+
+    // ── SAMPLE CITADEL BLUEPRINT ────────────────────────────────────────────
+    const sampleBlueprint = {
+      mapId: "CITADEL_SECTOR_07",
+      name: "Sovereign Shield Citadel",
+      hexRadius: 1.2,
+      cells: [
+        { q: 0, r: 0, biome: "CRYSTAL_CITADEL", elevation: 0.2 },
+        { q: 1, r: 0, biome: "PLAINS", elevation: 0.0 },
+        { q: 1, r: -1, biome: "CYBER_FORTRESS", elevation: 0.1 },
+        { q: 0, r: -1, biome: "CRYO_FROST", elevation: 0.0 },
+        { q: -1, r: 0, biome: "PLAINS", elevation: 0.0 },
+        { q: -1, r: 1, biome: "VOLCANIC", elevation: 0.3, is_hazard: true },
+        { q: 0, r: 1, biome: "PLAINS", elevation: 0.0 },
+        { q: 2, r: 0, biome: "PLAINS", elevation: 0.0 },
+        { q: 2, r: -1, biome: "CRYSTAL_CITADEL", elevation: 0.1 },
+        { q: 2, r: -2, biome: "CYBER_FORTRESS", elevation: 0.2 },
+        { q: 1, r: -2, biome: "PLAINS", elevation: 0.0 },
+        { q: 0, r: -2, biome: "VOID_CORRUPTION", elevation: 0.4, is_hazard: true }
+      ],
+      entities: [
+        { id: "core_turret", name: "Aegis Core Defense", q: 0, r: 0, layer: "A_CENTER", hp: 6, base_resistance: 2.0 },
+        { id: "vanguard_scout", name: "Vanguard Scout", q: 1, r: 0, layer: "A_CENTER", hp: 5, base_resistance: 1.0 },
+        { id: "outpost_turret", name: "Cyber Pylon", q: 2, r: -2, layer: "A_CENTER", hp: 6, base_resistance: 2.5 },
+        { id: "aura_shield", name: "Aegis Aura", q: 0, r: 0, layer: "A_AURA_RING", hp: 6 }
+      ]
+    };
+
+    // ── INSTANCED MESH CONTAINERS (ZERO ALLOCATION) ─────────────────────────
+    let compiledMap = null;
+    let hexInstancedMesh = null;
+    let standeeInstancedMesh = null;
+    let ringInstancedMesh = null;
+
+    // Preallocated Geometries
+    const hexGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.4, 6);
+    const standeeGeo = new THREE.BoxGeometry(0.5, 1.2, 0.5);
+    const ringGeo = new THREE.TorusGeometry(1.0, 0.06, 8, 24);
+
+    // Preallocated Materials
+    const hexMat = new THREE.MeshStandardMaterial({
+      roughness: 0.3,
+      metalness: 0.2,
+      wireframe: false
+    });
+    const standeeMat = new THREE.MeshStandardMaterial({
+      color: 0x00f0ff,
+      roughness: 0.2,
+      metalness: 0.8
+    });
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xbd00ff,
+      wireframe: false
+    });
+
+    const dummyMatrix = new THREE.Matrix4();
+    const dummyColor = new THREE.Color();
+
+    function build3DScene(compiled) {
+      if (hexInstancedMesh) scene.remove(hexInstancedMesh);
+      if (standeeInstancedMesh) scene.remove(standeeInstancedMesh);
+      if (ringInstancedMesh) scene.remove(ringInstancedMesh);
+
+      const cellCount = compiled.cells.size;
+      const entityList = Array.from(compiled.entities.values());
+      const standeeEntities = entityList.filter(e => Math.abs(e.layer - 0.5) < 0.05);
+      const ringEntities = entityList.filter(e => Math.abs(e.layer - 0.1) < 0.05);
+
+      // 1. Cells [A_BASE]
+      hexInstancedMesh = new THREE.InstancedMesh(hexGeo, hexMat, cellCount);
+      let idx = 0;
+      for (const cell of compiled.cells.values()) {
+        const { x, z } = window.SovereignGeometric.axialToWorld(cell.coord.q, cell.coord.r, compiled.hexRadius);
+        dummyMatrix.setPosition(x, cell.elevation, z);
+        hexInstancedMesh.setMatrixAt(idx, dummyMatrix);
+
+        if (cell.biome === "CRYSTAL_CITADEL") dummyColor.setHex(0x00f0ff);
+        else if (cell.biome === "VOLCANIC") dummyColor.setHex(0xff3344);
+        else if (cell.biome === "CRYO_FROST") dummyColor.setHex(0xb0e0ff);
+        else if (cell.biome === "CYBER_FORTRESS") dummyColor.setHex(0x00ff88);
+        else if (cell.biome === "VOID_CORRUPTION") dummyColor.setHex(0x8800ff);
+        else dummyColor.setHex(0x228844);
+
+        hexInstancedMesh.setColorAt(idx, dummyColor);
+        idx++;
+      }
+      hexInstancedMesh.instanceMatrix.needsUpdate = true;
+      if (hexInstancedMesh.instanceColor) hexInstancedMesh.instanceColor.needsUpdate = true;
+      scene.add(hexInstancedMesh);
+
+      // 2. Standees [A_CENTER]
+      if (standeeEntities.length > 0) {
+        standeeInstancedMesh = new THREE.InstancedMesh(standeeGeo, standeeMat, standeeEntities.length);
+        for (let i = 0; i < standeeEntities.length; i++) {
+          const ent = standeeEntities[i];
+          const { x, z } = window.SovereignGeometric.axialToWorld(ent.coord.q, ent.coord.r, compiled.hexRadius);
+          dummyMatrix.setPosition(x, 0.8, z);
+          standeeInstancedMesh.setMatrixAt(i, dummyMatrix);
+
+          dummyColor.setHex(ent.hp <= 2 ? 0xff3366 : 0x00f0ff);
+          standeeInstancedMesh.setColorAt(i, dummyColor);
+        }
+        standeeInstancedMesh.instanceMatrix.needsUpdate = true;
+        if (standeeInstancedMesh.instanceColor) standeeInstancedMesh.instanceColor.needsUpdate = true;
+        scene.add(standeeInstancedMesh);
+      }
+
+      // 3. Aura Rings [A_AURA_RING]
+      if (ringEntities.length > 0) {
+        ringInstancedMesh = new THREE.InstancedMesh(ringGeo, ringMat, ringEntities.length);
+        for (let i = 0; i < ringEntities.length; i++) {
+          const ent = ringEntities[i];
+          const { x, z } = window.SovereignGeometric.axialToWorld(ent.coord.q, ent.coord.r, compiled.hexRadius);
+          dummyMatrix.makeRotationX(Math.PI / 2);
+          dummyMatrix.setPosition(x, 0.25, z);
+          ringInstancedMesh.setMatrixAt(i, dummyMatrix);
+        }
+        ringInstancedMesh.instanceMatrix.needsUpdate = true;
+        scene.add(ringInstancedMesh);
+      }
+
+      overlayInstances.textContent = `${cellCount + entityList.length}`;
+      logCompiler(`Scéna úspešne vygenerovaná: ${cellCount} buniek, ${standeeEntities.length} standees, ${ringEntities.length} prstencov.`, "ok");
+    }
+
+    function recompile() {
+      try {
+        compiledMap = compiler.compile(sampleBlueprint);
+        build3DScene(compiledMap);
+        logCompiler(`Blueprint '${compiledMap.name}' kompilovaný do 96B Packed Bufferu (${compiledMap.packedBuffer.byteLength} B).`, "ok");
+      } catch (err) {
+        logCompiler(`Chyba kompilácie: ${err.message}`, "err");
+      }
+    }
+
+    // ── PAULI EXCLUSION GUARD INTERACTIVE TESTS ─────────────────────────────
+    document.getElementById("btn-test-pauli-valid").addEventListener("click", () => {
+      try {
+        const res = compiler.pauliGuard.validateAndOccupy({ q: 1, r: 1 }, "reinforcement_unit", 0.5);
+        if (res.valid) {
+          logCompiler("Pauli Guard: Umiestnenie na voľný hex (1, 1) na [A_CENTER] SCHVÁLENÉ.", "ok");
+        } else {
+          logCompiler(`Pauli Guard Rejection: ${res.error}`, "warn");
+        }
+      } catch (err) {
+        logCompiler(err.message, "err");
+      }
+    });
+
+    document.getElementById("btn-test-pauli-violation").addEventListener("click", () => {
+      // Hex (0, 0) is already occupied by core_turret on [A_CENTER]
+      const res = compiler.pauliGuard.validateAndOccupy({ q: 0, r: 0 }, "intruder_unit", 0.5);
+      if (!res.valid) {
+        logCompiler(`STRIKTNÝ PAULI GUARD: ${res.error}`, "err");
+        logCompiler("Presmerovanie do bezpečného deterministického fallbacku [FALLBACK_SAFE_STANCE].", "warn");
+        headerBadge.textContent = "[!ACT] [LCK] [!CNF] [HAZ] [VIT 4HP]";
+        headerBadge.style.borderColor = "var(--neon-red)";
+        headerBadge.style.color = "var(--neon-red)";
+        setTimeout(() => {
+          headerBadge.textContent = "[ACT] [!LCK] [CNF] [!HAZ] [VIT 6HP]";
+          headerBadge.style.borderColor = "var(--neon-green)";
+          headerBadge.style.color = "var(--neon-green)";
+        }, 3000);
+      }
+    });
+
+    // ── OHM'S LAW PHYSICS (DSC SIMULATOR) ───────────────────────────────────
+    let currentResistance = 2.0;
+    let targetHP = 6;
+    let reactionStack = [];
+
+    const sliderVoltage = document.getElementById("slider-voltage");
+    const valVoltage = document.getElementById("val-voltage");
+    const dispR = document.getElementById("disp-r");
+    const dispI = document.getElementById("disp-i");
+    const dispHP = document.getElementById("disp-hp");
+    const dispStack = document.getElementById("disp-stack-depth");
+
+    sliderVoltage.addEventListener("input", () => {
+      valVoltage.textContent = `${sliderVoltage.value}.0 V`;
+    });
+
+    document.getElementById("btn-add-reaction").addEventListener("click", () => {
+      reactionStack.push({ type: "REACTIVE_ARMOR", rDelta: 2.0, vDelta: 0.0 });
+      dispStack.textContent = `${reactionStack.length} reakcií (LIFO)`;
+      logDSC(`Pridaná reakcia do LIFO zásobníka (+2.0 Ω). Hĺbka: ${reactionStack.length}`, "info");
+    });
+
+    document.getElementById("btn-fire-voltage").addEventListener("click", () => {
+      const v = parseFloat(sliderVoltage.value);
+
+      // Evaluate LIFO stack
+      let totalReactionR = 0;
+      let totalVMod = 0;
+      while (reactionStack.length > 0) {
+        const item = reactionStack.pop();
+        totalReactionR += item.rDelta;
+        totalVMod += item.vDelta;
+      }
+      dispStack.textContent = "0 reakcií";
+
+      // Effective resistance with zero-division guard (R >= 0.1)
+      const rEff = Math.max(0.1, currentResistance + totalReactionR);
+      const effectiveV = Math.max(0.0, v + totalVMod);
+
+      // Ohm's law: I = V / R_eff
+      const current = effectiveV / rEff;
+      const damage = Math.floor(current);
+
+      // Saturation arithmetic: clamp HP strictly 0..6
+      targetHP = Math.max(0, Math.min(6, targetHP - damage));
+
+      dispR.textContent = `${rEff.toFixed(2)} Ω`;
+      dispI.textContent = `${current.toFixed(2)} A`;
+      dispHP.textContent = `${targetHP} / 6 HP`;
+
+      logDSC(`Výpočet Ohmovho Zákona: V=${effectiveV.toFixed(1)}V / R=${rEff.toFixed(2)}Ω => I=${current.toFixed(2)}A | Zranenie: ${damage} HP | Nové HP: ${targetHP}/6`, "ok");
+
+      if (targetHP <= 0) {
+        logDSC("Cieľová obranná veža neutralizovaná. Vacating occupancy na [A_CENTER].", "warn");
+      }
+
+      // Update standee visuals if target damaged
+      if (standeeInstancedMesh) {
+        dummyColor.setHex(targetHP <= 2 ? 0xff3366 : 0x00f0ff);
+        standeeInstancedMesh.setColorAt(0, dummyColor);
+        standeeInstancedMesh.instanceColor.needsUpdate = true;
+      }
+    });
+
+    // ── TELEMETRY & ADAPTIVE HARDWARE PROFILES ──────────────────────────────
+    const sliderFps = document.getElementById("slider-fps");
+    const sliderCpu = document.getElementById("slider-cpu");
+    const sliderTemp = document.getElementById("slider-temp");
+    const sliderEntropy = document.getElementById("slider-entropy");
+
+    function updateTelemetryProfiles() {
+      const fps = parseFloat(sliderFps.value);
+      const cpu = parseFloat(sliderCpu.value);
+      const temp = parseFloat(sliderTemp.value);
+      const entropy = parseFloat(sliderEntropy.value) / 100.0;
+
+      document.getElementById("val-fps").textContent = `${fps} FPS`;
+      document.getElementById("val-cpu").textContent = `${cpu}%`;
+      document.getElementById("val-temp").textContent = `${temp}°C`;
+      document.getElementById("val-entropy").textContent = entropy.toFixed(2);
+
+      const profile = pipeline.evaluateTelemetry({
+        fps,
+        cpuLoad: cpu,
+        temperatureC: temp,
+        entropyH: entropy
+      });
+
+      overlayProfile.textContent = profile;
+      profileBadge.textContent = profile;
+
+      // Adjust 3D Materials according to profile
+      if (profile === "MINIMAL_WIREFRAME") {
+        hexMat.wireframe = true;
+        standeeMat.wireframe = true;
+        overlayProfile.style.color = "var(--neon-red)";
+      } else if (profile === "AAA_CINEMATIC") {
+        hexMat.wireframe = false;
+        standeeMat.wireframe = false;
+        overlayProfile.style.color = "var(--neon-green)";
+        pointLight.intensity = 2.5 + entropy * 1.5;
+      } else {
+        hexMat.wireframe = false;
+        standeeMat.wireframe = false;
+        overlayProfile.style.color = "var(--neon-cyan)";
+        pointLight.intensity = 1.5;
+      }
+    }
+
+    [sliderFps, sliderCpu, sliderTemp, sliderEntropy].forEach(el => {
+      el.addEventListener("input", updateTelemetryProfiles);
+    });
+
+    document.getElementById("btn-recompile").addEventListener("click", recompile);
+
+    // ── RENDER LOOP (ZERO ALLOCATION & 20 HZ THROTTLED UNIFORMS) ────────────
+    let lastTime = performance.now();
+
+    function animate(now) {
+      requestAnimationFrame(animate);
+
+      const elapsedSec = now * 0.001;
+
+      // 20 Hz Throttled Uniform Writes
+      const committed = pipeline.updateUniforms(now, elapsedSec);
+      if (committed && ringInstancedMesh) {
+        ringInstancedMesh.rotation.y = elapsedSec * 0.5;
+        ringInstancedMesh.instanceMatrix.needsUpdate = true;
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener("resize", () => {
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    });
+
+    // Initial compile and run
+    recompile();
+    updateTelemetryProfiles();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

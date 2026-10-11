@@ -1,0 +1,182 @@
+[gd_scene load_steps=12 format=3 uid="uid://krystal_compositor_8k"]
+
+[ext_resource type="Shader" path="res://shaders/photorealistic_pbr_procedural.gdshader" id="1_pbr_shader"]
+[ext_resource type="Script" path="res://scripts/CompositorScalingUnit.gd" id="2_scaling_unit_script"]
+
+# ── ENVIRONMENT & LIGHTING ─────────────────────────────────────────────
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
+sky_top_color = Color(0.18, 0.24, 0.35, 1)
+sky_horizon_color = Color(0.65, 0.68, 0.75, 1)
+ground_bottom_color = Color(0.12, 0.10, 0.08, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("ProceduralSkyMaterial_1")
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+tonemap_mode = 3
+ssr_enabled = true
+ssao_enabled = true
+ssil_enabled = true
+sdfgi_enabled = true
+glow_enabled = true
+glow_intensity = 1.1
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.015
+
+# ── PBR SHADER MATERIAL ────────────────────────────────────────────────
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_PBR"]
+render_priority = 0
+shader = ExtResource("1_pbr_shader")
+shader_parameter/fresnel_power = 5.0
+shader_parameter/ambient_occlusion_intensity = 1.2
+
+# ── ROOT SCENE NODE ───────────────────────────────────────────────────
+[node name="SCENE-8K-TACT-42" type="Node3D"]
+metadata/vital_max_hp = 6
+metadata/context = "TACTICAL_ARENA"
+metadata/total_objects = 8192
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."] 
+environment = SubResource("Environment_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."] 
+transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 20, 35, 20)
+light_color = Color(0.98, 0.95, 0.90, 1)
+light_energy = 2.5
+shadow_enabled = true
+directional_shadow_mode = 2
+
+[node name="Camera3D" type="Camera3D" parent="."] 
+transform = Transform3D(1, 0, 0, 0, 0.866, 0.5, 0, -0.5, 0.866, 0, 25, 45)
+current = true
+fov = 65.0
+
+[sub_resource type="BoxMesh" id="MeshPrimitive_1"]
+material = SubResource("ShaderMaterial_PBR")
+size = Vector3(1.2, 1.2, 1.2)
+
+[node name="ScalingUnit_01_HEX_TILE" type="MultiMeshInstance3D" parent="."] 
+script = ExtResource("2_scaling_unit_script")
+metadata/unit_id = "scaling_unit_tactical_arena_01_hex_tile"
+metadata/archetype = "HEX_TILE"
+metadata/instance_count = 1024
+metadata/vital_max_hp = 6
+metadata/placement_formula = "FERMAT_PHYLLOTAXIS"
+metadata/c_scale = 0.75
+metadata/gielis_m = 6.0
+metadata/base_hue = 0.12
+metadata/emission = 0.0
+
+[sub_resource type="BoxMesh" id="MeshPrimitive_2"]
+material = SubResource("ShaderMaterial_PBR")
+size = Vector3(1.2, 1.2, 1.2)
+
+[node name="ScalingUnit_02_SAPPER_TRENCH" type="MultiMeshInstance3D" parent="."] 
+script = ExtResource("2_scaling_unit_script")
+metadata/unit_id = "scaling_unit_tactical_arena_02_sapper_trench"
+metadata/archetype = "SAPPER_TRENCH"
+metadata/instance_count = 1024
+metadata/vital_max_hp = 6
+metadata/placement_formula = "FERMAT_PHYLLOTAXIS"
+metadata/c_scale = 0.87
+metadata/gielis_m = 4.0
+metadata/base_hue = 0.12
+metadata/emission = 0.0
+
+[sub_resource type="BoxMesh" id="MeshPrimitive_3"]
+material = SubResource("ShaderMaterial_PBR")
+size = Vector3(1.2, 1.2, 1.2)
+
+[node name="ScalingUnit_03_MORTAR_SHELL_DEBRIS" type="MultiMeshInstance3D" parent="."] 
+script = ExtResource("2_scaling_unit_script")
+metadata/unit_id = "scaling_unit_tactical_arena_03_mortar_shell_debris"
+metadata/archetype = "MORTAR_SHELL_DEBRIS"
+metadata/instance_count = 1024
+metadata/vital_max_hp = 6
+metadata/placement_formula = "FERMAT_PHYLLOTAXIS"
+metadata/c_scale = 0.99
+metadata/gielis_m = 4.0
+metadata/base_hue = 0.12
+metadata/emission = 0.0
+
+[sub_resource type="CylinderMesh" id="MeshPrimitive_4"]
+material = SubResource("ShaderMaterial_PBR")
+height = 2.0
+
+[node name="ScalingUnit_04_SOUL_VORTEX_MOTE" type="MultiMeshInstance3D" parent="."] 
+script = ExtResource("2_scaling_unit_script")
+metadata/unit_id = "scaling_unit_tactical_arena_04_soul_vortex_mote"
+metadata/archetype = "SOUL_VORTEX_MOTE"
+metadata/instance_count = 1024
+metadata/vital_max_hp = 6
+metadata/placement_formula = "FERMAT_PHYLLOTAXIS"
+metadata/c_scale = 1.1099999999999999
+metadata/gielis_m = 5.0
+metadata/base_hue = 0.12
+metadata/emission = 1.8
+
+[sub_resource type="PrismMesh" id="MeshPrimitive_5"]
+material = SubResource("ShaderMaterial_PBR")
+height = 2.0
+
+[node name="ScalingUnit_05_CRYSTAL_FACET" type="MultiMeshInstance3D" parent="."] 
+script = ExtResource("2_scaling_unit_script")
+metadata/unit_id = "scaling_unit_tactical_arena_05_crystal_facet"
+metadata/archetype = "CRYSTAL_FACET"
+metadata/instance_count = 1024
+metadata/vital_max_hp = 6
+metadata/placement_formula = "FERMAT_PHYLLOTAXIS"
+metadata/c_scale = 1.23
+metadata/gielis_m = 8.0
+metadata/base_hue = 0.12
+metadata/emission = 0.0
+
+[sub_resource type="BoxMesh" id="MeshPrimitive_6"]
+material = SubResource("ShaderMaterial_PBR")
+size = Vector3(1.2, 1.2, 1.2)
+
+[node name="ScalingUnit_06_TOXIC_MIRE_BUBBLE" type="MultiMeshInstance3D" parent="."] 
+script = ExtResource("2_scaling_unit_script")
+metadata/unit_id = "scaling_unit_tactical_arena_06_toxic_mire_bubble"
+metadata/archetype = "TOXIC_MIRE_BUBBLE"
+metadata/instance_count = 1024
+metadata/vital_max_hp = 6
+metadata/placement_formula = "FERMAT_PHYLLOTAXIS"
+metadata/c_scale = 1.35
+metadata/gielis_m = 4.0
+metadata/base_hue = 0.12
+metadata/emission = 0.0
+
+[sub_resource type="PrismMesh" id="MeshPrimitive_7"]
+material = SubResource("ShaderMaterial_PBR")
+height = 2.0
+
+[node name="ScalingUnit_07_DRUID_ROOT" type="MultiMeshInstance3D" parent="."] 
+script = ExtResource("2_scaling_unit_script")
+metadata/unit_id = "scaling_unit_tactical_arena_07_druid_root"
+metadata/archetype = "DRUID_ROOT"
+metadata/instance_count = 1024
+metadata/vital_max_hp = 6
+metadata/placement_formula = "FERMAT_PHYLLOTAXIS"
+metadata/c_scale = 1.47
+metadata/gielis_m = 3.0
+metadata/base_hue = 0.12
+metadata/emission = 0.0
+
+[sub_resource type="BoxMesh" id="MeshPrimitive_8"]
+material = SubResource("ShaderMaterial_PBR")
+size = Vector3(1.2, 1.2, 1.2)
+
+[node name="ScalingUnit_08_BARRICADE_PROP" type="MultiMeshInstance3D" parent="."] 
+script = ExtResource("2_scaling_unit_script")
+metadata/unit_id = "scaling_unit_tactical_arena_08_barricade_prop"
+metadata/archetype = "BARRICADE_PROP"
+metadata/instance_count = 1024
+metadata/vital_max_hp = 6
+metadata/placement_formula = "FERMAT_PHYLLOTAXIS"
+metadata/c_scale = 1.5899999999999999
+metadata/gielis_m = 4.0
+metadata/base_hue = 0.12
+metadata/emission = 0.0

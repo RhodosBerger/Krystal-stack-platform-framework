@@ -70,15 +70,25 @@ V inšpektore uzla `RecursiveMirrorRect` alebo cez Antigravity API je možné ri
 
 ---
 
+3. **`scenes/posledni_kmen_arena.tscn`**:
+   - Taktická ťahová aréna pre *Poslední Kmen* (19 hexových polí, živly cryst/slime/bark/basalt).
+   - Skript: `scripts/PosledniKmenDuelController.gd` s implementáciou The West súbojovej algebry (Head, Shoulders, Torso), ženijných zákopov (Sapper Trenches) a mínometnej plošnej dikcie (CEP dispersion).
+   - Striktný invariant: `VITAL_MAX_HP = 6` (6 diskrétnych pips / sŕdc života).
+   - Prepojené na HTTP REST API Krystal Hubu (`http://127.0.0.1:8080/api/game/...`) s automatickým offline núdzovým fallbackom.
+
+---
+
 ## 🛠️ Ako spustiť a prepojiť s Localhost Hubom
 
 1. Spustite Krystal Localhost Hub na Windows:
    ```cmd
    start_localhost.bat
    ```
-2. Otvorte webové rozhranie na `http://127.0.0.1:8080/`.
-3. V Godot Editore otvorte projekt `godot_project/project.godot`.
-4. Otvorte a spustite scénu `scenes/RecursiveMirrorARStage.tscn` (stlačte **F6**).
-5. V sekcii **Antigravity Prompt & Template Studio** na webovom dashboarde zadajte prompt, napríklad:
-   > *"zrkadli 6-uholníkovú posvätnú geometriu v štýle alchýmie so zlatými runami"*
-6. Shader okamžite preberie vypočítané Push Constants a premietne symetriu na ASCII canvas aj v 3D scéne!
+2. Otvorte webovú hru na `http://127.0.0.1:8080/game` (alebo `/arena` či `/posledni-kmen`).
+3. V Godot Editore otvorte projekt [godot_project/project.godot](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/godot_project/project.godot).
+4. Otvorte a spustite scénu [scenes/posledni_kmen_arena.tscn](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/godot_project/scenes/posledni_kmen_arena.tscn) (stlačte **F6**).
+5. Alebo spustite priamo cez Godot CLI:
+   ```cmd
+   godot --path godot_project res://scenes/posledni_kmen_arena.tscn
+   ```
+

@@ -1,0 +1,38 @@
+{
+  "rail": "hr1_autocorrelated_noise",
+  "version": 1,
+  "description": "Same H-R1 rail on AR(1) noise (phi = 0.9), which violates axiom A3.1. A working diagnostic must REJECT here: switches are far rarer than 2p(1-p) and |rho1| >> 0.2.",
+  "theory_ref": "Veta 3.1, H-R1, A3.1",
+  "nodes": [
+    {"id": "src", "fn": "source.synthetic_series", "label": "theta (AR(1), phi=0.9)",
+     "params": {"n": 20000, "mean": 85.0, "noise": "ar1", "amplitude": 1.0, "phi": 0.9, "seed": 7}},
+    {"id": "mode", "fn": "transform.threshold_mode", "params": {"threshold": 85.0}},
+    {"id": "p", "fn": "measure.exceed_fraction"},
+    {"id": "s", "fn": "measure.switch_rate"},
+    {"id": "pred", "fn": "measure.expected_switch_rate"},
+    {"id": "sig", "fn": "measure.iid_switch_sigma"},
+    {"id": "cmp", "fn": "diagnose.compare_prediction",
+     "params": {"z": 1.96, "claim": "s_hat lies within 1.96 sigma of 2p(1-p)"}},
+    {"id": "rho", "fn": "measure.lag1_autocorr"},
+    {"id": "rho_chk", "fn": "diagnose.bound_check",
+     "params": {"upper": 0.2, "absolute": true, "claim": "|rho1| <= 0.2"}},
+    {"id": "verdict", "fn": "diagnose.combine_verdicts",
+     "params": {"claim": "H-R1: threshold samples behave as iid (Theorem 3.1 applies)"}}
+  ],
+  "links": [
+    {"from": "src.series", "to": "mode.series"},
+    {"from": "mode.modes", "to": "p.modes"},
+    {"from": "mode.modes", "to": "s.modes"},
+    {"from": "p.p", "to": "pred.p"},
+    {"from": "p.p", "to": "sig.p"},
+    {"from": "s.pairs", "to": "sig.pairs"},
+    {"from": "s.rate", "to": "cmp.observed"},
+    {"from": "pred.rate", "to": "cmp.predicted"},
+    {"from": "sig.sigma", "to": "cmp.sigma"},
+    {"from": "mode.modes", "to": "rho.series"},
+    {"from": "rho.rho", "to": "rho_chk.value"},
+    {"from": "cmp.verdict", "to": "verdict.a"},
+    {"from": "rho_chk.verdict", "to": "verdict.b"}
+  ],
+  "outputs": ["p.p", "s.rate", "pred.rate", "sig.sigma", "rho.rho", "verdict.verdict"]
+}

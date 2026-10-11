@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KrystalInterModuleProtocolAndReasoningSchema",
+  "description": "Schema for Krystal-Stack Inter-Module Communication Protocol, Three-Tier Scope Memory Bus, Coarse-Decision Control Flow, and Template Reasoning Patterns v1.0.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "packet_frame",
+    "scope_environment",
+    "control_flow_execution",
+    "reasoning_composition_pipeline"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "packet_frame": {
+      "type": "object",
+      "required": [
+        "packet_id",
+        "source_module",
+        "target_module",
+        "protocol_type",
+        "qos_priority",
+        "scope_tier",
+        "timestamp_ns",
+        "ttl",
+        "checksum_crc32",
+        "payload"
+      ],
+      "properties": {
+        "packet_id": { "type": "string" },
+        "protocol_version": { "type": "string", "default": "1.0" },
+        "source_module": { "type": "string" },
+        "target_module": { "type": "string" },
+        "protocol_type": {
+          "type": "string",
+          "enum": ["COMMAND", "QUERY", "TELEMETRY", "STATE_SYNC", "REASONING_SIGNAL"]
+        },
+        "qos_priority": {
+          "type": "string",
+          "enum": ["CRITICAL", "HIGH", "NORMAL", "BULK"]
+        },
+        "scope_tier": {
+          "type": "string",
+          "enum": ["LOCAL", "GLOBAL", "SUPERGLOBAL"]
+        },
+        "timestamp_ns": { "type": "integer" },
+        "ttl": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "checksum_crc32": { "type": "string", "pattern": "^[0-9a-fA-F]{8}$" },
+        "payload": { "type": "object" }
+      }
+    },
+    "scope_environment": {
+      "type": "object",
+      "required": ["local_scope", "global_scope", "superglobal_scope"],
+      "properties": {
+        "local_scope": {
+          "type": "object",
+          "description": "Thread-local registers and scratchpad variables",
+          "additionalProperties": true
+        },
+        "global_scope": {
+          "type": "object",
+          "description": "Active scene and session state",
+          "additionalProperties": true
+        },
+        "superglobal_scope": {
+          "type": "object",
+          "description": "Persistent world invariants, seed, network sync, VITAL_MAX_HP == 6",
+          "required": ["vital_max_hp"],
+          "properties": {
+            "vital_max_hp": { "type": "integer", "const": 6 }
+          },
+          "additionalProperties": true
+        }
+      }
+    },
+    "control_flow_execution": {
+      "type": "object",
+      "required": ["instructions", "coarse_scales_enabled"],
+      "properties": {
+        "coarse_scales_enabled": { "type": "boolean", "default": true },
+        "instructions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["op"],
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": ["IF", "THEN", "ELSE", "WHILE", "RETURN", "EXECUTE_MICROTASK", "ASSIGN"]
+              },
+              "condition": {
+                "type": "object",
+                "properties": {
+                  "scale": {
+                    "type": "string",
+                    "enum": [
+                      "TACTICAL_THREAT",
+                      "SPATIAL_PROXIMITY",
+                      "RESOURCE_CAPACITY",
+                      "VISUAL_COMPOSITION_TENSION",
+                      "LIGHTING_CONTRAST"
+                    ]
+                  },
+                  "target": { "type": "string" },
+                  "operator": {
+                    "type": "string",
+                    "enum": ["EQUALS", "NOT_EQUALS", "LESS_THAN", "GREATER_THAN", "IN_BAND"]
+                  },
+                  "value": {}
+                }
+              },
+              "max_iterations": { "type": "integer", "maximum": 64 },
+              "body": { "type": "array", "items": { "type": "object" } },
+              "then_branch": { "type": "array", "items": { "type": "object" } },
+              "else_branch": { "type": "array", "items": { "type": "object" } },
+              "value": {}
+            }
+          }
+        }
+      }
+    },
+    "reasoning_composition_pipeline": {
+      "type": "object",
+      "required": ["template_id", "micro_tasks", "composition_rules_evaluated"],
+      "properties": {
+        "template_id": { "type": "string" },
+        "micro_tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["task_id", "domain", "reasoning_pattern", "parameters"],
+            "properties": {
+              "task_id": { "type": "string" },
+              "domain": {
+                "type": "string",
+                "enum": ["WEBGL_COMPOSITION", "TACTICAL_SIMULATION", "NARRATIVE_STORY"]
+              },
+              "reasoning_pattern": {
+                "type": "string",
+                "enum": [
+                  "DepthLayeringPattern",
+                  "FocalPointAnchorPattern",
+                  "ChromaticHarmonicBalancePattern",
+                  "MortarBallisticsCoverPattern",
+                  "CapacityTriageBalancingPattern"
+                ]
+              },
+              "parameters": { "type": "object" }
+            }
+          }
+        },
+        "composition_rules_evaluated": {
+          "type": "object",
+          "required": ["rule_of_thirds_met", "depth_contrast_ratio", "color_harmony_score", "csi_score"],
+          "properties": {
+            "rule_of_thirds_met": { "type": "boolean" },
+            "depth_contrast_ratio": { "type": "number", "minimum": 1.0 },
+            "color_harmony_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "csi_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+          }
+        }
+      }
+    }
+  }
+}

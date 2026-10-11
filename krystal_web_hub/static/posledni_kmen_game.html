@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POSLEDNÍ KMEN // TACTICAL DUEL & SAPPER ARENA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #07090e;
+            --bg-card: rgba(14, 20, 32, 0.75);
+            --border-glass: rgba(102, 252, 241, 0.2);
+            --border-glass-hover: rgba(102, 252, 241, 0.5);
+            --blur: blur(20px) saturate(180%);
+            --cyan: #66fcf1;
+            --cyan-glow: rgba(102, 252, 241, 0.4);
+            --neon-blue: #0a84ff;
+            --toxic-green: #39ff14;
+            --crimson: #ff334b;
+            --crimson-glow: rgba(255, 51, 75, 0.45);
+            --gold: #ffd700;
+            --gold-glow: rgba(255, 215, 0, 0.4);
+            --purple: #9d4edd;
+            --text-main: #f0f4f8;
+            --text-muted: #8892b0;
+            --radius-xl: 20px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(102, 252, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(157, 78, 221, 0.08) 0%, transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+        }
+
+        /* HEADER */
+        header.arena-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 32px;
+            background: rgba(10, 14, 22, 0.85);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-glass);
+            z-index: 100;
+        }
+
+        .brand-title {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .gem-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--cyan), var(--neon-blue), var(--purple));
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            box-shadow: 0 0 20px var(--cyan-glow);
+            animation: gem-spin 10s linear infinite;
+        }
+
+        @keyframes gem-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .brand-title h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.35rem;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #fff, var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .badge-invariant {
+            background: rgba(102, 252, 241, 0.12);
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .btn-link-godot {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-link-godot:hover {
+            background: var(--cyan);
+            color: #000;
+            border-color: var(--cyan);
+            box-shadow: 0 0 14px var(--cyan-glow);
+        }
+
+        /* MAIN LAYOUT */
+        .arena-container {
+            display: grid;
+            grid-template-columns: 340px 1fr 340px;
+            gap: 20px;
+            padding: 24px;
+            flex: 1;
+            max-width: 1720px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* SIDEBAR PANELS */
+        .card-panel {
+            background: var(--bg-card);
+            backdrop-filter: var(--blur);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+        }
+
+        .panel-heading {
+            font-family: 'Cinzel', serif;
+            font-size: 1.05rem;
+            color: var(--cyan);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* VITAL 6-PIP HUD */
+        .vital-hud-box {
+            background: rgba(5, 8, 14, 0.6);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .combatant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .combatant-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .combatant-tag {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .pips-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .pip {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .pip.active-player {
+            background: rgba(102, 252, 241, 0.2);
+            border: 2px solid var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 12px var(--cyan-glow);
+            transform: scale(1.05);
+        }
+
+        .pip.active-opponent {
+            background: rgba(255, 51, 75, 0.2);
+            border: 2px solid var(--crimson);
+            color: var(--crimson);
+            box-shadow: 0 0 12px var(--crimson-glow);
+            transform: scale(1.05);
+        }
+
+        .pip.lost {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.15);
+            transform: scale(0.9);
+        }
+
+        /* ATTRIBUTE BADGES */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-sm);
+            padding: 6px 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+        }
+
+        .stat-name { color: var(--text-muted); }
+        .stat-val { font-family: 'Fira Code', monospace; font-weight: 600; color: #fff; }
+
+        /* TARGETING SILHOUETTE */
+        .targeting-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .zone-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .btn-zone {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 10px 8px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-zone small {
+            display: block;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .btn-zone:hover {
+            border-color: var(--cyan);
+            background: rgba(102, 252, 241, 0.1);
+        }
+
+        .btn-zone.selected {
+            background: linear-gradient(135deg, rgba(102, 252, 241, 0.25), rgba(10, 132, 255, 0.25));
+            border-color: var(--cyan);
+            color: #fff;
+            box-shadow: 0 0 16px var(--cyan-glow);
+        }
+
+        /* DODGE STANCES */
+        .btn-stance {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 10px 8px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-stance small {
+            display: block;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .btn-stance:hover {
+            border-color: var(--gold);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .btn-stance.selected {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 145, 0, 0.25));
+            border-color: var(--gold);
+            color: #fff;
+            box-shadow: 0 0 16px var(--gold-glow);
+        }
+
+        /* CENTER ARENA CANVAS */
+        .center-viewport {
+            background: rgba(5, 7, 12, 0.9);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
+        }
+
+        #arenaCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+        }
+
+        /* ARENA ACTION BAR */
+        .action-dock {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background: rgba(14, 20, 32, 0.85);
+            backdrop-filter: var(--blur);
+            border: 1px solid var(--border-glass);
+            padding: 10px 18px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 50;
+        }
+
+        .btn-action-primary {
+            background: linear-gradient(135deg, var(--cyan), var(--neon-blue));
+            border: none;
+            color: #000;
+            font-weight: 700;
+            font-size: 0.88rem;
+            padding: 10px 22px;
+            border-radius: 9999px;
+            cursor: pointer;
+            box-shadow: 0 0 18px var(--cyan-glow);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px var(--cyan);
+        }
+
+        .btn-action-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.82rem;
+            padding: 10px 16px;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action-secondary:hover {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* COMBAT CHRONICLE */
+        .chronicle-box {
+            flex: 1;
+            background: rgba(5, 8, 14, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            overflow-y: auto;
+            max-height: 280px;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chronicle-entry {
+            border-left: 2px solid var(--cyan);
+            padding-left: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .chronicle-entry.hit { border-left-color: var(--toxic-green); }
+        .chronicle-entry.evaded { border-left-color: var(--gold); }
+        .chronicle-entry.damage { border-left-color: var(--crimson); }
+        .chronicle-entry.mortar { border-left-color: #ff9100; }
+        .chronicle-entry.trench { border-left-color: var(--cyan); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* NOTIFICATION BANNER */
+        .round-banner {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(14, 20, 32, 0.9);
+            border: 1px solid var(--cyan);
+            padding: 8px 24px;
+            border-radius: 9999px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            box-shadow: 0 0 20px var(--cyan-glow);
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        @media (max-width: 1200px) {
+            .arena-container {
+                grid-template-columns: 1fr;
+            }
+            .center-viewport {
+                height: 480px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="arena-header">
+        <div class="brand-title">
+            <div class="gem-icon"></div>
+            <div>
+                <h1>POSLEDNÍ KMEN // TACTICAL DUELS</h1>
+                <small style="color: var(--text-muted); font-size: 0.75rem;">Godot 4.x & Python Core Engine Integration</small>
+            </div>
+        </div>
+        <div class="header-meta">
+            <span class="badge-invariant">VITAL_MAX_HP = 6</span>
+            <a href="/builder" class="btn-link-godot">🎨 3D Scene Builder</a>
+            <a href="/lab" class="btn-link-godot">⚡ AI Performance Lab</a>
+        </div>
+    </header>
+
+    <!-- MAIN GAME LAYOUT -->
+    <div class="arena-container">
+
+        <!-- LEFT PANEL: PLAYER HERO & TARGETING -->
+        <aside class="card-panel">
+            <div class="panel-heading">
+                <span>🛡 HRDINA (KRYŠTÁL)</span>
+                <small id="lblPlayerClass" style="color: var(--cyan); font-size: 0.72rem;">Veštec Hviezdnych Dráh</small>
+            </div>
+
+            <!-- 6 HP Pips -->
+            <div class="vital-hud-box">
+                <div class="combatant-header">
+                    <span class="combatant-name" id="lblPlayerName">Veštec Hviezdnych Dráh</span>
+                    <span class="combatant-tag">AÉTER & SVETLO</span>
+                </div>
+                <div class="pips-container" id="playerPips">
+                    <div class="pip active-player">♥</div>
+                    <div class="pip active-player">♥</div>
+                    <div class="pip active-player">♥</div>
+                    <div class="pip active-player">♥</div>
+                    <div class="pip active-player">♥</div>
+                    <div class="pip active-player">♥</div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="playerStats">
+                <div class="stat-item"><span class="stat-name">Presnosť (Aim)</span><span class="stat-val" id="stAim">34</span></div>
+                <div class="stat-item"><span class="stat-name">Uhýbanie (Dodge)</span><span class="stat-val" id="stDodge">16</span></div>
+                <div class="stat-item"><span class="stat-name">Reflexy (Reflexes)</span><span class="stat-val" id="stReflex">18</span></div>
+                <div class="stat-item"><span class="stat-name">Húževnatosť (Tough)</span><span class="stat-val" id="stTough">14</span></div>
+                <div class="stat-item"><span class="stat-name">Vystupovanie (App)</span><span class="stat-val" id="stApp">18</span></div>
+                <div class="stat-item"><span class="stat-name">Taktika (Tactics)</span><span class="stat-val" id="stTac">26</span></div>
+            </div>
+
+            <!-- Locational Targeting -->
+            <div class="targeting-section">
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--cyan);">ZAMERANIE ÚTOKU (Target Zone):</label>
+                <div class="zone-buttons">
+                    <button class="btn-zone" onclick="selectZone('head', this)">
+                        HLAVA
+                        <small>1.50x poškodenie</small>
+                    </button>
+                    <button class="btn-zone" onclick="selectZone('right_shoulder', this)">
+                        P. RAMENO
+                        <small>1.15x poškodenie</small>
+                    </button>
+                    <button class="btn-zone" onclick="selectZone('left_shoulder', this)">
+                        Ľ. RAMENO
+                        <small>1.15x poškodenie</small>
+                    </button>
+                    <button class="btn-zone selected" onclick="selectZone('torso', this)">
+                        TRUP
+                        <small>1.00x poškodenie</small>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dodge Stances -->
+            <div class="targeting-section">
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--gold);">OBRANNÝ POSTOJ (Dodge Stance):</label>
+                <div class="zone-buttons">
+                    <button class="btn-stance" onclick="selectStance('duck_down', this)">
+                        ZOHNÚŤ SA
+                        <small>Uhne rane do hlavy</small>
+                    </button>
+                    <button class="btn-stance" onclick="selectStance('lean_left', this)">
+                        ÚKROK VĽAVO
+                        <small>Uhne pravému ramenu</small>
+                    </button>
+                    <button class="btn-stance" onclick="selectStance('lean_right', this)">
+                        ÚKROK VPRAVO
+                        <small>Uhne ľavému ramenu</small>
+                    </button>
+                    <button class="btn-stance selected" onclick="selectStance('stand_firm', this)">
+                        PEVNÝ POSTOJ
+                        <small>+8% presnosť odvety</small>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER VIEWPORT: TACTICAL HEX ARENA -->
+        <main class="center-viewport">
+            <div class="round-banner" id="roundBanner">KOLO 1 // PRIPRAVENÝ NA VÝMENU</div>
+            <canvas id="arenaCanvas"></canvas>
+
+            <!-- ACTION BAR DOCK -->
+            <div class="action-dock">
+                <button class="btn-action-primary" onclick="executeDuelRound()">
+                    <span>⚡</span> Vymeniť Výstrely
+                </button>
+                <button class="btn-action-secondary" onclick="digSapperTrench()">
+                    <span>🛡</span> Zakopať Zákop (Sapper)
+                </button>
+                <button class="btn-action-secondary" onclick="launchMortarSalvo()">
+                    <span>💣</span> Mínometná Salva (CEP)
+                </button>
+                <button class="btn-action-secondary" onclick="resetMatch()">
+                    <span>🔄</span> Nový Zápas
+                </button>
+            </div>
+        </main>
+
+        <!-- RIGHT PANEL: OPPONENT & CHRONICLE -->
+        <aside class="card-panel">
+            <div class="panel-heading">
+                <span style="color: var(--crimson);">💀 SÚPER (TOXIK)</span>
+                <small id="lblOpponentClass" style="color: var(--crimson); font-size: 0.72rem;">Tieňový Čarodejník</small>
+            </div>
+
+            <!-- 6 HP Pips Opponent -->
+            <div class="vital-hud-box">
+                <div class="combatant-header">
+                    <span class="combatant-name" id="lblOpponentName">Tieňový Čarodejník</span>
+                    <span class="combatant-tag" style="color: var(--crimson);">KYSELINA & JED</span>
+                </div>
+                <div class="pips-container" id="opponentPips">
+                    <div class="pip active-opponent">💀</div>
+                    <div class="pip active-opponent">💀</div>
+                    <div class="pip active-opponent">💀</div>
+                    <div class="pip active-opponent">💀</div>
+                    <div class="pip active-opponent">💀</div>
+                    <div class="pip active-opponent">💀</div>
+                </div>
+            </div>
+
+            <!-- Sapper Cover Status -->
+            <div class="vital-hud-box">
+                <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--gold);">
+                    ŽENIJNÝ STAV POLA (Cover & Trenches):
+                </div>
+                <div style="font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;" id="trenchStatus">
+                    Hrdina na [0, -1]: Krytie 35% (Čiastočné)<br>
+                    Súper na [1, 1]: Krytie 10% (NEKRYTÝ - zraniteľný mínometom!)
+                </div>
+            </div>
+
+            <!-- Live Combat Chronicle -->
+            <div style="font-family: 'Cinzel', serif; font-size: 0.95rem; color: #fff; margin-top: 4px;">
+                BOJOVÁ KRONIKA ZÁPASU:
+            </div>
+            <div class="chronicle-box" id="chronicleBox">
+                <div class="chronicle-entry">
+                    <strong>Kolo 0:</strong> Súboj začína! Kryštálový Veštec čelí Tieňovému Čarodejníkovi. Obaja majú striktne 6 HP.
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- JAVASCRIPT SIMULATION & RENDER ENGINE -->
+    <script>
+        const VITAL_MAX_HP = 6;
+        let playerHp = 6;
+        let opponentHp = 6;
+        let currentRound = 1;
+        let isGameOver = false;
+
+        let selectedZone = "torso";
+        let selectedStance = "stand_firm";
+
+        let playerHex = [0, -1];
+        let opponentHex = [1, 1];
+        let coverMap = {
+            "0_-1": 0.35,
+            "1_1": 0.10,
+            "0_0": 0.40
+        };
+        let trenches = [];
+
+        // Mortar visual FX state
+        let activeMortarArc = null;
+
+        // ── 1. HEX BOARD DEFINITIONS ─────────────────────────────────────────
+        const HEX_COORDS = [
+            [-2, 0], [-2, 1], [-2, 2],
+            [-1, -1], [-1, 0], [-1, 1], [-1, 2],
+            [0, -2], [0, -1], [0, 0], [0, 1], [0, 2],
+            [1, -2], [1, -1], [1, 0], [1, 1],
+            [2, -2], [2, -1], [2, 0]
+        ];
+
+        // ── 2. CANVAS ISOMETRIC 3D RENDERER ──────────────────────────────────
+        const canvas = document.getElementById("arenaCanvas");
+        const ctx = canvas.getContext("2d");
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        function hexToPixel(q, r, radius = 38) {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2 + 10;
+            // Isometric projection
+            const x = cx + radius * Math.sqrt(3) * (q + r / 2);
+            const y = cy + radius * (3 / 2) * r * 0.58;
+            return { x, y };
+        }
+
+        function drawHex(x, y, radius, fillColor, strokeColor, elevation = 0) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 180) * (60 * i - 30);
+                const hx = x + radius * Math.cos(angle);
+                const hy = y + radius * Math.sin(angle) * 0.58 - elevation;
+                if (i === 0) ctx.moveTo(hx, hy);
+                else ctx.lineTo(hx, hy);
+            }
+            ctx.closePath();
+            ctx.fillStyle = fillColor;
+            ctx.fill();
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        let animTime = 0;
+        function renderScene() {
+            animTime += 0.03;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Draw Hex Grid
+            HEX_COORDS.forEach(([q, r]) => {
+                const pos = hexToPixel(q, r);
+                const hexKey = `${q}_${r}`;
+                const isTrench = trenches.includes(hexKey);
+                
+                let fill = "rgba(18, 24, 38, 0.7)";
+                let stroke = "rgba(102, 252, 241, 0.15)";
+
+                if ((q === 0 && r === 0) || (q === 1 && r === 0)) {
+                    fill = "rgba(16, 40, 52, 0.85)"; // Crystal basalt
+                    stroke = "rgba(102, 252, 241, 0.4)";
+                } else if (q < 0) {
+                    fill = "rgba(20, 36, 20, 0.8)"; // Toxic mire
+                    stroke = "rgba(57, 255, 20, 0.25)";
+                }
+
+                if (isTrench) {
+                    fill = "rgba(90, 55, 25, 0.9)"; // Sapper trench wood/sandbag
+                    stroke = "rgba(255, 215, 0, 0.6)";
+                }
+
+                drawHex(pos.x, pos.y, 38, fill, stroke);
+
+                // If trench, draw parapet wall
+                if (isTrench) {
+                    ctx.save();
+                    ctx.strokeStyle = "rgba(255, 215, 0, 0.8)";
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(pos.x - 14, pos.y - 10, 28, 18);
+                    ctx.fillStyle = "rgba(255, 215, 0, 0.9)";
+                    ctx.font = "10px Fira Code";
+                    ctx.fillText("ZÁKOP", pos.x - 18, pos.y + 4);
+                    ctx.restore();
+                }
+            });
+
+            // 2. Draw Player Avatar (Hex [0, -1])
+            const pPos = hexToPixel(playerHex[0], playerHex[1]);
+            const pFloat = Math.sin(animTime * 2.5) * 4;
+
+            // Player Glow Circle
+            const pGlow = ctx.createRadialGradient(pPos.x, pPos.y + pFloat, 5, pPos.x, pPos.y + pFloat, 28);
+            pGlow.addColorStop(0, "rgba(102, 252, 241, 0.8)");
+            pGlow.addColorStop(1, "rgba(102, 252, 241, 0)");
+            ctx.fillStyle = pGlow;
+            ctx.beginPath();
+            ctx.arc(pPos.x, pPos.y + pFloat, 28, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Player Body Prism
+            ctx.fillStyle = "#66fcf1";
+            ctx.beginPath();
+            ctx.moveTo(pPos.x, pPos.y - 24 + pFloat);
+            ctx.lineTo(pPos.x + 12, pPos.y + 8 + pFloat);
+            ctx.lineTo(pPos.x - 12, pPos.y + 8 + pFloat);
+            ctx.closePath();
+            ctx.fill();
+
+            // Familiar Orb Orbiting Player
+            const orbAngle = animTime * 3.0;
+            const ox = pPos.x + Math.cos(orbAngle) * 22;
+            const oy = pPos.y + Math.sin(orbAngle) * 12 + pFloat;
+            ctx.fillStyle = "#ffd700";
+            ctx.beginPath();
+            ctx.arc(ox, oy, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#fff";
+            ctx.font = "10px Outfit";
+            ctx.fillText("HRDINA", pPos.x - 20, pPos.y - 30 + pFloat);
+
+            // 3. Draw Opponent Avatar (Hex [1, 1])
+            const oPos = hexToPixel(opponentHex[0], opponentHex[1]);
+            const oFloat = Math.cos(animTime * 2.5) * 4;
+
+            // Opponent Glow
+            const oGlow = ctx.createRadialGradient(oPos.x, oPos.y + oFloat, 5, oPos.x, oPos.y + oFloat, 28);
+            oGlow.addColorStop(0, "rgba(255, 51, 75, 0.8)");
+            oGlow.addColorStop(1, "rgba(255, 51, 75, 0)");
+            ctx.fillStyle = oGlow;
+            ctx.beginPath();
+            ctx.arc(oPos.x, oPos.y + oFloat, 28, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Opponent Body Prism
+            ctx.fillStyle = "#ff334b";
+            ctx.beginPath();
+            ctx.moveTo(oPos.x, oPos.y - 24 + oFloat);
+            ctx.lineTo(oPos.x + 12, oPos.y + 8 + oFloat);
+            ctx.lineTo(oPos.x - 12, oPos.y + 8 + oFloat);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "10px Outfit";
+            ctx.fillText("SÚPER", oPos.x - 16, oPos.y - 30 + oFloat);
+
+            // 4. Mortar Ballistic Trajectory Arc Animation
+            if (activeMortarArc) {
+                activeMortarArc.progress += 0.04;
+                const t = activeMortarArc.progress;
+                const start = activeMortarArc.start;
+                const end = activeMortarArc.end;
+
+                const curX = start.x + (end.x - start.x) * t;
+                const curY = start.y + (end.y - start.y) * t - Math.sin(t * Math.PI) * 110;
+
+                ctx.strokeStyle = "rgba(255, 145, 0, 0.85)";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(curX, curY, 6, 0, Math.PI * 2);
+                ctx.fillStyle = "#ff9100";
+                ctx.fill();
+
+                if (activeMortarArc.progress >= 1.0) {
+                    // Shockwave impact
+                    ctx.beginPath();
+                    ctx.arc(end.x, end.y, 35, 0, Math.PI * 2);
+                    ctx.strokeStyle = "rgba(255, 69, 58, 0.9)";
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    activeMortarArc = null;
+                }
+            }
+
+            requestAnimationFrame(renderScene);
+        }
+        renderScene();
+
+        // ── 3. USER INTERACTION & API INTEGRATION ─────────────────────────────
+        function selectZone(zone, el) {
+            selectedZone = zone;
+            document.querySelectorAll(".btn-zone").forEach(b => b.classList.remove("selected"));
+            el.classList.add("selected");
+            addChronicle(`Mierenie zamerané na: <strong>${zone.toUpperCase()}</strong>`, "hit");
+        }
+
+        function selectStance(stance, el) {
+            selectedStance = stance;
+            document.querySelectorAll(".btn-stance").forEach(b => b.classList.remove("selected"));
+            el.classList.add("selected");
+            addChronicle(`Obranný postoj nastavený na: <strong>${stance.toUpperCase()}</strong>`, "evaded");
+        }
+
+        function updateVitalPips() {
+            const pCont = document.getElementById("playerPips");
+            const oCont = document.getElementById("opponentPips");
+
+            pCont.innerHTML = "";
+            for (let i = 0; i < VITAL_MAX_HP; i++) {
+                const pip = document.createElement("div");
+                pip.className = `pip ${i < playerHp ? 'active-player' : 'lost'}`;
+                pip.textContent = i < playerHp ? '♥' : '♡';
+                pCont.appendChild(pip);
+            }
+
+            oCont.innerHTML = "";
+            for (let i = 0; i < VITAL_MAX_HP; i++) {
+                const pip = document.createElement("div");
+                pip.className = `pip ${i < opponentHp ? 'active-opponent' : 'lost'}`;
+                pip.textContent = i < opponentHp ? '💀' : '▫';
+                oCont.appendChild(pip);
+            }
+
+            const tStatus = document.getElementById("trenchStatus");
+            const pKey = `${playerHex[0]}_${playerHex[1]}`;
+            const oKey = `${opponentHex[0]}_${opponentHex[1]}`;
+            const pCov = (coverMap[pKey] || 0.15) * 100;
+            const oCov = (coverMap[oKey] || 0.10) * 100;
+
+            tStatus.innerHTML = `
+                Hrdina na [${playerHex[0]}, ${playerHex[1]}]: Krytie ${pCov.toFixed(0)}% ${pCov >= 75 ? '<strong>(V ZÁKOPE)</strong>' : '(Nekrytý)'}<br>
+                Súper na [${opponentHex[0]}, ${opponentHex[1]}]: Krytie ${oCov.toFixed(0)}% ${oCov >= 75 ? '<strong>(V ZÁKOPE)</strong>' : '(Nekrytý - zraniteľný!)'}
+            `;
+        }
+
+        function addChronicle(text, type = "normal") {
+            const box = document.getElementById("chronicleBox");
+            const entry = document.createElement("div");
+            entry.className = `chronicle-entry ${type}`;
+            entry.innerHTML = `<strong>Kolo ${currentRound}:</strong> ${text}`;
+            box.appendChild(entry);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // ── 4. BACKEND API CALLS ──────────────────────────────────────────────
+        async function executeDuelRound() {
+            if (isGameOver) {
+                alert("Zápas už skončil! Kliknite na Nový Zápas.");
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/game/duel_round", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        player_attack_zone: selectedZone,
+                        player_dodge_stance: selectedStance
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    playerHp = data.player_hp;
+                    opponentHp = data.opponent_hp;
+                    currentRound = data.round_number;
+
+                    const pShot = data.player_shot;
+                    const oShot = data.opponent_shot;
+
+                    if (pShot.evaded) {
+                        addChronicle(`Súper sa úspešne vyhol strele! (${pShot.evasion_reason})`, "evaded");
+                    } else if (pShot.hit) {
+                        addChronicle(`ZÁSAH! Súper utrpel <strong>${pShot.net_damage_dealt}</strong> zranenia do ${pShot.target_zone.toUpperCase()}.`, "damage");
+                    }
+
+                    if (oShot.evaded) {
+                        addChronicle(`ÚSPEŠNÝ ÚKROK! Vyhli ste sa súperovmu útoku!`, "hit");
+                    } else if (oShot.hit) {
+                        addChronicle(`ZASIAHNUTÝ! Utrpeli ste <strong>${oShot.net_damage_dealt}</strong> zranenia.`, "damage");
+                    }
+
+                    updateVitalPips();
+                    document.getElementById("roundBanner").textContent = `KOLO ${currentRound} // VÝMENA DOKONČENÁ`;
+
+                    if (data.is_game_over) {
+                        isGameOver = true;
+                        document.getElementById("roundBanner").textContent = `🏆 VÍŤAZ: ${data.winner}`;
+                        addChronicle(`🏆 ZÁPAS UKONČENÝ: ${data.winner}`, "hit");
+                    }
+                }
+            } catch (err) {
+                console.warn("Hub offline, simulating in-browser:", err);
+                // Offline fallback
+                if (selectedZone === "head") {
+                    opponentHp = Math.max(0, opponentHp - 2);
+                    addChronicle(`Kritický zásah do hlavy! Súper utrpel 2 zranenia.`, "damage");
+                } else {
+                    opponentHp = Math.max(0, opponentHp - 1);
+                    addChronicle(`Zásah do trupu! Súper utrpel 1 zranenie.`, "damage");
+                }
+                playerHp = Math.max(0, playerHp - 1);
+                currentRound++;
+                updateVitalPips();
+            }
+        }
+
+        async function digSapperTrench() {
+            if (isGameOver) return;
+            try {
+                const res = await fetch("/api/game/sapper_trench", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        hex_coord: playerHex,
+                        unit_id: "player_hero"
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    const k = `${playerHex[0]}_${playerHex[1]}`;
+                    coverMap[k] = 0.85;
+                    if (!trenches.includes(k)) trenches.push(k);
+                    addChronicle(`Ženijná jednotka vykopala zákop na [${playerHex[0]}, ${playerHex[1]}]! Krytie: 85% (FULL_COVER). Ochrana pred mínometom je aktívna.`, "trench");
+                    updateVitalPips();
+                }
+            } catch (err) {
+                const k = `${playerHex[0]}_${playerHex[1]}`;
+                coverMap[k] = 0.85;
+                if (!trenches.includes(k)) trenches.push(k);
+                addChronicle(`Ženijná jednotka vykopala zákop! Krytie zvýšené na 85%.`, "trench");
+                updateVitalPips();
+            }
+        }
+
+        async function launchMortarSalvo() {
+            if (isGameOver) return;
+            // Trigger visual arc
+            const pPos = hexToPixel(playerHex[0], playerHex[1]);
+            const oPos = hexToPixel(opponentHex[0], opponentHex[1]);
+            activeMortarArc = {
+                start: pPos,
+                end: oPos,
+                progress: 0.0
+            };
+
+            try {
+                const res = await fetch("/api/game/mortar_strike", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        target_hex: opponentHex,
+                        salvo_count: 3,
+                        elevation_angle_deg: 65.0
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    playerHp = data.player_hp;
+                    opponentHp = data.opponent_hp;
+                    const cepLat = data.salvo.dispersion_footprint.cep_lateral_meters;
+                    const cepLon = data.salvo.dispersion_footprint.cep_longitudinal_meters;
+                    addChronicle(`MÍNOMETNÁ SALVA: Rozptyl CEP ${cepLat}m x ${cepLon}m.`, "mortar");
+
+                    data.hits.forEach(h => {
+                        addChronicle(h.summary, h.mortar_damage > 0 ? "damage" : "evaded");
+                    });
+
+                    if (data.sensory_shockwave && data.sensory_shockwave.evaluations) {
+                        data.sensory_shockwave.evaluations.forEach(ev => {
+                            const rec = ev.wave_reception;
+                            if (rec.is_sheltered_by_trench) {
+                                addChronicle(`🛡 <strong>RÁZOVÁ VLNA:</strong> ${ev.name} v zákope odklonil ${rec.trench_dampening_pct}% pretlaku nahor!`, "trench");
+                            } else {
+                                addChronicle(`💥 <strong>RÁZOVÁ VLNA:</strong> ${ev.name} zasiahnutý pretlakom ${rec.effective_intensity} kPa -> Nárazová úloha: POTLAČENIE & OTRAS!`, "damage");
+                            }
+                        });
+                    }
+
+                    updateVitalPips();
+                }
+            } catch (err) {
+                const oKey = `${opponentHex[0]}_${opponentHex[1]}`;
+                if ((coverMap[oKey] || 0.1) >= 0.75) {
+                    addChronicle(`MÍNOMETNÁ SALVA: Cieľ je v zákope - Žiadne zranenie!`, "evaded");
+                } else {
+                    opponentHp = Math.max(0, opponentHp - 2);
+                    addChronicle(`MÍNOMETNÁ SALVA: Priamy zásah nekrytého cieľa za 2 zranenia!`, "damage");
+                    updateVitalPips();
+                }
+            }
+        }
+
+        async function resetMatch() {
+            try {
+                const res = await fetch("/api/game/reset", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+                const data = await res.json();
+            } catch (e) {}
+
+            playerHp = VITAL_MAX_HP;
+            opponentHp = VITAL_MAX_HP;
+            currentRound = 1;
+            isGameOver = false;
+            trenches = [];
+            coverMap = { "0_-1": 0.35, "1_1": 0.10, "0_0": 0.40 };
+            document.getElementById("roundBanner").textContent = "KOLO 1 // PRIPRAVENÝ NA VÝMENU";
+            document.getElementById("chronicleBox").innerHTML = `
+                <div class="chronicle-entry">
+                    <strong>Kolo 0:</strong> Nový zápas inicializovaný! Obaja súperi majú 6 HP.
+                </div>
+            `;
+            updateVitalPips();
+        }
+
+        // Initialize UI
+        updateVitalPips();
+    </script>
+</body>
+</html>

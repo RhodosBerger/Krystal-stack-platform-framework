@@ -120,6 +120,14 @@ class TestWordPressSubdomainSecurity(unittest.TestCase):
 
 class TestWordPressSubdomainHttpEndpoints(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        try:
+            with urllib.request.urlopen(f"{BASE_URL}/api/wordpress/subdomain/security-status", timeout=1):
+                pass
+        except Exception:
+            raise unittest.SkipTest("Krystal Web Hub server is not running on port 8089; skipping HTTP live integration tests.")
+
     def test_01_subdomain_security_status_endpoint(self):
         req = urllib.request.Request(f"{BASE_URL}/api/wordpress/subdomain/security-status")
         with urllib.request.urlopen(req, timeout=5) as resp:

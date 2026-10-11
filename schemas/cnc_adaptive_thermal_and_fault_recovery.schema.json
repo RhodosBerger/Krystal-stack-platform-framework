@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CNCAdaptiveThermalAndFaultRecoverySchema",
+  "description": "Schema for Krystal CNC Adaptive Thermal Dynamics, Dynamic RPM Governor, and Collapse Differential Recovery v1.0.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "thermal_telemetry",
+    "dynamic_rpm_governor",
+    "tool_vitality_index",
+    "collapse_differentials"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "thermal_telemetry": {
+      "type": "object",
+      "required": ["tool_temp_c", "workpiece_temp_c", "temp_gradient_c_per_s", "heat_partition_tool_pct"],
+      "properties": {
+        "tool_temp_c": { "type": "number", "minimum": -20.0, "maximum": 1500.0 },
+        "workpiece_temp_c": { "type": "number", "minimum": -20.0, "maximum": 1200.0 },
+        "temp_gradient_c_per_s": { "type": "number" },
+        "heat_partition_tool_pct": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
+        "sensor_health": { "type": "string", "enum": ["HEALTHY", "DEGRADED", "DROPOUT_ESTIMATED"] }
+      }
+    },
+    "dynamic_rpm_governor": {
+      "type": "object",
+      "required": ["baseline_rpm", "active_rpm", "feed_rate_mm_min", "modulation_mode"],
+      "properties": {
+        "baseline_rpm": { "type": "integer", "minimum": 500, "maximum": 60000 },
+        "active_rpm": { "type": "integer", "minimum": 500, "maximum": 60000 },
+        "feed_rate_mm_min": { "type": "number", "minimum": 10.0, "maximum": 30000.0 },
+        "modulation_mode": { "type": "string", "enum": ["STATIC_LINEAR", "SSV_HARMONIC", "THERMAL_THROTTLE_BREATHER", "SAFE_RETRACT"] },
+        "chatter_suppression_active": { "type": "boolean" },
+        "thermal_damping_factor": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+      }
+    },
+    "tool_vitality_index": {
+      "type": "object",
+      "required": ["tool_hp", "vital_max_hp", "flank_wear_vb_mm"],
+      "properties": {
+        "tool_hp": { "type": "integer", "minimum": 0, "maximum": 6 },
+        "vital_max_hp": { "type": "integer", "const": 6 },
+        "flank_wear_vb_mm": { "type": "number", "minimum": 0.0, "maximum": 2.0 },
+        "health_tier": { "type": "string", "enum": ["PRISTINE", "BREAK_IN", "STEADY_WEAR", "ELEVATED_TEMP", "SEVERE_WEAR", "CRITICAL_EXHAUSTED"] },
+        "estimated_remaining_cut_time_min": { "type": "number", "minimum": 0.0 }
+      }
+    },
+    "collapse_differentials": {
+      "type": "object",
+      "required": ["fallback_mode", "active_faults", "self_healing_active"],
+      "properties": {
+        "fallback_mode": {
+          "type": "string",
+          "enum": ["NOMINAL", "THERMAL_THROTTLE", "KALMAN_SENSOR_ESTIMATE", "COOLANT_LOSS_TROCHOIDAL", "SAFE_AXIS_RETRACT", "EMERGENCY_SAFE_PARK"]
+        },
+        "active_faults": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "self_healing_active": { "type": "boolean" },
+        "spliced_gcode_blocks": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

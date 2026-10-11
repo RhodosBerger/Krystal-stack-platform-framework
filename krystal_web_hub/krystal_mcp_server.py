@@ -26,6 +26,7 @@ from .economic_engine import (
     BUILDING_REGISTRY, ABILITY_REGISTRY, RoundController,
     EconomicLedger, MatchState, calculate_hex_distance, validate_target_range
 )
+from krystal_kernel import GLOBAL_COPING_CORTEX_MCP_BRIDGE
 
 class KrystalMcpProtocolServer:
     """
@@ -56,7 +57,10 @@ class KrystalMcpProtocolServer:
             "krystal-set-spatial-conditions": self.handle_set_spatial_conditions,
             "krystal-preview-scene": self.handle_preview_scene,
             "krystal-edit-node": self.handle_edit_node,
-            "krystal-bridge-to-oxygen": self.handle_bridge_to_oxygen
+            "krystal-bridge-to-oxygen": self.handle_bridge_to_oxygen,
+            "cortex-triage-coping-priority": self.handle_cortex_triage_coping,
+            "cortex-cluster-synonym-embeddings": self.handle_cortex_cluster_synonyms,
+            "silicon-unlock-potential": self.handle_silicon_unlock_potential
         }
 
     # --------------------------------------------------------------------------
@@ -380,6 +384,21 @@ class KrystalMcpProtocolServer:
             "target_tool": oxygen_payload["tool_to_call"],
             "payload": oxygen_payload["arguments"]
         }
+
+    # --------------------------------------------------------------------------
+    # 9. PSYCHOLOGICAL COPING CORTEX & SILICON UNLOCK MCP HANDLERS
+    # --------------------------------------------------------------------------
+    def handle_cortex_triage_coping(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Evaluates and prioritizes tasks using psychological coping mechanism analogies."""
+        return GLOBAL_COPING_CORTEX_MCP_BRIDGE.dispatch_mcp_tool("cortex_triage_coping_priority", args)
+
+    def handle_cortex_cluster_synonyms(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Clusters LLM semantic synonyms through coping taxonomy to save bandwidth."""
+        return GLOBAL_COPING_CORTEX_MCP_BRIDGE.dispatch_mcp_tool("cortex_cluster_synonym_embeddings", args)
+
+    def handle_silicon_unlock_potential(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Audits and unblocks artificial OEM marketing clamps on Core i5/i7 silicon."""
+        return GLOBAL_COPING_CORTEX_MCP_BRIDGE.dispatch_mcp_tool("silicon_unlock_potential", args)
 
     # --------------------------------------------------------------------------
     # INTERNAL HELPERS

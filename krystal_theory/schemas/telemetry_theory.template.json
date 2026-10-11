@@ -1,0 +1,41 @@
+{
+  "theory": "nazov_teorie",
+  "version": 1,
+  "title": "NÁZOV: čo telemetria diagnostikuje",
+  "scope": "Ktorý modul / ktorá veta; čo je mimo rozsahu.",
+  "theory_refs": ["05_telemetria_ako_diagnostika.md"],
+  "signals": [
+    {
+      "id": "S-NAZOV",
+      "quantity": "čo sa meria",
+      "unit": "jednotka",
+      "observes": "stavová premenná z 00_notacia (alebo 'nástroj')",
+      "source": {"kind": "external", "api": "zatiaľ neurčené", "privileges": "none"},
+      "sampling": {"interval_ms": null, "quantum": null, "quantum_unit": "jednotka", "bandwidth_hz_estimate": null},
+      "noise_model": {"kind": "unknown", "basis": "zatiaľ nemeraný"},
+      "provenance": "TARGET",
+      "notes": "TARGET = signál, ktorý ešte nemáme. Pri MEASURED doplň measured_on {machine, date, runs}."
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "H-X1",
+      "claim": "Presné, falzifikovateľné tvrdenie s číslom a podmienkami.",
+      "target": "system",
+      "theory_refs": ["Veta / Lema, z ktorej predikcia plynie"],
+      "assumptions": ["Axiómy, ktoré musia platiť, aby predikcia platila"],
+      "signals": ["S-NAZOV"],
+      "protocol": {"steps": ["1) záťaž", "2) vzorkovanie f_s a trvanie", "3) štatistika"], "duration_s": null, "runs": 3, "alpha": 0.05, "rail": null},
+      "rejection_criteria": [
+        {"id": "R1", "statistic": "štatistika", "operator": ">", "threshold": 0, "statement": "Zamietni, ak ..."}
+      ],
+      "combine": "any",
+      "consequence_if_rejected": "Ktorá veta prestáva platiť pre tento systém a aký cieľ G# vzniká.",
+      "status": "NEOVERENÉ"
+    }
+  ],
+  "verdicts": [],
+  "derived_goals": [],
+  "open_questions": [],
+  "last_checked": "2026-10-09"
+}

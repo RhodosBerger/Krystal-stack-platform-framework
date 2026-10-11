@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "diagnostic_hypothesis.schema.json",
+  "title": "Diagnostická hypotéza",
+  "description": "Falzifikovateľné tvrdenie o systéme alebo o prístroji: predpoklady, použité signály, protokol (voliteľne s rail presetom) a kritériá zamietnutia. Kritérium je podmienka ZAMIETNUTIA: 'zamietni, ak statistic operator threshold'. Pozri 05_telemetria_ako_diagnostika.md §5.4.",
+  "type": "object",
+  "required": ["id", "claim", "target", "theory_refs", "assumptions", "signals", "protocol", "rejection_criteria", "combine", "consequence_if_rejected", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^H-[A-Z]+[0-9]+$"},
+    "claim": {"type": "string", "minLength": 10},
+    "target": {"enum": ["system", "instrument"], "description": "system = tvrdenie o meranom systéme; instrument = tvrdenie o samotnom meracom reťazci."},
+    "theory_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "assumptions": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "signals": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^S-[A-Z0-9_-]{1,32}$"}},
+    "protocol": {"$ref": "#/$defs/protocol"},
+    "rejection_criteria": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/criterion"}},
+    "combine": {"enum": ["any", "all"], "description": "any = zamietni, ak platí ktorékoľvek kritérium (OR)."},
+    "consequence_if_rejected": {"type": "string", "minLength": 1},
+    "status": {"enum": ["NEOVERENÉ", "NEZAMIETNUTÉ", "ZAMIETNUTÉ", "BLOKOVANÉ", "OTVORENÉ"]},
+    "blocked_by": {"type": "string"}
+  },
+  "$defs": {
+    "protocol": {
+      "type": "object",
+      "required": ["steps", "runs"],
+      "additionalProperties": false,
+      "properties": {
+        "steps": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "duration_s": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "runs": {"type": "integer", "minimum": 1},
+        "alpha": {"type": "number", "exclusiveMinimum": 0, "maximum": 0.5, "description": "Hladina významnosti jedného kritéria."},
+        "rail": {"type": ["string", "null"], "pattern": "^[a-z][a-z0-9_]{0,31}$", "description": "Preset v krystal_kernel/rails/presets (bez prípony)."}
+      }
+    },
+    "criterion": {
+      "type": "object",
+      "required": ["id", "statistic", "operator", "threshold", "statement"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^R[0-9]+$"},
+        "statistic": {"type": "string", "minLength": 1},
+        "operator": {"enum": ["<", "<=", ">", ">=", "outside", "inside"]},
+        "threshold": {"type": ["number", "string"]},
+        "statement": {"type": "string", "minLength": 1},
+        "rail_output": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}\\.[a-z][a-z0-9_]{0,31}$"}
+      }
+    }
+  }
+}

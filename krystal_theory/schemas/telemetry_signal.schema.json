@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "telemetry_signal.schema.json",
+  "title": "Telemetrický signál (senzor)",
+  "description": "Jeden pozorovaný signál: čo meria, ktorú stavovú premennú teórie pozoruje, odkiaľ pochádza, ako je vzorkovaný a kvantovaný a aký model šumu sa predpokladá. Pozri krystal_theory/05_telemetria_ako_diagnostika.md §5.1.",
+  "type": "object",
+  "required": ["id", "quantity", "unit", "observes", "source", "sampling", "noise_model", "provenance"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^S-[A-Z0-9_-]{1,32}$"},
+    "quantity": {"type": "string", "minLength": 1, "description": "Čo sa meria, napr. 'termálny tlak θ'."},
+    "unit": {"type": "string", "minLength": 1},
+    "observes": {"type": "string", "minLength": 1, "description": "Stavová premenná teórie (00_notacia), ktorú signál pozoruje, alebo 'nástroj', ak signál meria samotný prístroj."},
+    "source": {"$ref": "#/$defs/source"},
+    "sampling": {"$ref": "#/$defs/sampling"},
+    "noise_model": {"$ref": "#/$defs/noise_model"},
+    "provenance": {"enum": ["MEASURED", "MODELED", "TARGET"]},
+    "measured_on": {"$ref": "#/$defs/measured_on"},
+    "rail_node": {"type": "string", "pattern": "^[a-z]+\\.[a-z0-9_]+$", "description": "Funkcia uzla rail, ktorá signál produkuje (napr. source.synthetic_series)."},
+    "notes": {"type": "string"}
+  },
+  "anyOf": [
+    {"properties": {"provenance": {"enum": ["MODELED", "TARGET"]}}},
+    {"properties": {"provenance": {"const": "MEASURED"}}, "required": ["measured_on"]}
+  ],
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["kind", "api", "privileges"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"enum": ["synthetic", "stdlib_clock", "os_counter", "hw_counter", "external"]},
+        "api": {"type": "string", "minLength": 1},
+        "privileges": {"enum": ["none", "admin", "kernel_driver"]},
+        "requires_user_approval": {"type": "boolean"}
+      },
+      "anyOf": [
+        {"properties": {"privileges": {"const": "none"}}},
+        {"properties": {"requires_user_approval": {"const": true}}, "required": ["requires_user_approval"]}
+      ],
+      "$comment": "Privilegovaný zdroj (admin / ovládač jadra) musí niesť requires_user_approval = true (pravidlo engineering-verification-and-honesty)."
+    },
+    "sampling": {
+      "type": "object",
+      "required": ["interval_ms", "quantum"],
+      "additionalProperties": false,
+      "properties": {
+        "interval_ms": {"type": ["number", "null"], "exclusiveMinimum": 0, "description": "null = neznáme / nevzorkované v čase."},
+        "jitter_ms_max": {"type": ["number", "null"], "minimum": 0},
+        "quantum": {"type": ["number", "null"], "minimum": 0, "description": "Krok kvantovania q v jednotkách quantum_unit; 0 = bez kvantovania; null = neznáme."},
+        "quantum_unit": {"type": "string"},
+        "bandwidth_hz_estimate": {"type": ["number", "null"], "minimum": 0, "description": "Odhad šírky pásma B pozorovaného javu (§5.2, podmienka f_s > 2B)."}
+      }
+    },
+    "noise_model": {
+      "type": "object",
+      "required": ["kind", "basis"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"enum": ["iid", "bounded", "ar1", "quantized", "unknown"]},
+        "delta": {"type": ["number", "null"], "minimum": 0, "description": "Hranica šumu δ (A3.2), ak je model 'bounded'."},
+        "phi": {"type": ["number", "null"], "minimum": -1, "maximum": 1},
+        "basis": {"type": "string", "minLength": 1, "description": "Odkiaľ model pochádza: axióm, meranie, zvolený parameter modelu."}
+      }
+    },
+    "measured_on": {
+      "type": "object",
+      "required": ["machine", "date", "runs"],
+      "additionalProperties": false,
+      "properties": {
+        "machine": {"type": "string", "minLength": 3},
+        "date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+        "runs": {"type": "integer", "minimum": 1},
+        "tool": {"type": "string"},
+        "artifact": {"type": "string"}
+      }
+    }
+  }
+}

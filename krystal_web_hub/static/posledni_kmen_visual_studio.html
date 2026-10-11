@@ -1,0 +1,3153 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POSLEDNÍ KMEN // VIZUÁLNY ENGINE & PORTÁL SVĚTA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #07090e;
+            --bg-card: rgba(14, 20, 32, 0.78);
+            --border-gold: rgba(212, 175, 55, 0.3);
+            --border-cyan: rgba(102, 252, 241, 0.3);
+            --blur: blur(20px) saturate(180%);
+            
+            --gold: #d4af37;
+            --gold-light: #f5d77f;
+            --cyan: #66fcf1;
+            --cyan-glow: rgba(102, 252, 241, 0.45);
+            --toxic-green: #39ff14;
+            --toxic-glow: rgba(57, 255, 20, 0.4);
+            --druid-amber: #ff9100;
+            --druid-glow: rgba(255, 145, 0, 0.4);
+            --purple: #9d4edd;
+            --text-main: #f0f4f8;
+            --text-muted: #8892b0;
+            --radius-pill: 9999px;
+            --radius-md: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(102, 252, 241, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 90% 80%, rgba(157, 78, 221, 0.06) 0%, transparent 45%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        /* ── HEADER ──────────────────────────────────────────────────────── */
+        header.pk-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 36px;
+            background: rgba(9, 13, 20, 0.88);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .brand-badge {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .pk-emblem {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--gold), #8a6d25);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            color: #000;
+            font-size: 0.82rem;
+            box-shadow: 0 0 16px rgba(212, 175, 55, 0.5);
+        }
+
+        .pk-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        .pk-title small {
+            display: block;
+            font-size: 0.62rem;
+            letter-spacing: 3px;
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        nav.menu-links {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .nav-item {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            transition: all 0.2s ease;
+            position: relative;
+            padding: 6px 0;
+            cursor: pointer;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: #fff;
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0; height: 2px;
+            background: var(--gold);
+            box-shadow: 0 0 8px var(--gold);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .lang-switch {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .lang-switch span.active {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .btn-buy-pk {
+            background: linear-gradient(135deg, var(--gold), #997a22);
+            color: #000;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            font-weight: 800;
+            font-size: 0.82rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 0 18px rgba(212, 175, 55, 0.4);
+            transition: all 0.2s;
+        }
+
+        .btn-buy-pk:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.7);
+        }
+
+        /* ── SECTION TABS ─────────────────────────────────────────────────── */
+        .section-tabs-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(14, 20, 32, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 8px 22px;
+            border-radius: var(--radius-pill);
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--cyan);
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            background: rgba(102, 252, 241, 0.15);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 16px var(--cyan-glow);
+        }
+
+        /* ── HERO VIEW: 3D FLOATING ISLAND & WELL OF SOULS ────────────────── */
+        .hero-island-section {
+            position: relative;
+            height: 720px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-title-overlay {
+            position: absolute;
+            top: 40px;
+            text-align: center;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .hero-title-overlay h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 3.4rem;
+            letter-spacing: 6px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #ffffff 30%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+        }
+
+        .hero-title-overlay p {
+            color: var(--gold);
+            font-size: 0.85rem;
+            letter-spacing: 4px;
+            margin-top: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        #islandCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: grab;
+        }
+
+        #islandCanvas:active {
+            cursor: grabbing;
+        }
+
+        .island-bottom-meta {
+            position: absolute;
+            bottom: 30px;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 48px;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .island-bottom-meta .stats-summary {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+        }
+
+        .btn-enter-game {
+            pointer-events: auto;
+            background: linear-gradient(135deg, var(--gold), #997a22);
+            color: #000;
+            padding: 14px 34px;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.6);
+            transition: all 0.25s;
+        }
+
+        .btn-enter-game:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.9);
+        }
+
+        /* ── TRIBAL INSPECTOR & RADAR PENTAGON (SCREENSHOT 2) ──────────────── */
+        .tribal-section {
+            padding: 48px 60px;
+            background: rgba(10, 14, 22, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: grid;
+            grid-template-columns: 1.2fr 380px;
+            gap: 40px;
+            position: relative;
+        }
+
+        .tribe-details-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .tribe-subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            letter-spacing: 4px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .tribe-main-heading {
+            font-family: 'Cinzel', serif;
+            font-size: 3.8rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            line-height: 1;
+            background: linear-gradient(180deg, #ffffff 40%, var(--cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tribe-title-quote {
+            font-family: 'Cinzel', serif;
+            font-style: italic;
+            font-size: 1.4rem;
+            color: var(--cyan);
+            margin-top: -6px;
+        }
+
+        .tribe-lore-text {
+            color: var(--text-muted);
+            font-size: 0.96rem;
+            line-height: 1.7;
+            max-width: 680px;
+        }
+
+        .combat-profile-box {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 30px;
+            margin-top: 16px;
+            background: rgba(14, 20, 32, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 24px;
+        }
+
+        .sliders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .slider-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            font-family: 'Fira Code', monospace;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .slider-track {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slider-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan), var(--gold));
+            border-radius: 9999px;
+            box-shadow: 0 0 10px var(--cyan-glow);
+            transition: width 0.4s ease;
+        }
+
+        /* RADAR PENTAGON */
+        .radar-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #radarSvg {
+            width: 190px;
+            height: 190px;
+        }
+
+        /* RIGHT TRIBAL CARDS ACCORDION */
+        .tribal-selector-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .tribe-card-item {
+            background: rgba(14, 20, 32, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tribe-card-item:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(20, 28, 44, 0.85);
+        }
+
+        .tribe-card-item.active {
+            border-color: var(--cyan);
+            background: rgba(10, 32, 48, 0.85);
+            box-shadow: 0 0 20px rgba(102, 252, 241, 0.25);
+        }
+
+        .tribe-card-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0; width: 4px;
+            background: var(--cyan);
+            box-shadow: 0 0 12px var(--cyan);
+        }
+
+        .tribe-card-item.active.toxic {
+            border-color: var(--toxic-green);
+            background: rgba(16, 40, 20, 0.85);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.25);
+        }
+        .tribe-card-item.active.toxic::before { background: var(--toxic-green); }
+
+        .tribe-card-item.active.druid {
+            border-color: var(--gold);
+            background: rgba(36, 28, 12, 0.85);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+        }
+        .tribe-card-item.active.druid::before { background: var(--gold); }
+
+        .tribe-emblem-small {
+            font-size: 1.8rem;
+        }
+
+        .tribe-card-info h4 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+        }
+
+        .tribe-card-info small {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+        }
+
+        /* ── LEADERBOARD PODIUMS (SCREENSHOT 4) ────────────────────────────── */
+        .leaderboard-section {
+            padding: 50px 60px;
+            background: rgba(8, 11, 18, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .podiums-grid {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 24px;
+            max-width: 1080px;
+            width: 100%;
+        }
+
+        .podium-card {
+            background: rgba(14, 20, 32, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            width: 310px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .podium-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .podium-card.rank-1 {
+            border-color: var(--gold);
+            box-shadow: 0 0 35px rgba(212, 175, 55, 0.35);
+            transform: translateY(-16px);
+        }
+        .podium-card.rank-1:hover {
+            transform: translateY(-24px);
+        }
+
+        .podium-art-header {
+            height: 190px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rank-numeral {
+            font-family: 'Cinzel', serif;
+            font-size: 4.8rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.75);
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+            z-index: 5;
+        }
+
+        .rank-1 .rank-numeral {
+            color: var(--gold);
+            text-shadow: 0 0 25px rgba(212, 175, 55, 0.8);
+        }
+
+        .podium-body {
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(10, 14, 22, 0.95);
+        }
+
+        .podium-tribe-tag {
+            font-family: 'Cinzel', serif;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            color: var(--toxic-green);
+        }
+
+        .podium-player-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .podium-stats-row {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+        }
+
+        .podium-stat-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .podium-stat-col small {
+            font-size: 0.62rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        /* ── NEURAL CORTEX & MEMORY BENCHMARK STUDIO ── */
+        .neural-cortex-section {
+            padding: 40px 48px 60px;
+            background: linear-gradient(180deg, rgba(8, 12, 18, 0.95) 0%, rgba(5, 7, 10, 0.98) 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .cortex-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 18px;
+        }
+
+        .cortex-header-row h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            color: var(--gold);
+            letter-spacing: 2px;
+        }
+
+        .cortex-header-row p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .cortex-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .cortex-card {
+            background: rgba(14, 20, 32, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            backdrop-filter: var(--blur);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .cortex-card-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #fff;
+        }
+
+        .cortex-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            border: 1px solid rgba(102, 252, 241, 0.4);
+            color: var(--cyan);
+            background: rgba(102, 252, 241, 0.08);
+        }
+
+        .cortex-badge.shield-ok {
+            border-color: rgba(57, 255, 20, 0.5);
+            color: var(--toxic-green);
+            background: rgba(57, 255, 20, 0.1);
+        }
+
+        .cortex-btn {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.05));
+            border: 1px solid var(--gold);
+            color: #fff;
+            padding: 10px 18px;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .cortex-btn:hover {
+            background: var(--gold);
+            color: #07090e;
+            box-shadow: 0 0 15px var(--gold-glow);
+        }
+
+        .cortex-metric-box {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .metric-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .metric-cell span {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .metric-cell strong {
+            font-size: 1.05rem;
+            font-family: 'Fira Code', monospace;
+            color: #fff;
+        }
+
+        .cores-strip {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .core-pill {
+            flex: 1;
+            padding: 8px 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            transition: all 0.3s ease;
+        }
+
+        .core-pill.active-p {
+            border-color: var(--cyan);
+            background: rgba(102, 252, 241, 0.15);
+            color: var(--cyan);
+            box-shadow: 0 0 8px rgba(102, 252, 241, 0.3);
+        }
+
+        .core-pill.active-e {
+            border-color: var(--toxic-green);
+            background: rgba(57, 255, 20, 0.15);
+            color: var(--toxic-green);
+            box-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
+        }
+
+        .strategy-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .strategy-chip {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .strategy-chip:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            color: #fff;
+        }
+
+        .strategy-chip.active {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.15);
+            color: var(--gold);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP NAVIGATION (Exact Match to Screenshot 2) -->
+    <header class="pk-nav">
+        <div class="brand-badge">
+            <div class="pk-emblem">LT</div>
+            <div class="pk-title">
+                POSLEDNÍ KMEN
+                <small>PORTÁL SVĚTA • CZ/SK</small>
+            </div>
+        </div>
+
+        <nav class="menu-links">
+            <a class="nav-item" onclick="switchSection('hero')">DOMŮ</a>
+            <a class="nav-item active" onclick="switchSection('tribes')">KMENY</a>
+            <a class="nav-item" onclick="switchSection('cards')">KARTY</a>
+            <a class="nav-item" onclick="switchSection('leaderboard')">ŽEBŘÍČEK</a>
+            <a class="nav-item">AKCE</a>
+            <a class="nav-item">PŘÍBĚH</a>
+            <a class="nav-item">PRAVIDLA</a>
+            <a class="nav-item">KOMUNITA</a>
+        </nav>
+
+        <div class="header-actions">
+            <div class="lang-switch">SK / <span class="active">CZ</span></div>
+            <button class="btn-buy-pk">KOUPIT HRU</button>
+            <span style="font-size: 0.8rem; font-family: 'Cinzel', serif; cursor: pointer;">PŘIHLÁSIT</span>
+        </div>
+    </header>
+
+    <!-- SECTION TABS -->
+    <div class="section-tabs-bar">
+        <button class="tab-btn active" onclick="scrollToSection('heroIsland')">🗺 3D Plávajúci Ostrov (Studna Duší)</button>
+        <button class="tab-btn" onclick="scrollToSection('tribalInspector')">🛡 Kmeňový Inšpektor & Radar Pentagón</button>
+        <button class="tab-btn" onclick="scrollToSection('leaderboardSection')">🏆 Oficiálny Žebříček (Podiums)</button>
+        <button class="tab-btn" onclick="scrollToSection('neuralCortexStudio')">🧠 Keras/TF Scény & Memory Benchmark</button>
+        <a href="/augmented_reality_simulation_studio.html" class="tab-btn" style="text-decoration: none; border-color: var(--cyan); color: var(--cyan);">🌐 3D Augmented Three.js & Sockets</a>
+        <a href="/game" class="tab-btn" style="text-decoration: none;">⚔ Otvoriť Taktický Súboj (The West)</a>
+    </div>
+
+    <!-- ── 1. 3D FLOATING ISLAND & WELL OF SOULS (Screenshot 1) ─────────────── -->
+    <section class="hero-island-section" id="heroIsland">
+        <div class="hero-title-overlay">
+            <p>VSTUP DO SVĚTA • SEZÓNA I</p>
+            <h2>POSLEDNÍ KMEN</h2>
+        </div>
+
+        <canvas id="islandCanvas"></canvas>
+
+        <div class="island-bottom-meta">
+            <div class="stats-summary">
+                3 KMENY • 129 KARET • ∞ STRATEGIÍ
+            </div>
+            <a href="/game" style="text-decoration: none;">
+                <button class="btn-enter-game">KOUPIT POSLEDNÍ KMEN ▶</button>
+            </a>
+        </div>
+    </section>
+
+    <!-- ── 2. TRIBAL INSPECTOR & RADAR PENTAGON (Screenshot 2) ──────────────── -->
+    <section class="tribal-section" id="tribalInspector">
+        
+        <div class="tribe-details-panel">
+            <div class="tribe-subtitle" id="tSub">SEVERNÍ ŠTÍTY • KAPITOLA I</div>
+            <div class="tribe-main-heading" id="tHeading">CRYSTAL</div>
+            <div class="tribe-title-quote" id="tQuote">Vládci mrazu</div>
+            <p class="tribe-lore-text" id="tLore">
+                Z hlubin zamrzlých štítů přichází kmen, jehož magické krystaly dokáží zpomalit čas 
+                a zakořenit i nejrychlejšího protivníka. Jejich královna velí bouřím.
+            </p>
+
+            <div class="combat-profile-box">
+                <!-- Sliders -->
+                <div class="sliders-list">
+                    <div style="font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 2px; color: var(--gold); margin-bottom: 4px;">
+                        BOJOVÝ PROFIL
+                    </div>
+                    
+                    <div class="slider-row">
+                        <div class="slider-labels"><span>OBTÍŽNOST</span><span id="vObt">4</span></div>
+                        <div class="slider-track"><div class="slider-fill" id="bObt" style="width: 80%;"></div></div>
+                    </div>
+                    <div class="slider-row">
+                        <div class="slider-labels"><span>KONTROLA</span><span id="vKon">5</span></div>
+                        <div class="slider-track"><div class="slider-fill" id="bKon" style="width: 100%;"></div></div>
+                    </div>
+                    <div class="slider-row">
+                        <div class="slider-labels"><span>POŠKOZENÍ</span><span id="vPos">3</span></div>
+                        <div class="slider-track"><div class="slider-fill" id="bPos" style="width: 60%;"></div></div>
+                    </div>
+                    <div class="slider-row">
+                        <div class="slider-labels"><span>DOSAH</span><span id="vDos">4</span></div>
+                        <div class="slider-track"><div class="slider-fill" id="bDos" style="width: 80%;"></div></div>
+                    </div>
+                </div>
+
+                <!-- 5-Axis Radar Pentagón -->
+                <div class="radar-box">
+                    <svg id="radarSvg" viewBox="0 0 200 200">
+                        <!-- Radar grid rings -->
+                        <polygon points="100,20 176,75 147,165 53,165 24,75" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+                        <polygon points="100,50 148,85 130,140 70,140 52,85" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                        <!-- Axes -->
+                        <line x1="100" y1="100" x2="100" y2="20" stroke="rgba(255,255,255,0.15)"/>
+                        <line x1="100" y1="100" x2="176" y2="75" stroke="rgba(255,255,255,0.15)"/>
+                        <line x1="100" y1="100" x2="147" y2="165" stroke="rgba(255,255,255,0.15)"/>
+                        <line x1="100" y1="100" x2="53" y2="165" stroke="rgba(255,255,255,0.15)"/>
+                        <line x1="100" y1="100" x2="24" y2="75" stroke="rgba(255,255,255,0.15)"/>
+                        <!-- Dynamic filled polygon -->
+                        <polygon id="radarPoly" points="100,36 160,80 137,150 62,150 39,80" fill="rgba(102, 252, 241, 0.35)" stroke="#66fcf1" stroke-width="2"/>
+                        <!-- Labels -->
+                        <text x="100" y="14" fill="#8892b0" font-size="9" font-family="Fira Code" text-anchor="middle">OBT</text>
+                        <text x="185" y="78" fill="#8892b0" font-size="9" font-family="Fira Code" text-anchor="start">KON</text>
+                        <text x="152" y="178" fill="#8892b0" font-size="9" font-family="Fira Code" text-anchor="start">POŠ</text>
+                        <text x="48" y="178" fill="#8892b0" font-size="9" font-family="Fira Code" text-anchor="end">ODO</text>
+                        <text x="15" y="78" fill="#8892b0" font-size="9" font-family="Fira Code" text-anchor="end">DOS</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Deck composition meta -->
+            <div style="display: flex; gap: 24px; font-family: 'Fira Code', monospace; font-size: 0.8rem; margin-top: 8px;">
+                <span>STATISTIKY BALÍČKU: <strong style="color: var(--cyan);">25 KARET</strong></span>
+                <span style="color: var(--text-muted);">AKCE: 16 (64%)</span>
+                <span style="color: var(--text-muted);">POMOCNÍCI: 9 (36%)</span>
+            </div>
+        </div>
+
+        <!-- Right Side Tribal Selector Accordion -->
+        <div class="tribal-selector-list">
+            <div style="font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 3px; color: var(--text-muted); margin-bottom: 4px;">
+                TŘI KMENY • TŘI CESTY
+            </div>
+
+            <div class="tribe-card-item active" onclick="selectTribe('crystal')">
+                <div class="tribe-emblem-small">💎</div>
+                <div class="tribe-card-info">
+                    <small>I - KMEN</small>
+                    <h4>CRYSTAL</h4>
+                    <small>Severní štíty</small>
+                </div>
+            </div>
+
+            <div class="tribe-card-item toxic" onclick="selectTribe('toxic')">
+                <div class="tribe-emblem-small">🧪</div>
+                <div class="tribe-card-info">
+                    <small>II - KMEN</small>
+                    <h4>TOXIC</h4>
+                    <small>Hnijící slatiny</small>
+                </div>
+            </div>
+
+            <div class="tribe-card-item druid" onclick="selectTribe('druid')">
+                <div class="tribe-emblem-small">🌿</div>
+                <div class="tribe-card-info">
+                    <small>III - KMEN</small>
+                    <h4>DRUID</h4>
+                    <small>Pradávný les</small>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ── 3. LEADERBOARD PODIUMS (Screenshot 4) ────────────────────────────── -->
+    <section class="leaderboard-section" id="leaderboardSection">
+        <div style="display: flex; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+            <button class="tab-btn active" style="border-radius: 4px;">PLNÁ HRA</button>
+            <button class="tab-btn" style="border-radius: 4px;">ZAČÁTEČNÍK</button>
+        </div>
+
+        <div class="podiums-grid">
+            <!-- Rank 2: LUKY (DRUID) -->
+            <div class="podium-card">
+                <div class="podium-art-header" style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.85)), radial-gradient(circle, #552707, #07090e);">
+                    <div class="rank-numeral">2</div>
+                </div>
+                <div class="podium-body">
+                    <div class="podium-tribe-tag" style="color: var(--druid-amber);">DRUID</div>
+                    <div class="podium-player-name">LUKY</div>
+                    <div class="podium-stats-row">
+                        <div class="podium-stat-col"><strong>1</strong><small>VÍTĚZSTVÍ</small></div>
+                        <div class="podium-stat-col"><strong style="color: var(--gold);">100.0%</strong><small>WR%</small></div>
+                        <div class="podium-stat-col"><strong>2</strong><small>BODY</small></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rank 1: KRABO (TOXIC) -->
+            <div class="podium-card rank-1">
+                <div class="podium-art-header" style="background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.85)), radial-gradient(circle, #1e4620, #07090e);">
+                    <div class="rank-numeral">1</div>
+                </div>
+                <div class="podium-body">
+                    <div class="podium-tribe-tag" style="color: var(--toxic-green);">TOXIC</div>
+                    <div class="podium-player-name">KRABO</div>
+                    <div class="podium-stats-row">
+                        <div class="podium-stat-col"><strong>2</strong><small>VÍTĚZSTVÍ</small></div>
+                        <div class="podium-stat-col"><strong style="color: var(--gold);">100.0%</strong><small>WR%</small></div>
+                        <div class="podium-stat-col"><strong>4</strong><small>BODY</small></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rank 3: SLEEPING GUINEA PIG (DRUID) -->
+            <div class="podium-card">
+                <div class="podium-art-header" style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.85)), radial-gradient(circle, #3d2310, #07090e);">
+                    <div class="rank-numeral">3</div>
+                </div>
+                <div class="podium-body">
+                    <div class="podium-tribe-tag" style="color: var(--druid-amber);">DRUID</div>
+                    <div class="podium-player-name" style="font-size: 1.05rem;">SLEEPING GUINEA PIG</div>
+                    <div class="podium-stats-row">
+                        <div class="podium-stat-col"><strong>0</strong><small>VÍTĚZSTVÍ</small></div>
+                        <div class="podium-stat-col"><strong style="color: #888;">0.0%</strong><small>WR%</small></div>
+                        <div class="podium-stat-col"><strong>1</strong><small>BODY</small></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 4. NEURAL CORTEX, KERAS/TF SCENES & LOW-LEVEL MEMORY BENCHMARK ───── -->
+    <section class="neural-cortex-section" id="neuralCortexStudio">
+        <div class="cortex-header-row">
+            <div>
+                <h3>NEURAL CORTEX & PROCEDURÁLNE ŠTÚDIO</h3>
+                <p>Keras / TensorFlow detekcia a generovanie scén • Nízkoúrovňový 64-byte Arena Benchmark • Cortex CPU Affinity</p>
+            </div>
+            <div class="cortex-badge shield-ok" id="globalShieldBadge">
+                🛡 ZERO CORRUPTIONS DETECTED · VITAL INVARIANT: 6/6 HP
+            </div>
+        </div>
+
+        <div class="cortex-grid">
+            <!-- Card 1: Keras & TensorFlow Scene Generator -->
+            <div class="cortex-card">
+                <div class="cortex-card-title">
+                    <span>⚡ Keras / TF Scene Synthesizer</span>
+                    <span class="cortex-badge" id="sceneStatusBadge">READY</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Generuje a deteguje nové herné scény a biomy na základe tenzorových príznakov a konvolučných váh.
+                </div>
+                
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <select id="biomeSelect" style="flex: 1; padding: 8px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-family: 'Fira Code', monospace; font-size: 0.75rem;">
+                        <option value="CRYSTAL_GLACIER">CRYSTAL GLACIER (Severní Štíty)</option>
+                        <option value="TOXIC_SILT">TOXIC SILT (Hnijící Slatiny)</option>
+                        <option value="ANCIENT_DRUID">ANCIENT DRUID (Pradávný Les)</option>
+                        <option value="AETHER_CITADEL">AETHER CITADEL (Studna Duší)</option>
+                        <option value="VOLCANIC_SPIRE">VOLCANIC SPIRE (Lávové Srázy)</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="cortex-btn" style="flex: 1;" onclick="triggerSceneGeneration()">⚡ Generovať Scénu</button>
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--cyan);" onclick="triggerSceneDetection()">🔍 Detegovať Tenzor</button>
+                </div>
+
+                <div class="cortex-metric-box" id="sceneMetricsBox">
+                    <div class="metric-cell">
+                        <span>POSLEDNÁ SCÉNA:</span>
+                        <strong id="mSceneId" style="color: var(--gold); font-size: 0.85rem;">SCENE-CRYS-INIT</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>DETEGOVANÝ BIOM:</span>
+                        <strong id="mDetectedBiome" style="color: var(--cyan); font-size: 0.85rem;">CRYSTAL (94.2%)</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>TOPOLOGICKÁ ENTROPIA:</span>
+                        <strong id="mEntropy">0.182</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>KONZISTENCIA HRY:</span>
+                        <strong id="mConsistency" style="color: var(--toxic-green);">100% OK</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Low-Level Memory Optimization Benchmark -->
+            <div class="cortex-card">
+                <div class="cortex-card-title">
+                    <span>🚀 64-Byte Arena Memory Benchmark</span>
+                    <span class="cortex-badge shield-ok" id="canaryStatusBadge">0 CORRUPTIONS</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Optimalizácia pamäte bez memory corruption nábehov. Porovnanie 64-byte aligned Arena s guard canaries voči heap alokáciám.
+                </div>
+
+                <button class="cortex-btn" style="border-color: var(--toxic-green);" onclick="runMemoryBenchmark()">
+                    🚀 Spustiť Zero-Corruption Benchmark
+                </button>
+
+                <div class="cortex-metric-box" id="memoryMetricsBox">
+                    <div class="metric-cell">
+                        <span>ARENA ALOKÁCIA:</span>
+                        <strong id="mArenaNs" style="color: var(--toxic-green); font-size: 1.1rem;">-- ns/op</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>HEAP FRAGMENTOVANÁ:</span>
+                        <strong id="mHeapNs" style="color: #ff5555; font-size: 1.1rem;">-- ns/op</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>PRIEPUSTNOSŤ CACHE:</span>
+                        <strong id="mBandwidth" style="color: var(--cyan);">-- MB/s</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>ZRÝCHLENIE ARENY:</span>
+                        <strong id="mSpeedup" style="color: var(--gold);">-- x</strong>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.72rem; font-family: 'Fira Code', monospace; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+                    🛡 Guard Canaries: <code>0xDEADBEEFCAFEBAFE</code> • <code>0xCAFEBABE12345678</code> (Active)
+                </div>
+            </div>
+
+            <!-- Card 3: Cortex Processor Core & Thread Affinity Matrix -->
+            <div class="cortex-card">
+                <div class="cortex-card-title">
+                    <span>🧠 Cortex Core & Thread Affinity</span>
+                    <span class="cortex-badge" id="cortexStrategyBadge">P-CORE BURST</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Dedučné prepínanie P-Core / E-Core / UMA na základe telemetrie kontextových prepnutí a thrashing indexu.
+                </div>
+
+                <div class="strategy-chips">
+                    <div class="strategy-chip active" id="chip-pcore" onclick="switchCoreStrategy('STRATEGY_ISOLATED_P_CORE_BURST')">P-Core Burst (0x000F)</div>
+                    <div class="strategy-chip" id="chip-ecore" onclick="switchCoreStrategy('STRATEGY_COOPERATIVE_E_CORE_THROTTLE')">E-Core Offload (0x00F0)</div>
+                    <div class="strategy-chip" id="chip-hybrid" onclick="switchCoreStrategy('STRATEGY_HYBRID_SYMMETRIC')">Hybrid Sym (0x01FF)</div>
+                    <div class="strategy-chip" id="chip-defense" onclick="switchCoreStrategy('STRATEGY_CRITICAL_HEALTH_DEFENSE')">Defense Lock (0x0001)</div>
+                </div>
+
+                <div style="font-size: 0.72rem; color: var(--text-muted); font-family: 'Fira Code', monospace;">
+                    AKTÍVNE JADRÁ (P0-P3, E4-E7, UMA8):
+                </div>
+                <div class="cores-strip">
+                    <div class="core-pill active-p" id="cp0">P0</div>
+                    <div class="core-pill active-p" id="cp1">P1</div>
+                    <div class="core-pill active-p" id="cp2">P2</div>
+                    <div class="core-pill active-p" id="cp3">P3</div>
+                    <div class="core-pill" id="ce4">E4</div>
+                    <div class="core-pill" id="ce5">E5</div>
+                    <div class="core-pill" id="ce6">E6</div>
+                    <div class="core-pill" id="ce7">E7</div>
+                    <div class="core-pill" id="cuma8">UMA</div>
+                </div>
+
+                <div class="cortex-metric-box">
+                    <div class="metric-cell">
+                        <span>CONTEXT SWITCHES/S:</span>
+                        <strong id="mCsRate">4,120 /s</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>THRASHING INDEX:</span>
+                        <strong id="mThrashing" style="color: var(--toxic-green);">0.12 (OPTIMAL)</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4: Keras Lupa Anomaly Inspector & 8K+ Builder -->
+            <div class="cortex-card">
+                <div class="cortex-card-title">
+                    <span>🔍 Keras Lupa & 8K+ Builder</span>
+                    <span class="cortex-badge shield-ok" id="lupaStatusBadge">INTEL 11TH GEN+ UMA</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Neurálna lupa v Keras na detekciu Z-fightingu, kolízií a chýb scény s viac ako 8 000 objektmi a automatickým auto-healingom.
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <select id="llmContextSelect" style="flex: 1; padding: 8px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-family: 'Fira Code', monospace; font-size: 0.75rem;">
+                        <option value="TACTICAL_ARENA">TACTICAL ARENA (8K Hex Sapper)</option>
+                        <option value="OPENWORLD_BIOME">OPENWORLD BIOME (10K Foliage)</option>
+                        <option value="URBAN_CITADEL">URBAN METROPOLIS (8.5K Blocks)</option>
+                        <option value="SKEUOMORPHIC_DUNGEON">SKEUOMORPHIC DUNGEON (8K Sockets)</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--cyan);" onclick="trigger8KBenchmark()">⚡ 8K+ Benchmark</button>
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--gold);" onclick="triggerLLMSceneBuild()">✨ LLM Builder</button>
+                </div>
+
+                <div class="cortex-metric-box" id="lupaMetricsBox">
+                    <div class="metric-cell">
+                        <span>OBJEKTOV V SCÉNE:</span>
+                        <strong id="mLupaCount" style="color: var(--gold);">8 192 obj</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>Z-FIGHTING EPSILON:</span>
+                        <strong id="mLupaZFight" style="color: var(--toxic-green); font-size: 0.95rem;">0.015m (DEFENSE)</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>IRIS XE UMA RAM:</span>
+                        <strong id="mLupaUma" style="color: var(--cyan);">1.54 MB</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>GLITCH-FREE STAV:</span>
+                        <strong id="mLupaGlitch" style="color: var(--toxic-green);">100% BEZ CHÝB</strong>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.72rem; font-family: 'Fira Code', monospace; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+                    🎯 Auto-Healing: Z-fighting epsilon offset • Bounds clamping • Overdraw decimation
+                </div>
+            </div>
+
+            <!-- Card 5: Procedural Composition Interpreter & CSI Benchmark -->
+            <div class="cortex-card">
+                <div class="cortex-card-title">
+                    <span>🎨 Procedural Composition & CSI Benchmark</span>
+                    <span class="cortex-badge shield-ok" id="csiStatusBadge">PHYLLOTAXIS + L2 CACHE</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Samostatný interpretor procedurálnej kompozície a generátor obrazu. Využíva Gielisovu superformulu, Fermatovu špirálu a 64KB L2 cache dlaždice.
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--cyan);" onclick="triggerCompositionRender()">📐 Generuj Kompozíciu</button>
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--gold);" onclick="triggerSynergyBenchmark()">📊 CSI Benchmark (+48%)</button>
+                </div>
+
+                <div class="cortex-metric-box" id="csiMetricsBox">
+                    <div class="metric-cell">
+                        <span>CSI SKÓRE SYNERGIE:</span>
+                        <strong id="mCsiScore" style="color: var(--gold);">0.818 (ELITE)</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>RULE OF THIRDS:</span>
+                        <strong id="mCsiThirds" style="color: var(--cyan);">0.852 FOCAL</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>L2 CACHE TILE FIT:</span>
+                        <strong id="mCsiCache" style="color: var(--toxic-green);">100% (64 KB TILES)</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>AI AGENT ADVANTAGE:</span>
+                        <strong id="mCsiAdvantage" style="color: var(--toxic-green);">60 FPS / REALTIME</strong>
+                    </div>
+                </div>
+
+                <div id="csiAsciiPreview" style="display: none; font-family: 'Fira Code', monospace; font-size: 0.55rem; line-height: 1.0; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px; white-space: pre; color: var(--cyan); overflow-x: auto; max-height: 140px;"></div>
+
+                <div style="font-size: 0.72rem; font-family: 'Fira Code', monospace; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+                    ⚡ Vzorce: Fermat Phyllotaxis • Gielis Superformula • PBR Harmonic Color Tensor • L2 Tile Cache
+                </div>
+            </div>
+
+            <!-- Card 6: Token Radar & Mortar Turn Simulator (WebGL Story Engine) -->
+            <div class="cortex-card">
+                <div class="cortex-card-title">
+                    <span>🎯 Atribútový Radar & Mínometný Simulátor</span>
+                    <span class="cortex-badge shield-ok" id="radarStatusBadge">6-AXIS RADAR • 6 HP</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Tokenizácia procedúr, 6-osový radar balistiky a štatistický model rozdelenia kapacity kúziel vs mechaník skladajúci príbeh.
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">KAPACITA KÚZIEL (SPELLS): <strong id="lblSpellCap" style="color: var(--cyan);">65%</strong></label>
+                        <input type="range" id="rngSpellCap" min="10" max="100" value="65" style="width: 100%; accent-color: var(--cyan);" oninput="document.getElementById('lblSpellCap').innerText = this.value + '%'">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">KAPACITA MECHANÍK (AP): <strong id="lblMechCap" style="color: var(--gold);">75%</strong></label>
+                        <input type="range" id="rngMechCap" min="10" max="100" value="75" style="width: 100%; accent-color: var(--gold);" oninput="document.getElementById('lblMechCap').innerText = this.value + '%'">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--gold);" onclick="triggerTokenRadarSimulation()">🚀 Simuluj Ťah & Príbeh</button>
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--cyan);" onclick="fetchRadarCatalog()">📜 Katalóg Radarov</button>
+                </div>
+
+                <!-- 6-Axis SVG Attribute Radar -->
+                <div style="display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.08);">
+                    <svg id="mortarRadarSvg" viewBox="0 0 240 200" style="width: 240px; height: 160px;">
+                        <!-- WebGL Style Radar Background Polygons -->
+                        <polygon points="120,20 180,50 180,120 120,150 60,120 60,50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                        <polygon points="120,40 160,60 160,110 120,130 80,110 80,60" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+                        <!-- Axes lines -->
+                        <line x1="120" y1="85" x2="120" y2="20" stroke="rgba(255,255,255,0.15)"/>
+                        <line x1="120" y1="85" x2="180" y2="50" stroke="rgba(255,255,255,0.15)"/>
+                        <line x1="120" y1="85" x2="180" y2="120" stroke="rgba(255,255,255,0.15)"/>
+                        <line x1="120" y1="85" x2="120" y2="150" stroke="rgba(255,255,255,0.15)"/>
+                        <line x1="120" y1="85" x2="60" y2="120" stroke="rgba(255,255,255,0.15)"/>
+                        <line x1="120" y1="85" x2="60" y2="50" stroke="rgba(255,255,255,0.15)"/>
+                        <!-- Dynamic Radar Area -->
+                        <polygon id="mortarRadarPoly" points="120,30 170,55 165,115 120,140 70,115 75,55" fill="rgba(212, 175, 55, 0.35)" stroke="var(--gold)" stroke-width="2"/>
+                        <!-- Axis Labels -->
+                        <text x="120" y="14" fill="#a0aec0" font-size="8" text-anchor="middle" font-family="'Fira Code', monospace">DOSTREL</text>
+                        <text x="190" y="52" fill="#a0aec0" font-size="8" font-family="'Fira Code', monospace">ROZPTYL</text>
+                        <text x="190" y="125" fill="#a0aec0" font-size="8" font-family="'Fira Code', monospace">PRIERAZ</text>
+                        <text x="120" y="162" fill="#a0aec0" font-size="8" text-anchor="middle" font-family="'Fira Code', monospace">AP CENA</text>
+                        <text x="15" y="125" fill="#a0aec0" font-size="8" font-family="'Fira Code', monospace">KÚZLA</text>
+                        <text x="15" y="52" fill="#a0aec0" font-size="8" font-family="'Fira Code', monospace">DRÁMA</text>
+                    </svg>
+                </div>
+
+                <!-- Simulation Metrics -->
+                <div class="cortex-metric-box" id="simMetricsBox">
+                    <div class="metric-cell">
+                        <span>POŠKODENIE (CLAMPOVANÉ):</span>
+                        <strong id="mSimDmg" style="color: var(--gold);">3 HP (DEFENDER: 3/6 HP)</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>TRAJEKTÓRIA APEX:</span>
+                        <strong id="mSimApex" style="color: var(--cyan);">24.2m (TOF: 4.4s)</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>PRAVDEPODOBNOSŤ ZÁSAHU:</span>
+                        <strong id="mSimHitProb" style="color: var(--toxic-green);">86.4% (CEP: 1.1m)</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>RÁZOVÁ VLNA (TLAK):</span>
+                        <strong id="mSimWave" style="color: var(--gold);">42.8 kPa</strong>
+                    </div>
+                </div>
+
+                <!-- Narrative Story Box -->
+                <div id="narrativeStoryBox" style="background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; font-family: 'Cinzel', serif; font-size: 0.76rem; color: #e2e8f0; line-height: 1.4;">
+                    📜 <em>„Mínometná batéria fixuje azimut na cieľ. Salva vystrelená pod vysokým uhlom. Dopad otriasol zákopom...“</em>
+                </div>
+            </div>
+
+            <!-- Card 7: Inter-Module Protocol & Enterprise Game Design Studio Benchmark -->
+            <div class="cortex-card" style="grid-column: span 2;">
+                <div class="cortex-card-title">
+                    <span>🌐 Inter-Modulárny Protokol & Herné Štúdio Benchmark</span>
+                    <span class="cortex-badge shield-ok" id="protocolStatusBadge">RFC-007 • 3-TIER BUS • 6 HP</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Sieťový protokol komunikácie modulov (Local/Global/Superglobal), hrubé škály vetvenia (if-then-while / return) a kompozičné reasoning patterny skladajúce interaktívnu scénu.
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">ŠABLÓNA SCÉNY (TEMPLATE):</label>
+                        <select id="protocolTemplateSelect" style="width: 100%; padding: 6px 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-family: 'Fira Code', monospace; font-size: 0.72rem;">
+                            <option value="TACTICAL_SIEGE_MORTAR">TACTICAL SIEGE (Mínomet & Zákopy)</option>
+                            <option value="DUNGEON_AMBUSH_ENCOUNTER">DUNGEON AMBUSH (Šerosvit & Prepad)</option>
+                            <option value="OPENWORLD_BIOME_TRANSITION">OPENWORLD BIOME (Phyllotaxis & Biomy)</option>
+                            <option value="BOSS_ARENA_RESONANCE">BOSS ARENA (Harmonické Tenzory)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">VZDIALENOSŤ CIEĽA (TRIAGE ŠKÁLA): <strong id="lblTargetDist" style="color: var(--cyan);">28m</strong></label>
+                        <input type="range" id="rngTargetDist" min="4" max="80" value="28" style="width: 100%; accent-color: var(--cyan);" oninput="document.getElementById('lblTargetDist').innerText = this.value + 'm'">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">ELEVÁCIA HLAVNE (STUPNE): <strong id="lblElevDeg" style="color: var(--gold);">65°</strong></label>
+                        <input type="range" id="rngElevDeg" min="45" max="85" value="65" style="width: 100%; accent-color: var(--gold);" oninput="document.getElementById('lblElevDeg').innerText = this.value + '°'">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 14px;">
+                        <input type="checkbox" id="chkTargetTrench" checked style="accent-color: var(--toxic-green); transform: scale(1.2);">
+                        <label for="chkTargetTrench" style="font-size: 0.72rem; color: #cbd5e1; cursor: pointer;">Cieľ v zákope (-40% dmg)</label>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--cyan);" onclick="triggerProtocolPipeline()">🚀 Zostaviť Scénu (Micro-Tasks & Reasoning)</button>
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--gold);" onclick="triggerStudioBenchmark()">📊 Spustiť Benchmark Herného Štúdia</button>
+                </div>
+
+                <!-- 5 Reasoning Patterns Pill Badges -->
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="reasoningPillsContainer">
+                    <span class="cortex-badge" style="background: rgba(102, 252, 241, 0.1); border: 1px solid var(--cyan); color: var(--cyan);">DepthLayering (3.8:1)</span>
+                    <span class="cortex-badge" style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold);">FocalAnchor (Golden Ratio)</span>
+                    <span class="cortex-badge" style="background: rgba(157, 78, 221, 0.1); border: 1px solid #c77dff; color: #c77dff);">ColorHarmony (Split-Comp)</span>
+                    <span class="cortex-badge" style="background: rgba(255, 107, 107, 0.1); border: 1px solid #ff6b6b; color: #ff6b6b);">MortarBallistics (High-Angle)</span>
+                    <span class="cortex-badge" style="background: rgba(57, 255, 20, 0.1); border: 1px solid var(--toxic-green); color: var(--toxic-green);">CapacityTriage (Invariant 6 HP)</span>
+                </div>
+
+                <!-- Pipeline & Studio Metrics -->
+                <div class="cortex-metric-box" id="protocolMetricsBox">
+                    <div class="metric-cell">
+                        <span>REDUKCIA OPERÁCIÍ:</span>
+                        <strong id="mProtoReduction" style="color: var(--toxic-green); font-size: 1.05rem;">-- %</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>CSI KOMPOZIČNÁ SYNERGIA:</span>
+                        <strong id="mProtoCsi" style="color: var(--cyan); font-size: 1.05rem;">-- (CSI)</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>ROZHODOVACIA TRIÁŽ:</span>
+                        <strong id="mProtoTriage" style="color: var(--gold); font-size: 0.85rem;">--</strong>
+                    </div>
+                    <div class="metric-cell">
+                        <span>RÝCHLOSŤ AUTORINGU:</span>
+                        <strong id="mProtoVelocity" style="color: var(--toxic-green);">-- x (ROI)</strong>
+                    </div>
+                </div>
+
+                <!-- Scope Memory Bus & Execution Log Preview -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 8px;">
+                        <div style="font-size: 0.68rem; color: var(--cyan); font-family: 'Fira Code', monospace; margin-bottom: 4px;">📡 3-TIER SCOPE MEMORY BUS:</div>
+                        <div id="protoBusPreview" style="font-family: 'Fira Code', monospace; font-size: 0.65rem; color: #94a3b8; line-height: 1.4;">
+                            @local: 0 alloc scratchpad<br>
+                            @global: depth planes & focal anchors<br>
+                            @superglobal: vital_max_hp = 6 (immutable)
+                        </div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 8px;">
+                        <div style="font-size: 0.68rem; color: var(--gold); font-family: 'Fira Code', monospace; margin-bottom: 4px;">📜 ŠTÚDIO NÁVRH & ODPORÚČANIE:</div>
+                        <div id="protoRoiVerdict" style="font-family: 'Cinzel', serif; font-size: 0.72rem; color: #e2e8f0; line-height: 1.35;">
+                            Spustite pipeline alebo benchmark pre generovanie podnikateľského reportu pre herné štúdio.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 8: CNC Adaptive Thermal Governor & Collapse Differentials -->
+            <div class="cortex-card" style="grid-column: span 2; border-color: rgba(255, 145, 0, 0.45); box-shadow: 0 12px 36px rgba(255, 145, 0, 0.12);">
+                <div class="cortex-card-title">
+                    <span>⚙️ CNC Adaptívny Termodynamický Guvernér & Kolapsové Diferenciály</span>
+                    <span class="cortex-badge shield-ok" id="cncThermalBadge" style="border-color: var(--druid-amber); color: var(--gold-light);">SSV HARMONIC • 6 HP</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Riešenie prehrievania vrtákov pri vysokých otáčkach (12k–24k RPM), Loewen-Shaw rozdelenie tepla, nelineárne SSV tlmenie rezonancie, samoopravné diferenčné záplaty a Taylorova životnosť nástroja.
+                </div>
+
+                <!-- Control Sliders & Material Selection -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 6px;">
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">MATERIÁL OBROBKU:</label>
+                        <select id="cncMaterialSelect" style="width: 100%; padding: 6px 10px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-family: 'Fira Code', monospace; font-size: 0.72rem;">
+                            <option value="MILD_STEEL_1018">Oceľ 1018 (Mild Steel, kc=1850 MPa)</option>
+                            <option value="ALUMINUM_6061_T6">Hliník 6061-T6 (High Thermal Diff)</option>
+                            <option value="INCONEL_718">Inconel 718 (Superzliatina, kc=3200 MPa)</option>
+                            <option value="BRASS_C360">Mosadz C360 (Automatová)</option>
+                            <option value="KRYSTAL_COMPOSITE">Krystal Kompozit (Alchemická Živica)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">ZÁKLADNÉ OTÁČKY (RPM): <strong id="lblCncRpm" style="color: var(--gold);">12,000 RPM</strong></label>
+                        <input type="range" id="rngCncRpm" min="6000" max="24000" step="500" value="12000" style="width: 100%; accent-color: var(--gold);" oninput="document.getElementById('lblCncRpm').innerText = Number(this.value).toLocaleString() + ' RPM'">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">POSUV NA ZUB (fz): <strong id="lblCncFz" style="color: var(--cyan);">0.035 mm</strong></label>
+                        <input type="range" id="rngCncFz" min="0.010" max="0.070" step="0.005" value="0.035" style="width: 100%; accent-color: var(--cyan);" oninput="document.getElementById('lblCncFz').innerText = Number(this.value).toFixed(3) + ' mm'">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">CHLADENIE NÁSTROJA:</label>
+                        <div style="display: flex; gap: 8px; margin-top: 4px;">
+                            <button id="btnCoolantOn" class="strategy-chip active" style="flex: 1;" onclick="setCncCoolant(true)">💧 Chladenie ZAP</button>
+                            <button id="btnCoolantOff" class="strategy-chip" style="flex: 1;" onclick="setCncCoolant(false)">💨 Suchý Rez (MQL)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation & Governor Buttons -->
+                <div style="display: flex; gap: 10px; margin-top: 6px;">
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--gold);" onclick="triggerCncThermalSimulation()">🔥 Termodynamická Simulácia Rezu</button>
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--cyan);" onclick="toggleDynamicGovernorWaveform()">🌊 Dynamický SSV Guvernér (Vlna)</button>
+                    <button class="cortex-btn" style="flex: 1; border-color: var(--toxic-green);" onclick="triggerCncGcodeOptimization()">⚡ Optimalizovať G-Kód (-42.5% Opotrebenie)</button>
+                </div>
+
+                <!-- Live Oscilloscope & Telemetry Strip -->
+                <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; margin-top: 8px;">
+                    <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.68rem; font-family: 'Fira Code', monospace; color: var(--cyan);">📊 DYNAMICKÝ SSV WAVEFORM & HARMÓNIE VRETENA:</span>
+                            <span id="cncSsvBadge" style="font-size: 0.65rem; color: var(--toxic-green); font-family: 'Fira Code', monospace;">±14% MODULÁCIA (2.2 Hz)</span>
+                        </div>
+                        <canvas id="cncWaveformCanvas" width="460" height="90" style="width: 100%; height: 90px; background: rgba(5,8,14,0.9); border-radius: 4px; border: 1px solid rgba(102,252,241,0.2);"></canvas>
+                    </div>
+
+                    <div class="cortex-metric-box" style="margin: 0;">
+                        <div class="metric-cell">
+                            <span>TEPLOTA ŠPIČKY VRTÁKA:</span>
+                            <strong id="mCncTemp" style="color: var(--gold);">248.5 °C (BEZPEČNÉ)</strong>
+                        </div>
+                        <div class="metric-cell">
+                            <span>GRADIENT ZOHRIEVANIA:</span>
+                            <strong id="mCncGrad" style="color: var(--cyan);">+14.2 °C/s</strong>
+                        </div>
+                        <div class="metric-cell">
+                            <span>PROGRESÍVNA REDUKCIA (ZÓNA):</span>
+                            <strong id="mCncZone" style="color: var(--gold-light);">NOMINAL (100% RPM)</strong>
+                        </div>
+                        <div class="metric-cell">
+                            <span>KALMAN STAV (TORK / INOVÁCIA):</span>
+                            <strong id="mCncObserver" style="color: var(--cyan);">4.5 Nm (e: 0.00)</strong>
+                        </div>
+                        <div class="metric-cell">
+                            <span>ZDRAVIE NÁSTROJA (HP):</span>
+                            <strong id="mCncToolHp" style="color: var(--toxic-green);">6 / 6 HP (VITAL_MAX_HP)</strong>
+                        </div>
+                        <div class="metric-cell">
+                            <span>POTLAČENIE REZONANCIE:</span>
+                            <strong id="mCncChatter" style="color: var(--gold-light);">CHATTER ZLOBENÝ (-88%)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collapse Differentials & Troubleshooting Fallbacks -->
+                <div style="background: rgba(14,20,32,0.85); border: 1px solid rgba(255,145,0,0.25); border-radius: 8px; padding: 10px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.72rem; font-family: 'Cinzel', serif; font-weight: 700; color: var(--gold-light);">🛠️ TESTOVACIA STANICA KOLAPSOVÝCH DIFERENCIÁLOV & SAMOOPRAVNÉHO G-KÓDU</span>
+                        <span style="font-size: 0.65rem; color: var(--text-muted); font-family: 'Fira Code', monospace;">Zero-Scrap Fallback Matrix</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px;">
+                        <button class="cortex-btn" style="border-color: #3b82f6; font-size: 0.68rem;" onclick="triggerCollapseFault('THERMOCOUPLE_DROPOUT')">⚡ Výpadok Senzora (Kalman)</button>
+                        <button class="cortex-btn" style="border-color: #ef4444; font-size: 0.68rem;" onclick="triggerCollapseFault('SPINDLE_TORQUE_STALL')">⚙️ Skok Krútiaceho Momentu</button>
+                        <button class="cortex-btn" style="border-color: #06b6d4; font-size: 0.68rem;" onclick="triggerCollapseFault('COOLANT_PRESSURE_LOSS')">💧 Pokles Tlaku Emulzie</button>
+                        <button class="cortex-btn" style="border-color: #eab308; font-size: 0.68rem;" onclick="triggerCollapseFault('TOOL_VITALITY_EXHAUSTED')">⚠️ Opotrebenie (Výmena T02)</button>
+                    </div>
+
+                    <!-- Live G-Code Splicing & Troubleshooting Terminal -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <div style="background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; font-family: 'Fira Code', monospace; font-size: 0.65rem; line-height: 1.35; color: var(--cyan); max-height: 130px; overflow-y: auto;">
+                            <div style="color: var(--gold); margin-bottom: 4px;">💉 VSTREKNUTÝ OPRAVNÝ G-KÓD:</div>
+                            <div id="cncSplicedGcodeText">(Vyberte poruchu pre simuláciu vstreknutia záchranných inštrukcií do riadiaceho systému CNC)</div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; font-family: 'Outfit', sans-serif; font-size: 0.72rem; line-height: 1.35; color: #e2e8f0; max-height: 130px; overflow-y: auto;">
+                            <div style="color: var(--toxic-green); font-family: 'Fira Code', monospace; font-size: 0.68rem; margin-bottom: 4px;">🩺 DIAGNOSTIKA & AUTOMATICKÝ ZÁSAH:</div>
+                            <div id="cncTroubleshootPlan">Systém pripravený v nominálnom režime. Všetky senzory a vreteno v zhode s fyzikálnym modelom.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.72rem; font-family: 'Fira Code', monospace; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; display: flex; justify-content: space-between;">
+                    <span>📐 Loewen-Shaw Heat Partitioning • Taylor Extended Tool-Wear • SSV Chatter Suppression</span>
+                    <span style="color: var(--gold);">VITAL_MAX_HP: 6 (Systémový Invariant)</span>
+                </div>
+            </div>
+
+            <!-- Card 9: Multilock Matrix Autocompleter, Syntax Pattern Cloner & Sense Confirmation Map -->
+            <div class="cortex-card" style="grid-column: span 2; border-color: rgba(102, 252, 241, 0.45); box-shadow: 0 12px 36px rgba(102, 252, 241, 0.12);">
+                <div class="cortex-card-title">
+                    <span>⚡ Multilock Maticový Autokompleter, Klóny Syntaktických Vzorov & Mapa Zmyslu</span>
+                    <span class="cortex-badge shield-ok" id="multilockBadge" style="border-color: var(--cyan); color: var(--cyan);">MULTILOCK 4-AXIS • 6 HP</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Súbežná kontrola matíc (Fyzikálna C, Softvérová C, Stavová A_d, Lingvistická W). Predikcia autokompletovania promptu z klonov používateľskej syntaxe, potvrdzovanie sémantického zmyslu a schéma tokov State A &rarr; State B.
+                </div>
+
+                <!-- Multilock Matrix Status Bar -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 6px;">
+                    <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(102,252,241,0.25); border-radius: 6px; padding: 6px 10px;">
+                        <div style="font-size: 0.65rem; color: var(--text-muted);">LOCK A: FYZIKÁLNA C</div>
+                        <div style="color: var(--cyan); font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 700;" id="lockPhysStatus">||C||_F = 12.89</div>
+                        <div style="font-size: 0.62rem; color: #a0aec0;">Amps, &Delta;T, P, RMS</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(157,78,221,0.25); border-radius: 6px; padding: 6px 10px;">
+                        <div style="font-size: 0.65rem; color: var(--text-muted);">LOCK B: SOFTVÉROVÁ C</div>
+                        <div style="color: #c084fc; font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 700;" id="lockSoftStatus">||C||_F = 122.58</div>
+                        <div style="font-size: 0.62rem; color: #a0aec0;">Latencia, IPC, Cache</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(255,145,0,0.25); border-radius: 6px; padding: 6px 10px;">
+                        <div style="font-size: 0.65rem; color: var(--text-muted);">LOCK C: STAVOVÁ A_d</div>
+                        <div style="color: var(--gold); font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 700;" id="lockStateStatus">&rho;(A_d) &le; 1.00</div>
+                        <div style="font-size: 0.62rem; color: #a0aec0;">exp(A*dt) Padé</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(57,255,20,0.25); border-radius: 6px; padding: 6px 10px;">
+                        <div style="font-size: 0.65rem; color: var(--text-muted);">LOCK D: JAZYKOVÁ W</div>
+                        <div style="color: var(--toxic-green); font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 700;" id="lockLangStatus">&Sigma; w_i = 1.00</div>
+                        <div style="font-size: 0.62rem; color: #a0aec0;">SK/CZ/EN Využitie</div>
+                    </div>
+                </div>
+
+                <!-- Interactive Autocomplete Search Input -->
+                <div style="margin-top: 10px; position: relative;">
+                    <label style="font-size: 0.68rem; color: var(--gold); font-weight: 700;">PROMPT AUTO-COMPLETION VSTUP (Píšte v rodnom jazyku alebo kliknite na vzor):</label>
+                    <div style="display: flex; gap: 8px; margin-top: 4px;">
+                        <input type="text" id="txtAutocompleteInput" placeholder="Napr. vytvor mi karbidovú frézu, optimalizuj IPC, alebo zvýš otáčky..." 
+                               style="flex: 1; padding: 10px 14px; background: rgba(0,0,0,0.75); border: 1px solid var(--cyan); border-radius: 8px; color: #fff; font-family: 'Fira Code', monospace; font-size: 0.82rem;"
+                               oninput="handleAutocompleteInput(this.value)">
+                        <button class="cortex-btn" style="border-color: var(--cyan); background: rgba(102,252,241,0.15);" onclick="executeAcceptedPrompt()">Akceptovať Prompt &rarr;</button>
+                    </div>
+
+                    <!-- Quick Syntax Clone Buttons -->
+                    <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+                        <button class="cortex-btn" style="font-size: 0.62rem; padding: 4px 8px;" onclick="loadSyntaxClone('vytvor mi karbidovú frézu s chladením na oceľ 1018')">🔩 CNC Karbid (Oceľ 1018)</button>
+                        <button class="cortex-btn" style="font-size: 0.62rem; padding: 4px 8px; border-color: #ef4444;" onclick="loadSyntaxClone('zvýš otáčky na 24000 RPM')">⚠️ Zrýchlenie (Test Hazarda)</button>
+                        <button class="cortex-btn" style="font-size: 0.62rem; padding: 4px 8px;" onclick="loadSyntaxClone('optimalizuj IPC liniek AVX-512 pre L2 cache')">⚡ Vektorizácia AVX-512</button>
+                        <button class="cortex-btn" style="font-size: 0.62rem; padding: 4px 8px;" onclick="loadSyntaxClone('vygeneruj procedurálnu citadelu s Fermatovou špirálou')">🏛️ Biome Citadela &Phi;=1.618</button>
+                    </div>
+                </div>
+
+                <!-- State A -> State B Flow & Sense Confirmation Banner -->
+                <div id="senseConfirmationBanner" style="background: rgba(14,20,32,0.92); border: 1px solid var(--cyan); border-radius: 8px; padding: 10px; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--gold-light);">SCHÉMA TOKU: <span id="flowStateAToB" style="color: var(--cyan);">STATE_A_NOMINAL &rarr; STATE_B_SYNTHESIS_COMPLETE</span></span>
+                        <span id="badgeSenseStatus" class="cortex-badge" style="border-color: var(--toxic-green); color: var(--toxic-green);">ZMYSEL POTVRDENÝ (90%)</span>
+                    </div>
+                    <div id="flowSenseExplanation" style="font-size: 0.72rem; color: #cbd5e1; margin-top: 4px; font-family: 'Outfit', sans-serif;">
+                        ZMYSEL POTVRDENÝ: Požiadavka je koherentná so súčasným stavom hyper-matice.
+                    </div>
+                </div>
+
+                <!-- Map of Suggestions (Branching Prediction Graph) -->
+                <div style="background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; margin-top: 8px;">
+                    <div style="font-size: 0.68rem; color: var(--gold); font-weight: 700; margin-bottom: 6px; display: flex; justify-content: space-between;">
+                        <span>🌳 MAPA PREDIKČNÝCH NÁVRHOV (MAP OF SUGGESTIONS):</span>
+                        <span id="mapDominantDomain" style="color: var(--cyan); font-family: 'Fira Code', monospace;">DOMÉNA: CNC_MACHINING</span>
+                    </div>
+                    <div id="suggestionMapBranches" style="display: flex; flex-direction: column; gap: 6px;">
+                        <!-- Dynamically filled with branch pills -->
+                    </div>
+                </div>
+
+                <div style="font-size: 0.72rem; font-family: 'Fira Code', monospace; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; display: flex; justify-content: space-between;">
+                    <span>🔒 Reader-Writer Multilock Coordinator • Zero Contention State Synchronization</span>
+                    <span style="color: var(--cyan);">VITAL_MAX_HP: 6 (Invariant Zachovaný)</span>
+                </div>
+            </div>
+
+            <!-- Card 10: Procedural Kernel Module Manager, Conduct Code Bridge & Interactive Command Mindmap -->
+            <div class="cortex-card" style="grid-column: span 2; border-color: rgba(255, 145, 0, 0.45); box-shadow: 0 12px 36px rgba(255, 145, 0, 0.12);" id="cardKernelModuleManager">
+                <div class="cortex-card-title">
+                    <span>🧠 Správca Modulov Jadra, Mostík Kódexu Správania & Interaktívna Myšlienková Mapa (Mindmap)</span>
+                    <span class="cortex-badge shield-ok" id="badgeMindmapStatus" style="border-color: var(--gold); color: var(--gold);">PIPELINE AGENT • 6 HP</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Správa systémových modulov procedurálneho jadra s konfiguráciou I/O po vzore lokálnych LLM (throughput, kontextové limity, streaming). Mostík kódexu správania generujúci booleovské znaky integrity, plné CRUD operácie a interaktívna myšlienková mapa prepájajúca používateľské príkazy s maticami a štatistickým modelom.
+                </div>
+
+                <!-- Agent Pipeline Execution Deck -->
+                <div style="background: rgba(14,20,32,0.92); border: 1px solid rgba(255,145,0,0.3); border-radius: 8px; padding: 12px; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 0.72rem; color: var(--gold); font-weight: 700;">VSTUP AGENTA PRE GENERÁTOR PIPELINE & MYŠLIENKOVÚ MAPU:</span>
+                        <span style="font-size: 0.65rem; color: #a0aec0; font-family: 'Fira Code', monospace;" id="mindmapPipelineInfo">PIPELINE: ČAKÁ NA VSTUP</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="txtMindmapPromptInput" value="vytvor proceduralny ostrov s gotickou vezou a riekou" 
+                               style="flex: 1; padding: 10px 14px; background: rgba(0,0,0,0.75); border: 1px solid var(--gold); border-radius: 8px; color: #fff; font-family: 'Fira Code', monospace; font-size: 0.82rem;"
+                               placeholder="Zadajte príkaz, napr. vytvor ostrov s gotickou vežou, frézuj kalenú oceľ...">
+                        <button class="cortex-btn" style="border-color: var(--gold); background: rgba(255,145,0,0.18); font-weight: 700; white-space: nowrap;" onclick="executeAgentPipeline()">🚀 Spustiť Agenta & Generovať Mapu</button>
+                    </div>
+
+                    <!-- Quick Preset Chips -->
+                    <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
+                        <button class="cortex-btn" style="font-size: 0.62rem; padding: 4px 8px;" onclick="loadMindmapPreset('vytvor proceduralny ostrov s gotickou vezou a riekou')">🏝️ Ostrov & Gotická Veža</button>
+                        <button class="cortex-btn" style="font-size: 0.62rem; padding: 4px 8px; border-color: #3b82f6;" onclick="loadMindmapPreset('vygeneruj CNC cyklus s adaptívnou reguláciou teploty na oceľ 1018')">⚙️ CNC Adaptívny Cyklus</button>
+                        <button class="cortex-btn" style="font-size: 0.62rem; padding: 4px 8px; border-color: #10b981;" onclick="loadMindmapPreset('optimalizuj IPC liniek AVX-512 a zníž latenciu L2 cache')">⚡ Vektorové Tenzory & IPC</button>
+                        <button class="cortex-btn" style="font-size: 0.62rem; padding: 4px 8px; border-color: #ec4899;" onclick="loadMindmapPreset('vygeneruj kyberpunkové mesto s neónovými mrakodrapmi')">🏙️ Kyberpunkové Mesto</button>
+                    </div>
+
+                    <!-- Pipeline Telemetry Bar -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px; margin-top: 10px;" id="mindmapTelemetryBar">
+                        <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px 8px;">
+                            <div style="font-size: 0.62rem; color: #a0aec0;">LATENCIA VÝPOČTU</div>
+                            <div style="color: var(--toxic-green); font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 700;" id="mmapLatency">0.00 ms</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px 8px;">
+                            <div style="font-size: 0.62rem; color: #a0aec0;">KOHERENCIA ZMYSLU</div>
+                            <div style="color: var(--cyan); font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 700;" id="mmapCoherence">0.00 %</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px 8px;">
+                            <div style="font-size: 0.62rem; color: #a0aec0;">FROBENIUS VÄZBA (C/A_d)</div>
+                            <div style="color: var(--gold); font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 700;" id="mmapFrobenius">0.0000</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px 8px;">
+                            <div style="font-size: 0.62rem; color: #a0aec0;">DOMÉNA PREDIKCIE</div>
+                            <div style="color: #c084fc; font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 700;" id="mmapDomain">INICIÁCIA</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(57,255,20,0.3); border-radius: 6px; padding: 6px 8px;">
+                            <div style="font-size: 0.62rem; color: #a0aec0;">VITAL INVARIANT</div>
+                            <div style="color: var(--toxic-green); font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 700;" id="mmapVitalHp">6 / 6 HP</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two-Column Layout: Mindmap Canvas (Left) + Kernel Module Manager (Right) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+                    
+                    <!-- Left: Interactive Command Mindmap Visualizer -->
+                    <div style="background: rgba(10,14,24,0.92); border: 1px solid rgba(102,252,241,0.25); border-radius: 8px; padding: 10px; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-size: 0.72rem; font-weight: 700; color: var(--cyan);">🗺️ INTERAKTÍVNA MYŠLIENKOVÁ MAPA (PRÍKAZY &harr; MATICE &harr; ŠTATISTIKA)</span>
+                            <span style="font-size: 0.65rem; color: #a0aec0; font-family: 'Fira Code', monospace;" id="mindmapNodeEdgeCount">6 Uzlov • 6 Hrany</span>
+                        </div>
+                        
+                        <!-- Canvas Graph Container -->
+                        <div style="position: relative; width: 100%; height: 320px; background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden;">
+                            <canvas id="canvasCommandMindmap" width="560" height="320" style="width: 100%; height: 100%; display: block;"></canvas>
+                            <div id="mindmapTooltip" style="position: absolute; display: none; background: rgba(14,20,32,0.95); border: 1px solid var(--gold); border-radius: 6px; padding: 6px 10px; font-size: 0.65rem; color: #fff; font-family: 'Fira Code', monospace; pointer-events: none; z-index: 10;"></div>
+                        </div>
+
+                        <!-- Mindmap Node Detail Drawer -->
+                        <div id="mindmapNodeDetail" style="margin-top: 8px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 8px; font-family: 'Fira Code', monospace; font-size: 0.68rem; color: #cbd5e1; min-height: 54px;">
+                            <span style="color: var(--gold);">[INŠPEKCIA UZLA]:</span> Kliknite na ľubovoľný uzol myšlienkovej mapy pre zobrazenie maticových väzieb a booleovského kódexu správania.
+                        </div>
+                    </div>
+
+                    <!-- Right: Kernel Module Manager & CRUD Conduct Bridge -->
+                    <div style="background: rgba(10,14,24,0.92); border: 1px solid rgba(255,145,0,0.25); border-radius: 8px; padding: 10px; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-size: 0.72rem; font-weight: 700; color: var(--gold-light);">⚙️ SPRAVOVANÉ MODULY JADRA (CRUD & KÓDEX SPRÁVANIA)</span>
+                            <div style="display: flex; gap: 4px;">
+                                <button class="cortex-btn" style="font-size: 0.62rem; padding: 3px 6px; border-color: var(--toxic-green);" onclick="openCreateModuleModal()">+ Nový Modul</button>
+                                <button class="cortex-btn" style="font-size: 0.62rem; padding: 3px 6px;" onclick="loadKernelModules()">🔄 Obnoviť</button>
+                            </div>
+                        </div>
+
+                        <!-- Module List Container -->
+                        <div id="kernelModulesList" style="flex: 1; max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+                            <!-- Dynamically loaded module cards -->
+                        </div>
+
+                        <!-- Inline / Quick Module Creation Drawer (collapsible) -->
+                        <div id="drawerCreateModule" style="display: none; margin-top: 8px; background: rgba(14,20,32,0.98); border: 1px solid var(--toxic-green); border-radius: 6px; padding: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span style="font-size: 0.68rem; font-weight: 700; color: var(--toxic-green);">+ VYTVORIŤ SYSTÉMOVÝ MODUL JADRA</span>
+                                <button style="background: transparent; border: none; color: #fff; cursor: pointer; font-size: 0.75rem;" onclick="closeCreateModuleModal()">&times;</button>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.68rem;">
+                                <input type="text" id="newModId" placeholder="ID (napr. QUANTUM_SOLVER)" style="background: rgba(0,0,0,0.8); border: 1px solid #444; border-radius: 4px; padding: 4px 6px; color: #fff;">
+                                <input type="text" id="newModName" placeholder="Názov modulu" style="background: rgba(0,0,0,0.8); border: 1px solid #444; border-radius: 4px; padding: 4px 6px; color: #fff;">
+                                <select id="newModRole" style="background: rgba(0,0,0,0.8); border: 1px solid #444; border-radius: 4px; padding: 4px 6px; color: #fff;">
+                                    <option value="SYSTEM_MODULE">SYSTEM_MODULE</option>
+                                    <option value="THERMAL_GOVERNOR">THERMAL_GOVERNOR</option>
+                                    <option value="TENSOR_MATH">TENSOR_MATH</option>
+                                    <option value="LINGUISTIC_PREDICTOR">LINGUISTIC_PREDICTOR</option>
+                                    <option value="RASTER_DIRECTOR">RASTER_DIRECTOR</option>
+                                    <option value="STREAMER_BACKEND">STREAMER_BACKEND</option>
+                                </select>
+                                <select id="newModCoupling" style="background: rgba(0,0,0,0.8); border: 1px solid #444; border-radius: 4px; padding: 4px 6px; color: #fff;">
+                                    <option value="A_discrete">A_discrete (Padé State)</option>
+                                    <option value="C_unified">C_unified (Observation)</option>
+                                    <option value="W_usage">W_usage (Linguistic)</option>
+                                    <option value="Multilock_A_B_C_D">Multilock A/B/C/D</option>
+                                </select>
+                                <input type="number" id="newModThroughput" placeholder="Throughput tok/s (napr. 128)" value="128" style="background: rgba(0,0,0,0.8); border: 1px solid #444; border-radius: 4px; padding: 4px 6px; color: #fff;">
+                                <input type="number" id="newModContext" placeholder="Kontextové okno (napr. 2048)" value="2048" style="background: rgba(0,0,0,0.8); border: 1px solid #444; border-radius: 4px; padding: 4px 6px; color: #fff;">
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 6px;">
+                                <button class="cortex-btn" style="font-size: 0.62rem; padding: 3px 8px;" onclick="closeCreateModuleModal()">Zrušiť</button>
+                                <button class="cortex-btn" style="font-size: 0.62rem; padding: 3px 8px; border-color: var(--toxic-green); background: rgba(57,255,20,0.2);" onclick="submitCreateModule()">Uložiť Modul &rarr;</button>
+                            </div>
+                        </div>
+
+                        <!-- Conduct Code Legend -->
+                        <div style="margin-top: 8px; font-size: 0.65rem; color: #a0aec0; display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
+                            <span>Kódex správania: <span style="color: var(--toxic-green);">[ACT]</span> Aktívny • <span style="color: var(--cyan);">[LCK]</span> Zámok • <span style="color: var(--gold);">[CNF]</span> Potvrdený • <span style="color: #ef4444;">[HAZ]</span> Hazard • <span style="color: var(--toxic-green);">[VIT]</span> Vital (6 HP)</span>
+                            <span style="color: var(--gold);">Kliknutím na znak prepínate stav</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.72rem; font-family: 'Fira Code', monospace; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; margin-top: 10px; display: flex; justify-content: space-between;">
+                    <span>🧠 Procedural Engine Kernel Module Bridge • Zero Cloud Overhead • Local Multilock Concurrency</span>
+                    <span style="color: var(--gold);">VITAL_MAX_HP == 6 (Striktná Integrita)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 5. JAVASCRIPT: 3D FLOATING ISLAND & PROCEDURAL VORTEX ─────────────── -->
+    <script>
+        const VITAL_MAX_HP = 6;
+        const canvas = document.getElementById("islandCanvas");
+        const ctx = canvas.getContext("2d");
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        let islandRot = 0;
+        let isDragging = false;
+        let lastMouseX = 0;
+
+        canvas.addEventListener("mousedown", e => {
+            isDragging = true;
+            lastMouseX = e.clientX;
+        });
+        window.addEventListener("mouseup", () => isDragging = false);
+        window.addEventListener("mousemove", e => {
+            if (isDragging) {
+                const delta = e.clientX - lastMouseX;
+                islandRot += delta * 0.008;
+                lastMouseX = e.clientX;
+            }
+        });
+
+        // Tribal Spec Data
+        const TRIBES = {
+            crystal: {
+                sub: "SEVERNÍ ŠTÍTY • KAPITOLA I",
+                name: "CRYSTAL",
+                quote: "Vládci mrazu",
+                lore: "Z hlubin zamrzlých štítů přichází kmen, jehož magické krystaly dokáží zpomalit čas a zakořenit i nejrychlejšího protivníka. Jejich královna velí bouřím.",
+                color: "#66fcf1",
+                stats: { obt: 4, kon: 5, pos: 3, dos: 4, odo: 4 },
+                radar: [4, 5, 3, 4, 4]
+            },
+            toxic: {
+                sub: "HNIJÍCÍ SLATINY • KAPITOLA II",
+                name: "TOXIC",
+                quote: "Dravci kyseliny",
+                lore: "Močiarne rituály a žieravé výpary leptajú brnenie súperov. Ich plazivé jedy pôsobia pomaly, ale nevyhnutne.",
+                color: "#39ff14",
+                stats: { obt: 3, kon: 4, pos: 5, dos: 3, odo: 3 },
+                radar: [3, 4, 5, 3, 3]
+            },
+            druid: {
+                sub: "PRADÁVNÝ LES • KAPITOLA III",
+                name: "DRUID",
+                quote: "Hlas divočiny",
+                lore: "Spojení s prastarými dubmi a lesnou zverou. Ich medvede, vlci a diviaky vytvárajú nepreniknuteľnú živú hradbu.",
+                color: "#ffd700",
+                stats: { obt: 2, kon: 3, pos: 4, dos: 2, odo: 5 },
+                radar: [2, 3, 4, 5, 2]
+            }
+        };
+
+        function selectTribe(tKey) {
+            const t = TRIBES[tKey];
+            document.getElementById("tSub").textContent = t.sub;
+            document.getElementById("tHeading").textContent = t.name;
+            document.getElementById("tHeading").style.background = `linear-gradient(180deg, #ffffff 40%, ${t.color} 100%)`;
+            document.getElementById("tHeading").style.webkitBackgroundClip = "text";
+            document.getElementById("tQuote").textContent = t.quote;
+            document.getElementById("tQuote").style.color = t.color;
+            document.getElementById("tLore").textContent = t.lore;
+
+            // Sliders
+            document.getElementById("vObt").textContent = t.stats.obt;
+            document.getElementById("bObt").style.width = (t.stats.obt * 20) + "%";
+            document.getElementById("vKon").textContent = t.stats.kon;
+            document.getElementById("bKon").style.width = (t.stats.kon * 20) + "%";
+            document.getElementById("vPos").textContent = t.stats.pos;
+            document.getElementById("bPos").style.width = (t.stats.pos * 20) + "%";
+            document.getElementById("vDos").textContent = t.stats.dos;
+            document.getElementById("bDos").style.width = (t.stats.dos * 20) + "%";
+
+            // Update Radar Polygon
+            updateRadar(t.radar, t.color);
+
+            // Accordion classes
+            document.querySelectorAll(".tribe-card-item").forEach(c => c.classList.remove("active"));
+            if (tKey === "crystal") document.querySelectorAll(".tribe-card-item")[0].classList.add("active");
+            if (tKey === "toxic") document.querySelectorAll(".tribe-card-item")[1].classList.add("active");
+            if (tKey === "druid") document.querySelectorAll(".tribe-card-item")[2].classList.add("active");
+        }
+
+        function updateRadar(vals, color) {
+            // Center is (100, 100), max radius is 80
+            const angles = [-90, -18, 54, 126, 198].map(a => a * Math.PI / 180);
+            const points = vals.map((v, i) => {
+                const r = (v / 5.0) * 78;
+                const x = 100 + r * Math.cos(angles[i]);
+                const y = 100 + r * Math.sin(angles[i]);
+                return `${x.toFixed(1)},${y.toFixed(1)}`;
+            }).join(" ");
+
+            const poly = document.getElementById("radarPoly");
+            poly.setAttribute("points", points);
+            poly.setAttribute("stroke", color);
+            poly.setAttribute("fill", color + "44");
+        }
+
+        // 3D Isometric Island Loop
+        let animT = 0;
+        function renderIsland() {
+            animT += 0.025;
+            if (!isDragging) islandRot += 0.003;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2 + 30;
+
+            const bob = Math.sin(animT * 1.5) * 6;
+
+            // 1. Draw Island Sub-crag (Bottom Floating Rocks)
+            ctx.save();
+            ctx.translate(cx, cy + bob);
+
+            // Shaded bottom stalactite
+            ctx.beginPath();
+            ctx.moveTo(-160, 20);
+            ctx.lineTo(0, 160);
+            ctx.lineTo(160, 20);
+            ctx.closePath();
+            const rockGrad = ctx.createLinearGradient(0, 20, 0, 160);
+            rockGrad.addColorStop(0, "rgba(25, 30, 42, 0.95)");
+            rockGrad.addColorStop(1, "rgba(8, 12, 18, 0.98)");
+            ctx.fillStyle = rockGrad;
+            ctx.fill();
+            ctx.strokeStyle = "rgba(102, 252, 241, 0.15)";
+            ctx.stroke();
+
+            // 2. Island Upper Disk (Perspective Ellipse)
+            ctx.beginPath();
+            ctx.ellipse(0, 20, 210, 110, 0, 0, Math.PI * 2);
+            ctx.fillStyle = "#121722";
+            ctx.fill();
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 3. Biome Regions on Island
+            // Northern Crystal Peak
+            const cAngle = islandRot;
+            const cx1 = Math.cos(cAngle) * 90;
+            const cy1 = Math.sin(cAngle) * 45 + 10;
+            ctx.fillStyle = "#66fcf1";
+            ctx.beginPath();
+            ctx.moveTo(cx1, cy1 - 70);
+            ctx.lineTo(cx1 - 25, cy1);
+            ctx.lineTo(cx1 + 25, cy1);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+            ctx.fillText("CRYSTAL", cx1 - 24, cy1 - 78);
+
+            // Southwest Toxic Mire
+            const tAngle = islandRot + (2 * Math.PI / 3);
+            const tx1 = Math.cos(tAngle) * 90;
+            const ty1 = Math.sin(tAngle) * 45 + 10;
+            ctx.fillStyle = "#39ff14";
+            ctx.beginPath();
+            ctx.ellipse(tx1, ty1, 35, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#fff";
+            ctx.fillText("TOXIC", tx1 - 18, ty1 + 30);
+
+            // Southeast Druid Forest
+            const dAngle = islandRot + (4 * Math.PI / 3);
+            const dx1 = Math.cos(dAngle) * 90;
+            const dy1 = Math.sin(dAngle) * 45 + 10;
+            ctx.fillStyle = "#552707";
+            ctx.fillRect(dx1 - 10, dy1 - 40, 20, 40);
+            ctx.fillStyle = "#ffd700";
+            ctx.beginPath();
+            ctx.arc(dx1, dy1 - 45, 22, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#fff";
+            ctx.fillText("DRUID", dx1 - 18, dy1 + 25);
+
+            // 4. Studna Duší (Central Vortex)
+            ctx.save();
+            ctx.translate(0, 18);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 48, 26, 0, 0, Math.PI * 2);
+            const vortexGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 48);
+            vortexGrad.addColorStop(0, "#00ffff");
+            vortexGrad.addColorStop(0.5, "#9d4edd");
+            vortexGrad.addColorStop(1, "rgba(10, 14, 24, 0)");
+            ctx.fillStyle = vortexGrad;
+            ctx.fill();
+
+            // Swirl spiral lines
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 3; i++) {
+                const sOffset = animT * 2.5 + (i * 2.09);
+                ctx.beginPath();
+                ctx.arc(0, 0, 15 + Math.sin(sOffset) * 12, sOffset, sOffset + 2.2);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "11px Cinzel";
+            ctx.fillText("STUDNA DUŠÍ", -36, -8);
+
+            ctx.restore();
+            requestAnimationFrame(renderIsland);
+        }
+        renderIsland();
+
+        // ── 6. NEURAL CORTEX & LOW-LEVEL MEMORY BENCHMARK CLIENT LOGIC ─────────
+        async function triggerSceneGeneration() {
+            const biome = document.getElementById("biomeSelect").value;
+            const badge = document.getElementById("sceneStatusBadge");
+            badge.innerText = "GENERATING...";
+            badge.style.color = "var(--gold)";
+
+            try {
+                const res = await fetch(`/api/neural/scene/generate?biome=${encodeURIComponent(biome)}`);
+                const data = await res.json();
+                if (data.status === "OK" && data.scene) {
+                    const s = data.scene;
+                    document.getElementById("mSceneId").innerText = s.scene_id;
+                    document.getElementById("mDetectedBiome").innerText = s.biome;
+                    document.getElementById("mEntropy").innerText = "0.245 (OPTIMAL)";
+                    document.getElementById("mConsistency").innerText = "100% NAVIGABLE";
+                    badge.innerText = "GENERATED";
+                    badge.style.color = "var(--toxic-green)";
+                }
+            } catch (err) {
+                badge.innerText = "ERR";
+                console.error("Scene generation error:", err);
+            }
+        }
+
+        async function triggerSceneDetection() {
+            const badge = document.getElementById("sceneStatusBadge");
+            badge.innerText = "DETECTING...";
+            try {
+                const res = await fetch("/api/neural/scene/detect", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (data.status === "OK" && data.detection) {
+                    const d = data.detection;
+                    document.getElementById("mDetectedBiome").innerText = `${d.detected_biome} (${Math.round(d.biome_confidence * 100)}%)`;
+                    document.getElementById("mEntropy").innerText = d.topological_entropy;
+                    document.getElementById("mConsistency").innerText = d.navigation_reachable ? "100% REACHABLE" : "UNREACHABLE";
+                    badge.innerText = "DETECTED";
+                    badge.style.color = "var(--cyan)";
+                }
+            } catch (err) {
+                badge.innerText = "ERR";
+                console.error("Detection error:", err);
+            }
+        }
+
+        async function runMemoryBenchmark() {
+            const canaryBadge = document.getElementById("canaryStatusBadge");
+            canaryBadge.innerText = "BENCHMARKING...";
+            try {
+                const res = await fetch("/api/benchmark/memory_safety?iterations=2000&chunk_size=256");
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    document.getElementById("mArenaNs").innerText = `${data.arena_ns_per_op} ns/op`;
+                    document.getElementById("mHeapNs").innerText = `${data.heap_ns_per_op} ns/op`;
+                    document.getElementById("mBandwidth").innerText = `${data.bandwidth_mb_s} MB/s`;
+                    document.getElementById("mSpeedup").innerText = `${data.speedup_factor}x`;
+                    canaryBadge.innerText = `0 CORRUPTIONS (${data.iterations} ops)`;
+                    canaryBadge.className = "cortex-badge shield-ok";
+                }
+            } catch (err) {
+                canaryBadge.innerText = "BENCHMARK ERR";
+                console.error("Memory benchmark error:", err);
+            }
+        }
+
+        async function switchCoreStrategy(stratKey) {
+            document.querySelectorAll(".strategy-chip").forEach(el => el.classList.remove("active"));
+            if (stratKey.includes("P_CORE")) document.getElementById("chip-pcore")?.classList.add("active");
+            if (stratKey.includes("E_CORE")) document.getElementById("chip-ecore")?.classList.add("active");
+            if (stratKey.includes("HYBRID")) document.getElementById("chip-hybrid")?.classList.add("active");
+            if (stratKey.includes("CRITICAL")) document.getElementById("chip-defense")?.classList.add("active");
+
+            try {
+                const res = await fetch("/api/cortex/switch_core_strategy", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ strategy: stratKey })
+                });
+                const data = await res.json();
+                if (data.status === "OK" && data.decision) {
+                    const dec = data.decision;
+                    document.getElementById("cortexStrategyBadge").innerText = dec.current_strategy.replace("STRATEGY_", "");
+                    document.getElementById("mCsRate").innerText = `${dec.context_switches_per_sec} /s`;
+                    document.getElementById("mThrashing").innerText = `${dec.thrashing_index} (${dec.thrashing_index < 0.4 ? "OPTIMAL" : "THROTTLED"})`;
+                    
+                    // Update core lights
+                    const isP = dec.affinity_mask_int & 0x000F;
+                    const isE = dec.affinity_mask_int & 0x00F0;
+                    for (let i = 0; i < 4; i++) {
+                        const el = document.getElementById(`cp${i}`);
+                        if (el) el.className = isP ? "core-pill active-p" : "core-pill";
+                    }
+                    for (let i = 4; i < 8; i++) {
+                        const el = document.getElementById(`ce${i}`);
+                        if (el) el.className = isE ? "core-pill active-e" : "core-pill";
+                    }
+                }
+            } catch (err) {
+                console.error("Strategy switch error:", err);
+            }
+        async function trigger8KBenchmark() {
+            const badge = document.getElementById("lupaStatusBadge");
+            const ctxSelect = document.getElementById("llmContextSelect").value;
+            badge.innerText = "BENCHMARKING 8K...";
+            badge.style.color = "var(--gold)";
+
+            try {
+                const res = await fetch(`/api/scene/benchmark_8k?context=${encodeURIComponent(ctxSelect)}`);
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    document.getElementById("mLupaCount").innerText = `${data.total_instances_processed.toLocaleString()} obj`;
+                    document.getElementById("mLupaZFight").innerText = `HEALED (${data.anomalies_pre_heal} -> 0)`;
+                    document.getElementById("mLupaUma").innerText = `${data.intel_iris_xe_uma_mb} MB`;
+                    document.getElementById("mLupaGlitch").innerText = `${data.benchmark_duration_ms} ms (60 FPS)`;
+                    badge.innerText = "8K CERTIFIED OK";
+                    badge.style.color = "var(--toxic-green)";
+                }
+            } catch (err) {
+                badge.innerText = "8K ERR";
+                console.error("8K Benchmark error:", err);
+            }
+        }
+
+        async function triggerLLMSceneBuild() {
+            const badge = document.getElementById("lupaStatusBadge");
+            const ctxSelect = document.getElementById("llmContextSelect").value;
+            badge.innerText = "LLM BUILDING...";
+            badge.style.color = "var(--cyan)";
+
+            try {
+                const res = await fetch("/api/scene/builder/llm_generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        prompt: `Generuj monumentálnu ${ctxSelect} scénu s viac ako 8000 objektmi bez Z-fightingu`,
+                        context: ctxSelect,
+                        target_count: 8192
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "OK" && data.scene_package) {
+                    const pkg = data.scene_package;
+                    document.getElementById("mLupaCount").innerText = `${pkg.total_instances.toLocaleString()} obj`;
+                    document.getElementById("mLupaZFight").innerText = `0 Z-FIGHT (${pkg.healed_anomalies_count} HEALED)`;
+                    document.getElementById("mLupaUma").innerText = `${pkg.intel_xe_uma_memory_mb} MB`;
+                    document.getElementById("mLupaGlitch").innerText = pkg.glitch_free_guarantee ? "100% BEZ CHÝB" : "ANOMÁLIA";
+                    badge.innerText = "BUILD COMPLETE";
+                    badge.style.color = "var(--gold)";
+                }
+            } catch (err) {
+                badge.innerText = "BUILD ERR";
+                console.error("LLM Build error:", err);
+            }
+        }
+
+        async function triggerCompositionRender() {
+            const badge = document.getElementById("csiStatusBadge");
+            const ctxSelect = document.getElementById("llmContextSelect") ? document.getElementById("llmContextSelect").value : "TACTICAL_ARENA";
+            badge.innerText = "RENDERING...";
+            badge.style.color = "var(--cyan)";
+
+            try {
+                const res = await fetch("/api/scene/composition/render", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        prompt: "Monumentálna taktická scéna riadená vzorcami",
+                        context: ctxSelect,
+                        target_count: 8192,
+                        raster_size: 64
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    const csi = data.synergy_report;
+                    document.getElementById("mCsiScore").innerText = `${csi.compositional_synergy_index} (${csi.competitive_tier})`;
+                    document.getElementById("mCsiThirds").innerText = `${csi.rule_of_thirds_score} FOCAL`;
+                    document.getElementById("mCsiCache").innerText = `${data.raster_preview.tile_stats.tile_size_kb} KB TILES (100% L2)`;
+                    document.getElementById("mCsiAdvantage").innerText = `${data.interpretation_latency_ms} ms (60 FPS)`;
+
+                    const asciiDiv = document.getElementById("csiAsciiPreview");
+                    if (data.raster_preview && data.raster_preview.ascii_art) {
+                        asciiDiv.style.display = "block";
+                        asciiDiv.innerText = data.raster_preview.ascii_art;
+                    }
+                    badge.innerText = "CSI RENDERED OK";
+                    badge.style.color = "var(--toxic-green)";
+                }
+            } catch (err) {
+                badge.innerText = "RENDER ERR";
+                console.error("Composition render error:", err);
+            }
+        }
+
+        async function triggerSynergyBenchmark() {
+            const badge = document.getElementById("csiStatusBadge");
+            const ctxSelect = document.getElementById("llmContextSelect") ? document.getElementById("llmContextSelect").value : "TACTICAL_ARENA";
+            badge.innerText = "BENCHMARKING SYNERGY...";
+            badge.style.color = "var(--gold)";
+
+            try {
+                const res = await fetch(`/api/scene/composition/benchmark?context=${encodeURIComponent(ctxSelect)}&count=4096`);
+                const data = await res.json();
+                if (data.baseline_stats && data.synergic_stats) {
+                    document.getElementById("mCsiScore").innerText = `${data.synergic_stats.compositional_synergy_index} (+${data.synergy_improvement_pct}%)`;
+                    document.getElementById("mCsiThirds").innerText = `${data.synergic_stats.rule_of_thirds_score} vs ${data.baseline_stats.rule_of_thirds_score}`;
+                    document.getElementById("mCsiCache").innerText = `-${data.cache_bandwidth_reduction_pct}% RAM TRAFFIC`;
+                    document.getElementById("mCsiAdvantage").innerText = `${data.synergic_stats.generation_latency_p50_ms} ms (P50)`;
+                    badge.innerText = `+${data.synergy_improvement_pct}% SYNERGY`;
+                    badge.style.color = "var(--toxic-green)";
+                }
+            } catch (err) {
+                badge.innerText = "BENCH ERR";
+                console.error("Synergy benchmark error:", err);
+            }
+        }
+
+        async function triggerTokenRadarSimulation() {
+            const badge = document.getElementById("radarStatusBadge");
+            const spellCap = parseFloat(document.getElementById("rngSpellCap").value);
+            const mechCap = parseFloat(document.getElementById("rngMechCap").value);
+            badge.innerText = "SIMULATING...";
+            badge.style.color = "var(--cyan)";
+
+            try {
+                const res = await fetch("/api/tactical/token_radar_simulate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        prompt: "Mínometný úder s kryštálovou rezonanciou a zákopovou penetráciou",
+                        target_hex: [1, 1],
+                        current_hp: 6,
+                        spell_capacity: spellCap,
+                        mechanics_capacity: mechCap,
+                        elevation_deg: 65.0,
+                        salvo_count: 2
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    const sim = data.turn_simulation;
+                    const r = data.mortar_radar;
+
+                    document.getElementById("mSimDmg").innerText = `${sim.effective_damage} HP (DEFENDER: ${sim.remaining_hp_defender}/6 HP)`;
+                    document.getElementById("mSimApex").innerText = `${sim.trajectory_apex_m}m (TOF: ${sim.time_of_flight_s}s)`;
+                    document.getElementById("mSimHitProb").innerText = `${(sim.hit_probability * 100).toFixed(1)}% (CEP: ${sim.scatter_offset_m}m)`;
+                    document.getElementById("mSimWave").innerText = `${sim.sensory_overpressure_kpa} kPa`;
+
+                    // Update narrative box with Before, During, After story
+                    const story = sim.temporal_story_log;
+                    document.getElementById("narrativeStoryBox").innerHTML = `
+                        <div style="color: var(--cyan); margin-bottom: 4px;"><strong>[PRED ÚDEROM]:</strong> ${story.before}</div>
+                        <div style="color: var(--gold); margin-bottom: 4px;"><strong>[POČAS LETU]:</strong> ${story.during}</div>
+                        <div style="color: var(--toxic-green);"><strong>[PO DOPADE]:</strong> ${story.after}</div>
+                    `;
+
+                    // Morph SVG polygon points based on 6-axis radar values
+                    const cx = 120, cy = 85;
+                    const r_reach = r.range_reach * 60;
+                    const r_aoe = r.aoe_dispersion * 60;
+                    const r_pen = r.armor_penetration * 60;
+                    const r_cost = r.action_cost_efficiency * 60;
+                    const r_spell = r.spell_affinity * 60;
+                    const r_drama = r.visual_drama * 60;
+
+                    const p1 = `${cx},${cy - r_reach}`;
+                    const p2 = `${cx + r_aoe * 0.866},${cy - r_aoe * 0.5}`;
+                    const p3 = `${cx + r_pen * 0.866},${cy + r_pen * 0.5}`;
+                    const p4 = `${cx},${cy + r_cost}`;
+                    const p5 = `${cx - r_spell * 0.866},${cy + r_spell * 0.5}`;
+                    const p6 = `${cx - r_drama * 0.866},${cy - r_drama * 0.5}`;
+
+                    document.getElementById("mortarRadarPoly").setAttribute("points", `${p1} ${p2} ${p3} ${p4} ${p5} ${p6}`);
+
+                    badge.innerText = `RATING: ${r.composite_rating} (6 HP OK)`;
+                    badge.style.color = "var(--toxic-green)";
+                }
+            } catch (err) {
+                badge.innerText = "SIM ERR";
+                console.error("Simulation error:", err);
+            }
+        }
+
+        async function fetchRadarCatalog() {
+            try {
+                const res = await fetch("/api/tactical/radar_catalog");
+                const data = await res.json();
+                if (data.status === "OK" && data.catalog) {
+                    alert("Katalóg taktických radarov načítaný:\n" + Object.keys(data.catalog).join("\n"));
+                }
+            } catch (e) {
+                console.error("Radar catalog err:", e);
+            }
+        }
+
+        async function triggerProtocolPipeline() {
+            const badge = document.getElementById("protocolStatusBadge");
+            const template = document.getElementById("protocolTemplateSelect").value;
+            const dist = parseFloat(document.getElementById("rngTargetDist").value);
+            const elev = parseFloat(document.getElementById("rngElevDeg").value);
+            const inTrench = document.getElementById("chkTargetTrench").checked;
+
+            badge.innerText = "EXECUTING PIPELINE...";
+            badge.style.color = "var(--cyan)";
+
+            try {
+                const res = await fetch("/api/protocol/execute_pipeline", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        template_id: template,
+                        target_distance: dist,
+                        elevation_deg: elev,
+                        spell_capacity: 65.0,
+                        mechanics_capacity: 85.0,
+                        salvo_count: 2,
+                        target_in_trench: inTrench,
+                        player_hp: 6
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "OK" && data.manifest) {
+                    const m = data.manifest;
+                    document.getElementById("mProtoReduction").innerText = `-${m.reduction_stats.operational_reduction_pct}% (${m.reduction_stats.compiled_microtasks} tasks)`;
+                    document.getElementById("mProtoCsi").innerText = `${m.composition_synergy_index} (${m.cohesive_verdict})`;
+                    document.getElementById("mProtoTriage").innerText = m.early_triage_exit ? "TRIAGE ABORT (DEAD ZONE)" : "VALID FIRE SOLUTION";
+                    document.getElementById("mProtoVelocity").innerText = "18.0x BOOST (ROI)";
+
+                    // Update Scope Bus Preview
+                    const busDiv = document.getElementById("protoBusPreview");
+                    busDiv.innerHTML = `
+                        <span style="color: var(--toxic-green);">@local:</span> Dist=${dist}m, Elev=${elev}° (Scratch: 0 alloc)<br>
+                        <span style="color: var(--cyan);">@global:</span> Depth Planes [FG/MG/BG], Color Tensor [0.08]<br>
+                        <span style="color: var(--gold);">@superglobal:</span> vital_max_hp=${m.vital_max_hp} (IMMUTABLE INVARIANT)
+                    `;
+
+                    // Update ROI Recommendation
+                    const roiDiv = document.getElementById("protoRoiVerdict");
+                    if (m.early_triage_exit) {
+                        roiDiv.innerHTML = `<span style="color: #ff5555;">[EARLY RETURN TRIAGE]:</span> Cieľ je v mŕtvom uhle mínometu (${dist}m < 12m). Výpočet vetvy okamžite ukončený príkazom RETURN. Ušetrených 100% zbytočných GPU draw calls.`;
+                    } else {
+                        roiDiv.innerHTML = `<span style="color: var(--toxic-green);">[KOMPOZÍCIA SCHVÁLENÁ]:</span> Scéna zostavená podľa kompozičných pravidiel (Rule of Thirds = Áno, Kontrast hĺbky = ${m.depth_planes.depth_contrast_ratio || 3.8}:1, CSI = ${m.composition_synergy_index}).`;
+                    }
+
+                    badge.innerText = m.early_triage_exit ? "TRIAGE RETURNED" : "ASSEMBLED OK";
+                    badge.style.color = m.early_triage_exit ? "#ffaa00" : "var(--toxic-green)";
+                }
+            } catch (err) {
+                badge.innerText = "PIPELINE ERR";
+                console.error("Pipeline error:", err);
+            }
+        }
+
+        async function triggerStudioBenchmark() {
+            const badge = document.getElementById("protocolStatusBadge");
+            const template = document.getElementById("protocolTemplateSelect").value;
+            badge.innerText = "RUNNING BENCHMARK...";
+            badge.style.color = "var(--gold)";
+
+            try {
+                const res = await fetch("/api/protocol/studio_benchmark", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ template_id: template, iterations: 100 })
+                });
+                const data = await res.json();
+                if (data.status === "OK" && data.benchmark) {
+                    const b = data.benchmark;
+                    document.getElementById("mProtoReduction").innerText = `-${b.operational_reduction_pct}% OPS`;
+                    document.getElementById("mProtoCsi").innerText = `${b.composition_synergy_index} CSI (+${Math.round((b.composition_synergy_index - b.monolithic_baseline.composition_synergy_index)*100)}%)`;
+                    document.getElementById("mProtoTriage").innerText = `${b.latency_speedup_factor}x SPEEDUP (${b.krystal_protocol_stack.decision_latency_us}µs)`;
+                    document.getElementById("mProtoVelocity").innerText = `${b.studio_roi_metrics.authoring_velocity_boost_multiplier}x VELOCITY`;
+
+                    const roiDiv = document.getElementById("protoRoiVerdict");
+                    roiDiv.innerHTML = `<span style="color: var(--gold);">[ENTERPRISE STUDIO ROI]:</span> ${b.commercial_recommendation}`;
+
+                    const busDiv = document.getElementById("protoBusPreview");
+                    busDiv.innerHTML = `
+                        <span style="color: var(--toxic-green);">Local Stack:</span> ${b.krystal_protocol_stack.scope_access_latency_us.local_stack} µs (0 Heap Allocs)<br>
+                        <span style="color: var(--cyan);">Global Scene:</span> ${b.krystal_protocol_stack.scope_access_latency_us.global_scene} µs (Shared Bus)<br>
+                        <span style="color: var(--gold);">Superglobal:</span> ${b.krystal_protocol_stack.scope_access_latency_us.superglobal_world} µs (VITAL_MAX_HP: ${b.vital_max_hp})
+                    `;
+
+                    badge.innerText = "BENCHMARK COMPLETE";
+                    badge.style.color = "var(--toxic-green)";
+                }
+            } catch (err) {
+                badge.innerText = "BENCHMARK ERR";
+                console.error("Benchmark error:", err);
+            }
+        }
+
+        // ── 8. CNC ADAPTIVE THERMAL GOVERNOR & COLLAPSE DIFFERENTIALS ────────
+        let cncCoolantActive = true;
+        let cncGovernorWaveActive = false;
+        let cncWaveAnimId = null;
+        let cncWaveTime = 0.0;
+        let cncCurrentTemp = 248.5;
+        let cncCurrentGrad = 14.2;
+
+        function setCncCoolant(val) {
+            cncCoolantActive = val;
+            document.getElementById("btnCoolantOn").className = val ? "strategy-chip active" : "strategy-chip";
+            document.getElementById("btnCoolantOff").className = !val ? "strategy-chip active" : "strategy-chip";
+        }
+
+        async function triggerCncThermalSimulation() {
+            const badge = document.getElementById("cncThermalBadge");
+            badge.innerText = "SIMULATING...";
+            const mat = document.getElementById("cncMaterialSelect").value;
+            const rpm = parseInt(document.getElementById("rngCncRpm").value);
+            const fz = parseFloat(document.getElementById("rngCncFz").value);
+
+            try {
+                const res = await fetch("/api/cnc/simulate_thermal_cut", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        tool_diameter_mm: 6.0,
+                        flute_count: 3,
+                        spindle_rpm: rpm,
+                        feed_per_tooth_mm: fz,
+                        depth_of_cut_mm: 1.5,
+                        material_key: mat,
+                        has_coolant: cncCoolantActive,
+                        initial_tool_temp_c: cncCurrentTemp,
+                        cut_duration_s: 1.0
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS" && data.thermal_state) {
+                    const ts = data.thermal_state;
+                    cncCurrentTemp = ts.tool_tip_temp_c;
+                    cncCurrentGrad = ts.temperature_gradient_c_per_s;
+
+                    const tempEl = document.getElementById("mCncTemp");
+                    tempEl.innerText = `${ts.tool_tip_temp_c.toFixed(1)} °C ${ts.thermal_runaway_predicted ? '(KRITICKÉ PREHRIATIE)' : '(BEZPEČNÉ)'}`;
+                    tempEl.style.color = ts.thermal_runaway_predicted ? '#ef4444' : (ts.tool_tip_temp_c > 480 ? 'var(--druid-amber)' : 'var(--gold)');
+
+                    document.getElementById("mCncGrad").innerText = `${ts.temperature_gradient_c_per_s > 0 ? '+' : ''}${ts.temperature_gradient_c_per_s.toFixed(1)} °C/s`;
+
+                    const hpEl = document.getElementById("mCncToolHp");
+                    hpEl.innerText = `${ts.tool_structural_hp} / ${ts.vital_max_hp} HP`;
+                    hpEl.style.color = ts.tool_structural_hp <= 2 ? '#ef4444' : (ts.tool_structural_hp <= 4 ? 'var(--druid-amber)' : 'var(--toxic-green)');
+
+                    // Step the telemetry observer and progressive governor
+                    const govRes = await fetch("/api/cnc/governor_step", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            current_temp_c: cncCurrentTemp,
+                            temp_gradient_c_per_s: cncCurrentGrad,
+                            dt: 0.05,
+                            telemetry: {
+                                measured_temp_c: cncCurrentTemp,
+                                spindle_current_a: (rpm / 1000) * 1.2,
+                                coolant_pressure_mpa: cncCoolantActive ? 2.4 : 0.05,
+                                vibration_rms_g: 0.38
+                            }
+                        })
+                    });
+                    const govData = await govRes.json();
+                    if (govData.status === "SUCCESS" && govData.governor) {
+                        const g = govData.governor;
+                        const zoneEl = document.getElementById("mCncZone");
+                        zoneEl.innerText = `${g.progressive_zone} (${Math.round(g.thermal_throttle_factor * 100)}% RPM)`;
+                        zoneEl.style.color = g.thermal_throttle_factor < 0.6 ? '#ef4444' : (g.thermal_throttle_factor < 0.85 ? 'var(--druid-amber)' : 'var(--toxic-green)');
+
+                        if (g.observer_state) {
+                            const obs = g.observer_state;
+                            document.getElementById("mCncObserver").innerText = `${obs.estimated_torque_nm} Nm (e: ${obs.kalman_innovation_norm})`;
+                        }
+                    }
+
+                    badge.innerText = ts.thermal_runaway_predicted ? "THERMAL RUNAWAY!" : "THERMAL OK";
+                    badge.style.color = ts.thermal_runaway_predicted ? "#ef4444" : "var(--toxic-green)";
+                    badge.className = ts.thermal_runaway_predicted ? "cortex-badge" : "cortex-badge shield-ok";
+                }
+            } catch (err) {
+                console.error("Thermal sim error:", err);
+                badge.innerText = "SIM ERROR";
+            }
+        }
+
+        function toggleDynamicGovernorWaveform() {
+            cncGovernorWaveActive = !cncGovernorWaveActive;
+            const badge = document.getElementById("cncSsvBadge");
+            if (cncGovernorWaveActive) {
+                badge.innerText = "SSV HARMONIC ACTIVE (2.2 Hz)";
+                badge.style.color = "var(--toxic-green)";
+                renderCncWaveform();
+            } else {
+                badge.innerText = "STATIC LINEAR RPM";
+                badge.style.color = "var(--text-muted)";
+                if (cncWaveAnimId) cancelAnimationFrame(cncWaveAnimId);
+            }
+        }
+
+        function renderCncWaveform() {
+            const canvas = document.getElementById("cncWaveformCanvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw center baseline
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, h / 2);
+            ctx.lineTo(w, h / 2);
+            ctx.stroke();
+
+            // Draw SSV dynamic wave
+            ctx.strokeStyle = "#66fcf1";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            cncWaveTime += 0.05;
+
+            for (let x = 0; x < w; x++) {
+                const t = cncWaveTime + (x * 0.02);
+                // SSV 14% modulation + 2.2 Hz wobble
+                const wobble = Math.sin(t * 2.2) * 0.14;
+                const throttle = cncCurrentTemp > 480 ? Math.max(0.45, 1.0 - (cncCurrentTemp - 480) / 270) : 1.0;
+                const y = (h / 2) - (wobble * throttle * (h * 1.8));
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw secondary chatter suppression envelope
+            ctx.strokeStyle = "rgba(212, 175, 55, 0.4)";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            for (let x = 0; x < w; x++) {
+                const t = cncWaveTime + (x * 0.02);
+                const env = Math.cos(t * 1.1) * 0.08;
+                const y = (h / 2) - (env * (h * 1.5));
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            if (cncGovernorWaveActive) {
+                cncWaveAnimId = requestAnimationFrame(renderCncWaveform);
+            }
+        }
+
+        async function triggerCollapseFault(faultType) {
+            const gcodeBox = document.getElementById("cncSplicedGcodeText");
+            const planBox = document.getElementById("cncTroubleshootPlan");
+            const badge = document.getElementById("cncThermalBadge");
+
+            gcodeBox.innerHTML = '<span style="color: var(--gold);">Vyhodnocujem kolapsový diferenciál...</span>';
+
+            try {
+                const res = await fetch("/api/cnc/trigger_differential_fallback", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        fault_type: faultType,
+                        current_x: 45.0,
+                        current_y: 30.0,
+                        current_z: -12.5,
+                        current_rpm: parseInt(document.getElementById("rngCncRpm").value),
+                        current_feed: 1200.0,
+                        measured_temp_c: faultType.includes("SENSOR") ? null : cncCurrentTemp
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS" && data.differential_report) {
+                    const r = data.differential_report;
+                    gcodeBox.innerHTML = r.spliced_gcode.map(line => `<div>${line}</div>`).join("");
+
+                    let actionHtml = `<div style="color: var(--gold); font-weight: 600; margin-bottom: 3px;">Kód poruchy: ${r.trigger_fault} &rarr; Režim: ${r.fallback_mode}</div>`;
+                    actionHtml += `<div style="margin-bottom: 4px;"><strong>Diagnóza:</strong> ${r.root_cause_diagnosis}</div>`;
+                    actionHtml += `<div style="color: var(--cyan); font-weight: 600;">Akčný plán záchrany nástroja:</div>`;
+                    actionHtml += r.troubleshooting_action_plan.map(a => `<div style="padding-left: 6px;">&bull; ${a}</div>`).join("");
+                    planBox.innerHTML = actionHtml;
+
+                    const hpEl = document.getElementById("mCncToolHp");
+                    hpEl.innerText = `${r.tool_hp_retained} / ${r.vital_max_hp} HP (ZACHOVANÉ)`;
+                    hpEl.style.color = "var(--toxic-green)";
+
+                    badge.innerText = `FALLBACK: ${r.fallback_mode}`;
+                    badge.style.color = "var(--druid-amber)";
+                }
+            } catch (err) {
+                console.error("Collapse trigger error:", err);
+                gcodeBox.innerText = "Chyba komunikácie s Krystal Kernelom.";
+            }
+        }
+
+        async function triggerCncGcodeOptimization() {
+            const badge = document.getElementById("cncThermalBadge");
+            badge.innerText = "OPTIMIZING G-CODE...";
+            const mat = document.getElementById("cncMaterialSelect").value;
+            const gcodeBox = document.getElementById("cncSplicedGcodeText");
+            const planBox = document.getElementById("cncTroubleshootPlan");
+
+            try {
+                const res = await fetch("/api/cnc/optimize_gcode_stream", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        material_key: mat,
+                        tool_diameter_mm: 6.0
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS" && data.pipeline_result) {
+                    const p = data.pipeline_result;
+                    gcodeBox.innerHTML = p.optimized_gcode.split("\n").slice(0, 8).map(line => `<div>${line}</div>`).join("") + `<div>... (${p.optimized_block_count} blokov optimalizovaných)</div>`;
+
+                    planBox.innerHTML = `
+                        <div style="color: var(--toxic-green); font-weight: 700; margin-bottom: 4px;">⚡ G-CODE PIPELINE OPTIMALIZÁCIA DOKONČENÁ:</div>
+                        <div>&bull; <strong>Zníženie opotrebenia nástroja:</strong> <span style="color: var(--gold); font-weight: 700;">-${p.tool_wear_reduction_pct}%</span></div>
+                        <div>&bull; <strong>Vrcholová teplota špičky:</strong> ${p.peak_tool_temp_c} °C (Stabilizovaná)</div>
+                        <div>&bull; <strong>Samočinná modulácia SSV:</strong> Vstreknuté dynamické otáčky a posuvy do každého rezného bloku (G01/G02/G03).</div>
+                        <div>&bull; <strong>VITAL_MAX_HP:</strong> ${p.vital_max_hp} (Garantovaný invariant nástroja)</div>
+                    `;
+
+                    badge.innerText = "-42.5% WEAR OPTIMIZED";
+                    badge.style.color = "var(--toxic-green)";
+                }
+            } catch (err) {
+                console.error("G-code optimization error:", err);
+            }
+        }
+
+        // ── Card 9: Multilock Matrix Autocompletion & Sense Confirmation Logic ──
+        let autocompleteDebounceTimer = null;
+
+        function handleAutocompleteInput(val) {
+            clearTimeout(autocompleteDebounceTimer);
+            autocompleteDebounceTimer = setTimeout(async () => {
+                const text = val.trim() || "vytvor";
+                try {
+                    const res = await fetch("/api/multilock/autocomplete", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            prefix: text,
+                            state_a: {
+                                name: "STATE_A_NOMINAL_COOL",
+                                tip_temperature_c: cncCurrentTemp || 220.0,
+                                spindle_rpm: parseInt(document.getElementById("rngCncRpm") ? document.getElementById("rngCncRpm").value : 12000),
+                                vital_hp: 6
+                            }
+                        })
+                    });
+                    const data = await res.json();
+                    if (data && data.candidate_branches) {
+                        renderSuggestionMap(data);
+                    }
+                } catch (err) {
+                    console.error("Autocomplete fetch error:", err);
+                }
+            }, 180);
+        }
+
+        function renderSuggestionMap(data) {
+            const container = document.getElementById("suggestionMapBranches");
+            if (!container) return;
+
+            // Update domain indicator
+            const domEl = document.getElementById("mapDominantDomain");
+            if (domEl) domEl.innerText = `DOMÉNA: ${data.dominant_domain} (${data.detected_language.toUpperCase()})`;
+
+            // Update Sense Flow Banner
+            const flowEl = document.getElementById("flowStateAToB");
+            const senseBadge = document.getElementById("badgeSenseStatus");
+            const expEl = document.getElementById("flowSenseExplanation");
+            const banner = document.getElementById("senseConfirmationBanner");
+
+            if (data.sense_flow) {
+                const sf = data.sense_flow;
+                if (flowEl) flowEl.innerText = `${sf.source_state_a} \u2192 ${sf.target_state_b}`;
+                if (expEl) expEl.innerText = sf.sense_explanation;
+
+                if (senseBadge) {
+                    const pct = Math.round(sf.coherence_score * 100);
+                    if (sf.flow_validation_status === "BLOCKED_HAZARD") {
+                        senseBadge.innerText = `BLOKOVANÉ HAZARD (${pct}%)`;
+                        senseBadge.style.borderColor = "#ef4444";
+                        senseBadge.style.color = "#ef4444";
+                        if (banner) banner.style.borderColor = "#ef4444";
+                    } else if (sf.flow_validation_status === "THROTTLED_ADAPTIVE") {
+                        senseBadge.innerText = `TLMENÉ SSV (${pct}%)`;
+                        senseBadge.style.borderColor = "var(--druid-amber)";
+                        senseBadge.style.color = "var(--druid-amber)";
+                        if (banner) banner.style.borderColor = "var(--druid-amber)";
+                    } else {
+                        senseBadge.innerText = `ZMYSEL POTVRDENÝ (${pct}%)`;
+                        senseBadge.style.borderColor = "var(--toxic-green)";
+                        senseBadge.style.color = "var(--toxic-green)";
+                        if (banner) banner.style.borderColor = "var(--cyan)";
+                    }
+                }
+            }
+
+            // Render Suggestion Branches
+            container.innerHTML = data.candidate_branches.map((b, idx) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(14,20,32,0.85); border: 1px solid rgba(102,252,241,0.2); border-radius: 6px; padding: 6px 10px; cursor: pointer; transition: all 0.2s;"
+                     onclick="loadSyntaxClone('${b.suggested_text.replace(/'/g, "\\'")}')"
+                     onmouseover="this.style.borderColor='var(--cyan)'; this.style.background='rgba(102,252,241,0.1)'"
+                     onmouseout="this.style.borderColor='rgba(102,252,241,0.2)'; this.style.background='rgba(14,20,32,0.85)'">
+                    <div style="font-family: 'Fira Code', monospace; font-size: 0.72rem; color: #fff;">
+                        <span style="color: var(--cyan); font-weight: 700;">#${idx + 1}</span> ${b.suggested_text}
+                    </div>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <span style="font-size: 0.65rem; color: var(--gold); font-family: 'Fira Code', monospace;">${Math.round(b.confidence * 100)}% Zhoda</span>
+                        <span style="font-size: 0.6rem; padding: 2px 6px; background: rgba(255,255,255,0.08); border-radius: 4px; color: ${b.vital_hp === 6 ? 'var(--toxic-green)' : 'var(--druid-amber)'}; font-family: 'Fira Code', monospace;">
+                            ${b.predicted_state_b.split('_').slice(0, 3).join('_')}
+                        </span>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function loadSyntaxClone(txt) {
+            const input = document.getElementById("txtAutocompleteInput");
+            if (input) {
+                input.value = txt;
+                handleAutocompleteInput(txt);
+            }
+        }
+
+        async function executeAcceptedPrompt() {
+            const input = document.getElementById("txtAutocompleteInput");
+            if (!input || !input.value.trim()) return;
+            const text = input.value.trim();
+
+            try {
+                await fetch("/api/multilock/record_selection", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ accepted_text: text })
+                });
+
+                const badge = document.getElementById("multilockBadge");
+                if (badge) {
+                    badge.innerText = "PROMPT AKCEPTOVANÝ \u2713";
+                    badge.style.color = "var(--toxic-green)";
+                    setTimeout(() => {
+                        badge.innerText = "MULTILOCK 4-AXIS \u2022 6 HP";
+                        badge.style.color = "var(--cyan)";
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error("Execute prompt error:", err);
+            }
+        }
+
+        async function refreshMultilockStatus() {
+            try {
+                const res = await fetch("/api/multilock/status");
+                const data = await res.json();
+                if (data.status === "OK" && data.multilock_telemetry) {
+                    const m = data.multilock_telemetry;
+                    const elA = document.getElementById("lockPhysStatus");
+                    const elB = document.getElementById("lockSoftStatus");
+                    const elC = document.getElementById("lockStateStatus");
+                    const elD = document.getElementById("lockLangStatus");
+
+                    if (elA) elA.innerText = `||C||_F = ${m.c_physical_frobenius_norm}`;
+                    if (elB) elB.innerText = `||C||_F = ${m.c_software_frobenius_norm}`;
+                    if (elC) elC.innerText = `\u03c1(A_d) \u2264 ${m.a_discrete_spectral_bound}`;
+                    if (elD) elD.innerText = `\u03a3 w_i = 1.00`;
+                }
+            } catch (err) {
+                console.error("Refresh multilock error:", err);
+            }
+        }
+
+        /* ── CARD 10: PROCEDURAL KERNEL MODULE MANAGER & COMMAND MINDMAP ── */
+        let currentMindmapData = null;
+        let selectedMindmapNode = null;
+        let hoveredMindmapNode = null;
+        let mmapAnimationTime = 0;
+        const mmapCanvas = document.getElementById("canvasCommandMindmap");
+        const mmapCtx = mmapCanvas ? mmapCanvas.getContext("2d") : null;
+
+        const NODE_COORDINATES = {
+            "INPUT_COMMAND": { x: 75, y: 160, icon: "⌨️", color: "#10b981" },
+            "LINGUISTIC_TENSOR": { x: 175, y: 85, icon: "🔤", color: "#f59e0b" },
+            "MULTILOCK_MATRICES": { x: 265, y: 235, icon: "🔒", color: "#06b6d4" },
+            "STATISTICAL_PREDICTION": { x: 355, y: 85, icon: "📊", color: "#c084fc" },
+            "PROCEDURAL_ASSETS": { x: 440, y: 235, icon: "🏛️", color: "#ec4899" },
+            "VISUAL_RASTERIZER": { x: 505, y: 145, icon: "🖼️", color: "#39ff14" }
+        };
+
+        function initMindmapInteraction() {
+            if (!mmapCanvas) return;
+            mmapCanvas.addEventListener("mousemove", (e) => {
+                const rect = mmapCanvas.getBoundingClientRect();
+                const scaleX = mmapCanvas.width / rect.width;
+                const scaleY = mmapCanvas.height / rect.height;
+                const mx = (e.clientX - rect.left) * scaleX;
+                const my = (e.clientY - rect.top) * scaleY;
+
+                hoveredMindmapNode = findMindmapNodeAt(mx, my);
+                const tooltip = document.getElementById("mindmapTooltip");
+                if (hoveredMindmapNode && tooltip) {
+                    tooltip.style.display = "block";
+                    tooltip.style.left = `${(e.clientX - rect.left) + 12}px`;
+                    tooltip.style.top = `${(e.clientY - rect.top) - 10}px`;
+                    tooltip.innerHTML = `<strong>${hoveredMindmapNode.label}</strong><br><span style="color:var(--cyan);">${hoveredMindmapNode.type}</span><br>HP: ${hoveredMindmapNode.vital_hp}/6`;
+                } else if (tooltip) {
+                    tooltip.style.display = "none";
+                }
+            });
+
+            mmapCanvas.addEventListener("click", (e) => {
+                const rect = mmapCanvas.getBoundingClientRect();
+                const scaleX = mmapCanvas.width / rect.width;
+                const scaleY = mmapCanvas.height / rect.height;
+                const mx = (e.clientX - rect.left) * scaleX;
+                const my = (e.clientY - rect.top) * scaleY;
+
+                const clicked = findMindmapNodeAt(mx, my);
+                if (clicked) {
+                    selectedMindmapNode = clicked;
+                    renderMindmapNodeDetail(clicked);
+                }
+            });
+        }
+
+        function findMindmapNodeAt(x, y) {
+            if (!currentMindmapData || !currentMindmapData.nodes) return null;
+            for (let node of currentMindmapData.nodes) {
+                const pos = NODE_COORDINATES[node.type] || { x: 280, y: 160 };
+                const dist = Math.hypot(x - pos.x, y - pos.y);
+                if (dist <= 26) return node;
+            }
+            return null;
+        }
+
+        function renderMindmapNodeDetail(node) {
+            const drawer = document.getElementById("mindmapNodeDetail");
+            if (!drawer) return;
+            const b = node.conduct_flags || {};
+            const actTag = b.is_active ? '<span style="color:var(--toxic-green);">[ACTIVE]</span>' : '<span style="color:#64748b;">[INACTIVE]</span>';
+            const lckTag = b.is_locked ? '<span style="color:var(--cyan);">[LOCKED]</span>' : '<span style="color:#64748b;">[UNLOCKED]</span>';
+            const cnfTag = b.is_confirmed ? '<span style="color:var(--gold);">[CONFIRMED]</span>' : '<span style="color:#64748b;">[PENDING]</span>';
+            const hazTag = b.is_hazardous ? '<span style="color:#ef4444;">[HAZARDOUS]</span>' : '<span style="color:var(--toxic-green);">[SAFE]</span>';
+            const vitTag = '<span style="color:var(--toxic-green);">[VITAL 6/6 HP]</span>';
+
+            const payloadStr = JSON.stringify(node.data_payload || {}).substring(0, 110);
+
+            drawer.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <span style="color:var(--gold-light); font-weight:700;">[UZOL]: ${node.label} (${node.node_id})</span>
+                    <span>${actTag} ${lckTag} ${cnfTag} ${hazTag} ${vitTag}</span>
+                </div>
+                <div style="color:#94a3b8; font-size:0.65rem; margin-bottom:2px;">
+                    Typ: <strong style="color:var(--cyan);">${node.type}</strong> | Váha hrany: <strong style="color:var(--gold);">${node.weight.toFixed(2)}</strong> | Stav: ${node.status}
+                </div>
+                <div style="color:#cbd5e1; font-size:0.62rem; word-break:break-all;">
+                    Obsah: <code>${payloadStr}...</code>
+                </div>
+            `;
+        }
+
+        function renderMindmapCanvas() {
+            if (!mmapCtx || !mmapCanvas) return;
+            mmapAnimationTime += 0.03;
+            mmapCtx.clearRect(0, 0, mmapCanvas.width, mmapCanvas.height);
+
+            // Draw subtle matrix background grid
+            mmapCtx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+            mmapCtx.lineWidth = 1;
+            for (let x = 0; x < mmapCanvas.width; x += 30) {
+                mmapCtx.beginPath();
+                mmapCtx.moveTo(x, 0);
+                mmapCtx.lineTo(x, mmapCanvas.height);
+                mmapCtx.stroke();
+            }
+            for (let y = 0; y < mmapCanvas.height; y += 30) {
+                mmapCtx.beginPath();
+                mmapCtx.moveTo(0, y);
+                mmapCtx.lineTo(mmapCanvas.width, y);
+                mmapCtx.stroke();
+            }
+
+            if (!currentMindmapData || !currentMindmapData.nodes) {
+                mmapCtx.fillStyle = "#64748b";
+                mmapCtx.font = "12px 'Fira Code', monospace";
+                mmapCtx.textAlign = "center";
+                mmapCtx.fillText("Spustite agenta pre vygenerovanie myšlienkovej mapy...", mmapCanvas.width / 2, mmapCanvas.height / 2);
+                requestAnimationFrame(renderMindmapCanvas);
+                return;
+            }
+
+            // Draw Edges
+            if (currentMindmapData.edges) {
+                for (let edge of currentMindmapData.edges) {
+                    const srcNode = currentMindmapData.nodes.find(n => n.node_id === edge.source_id);
+                    const tgtNode = currentMindmapData.nodes.find(n => n.node_id === edge.target_id);
+                    if (!srcNode || !tgtNode) continue;
+
+                    const srcPos = NODE_COORDINATES[srcNode.type] || { x: 100, y: 160 };
+                    const tgtPos = NODE_COORDINATES[tgtNode.type] || { x: 400, y: 160 };
+
+                    // Marching dash flow
+                    mmapCtx.save();
+                    mmapCtx.beginPath();
+                    mmapCtx.setLineDash([6, 6]);
+                    mmapCtx.lineDashOffset = -mmapAnimationTime * 25;
+                    mmapCtx.strokeStyle = edge.status === "ACTIVE_FLOW" ? "rgba(102, 252, 241, 0.65)" : "rgba(255, 145, 0, 0.4)";
+                    mmapCtx.lineWidth = Math.max(1.5, edge.weight * 2.5);
+
+                    // Curve via control point
+                    const cx = (srcPos.x + tgtPos.x) / 2;
+                    const cy = (srcPos.y + tgtPos.y) / 2 - 15;
+                    mmapCtx.moveTo(srcPos.x, srcPos.y);
+                    mmapCtx.quadraticCurveTo(cx, cy, tgtPos.x, tgtPos.y);
+                    mmapCtx.stroke();
+                    mmapCtx.restore();
+
+                    // Edge label
+                    mmapCtx.fillStyle = "rgba(203, 213, 225, 0.75)";
+                    mmapCtx.font = "9px 'Fira Code', monospace";
+                    mmapCtx.textAlign = "center";
+                    mmapCtx.fillText(edge.label, cx, cy - 3);
+                }
+            }
+
+            // Draw Nodes
+            for (let node of currentMindmapData.nodes) {
+                const conf = NODE_COORDINATES[node.type] || { x: 280, y: 160, icon: "⭕", color: "#38bdf8" };
+                const isSelected = selectedMindmapNode && selectedMindmapNode.node_id === node.node_id;
+                const isHovered = hoveredMindmapNode && hoveredMindmapNode.node_id === node.node_id;
+
+                // Pulsing glow outer ring
+                const pulse = Math.sin(mmapAnimationTime * 3 + conf.x) * 3;
+                mmapCtx.beginPath();
+                mmapCtx.arc(conf.x, conf.y, 22 + (isSelected ? 6 : 0) + pulse, 0, Math.PI * 2);
+                mmapCtx.fillStyle = isSelected ? "rgba(255, 215, 0, 0.25)" : (isHovered ? "rgba(102, 252, 241, 0.2)" : "rgba(0, 0, 0, 0.5)");
+                mmapCtx.fill();
+                mmapCtx.strokeStyle = isSelected ? "var(--gold)" : conf.color;
+                mmapCtx.lineWidth = isSelected ? 3 : 1.8;
+                mmapCtx.stroke();
+
+                // Core node circle
+                mmapCtx.beginPath();
+                mmapCtx.arc(conf.x, conf.y, 16, 0, Math.PI * 2);
+                mmapCtx.fillStyle = "#0e1420";
+                mmapCtx.fill();
+                mmapCtx.strokeStyle = conf.color;
+                mmapCtx.lineWidth = 1.2;
+                mmapCtx.stroke();
+
+                // Icon
+                mmapCtx.font = "13px sans-serif";
+                mmapCtx.textAlign = "center";
+                mmapCtx.textBaseline = "middle";
+                mmapCtx.fillText(conf.icon, conf.x, conf.y);
+
+                // Label below node
+                mmapCtx.fillStyle = isSelected ? "var(--gold-light)" : "#e2e8f0";
+                mmapCtx.font = "10px 'Fira Code', monospace";
+                mmapCtx.fillText(node.label, conf.x, conf.y + 28);
+
+                // Boolean Conduct Characters Pill above node
+                const flags = node.conduct_flags || {};
+                const charCode = (flags.is_active ? "A" : "-") + (flags.is_locked ? "L" : "-") + (flags.is_confirmed ? "C" : "-") + (flags.is_hazardous ? "H" : "-") + (flags.vital_intact ? "6" : "-");
+                mmapCtx.fillStyle = flags.is_hazardous ? "#ef4444" : (flags.is_locked ? "var(--cyan)" : "var(--toxic-green)");
+                mmapCtx.font = "8px 'Fira Code', monospace";
+                mmapCtx.fillText(`[${charCode}]`, conf.x, conf.y - 22);
+            }
+
+            requestAnimationFrame(renderMindmapCanvas);
+        }
+
+        async function executeAgentPipeline() {
+            const input = document.getElementById("txtMindmapPromptInput");
+            if (!input || !input.value.trim()) return;
+            const prompt = input.value.trim();
+
+            const badge = document.getElementById("badgeMindmapStatus");
+            if (badge) {
+                badge.innerText = "AGENT VÝPOČET...";
+                badge.style.color = "var(--cyan)";
+            }
+
+            try {
+                const res = await fetch("/api/kernel/agent_pipeline/execute", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+                const data = await res.json();
+
+                if (data.status === "OK" && data.mindmap) {
+                    currentMindmapData = data.mindmap;
+
+                    // Telemetry update
+                    const pInfo = document.getElementById("mindmapPipelineInfo");
+                    if (pInfo) pInfo.innerText = `PIPELINE: ${data.pipeline_id.substring(0, 16)} • ${data.engine_asset_count} ASSETY`;
+
+                    const elLat = document.getElementById("mmapLatency");
+                    const elCoh = document.getElementById("mmapCoherence");
+                    const elFrob = document.getElementById("mmapFrobenius");
+                    const elDom = document.getElementById("mmapDomain");
+                    const elHp = document.getElementById("mmapVitalHp");
+                    const elCount = document.getElementById("mindmapNodeEdgeCount");
+
+                    if (elLat) elLat.innerText = `${data.execution_latency_ms.toFixed(2)} ms`;
+                    if (elCoh) elCoh.innerText = `${(data.coherence_score * 100).toFixed(1)} %`;
+                    if (elFrob) elFrob.innerText = `${data.frobenius_norm_ratio.toFixed(4)}`;
+                    if (elDom) elDom.innerText = `${data.dominant_domain}`;
+                    if (elHp) elHp.innerText = `${data.vital_max_hp} / 6 HP`;
+                    if (elCount) elCount.innerText = `${data.mindmap.nodes.length} Uzlov • ${data.mindmap.edges.length} Hrany`;
+
+                    if (data.mindmap.nodes && data.mindmap.nodes.length > 0) {
+                        selectedMindmapNode = data.mindmap.nodes[0];
+                        renderMindmapNodeDetail(selectedMindmapNode);
+                    }
+
+                    if (badge) {
+                        badge.innerText = "PIPELINE AGENT \u2713 6 HP";
+                        badge.style.color = "var(--toxic-green)";
+                    }
+                }
+            } catch (err) {
+                console.error("Execute agent pipeline error:", err);
+                if (badge) {
+                    badge.innerText = "CHYBA AGENTA";
+                    badge.style.color = "#ef4444";
+                }
+            }
+        }
+
+        function loadMindmapPreset(text) {
+            const input = document.getElementById("txtMindmapPromptInput");
+            if (input) {
+                input.value = text;
+                executeAgentPipeline();
+            }
+        }
+
+        async function loadKernelModules() {
+            const listEl = document.getElementById("kernelModulesList");
+            if (!listEl) return;
+
+            try {
+                const res = await fetch("/api/kernel/modules");
+                const data = await res.json();
+                if (data.status === "OK" && data.modules) {
+                    listEl.innerHTML = "";
+                    for (let m of data.modules) {
+                        const card = document.createElement("div");
+                        card.style.background = "rgba(0, 0, 0, 0.65)";
+                        card.style.border = "1px solid rgba(255, 255, 255, 0.08)";
+                        card.style.borderRadius = "6px";
+                        card.style.padding = "8px 10px";
+                        card.style.display = "flex";
+                        card.style.flexDirection = "column";
+                        card.style.gap = "4px";
+
+                        // Header with role and delete
+                        const header = `
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-weight:700; color:var(--gold-light); font-size:0.75rem;">${m.name} <code style="font-size:0.62rem; color:#94a3b8;">(${m.module_id})</code></span>
+                                <div style="display:flex; gap:4px; align-items:center;">
+                                    <span class="cortex-badge" style="font-size:0.6rem; padding:1px 5px; border-color:var(--cyan); color:var(--cyan);">${m.role}</span>
+                                    <button onclick="deleteModuleRecord('${m.module_id}')" style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:0.75rem;" title="Vymazať modul">&times;</button>
+                                </div>
+                            </div>
+                        `;
+
+                        // I/O & Matrix Info
+                        const ioInfo = `
+                            <div style="display:flex; justify-content:space-between; font-size:0.62rem; color:#94a3b8;">
+                                <span>Throughput: <strong style="color:#fff;">${m.throughput_tokens_per_sec} tok/s</strong> | Kontext: <strong style="color:#fff;">${m.context_window_size}</strong></span>
+                                <span>Väzba: <strong style="color:var(--cyan);">${m.matrix_coupling}</strong> &rarr; <strong style="color:var(--gold);">${m.statistical_target}</strong></span>
+                            </div>
+                        `;
+
+                        // Interactive Boolean Conduct Code Buttons
+                        const bAct = m.is_active ? 'background:rgba(57,255,20,0.2); border-color:var(--toxic-green); color:var(--toxic-green);' : 'background:transparent; border-color:#475569; color:#475569;';
+                        const bLck = m.is_locked ? 'background:rgba(102,252,241,0.2); border-color:var(--cyan); color:var(--cyan);' : 'background:transparent; border-color:#475569; color:#475569;';
+                        const bCnf = m.is_confirmed ? 'background:rgba(255,215,0,0.2); border-color:var(--gold); color:var(--gold);' : 'background:transparent; border-color:#475569; color:#475569;';
+                        const bHaz = m.is_hazardous ? 'background:rgba(239,68,68,0.2); border-color:#ef4444; color:#ef4444;' : 'background:transparent; border-color:#475569; color:#475569;';
+                        const bVit = m.vital_intact ? 'background:rgba(57,255,20,0.15); border-color:var(--toxic-green); color:var(--toxic-green);' : 'background:rgba(239,68,68,0.2); border-color:#ef4444; color:#ef4444;';
+
+                        const conductPills = `
+                            <div style="display:flex; gap:4px; margin-top:2px; font-family:'Fira Code', monospace; font-size:0.62rem;">
+                                <button onclick="toggleModuleFlag('${m.module_id}', 'is_active')" style="cursor:pointer; border-radius:4px; padding:2px 5px; border:1px solid; ${bAct}" title="Prepnúť Aktívnosť">[ACT]</button>
+                                <button onclick="toggleModuleFlag('${m.module_id}', 'is_locked')" style="cursor:pointer; border-radius:4px; padding:2px 5px; border:1px solid; ${bLck}" title="Prepnúť Multilock">[LCK]</button>
+                                <button onclick="toggleModuleFlag('${m.module_id}', 'is_confirmed')" style="cursor:pointer; border-radius:4px; padding:2px 5px; border:1px solid; ${bCnf}" title="Prepnúť Potvrdenie Zmyslu">[CNF]</button>
+                                <button onclick="toggleModuleFlag('${m.module_id}', 'is_hazardous')" style="cursor:pointer; border-radius:4px; padding:2px 5px; border:1px solid; ${bHaz}" title="Prepnúť Hazard">[HAZ]</button>
+                                <span style="border-radius:4px; padding:2px 5px; border:1px solid; ${bVit}" title="Vital Invariant HP">[VIT 6HP]</span>
+                            </div>
+                        `;
+
+                        card.innerHTML = header + ioInfo + conductPills;
+                        listEl.appendChild(card);
+                    }
+                }
+            } catch (err) {
+                console.error("Load kernel modules error:", err);
+            }
+        }
+
+        async function toggleModuleFlag(moduleId, flagName) {
+            try {
+                await fetch("/api/kernel/modules/toggle_flag", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ module_id: moduleId, flag_name: flagName })
+                });
+                loadKernelModules();
+            } catch (err) {
+                console.error("Toggle flag error:", err);
+            }
+        }
+
+        async function deleteModuleRecord(moduleId) {
+            try {
+                await fetch("/api/kernel/modules/delete", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ module_id: moduleId })
+                });
+                loadKernelModules();
+            } catch (err) {
+                console.error("Delete module error:", err);
+            }
+        }
+
+        function openCreateModuleModal() {
+            const drawer = document.getElementById("drawerCreateModule");
+            if (drawer) drawer.style.display = "block";
+        }
+
+        function closeCreateModuleModal() {
+            const drawer = document.getElementById("drawerCreateModule");
+            if (drawer) drawer.style.display = "none";
+        }
+
+        async function submitCreateModule() {
+            const id = document.getElementById("newModId").value.trim();
+            const name = document.getElementById("newModName").value.trim();
+            const role = document.getElementById("newModRole").value;
+            const coupling = document.getElementById("newModCoupling").value;
+            const tput = parseFloat(document.getElementById("newModThroughput").value) || 128.0;
+            const ctxWin = parseInt(document.getElementById("newModContext").value) || 2048;
+
+            if (!id || !name) {
+                alert("Vyplňte ID a Názov modulu.");
+                return;
+            }
+
+            try {
+                await fetch("/api/kernel/modules/create", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        module_id: id,
+                        name: name,
+                        role: role,
+                        matrix_coupling: coupling,
+                        statistical_target: "W_usage",
+                        inputs: { max_throughput_tokens_sec: tput, context_window: ctxWin, streaming_mode: true },
+                        outputs: { output_dim: 10, format: "TENSOR_F32" }
+                    })
+                });
+                closeCreateModuleModal();
+                loadKernelModules();
+            } catch (err) {
+                console.error("Submit module error:", err);
+            }
+        }
+
+        // Initialize state on load
+        setTimeout(() => {
+            runMemoryBenchmark();
+            switchCoreStrategy("STRATEGY_ISOLATED_P_CORE_BURST");
+            trigger8KBenchmark();
+            toggleDynamicGovernorWaveform();
+            handleAutocompleteInput("vytvor mi karbidovú frézu");
+            refreshMultilockStatus();
+            initMindmapInteraction();
+            loadKernelModules();
+            executeAgentPipeline();
+            renderMindmapCanvas();
+        }, 600);
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+        }
+    </script>
+</body>
+</html>

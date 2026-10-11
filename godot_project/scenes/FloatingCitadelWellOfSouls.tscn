@@ -1,0 +1,175 @@
+[gd_scene load_steps=20 format=3 uid="uid://krystal_floatingcitadel"]
+
+# =====================================================================
+# KRYSTAL-STACK: FLOATING CITADEL & STUDNA DUŠÍ (GODOT 4.X FORWARD+)
+# Features:
+#   - Floating Island Mass with crystal crags and floating debris
+#   - Studna Duší (Well of Souls) aetheric swirl vortex
+#   - Crystal northern peak, Toxic bubbling mire, Druid ancient trees
+#   - Invariant: VITAL_MAX_HP = 6
+# =====================================================================
+
+[ext_resource type="Script" path="res://scripts/FloatingCitadelController.gd" id="1_ctrl"]
+[ext_resource type="Shader" path="res://shaders/crystal_ice_prism.gdshader" id="2_crystal"]
+[ext_resource type="Shader" path="res://shaders/toxic_caustic_slime.gdshader" id="3_toxic"]
+[ext_resource type="Shader" path="res://shaders/aetheric_vortex_swirl.gdshader" id="4_vortex"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cryst"]
+render_priority = 0
+shader = ExtResource("2_crystal")
+shader_parameter/ice_color = Color(0.35, 0.92, 0.98, 0.9)
+shader_parameter/aether_glow = Color(0, 0.8, 1, 1)
+shader_parameter/roughness = 0.12
+shader_parameter/metallic = 0.25
+shader_parameter/refraction_strength = 0.045
+shader_parameter/chromatic_dispersion = 0.015
+shader_parameter/pulse_speed = 1.2
+shader_parameter/facet_scale = 12.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tox"]
+render_priority = 0
+shader = ExtResource("3_toxic")
+shader_parameter/toxic_color = Color(0.18, 0.95, 0.05, 0.95)
+shader_parameter/mire_purple = Color(0.55, 0.08, 0.85, 1)
+shader_parameter/bubble_speed = 1.6
+shader_parameter/wave_amplitude = 0.06
+shader_parameter/caustic_scale = 14.0
+shader_parameter/emission_energy = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vortex"]
+render_priority = 0
+shader = ExtResource("4_vortex")
+shader_parameter/core_color = Color(0, 0.95, 1, 1)
+shader_parameter/rim_color = Color(0.4, 0.1, 0.9, 0.8)
+shader_parameter/swirl_speed = 1.8
+shader_parameter/spiral_arms = 3.0
+shader_parameter/vortex_depth = 2.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rock"]
+albedo_color = Color(0.12, 0.14, 0.18, 1)
+metallic = 0.35
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_druid"]
+albedo_color = Color(0.45, 0.26, 0.1, 1)
+metallic = 0.05
+roughness = 0.75
+emission_enabled = true
+emission = Color(1, 0.84, 0, 1)
+emission_energy_multiplier = 0.6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_island"]
+top_radius = 11.0
+bottom_radius = 3.5
+height = 6.0
+radial_segments = 16
+
+[sub_resource type="PrismMesh" id="PrismMesh_spire"]
+left_to_right = 0.5
+size = Vector3(2.5, 6.5, 2.5)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_vortex_disc"]
+top_radius = 3.2
+bottom_radius = 3.2
+height = 0.1
+radial_segments = 32
+
+[sub_resource type="SphereMesh" id="SphereMesh_toxic_pool"]
+radius = 3.5
+height = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_druid_tree"]
+size = Vector3(1.2, 4.5, 1.2)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_souls"]
+emission_shape = 1
+emission_sphere_radius = 2.5
+direction = Vector3(0, 1, 0)
+spread = 20.0
+initial_velocity_min = 2.0
+initial_velocity_max = 4.5
+color = Color(0, 1, 1, 0.85)
+
+[sub_resource type="Environment" id="Environment_citadel"]
+background_mode = 1
+background_color = Color(0.012, 0.016, 0.025, 1)
+ambient_light_color = Color(0.12, 0.18, 0.28, 1)
+tonemap_mode = 3
+glow_enabled = true
+glow_intensity = 0.85
+glow_bloom = 0.3
+
+[node name="FloatingCitadelWellOfSouls" type="Node3D" node_paths=PackedStringArray("island_root", "well_vortex", "camera_node", "crystal_spire_node", "toxic_pool_node", "druid_grove_node")]
+script = ExtResource("1_ctrl")
+island_root = NodePath("IslandMass")
+well_vortex = NodePath("IslandMass/StudnaDusiVortex")
+camera_node = NodePath("Camera3D")
+crystal_spire_node = NodePath("IslandMass/NorthernCrystalBiome")
+toxic_pool_node = NodePath("IslandMass/SouthwestToxicBiome")
+druid_grove_node = NodePath("IslandMass/SoutheastDruidBiome")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_citadel")
+
+[node name="TacticalSun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 14, 26, 14)
+light_color = Color(1, 0.98, 0.92, 1)
+light_energy = 1.4
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.819152, 0.573576, 0, -0.573576, 0.819152, 0, 14, 22)
+current = true
+fov = 44.0
+
+[node name="IslandMass" type="Node3D" parent="."]
+
+[node name="IslandCragBase" type="MeshInstance3D" parent="IslandMass"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, 0)
+mesh = SubResource("CylinderMesh_island")
+surface_material_override/0 = SubResource("StandardMaterial3D_rock")
+
+[node name="StudnaDusiVortex" type="MeshInstance3D" parent="IslandMass"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 0)
+mesh = SubResource("CylinderMesh_vortex_disc")
+surface_material_override/0 = SubResource("ShaderMaterial_vortex")
+
+[node name="VortexLight" type="OmniLight3D" parent="IslandMass/StudnaDusiVortex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+light_color = Color(0, 0.95, 1, 1)
+light_energy = 3.5
+omni_range = 10.0
+
+[node name="VortexSoulParticles" type="GPUParticles3D" parent="IslandMass/StudnaDusiVortex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+process_material = SubResource("ParticleProcessMaterial_souls")
+amount = 90
+lifetime = 2.0
+
+[node name="NorthernCrystalBiome" type="Node3D" parent="IslandMass"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -6.5)
+
+[node name="CrystalPeak1" type="MeshInstance3D" parent="IslandMass/NorthernCrystalBiome"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, 0)
+mesh = SubResource("PrismMesh_spire")
+surface_material_override/0 = SubResource("ShaderMaterial_cryst")
+
+[node name="CrystalPeak2" type="MeshInstance3D" parent="IslandMass/NorthernCrystalBiome"]
+transform = Transform3D(0.866, 0, 0.5, 0, 0.8, 0, -0.5, 0, 0.866, 2.2, 2.2, 1.2)
+mesh = SubResource("PrismMesh_spire")
+surface_material_override/0 = SubResource("ShaderMaterial_cryst")
+
+[node name="SouthwestToxicBiome" type="Node3D" parent="IslandMass"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 1.4, 4.5)
+
+[node name="ToxicPoolMesh" type="MeshInstance3D" parent="IslandMass/SouthwestToxicBiome"]
+mesh = SubResource("SphereMesh_toxic_pool")
+surface_material_override/0 = SubResource("ShaderMaterial_tox")
+
+[node name="SoutheastDruidBiome" type="Node3D" parent="IslandMass"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 1.5, 4.5)
+
+[node name="AncientTreeTrunk" type="MeshInstance3D" parent="IslandMass/SoutheastDruidBiome"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+mesh = SubResource("BoxMesh_druid_tree")
+surface_material_override/0 = SubResource("StandardMaterial3D_druid")

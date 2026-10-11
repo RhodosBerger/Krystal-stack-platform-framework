@@ -1,0 +1,31 @@
+{
+  "rail": "hysteresis_band_check",
+  "version": 1,
+  "description": "Theorem 3.2 / Lemma 5.3: bounded noise (delta = 2) seen through a quantising sensor (q = 0.5). The hysteresis width is derived from the measured range plus one quantum; the Schmitt trigger must switch at most once while the memoryless threshold chatters.",
+  "theory_ref": "Veta 3.2, Dôsledok 3.3, Lema 5.3",
+  "nodes": [
+    {"id": "src", "fn": "source.synthetic_series", "label": "theta (bounded uniform)",
+     "params": {"n": 20000, "mean": 85.0, "noise": "uniform", "amplitude": 2.0, "seed": 11}},
+    {"id": "adc", "fn": "transform.quantize", "label": "sensor q = 0.5", "params": {"q": 0.5}},
+    {"id": "rng", "fn": "measure.noise_range"},
+    {"id": "width", "fn": "measure.hysteresis_width", "label": "h = R + q", "params": {"margin": 0.5}},
+    {"id": "hys", "fn": "transform.hysteresis_mode", "params": {"threshold": 85.0}},
+    {"id": "thr", "fn": "transform.threshold_mode", "params": {"threshold": 85.0}},
+    {"id": "hys_sw", "fn": "measure.switch_rate"},
+    {"id": "thr_sw", "fn": "measure.switch_rate"},
+    {"id": "verdict", "fn": "diagnose.bound_check",
+     "params": {"upper": 1, "claim": "Theorem 3.2: at most one regime change with h >= 2 delta'"}}
+  ],
+  "links": [
+    {"from": "src.series", "to": "adc.series"},
+    {"from": "adc.series", "to": "rng.series"},
+    {"from": "rng.range", "to": "width.range"},
+    {"from": "adc.series", "to": "hys.series"},
+    {"from": "width.h", "to": "hys.h"},
+    {"from": "adc.series", "to": "thr.series"},
+    {"from": "hys.modes", "to": "hys_sw.modes"},
+    {"from": "thr.modes", "to": "thr_sw.modes"},
+    {"from": "hys_sw.count", "to": "verdict.value"}
+  ],
+  "outputs": ["rng.delta_hat", "hys.h_used", "hys_sw.count", "thr_sw.count", "verdict.verdict"]
+}

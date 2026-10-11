@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRYSTAL-STACK // 3D AUGMENTED REALITY SIMULATION STUDIO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #07090e;
+            --panel-bg: rgba(12, 17, 26, 0.82);
+            --panel-border: rgba(102, 252, 241, 0.22);
+            --cyan: #66fcf1;
+            --gold: #d4af37;
+            --toxic-green: #39ff14;
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --text-primary: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #webgl-canvas-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+        }
+
+        .hud-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: auto;
+        }
+
+        .brand-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 12px 18px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.15rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--cyan);
+            text-shadow: 0 0 12px rgba(102, 252, 241, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-sub {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .status-badge-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            padding: 5px 12px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-live {
+            border-color: var(--toxic-green);
+            color: var(--toxic-green);
+            box-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
+        }
+
+        .badge-invariant {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* Side panels */
+        .hud-center {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        .side-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 14px;
+            backdrop-filter: blur(12px);
+            width: 320px;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+
+        .panel-heading {
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            color: var(--gold);
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .scale-metric-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+        }
+
+        .scale-metric-cell {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 4px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .scale-metric-cell span { color: var(--text-muted); font-size: 0.6rem; }
+        .scale-metric-cell strong { color: var(--cyan); }
+
+        /* Item cards list */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .item-card {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+        }
+
+        .item-card.supercritical {
+            border-color: #ff5555;
+            background: rgba(255, 85, 85, 0.1);
+        }
+
+        .item-card.transmuting {
+            border-color: var(--cyan);
+            background: rgba(102, 252, 241, 0.1);
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .entropy-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 2px;
+        }
+
+        .entropy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan), var(--amber), #ff5555);
+            width: 40%;
+            transition: width 0.1s linear;
+        }
+
+        /* Controls bottom dock */
+        .hud-footer {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            pointer-events: auto;
+            flex-wrap: wrap;
+        }
+
+        .btn-dock {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+
+        .ctrl-btn {
+            background: rgba(0,0,0,0.6);
+            color: var(--text-primary);
+            border: 1px solid rgba(255,255,255,0.18);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 10px rgba(102, 252, 241, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .ctrl-btn.gold { border-color: var(--gold); color: var(--gold); }
+        .ctrl-btn.gold:hover { box-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
+
+        .ctrl-btn.toxic { border-color: var(--toxic-green); color: var(--toxic-green); }
+        .ctrl-btn.toxic:hover { box-shadow: 0 0 10px rgba(57, 255, 20, 0.4); }
+    </style>
+</head>
+<body>
+
+    <!-- 3D WebGL Canvas Container -->
+    <div id="webgl-canvas-container"></div>
+
+    <!-- HUD Overlay -->
+    <div class="hud-overlay">
+        <!-- Header -->
+        <div class="hud-header">
+            <div class="brand-box">
+                <div class="brand-title">
+                    <span>🌐 KRYSTAL AUGMENTED REALITY</span>
+                </div>
+                <div class="brand-sub">Three.js WebGL & Godot 4.x Dual-Socket Engine • RFC-008</div>
+            </div>
+
+            <div class="status-badge-row">
+                <div class="badge badge-live" id="socketLiveBadge">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--toxic-green); animation: pulse 1s infinite alternate;"></span>
+                    <span>WSS SOCKET: ONLINE (60 FPS)</span>
+                </div>
+                <div class="badge badge-invariant">
+                    <span>🛡 VITAL INVARIANT: 6/6 HP</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Information Columns -->
+        <div class="hud-center">
+            <!-- Left Panel: Multi-Scale Augmented Environment -->
+            <div class="side-panel">
+                <div class="panel-heading">
+                    <span>🌍 MULTI-SCALE PROSTREDIE</span>
+                    <span style="color: var(--cyan);">AR SIM</span>
+                </div>
+
+                <div class="scale-metric-box">
+                    <div class="scale-metric-cell">
+                        <span>MACRO GPS KÓTA:</span>
+                        <strong id="mMacroGps">50.0878° N, 14.4205° E</strong>
+                    </div>
+                    <div class="scale-metric-cell">
+                        <span>NADMORSKÁ VÝŠKA:</span>
+                        <strong id="mMacroAlt">215.0 m n.m.</strong>
+                    </div>
+                    <div class="scale-metric-cell">
+                        <span>MESO ZÁKOP KRYTIE:</span>
+                        <strong id="mMesoCover" style="color: var(--toxic-green);">85.0% (-40% DMG)</strong>
+                    </div>
+                    <div class="scale-metric-cell">
+                        <span>VETERNÝ VEKTOR:</span>
+                        <strong id="mMesoWind">2.5 m/s, az 45°</strong>
+                    </div>
+                    <div class="scale-metric-cell">
+                        <span>MICRO HARM. REZONANCIA:</span>
+                        <strong id="mMicroRes" style="color: var(--gold);">0.880 (ZLATÝ REZ)</strong>
+                    </div>
+                    <div class="scale-metric-cell">
+                        <span>PLYNULÉ POLE TOKU:</span>
+                        <strong id="mMicroFlow" style="color: var(--cyan);">PLYTÉ / BEZ SKOKOV</strong>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.68rem; color: var(--text-muted); font-family: 'Fira Code', monospace; line-height: 1.35; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+                    ⚡ <strong>Spojité Polia:</strong> Vektorové navigačné pole, Aetherické aerodynamické prúdenie, Sigmoidálne zákopové krytie a Harmonické stojaté vlny.
+                </div>
+            </div>
+
+            <!-- Right Panel: Emergent Stochastic Items List -->
+            <div class="side-panel">
+                <div class="panel-heading">
+                    <span>🎲 STOCHASTICKÉ PREDMETY</span>
+                    <span style="color: var(--gold);" id="itemCountBadge">4 AKTÍVNE</span>
+                </div>
+
+                <div class="item-list" id="itemsContainer">
+                    <!-- Dynamic Items rendered by JS -->
+                </div>
+
+                <div style="font-size: 0.68rem; color: var(--text-muted); font-family: 'Cinzel', serif; line-height: 1.3; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+                    📜 <em>„Predmety sa nesprávajú genericky. Ich fáza a entropia reagujú na rázové vlny a prostredie podľa presných pravidiel.“</em>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Control Dock -->
+        <div class="hud-footer">
+            <div class="btn-dock">
+                <button class="ctrl-btn gold" onclick="deployItem('VOLATILE_PHASE_SHELL')">🚀 Vystreliť Volatile Mínomet</button>
+                <button class="ctrl-btn toxic" onclick="deployItem('ALCHEMICAL_RESONATOR')">💎 Položiť Rezonátor</button>
+                <button class="ctrl-btn" onclick="deployItem('GRAVITATIONAL_MIRROR_LENS')">🪞 Gravitačná Šošovka</button>
+                <button class="ctrl-btn" onclick="deployItem('MIMIC_SPORE_RELIC')">🦠 Mimik Spóra</button>
+                <button class="ctrl-btn" style="border-color: var(--cyan);" onclick="toggleFlowFieldVectors()">👁 Vektorové Pole</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const VITAL_MAX_HP = 6;
+
+        // ── 1. THREE.JS SCENE SETUP ──────────────────────────────────────────
+        const container = document.getElementById("webgl-canvas-container");
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x07090e, 0.018);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 16, 26);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
+        container.appendChild(renderer.domElement);
+
+        window.addEventListener("resize", () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // ── 2. LIGHTING ──────────────────────────────────────────────────────
+        const ambientLight = new THREE.AmbientLight(0x162032, 1.2);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xfff3d1, 2.0);
+        dirLight.position.set(20, 40, 15);
+        scene.add(dirLight);
+
+        const pointHoloLight = new THREE.PointLight(0x66fcf1, 3.0, 45);
+        pointHoloLight.position.set(0, 6, 0);
+        scene.add(pointHoloLight);
+
+        // ── 3. AUGMENTED ENVIRONMENT & TOPOGRAPHY ────────────────────────────
+        // Real-world metric terrain grid
+        const gridHelper = new THREE.GridHelper(60, 60, 0x66fcf1, 0x1f2937);
+        gridHelper.position.y = 0.01;
+        scene.add(gridHelper);
+
+        // Fortified Trench Zone (Continuous Cover Field Visualization)
+        const trenchGeo = new THREE.BoxGeometry(8.0, 0.6, 15.0);
+        const trenchMat = new THREE.MeshStandardMaterial({
+            color: 0x39ff14,
+            transparent: true,
+            opacity: 0.18,
+            wireframe: false,
+            roughness: 0.3
+        });
+        const trenchMesh = new THREE.Mesh(trenchGeo, trenchMat);
+        trenchMesh.position.set(0, 0.3, 0);
+        scene.add(trenchMesh);
+
+        // Obstacles (Rock outcrop, Crystal spire)
+        const rockGeo = new THREE.DodecahedronGeometry(2.2);
+        const rockMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
+        const rockMesh = new THREE.Mesh(rockGeo, rockMat);
+        rockMesh.position.set(14.0, 1.5, 6.0);
+        scene.add(rockMesh);
+
+        const spireGeo = new THREE.ConeGeometry(2.0, 8.0, 6);
+        const spireMat = new THREE.MeshStandardMaterial({ color: 0x00ffff, roughness: 0.1, metalness: 0.9, emissive: 0x0088aa, emissiveIntensity: 0.5 });
+        const spireMesh = new THREE.Mesh(spireGeo, spireMat);
+        spireMesh.position.set(-10.0, 4.0, -8.0);
+        scene.add(spireMesh);
+
+        // ── 4. CONTINUOUS VECTOR FIELD ARROWS ────────────────────────────────
+        const vectorFieldGroup = new THREE.Group();
+        const arrowDir = new THREE.Vector3(1, 0, 0);
+        for (let x = -20; x <= 20; x += 8) {
+            for (let z = -20; z <= 20; z += 8) {
+                const arrow = new THREE.ArrowHelper(arrowDir, new THREE.Vector3(x, 0.2, z), 2.5, 0x66fcf1, 0.6, 0.4);
+                vectorFieldGroup.add(arrow);
+            }
+        }
+        scene.add(vectorFieldGroup);
+
+        let showVectorFields = true;
+        function toggleFlowFieldVectors() {
+            showVectorFields = !showVectorFields;
+            vectorFieldGroup.visible = showVectorFields;
+        }
+
+        // ── 5. ITEM VISUAL NODES POOL ────────────────────────────────────────
+        const itemMeshes = new Map();
+
+        function createItemMesh(itemData) {
+            const group = new THREE.Group();
+            let geo, mat;
+
+            if (itemData.item_type === "VOLATILE_PHASE_SHELL") {
+                geo = new THREE.SphereGeometry(0.45, 16, 16);
+                mat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xff5500, emissiveIntensity: 0.8, roughness: 0.2 });
+            } else if (itemData.item_type === "ALCHEMICAL_RESONATOR") {
+                geo = new THREE.OctahedronGeometry(0.65);
+                mat = new THREE.MeshStandardMaterial({ color: 0x39ff14, emissive: 0x118800, emissiveIntensity: 0.6, roughness: 0.1, metalness: 0.9 });
+            } else if (itemData.item_type === "GRAVITATIONAL_MIRROR_LENS") {
+                geo = new THREE.CylinderGeometry(0.7, 0.7, 0.12, 24);
+                mat = new THREE.MeshStandardMaterial({ color: 0xd4af37, emissive: 0x665511, emissiveIntensity: 0.4, roughness: 0.05, metalness: 0.95 });
+            } else { // MIMIC_SPORE_RELIC
+                geo = new THREE.IcosahedronGeometry(0.5);
+                mat = new THREE.MeshStandardMaterial({ color: 0xc77dff, emissive: 0x5500aa, emissiveIntensity: 0.5, wireframe: true });
+            }
+
+            const mesh = new THREE.Mesh(geo, mat);
+            group.add(mesh);
+            scene.add(group);
+            return group;
+        }
+
+        // ── 6. SIMULATION DATA & POLLING ──────────────────────────────────────
+        let simData = null;
+
+        async function fetchSimulationState() {
+            try {
+                const res = await fetch("/api/augmented/state");
+                const data = await res.json();
+                if (data.status === "OK" && data.payload) {
+                    simData = data.payload;
+                    updateUIAndScene(simData);
+                }
+            } catch (err) {
+                // If endpoint connecting, continue rendering smoothly
+            }
+        }
+
+        function updateUIAndScene(data) {
+            if (!data) return;
+
+            // Invariant verification
+            if (data.vital_max_hp !== 6) console.warn("INVARIANT ALERT: VITAL_MAX_HP != 6");
+
+            // Update Metrics
+            document.getElementById("mMacroGps").innerText = `${data.environment_anchor.real_world_gps[0]}° N, ${data.environment_anchor.real_world_gps[1]}° E`;
+            document.getElementById("mMacroAlt").innerText = `${data.environment_anchor.altitude_m} m n.m.`;
+            document.getElementById("mMesoCover").innerText = `${Math.round(data.spatial_fields.cover_gradient_at_origin * 100)}% (-40% DMG)`;
+            document.getElementById("mMesoWind").innerText = `${data.environment_anchor.wind_vector[0]} m/s`;
+            document.getElementById("mMicroRes").innerText = `${data.spatial_fields.harmonic_resonance_at_origin.toFixed(3)} (ZLATÝ REZ)`;
+
+            // Update Items List & 3D Positions
+            const container = document.getElementById("itemsContainer");
+            container.innerHTML = "";
+            document.getElementById("itemCountBadge").innerText = `${data.items.length} AKTÍVNE`;
+
+            const currentIds = new Set();
+            data.items.forEach(item => {
+                currentIds.add(item.item_id);
+
+                // Update 3D position
+                if (!itemMeshes.has(item.item_id)) {
+                    itemMeshes.set(item.item_id, createItemMesh(item));
+                }
+                const meshGroup = itemMeshes.get(item.item_id);
+                meshGroup.position.set(item.position[0], item.position[1], item.position[2]);
+
+                // Modulate scale / glow based on entropy & phase
+                if (item.phase_state === "SUPERCRITICAL") {
+                    meshGroup.children[0].material.color.setHex(0xff3333);
+                    meshGroup.children[0].material.emissive.setHex(0xff1100);
+                } else if (item.phase_state === "TRANSMUTING") {
+                    meshGroup.children[0].material.color.setHex(0x66fcf1);
+                    meshGroup.children[0].material.emissive.setHex(0x00aaaa);
+                }
+
+                // Append UI Card
+                const card = document.createElement("div");
+                card.className = `item-card ${item.phase_state.toLowerCase()}`;
+                card.innerHTML = `
+                    <div class="item-row">
+                        <strong style="color: ${item.phase_state === 'SUPERCRITICAL' ? '#ff5555' : 'var(--cyan)'};">${item.item_type}</strong>
+                        <span style="color: var(--gold);">${item.phase_state}</span>
+                    </div>
+                    <div class="item-row">
+                        <span>Pozícia: [${item.position[0]}, ${item.position[1]}, ${item.position[2]}]</span>
+                        <span>Entropia: ${(item.entropy * 100).toFixed(0)}%</span>
+                    </div>
+                    <div class="entropy-bar">
+                        <div class="entropy-fill" style="width: ${Math.min(100, item.entropy * 100)}%;"></div>
+                    </div>
+                    ${item.transmuted ? `<div style="color: var(--toxic-green); font-size: 0.62rem;">✨ Transmutované: ${item.transmutation_type}</div>` : ''}
+                `;
+                container.appendChild(card);
+            });
+
+            // Remove despawned meshes
+            for (const [id, group] of itemMeshes.entries()) {
+                if (!currentIds.has(id)) {
+                    scene.remove(group);
+                    itemMeshes.delete(id);
+                }
+            }
+        }
+
+        async function deployItem(type) {
+            try {
+                await fetch("/api/augmented/deploy_item", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        item_type: type,
+                        position: [Math.random() * 8 - 4, 12.0, Math.random() * 8 - 4],
+                        velocity: [(Math.random() - 0.5) * 6, 4.0, (Math.random() - 0.5) * 6]
+                    })
+                });
+                fetchSimulationState();
+            } catch (e) {
+                console.error("Deploy error:", e);
+            }
+        }
+
+        // ── 7. RENDER ANIMATION LOOP ─────────────────────────────────────────
+        let clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            // Rotate items gently
+            itemMeshes.forEach(meshGroup => {
+                meshGroup.rotation.y += 0.02;
+                meshGroup.rotation.x += 0.01;
+            });
+
+            // Rotate camera gently when idle
+            camera.position.x = Math.sin(time * 0.05) * 26;
+            camera.position.z = Math.cos(time * 0.05) * 26;
+            camera.lookAt(0, 2, 0);
+
+            // Pulse harmonic light
+            pointHoloLight.intensity = 2.0 + Math.sin(time * 2.0) * 1.0;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+        setInterval(fetchSimulationState, 100); // 10 Hz telemetry polling
+        fetchSimulationState();
+    </script>
+</body>
+</html>

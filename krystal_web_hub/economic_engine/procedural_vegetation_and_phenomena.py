@@ -30,6 +30,7 @@ GOLDEN_RATIO: float = 1.61803398875
 INV_GOLDEN_RATIO: float = 0.61803398875
 PHYLLOTAXIS_GOLDEN_ANGLE_DEG: float = 137.50776405
 PHYLLOTAXIS_GOLDEN_ANGLE_RAD: float = math.radians(PHYLLOTAXIS_GOLDEN_ANGLE_DEG)
+GOLDEN_ANGLE_DEG: float = PHYLLOTAXIS_GOLDEN_ANGLE_DEG
 
 
 class BotanicalStratum(str, Enum):
@@ -122,6 +123,14 @@ class MasterPhenomenonSpec:
     particle_emitter_preset: Dict[str, Any]
     foliage_interaction_effect: str     # How it affects leaves, moss, or roots
     vital_max_hp_rule: int = VITAL_MAX_HP
+
+    @property
+    def frequency_hz(self) -> float:
+        return self.base_frequency_hz
+
+    @property
+    def vital_max_hp(self) -> int:
+        return VITAL_MAX_HP
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -594,6 +603,41 @@ CANONICAL_PHENOMENA_CATALOG: Dict[MasterPhenomenonType, MasterPhenomenonSpec] = 
 }
 
 
+@dataclass
+class BotanicalStratumSpec:
+    stratum: BotanicalStratum
+    name_sk: str
+    height_range: Tuple[float, float]
+    light_affinity: float
+    vital_max_hp: int = VITAL_MAX_HP
+
+
+CANONICAL_STRATA: Dict[str, BotanicalStratumSpec] = {
+    "emergent_canopy": BotanicalStratumSpec(BotanicalStratum.EMERGENT_CANOPY, "Poschodie korún", (25.0, 50.0), 0.95),
+    "understory_subcanopy": BotanicalStratumSpec(BotanicalStratum.UNDERSTORY_SUBCANOPY, "Podrastové dreviny", (10.0, 25.0), 0.70),
+    "shrub_and_vines": BotanicalStratumSpec(BotanicalStratum.SHRUB_AND_VINES, "Kríkové poschodie", (2.0, 10.0), 0.50),
+    "herbaceous_and_ferns": BotanicalStratumSpec(BotanicalStratum.HERBACEOUS_AND_FERNS, "Bylinné poschodie", (0.3, 2.0), 0.35),
+    "moss_and_lichens": BotanicalStratumSpec(BotanicalStratum.MOSS_AND_LICHENS, "Machové koberce", (0.02, 0.3), 0.15),
+    "rhizosphere_mycelium": BotanicalStratumSpec(BotanicalStratum.RHIZOSPHERE_MYCELIUM, "Podzemná rhizosféra", (0.0, 1.5), 0.05),
+}
+
+CANONICAL_PHENOMENA: Dict[str, MasterPhenomenonSpec] = {
+    p.value: spec for p, spec in CANONICAL_PHENOMENA_CATALOG.items()
+}
+
+MasterPhenomenon = MasterPhenomenonSpec
+
+
+@dataclass
+class BotanicalInstance:
+    instance_id: int
+    x: float
+    z: float
+    height: float
+    scale_y: float
+    vital_max_hp: int = VITAL_MAX_HP
+
+
 class ProceduralVegetationAndPhenomenaEngine:
     """
     Main Engine managing deterministic botanical strata generation,
@@ -604,6 +648,94 @@ class ProceduralVegetationAndPhenomenaEngine:
     def __init__(self):
         self.species_catalog = CANONICAL_SPECIES_CATALOG
         self.phenomena_catalog = CANONICAL_PHENOMENA_CATALOG
+        self.strata = CANONICAL_STRATA
+        self.phenomena = CANONICAL_PHENOMENA
+
+    def generate_phyllotaxis_points(self, count: int = 80, spread: float = 2.0) -> List[BotanicalInstance]:
+        """Generates golden angle Vogel phyllotaxis instances."""
+        instances = []
+        for i in range(count):
+            r = spread * math.sqrt(i)
+            theta = i * PHYLLOTAXIS_GOLDEN_ANGLE_RAD
+            x = r * math.cos(theta)
+            z = r * math.sin(theta)
+            instances.append(BotanicalInstance(
+                instance_id=i,
+                x=round(x, 4),
+                z=round(z, 4),
+                height=round(2.0 + math.sin(i) * 0.5, 3),
+                scale_y=1.0,
+                vital_max_hp=VITAL_MAX_HP
+            ))
+        return instances
+
+    def generate_lsystem_tree(self, iterations: int = 3, length: float = 3.0, angle_deg: float = 25.0) -> Dict[str, Any]:
+        """Generates L-System tree structure with branch string and segments."""
+        rules = {"X": "F[+X][-X]FX", "F": "FF"}
+        branch_str = self.expand_lsystem("X", rules, iterations=iterations)
+        segments = []
+        curr = [0.0, 0.0, 0.0]
+        for i in range(min(len(branch_str), 12)):
+            next_pt = [curr[0] + length * 0.5, curr[1] + length, curr[2]]
+            segments.append({
+                "start": list(curr),
+                "end": next_pt,
+                "radius": max(0.05, 0.5 - i * 0.03)
+            })
+            curr = next_pt
+
+        return {
+            "branch_string": branch_str,
+            "segments": segments,
+            "vital_max_hp": VITAL_MAX_HP
+        }
+
+    def simulate_phenomenon_resonance(self, active_phenomena_keys: Optional[List[str]] = None, global_potency: float = 1.0) -> Dict[str, Any]:
+        """Simulates energy flux resonance for phenomena."""
+        readouts = {}
+        total_flux = 0.0
+        for p_key, spec in self.phenomena.items():
+            flux = round(spec.base_frequency_hz * global_potency * 0.001618, 3)
+            total_flux += flux
+            readouts[p_key] = {
+                "category": spec.category.value if hasattr(spec.category, "value") else str(spec.category),
+                "vital_max_hp": VITAL_MAX_HP,
+                "energy_flux_w_m2": flux,
+                "wavelength_nm": spec.wavelength_nm,
+                "frequency_hz": spec.frequency_hz
+            }
+        return {
+            "vital_max_hp": VITAL_MAX_HP,
+            "active_count": len(readouts),
+            "aggregate_energy_flux_w_m2": round(total_flux, 3),
+            "phenomena_readouts": readouts
+        }
+
+    def export_godot_multimesh_buffer(self, count: int = 40) -> List[float]:
+        """Serializes Transform3D 16-float buffer per instance."""
+        buffer = []
+        for i in range(count):
+            r = 2.0 * math.sqrt(i)
+            theta = i * PHYLLOTAXIS_GOLDEN_ANGLE_RAD
+            x = r * math.cos(theta)
+            z = r * math.sin(theta)
+            transform = [
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                float(x), 0.0, float(z), 1.0
+            ]
+            buffer.extend(transform)
+        return buffer
+
+    def get_state_manifest(self) -> Dict[str, Any]:
+        """Returns comprehensive state snapshot."""
+        return {
+            "vital_max_hp_rule": VITAL_MAX_HP,
+            "strata": self.strata,
+            "phenomena": self.phenomena,
+            "phyllotaxis_golden_angle_deg": GOLDEN_ANGLE_DEG
+        }
 
     def get_catalog_summary(self) -> Dict[str, Any]:
         """Returns metadata and full catalogs of strata and phenomena."""

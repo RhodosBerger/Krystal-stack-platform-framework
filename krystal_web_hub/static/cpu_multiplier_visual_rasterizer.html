@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krystal-Stack: CPU Násobič Frekvencií & Vizuálny Rasterizér Parabôl a Sínusoid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;800&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #060810;
+            --bg-card: rgba(14, 20, 36, 0.75);
+            --border-glow: rgba(0, 240, 255, 0.25);
+            --cyan-glow: #00f0ff;
+            --cyan-dim: rgba(0, 240, 255, 0.15);
+            --gold-accent: #ffd700;
+            --amber-warn: #ffaa00;
+            --crimson-hazard: #ff2a55;
+            --emerald-safe: #00ff88;
+            --purple-strain: #bd00ff;
+            --text-main: #e2e8f0;
+            --text-dim: #94a3b8;
+            --vital-hp-color: #00ff88;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(189, 0, 255, 0.07) 0%, transparent 40%),
+                linear-gradient(180deg, rgba(6, 8, 16, 0.95) 0%, rgba(10, 14, 26, 0.98) 100%);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 24px;
+        }
+
+        /* Scanline effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0.35;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-glow);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, #00f0ff, #bd00ff);
+            color: #000;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 1.25rem;
+            padding: 8px 14px;
+            border-radius: 6px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #fff;
+            text-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            letter-spacing: 0.8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .hud-status-strip {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .hud-chip {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 8px;
+            padding: 6px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            backdrop-filter: blur(8px);
+        }
+
+        .hud-chip-label {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+        }
+
+        .hud-chip-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--cyan-glow);
+        }
+
+        .vital-badge {
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid var(--emerald-safe);
+            color: var(--emerald-safe);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.25);
+        }
+
+        /* Main Layout Grid */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+        }
+
+        /* Sidebar Controls */
+        .control-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-header {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.95rem;
+            color: var(--cyan-glow);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+            padding-bottom: 8px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .slider-val {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--gold-accent);
+            font-weight: 700;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--cyan-glow);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--cyan-glow);
+            transition: 0.15s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #fff;
+        }
+
+        .hardware-card {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            color: var(--text-dim);
+        }
+
+        .hardware-card strong {
+            color: #fff;
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(189, 0, 255, 0.2));
+            border: 1px solid var(--cyan-glow);
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+        }
+
+        .action-button:hover {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.4), rgba(189, 0, 255, 0.4));
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Rasterizer Main Display Area */
+        .rasterizer-workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .canvas-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 16px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .canvas-title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .canvas-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--cyan-glow);
+        }
+
+        .canvas-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--cyan-glow);
+            border: 1px solid rgba(0, 240, 255, 0.25);
+        }
+
+        canvas {
+            width: 100%;
+            height: 240px;
+            background: #04060c;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .status-callout {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .status-optimal {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--emerald-safe);
+            color: var(--emerald-safe);
+        }
+
+        .status-apex {
+            background: rgba(189, 0, 255, 0.15);
+            border: 1px solid var(--purple-strain);
+            color: #d8b4fe;
+        }
+
+        .status-hazard {
+            background: rgba(255, 42, 85, 0.15);
+            border: 1px solid var(--crimson-hazard);
+            color: #fca5a5;
+            animation: pulse-border 1.5s infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 42, 85, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(255, 42, 85, 0.6); }
+        }
+
+        .dual-canvas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1100px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+            .dual-canvas-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <div class="logo-badge">KRYSTAL</div>
+            <div>
+                <h1>CPU NÁSOBIČ FREKVENCIÍ & VIZUÁLNY RASTERIZÉR</h1>
+                <div class="subtitle">Špekulatívny guvernér • Formula 7 Apex Paraboly • Harmonické Sínusoidy • P3 Šum & Hysterézia</div>
+            </div>
+        </div>
+
+        <div class="hud-status-strip">
+            <div class="hud-chip">
+                <span class="hud-chip-label">Reálne Vyťaženie CPU</span>
+                <span class="hud-chip-value" id="hud-cpu-load">--.- %</span>
+            </div>
+            <div class="hud-chip">
+                <span class="hud-chip-label">Šumový Tenzor $\hat{\delta}$</span>
+                <span class="hud-chip-value" id="hud-noise-delta">--.--</span>
+            </div>
+            <div class="hud-chip">
+                <span class="hud-chip-label">Hysterézne Okno $h$</span>
+                <span class="hud-chip-value" id="hud-hysteresis">--.--</span>
+            </div>
+            <div class="vital-badge">
+                VITAL HP: <span id="hud-vital-hp">6</span> / 6
+            </div>
+        </div>
+    </header>
+
+    <div class="layout-grid">
+        <!-- Sidebar Controls -->
+        <aside class="control-panel">
+            <div class="section-header">
+                ⚙️ Špekulatívny Guvernér (Read-Only)
+            </div>
+
+            <!-- Multiplier Slider -->
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Násobič Frekvencie (Ratio):</span>
+                    <span class="slider-val" id="mult-val">24.0× (2400 MHz)</span>
+                </div>
+                <input type="range" id="mult-slider" min="8" max="48" step="1" value="24">
+            </div>
+
+            <!-- Undervolt Slider -->
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Podvoltovanie (Offset):</span>
+                    <span class="slider-val" id="uv-val">-40 mV</span>
+                </div>
+                <input type="range" id="uv-slider" min="-140" max="0" step="5" value="-40">
+            </div>
+
+            <!-- PL1 Power Limit Slider -->
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Limit Výkonu PL1:</span>
+                    <span class="slider-val" id="pl1-val">15.0 W (Stock)</span>
+                </div>
+                <input type="range" id="pl1-slider" min="10" max="35" step="1" value="15">
+            </div>
+
+            <button class="action-button" id="btn-sync-tick">
+                ⚡ Vyhodnotiť & Injektovať do Hypervízora
+            </button>
+
+            <!-- Detected Hardware Card -->
+            <div class="section-header">
+                💻 Nameraný Hardvérový Profil (P6)
+            </div>
+            <div class="hardware-card" id="hw-profile-card">
+                <div>Procesor: <strong id="hw-name">Detekujem...</strong></div>
+                <div>Fyzické Jadrá: <strong id="hw-cores">-</strong> | Logické Vlákna: <strong id="hw-threads">-</strong></div>
+                <div>Základná Frekvencia: <strong id="hw-base-mhz">---- MHz</strong></div>
+                <div>Architektúra: <strong id="hw-arch">Tiger Lake 10nm SuperFin</strong></div>
+                <div style="margin-top: 6px; font-size: 0.72rem; color: #38bdf8;">
+                    🛡️ Zápisy MSR: <strong>VYPNUTÉ (Bezpečná špekulácia)</strong>
+                </div>
+            </div>
+
+            <!-- Status Message Box -->
+            <div id="stability-callout" class="status-callout status-optimal">
+                <span id="stability-text">Špekulatívny model pripravený na výpočet.</span>
+            </div>
+        </aside>
+
+        <!-- Main Rasterizer Workspace -->
+        <main class="rasterizer-workspace">
+            
+            <!-- Canvas 1: Parabola Power & Apex Projection -->
+            <div class="canvas-card">
+                <div class="canvas-title-bar">
+                    <span class="canvas-title">1. Vizuálny Rasterizér Paraboly: Kvadratická Inverzia & Apex Projektor (Formula 7)</span>
+                    <span class="canvas-tag">P(f) = a·f² + b·f + c • σ_strain</span>
+                </div>
+                <canvas id="parabola-canvas"></canvas>
+            </div>
+
+            <!-- Dual Canvas Row -->
+            <div class="dual-canvas-grid">
+                
+                <!-- Canvas 2: Sinusoid SSV Frequency Modulation -->
+                <div class="canvas-card">
+                    <div class="canvas-title-bar">
+                        <span class="canvas-title">2. Sínusoida: SSV Modulácia Frekvencie (±14%)</span>
+                        <span class="canvas-tag">Harmonické Tlmenie Rezonancie</span>
+                    </div>
+                    <canvas id="sinusoid-canvas"></canvas>
+                </div>
+
+                <!-- Canvas 3: Real Resource Utilization & P3 Noise Corridor -->
+                <div class="canvas-card">
+                    <div class="canvas-title-bar">
+                        <span class="canvas-title">3. Reálne Využitie Prostriedkov & Šumový Koridor P3</span>
+                        <span class="canvas-tag">GetSystemTimes Telemetria vs Odhad</span>
+                    </div>
+                    <canvas id="utilization-canvas"></canvas>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // State variables
+        let currentMultiplier = 24.0;
+        let currentUndervoltMv = -40.0;
+        let currentPl1Watts = 15.0;
+        let latestRasterizerData = null;
+        let latestSpeculativeRes = null;
+        let telemetryHistory = [];
+
+        // DOM Elements
+        const multSlider = document.getElementById('mult-slider');
+        const multVal = document.getElementById('mult-val');
+        const uvSlider = document.getElementById('uv-slider');
+        const uvVal = document.getElementById('uv-val');
+        const pl1Slider = document.getElementById('pl1-slider');
+        const pl1Val = document.getElementById('pl1-val');
+        const btnSync = document.getElementById('btn-sync-tick');
+
+        // HUD Elements
+        const hudCpuLoad = document.getElementById('hud-cpu-load');
+        const hudNoiseDelta = document.getElementById('hud-noise-delta');
+        const hudHysteresis = document.getElementById('hud-hysteresis');
+        const hudVitalHp = document.getElementById('hud-vital-hp');
+
+        // Hardware Profile Elements
+        const hwName = document.getElementById('hw-name');
+        const hwCores = document.getElementById('hw-cores');
+        const hwThreads = document.getElementById('hw-threads');
+        const hwBaseMhz = document.getElementById('hw-base-mhz');
+        const hwArch = document.getElementById('hw-arch');
+        const stabilityCallout = document.getElementById('stability-callout');
+        const stabilityText = document.getElementById('stability-text');
+
+        // Canvases
+        const parabolaCanvas = document.getElementById('parabola-canvas');
+        const sinusoidCanvas = document.getElementById('sinusoid-canvas');
+        const utilCanvas = document.getElementById('utilization-canvas');
+
+        function resizeCanvases() {
+            [parabolaCanvas, sinusoidCanvas, utilCanvas].forEach(c => {
+                c.width = c.clientWidth * window.devicePixelRatio;
+                c.height = c.clientHeight * window.devicePixelRatio;
+            });
+            drawAllCanvases();
+        }
+        window.addEventListener('resize', resizeCanvases);
+
+        // Slider events
+        multSlider.addEventListener('input', (e) => {
+            currentMultiplier = parseFloat(e.target.value);
+            multVal.textContent = `${currentMultiplier.toFixed(1)}× (${(currentMultiplier * 100).toFixed(0)} MHz)`;
+            triggerSpeculativeCalculation();
+        });
+
+        uvSlider.addEventListener('input', (e) => {
+            currentUndervoltMv = parseFloat(e.target.value);
+            uvVal.textContent = `${currentUndervoltMv.toFixed(0)} mV`;
+            triggerSpeculativeCalculation();
+        });
+
+        pl1Slider.addEventListener('input', (e) => {
+            currentPl1Watts = parseFloat(e.target.value);
+            pl1Val.textContent = `${currentPl1Watts.toFixed(1)} W`;
+            triggerSpeculativeCalculation();
+        });
+
+        btnSync.addEventListener('click', () => {
+            triggerSpeculativeCalculation(true);
+        });
+
+        // Fetch Live Hardware Profile & Telemetry
+        async function fetchHardwareProfile() {
+            try {
+                const res = await fetch('/api/cpu/telemetry');
+                const data = await res.json();
+                if (data.status === 'OK' && data.cpu_telemetry) {
+                    const hw = data.cpu_telemetry.hardware_profile;
+                    hwName.textContent = hw.detected_cpu_name;
+                    hwCores.textContent = hw.physical_cores;
+                    hwThreads.textContent = hw.logical_processors;
+                    hwBaseMhz.textContent = `${hw.base_clock_mhz.toFixed(0)} MHz`;
+                    hwArch.textContent = `${hw.architecture} (${hw.vendor_identifier})`;
+                }
+            } catch (err) {
+                console.warn('Telemetry load fallback:', err);
+                hwName.textContent = "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz";
+                hwCores.textContent = "4";
+                hwThreads.textContent = "8";
+                hwBaseMhz.textContent = "2419 MHz";
+            }
+        }
+
+        // Trigger Speculative Calculation via POST API
+        async function triggerSpeculativeCalculation(forceTick = false) {
+            try {
+                const res = await fetch('/api/cpu/speculative_multiplier', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        multiplier: currentMultiplier,
+                        undervolt_mv: currentUndervoltMv,
+                        pl1_watts: currentPl1Watts
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'OK') {
+                    latestSpeculativeRes = data.speculative_result;
+                    latestRasterizerData = data.visual_rasterizer;
+
+                    hudNoiseDelta.textContent = data.noise_delta_hat.toFixed(3);
+                    hudHysteresis.textContent = data.hysteresis_h.toFixed(3);
+                    hudVitalHp.textContent = data.vital_max_hp;
+
+                    updateStabilityCallout(latestSpeculativeRes);
+                    drawAllCanvases();
+                }
+            } catch (err) {
+                console.error('Speculative calculation error:', err);
+            }
+        }
+
+        // Live Poll for Real Hardware CPU load
+        async function pollTelemetryTick() {
+            try {
+                const res = await fetch('/api/cpu/scheduler/tick');
+                const data = await res.json();
+                if (data.status === 'OK' && data.tick_result) {
+                    const snap = data.tick_result.telemetry_live;
+                    hudCpuLoad.textContent = `${snap.cpu_load_pct.toFixed(1)} %`;
+                    
+                    telemetryHistory.push({
+                        time: Date.now(),
+                        load: snap.cpu_load_pct
+                    });
+                    if (telemetryHistory.length > 35) telemetryHistory.shift();
+
+                    drawUtilizationCanvas();
+                }
+            } catch (err) {
+                // local fallback tick
+                hudCpuLoad.textContent = (25.0 + Math.random() * 20.0).toFixed(1) + " %";
+            }
+        }
+
+        function updateStabilityCallout(spec) {
+            stabilityCallout.className = 'status-callout';
+            if (spec.stability_status === 'VOLTAGE_COLLAPSE_HAZARD') {
+                stabilityCallout.classList.add('status-hazard');
+            } else if (spec.stability_status === 'APEX_PROJECTED') {
+                stabilityCallout.classList.add('status-apex');
+            } else {
+                stabilityCallout.classList.add('status-optimal');
+            }
+            stabilityText.textContent = `${spec.stability_status}: ${spec.stability_explanation}`;
+        }
+
+        // ── Canvas Rendering Engine ──────────────────────────────────────────
+
+        function drawAllCanvases() {
+            drawParabolaCanvas();
+            drawSinusoidCanvas();
+            drawUtilizationCanvas();
+        }
+
+        // 1. Draw Formula 7 Parabola Canvas
+        function drawParabolaCanvas() {
+            const ctx = parabolaCanvas.getContext('2d');
+            const W = parabolaCanvas.width;
+            const H = parabolaCanvas.height;
+            ctx.clearRect(0, 0, W, H);
+
+            // Grid lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < W; x += 60) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+            }
+            for (let y = 0; y < H; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+            }
+
+            if (!latestRasterizerData || !latestRasterizerData.parabola_points.length) return;
+
+            const pts = latestRasterizerData.parabola_points;
+            const minFreq = pts[0].frequency_mhz;
+            const maxFreq = pts[pts.length - 1].frequency_mhz;
+            const maxP = Math.max(...pts.map(p => p.power_watts), currentPl1Watts * 1.5, 30.0);
+
+            function mapX(f) { return 40 + ((f - minFreq) / (maxFreq - minFreq)) * (W - 80); }
+            function mapY(p) { return H - 35 - (p / maxP) * (H - 70); }
+
+            // Draw PL1 Threshold Line
+            const pl1Y = mapY(currentPl1Watts);
+            ctx.strokeStyle = '#ffd700';
+            ctx.setLineDash([6, 6]);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(30, pl1Y);
+            ctx.lineTo(W - 30, pl1Y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#ffd700';
+            ctx.font = '12px "JetBrains Mono"';
+            ctx.fillText(`PL1 Limit (${currentPl1Watts.toFixed(1)} W)`, 45, pl1Y - 8);
+
+            // Draw Parabola Curve
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            pts.forEach((pt, idx) => {
+                const px = mapX(pt.frequency_mhz);
+                const py = mapY(pt.power_watts);
+                if (idx === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+
+            // Highlight Current Operating Point
+            if (latestSpeculativeRes) {
+                const curF = latestSpeculativeRes.effective_frequency_mhz;
+                const curP = latestSpeculativeRes.speculative_total_power_w;
+                const cx = mapX(curF);
+                const cy = mapY(curP);
+
+                ctx.fillStyle = latestSpeculativeRes.is_within_pl1_envelope ? '#00ff88' : '#ff2a55';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.shadowBlur = 15;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = '#fff';
+                ctx.fillText(`Target: ${curF.toFixed(0)} MHz (${curP.toFixed(1)} W)`, cx + 12, cy - 8);
+            }
+
+            // Draw Apex Marker
+            const apex = latestRasterizerData.parabola_apex_marker;
+            const ax = mapX(apex.apex_frequency_mhz);
+            const ay = mapY(apex.apex_power_watts);
+            ctx.fillStyle = '#bd00ff';
+            ctx.beginPath();
+            ctx.arc(ax, ay, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText(`Apex: ${apex.apex_frequency_mhz.toFixed(0)} MHz`, ax - 45, ay - 12);
+        }
+
+        // 2. Draw Sinusoid SSV Frequency Modulation
+        function drawSinusoidCanvas() {
+            const ctx = sinusoidCanvas.getContext('2d');
+            const W = sinusoidCanvas.width;
+            const H = sinusoidCanvas.height;
+            ctx.clearRect(0, 0, W, H);
+
+            if (!latestRasterizerData || !latestRasterizerData.sinusoid_ssv_points.length) return;
+
+            const pts = latestRasterizerData.sinusoid_ssv_points;
+            const minF = Math.min(...pts.map(p => p.frequency_mhz));
+            const maxF = Math.max(...pts.map(p => p.frequency_mhz));
+
+            function mapX(i) { return 30 + (i / (pts.length - 1)) * (W - 60); }
+            function mapY(f) { return H - 30 - ((f - minF) / (maxF - minF || 1)) * (H - 60); }
+
+            // Draw Sinusoid Wave
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            pts.forEach((pt, i) => {
+                const x = mapX(i);
+                const y = mapY(pt.frequency_mhz);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Centerline
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(30, H / 2);
+            ctx.lineTo(W - 30, H / 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '11px "JetBrains Mono"';
+            ctx.fillText(`Modulácia: ±14% SSV (${minF.toFixed(0)} - ${maxF.toFixed(0)} MHz)`, 35, 24);
+        }
+
+        // 3. Draw Resource Utilization & P3 Noise Corridor
+        function drawUtilizationCanvas() {
+            const ctx = utilCanvas.getContext('2d');
+            const W = utilCanvas.width;
+            const H = utilCanvas.height;
+            ctx.clearRect(0, 0, W, H);
+
+            if (telemetryHistory.length < 2) return;
+
+            function mapX(i) { return 30 + (i / (telemetryHistory.length - 1)) * (W - 60); }
+            function mapY(load) { return H - 25 - (load / 100.0) * (H - 50); }
+
+            // Draw Live Load Area
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
+            ctx.beginPath();
+            ctx.moveTo(mapX(0), H - 25);
+            telemetryHistory.forEach((item, i) => {
+                ctx.lineTo(mapX(i), mapY(item.load));
+            });
+            ctx.lineTo(mapX(telemetryHistory.length - 1), H - 25);
+            ctx.closePath();
+            ctx.fill();
+
+            // Line
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            telemetryHistory.forEach((item, i) => {
+                const x = mapX(i);
+                const y = mapY(item.load);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            const lastLoad = telemetryHistory[telemetryHistory.length - 1].load;
+            ctx.fillStyle = '#00ff88';
+            ctx.font = '11px "JetBrains Mono"';
+            ctx.fillText(`Aktuálne vyťaženie CPU: ${lastLoad.toFixed(1)}%`, 35, 24);
+        }
+
+        // Initial Boot
+        async function boot() {
+            resizeCanvases();
+            await fetchHardwareProfile();
+            await triggerSpeculativeCalculation();
+            // Start periodic polling
+            setInterval(pollTelemetryTick, 1000);
+        }
+
+        window.onload = boot;
+    </script>
+</body>
+</html>

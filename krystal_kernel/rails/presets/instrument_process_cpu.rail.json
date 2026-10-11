@@ -1,0 +1,31 @@
+{
+  "rail": "instrument_process_cpu",
+  "version": 1,
+  "description": "Diagnose the instrument before trusting it: measures the real tick of time.process_time, samples this process's CPU share at 20 ms under a known 50 % duty cycle, and checks sleep jitter. Real stdlib telemetry, no admin rights. The verdict is machine-dependent.",
+  "theory_ref": "§5.2, §5.3, §5.5",
+  "nodes": [
+    {"id": "tick", "fn": "source.clock_quantum", "params": {"clock": "process_time", "samples": 8}},
+    {"id": "cpu", "fn": "source.process_cpu_sampler",
+     "params": {"duration_s": 1.0, "interval_ms": 20.0, "duty": 0.5}},
+    {"id": "cpu_stats", "fn": "measure.stats"},
+    {"id": "res_chk", "fn": "diagnose.bound_check",
+     "params": {"upper": 10.0, "claim": "CPU-share quantum <= 10 % at a 20 ms interval"}},
+    {"id": "bias", "fn": "diagnose.compare_prediction",
+     "params": {"abs_tol": 10.0, "claim": "mean CPU share within 10 points of the 50 % duty"}},
+    {"id": "duty", "fn": "source.constant", "label": "reference: 50 % duty", "params": {"value": 50.0}},
+    {"id": "jit", "fn": "source.sleep_jitter", "params": {"interval_ms": 10.0, "n": 50}},
+    {"id": "jit_stats", "fn": "measure.stats"},
+    {"id": "verdict", "fn": "diagnose.combine_verdicts",
+     "params": {"claim": "process_time is adequate for 20 ms CPU-share telemetry"}}
+  ],
+  "links": [
+    {"from": "cpu.cpu_pct", "to": "cpu_stats.series"},
+    {"from": "cpu.quantum_pct", "to": "res_chk.value"},
+    {"from": "cpu_stats.mean", "to": "bias.observed"},
+    {"from": "duty.value", "to": "bias.predicted"},
+    {"from": "jit.jitter_ms", "to": "jit_stats.series"},
+    {"from": "res_chk.verdict", "to": "verdict.a"},
+    {"from": "bias.verdict", "to": "verdict.b"}
+  ],
+  "outputs": ["tick.quantum_ms", "tick.reported_resolution_ms", "cpu.quantum_pct", "cpu_stats.stats", "jit_stats.stats", "verdict.verdict"]
+}

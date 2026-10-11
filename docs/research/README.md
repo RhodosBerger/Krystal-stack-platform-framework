@@ -45,3 +45,5 @@ V systéme beží v reálnom čase Localhost Mission Control Hub:
 *Vytvorené a verifikované v rámci Krystal-Stack Platform Framework (2026).*
 
 **Measured status & priorities:** see [PROJECT_AUDIT_AND_COMPUTE_PATTERNS.md](../PROJECT_AUDIT_AND_COMPUTE_PATTERNS.md) and the live API in [PROJECT_INTELLIGENCE_API.md](../PROJECT_INTELLIGENCE_API.md). Where a research document quotes a figure that is not backed by a measurement, the audit takes precedence.
+
+**Formálna teória (iba definície, vety, hypotézy a register tvrdení):** [krystal_theory/](../../krystal_theory/README.md).

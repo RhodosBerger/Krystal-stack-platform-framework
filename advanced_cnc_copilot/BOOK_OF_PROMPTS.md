@@ -139,6 +139,32 @@ The Book of Prompts represents the interface between human intent and AI-powered
 }
 ```
 
+### 2.4 Linear Thermal Gradient RPM Reduction with Safety Fuse & Differential Thresholds
+**Prompt**: "Act as the CNC Thermal & Differential Safety Copilot. Implement linear RPM reduction governed by the temperature gradient dT/dt using strictly locked threshold constants: Warning Threshold = 15.0 °C/s, Critical Gradient = 35.0 °C/s with linear slope K_slope = 0.40. Enforce hard-wired safety interlocks: Trip emergency axial retract if Tip Temperature >= 750.0 °C, Gradient >= 50.0 °C/s, Torque Surge >= +35.0%, or Coolant Pressure < 0.20 MPa. Spliced output must clamp RPM to 40% floor, inject rapid clearance retract G91 G00 Z4.0, and preserve VITAL_MAX_HP == 6 without triggering uncoordinated E-stop."
+
+**Context Requirements**:
+- Current Spindle RPM ($n_0$) and Nominal Feed per tooth ($f_z$)
+- Measured Tool Tip Temperature ($\Theta_{\text{tip}}$)
+- Real-time Temperature Gradient ($\dot{\Theta} = \frac{dT}{dt}$)
+- Spindle Torque Load Percentage ($\Delta M_{\text{surge}}$)
+- Coolant Line Pressure ($P_{\text{coolant}}$)
+
+**Expected Output Format**:
+```python
+{
+    "commanded_rpm": int,
+    "reduction_factor": float, # e.g. 0.80 for 25.0 °C/s
+    "temp_gradient_c_s": float,
+    "linear_reduction_active": bool,
+    "safety_fuse_tripped": bool,
+    "fuse_trigger_reasons": List[str],
+    "interlock_action": str, # "NOMINAL_MONITORING" | "LINEAR_GRADIENT_DAMPING" | "EMERGENCY_AXIAL_CLEARANCE_RETRACT"
+    "injected_safety_gcode": List[str],
+    "vital_hp_retained": int, # 1 to 6 (VITAL_MAX_HP == 6)
+    "vital_max_hp": int
+}
+```
+
 ## Chapter 3: ACCOUNTANT PROMPTS (Economic Evaluation)
 
 ### 3.1 Profit Rate Optimization

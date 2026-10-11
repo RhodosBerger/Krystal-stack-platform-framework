@@ -1,0 +1,62 @@
+[gd_scene load_steps=7 format=3 uid="uid://c8k1nativearena01"]
+
+[ext_resource type="Script" path="res://scripts/NativeProceduralVulkanBridge.gd" id="1_vulkan_bridge"]
+[ext_resource type="Shader" path="res://shaders/photorealistic_pbr_procedural.gdshader" id="2_pbr_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vulkan_pbr"]
+render_priority = 0
+shader = ExtResource("2_pbr_shader")
+shader_parameter/u_roughness_mult = 0.25
+shader_parameter/u_metallic_mult = 0.85
+shader_parameter/u_fresnel_power = 5.0
+shader_parameter/u_subsurface_weight = 0.35
+shader_parameter/u_albedo_tint = Color(0.9, 0.95, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_instance_crystal"]
+material = SubResource("ShaderMaterial_vulkan_pbr")
+size = Vector3(0.5, 1.2, 0.5)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_arena"]
+sky_top_color = Color(0.08, 0.12, 0.2, 1)
+sky_horizon_color = Color(0.2, 0.25, 0.35, 1)
+ground_bottom_color = Color(0.04, 0.06, 0.08, 1)
+ground_horizon_color = Color(0.12, 0.16, 0.22, 1)
+
+[sub_resource type="Sky" id="Sky_arena"]
+sky_material = SubResource("ProceduralSkyMaterial_arena")
+
+[sub_resource type="Environment" id="Environment_vulkan_arena"]
+background_mode = 2
+sky = SubResource("Sky_arena")
+tonemap_mode = 3
+tonemap_exposure = 1.15
+glow_enabled = true
+glow_intensity = 0.6
+glow_bloom = 0.25
+fog_enabled = true
+fog_light_color = Color(0.15, 0.2, 0.3, 1)
+fog_density = 0.015
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.02
+
+[node name="NativeProceduralAcceleratedArena" type="Node3D"]
+script = ExtResource("1_vulkan_bridge")
+target_instances = 8192
+server_host = "127.0.0.1"
+server_port = 8092
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_vulkan_arena")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 25, 0)
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 2.2
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 18, 28)
+current = true
+fov = 60.0
+
+[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="."]

@@ -1,0 +1,128 @@
+{
+  "theory": "hr1_prepinanie_pri_prahu",
+  "version": 1,
+  "title": "Prepínanie pri prahu (chattering) a schopnosť telemetrie ho diagnostikovať",
+  "scope": "Bezpamäťová triáž classify() pri θ* = 85 (03, Veta 3.1) a merací reťazec, ktorým by sa H-R1 testovala. Mimo rozsahu: firmvérový regulátor (P4), skutočný zdroj θ.",
+  "theory_refs": ["03_riadenie_a_stabilita.md", "04_hypotezy_a_protokoly.md#h-r1--nezávislosť-vzoriek-teploty-pri-prahu", "05_telemetria_ako_diagnostika.md"],
+  "signals": [
+    {
+      "id": "S-THETA",
+      "quantity": "termálny tlak θ",
+      "unit": "% T_j,max",
+      "observes": "θ",
+      "source": {"kind": "hw_counter", "api": "neurčené (digitálny teplotný senzor jadra cez MSR alebo OS rozhranie)", "privileges": "kernel_driver", "requires_user_approval": true},
+      "sampling": {"interval_ms": 100, "quantum": null, "quantum_unit": "°C", "bandwidth_hz_estimate": null},
+      "noise_model": {"kind": "unknown", "basis": "nemerané; H-R1 testuje iid (A3.1)"},
+      "provenance": "TARGET",
+      "notes": "Cieľ 10 Hz podľa protokolu H-R1. Kvantum senzora (často 1 °C) a reálna obnovovacia frekvencia nie sú overené."
+    },
+    {
+      "id": "S-THETA-IID",
+      "quantity": "syntetický θ, iid gaussovský šum okolo prahu",
+      "unit": "% T_j,max",
+      "observes": "θ",
+      "source": {"kind": "synthetic", "api": "source.synthetic_series (noise=gaussian, amplitude=2, seed=7, n=20000)", "privileges": "none"},
+      "sampling": {"interval_ms": null, "quantum": 0, "quantum_unit": "% T_j,max"},
+      "noise_model": {"kind": "iid", "basis": "zvolené (A3.1 platí z konštrukcie)"},
+      "provenance": "MODELED",
+      "rail_node": "source.synthetic_series"
+    },
+    {
+      "id": "S-THETA-AR1",
+      "quantity": "syntetický θ, AR(1) šum (φ = 0,9)",
+      "unit": "% T_j,max",
+      "observes": "θ",
+      "source": {"kind": "synthetic", "api": "source.synthetic_series (noise=ar1, phi=0.9, amplitude=1, seed=7, n=20000)", "privileges": "none"},
+      "sampling": {"interval_ms": null, "quantum": 0, "quantum_unit": "% T_j,max"},
+      "noise_model": {"kind": "ar1", "phi": 0.9, "basis": "zvolené (A3.1 porušené z konštrukcie)"},
+      "provenance": "MODELED",
+      "rail_node": "source.synthetic_series"
+    },
+    {
+      "id": "S-PROC-CPU",
+      "quantity": "podiel CPU času procesu za interval (pri známom 50 % pracovnom cykle)",
+      "unit": "%",
+      "observes": "nástroj",
+      "source": {"kind": "stdlib_clock", "api": "time.process_time / time.perf_counter", "privileges": "none"},
+      "sampling": {"interval_ms": 20, "jitter_ms_max": 1.3323, "quantum": 76.0, "quantum_unit": "% CPU podielu pri 20 ms (= tik 15,625 ms)"},
+      "noise_model": {"kind": "quantized", "basis": "namerané: hodnoty len {0, ~77,7 %}; tik process_time 15,625 ms vo všetkých 3 behoch"},
+      "provenance": "MEASURED",
+      "measured_on": {"machine": "Intel Core i5-1135G7, Windows, Python 3.14.7", "date": "2026-10-09", "runs": 3, "tool": "rail instrument_process_cpu"},
+      "rail_node": "source.process_cpu_sampler"
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "H-R1",
+      "claim": "Pri ustálenej záťaži s θ blízko θ* je empirická frekvencia prepínania bezpamäťového režimu v 95 % IS okolo 2p̂(1−p̂) a |ρ̂₁| ≤ 0,2.",
+      "target": "system",
+      "theory_refs": ["Veta 3.1", "Lema 5.2", "04 H-R1"],
+      "assumptions": ["A3.1 (iid vzorky)", "f_s dostatočné, aby Lema 5.1 nepodhodnotila počet prepnutí"],
+      "signals": ["S-THETA"],
+      "protocol": {
+        "steps": ["1) ustálená záťaž s θ blízko 85 % T_j,max", "2) vzorkovanie θ pri 10 Hz počas 600 s", "3) p̂, ŝ, σ̂ (Lema 5.2), ρ̂₁ rail-om hr1_threshold_switching"],
+        "duration_s": 600, "runs": 3, "alpha": 0.05, "rail": "hr1_threshold_switching"
+      },
+      "rejection_criteria": [
+        {"id": "R1", "statistic": "|ŝ − 2p̂(1−p̂)|", "operator": ">", "threshold": "1,96·σ̂ (Lema 5.2)", "statement": "Zamietni, ak odchýlka presiahne 1,96 σ̂ v ≥ 2 z 3 behov.", "rail_output": "cmp.verdict"},
+        {"id": "R2", "statistic": "|ρ̂₁| indikátora 1[θ ≥ θ*]", "operator": ">", "threshold": 0.2, "statement": "Zamietni pri autokorelácii nad 0,2.", "rail_output": "rho_chk.verdict"}
+      ],
+      "combine": "any",
+      "consequence_if_rejected": "Veta 3.1 platí len ako horná hranica; pre G1 odhadovať δ z rozsahu (Lema 5.3), nie z rozptylu.",
+      "status": "NEOVERENÉ",
+      "blocked_by": "S-THETA nemá schválený zdroj s f_s ≥ 10 Hz."
+    },
+    {
+      "id": "H-I1",
+      "claim": "time.process_time je pri intervale 20 ms dostatočný nástroj na okamžitý podiel CPU: kvantum podielu ≤ 10 % a priemer do 10 bodov od známeho pracovného cyklu.",
+      "target": "instrument",
+      "theory_refs": ["Lema 5.3", "Lema 5.4", "§5.5"],
+      "assumptions": ["Pracovný cyklus 50 % je vynútený busy-spinom, takže pravda je známa"],
+      "signals": ["S-PROC-CPU"],
+      "protocol": {
+        "steps": ["1) source.clock_quantum zmeria efektívny tik process_time", "2) 1 s vzorkovania po 20 ms pri 50 % cykle", "3) kvantum podielu a priemer"],
+        "duration_s": 2, "runs": 3, "rail": "instrument_process_cpu"
+      },
+      "rejection_criteria": [
+        {"id": "R1", "statistic": "kvantum podielu CPU", "operator": ">", "threshold": 10, "statement": "Zamietni, ak je najmenší nenulový krok > 10 % podielu.", "rail_output": "res_chk.verdict"},
+        {"id": "R2", "statistic": "|priemer − 50|", "operator": ">", "threshold": 10, "statement": "Zamietni, ak priemer odbočí o viac než 10 bodov.", "rail_output": "bias.verdict"}
+      ],
+      "combine": "any",
+      "consequence_if_rejected": "Okamžité hodnoty z process_time pri 20 ms nie sú telemetria, ale kvantovaný šum; použiť interval ≥ 157 ms (q ≤ 10 %) alebo iba priemery (Lema 5.4).",
+      "status": "ZAMIETNUTÉ"
+    }
+  ],
+  "verdicts": [
+    {
+      "hypothesis": "H-R1", "rail": "hr1_threshold_switching", "rail_output": "verdict.verdict",
+      "status": "NEZAMIETNUTÉ", "engine_status": "NOT_REJECTED", "expected_status": "NEZAMIETNUTÉ",
+      "provenance": "MODELED", "scope": "diagnostic_power", "date": "2026-10-09",
+      "statistics": {"p_hat": 0.5013, "s_hat": 0.500975, "predicted": 0.499997, "sigma_hat": 0.0035356, "rho1": -0.00196},
+      "notes": "Na iid dátach test nezamieta (žiadny falošný poplach pri tomto seede). Neoveruje H-R1 na hardvéri."
+    },
+    {
+      "hypothesis": "H-R1", "rail": "hr1_autocorrelated_noise", "rail_output": "verdict.verdict",
+      "status": "ZAMIETNUTÉ", "engine_status": "REJECTED", "expected_status": "ZAMIETNUTÉ",
+      "provenance": "MODELED", "scope": "diagnostic_power", "date": "2026-10-09",
+      "statistics": {"p_hat": 0.5092, "s_hat": 0.147057, "predicted": 0.499831, "sigma_hat": 0.0035368, "rho1": 0.70575},
+      "notes": "Pri porušení A3.1 test zamieta oboma kritériami: ŝ je ~100 σ̂ pod predikciou a ρ̂₁ ≈ 0,71."
+    },
+    {
+      "hypothesis": "H-I1", "rail": "instrument_process_cpu", "rail_output": "verdict.verdict",
+      "status": "ZAMIETNUTÉ", "engine_status": "REJECTED",
+      "provenance": "MEASURED", "scope": "instrument", "date": "2026-10-09",
+      "measured_on": {"machine": "Intel Core i5-1135G7, Windows, Python 3.14.7", "date": "2026-10-09", "runs": 3, "tool": "rail instrument_process_cpu", "artifact": "brain/.../scratch/rail_stats.json"},
+      "statistics": {"tick_ms": 15.625, "reported_resolution_ms": 0.0001, "quantum_pct_min": 76.05, "quantum_pct_max": 76.64, "cpu_mean_min": 45.25, "cpu_mean_max": 48.22, "cpu_std_min": 37.13, "sleep_jitter_mean_ms_max": 0.54},
+      "notes": "R1 zamieta vo všetkých 3 behoch, R2 nie (priemer 45–48 %). get_clock_info hlási 100 ns, efektívny tik je 15,625 ms (156 250× hrubší)."
+    }
+  ],
+  "derived_goals": [
+    {"id": "G11", "text": "Zdroj θ s f_s ≥ 10 Hz a zdokumentovaným kvantom senzora; bez neho je H-R1 blokovaná.", "source": "H-R1, Lema 5.1, Lema 5.3"},
+    {"id": "G12", "text": "Telemetria CPU podielu z process_time na Windows: interval ≥ 157 ms alebo hlásiť len priemery; nikdy nedôverovať get_clock_info().resolution.", "source": "H-I1 (ZAMIETNUTÉ)"}
+  ],
+  "open_questions": [
+    "Má digitálny teplotný senzor i5-1135G7 kvantum 1 °C a akú obnovovaciu frekvenciu? (určuje h ≥ 2δ + q z Lemy 5.3)",
+    "Je záporný odklon priemeru CPU podielu (45–48 % pri 50 %) systematický? 3 behy nestačia na rozhodnutie."
+  ],
+  "last_checked": "2026-10-09"
+}

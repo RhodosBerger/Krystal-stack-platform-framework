@@ -72,6 +72,83 @@ from .domain_derivatives import (  # noqa: F401
     GLOBAL_GENOMIC_ENCODER
 )
 
+from .intel_enterprise_performance_suite import (  # noqa: F401
+    IntelMicroarchitecture,
+    EnterprisePerformancePolicy,
+    AccelerationExecutionState,
+    AccelerationTargetUnit,
+    HardwareTopologyProbe,
+    ArrheniusGuardrailStatus,
+    PowerEnvelopePlan,
+    UmaMemoryAllocationMatrix,
+    EnterpriseAccelerationReport,
+    ArrheniusLongevityGuardrail,
+    IntelHardwareProber,
+    IntelArchitectureStrategy,
+    TigerLakeStrategy,
+    AlderRaptorLakeStrategy,
+    MeteorLakeStrategy,
+    LunarLakeStrategy,
+    GenericIntelFallbackStrategy,
+    IntelEnterprisePerformanceSuite,
+    GLOBAL_INTEL_ENTERPRISE_SUITE
+)
+
+from .iris_xe_windows_kisak_driver import (  # noqa: F401
+    WindowsKisakDriverState,
+    MemoryTilingMode,
+    WindowsKisakConfiguration,
+    IrisXeWindowsTelemetry,
+    IrisXeWindowsKisakDriver,
+    GLOBAL_IRIS_XE_WINDOWS_KISAK_DRIVER
+)
+
+from .iris_xe_gaming_uma_driver_bridge import (  # noqa: F401
+    TargetGameEngine,
+    UmaAllocationStrategy,
+    GraphicsApiBackend,
+    EnginePerformanceTarget,
+    AsahiMemorySlabReport,
+    LlmGamingCoexistenceStatus,
+    AsahiUmaMemoryManager,
+    IrisXeGamingOptimizationEngine,
+    LocalLlmGamingCoexistenceGovernor,
+    CommunityMvpArtifactGenerator,
+    GLOBAL_ASAHI_UMA_MANAGER,
+    GLOBAL_GAMING_OPTIMIZATION_ENGINE,
+    GLOBAL_COEXISTENCE_GOVERNOR
+)
+
+from .janet_openvino_core import (  # noqa: F401
+    TensorOpcode,
+    TargetSimdTier,
+    CompiledTensorInstruction,
+    JanetOpenVinoBenchmarkReport,
+    JanetTensorBytecodeComposer,
+    LegacyIntelSimdFallbackEngine,
+    SovereignJanetOpenVinoEngine,
+    GLOBAL_JANET_OPENVINO_ENGINE
+)
+
+from .game_socket_compositor_bridge import (  # noqa: F401
+    SocketCompositorMode,
+    GameFramePacket,
+    SocketCompositorTelemetry,
+    ProceduralAsciiCompositor,
+    GameSocketCompositorBridge,
+    GLOBAL_GAME_SOCKET_COMPOSITOR
+)
+
+from .psychological_coping_cortex_mcp_bridge import (  # noqa: F401
+    PsychologicalCopingMechanism,
+    CopingPriorityDescriptor,
+    SiliconDieUnlockReport,
+    SiliconDieUnlocker,
+    SemanticSynonymCompilationOptimizer,
+    CortexProcessorWhispererMcpBridge,
+    GLOBAL_COPING_CORTEX_MCP_BRIDGE
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -89,5 +166,30 @@ __all__ = [
     "ConfigCell", "ConfigPanelSchema", "MutationResult", "LLMConfigAgent", "GLOBAL_LLM_CONFIG_AGENT",
     "HFTOrderBookTick", "HFTOrderBookDeduplicator", "DroneSpatialObservation",
     "EdgeRoboticsSpatialGovernor", "GenomicSignalPulse", "GenomicSelfHealingSignalEncoder",
-    "GLOBAL_HFT_DEDUPLICATOR", "GLOBAL_DRONE_GOVERNOR", "GLOBAL_GENOMIC_ENCODER"
+    "GLOBAL_HFT_DEDUPLICATOR", "GLOBAL_DRONE_GOVERNOR", "GLOBAL_GENOMIC_ENCODER",
+    "IntelMicroarchitecture", "EnterprisePerformancePolicy", "AccelerationExecutionState",
+    "AccelerationTargetUnit", "HardwareTopologyProbe", "ArrheniusGuardrailStatus",
+    "PowerEnvelopePlan", "UmaMemoryAllocationMatrix", "EnterpriseAccelerationReport",
+    "ArrheniusLongevityGuardrail", "IntelHardwareProber", "IntelArchitectureStrategy",
+    "TigerLakeStrategy", "AlderRaptorLakeStrategy", "MeteorLakeStrategy",
+    "LunarLakeStrategy", "GenericIntelFallbackStrategy", "IntelEnterprisePerformanceSuite",
+    "GLOBAL_INTEL_ENTERPRISE_SUITE",
+    "WindowsKisakDriverState", "MemoryTilingMode", "WindowsKisakConfiguration",
+    "IrisXeWindowsTelemetry", "IrisXeWindowsKisakDriver", "GLOBAL_IRIS_XE_WINDOWS_KISAK_DRIVER",
+    "TargetGameEngine", "UmaAllocationStrategy", "GraphicsApiBackend",
+    "EnginePerformanceTarget", "AsahiMemorySlabReport", "LlmGamingCoexistenceStatus",
+    "AsahiUmaMemoryManager", "IrisXeGamingOptimizationEngine", "LocalLlmGamingCoexistenceGovernor",
+    "CommunityMvpArtifactGenerator", "GLOBAL_ASAHI_UMA_MANAGER",
+    "GLOBAL_GAMING_OPTIMIZATION_ENGINE", "GLOBAL_COEXISTENCE_GOVERNOR",
+    "TensorOpcode", "TargetSimdTier", "CompiledTensorInstruction",
+    "JanetOpenVinoBenchmarkReport", "JanetTensorBytecodeComposer",
+    "LegacyIntelSimdFallbackEngine", "SovereignJanetOpenVinoEngine",
+    "GLOBAL_JANET_OPENVINO_ENGINE",
+    "SocketCompositorMode", "GameFramePacket", "SocketCompositorTelemetry",
+    "ProceduralAsciiCompositor", "GameSocketCompositorBridge",
+    "GLOBAL_GAME_SOCKET_COMPOSITOR",
+    "PsychologicalCopingMechanism", "CopingPriorityDescriptor",
+    "SiliconDieUnlockReport", "SiliconDieUnlocker",
+    "SemanticSynonymCompilationOptimizer", "CortexProcessorWhispererMcpBridge",
+    "GLOBAL_COPING_CORTEX_MCP_BRIDGE"
 ]
