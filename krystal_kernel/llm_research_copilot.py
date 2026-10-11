@@ -65,6 +65,30 @@ ALLOWED_CONTROLLED_VARIABLES: Set[str] = {
 
 
 @dataclass
+class CopilotExperimentProposal:
+    proposal_id: str
+    hypothesis_id: str
+    variable_to_perturb: str
+    current_value: Any
+    proposed_value: Any
+    expected_impact: str
+    falsification_condition: str
+    blast_radius: float = 0.15
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "proposal_id": self.proposal_id,
+            "hypothesis_id": self.hypothesis_id,
+            "variable_to_perturb": self.variable_to_perturb,
+            "current_value": self.current_value,
+            "proposed_value": self.proposed_value,
+            "expected_impact": self.expected_impact,
+            "falsification_condition": self.falsification_condition,
+            "blast_radius": self.blast_radius
+        }
+
+
+@dataclass
 class CopilotReasoningResult:
     analysis_id: str
     timestamp: float
@@ -97,6 +121,117 @@ class LLMResearchCopilot:
 
     def __init__(self):
         self.reasoning_log: List[CopilotReasoningResult] = []
+
+    def reason_over_telemetry(
+        self,
+        footprint: Any,
+        current_config: Any
+    ) -> Dict[str, Any]:
+        """
+        Analyzes operational footprint from LLM execution plane and formulates
+        competing causal hypotheses.
+        """
+        fp_dict = footprint.to_dict() if hasattr(footprint, "to_dict") else dict(footprint)
+        cfg_dict = current_config.to_dict() if hasattr(current_config, "to_dict") else dict(current_config)
+
+        ttft = fp_dict.get("ttft_ms", 30.0)
+        thermal = fp_dict.get("thermal_celsius", 50.0)
+        kv_cache = fp_dict.get("kv_cache_pressure_pct", 40.0)
+
+        hypotheses = []
+        if ttft > 100.0:
+            hypotheses.append({
+                "code": "HYP_THREAD_STARVATION",
+                "statement": "Context thread starvation is inflating time-to-first-token.",
+                "falsification": "Doubling threads does not reduce TTFT by >= 25%."
+            })
+        else:
+            hypotheses.append({
+                "code": "HYP_AFFINITY_CACHE_LOCALITY",
+                "statement": "Current CPU core pinning preserves L2 cache locality.",
+                "falsification": "Cross-core migration shows no measurable latency regression."
+            })
+
+        if thermal > 65.0:
+            hypotheses.append({
+                "code": "HYP_THERMAL_THROTTLING_IMMINENT",
+                "statement": "OpenVINO concurrency level generates high thermal flux.",
+                "falsification": "Limiting streams to 1 does not arrest temperature rise."
+            })
+
+        return {
+            "competing_hypotheses": hypotheses,
+            "telemetry_summary": fp_dict,
+            "current_configuration": cfg_dict,
+            "recommended_focus_variable": "threads" if ttft > 100.0 else "streams"
+        }
+
+    def propose_experiment(
+        self,
+        analysis: Dict[str, Any],
+        variable_to_perturb: str,
+        proposed_value: Any
+    ) -> CopilotExperimentProposal:
+        """Constructs an experiment proposal adhering to single-variable isolation."""
+        curr_cfg = analysis.get("current_configuration", {})
+        curr_val = curr_cfg.get(variable_to_perturb, 2)
+        hyp_code = analysis.get("competing_hypotheses", [{}])[0].get("code", "HYP_DEFAULT")
+
+        return CopilotExperimentProposal(
+            proposal_id=f"PROP-{uuid.uuid4().hex[:6].upper()}",
+            hypothesis_id=hyp_code,
+            variable_to_perturb=variable_to_perturb,
+            current_value=curr_val,
+            proposed_value=proposed_value,
+            expected_impact=f"Perturb {variable_to_perturb} from {curr_val} to {proposed_value}",
+            falsification_condition=f"If metric change is < 5%, hypothesis {hyp_code} is falsified.",
+            blast_radius=0.15
+        )
+
+    def evaluate_proposal_safety(
+        self,
+        proposal: CopilotExperimentProposal
+    ) -> Dict[str, Any]:
+        """
+        Deterministic safety gate:
+        Verifies that proposed perturbation is in ALLOWED_CONTROLLED_VARIABLES
+        and blast radius is strictly bounded.
+        """
+        var = proposal.variable_to_perturb
+        # Normalize variable names
+        norm_map = {
+            "threads": "cpu.threads",
+            "streams": "openvino.streams",
+            "cpu_affinity": "cpu.affinity",
+            "affinity": "cpu.affinity",
+            "batch_size": "batch_size",
+            "queue_depth": "queue_max_depth",
+            "memory_limit": "memory_limit_mb"
+        }
+        canonical_var = norm_map.get(var, var)
+
+        if canonical_var not in ALLOWED_CONTROLLED_VARIABLES:
+            return {
+                "is_allowed": False,
+                "status": "REJECTED_OUT_OF_BOUNDS",
+                "reason": f"Variable '{var}' is not in the whitelist of permitted controlled variables.",
+                "canonical_var": canonical_var
+            }
+
+        if proposal.blast_radius > 0.25:
+            return {
+                "is_allowed": False,
+                "status": "REJECTED_OUT_OF_BOUNDS",
+                "reason": f"Experiment blast radius {proposal.blast_radius:.2f} exceeds threshold 0.25."
+            }
+
+        return {
+            "is_allowed": True,
+            "status": "ACCEPTED_FOR_EXPLORATION",
+            "proposal_id": proposal.proposal_id,
+            "variable": canonical_var,
+            "proposed_value": proposal.proposed_value
+        }
 
     def analyze_divergence_and_propose_experiment(
         self,

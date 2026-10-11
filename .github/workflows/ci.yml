@@ -206,7 +206,7 @@ jobs:
           sudo apt-get install -y cmake ninja-build
 
       - name: Build Python wheel
-        run: python -m build || true
+        run: python -m build
 
       - name: Build Rust binary
         run: |
@@ -275,9 +275,9 @@ jobs:
       - name: Generate Rust docs
         run: |
           if [ -d "src/rust-bot" ]; then
-            cd src/rust-bot && cargo doc --no-deps || true
+            cd src/rust-bot && cargo doc --no-deps
           elif [ -f "Cargo.toml" ]; then
-            cargo doc --no-deps || true
+            cargo doc --no-deps
           fi
 
       - name: Upload docs

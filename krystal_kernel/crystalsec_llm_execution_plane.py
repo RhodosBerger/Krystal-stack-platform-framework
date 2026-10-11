@@ -195,6 +195,10 @@ class LLMCommandTrace:
     vital_hp: int = VITAL_MAX_HP
     conduct_badge: str = "[ACT] [!LCK] [CNF] [!HAZ] [VIT 6HP]"
 
+    @property
+    def applied_config(self) -> ControlledVariables:
+        return self.controlled_vars
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "trace_id": self.trace_id,
