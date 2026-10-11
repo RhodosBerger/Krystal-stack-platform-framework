@@ -718,6 +718,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         elif norm_path in ("/measurement-radar", "/radar-studio", "/aspect-summarizer", "/disciplines", "/multi_disciplinary_radar_studio.html"):
             self.serve_file(STATIC_DIR / "multi_disciplinary_radar_studio.html", "text/html")
             return
+        elif norm_path in (
+            "/verification-studio", "/unified-verification", "/verification",
+            "/replay-lab", "/state-geometry", "/unified_verification_studio.html"
+        ):
+            self.serve_file(STATIC_DIR / "unified_verification_studio.html", "text/html")
+            return
         elif norm_path in ("/game-showcase", "/live-duel", "/duel-engine", "/game-engine-showcase", "/posledni_kmen_game_engine_showcase.html"):
             self.serve_file(STATIC_DIR / "posledni_kmen_game_engine_showcase.html", "text/html")
             return
@@ -2300,6 +2306,86 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 self.send_json({"status": "OK", "profile": profile.to_dict()})
             else:
                 self.send_json({"status": "NOT_FOUND", "message": f"Subject {sub_id} not found."}, 404)
+            return
+
+        # ── API: Unified Verification Layer & Epistemic Engine ─────────
+        elif norm_path in ("/api/verification/domains", "/api/verification/catalog"):
+            from krystal_kernel.verification import DOMAIN_ARCHETYPES
+            self.send_json({
+                "status": "OK",
+                "domains": {k: {
+                    "domain_id": v.domain_id,
+                    "display_name": v.display_name,
+                    "description": v.description,
+                    "dimensions": v.dimensions,
+                    "dimension_names": v.dimension_names,
+                    "units": v.units,
+                    "typical_weights": v.typical_weights
+                } for k, v in DOMAIN_ARCHETYPES.items()}
+            })
+            return
+
+        elif norm_path in ("/api/verification/claims", "/api/verification/epistemic"):
+            from krystal_kernel.verification import GLOBAL_VERIFICATION_FACADE
+            claims = [c.to_dict() for c in GLOBAL_VERIFICATION_FACADE.evidence_registry.claims.values()]
+            self.send_json({"status": "OK", "claims": claims})
+            return
+
+        elif norm_path in ("/api/verification/invariants", "/api/verification/rules"):
+            from krystal_kernel.verification import GLOBAL_VERIFICATION_FACADE
+            rules = [{
+                "code": r.code,
+                "name": r.name,
+                "severity": r.severity.value,
+                "expected_condition": r.expected_condition
+            } for r in GLOBAL_VERIFICATION_FACADE.invariants.rules.values()]
+            violations = [v.to_dict() for v in GLOBAL_VERIFICATION_FACADE.invariants.violation_audit_log]
+            self.send_json({
+                "status": "OK",
+                "rules": rules,
+                "vital_max_hp_ceiling": 6,
+                "violation_count": len(violations),
+                "violations": violations
+            })
+            return
+
+        elif norm_path in ("/api/verification/cross-domain-comparison", "/api/verification/comparison"):
+            from krystal_kernel.verification import GLOBAL_VERIFICATION_FACADE
+            vectors = []
+            for d_id, s_id in [
+                ("game_simulation", "crystal_colony"),
+                ("llm_runtime", "crystalsec_openvino"),
+                ("cyber_physical_cnc", "adaptive_spindle_rpm"),
+                ("linux_kernel_resource", "cgroup_v2_isolator"),
+                ("fault_injection_recovery", "core_thermal_shock")
+            ]:
+                raw = GLOBAL_VERIFICATION_FACADE._sample_domain_telemetry(d_id, s_id)
+                vec = GLOBAL_VERIFICATION_FACADE.comparator.normalize_domain_metrics(d_id, s_id, raw)
+                vectors.append(vec)
+            summary = GLOBAL_VERIFICATION_FACADE.comparator.compare_multiple_domains(vectors)
+            self.send_json({"status": "OK", "comparison": summary.to_dict()})
+            return
+
+        elif norm_path in ("/api/verification/replay-packages", "/api/verification/replays"):
+            from krystal_kernel.verification import GLOBAL_VERIFICATION_FACADE
+            pkgs = [p.to_dict() for p in GLOBAL_VERIFICATION_FACADE.replay_engine.replay_archive.values()]
+            self.send_json({"status": "OK", "packages": pkgs})
+            return
+
+        elif norm_path.startswith("/api/verification/state/"):
+            parts = norm_path.split("/")
+            if len(parts) >= 6:
+                d_id = parts[4]
+                s_id = parts[5]
+                from krystal_kernel.verification import GLOBAL_VERIFICATION_FACADE
+                try:
+                    raw = GLOBAL_VERIFICATION_FACADE._sample_domain_telemetry(d_id, s_id)
+                    vec = GLOBAL_VERIFICATION_FACADE.comparator.normalize_domain_metrics(d_id, s_id, raw)
+                    self.send_json({"status": "OK", "state": vec.to_dict()})
+                except Exception as e:
+                    self.send_json({"status": "ERROR", "message": str(e)}, 400)
+            else:
+                self.send_json({"status": "INVALID_PATH", "expected": "/api/verification/state/{domain}/{subject}"}, 400)
             return
 
         # ── API: Midnight Stable Build Demonstration ─────────────────
@@ -3958,6 +4044,43 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 opponent_race=o_race
             )
             self.send_json({"status": "RESET", "match": new_m, "vital_max_hp": 6})
+            return
+
+        # ── API: Unified Verification Layer Experiments & Replays ─────
+        elif self.path in ("/api/verification/experiment", "/api/verification/run"):
+            from krystal_kernel.verification import GLOBAL_VERIFICATION_FACADE
+            domain_id = data.get("domain_id", "game_simulation")
+            subject_id = data.get("subject_id", "crystal_colony")
+            signal = data.get("input_signal", {"intensity": 1.0, "mode": "STABILIZE"})
+            seed = int(data.get("seed", 42))
+            claim_id = data.get("claim_id")
+            try:
+                res = GLOBAL_VERIFICATION_FACADE.run_verification_cycle(
+                    domain_id=domain_id,
+                    subject_id=subject_id,
+                    input_signal=signal,
+                    seed=seed,
+                    associated_claim_id=claim_id
+                )
+                self.send_json({"status": "OK", "experiment": res.to_dict()})
+            except Exception as e:
+                self.send_json({"status": "ERROR", "message": str(e)}, 500)
+            return
+
+        elif self.path in ("/api/verification/replay", "/api/verification/playback"):
+            from krystal_kernel.verification import GLOBAL_VERIFICATION_FACADE
+            pkg_id = data.get("package_id")
+            if pkg_id and pkg_id in GLOBAL_VERIFICATION_FACADE.replay_engine.replay_archive:
+                pkg = GLOBAL_VERIFICATION_FACADE.replay_engine.replay_archive[pkg_id]
+                res = GLOBAL_VERIFICATION_FACADE.replay_engine.execute_replay(pkg)
+                self.send_json({"status": "OK", "replay": res.to_dict(), "package": pkg.to_dict()})
+            else:
+                domain_id = data.get("domain_id", "cyber_physical_cnc")
+                subject_id = data.get("subject_id", "adaptive_spindle_rpm")
+                exp = GLOBAL_VERIFICATION_FACADE.run_verification_cycle(domain_id, subject_id, seed=int(data.get("seed", 42)))
+                pkg = GLOBAL_VERIFICATION_FACADE.replay_engine.replay_archive[exp.replay_package_id]
+                res = GLOBAL_VERIFICATION_FACADE.replay_engine.execute_replay(pkg)
+                self.send_json({"status": "OK", "replay": res.to_dict(), "package": pkg.to_dict()})
             return
 
         # ── API: Sensory Shockwave Simulation ────────────────────────

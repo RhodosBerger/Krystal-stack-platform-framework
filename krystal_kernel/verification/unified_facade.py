@@ -198,7 +198,8 @@ class UnifiedVerificationFacade:
             "nr_throttled": 0,
             "temperature_celsius": observed_raw[0] if domain_id == "cyber_physical_cnc" else 45.0,
             "communication_flow": "LOCAL_LOOPBACK",
-            "declared_topology": ["LOCAL_LOOPBACK", "KRYSTAL_BUS"]
+            "active_flows": ["LOCAL_LOOPBACK", "krystal_kernel"],
+            "declared_topology": ["LOCAL_LOOPBACK", "KRYSTAL_BUS", "krystal_kernel", "krystal_web_hub", "openvino_plane"]
         }
         invariants_pass, violations = self.invariants.verify_all(inv_ctx)
 
@@ -334,3 +335,7 @@ class UnifiedVerificationFacade:
             "controlled_variables": action.controlled_variables
         }
         return observed, trace
+
+
+# Global singleton instance for high-performance server and API operations
+GLOBAL_VERIFICATION_FACADE = UnifiedVerificationFacade()

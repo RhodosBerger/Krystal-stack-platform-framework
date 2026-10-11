@@ -215,6 +215,25 @@ class UniversalInvariantLayer:
 
         return (len(violations) == 0, violations)
 
+    def verify_all(
+        self,
+        context: Dict[str, Any],
+        domain_id: Optional[str] = None,
+        subject_id: Optional[str] = None,
+        trace_id: Optional[str] = None,
+        phase_name: str = "EXECUTION"
+    ) -> Tuple[bool, List[InvariantViolationEvent]]:
+        """Convenience method verifying all invariant rules for a given context."""
+        d_id = domain_id or context.get("domain_id", "universal")
+        s_id = subject_id or context.get("subject_id", "system")
+        return self.verify_state(
+            domain_id=d_id,
+            subject_id=s_id,
+            context=context,
+            trace_id=trace_id,
+            phase_name=phase_name
+        )
+
     def get_audit_trail(self, limit: int = 50) -> List[Dict[str, Any]]:
         return [v.to_dict() for v in self.violation_audit_log[-limit:]]
 

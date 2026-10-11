@@ -54,6 +54,7 @@ from krystal_kernel.verification.cross_domain_comparator import (
 from krystal_kernel.verification.unified_facade import (
     VerificationExperimentResult,
     UnifiedVerificationFacade,
+    GLOBAL_VERIFICATION_FACADE,
 )
 
 __all__ = [
@@ -84,4 +85,5 @@ __all__ = [
     "CrossDomainComparator",
     "VerificationExperimentResult",
     "UnifiedVerificationFacade",
+    "GLOBAL_VERIFICATION_FACADE",
 ]

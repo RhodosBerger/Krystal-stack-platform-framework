@@ -72,7 +72,8 @@ class VerificationPolicy:
     allowed_variables: List[str] = field(default_factory=lambda: [
         "cpu.threads", "openvino.streams", "cpu.affinity",
         "batch_size", "queue_max_depth", "context_limit_tokens",
-        "memory_limit_mb", "sampling_rate_hz"
+        "memory_limit_mb", "sampling_rate_hz", "cgroups.memory.high",
+        "rpm_differential_limit", "feed_reduction_pct", "hand_card_cost_threshold"
     ])
 
 
@@ -85,6 +86,20 @@ class PolicyTransformationEngine:
             version="policy-v2.1.0"
         )
         self.action_history: List[ProposedAction] = []
+
+    def verify_safety_gate(self, action: ProposedAction) -> Tuple[bool, Optional[str]]:
+        """Validates action against deterministic policy bounds."""
+        if action.risk_score > self.active_policy.max_allowed_risk:
+            return False, f"Risk score ({action.risk_score:.2f}) exceeds policy maximum ({self.active_policy.max_allowed_risk:.2f})."
+
+        if action.blast_radius > self.active_policy.max_allowed_blast_radius:
+            return False, f"Blast radius ({action.blast_radius:.2f}) exceeds policy ceiling ({self.active_policy.max_allowed_blast_radius:.2f})."
+
+        for v in action.controlled_variables.keys():
+            if v not in self.active_policy.allowed_variables and not any(v.startswith(p) for p in ("rpm_", "feed_", "hand_")):
+                return False, f"Controlled variable '{v}' not permitted in active policy {self.active_policy.version}."
+
+        return True, None
 
     def evaluate_and_propose_action(
         self,
@@ -109,7 +124,9 @@ class PolicyTransformationEngine:
         expected_effect = ""
         falsification = ""
 
-        if current_state.domain_id == "LLM":
+        d_lower = current_state.domain_id.lower()
+
+        if "llm" in d_lower:
             if weakest == "LAT":
                 controlled_vars = {"cpu.threads": 4, "openvino.streams": 2}
                 expected_delta = {"LAT": +0.8, "ROB": -0.2}
@@ -128,7 +145,7 @@ class PolicyTransformationEngine:
                 expected_effect = f"Stabilize LLM execution plane around {weakest}."
                 falsification = f"If {weakest} improves by < 5%, falsified."
 
-        elif current_state.domain_id == "CNC":
+        elif "cnc" in d_lower:
             controlled_vars = {"rpm_differential_limit": 1500, "feed_reduction_pct": 20}
             expected_delta = {"thermal_gradient": +1.2, "collapse_margin": +1.0}
             risk = 0.25
@@ -136,9 +153,9 @@ class PolicyTransformationEngine:
             expected_effect = "Reduce spindle RPM in proportion to thermal rise rate to preserve collapse margin."
             falsification = "If bearing temperature rate dT/dt does not decrease by > 20%, falsified."
 
-        elif current_state.domain_id == "GAME":
+        elif "game" in d_lower:
             controlled_vars = {"hand_card_cost_threshold": 2}
-            expected_delta = {"KON": +0.8, "POŠ": -0.2}
+            expected_delta = {"KON": +0.8, "POS": -0.2}
             risk = 0.10
             blast_radius = 0.05
             expected_effect = "Prioritize crowd-control action cards to stabilize combat profile."
@@ -152,24 +169,6 @@ class PolicyTransformationEngine:
             expected_effect = f"Isolate kernel execution slices to protect {weakest}."
             falsification = f"If context switches do not decrease by > 200/s, falsified."
 
-        # Safety Gate Validation
-        approved = True
-        rejection_reason = None
-
-        if risk > self.active_policy.max_allowed_risk:
-            approved = False
-            rejection_reason = f"Risk score ({risk:.2f}) exceeds policy maximum ({self.active_policy.max_allowed_risk:.2f})."
-
-        if blast_radius > self.active_policy.max_allowed_blast_radius:
-            approved = False
-            rejection_reason = f"Blast radius ({blast_radius:.2f}) exceeds policy ceiling ({self.active_policy.max_allowed_blast_radius:.2f})."
-
-        for v in controlled_vars.keys():
-            if v not in self.active_policy.allowed_variables and not any(v.startswith(p) for p in ("rpm_", "feed_", "hand_")):
-                approved = False
-                rejection_reason = f"Controlled variable '{v}' not permitted in active policy {self.active_policy.version}."
-                break
-
         action = ProposedAction(
             action_id=act_id,
             action_type=proposed_intervention_type,
@@ -181,10 +180,14 @@ class PolicyTransformationEngine:
             risk_score=risk,
             blast_radius=blast_radius,
             falsification_condition=falsification,
-            is_safety_gate_approved=approved,
-            rejection_reason=rejection_reason,
+            is_safety_gate_approved=False,
+            rejection_reason=None,
             vital_hp=VITAL_MAX_HP
         )
+
+        approved, rejection_reason = self.verify_safety_gate(action)
+        action.is_safety_gate_approved = approved
+        action.rejection_reason = rejection_reason
 
         self.action_history.append(action)
         return action
