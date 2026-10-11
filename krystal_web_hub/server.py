@@ -715,6 +715,9 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         elif norm_path in ("/cloud-backoffice", "/backoffice", "/cloud_backoffice_studio.html", "/evidence"):
             self.serve_file(STATIC_DIR / "cloud_backoffice_studio.html", "text/html")
             return
+        elif norm_path in ("/measurement-radar", "/radar-studio", "/aspect-summarizer", "/disciplines", "/multi_disciplinary_radar_studio.html"):
+            self.serve_file(STATIC_DIR / "multi_disciplinary_radar_studio.html", "text/html")
+            return
         elif norm_path in ("/builder", "/studio-3d", "/godot_builder_extension.html", "/godot-builder"):
             self.serve_file(STATIC_DIR / "godot_builder_extension.html", "text/html")
             return
@@ -2270,6 +2273,30 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "theta_threshold": GLOBAL_ADAPTIVE_TELEMETRY.theta_threshold,
                 "transients_count": len(GLOBAL_ADAPTIVE_TELEMETRY.transient_history)
             })
+            return
+
+        # ── API: Multi-Disciplinary Measurement & Weight Summarizer ──
+        elif norm_path in ("/api/measurement-disciplines/summary", "/api/measurement/summary"):
+            from krystal_kernel.multi_disciplinary_measurement_summarizer import GLOBAL_MEASUREMENT_SUMMARIZER
+            self.send_json(GLOBAL_MEASUREMENT_SUMMARIZER.generate_discipline_summary_report())
+            return
+
+        elif norm_path in ("/api/measurement-disciplines/subjects", "/api/measurement/subjects"):
+            from krystal_kernel.multi_disciplinary_measurement_summarizer import GLOBAL_MEASUREMENT_SUMMARIZER
+            q = parse_qs(parsed.query)
+            disc = q.get("discipline", [None])[0]
+            profiles = GLOBAL_MEASUREMENT_SUMMARIZER.list_profiles_by_discipline(disc)
+            self.send_json({"status": "OK", "subjects": [p.to_dict() for p in profiles]})
+            return
+
+        elif norm_path.startswith("/api/measurement-disciplines/radar/"):
+            from krystal_kernel.multi_disciplinary_measurement_summarizer import GLOBAL_MEASUREMENT_SUMMARIZER
+            sub_id = norm_path.split("/")[-1]
+            profile = GLOBAL_MEASUREMENT_SUMMARIZER.get_profile(sub_id)
+            if profile:
+                self.send_json({"status": "OK", "profile": profile.to_dict()})
+            else:
+                self.send_json({"status": "NOT_FOUND", "message": f"Subject {sub_id} not found."}, 404)
             return
 
         # ── API: Poslední Kmen Tactical Arena Catalog & Match State ───
