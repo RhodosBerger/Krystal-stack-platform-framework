@@ -2299,6 +2299,17 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 self.send_json({"status": "NOT_FOUND", "message": f"Subject {sub_id} not found."}, 404)
             return
 
+        # ── API: Midnight Stable Build Demonstration ─────────────────
+        elif norm_path in ("/api/demonstration/midnight-build", "/api/midnight/status"):
+            cert_path = os.path.join(WORKSPACE_ROOT, "artifacts", "MIDNIGHT_STABLE_BUILD_CERTIFICATE.json")
+            if os.path.exists(cert_path):
+                with open(cert_path, "r", encoding="utf-8") as f:
+                    self.send_json(json.load(f))
+            else:
+                from scripts.midnight_stable_build_demonstrator import GLOBAL_MIDNIGHT_DEMONSTRATOR
+                self.send_json(GLOBAL_MIDNIGHT_DEMONSTRATOR.run_full_suite())
+            return
+
         # ── API: Poslední Kmen Tactical Arena Catalog & Match State ───
         elif norm_path in ("/api/game/archetypes_catalog", "/api/game/catalog", "/api/duel/catalog"):
             from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
@@ -2800,6 +2811,14 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             from krystal_web_hub.cloud_backoffice_service import GLOBAL_CLOUD_BACKOFFICE_SERVICE
             cert_dict = GLOBAL_CLOUD_BACKOFFICE_SERVICE.run_live_validation(data)
             self.send_json(cert_dict)
+            return
+
+        # ── API: Midnight Stable Build Runner ───────────────────────
+        elif self.path in ("/api/demonstration/run-midnight-suite", "/api/midnight/run"):
+            from scripts.midnight_stable_build_demonstrator import MidnightDemonstrator
+            demonstrator = MidnightDemonstrator()
+            cert = demonstrator.run_full_suite()
+            self.send_json(cert)
             return
 
         # ── API: Epistemic Experiment Planner ──────────────────────

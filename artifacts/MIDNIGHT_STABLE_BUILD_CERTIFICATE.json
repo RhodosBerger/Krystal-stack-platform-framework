@@ -1,0 +1,127 @@
+{
+  "certificate_title": "KRYSTAL-STACK MIDNIGHT STABLE BUILD CERTIFICATE",
+  "run_id": "MIDNIGHT-FD0AFD25",
+  "timestamp": 1791738265.9222744,
+  "release_candidate": "v2.0-midnight-stable",
+  "target_setup": {
+    "setup_type": "SETUP_A_WINDOWS_IRIS_XE_BAREMETAL",
+    "os_name": "Windows",
+    "release": "11",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+    "cpu_cores": 8,
+    "openvino_available": false,
+    "openvino_devices": [],
+    "vulkan_detected": false,
+    "vital_hp_invariant": 6
+  },
+  "exhibits": {
+    "exhibit_1": {
+      "exhibit_name": "Exhibit 1: 8-Phase Causal LLM Execution Plane",
+      "status": "PASS",
+      "trace_id": "TRACE-LLM-6635BACD",
+      "phases_completed": 8,
+      "ttft_ms": 22.14,
+      "inter_token_latency_ms": 5.0,
+      "token_throughput_tps": 200.0,
+      "kv_cache_pressure_pct": 9.0,
+      "thermal_celsius": 56.2,
+      "composite_utility_u": 0.334,
+      "vital_hp": 6,
+      "conduct_badge": "[ACT] [!LCK] [CNF] [!HAZ] [VIT 6HP]"
+    },
+    "exhibit_2": {
+      "exhibit_name": "Exhibit 2: Adaptive Telemetry & Observer Effect Guard",
+      "status": "PASS",
+      "baseline_mode": "QUIESCENT_BASELINE",
+      "baseline_sampling_hz": 2.0,
+      "burst_mode": "BURST_TRANSIENT_CAPTURE",
+      "burst_active": true,
+      "burst_sampling_hz": 100.0,
+      "observer_overhead_pct": 2.5,
+      "is_observer_throttled": true,
+      "max_allowed_overhead_pct": 2.5,
+      "tradeoff_matrix_evaluated": 4,
+      "vital_hp": 6
+    },
+    "exhibit_3": {
+      "exhibit_name": "Exhibit 3: Bounded Search & Repeatability Map",
+      "status": "PASS",
+      "primary_config_id": "CFG-T4-S2-B1",
+      "repetitions_run": 5,
+      "mean_ttft_ms": 22.11,
+      "stddev_ttft_ms": 0.0,
+      "mean_throughput_tps": 200.0,
+      "uncertainty_score": 0.02,
+      "repeatability_pct": 98.0,
+      "is_reproducible": true,
+      "total_mapped_points": 4,
+      "causal_summary": "Threads=4, Streams=2 yields TTFT=22.1ms, Throughput=200.0 tps at 56.2°C. Repeatability=98.0%.",
+      "vital_hp": 6
+    },
+    "exhibit_4": {
+      "exhibit_name": "Exhibit 4: Multi-Disciplinary Aspect Radar Synthesizer",
+      "status": "PASS",
+      "disciplines_covered": [
+        "GAME_WORLD_SIMULATION",
+        "CYBER_PHYSICAL_CNC",
+        "CRYSTALSEC_CAUSAL_LLM",
+        "SOVEREIGN_KERNEL"
+      ],
+      "total_profiles_registered": 6,
+      "exhibits": {
+        "crystal_game": {
+          "title": "CRYSTAL",
+          "aspects": [
+            "OBT",
+            "KON",
+            "POŠ",
+            "DOS"
+          ],
+          "composite_index_u": 4.2,
+          "deck_cards": 25
+        },
+        "cnc_spindle": {
+          "title": "CNC SPINDLE 24K RPM",
+          "aspects": [
+            "GRAD",
+            "DRPM",
+            "ODP",
+            "REZ"
+          ],
+          "composite_index_u": 4.25,
+          "control_ratio": 68.0
+        },
+        "openvino_llm": {
+          "title": "OPENVINO INTEL GPU RUNTIME",
+          "aspects": [
+            "LAT",
+            "TPS",
+            "MEM",
+            "ROB"
+          ],
+          "composite_index_u": 4.36,
+          "generative_ratio": 65.0
+        },
+        "sovereign_kernel": {
+          "title": "SOVEREIGN ARCH LINUX KERNEL",
+          "aspects": [
+            "STV",
+            "AUD",
+            "KVT",
+            "TOK"
+          ],
+          "composite_index_u": 4.79,
+          "deterministic_ratio": 80.0
+        }
+      },
+      "vital_hp": 6
+    }
+  },
+  "system_invariants": {
+    "vital_max_hp": 6,
+    "silent_degradation_allowed": false,
+    "observer_overhead_budget_pct": 2.5
+  },
+  "build_verdict": "VERIFIED_STABLE_READY_FOR_MIDNIGHT_DEMO"
+}
