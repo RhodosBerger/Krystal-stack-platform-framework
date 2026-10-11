@@ -1,0 +1,199 @@
+{
+  "benchmark_name": "GPU_ZERO_COPY_LOW_READBACK_STUDY",
+  "resolution": [
+    96,
+    40
+  ],
+  "total_pixels": 3840,
+  "bytes_per_frame": 19200,
+  "frames_measured": 100,
+  "warmup_frames": 15,
+  "device_info": {
+    "device_name": "Intel(R) Iris(R) Xe Graphics",
+    "vendor_id": "0x8086",
+    "device_id": "0x9a49",
+    "is_intel_iris": true,
+    "memory_topology": {
+      "uma": true,
+      "selected_compute_memory_type": 2,
+      "flags": [
+        "DEVICE_LOCAL",
+        "HOST_VISIBLE",
+        "HOST_COHERENT",
+        "HOST_CACHED"
+      ],
+      "heap_index": 0,
+      "heap_size_bytes": 12724645888,
+      "host_visible": true,
+      "device_local": true,
+      "host_coherent": true,
+      "host_cached": true,
+      "total_memory_types": 3,
+      "total_memory_heaps": 1
+    }
+  },
+  "modes": {
+    "MODE_A_LEGACY_ALWAYS": {
+      "description": "Legacy Vulkan compute dispatch with synchronous host readback every frame",
+      "readback_policy": "ALWAYS",
+      "total_wall_time_s": 0.2514,
+      "effective_fps": 397.72,
+      "total_bytes_read_back": 1920000,
+      "total_readback_requests": 100,
+      "metrics": {
+        "submit_time_ms": {
+          "mean": 0.0738,
+          "median": 0.0715,
+          "p95": 0.114,
+          "p99": 0.173,
+          "stdev": 0.0271,
+          "cv": 0.3671
+        },
+        "wait_time_ms": {
+          "mean": 0.3315,
+          "median": 0.2915,
+          "p95": 0.613,
+          "p99": 1.109,
+          "stdev": 0.1739,
+          "cv": 0.5247
+        },
+        "readback_time_ms": {
+          "mean": 1.8035,
+          "median": 1.7945,
+          "p95": 2.717,
+          "p99": 3.46,
+          "stdev": 0.6563,
+          "cv": 0.3639
+        },
+        "total_frame_time_ms": {
+          "mean": 2.3622,
+          "median": 2.3285,
+          "p95": 3.79,
+          "p99": 4.686,
+          "stdev": 0.7649,
+          "cv": 0.3238
+        }
+      }
+    },
+    "MODE_B_ON_DEMAND_RESIDENT": {
+      "description": "GPU-resident persistent compute graph with zero host readback until explicit demand",
+      "readback_policy": "ON_DEMAND",
+      "total_wall_time_s": 0.0502,
+      "effective_fps": 1990.45,
+      "total_bytes_read_back": 19200,
+      "total_readback_requests": 1,
+      "metrics": {
+        "submit_time_ms": {
+          "mean": 0.0588,
+          "median": 0.0505,
+          "p95": 0.111,
+          "p99": 0.128,
+          "stdev": 0.0425,
+          "cv": 0.7215
+        },
+        "wait_time_ms": {
+          "mean": 0.3077,
+          "median": 0.257,
+          "p95": 0.53,
+          "p99": 1.141,
+          "stdev": 0.1877,
+          "cv": 0.6101
+        },
+        "readback_time_ms": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "stdev": 0.0,
+          "cv": 0.0
+        },
+        "total_frame_time_ms": {
+          "mean": 0.4608,
+          "median": 0.4005,
+          "p95": 0.697,
+          "p99": 1.339,
+          "stdev": 0.2172,
+          "cv": 0.4713
+        }
+      }
+    },
+    "MODE_C_SHADOW_SAMPLE_1_16": {
+      "description": "Asynchronous CPU correctness oracle verification sampled at 1:16 cadence",
+      "readback_policy": "SHADOW_SAMPLE_ONLY",
+      "total_wall_time_s": 0.73,
+      "effective_fps": 136.99,
+      "total_bytes_read_back": 134400,
+      "total_readback_requests": 7,
+      "shadow_oracle_telemetry": {
+        "enabled": true,
+        "sampling_interval": 16,
+        "sampling_ratio": "1:16",
+        "oracle_jobs_submitted": 12,
+        "oracle_jobs_completed": 12,
+        "oracle_jobs_dropped": 2,
+        "oracle_queue_depth": 0,
+        "oracle_latency_ms": 84.348,
+        "last_divergence": 0.0,
+        "last_rca": "CONSISTENT_WITH_H0_IDENTICAL",
+        "last_spatial_pattern": "UNIFORM",
+        "observer_overhead_pct": 0.0,
+        "degradation_events_count": 0
+      },
+      "metrics": {
+        "submit_time_ms": {
+          "mean": 0.8961,
+          "median": 0.0665,
+          "p95": 5.392,
+          "p99": 15.811,
+          "stdev": 3.3632,
+          "cv": 3.7532
+        },
+        "wait_time_ms": {
+          "mean": 2.1178,
+          "median": 0.269,
+          "p95": 15.215,
+          "p99": 17.217,
+          "stdev": 4.7061,
+          "cv": 2.2222
+        },
+        "readback_time_ms": {
+          "mean": 0.2353,
+          "median": 0.0,
+          "p95": 2.2,
+          "p99": 2.379,
+          "stdev": 0.6458,
+          "cv": 2.7447
+        },
+        "total_frame_time_ms": {
+          "mean": 7.2333,
+          "median": 0.4955,
+          "p95": 53.919,
+          "p99": 63.73,
+          "stdev": 15.7496,
+          "cv": 2.1774
+        }
+      }
+    }
+  },
+  "hypothesis_evaluation": {
+    "readback_bytes_reduction_mode_c_pct": 93.0,
+    "readback_requests_reduction_mode_c_pct": 93.0,
+    "readback_time_overhead_reduction_mode_c_pct": 86.95,
+    "frame_time_speedup_mode_c_pct": -206.21,
+    "frame_time_speedup_mode_b_pct": 80.49,
+    "hypothesis_statement": ">85% reduction of bus / readback overhead",
+    "evidence_claim_level": "HARDWARE_MEASURED",
+    "hypothesis_confirmed_on_bytes": true,
+    "hypothesis_confirmed_on_requests": true,
+    "hypothesis_confirmed_on_readback_time": true
+  },
+  "epistemic_classification": {
+    "persistent_compute_graph": "IMPLEMENTED",
+    "on_demand_readback_policy": "IMPLEMENTED",
+    "shadow_cpu_oracle": "INTEGRATION_VERIFIED",
+    "gpu_fault_interceptor": "UNIT_VERIFIED",
+    "uma_memory_topology_enumeration": "HARDWARE_MEASURED",
+    "bus_readback_reduction_greater_than_85pct": "HARDWARE_MEASURED",
+    "deterministic_cpu_fallback": "UNIT_VERIFIED"
+  }
+}

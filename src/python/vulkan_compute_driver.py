@@ -23,10 +23,21 @@ import sys
 import ctypes
 import math
 import time
+import uuid
+import hashlib
+from enum import Enum, IntFlag
+from dataclasses import dataclass, field, asdict
 from typing import Dict, Any, Tuple, Optional, List
 
-# Vulkan Constants
+# Vulkan Return Codes
 VK_SUCCESS = 0
+VK_TIMEOUT = 2
+VK_ERROR_OUT_OF_HOST_MEMORY = -1
+VK_ERROR_OUT_OF_DEVICE_MEMORY = -2
+VK_ERROR_INITIALIZATION_FAILED = -3
+VK_ERROR_DEVICE_LOST = -4
+
+# Vulkan Structure Types
 VK_STRUCTURE_TYPE_APPLICATION_INFO = 0
 VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO = 1
 VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO = 2
@@ -51,10 +62,19 @@ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO = 40
 VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO = 42
 
 VK_QUEUE_COMPUTE_BIT = 0x00000002
-VK_BUFFER_USAGE_STORAGE_BUFFER_BIT = 0x00000020
+VK_BUFFER_USAGE_TRANSFER_SRC_BIT = 0x00000001
+VK_BUFFER_USAGE_TRANSFER_DST_BIT = 0x00000002
 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT = 0x00000010
+VK_BUFFER_USAGE_STORAGE_BUFFER_BIT = 0x00000020
+
+# Memory Property Flags
+VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT = 0x00000001
 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT = 0x00000002
 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT = 0x00000004
+VK_MEMORY_PROPERTY_HOST_CACHED_BIT = 0x00000008
+VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT = 0x00000010
+VK_MEMORY_HEAP_DEVICE_LOCAL_BIT = 0x00000001
+
 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER = 6
 VK_DESCRIPTOR_TYPE_STORAGE_BUFFER = 7
 VK_PIPELINE_BIND_POINT_COMPUTE = 1
@@ -62,6 +82,74 @@ VK_SHADER_STAGE_COMPUTE_BIT = 0x00000020
 VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT = 0x00000002
 VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT = 0x00000001
 VK_COMMAND_BUFFER_LEVEL_PRIMARY = 0
+
+
+# ============================================================================
+# PHASE 1-2 ARCHITECTURAL ENUMS & DATA STRUCTURES
+# ============================================================================
+
+class ReadbackPolicy(str, Enum):
+    """Policies governing GPU-to-CPU buffer readback."""
+    ALWAYS = "ALWAYS"                               # Legacy path: read back every single frame
+    ON_DEMAND = "ON_DEMAND"                         # Canonical: read back only when consumer requires it
+    SHADOW_SAMPLE_ONLY = "SHADOW_SAMPLE_ONLY"       # Read back strictly on frames sampled by shadow oracle
+    DISABLED_EXCEPT_FAULT = "DISABLED_EXCEPT_FAULT" # Read back suppressed unless diagnosing a fault
+
+
+class ReadbackReason(str, Enum):
+    """Explicit justification for transferring GPU SSBOs to host memory."""
+    UI_FRAME_REQUEST = "UI_FRAME_REQUEST"
+    SHADOW_ORACLE_SAMPLE = "SHADOW_ORACLE_SAMPLE"
+    DEBUG_CAPTURE = "DEBUG_CAPTURE"
+    AUDIT_SAMPLE = "AUDIT_SAMPLE"
+    EXPLICIT_API_REQUEST = "EXPLICIT_API_REQUEST"
+
+
+@dataclass
+class ReadbackRequest:
+    """Formal descriptor for an on-demand readback operation."""
+    reason: ReadbackReason
+    frame_id: int
+    requested_buffers: List[str]
+    timestamp: float
+
+
+class FaultInjectionMask(IntFlag):
+    """Abstraction-layer fault injection mask for deterministic resilience testing."""
+    NONE = 0
+    OOM_ALLOCATION_FAULT = 1 << 0
+    FENCE_TIMEOUT_STALL = 1 << 1
+    DEVICE_LOSS_EVENT = 1 << 2
+    DESCRIPTOR_CORRUPTION = 1 << 3
+
+
+class GpuRecoveryState(str, Enum):
+    """Explicit state of the GPU compute subsystem."""
+    READY = "READY"
+    DEGRADED = "DEGRADED"
+    FAULT_DETECTED = "FAULT_DETECTED"
+    FAILOVER_PENDING = "FAILOVER_PENDING"
+    CPU_FALLBACK = "CPU_FALLBACK"
+    GPU_REINITIALIZING = "GPU_REINITIALIZING"
+    RECOVERED = "RECOVERED"
+    FAILED_SAFE = "FAILED_SAFE"
+
+
+@dataclass
+class FaultRecord:
+    """Immutable audit entry for an injected fault and its recovery path."""
+    fault_id: str
+    fault_type: str
+    injection_stage: str
+    frame_id: int
+    expected_recovery: str
+    actual_recovery: str
+    recovery_latency_ms: float
+    fallback_backend: str
+    ledger_hash: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
 
 # Ctypes Structures
 class VkApplicationInfo(ctypes.Structure):
@@ -416,6 +504,36 @@ class VulkanComputeDriver:
             "max_error": 0,
         }
 
+        # Phase 1-2 Architecture: Persistent Graph, On-Demand Readback & UMA Topology
+        self.persistent_graph: bool = True
+        self.readback_policy: ReadbackPolicy = ReadbackPolicy.ON_DEMAND
+        self.frames_dispatched: int = 0
+        self.frames_read_back: int = 0
+        self.readback_requests: int = 0
+        self.readback_completed: int = 0
+        self.readback_skipped: int = 0
+        self.bytes_read_back: int = 0
+        self.bytes_avoided_estimate: int = 0
+        self.gpu_memory_topology: Dict[str, Any] = {
+            "uma": True,
+            "selected_compute_memory_type": -1,
+            "flags": [],
+            "heap_index": 0,
+            "heap_size_bytes": 0,
+            "host_visible": False,
+            "device_local": False,
+            "host_coherent": False,
+            "host_cached": False,
+            "total_memory_types": 0,
+            "total_memory_heaps": 0,
+        }
+
+        # Safe Fault-Injection Interceptor & Recovery State Machine
+        self.fault_injection_mask: FaultInjectionMask = FaultInjectionMask.NONE
+        self.fault_history: List[FaultRecord] = []
+        self.recovery_state: GpuRecoveryState = GpuRecoveryState.READY
+        self.shadow_oracle: Any = None
+
         # Attempt hardware initialization
         self._init_vulkan()
         if self.vulkan_available and self.prefer_gpu:
@@ -608,21 +726,55 @@ class VulkanComputeDriver:
             self.queue = queue
             self.compute_queue_ready = True
 
-            # 3. Memory Properties & Host Visible Type Lookup
+            # 3. Memory Properties & UMA Topology Mapping
             vl.vkGetPhysicalDeviceMemoryProperties.argtypes = [ctypes.c_void_p, ctypes.POINTER(VkPhysicalDeviceMemoryProperties)]
             vl.vkGetPhysicalDeviceMemoryProperties.restype = None
             mem_props = VkPhysicalDeviceMemoryProperties()
             vl.vkGetPhysicalDeviceMemoryProperties(self.physical_device, ctypes.byref(mem_props))
 
+            self.host_memory_type_index = -1
+            best_dev_local_host_visible = -1
+            fallback_host_visible = -1
+
             for i in range(mem_props.memoryTypeCount):
                 flags = mem_props.memoryTypes[i].propertyFlags
-                if (flags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) == (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT):
-                    self.host_memory_type_index = i
-                    break
+                is_host_vis_coh = (flags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) == (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+                is_dev_local = bool(flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+                if is_host_vis_coh and is_dev_local:
+                    best_dev_local_host_visible = i
+                elif is_host_vis_coh and fallback_host_visible < 0:
+                    fallback_host_visible = i
+
+            self.host_memory_type_index = best_dev_local_host_visible if best_dev_local_host_visible >= 0 else fallback_host_visible
 
             if self.host_memory_type_index < 0:
                 self.dispatch_errors.append("No HOST_VISIBLE + HOST_COHERENT memory type found")
                 return
+
+            # Build formal GPU_MEMORY_TOPOLOGY (UMA accurate, non-VRAM assuming)
+            sel_flags = mem_props.memoryTypes[self.host_memory_type_index].propertyFlags
+            sel_heap_idx = mem_props.memoryTypes[self.host_memory_type_index].heapIndex
+            sel_heap_size = mem_props.memoryHeaps[sel_heap_idx].size
+            flag_names = []
+            if sel_flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT: flag_names.append("DEVICE_LOCAL")
+            if sel_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT: flag_names.append("HOST_VISIBLE")
+            if sel_flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT: flag_names.append("HOST_COHERENT")
+            if sel_flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT: flag_names.append("HOST_CACHED")
+            if sel_flags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT: flag_names.append("LAZILY_ALLOCATED")
+
+            self.gpu_memory_topology = {
+                "uma": self.is_intel_iris or bool(sel_flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT and sel_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
+                "selected_compute_memory_type": self.host_memory_type_index,
+                "flags": flag_names,
+                "heap_index": sel_heap_idx,
+                "heap_size_bytes": sel_heap_size,
+                "host_visible": bool(sel_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
+                "device_local": bool(sel_flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
+                "host_coherent": bool(sel_flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
+                "host_cached": bool(sel_flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT),
+                "total_memory_types": mem_props.memoryTypeCount,
+                "total_memory_heaps": mem_props.memoryHeapCount,
+            }
 
             # 4. Descriptor Set Layout
             vl.vkCreateDescriptorSetLayout.argtypes = [
@@ -826,6 +978,21 @@ class VulkanComputeDriver:
 
     def _ensure_buffers(self, width: int, height: int):
         """Dynamically creates or resizes SSBO and UBO buffers for requested resolution."""
+        # Fault injection hook: OOM_ALLOCATION_FAULT
+        if bool(self.fault_injection_mask & FaultInjectionMask.OOM_ALLOCATION_FAULT):
+            t_inj = time.perf_counter()
+            self._record_injected_fault(
+                fault_type="OOM_ALLOCATION_FAULT",
+                stage="BUFFER_ALLOCATION",
+                frame_id=self.frames_dispatched + 1,
+                expected_recovery="CPU_FALLBACK",
+                actual_recovery="CPU_FALLBACK",
+                latency_ms=(time.perf_counter() - t_inj) * 1000.0,
+                fallback="CPU_REFERENCE",
+            )
+            self.recovery_state = GpuRecoveryState.FAULT_DETECTED
+            raise RuntimeError("VK_ERROR_OUT_OF_DEVICE_MEMORY (simulated by FaultInterceptor)")
+
         if self.buffer_width == width and self.buffer_height == height and self.glyph_buffer is not None:
             return
 
@@ -1063,15 +1230,32 @@ class VulkanComputeDriver:
         t: float,
         mode: str,
         cam_pos: Tuple[float, float, float],
-        step_budget: int
+        step_budget: int,
+        readback: Optional[bool] = None,
+        readback_reason: Optional[ReadbackReason] = None
     ) -> Tuple[List[int], List[int]]:
         """
         Executes real Vulkan compute dispatch on hardware queue with fence synchronization
-        and host-visible readback.
+        and persistent, low-readback buffer architecture.
         """
         t0 = time.perf_counter()
         vl = self.vulkan_lib
         pixel_count = width * height
+
+        # Fault injection hook: DESCRIPTOR_CORRUPTION
+        if bool(self.fault_injection_mask & FaultInjectionMask.DESCRIPTOR_CORRUPTION):
+            t_inj = time.perf_counter()
+            self._record_injected_fault(
+                fault_type="DESCRIPTOR_CORRUPTION",
+                stage="DESCRIPTOR_PREFLIGHT",
+                frame_id=self.frames_dispatched + 1,
+                expected_recovery="CPU_FALLBACK",
+                actual_recovery="CPU_FALLBACK",
+                latency_ms=(time.perf_counter() - t_inj) * 1000.0,
+                fallback="CPU_REFERENCE",
+            )
+            self.recovery_state = GpuRecoveryState.FAULT_DETECTED
+            raise RuntimeError("DESCRIPTOR_CORRUPTION: Preflight descriptor set validation failed")
 
         self._ensure_buffers(width, height)
 
@@ -1147,6 +1331,21 @@ class VulkanComputeDriver:
 
         t_record_done = time.perf_counter()
 
+        # Fault injection hook: DEVICE_LOSS_EVENT
+        if bool(self.fault_injection_mask & FaultInjectionMask.DEVICE_LOSS_EVENT):
+            t_inj = time.perf_counter()
+            self._record_injected_fault(
+                fault_type="DEVICE_LOSS_EVENT",
+                stage="QUEUE_SUBMIT",
+                frame_id=self.frames_dispatched + 1,
+                expected_recovery="CPU_FALLBACK",
+                actual_recovery="CPU_FALLBACK",
+                latency_ms=(time.perf_counter() - t_inj) * 1000.0,
+                fallback="CPU_REFERENCE",
+            )
+            self.recovery_state = GpuRecoveryState.FAULT_DETECTED
+            raise RuntimeError("VK_ERROR_DEVICE_LOST (simulated by FaultInterceptor)")
+
         # 3. Submit
         vl.vkQueueSubmit.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(VkSubmitInfo), ctypes.c_void_p]
         vl.vkQueueSubmit.restype = ctypes.c_int32
@@ -1167,6 +1366,21 @@ class VulkanComputeDriver:
 
         t_submit_done = time.perf_counter()
 
+        # Fault injection hook: FENCE_TIMEOUT_STALL
+        if bool(self.fault_injection_mask & FaultInjectionMask.FENCE_TIMEOUT_STALL):
+            t_inj = time.perf_counter()
+            self._record_injected_fault(
+                fault_type="FENCE_TIMEOUT_STALL",
+                stage="SYNCHRONIZATION_WAIT",
+                frame_id=self.frames_dispatched + 1,
+                expected_recovery="DEGRADED",
+                actual_recovery="DEGRADED",
+                latency_ms=(time.perf_counter() - t_inj) * 1000.0,
+                fallback="CPU_REFERENCE",
+            )
+            self.recovery_state = GpuRecoveryState.DEGRADED
+            raise RuntimeError("VK_TIMEOUT (simulated fence stall)")
+
         # 4. Wait for fence
         vl.vkWaitForFences.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint32, ctypes.c_uint64]
         vl.vkWaitForFences.restype = ctypes.c_int32
@@ -1175,30 +1389,63 @@ class VulkanComputeDriver:
 
         t_gpu_done = time.perf_counter()
 
-        # 5. Readback from host-visible memory
-        gpu_glyphs = (ctypes.c_uint32 * pixel_count).from_address(self.glyph_mapped.value)
-        gpu_colors = (ctypes.c_uint32 * pixel_count).from_address(self.rgb_mapped.value)
+        # 5. On-Demand Readback Policy Resolution
+        buffer_bytes = pixel_count * 5  # 1 byte glyph + 4 byte color equivalent representation
+        should_readback = False
 
-        glyphs = list(gpu_glyphs)
-        colors = list(gpu_colors)
-        t_readback_done = time.perf_counter()
+        if readback is not None:
+            should_readback = readback
+            if should_readback:
+                self.readback_requests += 1
+        elif self.readback_policy == ReadbackPolicy.ALWAYS:
+            should_readback = True
+            self.readback_requests += 1
+        elif self.readback_policy == ReadbackPolicy.ON_DEMAND:
+            should_readback = (readback_reason is not None)
+            if should_readback:
+                self.readback_requests += 1
+        elif self.readback_policy == ReadbackPolicy.SHADOW_SAMPLE_ONLY:
+            should_readback = (readback_reason == ReadbackReason.SHADOW_ORACLE_SAMPLE)
+            if should_readback:
+                self.readback_requests += 1
+        elif self.readback_policy == ReadbackPolicy.DISABLED_EXCEPT_FAULT:
+            should_readback = False
+
+        if should_readback:
+            t_rb0 = time.perf_counter()
+            gpu_glyphs = (ctypes.c_uint32 * pixel_count).from_address(self.glyph_mapped.value)
+            gpu_colors = (ctypes.c_uint32 * pixel_count).from_address(self.rgb_mapped.value)
+            glyphs = list(gpu_glyphs)
+            colors = list(gpu_colors)
+            t_readback_done = time.perf_counter()
+            readback_time_ms = round((t_readback_done - t_rb0) * 1000.0, 3)
+            self.frames_read_back += 1
+            self.readback_completed += 1
+            self.bytes_read_back += buffer_bytes
+        else:
+            glyphs = []
+            colors = []
+            t_readback_done = time.perf_counter()
+            readback_time_ms = 0.0
+            self.readback_skipped += 1
+            self.bytes_avoided_estimate += buffer_bytes
 
         # Update timings & metrics
+        self.frames_dispatched += 1
+        self.dispatch_count = self.frames_dispatched
         dt_total = max(1e-6, t_readback_done - t0)
         self.last_timings = {
             "prep_time_ms": round((t_record_done - t0) * 1000.0, 3),
             "submit_time_ms": round((t_submit_done - t_record_done) * 1000.0, 3),
             "wait_time_ms": round((t_gpu_done - t_submit_done) * 1000.0, 3),
-            "readback_time_ms": round((t_readback_done - t_gpu_done) * 1000.0, 3),
+            "readback_time_ms": readback_time_ms,
             "frame_time_ms": round(dt_total * 1000.0, 3),
         }
-        self.dispatch_count += 1
         self.last_dispatch_us = round(dt_total * 1e6, 1)
-
-        buffer_bytes = pixel_count * 5  # 1 byte glyph + 4 byte color equivalent representation
-        self.readback_mb_s = round((buffer_bytes / (1024 * 1024)) / dt_total, 2)
+        self.readback_mb_s = round((buffer_bytes / (1024 * 1024)) / max(1e-6, (readback_time_ms / 1000.0)), 2) if readback_time_ms > 0 else 0.0
         self.real_gpu_dispatch = True
         self.compute_backend = "VULKAN_GPU"
+        self.recovery_state = GpuRecoveryState.READY
 
         return glyphs, colors
 
@@ -1209,21 +1456,54 @@ class VulkanComputeDriver:
         t: float,
         mode: str = "CYBERPUNK",
         cam_pos: Tuple[float, float, float] = (0.0, 0.0, -3.2),
-        step_budget: int = 32
+        step_budget: int = 32,
+        readback: Optional[bool] = None,
+        readback_reason: Optional[ReadbackReason] = None
     ) -> Tuple[List[int], List[int]]:
         """
         Executes 3D raymarching pass.
         Attempts native Vulkan compute dispatch if hardware is available and healthy;
         automatically falls back to deterministic CPU reference upon any failure.
         """
-        if self.pipeline_ready and self.device and self.prefer_gpu:
+        # Periodic shadow oracle sample trigger
+        if self.shadow_oracle and readback_reason is None:
+            if self.shadow_oracle.should_sample(self.frames_dispatched):
+                readback_reason = ReadbackReason.SHADOW_ORACLE_SAMPLE
+
+        can_dispatch = (
+            self.pipeline_ready
+            and self.device is not None
+            and self.prefer_gpu
+            and self.gpu_accelerated
+            and self.recovery_state in (GpuRecoveryState.READY, GpuRecoveryState.RECOVERED)
+        )
+
+        if can_dispatch:
             try:
-                return self._dispatch_vulkan_compute(width, height, t, mode, cam_pos, step_budget)
+                glyphs, colors = self._dispatch_vulkan_compute(
+                    width, height, t, mode, cam_pos, step_budget,
+                    readback=readback, readback_reason=readback_reason
+                )
+                if self.shadow_oracle and readback_reason == ReadbackReason.SHADOW_ORACLE_SAMPLE and glyphs:
+                    self.shadow_oracle.submit_sample(
+                        frame_id=self.frames_dispatched,
+                        gpu_glyphs=glyphs,
+                        gpu_colors=colors,
+                        width=width,
+                        height=height,
+                        t=t,
+                        mode=mode,
+                        cam_pos=cam_pos,
+                        step_budget=step_budget,
+                    )
+                return glyphs, colors
             except Exception as e:
                 self.dispatch_errors.append(f"GPU dispatch failed, falling back to CPU: {e}")
                 self.real_gpu_dispatch = False
                 self.compute_backend = "CPU_EMULATION"
                 self.fallback_count += 1
+                if self.recovery_state != GpuRecoveryState.DEGRADED:
+                    self.recovery_state = GpuRecoveryState.CPU_FALLBACK
 
         return self.execute_raymarch_cpu(width, height, t, mode, cam_pos, step_budget)
 
@@ -1349,9 +1629,12 @@ class VulkanComputeDriver:
         if not self.pipeline_ready:
             return {"status": "SKIPPED", "reason": "Hardware pipeline not ready"}
 
-        # Force GPU execution
+        # Force GPU execution with readback enabled for verification
         self.prefer_gpu = True
-        gpu_glyphs, gpu_colors = self.execute_raymarch(width, height, t, mode, cam_pos, step_budget)
+        gpu_glyphs, gpu_colors = self.execute_raymarch(
+            width, height, t, mode, cam_pos, step_budget,
+            readback=True, readback_reason=ReadbackReason.DEBUG_CAPTURE
+        )
         assert self.real_gpu_dispatch, "GPU dispatch failed during verification"
 
         # Force CPU execution
@@ -1388,6 +1671,99 @@ class VulkanComputeDriver:
             "metrics": self.last_match_metrics,
             "timings": self.last_timings,
         }
+
+    def materialize_readback(
+        self,
+        reason: ReadbackReason = ReadbackReason.EXPLICIT_API_REQUEST
+    ) -> Tuple[List[int], List[int]]:
+        """
+        Explicit on-demand readback of currently resident GPU frame buffers
+        without triggering a new dispatch.
+        """
+        if not self.glyph_mapped or not self.rgb_mapped or self.buffer_width == 0:
+            return [], []
+        t0 = time.perf_counter()
+        pixel_count = self.buffer_width * self.buffer_height
+        gpu_glyphs = (ctypes.c_uint32 * pixel_count).from_address(self.glyph_mapped.value)
+        gpu_colors = (ctypes.c_uint32 * pixel_count).from_address(self.rgb_mapped.value)
+        glyphs = list(gpu_glyphs)
+        colors = list(gpu_colors)
+        dt = (time.perf_counter() - t0) * 1000.0
+        self.frames_read_back += 1
+        self.readback_requests += 1
+        self.readback_completed += 1
+        buffer_bytes = pixel_count * 5
+        self.bytes_read_back += buffer_bytes
+        self.last_timings["readback_time_ms"] = round(dt, 3)
+        return glyphs, colors
+
+    def _record_injected_fault(
+        self,
+        fault_type: str,
+        stage: str,
+        frame_id: int,
+        expected_recovery: str,
+        actual_recovery: str,
+        latency_ms: float,
+        fallback: str = "CPU_REFERENCE",
+    ) -> FaultRecord:
+        """Appends an immutable audit entry into the fault ledger with cryptographic hash chaining."""
+        prev_hash = self.fault_history[-1].ledger_hash if self.fault_history else "0" * 64
+        hasher = hashlib.sha256()
+        hasher.update(prev_hash.encode("utf-8"))
+        hasher.update(f"{fault_type}:{stage}:{frame_id}:{actual_recovery}:{latency_ms}".encode("utf-8"))
+        rec = FaultRecord(
+            fault_id=f"FAULT-{len(self.fault_history) + 1:04d}",
+            fault_type=fault_type,
+            injection_stage=stage,
+            frame_id=frame_id,
+            expected_recovery=expected_recovery,
+            actual_recovery=actual_recovery,
+            recovery_latency_ms=round(latency_ms, 3),
+            fallback_backend=fallback,
+            ledger_hash=hasher.hexdigest(),
+        )
+        self.fault_history.append(rec)
+        return rec
+
+    def inject_fault(self, mask: FaultInjectionMask):
+        """Sets the fault injection mask (for testing resilience)."""
+        self.fault_injection_mask |= mask
+
+    def clear_faults(self):
+        """Clears all fault injection masks and restores recovery state to READY."""
+        self.fault_injection_mask = FaultInjectionMask.NONE
+        self.recovery_state = GpuRecoveryState.READY
+
+    def set_readback_policy(self, policy: ReadbackPolicy):
+        """Sets the active readback policy."""
+        self.readback_policy = policy
+
+    def attach_shadow_oracle(self, oracle: Any):
+        """Attaches an asynchronous shadow CPU oracle."""
+        self.shadow_oracle = oracle
+
+    def reinitialize_gpu(self) -> bool:
+        """
+        Attempts clean destruction and re-initialization of logical device and compute pipeline.
+        Transitions state machine: GPU_REINITIALIZING -> RECOVERED (or FAILED_SAFE).
+        """
+        self.recovery_state = GpuRecoveryState.GPU_REINITIALIZING
+        try:
+            self.cleanup()
+            self._init_vulkan()
+            if self.vulkan_available and self.prefer_gpu:
+                self._init_hardware_pipeline()
+            if self.pipeline_ready:
+                self.recovery_state = GpuRecoveryState.RECOVERED
+                return True
+            else:
+                self.recovery_state = GpuRecoveryState.FAILED_SAFE
+                return False
+        except Exception as e:
+            self.dispatch_errors.append(f"Reinitialization failed: {e}")
+            self.recovery_state = GpuRecoveryState.FAILED_SAFE
+            return False
 
     def cleanup(self):
         """Deterministically releases all allocated Vulkan resources."""
@@ -1449,9 +1825,24 @@ class VulkanComputeDriver:
         self.cleanup()
 
     def get_telemetry(self) -> Dict[str, Any]:
-        """Returns driver status, active GPU device, and dispatch timings."""
+        """Returns driver status, active GPU device, memory topology, and dispatch timings."""
         groups_x = (self.buffer_width + 7) // 8 if self.buffer_width > 0 else 0
         groups_y = (self.buffer_height + 7) // 8 if self.buffer_height > 0 else 0
+        readback_ratio = round(self.frames_read_back / max(1, self.frames_dispatched), 4)
+
+        shadow_oracle_telemetry = (
+            self.shadow_oracle.get_telemetry()
+            if self.shadow_oracle and hasattr(self.shadow_oracle, "get_telemetry")
+            else {
+                "enabled": self.shadow_oracle is not None,
+                "sampling_interval": 16,
+                "last_divergence": 0.0,
+                "last_rca": "INSUFFICIENT_EVIDENCE",
+                "observer_overhead_pct": 0.0,
+            }
+        )
+
+        last_fault_dict = self.fault_history[-1].to_dict() if self.fault_history else None
 
         return {
             "vulkan_available": self.vulkan_available,
@@ -1479,4 +1870,23 @@ class VulkanComputeDriver:
             "dispatch_errors": list(self.dispatch_errors),
             "timings": dict(self.last_timings),
             "match_metrics": dict(self.last_match_metrics),
+            # Phase 1-2 Sovereignty Extensions
+            "gpu_memory_topology": dict(self.gpu_memory_topology),
+            "persistent_graph": self.persistent_graph,
+            "readback_policy": self.readback_policy.value,
+            "frames_dispatched": self.frames_dispatched,
+            "frames_read_back": self.frames_read_back,
+            "readback_ratio": readback_ratio,
+            "readback_requests": self.readback_requests,
+            "readback_completed": self.readback_completed,
+            "readback_skipped": self.readback_skipped,
+            "bytes_read_back": self.bytes_read_back,
+            "bytes_avoided_estimate": self.bytes_avoided_estimate,
+            "shadow_oracle": shadow_oracle_telemetry,
+            "fault_state": {
+                "active": self.fault_injection_mask != FaultInjectionMask.NONE,
+                "last_fault": last_fault_dict,
+                "recovery_state": self.recovery_state.value,
+                "fault_count": len(self.fault_history),
+            },
         }

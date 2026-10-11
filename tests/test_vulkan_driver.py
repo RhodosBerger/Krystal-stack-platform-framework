@@ -17,13 +17,14 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from src.python.vulkan_compute_driver import VulkanComputeDriver
+from src.python.vulkan_compute_driver import VulkanComputeDriver, ReadbackPolicy
 
 
 class TestVulkanComputeDriver(unittest.TestCase):
 
     def setUp(self):
         self.driver = VulkanComputeDriver()
+        self.driver.set_readback_policy(ReadbackPolicy.ALWAYS)
 
     def test_01_device_discovery(self):
         """Driver initializes and attempts to find physical Vulkan GPU."""

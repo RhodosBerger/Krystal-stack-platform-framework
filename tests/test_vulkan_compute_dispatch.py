@@ -24,7 +24,7 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-from src.python.vulkan_compute_driver import VulkanComputeDriver
+from src.python.vulkan_compute_driver import VulkanComputeDriver, ReadbackPolicy
 
 
 class TestVulkanComputeDispatch(unittest.TestCase):
@@ -34,6 +34,7 @@ class TestVulkanComputeDispatch(unittest.TestCase):
 
     def setUp(self):
         self.driver = VulkanComputeDriver(prefer_gpu=True)
+        self.driver.set_readback_policy(ReadbackPolicy.ALWAYS)
 
     def tearDown(self):
         if self.driver:
