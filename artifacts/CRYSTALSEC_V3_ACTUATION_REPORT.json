@@ -1,0 +1,28 @@
+{
+  "phase": "CrystalSec3_Transactional_Actuation",
+  "transactions": {
+    "executed": 2,
+    "committed": 1,
+    "rolled_back": 1,
+    "rejected": 0,
+    "failed_safe": 0
+  },
+  "rollback": {
+    "verified": true,
+    "control_state_restored": true,
+    "safe_region_reentered": true
+  },
+  "actuation_surface": [
+    "telemetry_sampling_rate_hz",
+    "speculative_frame_depth",
+    "gpu_profile_level",
+    "compute_backend"
+  ],
+  "uma_isolation_enabled": false,
+  "evidence_levels": [
+    "FORMALLY_DEFINED",
+    "PROPERTY_TESTED",
+    "SIMULATION_VERIFIED",
+    "INTEGRATION_VERIFIED"
+  ]
+}

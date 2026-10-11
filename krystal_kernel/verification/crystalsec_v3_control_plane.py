@@ -124,6 +124,21 @@ class CrystalSecV3State:
             res[k] = v
         return res
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> CrystalSecV3State:
+        fields = {}
+        for k, v in data.items():
+            if k == "vital_max_hp":
+                fields[k] = int(v)
+            elif isinstance(v, dict) and "value" in v:
+                fields[k] = TelemetryItem(**v)
+            elif isinstance(v, TelemetryItem):
+                fields[k] = v
+            else:
+                fields[k] = v
+        return cls(**fields)
+
+
 
 @dataclass(frozen=True)
 class StrainResult:
