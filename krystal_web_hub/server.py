@@ -3167,7 +3167,7 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         elif self.path == "/api/cortex/calibration/run":
             from krystal_kernel.verification.crystalsec_v3_placement_calibration import GLOBAL_PLACEMENT_CALIBRATION_CONTROLLER
             ctrl = GLOBAL_PLACEMENT_CALIBRATION_CONTROLLER
-            iters = int(data.get("iterations_per_class", 10))
+            iters = max(1, min(200, int(data.get("iterations_per_class", 10))))
             rep = ctrl.run_calibration_suite(iterations_per_class=iters)
             self.send_json(rep)
             return

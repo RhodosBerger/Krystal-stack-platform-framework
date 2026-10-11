@@ -79,28 +79,36 @@ class TestCrystalSecV3PlacementCalibration(unittest.TestCase):
         self.assertGreater(lat_t1, 0.0)
         self.assertGreater(lat_t2, 0.0)
 
-    def test_branch_heavy_workload_favors_cpu(self):
+    def test_branch_heavy_tiers_are_labelled_host_cpu_emulated(self):
         """
-        Microarchitectural invariant: on branch-heavy workloads with irregular
-        control flow, CPU out-of-order execution handles branching more efficiently
-        than GPU SIMT warp divergence.
+        Phase 5.2: the former assertion `lat_cpu < lat_gpu` only held because constant
+        penalties (+0.035 ms CPU, +0.120 ms GPU) were added to the measurement. Neither T1
+        nor T2 has a distinct branch-heavy implementation, so the only honest assertion is
+        about provenance: these numbers say nothing about Willow Cove or Iris Xe hardware.
         """
         wl = WorkloadSynthesizer.generate(WorkloadClass.BRANCH_HEAVY_CONTROL, size=128)
-        _, lat_cpu, _ = TaxonomyExecutionEngine.execute_workload(wl, ExecutionTierID.TIER_1_CPU_VNNI, self.adapters)
-        _, lat_gpu, _ = TaxonomyExecutionEngine.execute_workload(wl, ExecutionTierID.TIER_2_IRIS_XE, self.adapters)
+        out_ref, _, telem_ref = TaxonomyExecutionEngine.execute_workload(wl, ExecutionTierID.TIER_0_DIRECTSIM, self.adapters)
+        out_cpu, _, telem_cpu = TaxonomyExecutionEngine.execute_workload(wl, ExecutionTierID.TIER_1_CPU_VNNI, self.adapters)
+        out_gpu, _, telem_gpu = TaxonomyExecutionEngine.execute_workload(wl, ExecutionTierID.TIER_2_IRIS_XE, self.adapters)
 
-        # CPU latency is lower than GPU due to branch divergence penalty on GPU
-        self.assertLess(lat_cpu, lat_gpu)
+        self.assertEqual(out_ref, out_cpu)
+        self.assertEqual(out_ref, out_gpu)
+        self.assertEqual(telem_ref["latency_evidence"], "HOST_CPU_REFERENCE")
+        self.assertEqual(telem_cpu["latency_evidence"], "HOST_CPU_EMULATED")
+        self.assertEqual(telem_gpu["latency_evidence"], "HOST_CPU_EMULATED")
+        self.assertFalse(telem_cpu["distinct_code_path"])
+        self.assertFalse(telem_gpu["distinct_code_path"])
 
-    def test_memory_bound_workload_uma_pressure(self):
+    def test_memory_bound_uma_value_is_modeled_prior(self):
         """
-        Verifies that MEMORY_BOUND_STREAM produces elevated UMA bus contention
-        on Iris Xe integrated graphics due to shared memory traffic.
+        UMA pressure is not measured by this module; the 0.72 value for GPU memory streaming
+        is a MODELED_PRIOR and must be labelled as such.
         """
         wl = WorkloadSynthesizer.generate(WorkloadClass.MEMORY_BOUND_STREAM, size=512)
         _, _, telem_gpu = TaxonomyExecutionEngine.execute_workload(wl, ExecutionTierID.TIER_2_IRIS_XE, self.adapters)
-        
-        self.assertGreaterEqual(telem_gpu["uma_pressure"], 0.70)
+
+        self.assertEqual(telem_gpu["telemetry_evidence"], "MODELED_PRIOR")
+        self.assertIn("uma_pressure", telem_gpu)
 
     def test_empirical_cost_distribution_statistics(self):
         """Tests rolling distribution moments (mean, median, p95, p99, std, cv, iqr)."""
@@ -158,7 +166,9 @@ class TestCrystalSecV3PlacementCalibration(unittest.TestCase):
 
         metrics = self.calib_tracker.get_calibration_metrics()
         self.assertEqual(metrics["sample_count"], 1)
-        self.assertTrue(metrics["is_well_calibrated"])
+        # One sample is not evidence of calibration (Phase 5.2).
+        self.assertFalse(metrics["is_well_calibrated"])
+        self.assertEqual(metrics["calibration_status"], "INSUFFICIENT_EVIDENCE")
 
     def test_prediction_bias_tracks_directionality(self):
         """Verifies that over-prediction yields positive bias and under-prediction yields negative bias."""

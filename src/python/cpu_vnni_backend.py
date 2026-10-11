@@ -27,6 +27,7 @@ VITAL_MAX_HP: int = 6
 
 class ExecutionMode(str, Enum):
     VNNI_INT8 = "VNNI_INT8"
+    VNNI_INT8_EMULATED = "VNNI_INT8_EMULATED"  # Python emulation of vpdpbusd packing; no SIMD issued
     AVX512_FP32 = "AVX512_FP32"
     AVX2_SIMD = "AVX2_SIMD"
     SCALAR_FALLBACK = "SCALAR_FALLBACK"
@@ -41,11 +42,15 @@ class CpuVnniCapability:
     has_avx512f: bool
     has_vnni: bool
     has_gna: bool
+    # Phase 5.2: True only if a native vpdpbusd path was actually executed. This backend is
+    # pure Python, so it is always False here; use `vnni_capable` for capability detection.
     real_vnni_execution: bool
     core_count: int
     logical_thread_count: int
     nominal_frequency_ghz: float
     vital_max_hp: int = VITAL_MAX_HP
+    vnni_capable: bool = False
+    execution_evidence: str = "HOST_CPU_EMULATED"
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -101,7 +106,7 @@ class CpuVnniBackend:
         has_vnni = True if is_tiger_lake or has_avx512f else False
         has_gna = True if is_tiger_lake else False
 
-        real_vnni = has_vnni and not self.force_scalar_fallback
+        vnni_capable = has_vnni and not self.force_scalar_fallback
 
         return CpuVnniCapability(
             cpu_model="11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz" if is_tiger_lake else proc,
@@ -110,11 +115,13 @@ class CpuVnniBackend:
             has_avx512f=has_avx512f,
             has_vnni=has_vnni,
             has_gna=has_gna,
-            real_vnni_execution=real_vnni,
+            real_vnni_execution=False,  # pure-Python backend never issues vpdpbusd
             core_count=4,
             logical_thread_count=8,
             nominal_frequency_ghz=2.40,
             vital_max_hp=VITAL_MAX_HP,
+            vnni_capable=vnni_capable,
+            execution_evidence="HOST_CPU_EMULATED",
         )
 
     def execute_dot_product(
@@ -134,10 +141,10 @@ class CpuVnniBackend:
         start_t = time.perf_counter()
 
         with self._lock:
-            if self.capability.real_vnni_execution and not self.force_scalar_fallback and precision == "INT8":
-                # Simulated 4-way INT8 dot product (vpdpbusd quad-word accumulate)
-                # Pack elements in 4-tuples for SIMD pipeline processing
-                mode = ExecutionMode.VNNI_INT8.value
+            if self.capability.vnni_capable and not self.force_scalar_fallback and precision == "INT8":
+                # Python emulation of 4-way INT8 dot product (vpdpbusd quad-word accumulate).
+                # No SIMD instruction is issued from CPython; this only mirrors the packing scheme.
+                mode = ExecutionMode.VNNI_INT8_EMULATED.value
                 accum = 0
                 step = 4
                 remainder = n % step
@@ -153,7 +160,7 @@ class CpuVnniBackend:
                 for i in range(n - remainder, n):
                     accum += (vector_a[i] & 0xFF) * (vector_b[i] & 0xFF)
 
-                real_vnni = True
+                real_vnni = False
             else:
                 # Scalar fallback path
                 mode = ExecutionMode.SCALAR_FALLBACK.value
@@ -200,14 +207,14 @@ class CpuVnniBackend:
             duration_s = max(1e-7, time.perf_counter() - start_t)
             telemetry = CpuVnniTelemetry(
                 timestamp=time.time(),
-                execution_mode=ExecutionMode.VNNI_INT8.value if self.capability.real_vnni_execution else ExecutionMode.SCALAR_FALLBACK.value,
+                execution_mode=ExecutionMode.VNNI_INT8_EMULATED.value if self.capability.vnni_capable else ExecutionMode.SCALAR_FALLBACK.value,
                 workload_size=n,
                 latency_ms=round(duration_s * 1000.0, 4),
                 throughput_ops_sec=round(n / duration_s, 1),
                 cpu_frequency_ghz=self.current_frequency_ghz,
                 thread_utilization_pct=round(self.current_utilization_pct, 2),
                 package_pressure_contribution=0.25,
-                real_vnni_execution=self.capability.real_vnni_execution,
+                real_vnni_execution=False,
             )
             self._execution_history.append(telemetry)
             return output, telemetry

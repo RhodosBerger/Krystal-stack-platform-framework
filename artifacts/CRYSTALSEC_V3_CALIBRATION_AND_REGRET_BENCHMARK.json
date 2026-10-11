@@ -1,7 +1,10 @@
 {
   "phase": "CrystalSec3_Phase5_1_Calibration",
-  "timestamp": 1791751246.8150048,
+  "evidence_revision": "PHASE_5_2_EVIDENCE_INTEGRITY",
+  "timestamp": 1791755061.4674165,
   "iterations_per_class": 25,
+  "workload_size": 128,
+  "repeats_per_measurement": 5,
   "classes_evaluated": [
     "INT8_DOT_PRODUCT",
     "FP32_VECTOR_MATH",
@@ -13,195 +16,394 @@
     "INT8_DOT_PRODUCT": {
       "TIER_0_DIRECTSIM": {
         "sample_count": 25,
-        "mean": 0.0343,
-        "median": 0.0246,
-        "p95": 0.061,
-        "p99": 0.0625,
-        "std": 0.0144,
-        "cv": 0.4201,
-        "iqr": 0.0231,
-        "uncertainty": 0.3081
+        "mean": 0.0215,
+        "median": 0.0199,
+        "p95": 0.0304,
+        "p99": 0.0399,
+        "std": 0.0047,
+        "cv": 0.2166,
+        "iqr": 0.0004,
+        "uncertainty": 0.2064
       },
       "TIER_1_CPU_VNNI": {
         "sample_count": 25,
-        "mean": 0.0398,
-        "median": 0.0359,
-        "p95": 0.0638,
-        "p99": 0.0815,
-        "std": 0.0165,
-        "cv": 0.4142,
-        "iqr": 0.0266,
-        "uncertainty": 0.3052
+        "mean": 0.0194,
+        "median": 0.0186,
+        "p95": 0.021,
+        "p99": 0.0329,
+        "std": 0.0029,
+        "cv": 0.1506,
+        "iqr": 0.0008,
+        "uncertainty": 0.1734
       },
       "TIER_2_IRIS_XE": {
         "sample_count": 25,
-        "mean": 0.0452,
-        "median": 0.0386,
-        "p95": 0.0653,
-        "p99": 0.0705,
-        "std": 0.0118,
-        "cv": 0.2606,
-        "iqr": 0.0195,
-        "uncertainty": 0.2283
+        "mean": 0.019,
+        "median": 0.0179,
+        "p95": 0.0301,
+        "p99": 0.0318,
+        "std": 0.0036,
+        "cv": 0.1909,
+        "iqr": 0.0003,
+        "uncertainty": 0.1935
       }
     },
     "FP32_VECTOR_MATH": {
       "TIER_0_DIRECTSIM": {
         "sample_count": 25,
-        "mean": 0.0536,
-        "median": 0.046,
-        "p95": 0.084,
-        "p99": 0.0901,
-        "std": 0.015,
-        "cv": 0.2803,
-        "iqr": 0.0039,
-        "uncertainty": 0.2382
+        "mean": 0.0471,
+        "median": 0.0421,
+        "p95": 0.0832,
+        "p99": 0.1086,
+        "std": 0.0155,
+        "cv": 0.3277,
+        "iqr": 0.0015,
+        "uncertainty": 0.2619
       },
       "TIER_1_CPU_VNNI": {
         "sample_count": 25,
-        "mean": 0.0759,
-        "median": 0.0709,
-        "p95": 0.1013,
-        "p99": 0.1013,
-        "std": 0.0116,
-        "cv": 0.153,
-        "iqr": 0.0078,
-        "uncertainty": 0.1746
+        "mean": 0.0519,
+        "median": 0.0423,
+        "p95": 0.089,
+        "p99": 0.1984,
+        "std": 0.0327,
+        "cv": 0.6301,
+        "iqr": 0.0012,
+        "uncertainty": 0.4131
       },
       "TIER_2_IRIS_XE": {
         "sample_count": 25,
-        "mean": 0.0702,
-        "median": 0.062,
-        "p95": 0.0997,
-        "p99": 0.1113,
-        "std": 0.0146,
-        "cv": 0.2078,
-        "iqr": 0.0136,
-        "uncertainty": 0.202
+        "mean": 0.0469,
+        "median": 0.0423,
+        "p95": 0.0862,
+        "p99": 0.0897,
+        "std": 0.0133,
+        "cv": 0.2835,
+        "iqr": 0.0009,
+        "uncertainty": 0.2398
       }
     },
     "MEMORY_BOUND_STREAM": {
       "TIER_0_DIRECTSIM": {
         "sample_count": 25,
-        "mean": 0.0262,
-        "median": 0.0295,
-        "p95": 0.0343,
-        "p99": 0.0346,
-        "std": 0.0068,
-        "cv": 0.2593,
-        "iqr": 0.0125,
-        "uncertainty": 0.2277
+        "mean": 0.0192,
+        "median": 0.0149,
+        "p95": 0.0279,
+        "p99": 0.0283,
+        "std": 0.0057,
+        "cv": 0.2956,
+        "iqr": 0.0106,
+        "uncertainty": 0.2459
       },
       "TIER_1_CPU_VNNI": {
         "sample_count": 25,
-        "mean": 0.0654,
-        "median": 0.0683,
-        "p95": 0.0722,
-        "p99": 0.0833,
-        "std": 0.0072,
-        "cv": 0.11,
-        "iqr": 0.0122,
-        "uncertainty": 0.1531
+        "mean": 0.0205,
+        "median": 0.0157,
+        "p95": 0.028,
+        "p99": 0.0428,
+        "std": 0.0073,
+        "cv": 0.3546,
+        "iqr": 0.0111,
+        "uncertainty": 0.2754
       },
       "TIER_2_IRIS_XE": {
         "sample_count": 25,
-        "mean": 0.1081,
-        "median": 0.1122,
-        "p95": 0.1136,
-        "p99": 0.1142,
-        "std": 0.0061,
-        "cv": 0.0566,
-        "iqr": 0.0132,
-        "uncertainty": 0.1263
+        "mean": 0.0195,
+        "median": 0.0152,
+        "p95": 0.0281,
+        "p99": 0.0281,
+        "std": 0.0055,
+        "cv": 0.2851,
+        "iqr": 0.0103,
+        "uncertainty": 0.2406
       }
     },
     "BRANCH_HEAVY_CONTROL": {
       "TIER_0_DIRECTSIM": {
         "sample_count": 25,
-        "mean": 0.0647,
-        "median": 0.051,
-        "p95": 0.0732,
-        "p99": 0.4308,
-        "std": 0.0776,
-        "cv": 1.2001,
-        "iqr": 0.0303,
-        "uncertainty": 0.6981
+        "mean": 0.037,
+        "median": 0.0307,
+        "p95": 0.0649,
+        "p99": 0.0659,
+        "std": 0.0124,
+        "cv": 0.3344,
+        "iqr": 0.0012,
+        "uncertainty": 0.2652
       },
       "TIER_1_CPU_VNNI": {
         "sample_count": 25,
-        "mean": 0.0831,
-        "median": 0.0837,
-        "p95": 0.1023,
-        "p99": 0.1034,
-        "std": 0.013,
-        "cv": 0.1569,
-        "iqr": 0.0226,
-        "uncertainty": 0.1765
+        "mean": 0.0356,
+        "median": 0.0308,
+        "p95": 0.0571,
+        "p99": 0.0674,
+        "std": 0.0106,
+        "cv": 0.2976,
+        "iqr": 0.0005,
+        "uncertainty": 0.2469
       },
       "TIER_2_IRIS_XE": {
         "sample_count": 25,
-        "mean": 0.1678,
-        "median": 0.172,
-        "p95": 0.1865,
-        "p99": 0.2302,
-        "std": 0.0182,
-        "cv": 0.1083,
-        "iqr": 0.0228,
-        "uncertainty": 0.1522
+        "mean": 0.0351,
+        "median": 0.0307,
+        "p95": 0.059,
+        "p99": 0.0661,
+        "std": 0.0107,
+        "cv": 0.3033,
+        "iqr": 0.0004,
+        "uncertainty": 0.2497
       }
     },
     "MIXED_COMPUTE_MEMORY": {
       "TIER_0_DIRECTSIM": {
         "sample_count": 25,
-        "mean": 0.0299,
-        "median": 0.0233,
-        "p95": 0.0754,
-        "p99": 0.0962,
-        "std": 0.0182,
-        "cv": 0.6078,
-        "iqr": 0.002,
-        "uncertainty": 0.402
+        "mean": 0.0268,
+        "median": 0.0205,
+        "p95": 0.0518,
+        "p99": 0.0529,
+        "std": 0.0127,
+        "cv": 0.4755,
+        "iqr": 0.0009,
+        "uncertainty": 0.3358
       },
       "TIER_1_CPU_VNNI": {
         "sample_count": 25,
-        "mean": 0.0699,
-        "median": 0.0577,
-        "p95": 0.1551,
-        "p99": 0.1907,
-        "std": 0.0338,
-        "cv": 0.4843,
-        "iqr": 0.0058,
-        "uncertainty": 0.3402
+        "mean": 0.0245,
+        "median": 0.0194,
+        "p95": 0.0409,
+        "p99": 0.0456,
+        "std": 0.0094,
+        "cv": 0.3822,
+        "iqr": 0.0025,
+        "uncertainty": 0.2891
       },
       "TIER_2_IRIS_XE": {
         "sample_count": 25,
-        "mean": 0.0551,
-        "median": 0.0502,
-        "p95": 0.0796,
-        "p99": 0.0926,
-        "std": 0.0114,
-        "cv": 0.206,
-        "iqr": 0.0068,
-        "uncertainty": 0.2011
+        "mean": 0.0254,
+        "median": 0.0186,
+        "p95": 0.0444,
+        "p99": 0.0464,
+        "std": 0.0109,
+        "cv": 0.4292,
+        "iqr": 0.016,
+        "uncertainty": 0.3126
       }
     }
   },
+  "tier_evidence_by_class": {
+    "INT8_DOT_PRODUCT": {
+      "TIER_0_DIRECTSIM": {
+        "latency_evidence": "HOST_CPU_REFERENCE",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": true
+      },
+      "TIER_1_CPU_VNNI": {
+        "latency_evidence": "HOST_CPU_EMULATED",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": true
+      },
+      "TIER_2_IRIS_XE": {
+        "latency_evidence": "HOST_CPU_EMULATED",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": true
+      }
+    },
+    "FP32_VECTOR_MATH": {
+      "TIER_0_DIRECTSIM": {
+        "latency_evidence": "HOST_CPU_REFERENCE",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": true
+      },
+      "TIER_1_CPU_VNNI": {
+        "latency_evidence": "HOST_CPU_EMULATED",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": false
+      },
+      "TIER_2_IRIS_XE": {
+        "latency_evidence": "HOST_CPU_EMULATED",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": false
+      }
+    },
+    "MEMORY_BOUND_STREAM": {
+      "TIER_0_DIRECTSIM": {
+        "latency_evidence": "HOST_CPU_REFERENCE",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": true
+      },
+      "TIER_1_CPU_VNNI": {
+        "latency_evidence": "HOST_CPU_EMULATED",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": false
+      },
+      "TIER_2_IRIS_XE": {
+        "latency_evidence": "HOST_CPU_EMULATED",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": false
+      }
+    },
+    "BRANCH_HEAVY_CONTROL": {
+      "TIER_0_DIRECTSIM": {
+        "latency_evidence": "HOST_CPU_REFERENCE",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": true
+      },
+      "TIER_1_CPU_VNNI": {
+        "latency_evidence": "HOST_CPU_EMULATED",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": false
+      },
+      "TIER_2_IRIS_XE": {
+        "latency_evidence": "HOST_CPU_EMULATED",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": false
+      }
+    },
+    "MIXED_COMPUTE_MEMORY": {
+      "TIER_0_DIRECTSIM": {
+        "latency_evidence": "HOST_CPU_REFERENCE",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": true
+      },
+      "TIER_1_CPU_VNNI": {
+        "latency_evidence": "HOST_CPU_EMULATED",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": true
+      },
+      "TIER_2_IRIS_XE": {
+        "latency_evidence": "HOST_CPU_EMULATED",
+        "telemetry_evidence": "MODELED_PRIOR",
+        "distinct_code_path": true
+      }
+    }
+  },
+  "latency_evidence_counts": {
+    "HOST_CPU_REFERENCE": 5,
+    "HOST_CPU_EMULATED": 10
+  },
+  "telemetry_evidence": "MODELED_PRIOR",
   "calibration_metrics": {
     "sample_count": 125,
-    "mean_latency_error": 0.2261,
-    "median_latency_error": 0.0698,
-    "mace_composite": 0.4131,
-    "prediction_bias": -0.0054,
-    "is_well_calibrated": true
+    "mean_latency_error": 1.1167,
+    "median_latency_error": 0.0267,
+    "mace_composite": 1.1167,
+    "prediction_bias": 0.0197,
+    "is_well_calibrated": false,
+    "calibration_status": "RECALIBRATION_REQUIRED",
+    "mace_tolerance": 0.3,
+    "min_samples_for_verdict": 10,
+    "secondary_metrics_included": false,
+    "per_class": {
+      "FP32_VECTOR_MATH": {
+        "sample_count": 25,
+        "median_latency_error": 0.0141
+      },
+      "MIXED_COMPUTE_MEMORY": {
+        "sample_count": 25,
+        "median_latency_error": 0.02
+      },
+      "MEMORY_BOUND_STREAM": {
+        "sample_count": 25,
+        "median_latency_error": 0.3531
+      },
+      "INT8_DOT_PRODUCT": {
+        "sample_count": 25,
+        "median_latency_error": 0.0153
+      },
+      "BRANCH_HEAVY_CONTROL": {
+        "sample_count": 25,
+        "median_latency_error": 0.0233
+      }
+    }
   },
   "regret_metrics": {
     "decision_count": 125,
-    "cumulative_regret": 0.0,
-    "average_regret_rate": 0.0,
-    "misplacement_count": 0,
-    "misplacement_rate": 0.0,
-    "model_optimality": "OPTIMAL"
+    "cumulative_regret": 6.3761,
+    "average_regret_rate": 0.051,
+    "noise_adjusted_regret_rate": 0.0123,
+    "misplacement_count": 7,
+    "misplacement_rate": 0.056,
+    "mean_latency_regret_ms": 0.00145,
+    "within_measurement_noise_count": 118,
+    "placement_quality": "PLACEMENT_RECALIBRATION_REQUIRED",
+    "model_optimality": "PLACEMENT_RECALIBRATION_REQUIRED",
+    "selected_tier_distribution": {
+      "TIER_0_DIRECTSIM": 125
+    },
+    "best_tier_distribution": {
+      "TIER_2_IRIS_XE": 37,
+      "TIER_1_CPU_VNNI": 11,
+      "TIER_0_DIRECTSIM": 77
+    },
+    "single_tier_selection": true,
+    "evaluated_tiers": [
+      "TIER_0_DIRECTSIM",
+      "TIER_1_CPU_VNNI",
+      "TIER_2_IRIS_XE"
+    ],
+    "scope_note": "Regret is relative to the tiers evaluated in this run on this host; it is not a claim of global optimality."
   },
-  "confidence_router_probes": 0,
-  "vital_max_hp_invariant": true
+  "regret_basis": "MEASURED_LATENCY_ONLY (U_t = L_min / L_t) over tiers with a distinct code path",
+  "confidence_router_probes": 22,
+  "confidence_router_reroutes": 0,
+  "unsupported_claims": [
+    "No T1/T2 number in empirical_distributions measures AVX-512/VNNI or Iris Xe hardware: those paths are HOST_CPU_EMULATED Python.",
+    "UMA / power / thermal values are MODELED_PRIORs, not telemetry."
+  ],
+  "vital_max_hp_invariant": true,
+  "hardware_evidence": {
+    "workload": "SDF_RAYMARCH",
+    "status": "HARDWARE_MEASURED",
+    "device_name": "Intel(R) Iris(R) Xe Graphics",
+    "rows": [
+      {
+        "resolution": "16x8",
+        "pixels": 128,
+        "repeats": 5,
+        "t2_median_ms": 0.5054,
+        "t2_evidence": "HARDWARE_MEASURED",
+        "t2_backends_observed": [
+          "VULKAN_GPU"
+        ],
+        "t0_median_ms": 1.9372,
+        "t0_evidence": "HOST_CPU_REFERENCE",
+        "t0_over_t2_ratio": 3.83,
+        "glyph_match_ratio": 1.0
+      },
+      {
+        "resolution": "64x32",
+        "pixels": 2048,
+        "repeats": 5,
+        "t2_median_ms": 1.1172,
+        "t2_evidence": "HARDWARE_MEASURED",
+        "t2_backends_observed": [
+          "VULKAN_GPU"
+        ],
+        "t0_median_ms": 33.7196,
+        "t0_evidence": "HOST_CPU_REFERENCE",
+        "t0_over_t2_ratio": 30.18,
+        "glyph_match_ratio": 1.0
+      },
+      {
+        "resolution": "160x80",
+        "pixels": 12800,
+        "repeats": 5,
+        "t2_median_ms": 5.8278,
+        "t2_evidence": "HARDWARE_MEASURED",
+        "t2_backends_observed": [
+          "VULKAN_GPU"
+        ],
+        "t0_median_ms": 224.8493,
+        "t0_evidence": "HOST_CPU_REFERENCE",
+        "t0_over_t2_ratio": 38.58,
+        "glyph_match_ratio": 1.0
+      }
+    ],
+    "smallest_evaluated_size_where_t2_faster_px": 128,
+    "note": "T2 timings include dispatch + readback. Crossover statement is limited to the evaluated resolutions; T0 here is the driver's pure-Python CPU reference."
+  },
+  "host": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+    "python": "3.14.7"
+  }
 }

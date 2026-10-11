@@ -87,6 +87,29 @@ class TierAvailabilityStatus(str, Enum):
     PHYSICALLY_UNAVAILABLE = "PHYSICALLY_UNAVAILABLE"
 
 
+class EvidenceLabel(str, Enum):
+    """
+    Phase 5.2 provenance label attached to every latency / telemetry number.
+
+    HARDWARE_MEASURED   : wall-clock measured while the named device actually executed the work
+                          (e.g. Vulkan dispatch with compute_backend == VULKAN_GPU).
+    HOST_CPU_REFERENCE  : measured on the host CPU running the scalar reference implementation.
+    HOST_CPU_EMULATED   : measured on the host CPU, but the code path only *emulates* the named
+                          tier (pure-Python INT8 "VNNI", Python "DP4A"). Says nothing about the device.
+    CAPABILITY_DETECTED : the instruction set / device exists; nothing was executed on it.
+    MODELED_PRIOR       : hand-written constant or analytic prior. Not a measurement.
+    UNAVAILABLE         : the quantity could not be observed on this host.
+    PHYSICALLY_UNAVAILABLE : the device does not exist on this host.
+    """
+    HARDWARE_MEASURED = "HARDWARE_MEASURED"
+    HOST_CPU_REFERENCE = "HOST_CPU_REFERENCE"
+    HOST_CPU_EMULATED = "HOST_CPU_EMULATED"
+    CAPABILITY_DETECTED = "CAPABILITY_DETECTED"
+    MODELED_PRIOR = "MODELED_PRIOR"
+    UNAVAILABLE = "UNAVAILABLE"
+    PHYSICALLY_UNAVAILABLE = "PHYSICALLY_UNAVAILABLE"
+
+
 @dataclass
 class ExecutionTierCapability:
     """Explicit hardware capability and operational readiness per tier."""
@@ -102,6 +125,9 @@ class ExecutionTierCapability:
     memory_cost_mb: float
     confidence: float
     epistemic_label: str
+    # Provenance of measured_latency_ms / measured_throughput_ops / thermal_cost_c / memory_cost_mb.
+    # These are static priors unless an adapter explicitly states otherwise.
+    metrics_evidence: str = EvidenceLabel.MODELED_PRIOR.value
 
     def to_dict(self) -> Dict[str, Any]:
         res = asdict(self)
@@ -271,7 +297,7 @@ class DirectSimAdapter(ExecutionTierAdapter):
             thermal_cost_c=0.05,
             memory_cost_mb=2.0,
             confidence=1.0,
-            epistemic_label="HARDWARE_MEASURED",
+            epistemic_label=EvidenceLabel.HOST_CPU_REFERENCE.value,
         )
 
     def available(self) -> bool:
@@ -334,7 +360,9 @@ class CpuVnniAdapter(ExecutionTierAdapter):
             thermal_cost_c=0.25,
             memory_cost_mb=8.0,
             confidence=0.98,
-            epistemic_label="HARDWARE_MEASURED",
+            # AVX-512 VNNI is CAPABILITY_DETECTED on Tiger Lake, but CpuVnniBackend is pure Python:
+            # no vpdpbusd instruction is ever issued, so execution evidence is host-CPU emulation.
+            epistemic_label=EvidenceLabel.HOST_CPU_EMULATED.value,
         )
 
     def available(self) -> bool:
@@ -376,7 +404,14 @@ class CpuVnniAdapter(ExecutionTierAdapter):
 
 
 class IrisXeVulkanAdapter(ExecutionTierAdapter):
-    """Tier 2: Intel Iris Xe Graphics Vulkan Compute / DP4A backend."""
+    """
+    Tier 2: Intel Iris Xe Graphics Vulkan Compute / DP4A backend.
+
+    EVIDENCE NOTE (Phase 5.2): execute() below is a host-CPU Python emulation of the
+    elementwise kernel. The repository's real Vulkan path (src/python/vulkan_compute_driver.py)
+    currently only ships a raymarch SPIR-V kernel, so this adapter reports HOST_CPU_EMULATED.
+    Real GPU evidence is collected separately by HardwareEvidenceProbe (SDF raymarch).
+    """
 
     def __init__(self, simulate_dp4a: bool = True):
         self.simulate_dp4a = simulate_dp4a
@@ -398,7 +433,7 @@ class IrisXeVulkanAdapter(ExecutionTierAdapter):
             thermal_cost_c=0.65,
             memory_cost_mb=24.0,
             confidence=0.95,
-            epistemic_label="HARDWARE_MEASURED",
+            epistemic_label=EvidenceLabel.HOST_CPU_EMULATED.value,
         )
 
     def available(self) -> bool:
@@ -440,7 +475,10 @@ class IrisXeVulkanAdapter(ExecutionTierAdapter):
             "device": "Intel(R) Iris(R) Xe Graphics",
             "dispatch_count": self._dispatch_count,
             "last_latency_ms": self._last_latency_ms,
-            "real_dp4a_execution": self.simulate_dp4a,
+            # Previously reported `self.simulate_dp4a` here, i.e. True exactly when emulating.
+            "real_dp4a_execution": False,
+            "emulation_mode": self.simulate_dp4a,
+            "dispatch_backend": EvidenceLabel.HOST_CPU_EMULATED.value,
             "device_loss": self.device_loss_active,
         }
 
@@ -756,12 +794,9 @@ class RuntimePlacementEngine:
                     cost["latency_ms"] = self.empirical_cost_model.predict_latency(wc, tier_id)
                     stats = self.empirical_cost_model.get_distribution_stats(wc, tier_id)
                     cost["uncertainty"] = stats.uncertainty_score
-                    if wc == WorkloadClass.MEMORY_BOUND_STREAM and tier_id == ExecutionTierID.TIER_2_IRIS_XE:
-                        cost["uma_pressure"] = 0.72
-                    elif wc == WorkloadClass.BRANCH_HEAVY_CONTROL and tier_id == ExecutionTierID.TIER_2_IRIS_XE:
-                        cost["latency_ms"] = 0.120
-                    elif wc == WorkloadClass.BRANCH_HEAVY_CONTROL and tier_id == ExecutionTierID.TIER_1_CPU_VNNI:
-                        cost["latency_ms"] = 0.035
+                    # Phase 5.2: removed hand-written overrides (GPU branch 0.120 ms, CPU branch
+                    # 0.035 ms, GPU stream UMA 0.72). Latency now comes only from the empirical
+                    # model; UMA/power/thermal remain adapter MODELED_PRIORs.
                     cost["throughput_ops"] = min(250000.0, (1000.0 * 128) / max(0.001, cost["latency_ms"]))
                 except Exception:
                     pass
