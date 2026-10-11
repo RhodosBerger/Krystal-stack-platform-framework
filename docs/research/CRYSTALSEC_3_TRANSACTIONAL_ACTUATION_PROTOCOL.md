@@ -133,11 +133,14 @@ If $e \le 0.35$ ($35\%$ normalized tolerance) and $S_{\text{observed}} \in \math
 
 ---
 
-## 6. Deterministic Rollback Verification & Safe Region Invariant
+## 6. Deterministic Rollback Verification & Anti-Tautological Proof
 
-Rollback success is not assumed; it must be formally audited via `RollbackVerification`:
+Rollback success is not assumed; it must be formally audited via [`PostRollbackVerifier`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_kernel/verification/crystalsec_v3_actuation_plane.py) measuring actual live post-rollback state:
 
-$$\text{Rollback Verified} \iff \left(\text{ControlState}_{\text{restored}} \equiv \text{ControlState}_{\text{pre}}\right) \land \left(S_{\text{observed}} \in \mathcal{R}_{\text{safe}}\right) \land \left(\text{Hash}_{\text{restored}} \equiv \text{Hash}_{\text{canonical}}\right)$$
+$$\text{Rollback Verified} \iff \left(\text{ControlState}_{\text{live}} \equiv \text{ControlState}_{\text{pre}}\right) \land \left(S_{\text{live}} \in \mathcal{R}_{\text{safe}}\right) \land \left(\text{Hash}_{\text{live}} \equiv \text{Hash}_{\text{canonical}}\right)$$
+
+### Anti-Tautology Invariant (P0 Fix)
+In Phase 4.1, `post_hash` is **never** re-computed from `snapshot` attributes. Instead, [`compute_runtime_restorable_hash()`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_kernel/verification/crystalsec_v3_actuation_plane.py) evaluates the live values currently resident in runtime adapters and telemetry sensors. If an adapter fails to revert the variable, `post_hash` will fail equality with `snapshot.canonical_restorable_hash`.
 
 ### Unverifiable Rollback & `FAILED_SAFE` Transition
 If an adapter fails to restore the old value, or if the system remains outside $\mathcal{R}_{\text{safe}}$ following rollback, the engine transitions immediately to **`FAILED_SAFE`**:
@@ -145,6 +148,7 @@ If an adapter fails to restore the old value, or if the system remains outside $
 2. GPU profile is demoted to `POWER_SAVER` ($4\times 4$ workgroups, $0.5\times$ internal render scale, $16$ step budget).
 3. Live Vulkan issuance is halted.
 4. An emergency audit event is emitted to the hash chain.
+5. In accordance with dynamically aggregated reporting, `report["rollback"]["verified"]` evaluates strictly to `False`.
 
 ---
 
@@ -175,19 +179,52 @@ Enforces atomic bundle switching:
 Every transaction maintains an immutable event history chained via SHA-256:
 $$\text{audit\_hash}_{t} = \text{SHA-256}\left(\text{audit\_hash}_{t-1} \,\|\, \text{event\_payload}_t\right)$$
 
-### Idempotency & Conflict Prevention
+### Idempotency & Thread-Safe Conflict Prevention
 1. **Idempotency:** Transactions are uniquely indexed by `transaction_id`. Resubmitting an identical ID returns the existing terminal record without re-mutating runtime state.
-2. **Variable Locks:** Only one transaction may actively mutate a given variable at any instant. Concurrent requests targeting a locked variable are rejected (`ELIGIBILITY_FAILED`).
-3. **Anti-Oscillation:** Following a rollback on variable $V$, a $2.0\text{ s}$ refractory lockout prevents control chatter and hunting oscillations.
+2. **Reentrant Mutex Locks:** All state mutations and concurrency checks are serialized via `threading.RLock()`.
+3. **Variable Locks:** Only one transaction may actively mutate a given variable at any instant. Concurrent requests targeting a locked variable are atomically rejected (`ELIGIBILITY_FAILED`).
+4. **Anti-Oscillation:** Following a rollback on variable $V$, a $2.0\text{ s}$ refractory lockout prevents control chatter and hunting oscillations.
 
 ---
 
 ## 9. Verification & Test Summary
 
-The Phase 4 test suite [`tests/test_crystalsec_v3_actuation_plane.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_crystalsec_v3_actuation_plane.py) certifies all 16 formal conditions:
+The Phase 4.1 test suite [`tests/test_crystalsec_v3_actuation_plane.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_crystalsec_v3_actuation_plane.py) certifies all 26 formal conditions:
 
 | Test Case | Invariant Verified | Outcome |
 | :--- | :--- | :--- |
+| `test_bounded_mutation_applies_correctly` | Whitelisted action applies bounded mutation | **PASS** |
+| `test_prediction_match_commits_transaction` | Prediction match commits within tolerance | **PASS** |
+| `test_prediction_divergence_triggers_rollback` | Divergence beyond tolerance triggers rollback | **PASS** |
+| `test_timeout_triggers_deterministic_rollback` | Observation timeout forces rollback | **PASS** |
+| `test_stale_decision_fails_eligibility_check` | Stale decisions ($>3\text{ s}$) are rejected | **PASS** |
+| `test_unwhitelisted_variable_is_rejected` | UMA isolation / arbitrary mutations rejected | **PASS** |
+| `test_cpu_failover_transaction_lifecycle` | Drains GPU and switches authoritatively to CPU | **PASS** |
+| `test_restored_control_state_matches_snapshot` | Rollback perfectly restores precondition control state | **PASS** |
+| `test_rollback_reenters_safe_region` | Post-rollback state confirmed within $\mathcal{R}_{\text{safe}}$ | **PASS** |
+| `test_failed_rollback_enters_failed_safe` | Adapter rollback failure triggers `FAILED_SAFE` | **PASS** |
+| `test_duplicate_transaction_is_idempotent` | Re-execution returns cached terminal result | **PASS** |
+| `test_conflicting_transaction_is_rejected` | Concurrency locks reject conflicting mutations | **PASS** |
+| `test_invariant_violation_preempts_transaction` | `VITAL_MAX_HP != 6` aborts eligibility | **PASS** |
+| `test_observer_overhead_rolls_back_telemetry_burst` | Burst $>15\%$ overhead rolls back safely | **PASS** |
+| `test_gpu_restore_requires_new_decision` | Intra-transaction GPU resurrection forbidden | **PASS** |
+| `test_machine_readable_report_and_api_dispatcher` | Certified report and REST/SSE dispatch verified | **PASS** |
+| `test_post_rollback_hash_uses_live_runtime_state` | Anti-tautology: Live un-restored state fails hash match | **PASS** |
+| `test_fake_snapshot_hash_cannot_pass_verification` | Tampered snapshot hash rejected by verifier | **PASS** |
+| `test_invariant_restoration_is_remeasured` | Invariant state re-evaluated from fresh telemetry | **PASS** |
+| `test_safe_region_uses_fresh_telemetry` | Safe region membership re-evaluated from live sensor | **PASS** |
+| `test_real_monotonic_timeout_rolls_back` | Real monotonic deadline elapsing triggers rollback | **PASS** |
+| `test_observation_requires_minimum_samples` | Minimum sample quota enforced before evaluation | **PASS** |
+| `test_single_good_sample_cannot_mask_bad_window` | Robust median delta prevents single-sample masking | **PASS** |
+| `test_concurrent_same_variable_submission_is_atomic` | Multi-threaded race condition protection certified | **PASS** |
+| `test_failed_safe_report_is_not_marked_verified` | FAILED_SAFE transitions properly invalidate verified status | **PASS** |
+| `test_committed_transaction_uses_observed_not_synthetic_delta` | Observed delta derived strictly from empirical samples | **PASS** |
+
+### Complete Regression Suite (Phases 1 through 4.1)
+```text
+Ran 81 tests in 3.176s - OK (0 failures, 0 errors)
+```
+
 | `test_bounded_mutation_applies_correctly` | Whitelisted action applies bounded mutation | **PASS** |
 | `test_prediction_match_commits_transaction` | Prediction match commits within tolerance | **PASS** |
 | `test_prediction_divergence_triggers_rollback` | Divergence beyond tolerance triggers rollback | **PASS** |

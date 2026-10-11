@@ -13,6 +13,7 @@ Verifies:
 8. GPU failover safe lifecycle and restriction on immediate GPU re-enablement
 """
 
+import concurrent.futures
 import copy
 import time
 import unittest
@@ -23,14 +24,18 @@ from krystal_kernel.verification.crystalsec_v3_actuation_plane import (
     ComputeBackendAdapter,
     GPUProfileAdapter,
     GpuProfileLevel,
+    ObservationWindow,
+    PostRollbackVerifier,
     PreconditionSnapshot,
     RollbackPlan,
     RollbackVerification,
+    RuntimeStateReader,
     SpeculativeDepthAdapter,
     TelemetrySamplingAdapter,
     TransactionalActuationApiDispatcher,
     TransactionalActuationEngine,
     TransactionState,
+    compute_runtime_restorable_hash,
 )
 from krystal_kernel.verification.crystalsec_v3_control_plane import (
     ActionCandidateType,
@@ -439,6 +444,301 @@ class TestCrystalSecV3ActuationPlane(unittest.TestCase):
         res_get = dispatcher.dispatch_request(f"/api/cortex/actuation/{tx_id}", method="GET")
         self.assertEqual(res_get["status"], "SUCCESS")
         self.assertEqual(res_get["record"]["transaction_id"], tx_id)
+
+    # ========================================================================
+    # PHASE 4.1: RUNTIME TRUTH VERIFICATION & FAULTED RECOVERY TESTS
+    # ========================================================================
+
+    def test_post_rollback_hash_uses_live_runtime_state(self):
+        """
+        Anti-Tautology Proof: If an adapter fails to restore the live variable,
+        the post-rollback hash computed from the live state diverges from the
+        precondition snapshot hash, failing verification.
+        """
+        state = make_test_state()
+        decision = self.control_plane.evaluate_control_plane(state)
+        decision.selected_action = {
+            "action_id": "ACT-HASH-001",
+            "action_type": ActionCandidateType.SPECULATIVE_DEPTH_TUNING.value,
+            "proposed_value": 3,
+            "allowed": True,
+        }
+
+        # Initial depth is 1
+        broken_adapter = SpeculativeDepthAdapter(initial_depth=1)
+        engine = TransactionalActuationEngine(speculative_adapter=broken_adapter)
+        # Capture snapshot while initial depth is 1
+        snapshot = engine.capture_precondition_snapshot(decision, state, "speculative_frame_depth")
+        self.assertEqual(snapshot.old_value, 1)
+
+        # Mutate to 3
+        broken_adapter.apply(3)
+        # Corrupt rollback to be a no-op that leaves value at 3
+        broken_adapter.rollback = lambda old_val: True  # claims success, but leaves value at 3!
+
+        # Verify live hash calculation
+        current_control_state = engine.get_current_control_state()
+        self.assertEqual(current_control_state["speculative_frame_depth"], 3)  # Still corrupted
+
+        verification = PostRollbackVerifier.verify(
+            snapshot=snapshot,
+            current_control_state=current_control_state,
+            live_telemetry=snapshot.telemetry_baseline,
+            invariant_evaluation={"vital_max_hp": True, "no_device_fault": True},
+        )
+
+        self.assertFalse(verification.matches_precondition_hash)
+        self.assertFalse(verification.control_state_restored)
+        self.assertFalse(verification.verified)
+
+    def test_fake_snapshot_hash_cannot_pass_verification(self):
+        """If a precondition snapshot possesses a tampered hash, rollback verification fails."""
+        state = make_test_state()
+        decision = self.control_plane.evaluate_control_plane(state)
+        snapshot = self.engine.capture_precondition_snapshot(decision, state, "speculative_frame_depth")
+        # Tamper snapshot hash
+        snapshot.canonical_restorable_hash = "0" * 64
+
+        current_control_state = self.engine.get_current_control_state()
+        verification = PostRollbackVerifier.verify(
+            snapshot=snapshot,
+            current_control_state=current_control_state,
+            live_telemetry=snapshot.telemetry_baseline,
+            invariant_evaluation={"vital_max_hp": True, "no_device_fault": True},
+        )
+        self.assertFalse(verification.matches_precondition_hash)
+        self.assertFalse(verification.verified)
+
+    def test_invariant_restoration_is_remeasured(self):
+        """Invariant restoration must be evaluated from actual live measurements."""
+        state = make_test_state()
+        decision = self.control_plane.evaluate_control_plane(state)
+        snapshot = self.engine.capture_precondition_snapshot(decision, state, "speculative_frame_depth")
+
+        # Invariant breached in live state (e.g. vital_max_hp != 6)
+        live_invariants = {"vital_max_hp": False, "no_device_fault": True}
+        verification = PostRollbackVerifier.verify(
+            snapshot=snapshot,
+            current_control_state=self.engine.get_current_control_state(),
+            live_telemetry=snapshot.telemetry_baseline,
+            invariant_evaluation=live_invariants,
+        )
+        self.assertFalse(verification.invariant_state_restored)
+        self.assertFalse(verification.verified)
+
+    def test_safe_region_uses_fresh_telemetry(self):
+        """Safe region verification re-evaluates fresh measured telemetry, not static baseline."""
+        state = make_test_state()
+        decision = self.control_plane.evaluate_control_plane(state)
+        snapshot = self.engine.capture_precondition_snapshot(decision, state, "speculative_frame_depth")
+
+        # Fresh telemetry exceeds thermal ceiling (99C > 95C limit)
+        hot_telemetry = copy.deepcopy(snapshot.telemetry_baseline)
+        hot_telemetry["junction_temperature_c"] = 99.0
+
+        verification = PostRollbackVerifier.verify(
+            snapshot=snapshot,
+            current_control_state=self.engine.get_current_control_state(),
+            live_telemetry=hot_telemetry,
+            invariant_evaluation={"vital_max_hp": True, "no_device_fault": True},
+        )
+        self.assertFalse(verification.safe_region_reentered)
+        self.assertFalse(verification.verified)
+
+    def test_real_monotonic_timeout_rolls_back(self):
+        """ObservationWindow enforces real monotonic timeout and triggers rollback."""
+        state = make_test_state()
+        decision = self.control_plane.evaluate_control_plane(state)
+        decision.selected_action = {
+            "action_id": "ACT-TIME-REAL",
+            "action_type": ActionCandidateType.SPECULATIVE_DEPTH_TUNING.value,
+            "proposed_value": 3,
+            "allowed": True,
+        }
+
+        # Simulated slow provider that takes 0.05s per sample
+        def slow_provider():
+            time.sleep(0.04)
+            return {"gpu_frame_time_ms": 0.45}
+
+        # Timeout set to 0.02s (< 0.04s sample latency)
+        record = self.engine.execute_transaction(
+            decision,
+            state,
+            observation_telemetry_provider=slow_provider,
+            min_observation_samples=3,
+            override_timeout_s=0.02,
+        )
+
+        self.assertEqual(record.transaction_state, TransactionState.ROLLED_BACK)
+        self.assertEqual(record.result, ActuationResult.ROLLED_BACK)
+        # Confirms 'timed_out' event was recorded
+        event_types = [e["event_type"] for e in record.events]
+        self.assertIn("timed_out", event_types)
+
+    def test_observation_requires_minimum_samples(self):
+        """ObservationWindow will not evaluate early until min_samples is achieved."""
+        obs = ObservationWindow(min_samples=4, sample_interval_s=0.001, timeout_s=0.02)
+        call_count = [0]
+
+        def limited_provider():
+            call_count[0] += 1
+            if call_count[0] <= 2:
+                return {"gpu_frame_time_ms": 0.45}
+            time.sleep(0.03)  # Block remaining
+            return {}
+
+        success = obs.collect(limited_provider)
+        self.assertFalse(success)
+        self.assertTrue(obs.timed_out)
+        self.assertLess(len(obs.samples), 4)
+
+    def test_single_good_sample_cannot_mask_bad_window(self):
+        """
+        A single low-latency sample cannot mask a degraded observation window;
+        the median reflects the prevailing degraded state and triggers rollback.
+        """
+        state = make_test_state()
+        decision = self.control_plane.evaluate_control_plane(state)
+        decision.selected_action = {
+            "action_id": "ACT-BURST-MEDIAN",
+            "action_type": ActionCandidateType.SPECULATIVE_DEPTH_TUNING.value,
+            "proposed_value": 4,
+            "allowed": True,
+        }
+        decision.counterfactual_results = [{
+            "action_id": "ACT-BURST-MEDIAN",
+            "predicted_latency": 0.45,
+            "predicted_sigma": 0.10,
+        }]
+
+        sample_iter = iter([
+            {"gpu_frame_time_ms": 0.45, "sigma_strain": 0.10},  # 1 lucky sample
+            {"gpu_frame_time_ms": 25.0, "sigma_strain": 0.90},  # 4 heavily degraded samples
+            {"gpu_frame_time_ms": 26.0, "sigma_strain": 0.92},
+            {"gpu_frame_time_ms": 24.0, "sigma_strain": 0.88},
+            {"gpu_frame_time_ms": 27.0, "sigma_strain": 0.95},
+        ])
+
+        def burst_provider():
+            try:
+                return next(sample_iter)
+            except StopIteration:
+                return {"gpu_frame_time_ms": 25.0, "sigma_strain": 0.90}
+
+        record = self.engine.execute_transaction(
+            decision,
+            state,
+            observation_telemetry_provider=burst_provider,
+            min_observation_samples=5,
+        )
+
+        self.assertEqual(record.result, ActuationResult.ROLLED_BACK)
+        # Median latency was ~25.0ms, far exceeding prediction 0.45ms
+        self.assertGreater(record.observed_delta["gpu_frame_time_ms"], 20.0)
+
+    def test_concurrent_same_variable_submission_is_atomic(self):
+        """Multiple threads submitting transactions on the same variable are serialized atomically."""
+        engine = TransactionalActuationEngine()
+        state = make_test_state()
+        decision = self.control_plane.evaluate_control_plane(state)
+        decision.selected_action = {
+            "action_id": "ACT-THREAD-SAFE",
+            "action_type": ActionCandidateType.SPECULATIVE_DEPTH_TUNING.value,
+            "proposed_value": 0,
+            "allowed": True,
+        }
+
+        results = []
+
+        def worker(thread_idx: int):
+            dec_copy = copy.deepcopy(decision)
+            dec_copy.decision_id = f"DEC-THREAD-{thread_idx}"
+            # Slow observation window to guarantee overlap
+            def delay_provider():
+                time.sleep(0.01)
+                return {"gpu_frame_time_ms": 0.45}
+
+            rec = engine.execute_transaction(
+                dec_copy,
+                state,
+                observation_telemetry_provider=delay_provider,
+                min_observation_samples=2,
+            )
+            return rec.result
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+            futures = [executor.submit(worker, i) for i in range(6)]
+            results = [f.result() for f in concurrent.futures.as_completed(futures)]
+
+        # Exactly 1 transaction should acquire the variable and commit
+        # The remaining 5 should be rejected as concurrent conflicting locks
+        committed_count = results.count(ActuationResult.COMMITTED)
+        rejected_count = results.count(ActuationResult.ELIGIBILITY_FAILED)
+
+        self.assertEqual(committed_count, 1)
+        self.assertEqual(rejected_count, 5)
+
+    def test_failed_safe_report_is_not_marked_verified(self):
+        """When any transaction enters FAILED_SAFE, generate_report() reports verified = False."""
+        state = make_test_state()
+        decision = self.control_plane.evaluate_control_plane(state)
+        decision.selected_action = {
+            "action_id": "ACT-FS-REPORT",
+            "action_type": ActionCandidateType.SPECULATIVE_DEPTH_TUNING.value,
+            "proposed_value": 2,
+            "allowed": True,
+        }
+
+        # Force rollback failure
+        self.engine.execute_transaction(
+            decision,
+            state,
+            injected_fault="TIMEOUT",
+            force_fail_rollback=True,
+        )
+
+        report = self.engine.generate_report()
+        self.assertFalse(report["rollback"]["verified"])
+        self.assertGreaterEqual(report["transactions"]["failed_safe"], 1)
+
+    def test_committed_transaction_uses_observed_not_synthetic_delta(self):
+        """Verifies that observed_delta in a committed transaction accurately matches empirical median."""
+        state = make_test_state()
+        decision = self.control_plane.evaluate_control_plane(state)
+        decision.selected_action = {
+            "action_id": "ACT-EMPIRICAL-001",
+            "action_type": ActionCandidateType.SPECULATIVE_DEPTH_TUNING.value,
+            "proposed_value": 0,
+            "allowed": True,
+        }
+        decision.counterfactual_results = [{
+            "action_id": "ACT-EMPIRICAL-001",
+            "predicted_latency": 0.40,
+            "predicted_sigma": 0.15,
+        }]
+
+        # Provider emits explicit samples with latency 0.38ms (baseline is 0.45ms -> delta = -0.07ms)
+        def empirical_provider():
+            return {
+                "gpu_frame_time_ms": 0.38,
+                "sigma_strain": 0.15,
+                "junction_temperature_c": 45.0,
+                "queue_pressure": 0.10,
+                "D_divergence": 0.0,
+                "health_vector_H": 0.95,
+            }
+
+        record = self.engine.execute_transaction(
+            decision,
+            state,
+            observation_telemetry_provider=empirical_provider,
+            min_observation_samples=3,
+        )
+
+        self.assertEqual(record.result, ActuationResult.COMMITTED)
+        self.assertAlmostEqual(record.observed_delta["gpu_frame_time_ms"], -0.07, places=3)
+
 
 
 if __name__ == "__main__":
