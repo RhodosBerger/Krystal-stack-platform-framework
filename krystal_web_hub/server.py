@@ -235,8 +235,22 @@ loop Symmetry(iterations: 8, fold: 8) { transform: DISPLACE(amp: 0.12, freq: 2.2
 
         # Director Log Queue
         self.director_events = []
+        # Verification & Closed-Loop Live Event Queue
+        self.verification_events = []
 
 state = EngineState()
+
+try:
+    from krystal_kernel.verification.live_policy_consumer import GLOBAL_LIVE_POLICY_CONSUMER
+    def push_verification_event(event_type: str, payload: dict):
+        with state.lock:
+            state.verification_events.append((event_type, payload))
+            if len(state.verification_events) > 120:
+                state.verification_events.pop(0)
+
+    GLOBAL_LIVE_POLICY_CONSUMER.event_emitter = push_verification_event
+except Exception as _e:
+    print(f"[WARN] LivePolicyConsumer event binding notice: {_e}")
 
 # ─── 2. SKEUOMORPHIC PROCEDURAL 3D SDF (REAL-WORLD ITEMS) ───────────────────
 
@@ -347,9 +361,10 @@ def engine_worker_loop():
 
         # ── Mode 1: 3D SDF Raymarching ─────────────────────────────
         if mode in ("RAYMARCH_ANOMALY", "CYBERPUNK", "BLUEPRINT_EDGE", "HIGH_FIDELITY"):
+            spec_depth = int(GLOBAL_LIVE_POLICY_CONSUMER.runtime_state_ref.get("speculative_depth", 32))
             if state.vulkan_driver and state.use_vulkan and not state.backpressure_active:
                 glyphs, colors = state.vulkan_driver.execute_raymarch(
-                    width=cols, height=rows, t=t, mode=mode, step_budget=32
+                    width=cols, height=rows, t=t, mode=mode, step_budget=spec_depth
                 )
                 for y in range(rows):
                     row_offset = y * cols
@@ -381,7 +396,7 @@ def engine_worker_loop():
                         dist = 0.0
                         hit = False
                         p = ro
-                        for _ in range(20):
+                        for _ in range(spec_depth):
                             p = (ro[0] + rd[0]*dist, ro[1] + rd[1]*dist, ro[2] + rd[2]*dist)
                             d = scene_sdf(p, t)
                             if d < 0.005:
@@ -634,10 +649,13 @@ def engine_worker_loop():
                         "message": f"STABLE: Coherence healthy ({(1.0 - tot_entropy)*100:.0f}%). Slicing optimal for Dual-Earn compute."
                     })
 
-        # FPS regulation (Target 30 FPS for browser SSE efficiency)
+        # FPS regulation via Live Policy Consumer (Closed-Loop)
+        target_hz = float(GLOBAL_LIVE_POLICY_CONSUMER.runtime_state_ref.get("sampling_rate_hz", 30.0))
+        target_interval = 1.0 / max(5.0, min(60.0, target_hz))
+
         frame_time = time.perf_counter() - frame_start
-        if frame_time < 0.033:
-            time.sleep(0.033 - frame_time)
+        if frame_time < target_interval:
+            time.sleep(target_interval - frame_time)
         state.fps = 1.0 / max(0.001, time.perf_counter() - frame_start)
 
 # ─── 4. MULTI-THREADED HTTP & SSE REQUEST HANDLER ────────────────────────────
@@ -2388,6 +2406,24 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 self.send_json({"status": "INVALID_PATH", "expected": "/api/verification/state/{domain}/{subject}"}, 400)
             return
 
+        elif norm_path in ("/api/verification/ledger", "/api/verification/closed-loop/ledger"):
+            from krystal_kernel.verification.live_policy_consumer import GLOBAL_LIVE_POLICY_CONSUMER
+            entries = [e.to_dict() for e in GLOBAL_LIVE_POLICY_CONSUMER.ledger]
+            self.send_json({"status": "OK", "ledger": entries, "count": len(entries)})
+            return
+
+        elif norm_path in ("/api/verification/closed-loop/status", "/api/verification/consumer/status"):
+            from krystal_kernel.verification.live_policy_consumer import GLOBAL_LIVE_POLICY_CONSUMER
+            self.send_json({
+                "status": "OK",
+                "consumer_mode": GLOBAL_LIVE_POLICY_CONSUMER.mode.value,
+                "runtime_state": GLOBAL_LIVE_POLICY_CONSUMER.runtime_state_ref,
+                "is_oscillation_detected": GLOBAL_LIVE_POLICY_CONSUMER.guard.is_oscillation_detected,
+                "permitted_variables": list(GLOBAL_LIVE_POLICY_CONSUMER.PERMITTED_VARIABLES.keys()),
+                "vital_hp": 6
+            })
+            return
+
         # ── API: Midnight Stable Build Demonstration ─────────────────
         elif norm_path in ("/api/demonstration/midnight-build", "/api/midnight/status"):
             cert_path = os.path.join(WORKSPACE_ROOT, "artifacts", "MIDNIGHT_STABLE_BUILD_CERTIFICATE.json")
@@ -2820,6 +2856,8 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                         bp = state.backpressure_active
                         events = list(state.director_events)
                         state.director_events.clear()
+                        v_events = list(state.verification_events)
+                        state.verification_events.clear()
                         c_phase = state.cyclic_engine.cognitive_phase if state.cyclic_engine else "UNKNOWN"
                         h_energy = round(state.cyclic_engine.total_hamiltonian(), 4) if state.cyclic_engine else 0.0
                         vk_info = {
@@ -2852,6 +2890,29 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                     # Send director events if any
                     for ev in events:
                         self.wfile.write(f"event: director\ndata: {json.dumps(ev)}\n\n".encode("utf-8"))
+                        self.wfile.flush()
+
+                    # Send typed verification and closed-loop events
+                    for ev_type, ev_data in v_events:
+                        self.wfile.write(f"event: {ev_type}\ndata: {json.dumps(ev_data)}\n\n".encode("utf-8"))
+                        self.wfile.flush()
+
+                    # Periodic typed telemetry heartbeat (every 10 frames)
+                    if cur_id % 10 == 0:
+                        from krystal_kernel.verification.live_policy_consumer import GLOBAL_LIVE_POLICY_CONSUMER
+                        telem_payload = {
+                            "timestamp": time.time(),
+                            "frame_id": cur_id,
+                            "fps": round(fps, 1),
+                            "entropy": ent,
+                            "governor": gov,
+                            "sampling_rate_hz": GLOBAL_LIVE_POLICY_CONSUMER.runtime_state_ref.get("sampling_rate_hz", 30.0),
+                            "speculative_depth": GLOBAL_LIVE_POLICY_CONSUMER.runtime_state_ref.get("speculative_depth", 32),
+                            "consumer_mode": GLOBAL_LIVE_POLICY_CONSUMER.mode.value,
+                            "is_oscillation_detected": GLOBAL_LIVE_POLICY_CONSUMER.guard.is_oscillation_detected,
+                            "vital_hp": 6
+                        }
+                        self.wfile.write(f"event: telemetry\ndata: {json.dumps(telem_payload)}\n\n".encode("utf-8"))
                         self.wfile.flush()
 
                     time.sleep(0.033) # 30 FPS stream
@@ -4081,6 +4142,38 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 pkg = GLOBAL_VERIFICATION_FACADE.replay_engine.replay_archive[exp.replay_package_id]
                 res = GLOBAL_VERIFICATION_FACADE.replay_engine.execute_replay(pkg)
                 self.send_json({"status": "OK", "replay": res.to_dict(), "package": pkg.to_dict()})
+            return
+
+        elif self.path in ("/api/verification/closed-loop/pulse", "/api/verification/pulse"):
+            from krystal_kernel.verification.live_policy_consumer import GLOBAL_LIVE_POLICY_CONSUMER
+            from krystal_kernel.verification.unified_facade import GLOBAL_VERIFICATION_FACADE
+            domain_id = data.get("domain_id", "game_simulation")
+            subject_id = data.get("subject_id", "crystal_colony")
+            target_var = data.get("target_variable", "sampling_rate_hz")
+            step = float(data.get("delta_step", 5.0))
+
+            raw = GLOBAL_VERIFICATION_FACADE._sample_domain_telemetry(domain_id, subject_id)
+            sv = GLOBAL_VERIFICATION_FACADE.comparator.normalize_domain_metrics(domain_id, subject_id, raw)
+
+            # Desired state setpoint: high utility, balanced dispersion
+            desired_sv = GLOBAL_VERIFICATION_FACADE.comparator.normalize_domain_metrics(domain_id, f"{subject_id}_desired", [4.8, 92.0, 4.4, 35.0])
+
+            res = GLOBAL_LIVE_POLICY_CONSUMER.execute_closed_loop_cycle(
+                domain_id=domain_id,
+                subject_id=subject_id,
+                current_state_vector=sv,
+                desired_state_vector=desired_sv,
+                target_variable=target_var,
+                delta_step=step
+            )
+            self.send_json({"status": "OK", "result": res})
+            return
+
+        elif self.path in ("/api/verification/closed-loop/reset-guard", "/api/verification/reset-guard"):
+            from krystal_kernel.verification.live_policy_consumer import GLOBAL_LIVE_POLICY_CONSUMER, ConsumerMode
+            GLOBAL_LIVE_POLICY_CONSUMER.guard.reset()
+            GLOBAL_LIVE_POLICY_CONSUMER.mode = ConsumerMode.ACTIVE_REGULATION
+            self.send_json({"status": "OK", "consumer_mode": GLOBAL_LIVE_POLICY_CONSUMER.mode.value})
             return
 
         # ── API: Sensory Shockwave Simulation ────────────────────────

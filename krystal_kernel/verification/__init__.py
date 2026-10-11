@@ -56,6 +56,13 @@ from krystal_kernel.verification.unified_facade import (
     UnifiedVerificationFacade,
     GLOBAL_VERIFICATION_FACADE,
 )
+from krystal_kernel.verification.live_policy_consumer import (
+    LivePolicyConsumer,
+    GLOBAL_LIVE_POLICY_CONSUMER,
+    AntiOscillationGuard,
+    ExperimentLedgerEntry,
+    ConsumerMode,
+)
 
 __all__ = [
     "StateVector",
@@ -86,4 +93,9 @@ __all__ = [
     "VerificationExperimentResult",
     "UnifiedVerificationFacade",
     "GLOBAL_VERIFICATION_FACADE",
+    "LivePolicyConsumer",
+    "GLOBAL_LIVE_POLICY_CONSUMER",
+    "AntiOscillationGuard",
+    "ExperimentLedgerEntry",
+    "ConsumerMode",
 ]

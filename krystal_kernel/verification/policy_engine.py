@@ -73,7 +73,8 @@ class VerificationPolicy:
         "cpu.threads", "openvino.streams", "cpu.affinity",
         "batch_size", "queue_max_depth", "context_limit_tokens",
         "memory_limit_mb", "sampling_rate_hz", "cgroups.memory.high",
-        "rpm_differential_limit", "feed_reduction_pct", "hand_card_cost_threshold"
+        "rpm_differential_limit", "feed_reduction_pct", "hand_card_cost_threshold",
+        "speculative_depth", "entropy_threshold", "mirror_folds", "coherence_damping"
     ])
 
 

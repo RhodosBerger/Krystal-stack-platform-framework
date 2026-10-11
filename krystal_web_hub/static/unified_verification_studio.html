@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Krystal Unified Simulation & Verification Layer</title>
+  <title>Krystal Unified Verification & Closed-Loop Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -18,6 +18,7 @@
       --cyan: #38bdf8;
       --emerald: #10b981;
       --amber: #f59e0b;
+      --gold: #fbbf24;
       --rose: #f43f5e;
       --purple: #a855f7;
       --blue: #3b82f6;
@@ -111,14 +112,49 @@
       gap: 0.4rem;
     }
 
-    .conduct-badge {
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid var(--border-subtle);
-      color: var(--cyan);
+    .status-pill {
       padding: 0.35rem 0.75rem;
       border-radius: 20px;
       font-size: 0.75rem;
+      font-weight: 700;
       font-family: 'JetBrains Mono', monospace;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .status-pill.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: var(--emerald);
+    }
+
+    .status-pill.diagnostic {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: var(--amber);
+    }
+
+    .status-pill.live-sse {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      animation: pulseAnim 1.5s infinite;
+    }
+
+    @keyframes pulseAnim {
+      0% { opacity: 0.3; transform: scale(0.9); }
+      50% { opacity: 1.0; transform: scale(1.2); }
+      100% { opacity: 0.3; transform: scale(0.9); }
     }
 
     main {
@@ -269,6 +305,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
     }
 
     .panel-title {
@@ -299,20 +337,79 @@
       box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
     }
 
-    /* ── RADAR GEOMETRY CANVAS ──────────────────────────── */
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-bright);
+    }
+
+    .btn-danger {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: var(--rose);
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-danger:hover {
+      background: rgba(244, 63, 94, 0.25);
+    }
+
+    /* ── RADAR GEOMETRY CANVAS (TRI-GEOMETRY) ────────────── */
     .radar-container {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       position: relative;
-      padding: 1rem 0;
+      padding: 0.5rem 0;
     }
 
     .radar-svg {
-      width: 280px;
-      height: 280px;
-      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.2));
+      width: 290px;
+      height: 290px;
+      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.2));
     }
+
+    .radar-legend {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .legend-line {
+      width: 18px;
+      height: 3px;
+      border-radius: 2px;
+    }
+
+    .legend-line.desired { background: var(--gold); border-top: 2px dashed var(--gold); height: 0; }
+    .legend-line.previous { background: var(--cyan); opacity: 0.6; border-top: 2px dotted var(--cyan); height: 0; }
+    .legend-line.current { background: var(--emerald); }
 
     .metrics-summary-grid {
       display: grid;
@@ -346,7 +443,40 @@
     .m-value.cyan { color: var(--cyan); }
     .m-value.emerald { color: var(--emerald); }
     .m-value.amber { color: var(--amber); }
+    .m-value.gold { color: var(--gold); }
     .m-value.rose { color: var(--rose); }
+
+    /* ── CLOSED LOOP REGULATOR CONTROL BAR ──────────────── */
+    .regulator-control-bar {
+      background: rgba(56, 189, 248, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    .control-select {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      outline: none;
+    }
 
     /* ── TRADEOFF BADGE ─────────────────────────────────── */
     .tradeoff-banner {
@@ -378,7 +508,7 @@
       color: var(--rose);
     }
 
-    /* ── CROSS DOMAIN TABLE ─────────────────────────────── */
+    /* ── TABLES ─────────────────────────────────────────── */
     .table-container {
       overflow-x: auto;
     }
@@ -433,45 +563,6 @@
     .log-tag.inv { color: var(--rose); }
     .log-tag.act { color: var(--cyan); }
 
-    .claims-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .claim-item {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 0.9rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .claim-stmt {
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-
-    .claim-meta {
-      display: flex;
-      gap: 0.5rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-    }
-
-    .badge-pill {
-      padding: 0.2rem 0.6rem;
-      border-radius: 12px;
-      font-weight: 700;
-    }
-
-    .badge-pill.supported { background: rgba(16, 185, 129, 0.15); color: var(--emerald); }
-    .badge-pill.hypothesis { background: rgba(56, 189, 248, 0.15); color: var(--cyan); }
-    .badge-pill.falsified { background: rgba(244, 63, 94, 0.15); color: var(--rose); }
-
     .bottom-bar {
       margin-top: 1rem;
       padding: 1.25rem 2rem;
@@ -492,16 +583,22 @@
     <div class="brand">
       <div class="brand-logo">K</div>
       <div>
-        <div class="brand-title">Krystal Unified Simulation & Verification Layer</div>
-        <div class="brand-subtitle">EPISTEMIC CYCLE // 5-DOMAIN COMPARATIVE ENGINE</div>
+        <div class="brand-title">Krystal Unified Verification & Closed-Loop Studio</div>
+        <div class="brand-subtitle">CRYSTALSEC 2.X // CLOSED-LOOP POLICY VERIFICATION</div>
       </div>
     </div>
     <div class="header-badges">
+      <span class="status-pill live-sse" id="sseBadge">
+        <span class="pulse-dot"></span>
+        LIVE SSE CONNECTED
+      </span>
+      <span class="status-pill active" id="consumerModeBadge">
+        ACTIVE_REGULATION
+      </span>
       <span class="vital-badge" title="Vital Invariant Enforced">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         VITAL 6-HP CEILING
       </span>
-      <span class="conduct-badge">[ACT] [!LCK] [CNF] [!HAZ]</span>
     </div>
   </header>
 
@@ -532,12 +629,12 @@
 
     <!-- PRIMARY STUDIO GRID -->
     <div class="studio-grid">
-      <!-- LEFT: RADAR GEOMETRY & DELTA -->
+      <!-- LEFT: TRI-GEOMETRY RADAR & CLOSED-LOOP CONTROLS -->
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m12 2 4 10-4 10-4-10z"/></svg>
-            Multi-Dimensional State Geometry
+            Tri-Geometry Convergence Radar
           </div>
           <button class="btn-action" id="btnRunExperiment" onclick="triggerExperimentCycle()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -545,7 +642,7 @@
           </button>
         </div>
 
-        <!-- RADAR CANVAS -->
+        <!-- TRI-GEOMETRY RADAR CANVAS -->
         <div class="radar-container">
           <svg class="radar-svg" viewBox="0 0 240 240">
             <!-- Background Rings -->
@@ -556,19 +653,60 @@
             <!-- Axes -->
             <line x1="120" y1="20" x2="120" y2="220" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
             <line x1="20" y1="120" x2="220" y2="120" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-            <!-- Baseline Polygon (Ghosted) -->
-            <polygon id="radarBaseline" points="120,50 180,120 120,190 60,120" fill="rgba(56,189,248,0.15)" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3 3"/>
-            <!-- Observed Polygon -->
-            <polygon id="radarObserved" points="120,40 190,120 120,180 50,120" fill="rgba(16,185,129,0.25)" stroke="#10b981" stroke-width="2.5"/>
+
+            <!-- 1. Desired State (Target Setpoint / Gold dashed) -->
+            <polygon id="radarDesired" points="120,30 210,120 120,210 30,120" fill="rgba(251,191,36,0.06)" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4 4"/>
+            <!-- 2. Previous Observed State (Ghosted / Cyan dotted) -->
+            <polygon id="radarPrevious" points="120,50 180,120 120,190 60,120" fill="rgba(56,189,248,0.12)" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="2 3"/>
+            <!-- 3. Current Observed State (Active Solid / Emerald) -->
+            <polygon id="radarCurrent" points="120,40 190,120 120,180 50,120" fill="rgba(16,185,129,0.25)" stroke="#10b981" stroke-width="2.5"/>
+
             <!-- Axis Labels -->
             <text id="lblAxis0" x="120" y="14" fill="#94a3b8" font-size="10" font-family="JetBrains Mono" text-anchor="middle">AXIS_0</text>
             <text id="lblAxis1" x="228" y="124" fill="#94a3b8" font-size="10" font-family="JetBrains Mono" text-anchor="start">AXIS_1</text>
             <text id="lblAxis2" x="120" y="234" fill="#94a3b8" font-size="10" font-family="JetBrains Mono" text-anchor="middle">AXIS_2</text>
             <text id="lblAxis3" x="12" y="124" fill="#94a3b8" font-size="10" font-family="JetBrains Mono" text-anchor="end">AXIS_3</text>
           </svg>
+
+          <!-- Tri-Geometry Legend -->
+          <div class="radar-legend">
+            <div class="legend-item"><span class="legend-line desired"></span> Target Setpoint (Desired)</div>
+            <div class="legend-item"><span class="legend-line previous"></span> Previous S_before</div>
+            <div class="legend-item"><span class="legend-line current"></span> Active S_after</div>
+          </div>
         </div>
 
-        <!-- METRICS TILES -->
+        <!-- CLOSED-LOOP REGULATION CONTROL PANEL -->
+        <div class="regulator-control-bar">
+          <div class="control-group">
+            <span>Whitelisted Variable:</span>
+            <select id="selTargetVariable" class="control-select">
+              <option value="sampling_rate_hz">sampling_rate_hz (5 - 60 Hz)</option>
+              <option value="speculative_depth">speculative_depth (8 - 48)</option>
+              <option value="entropy_threshold">entropy_threshold (0.2 - 0.9)</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <span>Step Delta:</span>
+            <select id="selStepDelta" class="control-select">
+              <option value="5.0">+5.0</option>
+              <option value="-5.0">-5.0</option>
+              <option value="10.0">+10.0</option>
+              <option value="-10.0">-10.0</option>
+            </select>
+          </div>
+          <button class="btn-action" onclick="triggerClosedLoopPulse()">
+            Regulate Pulse
+          </button>
+          <button class="btn-danger" title="Rapidly alternates values to test Anti-Oscillation Guard" onclick="triggerOscillationStressTest()">
+            Chatter Test
+          </button>
+          <button class="btn-secondary" onclick="resetAntiOscillationGuard()">
+            Reset Guard
+          </button>
+        </div>
+
+        <!-- METRICS SUMMARY TILES -->
         <div class="metrics-summary-grid">
           <div class="metric-card">
             <div class="m-label">Utility U</div>
@@ -583,40 +721,60 @@
             <div class="m-value emerald" id="valDispersion">0.42</div>
           </div>
           <div class="metric-card">
-            <div class="m-label">Repeatability R</div>
-            <div class="m-value cyan" id="valRepeatability">98.2%</div>
+            <div class="m-label">Pred Error (e)</div>
+            <div class="m-value gold" id="valPredError">0.082</div>
           </div>
         </div>
 
         <!-- PARETO TRADEOFF BANNER -->
         <div class="tradeoff-banner tradeoff" id="tradeoffBanner">
           <div>
-            <strong>[TRADEOFF DETECTED]</strong> Enhanced TPS (+0.4) at cost of Latency (-0.15).
+            <strong>[CLOSED-LOOP REGULATION]</strong> Tracking convergence towards desired setpoint.
           </div>
           <span>NEVER JUDGE BY U ALONE</span>
         </div>
       </div>
 
-      <!-- RIGHT: INVARIANT MONITOR & REPLAY ENGINE -->
+      <!-- RIGHT: INVARIANT MONITOR, TELEMETRY & REPLAY -->
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Universal Invariant Ledger & Replay
+            Live Invariant & Telemetry Feed
           </div>
           <button class="btn-action" style="background: rgba(168, 85, 247, 0.25); border: 1px solid var(--purple);" onclick="triggerReplayPlayback()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
-            Verify Deterministic Replay
+            Replay Package
           </button>
         </div>
 
-        <!-- INVARIANT RULES CARDS -->
+        <!-- LIVE TELEMETRY TILES -->
+        <div class="metrics-summary-grid">
+          <div class="metric-card">
+            <div class="m-label">Host FPS</div>
+            <div class="m-value cyan" id="liveFps">30.2</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-label">Sampling Rate</div>
+            <div class="m-value emerald" id="liveSamplingHz">30 Hz</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-label">Spec Depth</div>
+            <div class="m-value purple" id="liveSpecDepth">32</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-label">Visual Coherence</div>
+            <div class="m-value cyan" id="liveCoherence">76%</div>
+          </div>
+        </div>
+
+        <!-- INVARIANT RULES TABLE -->
         <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th>Invariant Code</th>
-                <th>Condition</th>
+                <th>Exact Condition</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -645,14 +803,46 @@
           </table>
         </div>
 
-        <!-- REPLAY RESULT & LOG BOX -->
+        <!-- LIVE EVENT LOG BOX -->
         <div class="log-box" id="cycleLog">
           <div class="log-entry">
             <span class="log-time">[BOOT]</span>
             <span class="log-tag ok">[READY]</span>
-            <span>Universal Verification Engine initialized. All 5 domains calibrated.</span>
+            <span>Closed-Loop Policy Engine initialized. Subscribed to live SSE telemetry.</span>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- LIVE CLOSED-LOOP EXPERIMENT LEDGER -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Live Closed-Loop Experiment Ledger
+        </div>
+        <button class="btn-secondary" onclick="loadLedger()">
+          Refresh Ledger
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID / Time</th>
+              <th>Hypothesis / Proposed Variable</th>
+              <th>Transition (Old &rarr; New)</th>
+              <th>Observed Effect</th>
+              <th>Pred Error (e)</th>
+              <th>Invariant Status</th>
+              <th>Audit Hash</th>
+            </tr>
+          </thead>
+          <tbody id="tblLedger">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -663,7 +853,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
           Cross-Domain Normalized Geometric Rankings
         </div>
-        <button class="btn-action" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-bright);" onclick="loadCrossDomainComparison()">
+        <button class="btn-secondary" onclick="loadCrossDomainComparison()">
           Refresh Comparison
         </button>
       </div>
@@ -677,7 +867,7 @@
               <th>Weakest Axis (S_min)</th>
               <th>Dispersion (D)</th>
               <th>Balance Profile</th>
-              <th>Tradeoff Classification</th>
+              <th>Classification</th>
             </tr>
           </thead>
           <tbody id="tblCrossDomain">
@@ -686,21 +876,10 @@
         </table>
       </div>
     </div>
-
-    <!-- EPISTEMIC CLAIMS LEDGER -->
-    <div class="panel">
-      <div class="panel-title">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        Epistemic Claims & Falsification Registry
-      </div>
-      <div class="claims-list" id="claimsList">
-        <!-- Dynamically populated -->
-      </div>
-    </div>
   </main>
 
   <footer class="bottom-bar">
-    <div>KRYSTAL-STACK &bull; UNIFIED VERIFICATION FRAMEWORK &bull; REPLAY HASH SHA-256 VERIFIED</div>
+    <div>KRYSTAL-STACK &bull; CLOSED-LOOP REGULATION SPRINT &bull; ANTI-OSCILLATION GUARD ACTIVE</div>
     <div>VITAL_MAX_HP == 6 UNCONDITIONALLY ENFORCED</div>
   </footer>
 
@@ -709,7 +888,6 @@
     let currentSubject = "crystal_colony";
     let activePackageId = null;
 
-    // Load available domains on boot
     async function initStudio() {
       try {
         const res = await fetch("/api/verification/domains");
@@ -722,8 +900,9 @@
       }
 
       await loadDomainState(currentDomain, currentSubject);
+      await loadLedger();
       await loadCrossDomainComparison();
-      await loadEpistemicClaims();
+      connectLiveSSE();
     }
 
     function renderDomainBar(domains) {
@@ -782,25 +961,218 @@
       const geo = state.geometry;
       const dims = state.measurement_dimensions;
 
-      // Update axis labels
       dims.forEach((d, i) => {
         const el = document.getElementById(`lblAxis${i}`);
         if (el) el.textContent = `${d} (${state.normalized_scores[i].toFixed(1)})`;
       });
 
-      // Update radar polygons
       if (geo.radar_polygon_svg) {
-        document.getElementById("radarObserved").setAttribute("points", geo.radar_polygon_svg);
+        // Shift previous to current before setting new current
+        const curPts = document.getElementById("radarCurrent").getAttribute("points");
+        if (curPts) {
+          document.getElementById("radarPrevious").setAttribute("points", curPts);
+        }
+        document.getElementById("radarCurrent").setAttribute("points", geo.radar_polygon_svg);
       }
 
-      // Update metric cards
       document.getElementById("valUtility").textContent = geo.composite_utility_u.toFixed(2);
       document.getElementById("valWeakest").textContent = `${geo.weakest_axis_code}: ${geo.weakest_axis_score.toFixed(2)}`;
       document.getElementById("valDispersion").textContent = geo.weighted_dispersion_d.toFixed(2);
-      document.getElementById("valRepeatability").textContent = geo.is_balanced ? "98.5%" : "89.2%";
     }
 
-    // Trigger full 8-phase cycle
+    // ── LIVE SSE CONNECTION ─────────────────────────────────
+    function connectLiveSSE() {
+      const evtSource = new EventSource("/api/stream");
+
+      evtSource.addEventListener("telemetry", (e) => {
+        try {
+          const t = JSON.parse(e.data);
+          document.getElementById("liveFps").textContent = t.fps;
+          document.getElementById("liveSamplingHz").textContent = `${t.sampling_rate_hz} Hz`;
+          document.getElementById("liveSpecDepth").textContent = t.speculative_depth;
+          if (t.entropy && t.entropy.coherence !== undefined) {
+            document.getElementById("liveCoherence").textContent = `${Math.round(t.entropy.coherence * 100)}%`;
+          }
+          updateConsumerModeUI(t.consumer_mode, t.is_oscillation_detected);
+        } catch (err) {}
+      });
+
+      evtSource.addEventListener("state_vector", (e) => {
+        try {
+          const d = JSON.parse(e.data);
+          if (d.current_state) {
+            updateGeometryUI(d.current_state);
+          }
+          if (d.desired_state && d.desired_state.geometry) {
+            document.getElementById("radarDesired").setAttribute("points", d.desired_state.geometry.radar_polygon_svg);
+          }
+          if (d.prediction_error_e !== undefined) {
+            document.getElementById("valPredError").textContent = d.prediction_error_e.toFixed(3);
+          }
+        } catch (err) {}
+      });
+
+      evtSource.addEventListener("policy_proposed", (e) => {
+        const d = JSON.parse(e.data);
+        appendLog("ACT", `Policy proposed for [${d.variable}]: ${d.old_value} -> ${d.proposed_value} (Risk: ${d.risk_score})`);
+      });
+
+      evtSource.addEventListener("policy_applied", (e) => {
+        const d = JSON.parse(e.data);
+        appendLog("OK", `Policy applied: [${d.variable}] adjusted from ${d.old_value} to ${d.new_value}`);
+        loadLedger();
+      });
+
+      evtSource.addEventListener("policy_rejected", (e) => {
+        const d = JSON.parse(e.data);
+        appendLog("WARN", `Policy rejected: ${d.reason}`);
+      });
+
+      evtSource.addEventListener("invariant_violation", (e) => {
+        const d = JSON.parse(e.data);
+        appendLog("INV", `INVARIANT BREACH: ${d.message || 'Halted unsafe operation'}. Action rolled back!`);
+      });
+
+      evtSource.addEventListener("policy_oscillation_detected", (e) => {
+        const d = JSON.parse(e.data);
+        appendLog("WARN", `[ANTI-OSCILLATION GUARD]: ${d.message}`);
+        updateConsumerModeUI("DIAGNOSTIC_ONLY", true);
+      });
+
+      evtSource.addEventListener("experiment_observed", (e) => {
+        const d = JSON.parse(e.data);
+        appendLog("OK", `Closed-loop: ΔU=${d.delta_utility_u >= 0 ? '+' : ''}${d.delta_utility_u.toFixed(2)}, e=${d.prediction_error_e.toFixed(3)}, Class=${d.tradeoff_classification}`);
+      });
+    }
+
+    function updateConsumerModeUI(mode, isOscillation) {
+      const badge = document.getElementById("consumerModeBadge");
+      if (mode === "DIAGNOSTIC_ONLY" || isOscillation) {
+        badge.className = "status-pill diagnostic";
+        badge.textContent = "DIAGNOSTIC_ONLY (OSCILLATION)";
+      } else {
+        badge.className = "status-pill active";
+        badge.textContent = "ACTIVE_REGULATION";
+      }
+    }
+
+    // ── CLOSED-LOOP REGULATION TRIGGER ───────────────────────
+    async function triggerClosedLoopPulse() {
+      const targetVar = document.getElementById("selTargetVariable").value;
+      const stepDelta = parseFloat(document.getElementById("selStepDelta").value);
+
+      appendLog("ACT", `Triggering closed-loop regulation on ${targetVar} (Step: ${stepDelta > 0 ? '+' : ''}${stepDelta})...`);
+      try {
+        const res = await fetch("/api/verification/closed-loop/pulse", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            domain_id: currentDomain,
+            subject_id: currentSubject,
+            target_variable: targetVar,
+            delta_step: stepDelta
+          })
+        });
+        const data = await res.json();
+        if (data.status === "OK" && data.result.entry) {
+          const ent = data.result.entry;
+          appendLog("OK", `Closed-loop pulse applied: ${ent.proposed_variable} -> ${ent.new_value}. Prediction Error e=${ent.prediction_error_e}`);
+          await loadLedger();
+        } else if (data.result && data.result.status === "OSCILLATION_HALT") {
+          appendLog("WARN", "Pulse halted by Anti-Oscillation Guard! Switch to DIAGNOSTIC_ONLY.");
+        }
+      } catch (err) {
+        appendLog("INV", `Closed-loop regulation failed: ${err}`);
+      }
+    }
+
+    // Stress test: rapid flipping 10 <-> 20 Hz
+    async function triggerOscillationStressTest() {
+      appendLog("WARN", "Starting Anti-Oscillation Stress Test (rapid alternation)...");
+      for (let i = 0; i < 4; i++) {
+        const step = (i % 2 === 0) ? 10.0 : -10.0;
+        await fetch("/api/verification/closed-loop/pulse", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            domain_id: currentDomain,
+            subject_id: currentSubject,
+            target_variable: "sampling_rate_hz",
+            delta_step: step
+          })
+        });
+        await new Promise(r => setTimeout(r, 200));
+      }
+      await loadLedger();
+    }
+
+    async function resetAntiOscillationGuard() {
+      appendLog("ACT", "Resetting Anti-Oscillation Guard to ACTIVE_REGULATION...");
+      try {
+        const res = await fetch("/api/verification/closed-loop/reset-guard", { method: "POST" });
+        const d = await res.json();
+        if (d.status === "OK") {
+          updateConsumerModeUI("ACTIVE_REGULATION", false);
+          appendLog("OK", "Anti-Oscillation Guard reset successfully.");
+        }
+      } catch (e) {
+        appendLog("INV", `Error resetting guard: ${e}`);
+      }
+    }
+
+    async function loadLedger() {
+      try {
+        const res = await fetch("/api/verification/ledger");
+        const data = await res.json();
+        if (data.status === "OK") {
+          const tbody = document.getElementById("tblLedger");
+          tbody.innerHTML = "";
+          data.ledger.slice(-10).reverse().forEach(e => {
+            const tr = document.createElement("tr");
+            const timeStr = new Date(e.timestamp * 1000).toTimeString().split(" ")[0];
+            tr.innerHTML = `
+              <td><code>${e.entry_id}</code><br><span style="color:var(--text-muted); font-size:0.7rem;">${timeStr}</span></td>
+              <td><strong>${e.proposed_variable}</strong><br><span style="color:var(--text-muted); font-size:0.75rem;">${e.hypothesis}</span></td>
+              <td><span style="color:var(--cyan);">${e.old_value}</span> &rarr; <span style="color:var(--emerald); font-weight:700;">${e.new_value}</span></td>
+              <td style="font-size:0.75rem;">${e.observed_effect}</td>
+              <td style="color:var(--gold); font-weight:700;">${e.prediction_error_e.toFixed(3)}</td>
+              <td><span class="status-pill ${e.invariant_status === 'PASSED' ? 'active' : 'diagnostic'}">${e.invariant_status}</span></td>
+              <td><code style="font-size:0.7rem; color:var(--text-muted);">${e.audit_hash.substring(0, 10)}...</code></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to load ledger:", err);
+      }
+    }
+
+    async function loadCrossDomainComparison() {
+      try {
+        const res = await fetch("/api/verification/cross-domain-comparison");
+        const data = await res.json();
+        if (data.status === "OK") {
+          const tbody = document.getElementById("tblCrossDomain");
+          tbody.innerHTML = "";
+          const cmp = data.comparison;
+          cmp.ranking_by_utility.forEach(item => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><strong>${item.domain_id}</strong> <span style="color:var(--text-muted); font-size:0.75rem;">(${item.subject_id})</span></td>
+              <td style="color:var(--cyan); font-weight:700;">${item.composite_utility_u.toFixed(2)}</td>
+              <td style="color:var(--amber); font-weight:700;">${item.weakest_axis_code} (${item.weakest_axis_score.toFixed(2)})</td>
+              <td>${item.weighted_dispersion_d.toFixed(2)}</td>
+              <td><span class="status-pill ${item.is_balanced ? 'active' : 'diagnostic'}">${item.is_balanced ? 'BALANCED' : 'ASYMMETRIC'}</span></td>
+              <td><span style="font-family:'JetBrains Mono'; font-size:0.75rem;">NON-DOMINATED</span></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (e) {
+        console.warn("Could not load cross-domain comparison:", e);
+      }
+    }
+
     async function triggerExperimentCycle() {
       appendLog("EXEC", `Starting 8-phase epistemic cycle on [${currentDomain}::${currentSubject}]...`);
       animateCyclePhases();
@@ -819,11 +1191,8 @@
         if (data.status === "OK") {
           const exp = data.experiment;
           activePackageId = exp.replay_package_id;
-
-          // Update UI
           updateGeometryUI(exp.observed_state);
 
-          // Update Tradeoff Banner
           const tb = document.getElementById("tradeoffBanner");
           const delta = exp.state_delta;
           tb.className = `tradeoff-banner ${delta.tradeoff_classification === 'PARETO_STRICT_IMPROVEMENT' ? 'improvement' : delta.tradeoff_classification === 'TRADEOFF' ? 'tradeoff' : 'regression'}`;
@@ -831,17 +1200,14 @@
             <div><strong>[${delta.tradeoff_classification}]</strong> ${delta.tradeoff_summary}</div>
             <span>ΔU: ${delta.delta_utility_u >= 0 ? '+' : ''}${delta.delta_utility_u.toFixed(2)}</span>
           `;
-
-          appendLog("OK", `Cycle complete in ${exp.cycle_duration_ms}ms. Invariants verified: ${exp.invariant_verification.invariants_passed ? 'PASS' : 'FAIL'}. Replay package: ${exp.replay_package_id}`);
-          await loadEpistemicClaims();
-          await loadCrossDomainComparison();
+          appendLog("OK", `Cycle complete in ${exp.cycle_duration_ms}ms. Invariants: ${exp.invariant_verification.invariants_passed ? 'PASS' : 'FAIL'}. Replay: ${exp.replay_package_id}`);
+          await loadLedger();
         }
       } catch (err) {
         appendLog("INV", `Error running experiment cycle: ${err}`);
       }
     }
 
-    // Trigger Replay
     async function triggerReplayPlayback() {
       appendLog("ACT", `Replaying package [${activePackageId || 'auto-generating'}]...`);
       try {
@@ -864,62 +1230,6 @@
         }
       } catch (err) {
         appendLog("INV", `Replay playback failed: ${err}`);
-      }
-    }
-
-    async function loadCrossDomainComparison() {
-      try {
-        const res = await fetch("/api/verification/cross-domain-comparison");
-        const data = await res.json();
-        if (data.status === "OK") {
-          const tbody = document.getElementById("tblCrossDomain");
-          tbody.innerHTML = "";
-          const cmp = data.comparison;
-          cmp.ranking_by_utility.forEach(item => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td><strong>${item.domain_id}</strong> <span style="color:var(--text-muted); font-size:0.75rem;">(${item.subject_id})</span></td>
-              <td style="color:var(--cyan); font-weight:700;">${item.composite_utility_u.toFixed(2)}</td>
-              <td style="color:var(--amber); font-weight:700;">${item.weakest_axis_code} (${item.weakest_axis_score.toFixed(2)})</td>
-              <td>${item.weighted_dispersion_d.toFixed(2)}</td>
-              <td><span class="badge-pill ${item.is_balanced ? 'supported' : 'hypothesis'}">${item.is_balanced ? 'BALANCED' : 'ASYMMETRIC'}</span></td>
-              <td><span style="font-family:'JetBrains Mono'; font-size:0.75rem;">NON-DOMINATED</span></td>
-            `;
-            tbody.appendChild(tr);
-          });
-        }
-      } catch (e) {
-        console.warn("Could not load cross-domain comparison:", e);
-      }
-    }
-
-    async function loadEpistemicClaims() {
-      try {
-        const res = await fetch("/api/verification/claims");
-        const data = await res.json();
-        if (data.status === "OK") {
-          const list = document.getElementById("claimsList");
-          list.innerHTML = "";
-          data.claims.forEach(c => {
-            const div = document.createElement("div");
-            div.className = "claim-item";
-            const pillClass = c.epistemic_state === 'SUPPORTED' ? 'supported' : c.epistemic_state === 'FALSIFIED' ? 'falsified' : 'hypothesis';
-            div.innerHTML = `
-              <div>
-                <div class="claim-stmt">${c.statement}</div>
-                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem; font-family:'JetBrains Mono';">Falsification Condition: ${c.falsification_condition}</div>
-              </div>
-              <div class="claim-meta">
-                <span class="badge-pill ${pillClass}">${c.epistemic_state}</span>
-                <span class="badge-pill" style="background:rgba(255,255,255,0.06);">${c.evidence_level}</span>
-                <span style="color:var(--cyan);">N=${c.repetitions_count}</span>
-              </div>
-            `;
-            list.appendChild(div);
-          });
-        }
-      } catch (e) {
-        console.warn("Could not load claims:", e);
       }
     }
 
