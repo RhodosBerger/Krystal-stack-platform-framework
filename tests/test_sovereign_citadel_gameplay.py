@@ -22,6 +22,14 @@ from krystal_web_hub.economic_engine.sovereign_citadel_gameplay import (
 BASE_URL = "http://127.0.0.1:8089"
 
 
+def _is_server_available():
+    try:
+        with urllib.request.urlopen(f"{BASE_URL}/api/citadel/state", timeout=0.5):
+            return True
+    except Exception:
+        return False
+
+
 class TestSovereignCitadelEngine(unittest.TestCase):
 
     def setUp(self):
@@ -100,6 +108,7 @@ class TestSovereignCitadelEngine(unittest.TestCase):
         self.assertEqual(state["score"], 0)
 
 
+@unittest.skipUnless(_is_server_available(), "Sovereign Citadel HTTP server not running on port 8089")
 class TestSovereignCitadelHttpEndpoints(unittest.TestCase):
 
     def test_01_get_citadel_state(self):
