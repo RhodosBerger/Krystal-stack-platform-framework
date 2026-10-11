@@ -266,6 +266,7 @@ class ActuationRecord:
     prediction_error: Optional[float] = None
     transaction_state: TransactionState = TransactionState.DECISION_RECEIVED
     result: ActuationResult = ActuationResult.PENDING
+    prepared_state_version: int = 0
     audit_hash: str = ""
     events: List[Dict[str, Any]] = field(default_factory=list)
     verification: Optional[RollbackVerification] = None
@@ -509,6 +510,10 @@ class BaseActuationAdapter:
         curr = self.read_current()
         return str(curr) == str(expected_value)
 
+    def estimate_resource_impact(self, proposed_value: Any = None) -> Dict[str, float]:
+        """Returns normalized resource impact vector [U_UMA, P_TDP, Q_WDDM, C_CPU] in [0, 1]."""
+        return {"U_UMA": 0.1, "P_TDP": 0.1, "Q_WDDM": 0.1, "C_CPU": 0.1}
+
 
 class TelemetrySamplingAdapter(BaseActuationAdapter):
     """
@@ -544,6 +549,16 @@ class TelemetrySamplingAdapter(BaseActuationAdapter):
         self._current_rate_hz = float(old_value)
         return True
 
+    def estimate_resource_impact(self, proposed_value: Any = None) -> Dict[str, float]:
+        rate = float(proposed_value) if proposed_value is not None else self._current_rate_hz
+        factor = min(1.0, max(0.0, (rate - 2.0) / 98.0))
+        return {
+            "U_UMA": round(0.05 + 0.15 * factor, 3),
+            "P_TDP": round(0.02 + 0.08 * factor, 3),
+            "Q_WDDM": 0.0,
+            "C_CPU": round(0.20 + 0.40 * factor, 3),
+        }
+
 
 class SpeculativeDepthAdapter(BaseActuationAdapter):
     """
@@ -576,6 +591,16 @@ class SpeculativeDepthAdapter(BaseActuationAdapter):
     def rollback(self, old_value: Any) -> bool:
         self._depth = int(old_value)
         return True
+
+    def estimate_resource_impact(self, proposed_value: Any = None) -> Dict[str, float]:
+        depth = int(proposed_value) if proposed_value is not None else self._depth
+        factor = min(1.0, max(0.0, depth / 4.0))
+        return {
+            "U_UMA": round(0.15 + 0.35 * factor, 3),
+            "P_TDP": round(0.10 + 0.25 * factor, 3),
+            "Q_WDDM": round(0.20 + 0.65 * factor, 3),
+            "C_CPU": round(0.05 + 0.15 * factor, 3),
+        }
 
 
 class GPUProfileAdapter(BaseActuationAdapter):
@@ -614,6 +639,15 @@ class GPUProfileAdapter(BaseActuationAdapter):
 
     def rollback(self, old_value: Any) -> bool:
         return self.apply(old_value)
+
+    def estimate_resource_impact(self, proposed_value: Any = None) -> Dict[str, float]:
+        val = proposed_value.value if hasattr(proposed_value, "value") else str(proposed_value or self._current_profile.value).upper()
+        if val == "ULTRA":
+            return {"U_UMA": 0.65, "P_TDP": 0.70, "Q_WDDM": 0.50, "C_CPU": 0.10}
+        elif val == "BALANCED":
+            return {"U_UMA": 0.45, "P_TDP": 0.45, "Q_WDDM": 0.30, "C_CPU": 0.08}
+        else:
+            return {"U_UMA": 0.25, "P_TDP": 0.25, "Q_WDDM": 0.15, "C_CPU": 0.05}
 
 
 class ComputeBackendAdapter(BaseActuationAdapter):
@@ -667,6 +701,13 @@ class ComputeBackendAdapter(BaseActuationAdapter):
         self._backend = str(old_value)
         return True
 
+    def estimate_resource_impact(self, proposed_value: Any = None) -> Dict[str, float]:
+        val = str(proposed_value or self._backend).upper()
+        if "CPU" in val:
+            return {"U_UMA": 0.40, "P_TDP": 0.50, "Q_WDDM": 0.10, "C_CPU": 0.75}
+        else:
+            return {"U_UMA": 0.50, "P_TDP": 0.60, "Q_WDDM": 0.50, "C_CPU": 0.20}
+
 
 # ============================================================================
 # TRANSACTIONAL ACTUATION ENGINE
@@ -705,11 +746,13 @@ class TransactionalActuationEngine:
         speculative_adapter: Optional[SpeculativeDepthAdapter] = None,
         gpu_profile_adapter: Optional[GPUProfileAdapter] = None,
         compute_backend_adapter: Optional[ComputeBackendAdapter] = None,
+        state_version_manager: Optional[Any] = None,
     ):
         self.telemetry_adapter = telemetry_adapter or TelemetrySamplingAdapter()
         self.speculative_adapter = speculative_adapter or SpeculativeDepthAdapter()
         self.gpu_profile_adapter = gpu_profile_adapter or GPUProfileAdapter()
         self.compute_backend_adapter = compute_backend_adapter or ComputeBackendAdapter()
+        self.state_version_manager = state_version_manager
 
         self._adapters: Dict[str, BaseActuationAdapter] = {
             "telemetry_sampling_rate_hz": self.telemetry_adapter,
@@ -908,6 +951,7 @@ class TransactionalActuationEngine:
         force_fail_rollback: bool = False,
         clock_fn: Optional[Callable[[], float]] = None,
         current_time: Optional[float] = None,
+        prepared_state_version: Optional[int] = None,
     ) -> ActuationRecord:
         """
         Executes a complete transactional lifecycle with multi-sample observation:
@@ -921,6 +965,32 @@ class TransactionalActuationEngine:
         transaction_id = f"TX-{decision.decision_id[:8]}-{action_id}"
 
         with self._lock:
+            # 1. StateVersion Validation
+            exp_version = prepared_state_version if prepared_state_version is not None else getattr(decision, "source_state_version", None)
+            if exp_version is not None and self.state_version_manager is not None:
+                if not self.state_version_manager.validate(exp_version):
+                    self.stats["rejected"] += 1
+                    record = ActuationRecord(
+                        action_id=action_id,
+                        decision_id=decision.decision_id,
+                        transaction_id=transaction_id,
+                        pre_state_hash=decision.input_state_hash,
+                        allowed_variable="NONE",
+                        old_value=None,
+                        new_value=None,
+                        expected_delta={},
+                        max_allowed_deviation=0.25,
+                        timeout_s=override_timeout_s or self.DEFAULT_OBSERVATION_TIMEOUT_S,
+                        rollback_plan=RollbackPlan(target_variable="NONE", restore_value=None),
+                        transaction_state=TransactionState.REJECTED,
+                        result=ActuationResult.ELIGIBILITY_FAILED,
+                        prepared_state_version=exp_version,
+                    )
+                    record.record_event("eligibility_failed", {
+                        "reason": f"STALE_STATE_VERSION_INVALIDATION: Decision source V{exp_version} != current V{self.state_version_manager.current()}"
+                    })
+                    self._transactions[transaction_id] = record
+                    return record
             # 1. Idempotency Check
             if transaction_id in self._transactions:
                 existing = self._transactions[transaction_id]
@@ -1051,6 +1121,8 @@ class TransactionalActuationEngine:
             with self._lock:
                 self.stats["committed"] += 1
                 self._active_variable_locks.pop(allowed_variable, None)
+                if self.state_version_manager is not None:
+                    self.state_version_manager.commit_transition(audit_payload={"transaction_id": transaction_id, "action_id": action_id})
             return record
 
         # 5. Observe Window (Monotonic Multi-Sample Collection)
@@ -1154,6 +1226,8 @@ class TransactionalActuationEngine:
             with self._lock:
                 self.stats["committed"] += 1
                 self._active_variable_locks.pop(allowed_variable, None)
+                if self.state_version_manager is not None:
+                    self.state_version_manager.commit_transition(audit_payload={"transaction_id": transaction_id, "action_id": action_id})
             return record
 
         # Otherwise: Rollback Triggered

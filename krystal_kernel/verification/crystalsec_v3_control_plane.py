@@ -479,6 +479,7 @@ class ControlPlaneDecision:
     evidence_level: str
     veto_reason: Optional[str]
     vital_max_hp: int = VITAL_MAX_HP
+    source_state_version: int = 0
 
     def __post_init__(self):
         assert self.vital_max_hp == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
@@ -505,6 +506,7 @@ class CrystalSecV3ControlPlane:
         state: CrystalSecV3State,
         manual_lockout: bool = False,
         current_time: Optional[float] = None,
+        source_state_version: int = 0,
     ) -> ControlPlaneDecision:
         now = time.time() if current_time is None else current_time
         self.decision_counter += 1
@@ -553,6 +555,7 @@ class CrystalSecV3ControlPlane:
             evidence_level=EvidenceLevel.SIMULATION_VERIFIED.value,
             veto_reason=veto_reason,
             vital_max_hp=VITAL_MAX_HP,
+            source_state_version=source_state_version,
         )
 
     def _generate_candidates(

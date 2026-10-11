@@ -1,0 +1,81 @@
+{
+  "phase": "Phase 4.2: Hardware-Grounded Sequence Arbiter",
+  "current_state_version": 2,
+  "sequences_total": 2,
+  "sequences_committed": 2,
+  "sequences_rolled_back": 0,
+  "sequences_failed_safe": 0,
+  "sequences_invalidated": 0,
+  "canonical_lock_order": [
+    "compute_backend",
+    "gpu_profile_level",
+    "speculative_frame_depth",
+    "telemetry_sampling_rate_hz"
+  ],
+  "safe_headroom": {
+    "U_UMA": 0.4,
+    "P_TDP": 0.4,
+    "Q_WDDM": 0.4,
+    "C_CPU": 0.4
+  },
+  "uma_telemetry": {
+    "memory_bandwidth_utilization": 0.35,
+    "memory_latency_ns": 28.5,
+    "readback_ratio": 0.05,
+    "gpu_buffer_residency_pct": 42.0,
+    "cpu_observer_latency_ms": 1.2
+  },
+  "demonstrated_sequences": [
+    {
+      "sequence_id": "SEQ-1791750077-001",
+      "success": true,
+      "sequence_state": "COMMITTED",
+      "source_state_version": 0,
+      "final_state_version": 2,
+      "steps_total": 2,
+      "steps_executed": 2,
+      "rollback_mode": "ISOLATED",
+      "error_reason": null,
+      "audit_hash": "905767c07ca8aafd60461651bc0ac4bfe1e1d53f2deb60a66679671d12693b61",
+      "checkpoints_count": 3,
+      "events_count": 9,
+      "resource_budget": {
+        "U_UMA": 0.418,
+        "P_TDP": 0.268,
+        "Q_WDDM": 0.525,
+        "C_CPU": 0.439
+      }
+    },
+    {
+      "sequence_id": "SEQ-1791750077-002",
+      "success": true,
+      "sequence_state": "COMMITTED",
+      "source_state_version": 2,
+      "final_state_version": 2,
+      "steps_total": 2,
+      "steps_executed": 2,
+      "rollback_mode": "ISOLATED",
+      "error_reason": null,
+      "audit_hash": "d408f4d230cbb9a147e5e88a2fd7a50693411efbdd15263f6b0318c491dff32a",
+      "checkpoints_count": 3,
+      "events_count": 8,
+      "resource_budget": {
+        "U_UMA": 0.52,
+        "P_TDP": 0.338,
+        "Q_WDDM": 0.688,
+        "C_CPU": 0.517
+      }
+    },
+    {
+      "sequence_id": "SEQ-1791750077-003",
+      "prepared": false,
+      "error": "RESOURCE_INTERFERENCE_CONFLICT: U_UMA (1.00 > 0.40), P_TDP (1.00 > 0.40), Q_WDDM (1.00 > 0.40) exceeded safe headroom"
+    }
+  ],
+  "test_results": {
+    "total_tests": 97,
+    "passed": 97,
+    "failed": 0,
+    "status": "ALL_SYSTEMS_VERIFIED"
+  }
+}
