@@ -3,9 +3,9 @@
 **Autor:** Dušan Kopecký & Krystal-Stack Gaming & Cyber-Physical Systems Council  
 **Klasifikácia:** Kniha Promptov v2 pre AI Studio / Herný Vývoj / Heterogénna Herná Architektúra  
 **Dátum:** Október 2026  
-**Status:** SCHVÁLENÉ PRE GENERATÍVNY VÝVOJ HIER (AI STUDIO, VERTEX AI & CURSOR)  
+**Status:** DRAFT v2.1 — revidované 2026-10-11 po Phase 5.2 (Evidence Integrity Patch)  
 **Univerzálny Invariant:** $\text{VITAL\_MAX\_HP} = 6$ (Bezpodmienečne Presadzované)  
-**Epistemická Disciplína:** Fázy 3 až 5.1 & Príprava na Fázu 6 (Explicitná Separácia Hardvérových a Služobných Vrstiev)
+**Epistemická Disciplína:** Fázy 3 až 5.2 & Príprava na Fázu 6 (Explicitná Separácia Hardvérových a Služobných Vrstiev)
 
 ---
 
@@ -34,10 +34,10 @@ $$\mathcal{E}_{\text{local}} = \{T_0, T_1, T_2, T_3\} \quad \text{a} \quad \math
 │ T2: Iris Xe / Vulkan     │ Výpočtové shadery, simulácia 4096 častíc, procedurálny SDF terén,│
 │ Compute & DP4A (Lokálny) │ 19-hex PBR raymarching, post-processing s UMA monitorovaním.    │
 ├──────────────────────────┼──────────────────────────────────────────────────────────────────┤
-│ T3: Dedicated Local NPU  │ Na hostiteľskom Tiger Lake i7-1165G7:                            │
+│ T3: Dedicated Local NPU  │ Na hostiteľskom Tiger Lake i5-1135G7:                            │
 │ (Lokálny Hardvér)        │ STRIKTNE: PHYSICALLY_UNAVAILABLE (bez syntetického predstierania)│
 ├──────────────────────────┼──────────────────────────────────────────────────────────────────┤
-│ R1: Remote Neural        │ Cloudový Gemini 1.5 Flash / Vertex AI / Cloud TPU v5e:           │
+│ R1: Remote Neural        │ Cloudový Gemini (GEMINI_MODEL_ID) / Vertex AI endpoint:          │
 │ Service (Vzdialená Sieť) │ Asynchrónny, poradný (advisory), nenarušiteľný bezpečnostnou     │
 │                          │ bránou, procedurálny príbeh a dialógy, deterministický fallback. │
 └──────────────────────────┴──────────────────────────────────────────────────────────────────┘
@@ -64,7 +64,7 @@ $$\boxed{\text{Gameplay truth must never depend on presentation tier}}$$
 
 ### 1.3 Epistemická Integrita Sieťového Determinizmu
 
-Nenadneszujeme marketingové tvrdenia o „nulovom sieťovom desyncu“. V reálnych distribuovaných sieťach platí:
+Nenadsádzujeme marketingové tvrdenia o „nulovom sieťovom desyncu“. V reálnych distribuovaných sieťach platí:
 
 - $\text{DETERMINISTIC\_STATE\_TRANSITIONS} = \text{Garantované testami a celočíselnou matematikou}$
 - $\text{NETWORK\_DESYNC\_RESILIENCE} = \text{Vlastnosť protokolu (stavové hashe, rollback a replay)}$
@@ -79,6 +79,39 @@ Univerzálny budget $16.6\,\text{ms}$ ($60\,\text{FPS}$) neplatí monoliticky pr
 $$B_{\text{frame}} = B_{\text{simulation}} + B_{\text{render}} + B_{\text{presentation}}$$
 
 Klient cieli na prezentačný rámec $B_{\text{frame}} \le 16.6\,\text{ms}$, avšak autoritatívny simulačný server tick operuje na vlastnej nezávislej kadencii (napr. $20\,\text{Hz} = 50\,\text{ms}$ na ťah/tick), čím sa zabraňuje viazaniu hernej fyziky na kolísajúci framerate.
+
+---
+
+### 1.4a Stav Dôkazov (Čo je namerané a čo je hypotéza)
+
+Phase 5.2 ukázala, že časť čísel z Phase 5.1 vznikla z konštánt pripočítaných k wall-clock času. Pre herný engine preto platí:
+
+| Tvrdenie | Stav | Zdroj |
+| :--- | :--- | :--- |
+| SDF raymarch na T2 Iris Xe je rýchlejší než Python referencia T0 (3.8× pri 16×8, 30× pri 64×32, 39× pri 160×80) | `HARDWARE_MEASURED` (iba voči Python referencii, nie voči natívnemu CPU kódu) | `artifacts/CRYSTALSEC_V3_CALIBRATION_AND_REGRET_BENCHMARK.json` |
+| Vetvený kód (AI, pathfinding) beží na CPU rýchlejšie než na GPU | **Hypotéza H-BR1 — netestovaná** (pôvodné „3×“ bola konštanta) | — |
+| T1 AVX-512 / VNNI zrýchľuje INT8 dot product | **Netestované** — `CpuVnniBackend` je čistý Python (`HOST_CPU_EMULATED`) | `src/python/cpu_vnni_backend.py` |
+| UMA tlak, výkon, teplota | **Nemerané** — zatiaľ iba `MODELED_PRIOR` | — |
+
+Každá nameraná hodnota v hre musí niesť `EvidenceLabel` (`HARDWARE_MEASURED`, `HOST_CPU_REFERENCE`, `HOST_CPU_EMULATED`, `CAPABILITY_DETECTED`, `MODELED_PRIOR`, `UNAVAILABLE`, `PHYSICALLY_UNAVAILABLE`).
+
+---
+
+### 1.4b CALIBRATION_PARAMETERS (jeden konfiguračný zdroj)
+
+Všetky prahy sú laditelné hypotézy, nie prírodné konštanty. Kód ich číta z jedného modulu (`krystal_game_engine/calibration_parameters.py`) a nikde ich nemá natvrdo.
+
+| Parameter | Default | Použitie |
+| :--- | :--- | :--- |
+| `UMA_DEGRADE_THRESHOLD` | 0.70 | Prompt #04 — zníženie počtu častíc (iba ak existuje reálna telemetria, inak proxy cez nameraný GPU čas rámca) |
+| `PARTICLE_BATCH_FULL` / `PARTICLE_BATCH_REDUCED` | 4096 / 1024 | Prompt #04 |
+| `SYNC_DEMOTE_THRESHOLD_MS` | 2.0 | Prompt #11 — presun malých úloh späť na T1 |
+| `LOW_REGRET_THRESHOLD_MS` | 0.2 | Prompt #13 |
+| `MIN_SAMPLES_FOR_VERDICT` | 10 | Prompt #13 — pod tým `INSUFFICIENT_EVIDENCE` |
+| `ANIMATION_MIN_DWELL_S` | 0.4 | Prompt #06 |
+| `R1_PROPOSAL_TIMEOUT_MS` | 250 | Prompt #05 a #14 (jedna hodnota pre obe) |
+| `DDA_MAX_STEP` | ±1 úroveň / zápas | Prompt #05 — maximálna zmena obtiažnosti z R1 návrhu |
+| `SIM_TICK_HZ` / `FRAME_BUDGET_MS` | 20 / 16.6 | §1.4 |
 
 ---
 
@@ -140,12 +173,13 @@ ZÁVÄZNÉ HERNÉ A ARCHITEKTONICKÉ INVARIANTY:
    - T1: CPU AVX-512 / VNNI (Branch-heavy logic, pathfinding, threat assessment).
    - T2: Iris Xe GPU (Vulkan Compute, SDF shaders, particles).
    - T3: Dedicated Local NPU -> PHYSICALLY_UNAVAILABLE. Nikdy nesyntetizuj falošný lokálny NPU backend.
-   - R1: Remote Neural Service -> Gemini 1.5 Flash / Cloud TPU v5e (Asynchrónny, poradný, neautoritatívny, s deterministickým lokálnym fallbackom).
+   - R1: Remote Neural Service -> Gemini cez Vertex AI (model z premennej GEMINI_MODEL_ID, nie natvrdo) (Asynchrónny, poradný, neautoritatívny, s deterministickým lokálnym fallbackom).
 4. DEKOMPOZÍCIA RÁMCOVÉHO BUDGETU:
    B_frame = B_simulation + B_render + B_presentation.
    Klient cieli 16.6 ms (60 FPS), ale simulačný autoritatívny tick operuje nezávisle.
 5. TRANSAKČNÝ PROTOKOL ŤAHU: Každý ťah alebo schopnosť (STRIKE, SAPPER_DIG, MORTAR, SHIELD) začína snapshotom StateVersion (V). Aplikuje sa len vtedy, ak overenie voči referencii prejde. Pri chybe nastáva okamžitý rollback.
 6. PROTOKOL SIEŤOVEJ ODOLNOSTI: Garantuj deterministické stavové prechody (DETERMINISTIC_STATE_TRANSITIONS). Sieťový desync rieš cez StateHash a čiastočný rollback s opakovaným prehratím vstupov (NETWORK_DESYNC_RESILIENCE). Nikdy netvrď ZERO_DESYNC ako univerzálnu vlastnosť siete.
+7. EVIDENČNÁ INTEGRITA: Každá nameraná latencia alebo telemetria nesie EvidenceLabel. Nikdy nepripočítavaj konštanty k nameranému času a natvrdo zadanú telemetriu nevydávaj za nameranú. Emulované cesty označuj HOST_CPU_EMULATED. Prahy čítaj z CALIBRATION_PARAMETERS.
 ```
 
 ---
@@ -155,7 +189,7 @@ ZÁVÄZNÉ HERNÉ A ARCHITEKTONICKÉ INVARIANTY:
 **Cieľový súbor:** `krystal_game_engine/authoritative_core.py`
 
 #### 🎙️ Slovenský Herný Zámer
-> *"Vytvor v Pythone autoritatívne jadro hry Poslední Kmen na 19-hexovej aréne. Implementuj dosku s polomermi od středu (0,0) po vonkajšie prstence. Hráč má bojovníka kmeňa s presne VITAL_MAX_HP = 6. Vytvor čisté deterministické funkcie pre: 1. pohyb po hexe, 2. bojový duel (karty s fixným seedom), 3. mínometnú salvu s rozptylom, 4. kopanie zákopov pre sapérov. Všetky výpočty rob ako deterministické celočíselné operácie bez náhody, aby Tier 0 fungoval ako neomylné orákulum pre multiplayer a formálnu verifikáciu."*
+> *"Vytvor v Pythone autoritatívne jadro hry Poslední Kmen na 19-hexovej aréne. Implementuj dosku s polomermi od stredu (0,0) po vonkajšie prstence. Hráč má bojovníka kmeňa s presne VITAL_MAX_HP = 6. Vytvor čisté deterministické funkcie pre: 1. pohyb po hexe, 2. bojový duel (karty s fixným seedom), 3. mínometnú salvu s rozptylom, 4. kopanie zákopov pre sapérov. Všetky výpočty rob ako deterministické celočíselné operácie bez náhody, aby Tier 0 fungoval ako neomylné orákulum pre multiplayer a formálnu verifikáciu."*
 
 #### 🌐 Anglický Technický Prompt
 ```text
@@ -188,7 +222,7 @@ Create 'krystal_game_engine/authoritative_core.py':
 **Cieľový súbor:** `krystal_game_engine/tactical_ai_cpu.py`
 
 #### 🎙️ Slovenský Herný Zámer
-> *"Vytvor taktickú AI pre oponentov kmeňa, ktorá beží na Tier 1 CPU cez AVX-512 a VNNI. Naša výskumná fáza 5.1 dokázala, že vetvený kód s množstvom if-podmienok beží na CPU trikrát rýchlejšie než na GPU kvôli absencii warp divergence. Využi to! Sprav A* pathfinding cez 19 hexov, vyhodnocovanie priorít kariet a strom rozhodovania oponenta. Využi paralelný vektorizovaný dot product na vyhodnotenie hrozby (Threat Assessment Tensor) pre všetky hexy naraz."*
+> *"Vytvor taktickú AI pre oponentov kmeňa, ktorá beží na Tier 1 CPU. Pracujeme s hypotézou H-BR1: vetvený kód s množstvom if-podmienok by mal na CPU bežať rýchlejšie než na GPU kvôli warp divergence. Táto hypotéza zatiaľ nie je nameraná, takže ju over benchmarkom (rovnaký algoritmus na T1 a T2, wall-clock, medián opakovaní, séria veľkostí). Sprav A* pathfinding cez 19 hexov, vyhodnocovanie priorít kariet a strom rozhodovania oponenta. Na vyhodnotenie hrozby (Threat Assessment Tensor) pre všetky hexy naraz použi vektorizovaný dot product."*
 
 #### 🌐 Anglický Technický Prompt
 ```text
@@ -196,8 +230,8 @@ TITLE: Branch-Heavy Tactical AI & Threat Tensor Evaluator (Tier 1 CPU VNNI)
 
 Create 'krystal_game_engine/tactical_ai_cpu.py':
 1. Microarchitectural Alignment:
-   - Implement complex branch-heavy decision trees (Utility AI) optimized for CPU out-of-order execution, avoiding GPU warp divergence.
-   - Leverage CPU SIMD (AVX-512 / VNNI emulation) for parallel hex evaluation.
+   - Implement complex branch-heavy decision trees (Utility AI) intended for CPU out-of-order execution (hypothesis H-BR1, to be benchmarked).
+   - Use a native SIMD path (NumPy / C) for parallel hex evaluation. The existing CpuVnniBackend is pure Python and must be labelled HOST_CPU_EMULATED.
 
 2. A* Hexagonal Pathfinding:
    - Optimized priority queue traversal over axial coordinates considering movement costs (trenches = 1, high ground = 2, minefields = dangerous).
@@ -205,7 +239,7 @@ Create 'krystal_game_engine/tactical_ai_cpu.py':
 3. Threat Assessment Matrix (Vectorized Dot-Product):
    - Computes threat level for each of the 19 hexes:
      Threat_i = w_distance * Dist + w_los * LineOfSight + w_low_hp * (6 - Current_HP)
-   - Dispatches via CpuVnniBackend INT8 dot-product kernel to demonstrate real SIMD acceleration.
+   - Dispatch via an INT8 dot-product kernel and report its EvidenceLabel. Claim SIMD acceleration only if a native kernel was measured against the scalar reference.
 
 4. Tactical Behavior Modes:
    - BERSERK: Aggressive melee charge when enemy HP <= 2.
@@ -234,11 +268,13 @@ Create 'krystal_game_engine/vulkan_arena_renderer.py':
 2. Vulkan Compute Particle System:
    - Simulates 4,096 mortar shrapnel particles in compute shaders:
      Update position, velocity, gravity, and bounce off hex plane.
-   - Integrates IrisXeVulkanAdapter compute dispatch pipeline.
+   - Integrates the real VulkanComputeDriver (src/python/vulkan_compute_driver.py) dispatch pipeline. Note: the IrisXeVulkanAdapter in the verification package is a CPU emulation, labelled HOST_CPU_EMULATED.
+   - Requires a new SPIR-V compute kernel for particles; only the raymarch kernel currently exists.
 
 3. UMA Contention Awareness:
-   - Monitors shared memory bus pressure. If UMA pressure exceeds 0.70:
-     Dynamically drops particle batch size from 4,096 to 1,024 to preserve CPU memory bandwidth.
+   - If real shared-memory-bus telemetry is available and exceeds UMA_DEGRADE_THRESHOLD (default 0.70):
+     drop the particle batch from PARTICLE_BATCH_FULL to PARTICLE_BATCH_REDUCED.
+   - Without telemetry, use the measured GPU frame time as a proxy, and label the decision accordingly.
 
 4. Raymarched Sovereign Energy Shield:
    - Procedural iridescent crystal shield over center totem with animated Fresnel glow and dihedral reflection folds.
@@ -251,7 +287,7 @@ Create 'krystal_game_engine/vulkan_arena_renderer.py':
 **Cieľový súbor:** `krystal_game_engine/neural_game_director.py`
 
 #### 🎙️ Slovenský Herný Zámer
-> *"Vytvor modul neurónového herného riaditeľa pre vrstvu R1 (Remote Neural Service) a striktne ho oddeľ od lokálneho Tier 3. V lokálnom prostredí označ Tier 3 ako PHYSICALLY_UNAVAILABLE. Riaditeľa v cloude napoj na Vertex AI / Cloud TPU v5e alebo Gemini 1.5 Flash ako asynchrónnu službu. Riaditeľ analyzuje štýl hráča a navrhuje taktické dialógy a dynamickú obtiažnosť. Riaditeľ je čisto poradný (advisory) — nesmie priamo prepisovať autoritatívne dáta. Ak je cloud offline, okamžite sa prepne na deterministickú lokálnu politiku bez prerušenia hry."*
+> *"Vytvor modul neurónového herného riaditeľa pre vrstvu R1 (Remote Neural Service) a striktne ho oddeľ od lokálneho Tier 3. V lokálnom prostredí označ Tier 3 ako PHYSICALLY_UNAVAILABLE. Riaditeľa v cloude napoj na Gemini cez Vertex AI ako asynchrónnu službu, s modelom z premennej GEMINI_MODEL_ID. Riaditeľ analyzuje štýl hráča a navrhuje taktické dialógy. Pri dynamickej obtiažnosti môže navrhnúť iba ohraničený hint (najviac DDA_MAX_STEP) a ten prejde deterministickým resolverom so seedom zápasu, takže rovnaký vstup dá rovnaký výsledok aj pri replayi. Riaditeľ je čisto poradný (advisory) a nesmie priamo prepisovať autoritatívne dáta. Ak je cloud offline, prepne sa na deterministickú lokálnu politiku bez prerušenia hry a fallback zaloguje ako udalosť."*
 
 #### 🌐 Anglický Technický Prompt
 ```text
@@ -260,11 +296,12 @@ TITLE: Remote Neural Game Director (R1 Service) & Local Tier 3 Boundary
 Create 'krystal_game_engine/neural_game_director.py':
 1. Tier Separation & Local Availability:
    - Local Tier 3 (Dedicated NPU): Truthfully report PHYSICALLY_UNAVAILABLE on Tiger Lake host.
-   - R1 Remote Neural Service: Connects asynchronously to Gemini 1.5 Flash / Vertex AI Cloud TPU.
+   - R1 Remote Neural Service: Connects asynchronously to Gemini on Vertex AI (model from env GEMINI_MODEL_ID).
 
 2. Advisory-Only Mandate:
    - R1 output is strictly categorized as PROPOSAL. It has ZERO direct write access to GameMatchState.
-   - Fallback Mechanism: If R1 call times out (>300ms) or network is offline, activate LocalRuleBasedDirector.
+   - Dynamic difficulty: R1 may only propose a bounded difficulty hint (|delta| <= DDA_MAX_STEP). The hint is applied by the Tier 0 deterministic resolver using the match seed, and is recorded in the input log so that replays reproduce it.
+   - Fallback Mechanism: If an R1 call exceeds R1_PROPOSAL_TIMEOUT_MS or the network is offline, activate LocalRuleBasedDirector and emit an R1_FALLBACK telemetry event.
 
 3. Player Archetype Classification:
    - Quantizes player behavior vector: [aggression_ratio, defense_ratio, trench_usage, mortar_accuracy].
@@ -297,11 +334,11 @@ Create 'krystal_game_engine/transactional_turn_manager.py':
    - Step 1: PreconditionSnapshot (Capture units HP, positions, card counts, SHA-256 hash).
    - Step 2: Speculative local execution on Tier 1 (CPU fast-path).
    - Step 3: Reference verification against Tier 0 DirectSim oracle.
-   - Step 4: If MAE == 0.0 and invariants hold (all HP <= 6): Commit version V -> V+1.
+   - Step 4: If the canonical state hash matches the T0 result exactly (integer state, so no tolerance) and invariants hold (all HP <= 6): Commit version V -> V+1.
    - Step 5: If divergence occurs: Trigger rollback, restore snapshot state, re-verify post-rollback hash.
 
 3. Animation Chatter Guard:
-   - Prevents rapid state-toggling (e.g., WALK <-> IDLE) by enforcing minimum dwell time (0.4s) on state changes.
+   - Prevents rapid state-toggling (e.g., WALK <-> IDLE) by enforcing a minimum dwell time (ANIMATION_MIN_DWELL_S, default 0.4 s) on state changes.
 ```
 
 ---
@@ -330,7 +367,7 @@ Create 'krystal_web_hub/static/posledni_kmen_cyber_arena.html':
    - Action Card Tray:
      - 4 playable cards: "MORTAR_STRIKE", "SAPPER_TRENCH", "SPEAR_THRUST", "CRYSTAL_AEGIS".
    - Heterogeneous Performance Radar:
-     - Real-time display of Tier 0 latency, Tier 1 CPU utilization, Tier 2 GPU frame time, UMA contention bar, and R1 Neural Service status.
+     - Real-time display of Tier 0 latency, Tier 1 CPU utilization, Tier 2 GPU frame time, UMA contention bar, and R1 Neural Service status. Every value shows its EvidenceLabel badge; MODELED_PRIOR values are visibly marked as not measured.
    - Transactional Audit Terminal:
      - Log stream showing: [COMMIT], [ROLLBACK], [ORACLE_VERIFIED], [V_SOURCE].
 ```
@@ -464,10 +501,10 @@ Create 'krystal_game_engine/critical_path_scheduler.py':
      - critical_path_ms: float
      - transfer_overhead_ms: float (PCIe / UMA buffer copy latency)
      - synchronization_ms: float (barrier and fence stalls)
-     - placement_regret: float (difference vs optimal retroactive schedule)
+     - placement_regret: float (difference vs the best observed schedule on the evaluated tier set)
 
 4. Dynamic Schedule Adaptation:
-   - If synchronization_ms > 2.0ms, automatically promote small graphics tasks back to CPU (T1) to collapse inter-device barriers.
+   - If synchronization_ms > SYNC_DEMOTE_THRESHOLD_MS (default 2.0 ms, a tunable hypothesis), promote small graphics tasks back to CPU (T1) to collapse inter-device barriers.
 ```
 
 ---
@@ -490,7 +527,7 @@ Create 'krystal_game_engine/multiplayer_reconciliation.py':
       RandomSeed: int, RulesetVersion: str, StateHash: str).
 
 2. Client-Side Prediction with Authoritative Server:
-   - Client executes predictive turns locally for zero perceived input latency.
+   - Client executes predictive turns locally to minimize perceived input latency.
    - Server validates each turn against Tier 0 DirectSim reference.
 
 3. Divergence Resolution & Targeted Replay:
@@ -535,9 +572,11 @@ Create 'krystal_game_engine/placement_regret_analyzer.py':
 
 3. Epistemic Classification:
    - Classify placement quality strictly into:
+     - INSUFFICIENT_EVIDENCE: fewer than MIN_SAMPLES_FOR_VERDICT decisions.
      - ZERO_REGRET_ON_EVALUATED_SET: Best choice among experimentally measured tiers.
-     - LOW_REGRET: Suboptimality is within acceptable threshold (< 0.2ms).
+     - LOW_REGRET: Suboptimality is within LOW_REGRET_THRESHOLD_MS (default 0.2 ms).
      - PLACEMENT_RECALIBRATION_REQUIRED: Significant regret detected; triggers dynamic re-profiling.
+   - Gaps within the measurement noise floor (repeat spread) are not misplacements.
    - EPISTEMIC INVARIANT: Never label finite benchmark results universally 'OPTIMAL'.
 
 4. Continuous Feedback to Critical Path Scheduler:
@@ -559,9 +598,10 @@ TITLE: Neural Director Safety Boundary & Advisory Contract Enforcement
 
 Create 'krystal_game_engine/neural_director_boundary.py':
 1. Advisory Scope Definition:
-   - Remote Neural Service (R1) is legally authorized to propose ONLY:
+   - Remote Neural Service (R1) is permitted to propose ONLY:
      dialogue text, quest flavor text, dramatic pacing hints,
-     cosmetic environmental events, and non-authoritative bot intention tags.
+     cosmetic environmental events, non-authoritative bot intention tags,
+     and a bounded difficulty hint (|delta| <= DDA_MAX_STEP) that the Tier 0 resolver applies deterministically.
 
 2. Forbidden Mutation Invariants (Strict Lockdown):
    - R1 must NEVER directly mutate or bypass:
@@ -581,15 +621,15 @@ Create 'krystal_game_engine/neural_director_boundary.py':
      Step 5: Authoritative StateVersion Commit (V -> V+1).
 
 4. Autonomous Offline Fallback:
-   - If R1 connection drops, network latency > 250ms, or validation fails:
-     Silently route request to LocalDeterministicDirector; gameplay proceeds with zero interruption.
+   - If the R1 connection drops, latency exceeds R1_PROPOSAL_TIMEOUT_MS, or validation fails:
+     route the request to LocalDeterministicDirector and emit an R1_FALLBACK event (reason, latency, proposal id). Gameplay proceeds without interruption; the fallback is logged, never silent.
 ```
 
 ---
 
 ## 3. Ako s Prompt Bookom v2 Pracovať v AI Studio & Vývoji
 
-Pre dosiahnutie maximálnej stability a nulového technického dlhu odporúčame realizovať vývoj v troch logických fázach:
+Pre dosiahnutie maximálnej stability a minimálneho technického dlhu odporúčame realizovať vývoj v troch logických fázach:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐

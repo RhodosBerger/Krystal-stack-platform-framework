@@ -2,7 +2,7 @@
 
 **Document Version:** 1.0-VERIFIED  
 **Date:** 2026-10-11  
-**Status:** IMPLEMENTED & FORMALLY VERIFIED (117/117 REGRESSION TESTS PASSING)  
+**Status:** IMPLEMENTED & UNIT-TESTED (control logic; 117/117 regression tests at the time of writing). Hardware evidence: see the Phase 5.2 note in §2.  
 **Host Target:** Intel 11th Gen Core i5-1135G7 (Tiger Lake-U) + Iris Xe Graphics (80 EUs)  
 **Universal Invariant:** `VITAL_MAX_HP == 6` (Unconditional)
 
@@ -50,6 +50,9 @@ An empirical audit of the host confirms an 11th Gen Intel Core i5-1135G7 process
 |   - Invariant: Never faked or reported as hardware execution on Tiger Lake.             |
 +-----------------------------------------------------------------------------------------+
 ```
+
+> [!WARNING]
+> **Evidence note (Phase 5.2, 2026-10-11).** "READY" above means *capability detected* (`CAPABILITY_DETECTED`), not *execution measured*. In the placement engine, the T1 (`CpuVnniBackend`) and T2 (`IrisXeVulkanAdapter`) adapters run Python on the host CPU and are now labelled `HOST_CPU_EMULATED`; `real_vnni_execution` and `real_dp4a_execution` report `False`. Real Iris Xe execution currently exists only for the SDF raymarch kernel via `VulkanComputeDriver` (see Phase 5.1 doc §8.3). The tests in §7 verify control logic (gates, fallback, migration), not hardware speed.
 
 ---
 
