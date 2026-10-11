@@ -974,6 +974,36 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json(matrix)
             return
 
+        # ── API: CrystalSec 3.0 Calibration Metrics ───────────────
+        elif norm_path == "/api/cortex/calibration/metrics":
+            from krystal_kernel.verification.crystalsec_v3_placement_calibration import GLOBAL_PLACEMENT_CALIBRATION_CONTROLLER
+            ctrl = GLOBAL_PLACEMENT_CALIBRATION_CONTROLLER
+            self.send_json({
+                "calibration_metrics": ctrl.calibration_tracker.get_calibration_metrics(),
+                "regret_metrics": ctrl.regret_tracker.get_regret_metrics(),
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: CrystalSec 3.0 Empirical Distributions ───────────
+        elif norm_path == "/api/cortex/calibration/distributions":
+            from krystal_kernel.verification.crystalsec_v3_placement_calibration import (
+                GLOBAL_PLACEMENT_CALIBRATION_CONTROLLER,
+                WorkloadClass
+            )
+            ctrl = GLOBAL_PLACEMENT_CALIBRATION_CONTROLLER
+            res = {}
+            for wc in WorkloadClass:
+                res[wc.value] = {
+                    tid.value: ctrl.cost_model.get_distribution_stats(wc, tid).to_dict()
+                    for tid in ctrl.adapters.keys()
+                }
+            self.send_json({
+                "distributions": res,
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Asahi-Inspired Power Governor Telemetry ───────────
         elif norm_path in ("/api/asahi/power", "/api/power/asahi"):
             from krystal_kernel.asahi_power_governor import GLOBAL_ASAHI_POWER_GOVERNOR
@@ -3131,6 +3161,15 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "current_tier": ctrl.placement_engine.current_tier.value,
                 "vital_max_hp": 6
             })
+            return
+
+        # ── API: CrystalSec 3.0 Trigger Calibration Suite ──────────
+        elif self.path == "/api/cortex/calibration/run":
+            from krystal_kernel.verification.crystalsec_v3_placement_calibration import GLOBAL_PLACEMENT_CALIBRATION_CONTROLLER
+            ctrl = GLOBAL_PLACEMENT_CALIBRATION_CONTROLLER
+            iters = int(data.get("iterations_per_class", 10))
+            rep = ctrl.run_calibration_suite(iterations_per_class=iters)
+            self.send_json(rep)
             return
 
         # ── API: Midnight Stable Build Runner ───────────────────────
