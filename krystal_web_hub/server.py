@@ -718,6 +718,9 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         elif norm_path in ("/measurement-radar", "/radar-studio", "/aspect-summarizer", "/disciplines", "/multi_disciplinary_radar_studio.html"):
             self.serve_file(STATIC_DIR / "multi_disciplinary_radar_studio.html", "text/html")
             return
+        elif norm_path in ("/game-showcase", "/live-duel", "/duel-engine", "/game-engine-showcase", "/posledni_kmen_game_engine_showcase.html"):
+            self.serve_file(STATIC_DIR / "posledni_kmen_game_engine_showcase.html", "text/html")
+            return
         elif norm_path in ("/builder", "/studio-3d", "/godot_builder_extension.html", "/godot-builder"):
             self.serve_file(STATIC_DIR / "godot_builder_extension.html", "text/html")
             return
@@ -2319,6 +2322,18 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         elif norm_path in ("/api/game/status", "/api/game/match", "/api/duel/status"):
             from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
             self.send_json({"status": "OK", "match": GLOBAL_POSLEDNI_KMEN_GAME.match_state, "vital_max_hp": 6})
+            return
+
+        elif norm_path in ("/api/game/duel/live-simulation", "/api/game/live-duel"):
+            from examples.posledni_kmen_live_duel_engine import PosledniKmenLiveDuelEngine
+            engine = PosledniKmenLiveDuelEngine()
+            q = parse_qs(parsed.query)
+            t1 = q.get("tribe1", ["CRYSTAL"])[0]
+            t2 = q.get("tribe2", ["TOXIC"])[0]
+            f1 = engine.create_fighter(t1)
+            f2 = engine.create_fighter(t2)
+            match_res = engine.simulate_match(f1, f2)
+            self.send_json(match_res)
             return
 
         # ── API: Poslední Kmen Visual Studio Lore & Radar Pentagons ──

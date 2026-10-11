@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POSLEDNÍ KMEN // ŽIVÝ SÚBOJOVÝ ENGINE & RADAR SHOWCASE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #07090e;
+            --bg-surface: rgba(14, 20, 32, 0.88);
+            --bg-card: rgba(18, 26, 44, 0.75);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-gold: rgba(212, 175, 55, 0.4);
+            --border-cyan: rgba(102, 252, 241, 0.4);
+            --gold: #d4af37;
+            --gold-glow: rgba(212, 175, 55, 0.35);
+            --cyan: #66fcf1;
+            --cyan-glow: rgba(102, 252, 241, 0.35);
+            --toxic: #39ff14;
+            --toxic-glow: rgba(57, 255, 20, 0.35);
+            --druid: #ff9100;
+            --druid-glow: rgba(255, 145, 0, 0.35);
+            --text-main: #f0f4f8;
+            --text-muted: #8892b0;
+            --font-display: 'Cinzel', serif;
+            --font-body: 'Outfit', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --blur: blur(20px) saturate(180%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(102, 252, 241, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.06) 0%, transparent 45%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        header.nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 40px;
+            background: rgba(9, 13, 20, 0.92);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-emblem {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--gold), #7a5d1a);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 900;
+            color: #05070a;
+            font-size: 0.9rem;
+            box-shadow: 0 0 16px var(--gold-glow);
+        }
+
+        .brand-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        .brand-title small {
+            display: block;
+            font-size: 0.65rem;
+            letter-spacing: 3px;
+            color: var(--gold);
+            font-family: var(--font-body);
+        }
+
+        .invariant-tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 5px 14px;
+            background: rgba(212, 175, 55, 0.12);
+            border: 1px solid var(--border-gold);
+            color: var(--gold);
+            border-radius: 9999px;
+            letter-spacing: 1px;
+        }
+
+        /* ── ARENA BATTLE LAYOUT ─────────────────────────────────────────── */
+        main.arena-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr 340px;
+            gap: 24px;
+            padding: 28px 40px;
+            max-width: 1680px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+        }
+
+        .fighter-pod {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            backdrop-filter: var(--blur);
+            position: relative;
+        }
+
+        .fighter-pod.crystal { border-color: var(--border-cyan); box-shadow: 0 0 24px rgba(102, 252, 241, 0.1); }
+        .fighter-pod.toxic { border-color: rgba(57, 255, 20, 0.3); box-shadow: 0 0 24px rgba(57, 255, 20, 0.1); }
+        .fighter-pod.druid { border-color: rgba(255, 145, 0, 0.3); box-shadow: 0 0 24px rgba(255, 145, 0, 0.1); }
+
+        .fighter-title {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        .fighter-subtitle {
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: var(--gold);
+            text-transform: uppercase;
+        }
+
+        /* VITAL PIPS HEARTS */
+        .vital-hearts-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 16px;
+            border-radius: 9999px;
+            border: 1px solid var(--border-subtle);
+            justify-content: center;
+        }
+
+        .heart-pip {
+            width: 18px;
+            height: 18px;
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            background: var(--gold);
+            box-shadow: 0 0 8px var(--gold-glow);
+            transition: all 0.3s ease;
+        }
+
+        .heart-pip.lost {
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: none;
+            transform: scale(0.85);
+        }
+
+        /* RADAR BOX */
+        .fighter-radar-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px 0;
+        }
+
+        svg.pod-radar { overflow: visible; }
+        .pod-radar-grid { fill: none; stroke: rgba(255, 255, 255, 0.1); stroke-width: 1; }
+        .pod-radar-poly { fill: rgba(102, 252, 241, 0.25); stroke: var(--cyan); stroke-width: 2; transition: all 0.4s ease; }
+        .pod-radar-poly.toxic { fill: rgba(57, 255, 20, 0.25); stroke: var(--toxic); }
+        .pod-radar-poly.druid { fill: rgba(255, 145, 0, 0.25); stroke: var(--druid); }
+        .pod-radar-label { font-family: var(--font-mono); font-size: 9px; fill: var(--gold); text-anchor: middle; }
+
+        /* CENTER COMBAT STAGE */
+        .combat-stage {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            backdrop-filter: var(--blur);
+        }
+
+        .stage-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 16px;
+        }
+
+        .btn-duel {
+            background: linear-gradient(135deg, var(--gold), #8a6d25);
+            border: none;
+            color: #07090e;
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            padding: 12px 28px;
+            border-radius: 9999px;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--gold-glow);
+            transition: all 0.25s ease;
+        }
+
+        .btn-duel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 28px rgba(212, 175, 55, 0.6);
+        }
+
+        .btn-step {
+            background: transparent;
+            border: 1px solid var(--border-cyan);
+            color: var(--cyan);
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-step:hover { background: rgba(102, 252, 241, 0.15); box-shadow: 0 0 16px var(--cyan-glow); }
+
+        /* ACTIVE CARD DISPLAY */
+        .card-showcase-zone {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 180px;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: var(--radius-md);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .active-card {
+            background: linear-gradient(145deg, rgba(22, 32, 54, 0.95), rgba(10, 15, 26, 0.95));
+            border: 1px solid var(--border-gold);
+            border-radius: 12px;
+            padding: 16px 24px;
+            width: 320px;
+            box-shadow: 0 0 24px var(--gold-glow);
+            text-align: center;
+            animation: cardAppear 0.4s ease-out;
+        }
+
+        @keyframes cardAppear {
+            from { opacity: 0; transform: scale(0.9) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .active-card-name {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .active-card-meta {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--cyan);
+            margin-bottom: 8px;
+        }
+
+        .active-card-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* COMBAT LOG */
+        .combat-log-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            overflow-y: auto;
+            max-height: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+        }
+
+        .log-entry {
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--gold);
+        }
+
+        .log-entry.crystal { border-left-color: var(--cyan); }
+        .log-entry.toxic { border-left-color: var(--toxic); }
+        .log-entry.druid { border-left-color: var(--druid); }
+        .log-entry .turn-tag { color: var(--gold); font-weight: 600; margin-right: 8px; }
+    </style>
+</head>
+<body>
+
+    <!-- NAV BAR -->
+    <header class="nav-bar">
+        <div class="brand-container">
+            <div class="brand-emblem">PK</div>
+            <div class="brand-title">
+                POSLEDNÍ KMEN
+                <small>ŽIVÝ SÚBOJOVÝ ENGINE & RADAR SHOWCASE</small>
+            </div>
+        </div>
+        <div>
+            <span class="invariant-tag">INVARIANT: VITAL_MAX_HP == 6 · [ACT] [CNF]</span>
+        </div>
+    </header>
+
+    <!-- ARENA GRID -->
+    <main class="arena-grid">
+
+        <!-- FIGHTER A POD (PLAYER) -->
+        <section class="fighter-pod crystal" id="podA">
+            <div>
+                <div class="fighter-subtitle">HRÁČ · KMEŇ CRYSTAL</div>
+                <h2 class="fighter-title" id="nameA">Kryštálová Kráľovná</h2>
+            </div>
+
+            <!-- VITAL HP HEARTS (6 discrete pips) -->
+            <div class="vital-hearts-box" id="heartsBoxA">
+                <div class="heart-pip"></div>
+                <div class="heart-pip"></div>
+                <div class="heart-pip"></div>
+                <div class="heart-pip"></div>
+                <div class="heart-pip"></div>
+                <div class="heart-pip"></div>
+            </div>
+
+            <!-- RADAR CHART -->
+            <div class="fighter-radar-box">
+                <svg class="pod-radar" width="180" height="180" viewBox="0 0 200 200">
+                    <polygon class="pod-radar-grid" points="100,20 180,100 100,180 20,100"></polygon>
+                    <polygon class="pod-radar-grid" points="100,50 150,100 100,150 50,100"></polygon>
+                    <polygon class="pod-radar-poly" id="radarPolyA" points="100,36 180,100 100,148 36,100"></polygon>
+                    <text class="pod-radar-label" x="100" y="12">OBT</text>
+                    <text class="pod-radar-label" x="190" y="104">KON</text>
+                    <text class="pod-radar-label" x="100" y="196">POŠ</text>
+                    <text class="pod-radar-label" x="10" y="104">DOS</text>
+                </svg>
+            </div>
+
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+                Kompozitný Index: <span style="color: var(--cyan);" id="indexValA">4.20 / 5.0</span>
+            </div>
+        </section>
+
+        <!-- CENTER COMBAT STAGE -->
+        <section class="combat-stage">
+            <div class="stage-controls">
+                <div>
+                    <button class="btn-duel" id="btnStartDuel">SPUSTIŤ ŽIVÝ SÚBOJ</button>
+                    <button class="btn-step" id="btnNextStep" style="display: none; margin-left: 10px;">ĎALŠÍ ŤAH ▶</button>
+                </div>
+                <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--gold);" id="roundStatus">
+                    Kolo: 0 / 20
+                </div>
+            </div>
+
+            <!-- ACTIVE CARD ZONE -->
+            <div class="card-showcase-zone" id="cardShowcaseZone">
+                <div style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">
+                    Kliknutím na "SPUSTIŤ ŽIVÝ SÚBOJ" zahájite simuláciu duelu v hernom engine.
+                </div>
+            </div>
+
+            <!-- COMBAT LOG -->
+            <div class="combat-log-container" id="combatLog">
+                <div class="log-entry">
+                    <span class="turn-tag">[READY]</span> Pripravené na boj. 6 HP pre oboch bojovníkov.
+                </div>
+            </div>
+        </section>
+
+        <!-- FIGHTER B POD (OPPONENT) -->
+        <section class="fighter-pod toxic" id="podB">
+            <div>
+                <div class="fighter-subtitle">PROTIVNÍK · KMEŇ TOXIC</div>
+                <h2 class="fighter-title" id="nameB">Močiarny Pán</h2>
+            </div>
+
+            <!-- VITAL HP HEARTS (6 discrete pips) -->
+            <div class="vital-hearts-box" id="heartsBoxB">
+                <div class="heart-pip"></div>
+                <div class="heart-pip"></div>
+                <div class="heart-pip"></div>
+                <div class="heart-pip"></div>
+                <div class="heart-pip"></div>
+                <div class="heart-pip"></div>
+            </div>
+
+            <!-- RADAR CHART -->
+            <div class="fighter-radar-box">
+                <svg class="pod-radar" width="180" height="180" viewBox="0 0 200 200">
+                    <polygon class="pod-radar-grid" points="100,20 180,100 100,180 20,100"></polygon>
+                    <polygon class="pod-radar-grid" points="100,50 150,100 100,150 50,100"></polygon>
+                    <polygon class="pod-radar-poly toxic" id="radarPolyB" points="100,52 148,100 100,180 52,100"></polygon>
+                    <text class="pod-radar-label" x="100" y="12">OBT</text>
+                    <text class="pod-radar-label" x="190" y="104">KON</text>
+                    <text class="pod-radar-label" x="100" y="196">POŠ</text>
+                    <text class="pod-radar-label" x="10" y="104">DOS</text>
+                </svg>
+            </div>
+
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+                Kompozitný Index: <span style="color: var(--toxic);" id="indexValB">3.70 / 5.0</span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- LIVE ENGINE LOGIC -->
+    <script>
+        const VITAL_MAX_HP = 6;
+        let combatSteps = [];
+        let currentStepIndex = 0;
+        let isSimulating = false;
+
+        async function startLiveDuel() {
+            const btn = document.getElementById("btnStartDuel");
+            btn.disabled = true;
+            btn.textContent = "SIMULUJEM...";
+
+            try {
+                // Fetch simulated live match trace
+                const res = await fetch("/api/game/duel/live-simulation");
+                if (res.ok) {
+                    const matchData = await res.json();
+                    combatSteps = matchData.combat_log || [];
+                } else {
+                    fallbackSimulation();
+                }
+            } catch (err) {
+                console.warn("Using offline fallback engine:", err);
+                fallbackSimulation();
+            }
+
+            currentStepIndex = 0;
+            document.getElementById("btnNextStep").style.display = "inline-block";
+            btn.textContent = "REŠTARTOVAŤ SÚBOJ";
+            btn.disabled = false;
+            resetHearts();
+
+            playNextStepAuto();
+        }
+
+        function fallbackSimulation() {
+            // Self-contained fallback trace adhering to 6 HP invariant
+            combatSteps = [
+                { turn: 1, actor: "Kryštálová Kráľovná", card: "Ľadovcová Kopija", target_hp: 3, description: "Kryštálová Kráľovná vyložila [Ľadovcová Kopija]. Spôsobila 3 zranenia!", tribe: "crystal" },
+                { turn: 2, actor: "Močiarny Pán", card: "Toxický Oblak", target_hp: 5, description: "Močiarny Pán zahral [Toxický Oblak]. 1 poškodenie a nákaza!", tribe: "toxic" },
+                { turn: 3, actor: "Kryštálová Kráľovná", card: "Mrazivý Črep", target_hp: 2, description: "Mrazivý Črep zasiahol Močiarneho Pána (-1 HP).", tribe: "crystal" },
+                { turn: 4, actor: "Močiarny Pán", card: "Zámotok Slizu", target_hp: 2, description: "Močiarny Pán sa obalil do slizu (+2 brnenia).", tribe: "toxic" },
+                { turn: 5, actor: "Kryštálová Kráľovná", card: "Citadela Kryštálov", target_hp: 5, description: "Citadela Kryštálov: +3 brnenia pre Kráľovnú.", tribe: "crystal" },
+                { turn: 6, actor: "Močiarny Pán", card: "Zuby Rozkladu", target_hp: 4, description: "Rozklad rozleptal časť kryštálového brnenia.", tribe: "toxic" },
+                { turn: 7, actor: "Kryštálová Kráľovná", card: "Prizmatická Šípka", target_hp: 0, description: "Konečný úder prizmou! Močiarny Pán padá na 0 HP.", tribe: "crystal" }
+            ];
+        }
+
+        function playNextStepAuto() {
+            if (currentStepIndex >= combatSteps.length) {
+                document.getElementById("roundStatus").textContent = "SÚBOJ DOKONČENÝ! VÍŤAZ: Kryštálová Kráľovná";
+                return;
+            }
+
+            const step = combatSteps[currentStepIndex];
+            executeStep(step);
+            currentStepIndex++;
+
+            setTimeout(() => {
+                if (currentStepIndex < combatSteps.length) {
+                    playNextStepAuto();
+                }
+            }, 1200);
+        }
+
+        function executeStep(step) {
+            document.getElementById("roundStatus").textContent = `Kolo: ${step.turn} / 20`;
+
+            // Active Card Visual
+            const zone = document.getElementById("cardShowcaseZone");
+            zone.innerHTML = `
+                <div class="active-card">
+                    <div class="active-card-meta">ŤAH ${step.turn} · ${step.actor}</div>
+                    <div class="active-card-name">${step.card || 'Výpad'}</div>
+                    <div class="active-card-desc">${step.description}</div>
+                </div>
+            `;
+
+            // Update hearts
+            if (step.actor.includes("Kráľovná")) {
+                updateHearts("heartsBoxB", step.target_hp);
+            } else {
+                updateHearts("heartsBoxA", step.target_hp);
+            }
+
+            // Log
+            const log = document.getElementById("combatLog");
+            const entry = document.createElement("div");
+            entry.className = `log-entry ${step.tribe || (step.actor.includes('Kráľovná') ? 'crystal' : 'toxic')}`;
+            entry.innerHTML = `<span class="turn-tag">[Turn ${step.turn}]</span> ${step.description}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateHearts(boxId, remainingHp) {
+            const hearts = document.querySelectorAll(`#${boxId} .heart-pip`);
+            hearts.forEach((h, idx) => {
+                if (idx < remainingHp) {
+                    h.classList.remove("lost");
+                } else {
+                    h.classList.add("lost");
+                }
+            });
+        }
+
+        function resetHearts() {
+            document.querySelectorAll(".heart-pip").forEach(h => h.classList.remove("lost"));
+            document.getElementById("combatLog").innerHTML = "";
+        }
+
+        document.getElementById("btnStartDuel").addEventListener("click", startLiveDuel);
+        document.getElementById("btnNextStep").addEventListener("click", () => {
+            if (currentStepIndex < combatSteps.length) {
+                executeStep(combatSteps[currentStepIndex]);
+                currentStepIndex++;
+            }
+        });
+    </script>
+</body>
+</html>
