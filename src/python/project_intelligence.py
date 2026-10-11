@@ -176,7 +176,7 @@ SUBSYSTEMS: Dict[str, Dict[str, Any]] = {
     "krystal-lang": {"title": "Krystal-Lang compiler & topological VM", "paths": ["krystal_lang"], "tests": ["tests/test_krystal_lang.py"], "docs": ["docs/research/KRYSTAL_LANG_GEOMETRIC_BYTECODE_AND_LLM_COMPILATION.md"]},
     "openworld": {"title": "Open-world semantic compiler & renderer", "paths": ["openworld_engine"], "tests": ["tests/test_openworld_engine.py"], "docs": ["docs/research/ADVANCED_OPENWORLD_PROCEDURAL_RENDERING.md"]},
     "mimicry": {"title": "Mimicry compositor (Blender-style modifiers)", "paths": ["mimicry_engine"], "tests": ["tests/test_mimicry_compositor.py"], "docs": ["docs/research/BLENDER_CORE_MODIFIER_MIMICRY_ENGINE.md"]},
-    "antigravity-ar": {"title": "Antigravity prompt engine & AR mirror", "paths": ["antigravity_prompt_engine.py", "instances", "templates", "holographic_engine"], "tests": ["tests/test_procedural_bootstrap.py", "tests/verify_advanced_ar_mirror.py"], "docs": ["docs/research/RECURSIVE_AR_MIRROR_AND_ANTIGRAVITY_MANIFOLDS.md"]},
+    "antigravity-ar": {"title": "Antigravity prompt engine & AR mirror", "paths": ["antigravity_prompt_engine.py", "instances", "templates", "holographic_engine"], "tests": ["tests/test_procedural_bootstrap.py", "tests/test_advanced_ar_mirror.py"], "docs": ["docs/research/RECURSIVE_AR_MIRROR_AND_ANTIGRAVITY_MANIFOLDS.md"]},
     "janet-port": {"title": "Janet Lisp sub-project", "paths": ["krystal_janet"], "tests": ["tests/test_janet_integration.py"], "docs": ["krystal_janet/README.md"], "verified": "janet"},
     "godot": {"title": "Godot project & hologram shader", "paths": ["godot_project"], "tests": [], "docs": ["godot_project/README.md"], "verified": "godot"},
     "wsl-bridge": {"title": "WSL2 bridge", "paths": ["wsl_bridge"], "tests": [], "docs": []},
@@ -436,7 +436,7 @@ CANDIDATES: List[Dict[str, Any]] = [
         "expertise": ["qa-automation", "procedural-geometry"],
         "detectors": [
             det("test_mimicry_compositor.py is script-style (0 tests discovered)", 0.5, _tests_zero("tests/test_mimicry_compositor.py")),
-            det("verify_advanced_ar_mirror.py is script-style (0 tests discovered)", 0.5, _tests_zero("tests/verify_advanced_ar_mirror.py")),
+            det("test_advanced_ar_mirror.py is script-style (0 tests discovered)", 0.5, _tests_zero("tests/test_advanced_ar_mirror.py")),
         ],
         "next_steps": [
             "Wrap the existing assertions in unittest.TestCase methods (no new logic needed).",
