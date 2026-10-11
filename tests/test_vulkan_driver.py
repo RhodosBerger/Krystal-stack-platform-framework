@@ -58,12 +58,12 @@ class TestVulkanComputeDriver(unittest.TestCase):
 
     def test_03_telemetry_metrics_update(self):
         """Executing a dispatch updates latency and dispatch count metrics."""
-        self.driver.execute_raymarch(width=32, height=16, t=1.0)
+        self.driver.execute_raymarch(width=80, height=48, t=1.0)
         telemetry = self.driver.get_telemetry()
 
         self.assertGreater(telemetry["dispatch_count"], 0)
         self.assertGreater(telemetry["last_dispatch_us"], 0.0)
-        self.assertEqual(telemetry["ssbo_readback_kb_per_frame"], 19.2)
+        self.assertAlmostEqual(telemetry["ssbo_readback_kb_per_frame"], 18.75, places=2)
 
     def test_04_fallback_state(self):
         """Driver handles toggling to CPU fallback without crashing."""

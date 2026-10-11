@@ -6,19 +6,20 @@ ich iba formuluje.
 
 ---
 
-## P1. Nedosiahnuteľné mechanizmy
-**Zdroj:** [Veta 1.2](01_triazny_operator.md#veta-12-dosiahnuteľná-množina). REPRESSION, RATIONALIZATION a HYPERVIGILANCE
-sú v taxonómii, ale triáž ich nikdy nevráti; RATIONALIZATION má dokonca vlastnú vetvu hintov.
-**Otázka.** Rozšíriť $T$ (napr. HYPERVIGILANCE pre $\theta \in [\theta^\* - h, \theta^\*)$ ako predstupeň REG), alebo
-oddeliť „triážne“ mechanizmy od „taxonomických“?
-**Cieľ G3.** Rozhodnúť a zapísať; pri rozšírení dokázať znova vety 1.1–1.3 a 2.1.
+## P1. Nedosiahnuteľné mechanizmy — RESOLVED_FORMALLY
+**Zdroj:** [Veta 1.2](01_triazny_operator.md#veta-12-dosiahnuteľná-množina). REPRESSION, RATIONALIZATION a HYPERVIGILANCE.
+**Stav (2026-10-11, Track C):** `RESOLVED_FORMALLY`.
+Vyriešené zavedením operátora napätia $\sigma_{\text{strain}} = \tanh(\kappa \cdot \frac{\sqrt{\max(0, -\Delta)}}{2|a|})$ ([`krystal_theory/strain_operator.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_theory/strain_operator.py)) a ohraničeného triážneho operátora s dvojprahovou hysteréziou $\tau_{\text{on}} > \tau_{\text{off}}$ ([`krystal_theory/triage_operator.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_theory/triage_operator.py)). Mechanizmy `HYPERVIGILANCE` ($\tau_{\text{on}}=0.35, \tau_{\text{off}}=0.20$), `RATIONALIZATION` ($\tau_{\text{on}}=0.50, \tau_{\text{off}}=0.30$) a `REPRESSION` ($\tau_{\text{on}}=0.65, \tau_{\text{off}}=0.45$) sú plne dosiahnuteľné pri $\sigma_{\text{strain}} > 0$. Stav dosiahnuteľnosti je explicitne rozdelený na `THEORETICALLY_REACHABLE`, `RUNTIME_REACHABLE` a `CURRENTLY_ACTIVE` s auditovateľným `blocked_reason`. Všetky chattering-free hysterézne sekvencie a falsifikačné stráže sú verifikované v [`tests/test_formal_theory_resolution.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_formal_theory_resolution.py).
 
-## P2. Sémantika ranku
-**Zdroj:** [Vety 2.4, 2.6](02_planovanie_a_poradie.md). Rank je monotónny len v teplote a súčasné poradie je
-WSPT-optimálne len pri $w_{\mathrm{COMP}} \le 0{,}24$.
-**Otázka.** Je rank *urgentnosť* (monotónna v strese) alebo *odhadzovanie záťaže*?
-**Cieľ G2.** Zvoliť váhy $w_m$ explicitne a rank z nich **odvodiť** (Smithovo pravidlo), namiesto
-ručnej tabuľky. Hypotéza H-S1.
+## P2. Sémantika ranku — RESOLVED_FORMALLY
+**Zdroj:** [Vety 2.4, 2.6](02_planovanie_a_poradie.md).
+**Stav (2026-10-11, Track C):** `RESOLVED_FORMALLY`.
+Vyriešené nahradením statickej tabuľky priorít rigoróznym plánovaním podľa Smithovho pravidla (Weighted Shortest Processing Time — WSPT, $\rho_i = w_i / p_i$) v [`krystal_theory/wspt_ranker.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_theory/wspt_ranker.py):
+1. **Monotónnosť ranku:** Dokázané $\frac{\partial \rho}{\partial w} = \frac{1}{p} > 0$ a $\frac{\partial \rho}{\partial p} = -\frac{w}{p^2} < 0$. Verifikované property testami naprieč 1 000 deterministickými náhodnými stavmi.
+2. **Deterministické rozbíjanie zhôd:** $\rho_i \succ \text{safety\_criticality} \succ \text{epistemic\_uncertainty} \succ p_i \succ \text{lexicographical\_id}$.
+3. **Derivácia hranice $w_{\mathrm{COMP}} \le 0{,}24$:** Odvodená z pomeru modelových časov $\pi_{\mathrm{COMP}} / \pi_{\mathrm{PROJ}} = 120 / 500 = 0{,}24$. Pri jej prekročení WSPT správne uprednostní COMP pred PROJ. Klasifikácia: `MATHEMATICALLY_DERIVED_FROM_EMPIRICAL_PARAMETERS`.
+4. **Saturácia váh pod napätím:** $w_i' = w_i \cdot (1 + \alpha_i \tanh(\beta \sigma_{\text{strain}}))$ zabraňuje nekontrolovanému pretečeniu priorít.
+5. **Invariant Safety Gate:** Plánovacia priorita je striktne podriadená architektonickým invariantom (`VITAL_MAX_HP == 6`, termálny strop $95^\circ\text{C}$, zmluvy o zdrojoch). Verifikované v [`tests/test_formal_theory_resolution.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_formal_theory_resolution.py).
 
 ## P3. Hysterézia a odhad šumu
 **Zdroj:** [Veta 3.2, Dôsledok 3.3](03_riadenie_a_stabilita.md#32-hysterézia). Pri $h = 0$ nie je záruka proti chatteringu.
