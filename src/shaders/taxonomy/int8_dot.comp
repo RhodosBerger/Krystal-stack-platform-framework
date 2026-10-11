@@ -1,0 +1,20 @@
+#version 450
+// CrystalSec taxonomy kernel: INT8_DOT_PRODUCT (also used for MIXED_COMPUTE_MEMORY, whose
+// T0 reference currently consumes only vector_a / vector_b).
+// Semantics must equal T0 `_run_directsim`: out[i] = max(0, a[i] * b[i]).
+// Inputs are real INT8 data: 4 signed bytes packed per uint32 (little-endian).
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) readonly buffer Params { uint n; uint stride; uint aux0; uint aux1; float c[4]; } p;
+layout(std430, binding = 1) readonly buffer A { uint a_packed[]; };
+layout(std430, binding = 2) readonly buffer B { uint b_packed[]; };
+layout(std430, binding = 3) writeonly buffer Out { float o[]; };
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= p.n) return;
+    int shift = int((i & 3u) * 8u);
+    int a = bitfieldExtract(int(a_packed[i >> 2]), shift, 8);  // sign-extending extract
+    int b = bitfieldExtract(int(b_packed[i >> 2]), shift, 8);
+    o[i] = float(max(0, a * b));
+}

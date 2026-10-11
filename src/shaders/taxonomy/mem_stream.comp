@@ -1,0 +1,15 @@
+#version 450
+// CrystalSec taxonomy kernel: MEMORY_BOUND_STREAM
+// Semantics equal T0: out[k] = buf[k * stride] * 1.001  for k in [0, ceil(len/stride)).
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) readonly buffer Params { uint n; uint stride; uint aux0; uint aux1; float c[4]; } p;
+layout(std430, binding = 1) readonly buffer A { float buf[]; };
+layout(std430, binding = 2) readonly buffer B { float unused_b[]; };
+layout(std430, binding = 3) writeonly buffer Out { float o[]; };
+
+void main() {
+    uint k = gl_GlobalInvocationID.x;
+    if (k >= p.n) return;
+    o[k] = buf[k * p.stride] * 1.001;
+}
