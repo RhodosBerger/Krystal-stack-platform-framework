@@ -876,6 +876,104 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: CrystalSec 3.0 Execution Tiers ────────────────────
+        elif norm_path == "/api/cortex/execution-tiers":
+            from krystal_kernel.verification.crystalsec_v3_heterogeneous_execution import GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER
+            self.send_json({
+                "tiers": GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER.get_tier_capabilities(),
+                "hardware": GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER.hardware_map.to_dict(),
+                "current_tier": GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER.placement_engine.current_tier.value,
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: CrystalSec 3.0 Current Placement ──────────────────
+        elif norm_path == "/api/cortex/placement/current":
+            from krystal_kernel.verification.crystalsec_v3_heterogeneous_execution import GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER
+            ctrl = GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER
+            cur_tier = ctrl.placement_engine.current_tier
+            adapter = ctrl.adapters[cur_tier]
+            self.send_json({
+                "current_tier": cur_tier.value,
+                "is_oscillation_locked": ctrl.oscillation_guard.is_locked,
+                "reversals": ctrl.oscillation_guard.reversal_count,
+                "shadow_sample_interval": ctrl.migration_arbiter.shadow_sample_interval,
+                "active_telemetry": adapter.get_telemetry(),
+                "state_version": ctrl.version_manager.current_version.version_id,
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: CrystalSec 3.0 Placement History ──────────────────
+        elif norm_path == "/api/cortex/placement/history":
+            from krystal_kernel.verification.crystalsec_v3_heterogeneous_execution import GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER
+            ctrl = GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER
+            history = []
+            for item in ctrl.migration_arbiter.migration_history:
+                history.append({
+                    "workload_id": item.decision.workload_id,
+                    "from_tier": item.decision.fallback_tier.value if item.decision.fallback_tier else "UNKNOWN",
+                    "to_tier": item.decision.selected_tier.value,
+                    "reason": item.decision.selection_reason,
+                    "success": item.success,
+                    "verified": item.verified,
+                    "committed": item.committed,
+                    "rolled_back": item.rolled_back,
+                    "error_msg": item.error_msg,
+                    "pre_state_version": item.pre_state_version,
+                    "post_state_version": item.post_state_version,
+                })
+            self.send_json({
+                "history": history,
+                "total_migrations": len(history),
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: CrystalSec 3.0 Tier Verification Matrix ───────────
+        elif norm_path == "/api/cortex/tier-verification-matrix":
+            from krystal_kernel.verification.crystalsec_v3_heterogeneous_execution import (
+                GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER,
+                ExecutionTierID
+            )
+            ctrl = GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER
+            benchmarks = ctrl.benchmark_available_tiers(n_samples=20)
+            
+            sample_wl = {"input": [1.0 + (i * 0.1) for i in range(64)], "weights": [0.5 for _ in range(64)]}
+            ref_out, _ = ctrl.directsim.execute(sample_wl)
+            t1_out, _ = ctrl.cpu_vnni.execute(sample_wl)
+            t2_out, _ = ctrl.iris_xe.execute(sample_wl)
+            
+            mae_t0_t1 = sum(abs(a - b) for a, b in zip(ref_out, t1_out)) / max(len(ref_out), 1)
+            mae_t0_t2 = sum(abs(a - b) for a, b in zip(ref_out, t2_out)) / max(len(ref_out), 1)
+            
+            matrix = {
+                "T0_vs_T1": {
+                    "baseline": "DIRECTSIM_REFERENCE",
+                    "target": "CPU_AVX512_VNNI",
+                    "exact_shape_match": len(ref_out) == len(t1_out),
+                    "mean_absolute_error": round(mae_t0_t1, 6),
+                    "verified": mae_t0_t1 < 1e-4,
+                },
+                "T0_vs_T2": {
+                    "baseline": "DIRECTSIM_REFERENCE",
+                    "target": "IRIS_XE_VULKAN_DP4A",
+                    "exact_shape_match": len(ref_out) == len(t2_out),
+                    "mean_absolute_error": round(mae_t0_t2, 6),
+                    "verified": mae_t0_t2 < 1e-4,
+                },
+                "T0_vs_T3": {
+                    "baseline": "DIRECTSIM_REFERENCE",
+                    "target": "DEDICATED_NPU",
+                    "status": "PHYSICALLY_UNAVAILABLE",
+                    "verified": False,
+                },
+                "benchmarks": benchmarks,
+                "vital_max_hp": 6
+            }
+            self.send_json(matrix)
+            return
+
         # ── API: Asahi-Inspired Power Governor Telemetry ───────────
         elif norm_path in ("/api/asahi/power", "/api/power/asahi"):
             from krystal_kernel.asahi_power_governor import GLOBAL_ASAHI_POWER_GOVERNOR
@@ -2973,6 +3071,66 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             from krystal_web_hub.cloud_backoffice_service import GLOBAL_CLOUD_BACKOFFICE_SERVICE
             cert_dict = GLOBAL_CLOUD_BACKOFFICE_SERVICE.run_live_validation(data)
             self.send_json(cert_dict)
+            return
+
+        # ── API: CrystalSec 3.0 Placement Evaluation ───────────────
+        elif self.path == "/api/cortex/placement/evaluate":
+            from krystal_kernel.verification.crystalsec_v3_heterogeneous_execution import (
+                GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER,
+                ExecutionMode
+            )
+            ctrl = GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER
+            mode_str = data.get("mode", "BALANCED_MODE")
+            try:
+                mode = ExecutionMode(mode_str)
+            except Exception:
+                mode = ExecutionMode.BALANCED_MODE
+            workload_id = data.get("workload_id", f"wl_{int(time.time()*1000)}")
+            action = {"action_id": data.get("action_id", "ACT-PREDICT"), "type": "TENSOR_PREDICT"}
+            
+            decision = ctrl.placement_engine.evaluate_placement(
+                workload_id=workload_id,
+                action=action,
+                mode=mode,
+            )
+            self.send_json(decision.to_dict())
+            return
+
+        # ── API: CrystalSec 3.0 Placement Migration ────────────────
+        elif self.path == "/api/cortex/placement/migrate":
+            from krystal_kernel.verification.crystalsec_v3_heterogeneous_execution import (
+                GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER,
+                ExecutionMode
+            )
+            ctrl = GLOBAL_HETEROGENEOUS_TRIAD_CONTROLLER
+            mode_str = data.get("mode", "BALANCED_MODE")
+            try:
+                mode = ExecutionMode(mode_str)
+            except Exception:
+                mode = ExecutionMode.BALANCED_MODE
+            workload_id = data.get("workload_id", f"mig_{int(time.time()*1000)}")
+            action = {"action_id": "MIGRATE_TIER", "type": "MIGRATE_TIER"}
+            
+            decision = ctrl.placement_engine.evaluate_placement(
+                workload_id=workload_id,
+                action=action,
+                mode=mode,
+            )
+            sample_wl = {"input": [1.0 + (i * 0.05) for i in range(128)], "weights": [0.5 for _ in range(128)]}
+            success, msg, details = ctrl.migration_arbiter.execute_migration_transaction(
+                decision=decision,
+                sample_workload=sample_wl,
+            )
+            self.send_json({
+                "workload_id": decision.workload_id,
+                "selected_tier": decision.selected_tier,
+                "reason": decision.selection_reason,
+                "success": success,
+                "message": msg,
+                "details": details,
+                "current_tier": ctrl.placement_engine.current_tier.value,
+                "vital_max_hp": 6
+            })
             return
 
         # ── API: Midnight Stable Build Runner ───────────────────────

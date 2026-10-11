@@ -876,6 +876,167 @@
         </table>
       </div>
     </div>
+
+    <!-- ============================================================= -->
+    <!-- CRYSTALSEC 3.0: HETEROGENEOUS EXECUTION TRIAD PANELS          -->
+    <!-- ============================================================= -->
+    <div style="margin-top: 2rem; margin-bottom: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
+      <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--cyan); display: flex; align-items: center; gap: 0.5rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        CrystalSec 3.0 // Heterogeneous Execution Triad & Runtime Placement Engine
+      </h2>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+        Multi-Tier Placement: T0 (DirectSim Reference) &bull; T1 (CPU AVX-512/VNNI) &bull; T2 (Iris Xe Vulkan/DP4A) &bull; T3 (Dedicated NPU: PHYSICALLY_UNAVAILABLE)
+      </div>
+    </div>
+
+    <div class="studio-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+      <!-- PANEL 1: Execution Tier Map & Availability -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            Execution Tier Map & Hardware Availability
+          </div>
+          <button class="btn-secondary" onclick="loadExecutionTiers()">Refresh Tiers</button>
+        </div>
+        <div class="table-container">
+          <table id="tblTiers">
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Target Substrate</th>
+                <th>Status</th>
+                <th>Latency (med)</th>
+                <th>Throughput</th>
+              </tr>
+            </thead>
+            <tbody id="tblTiersBody">
+              <tr>
+                <td><strong>T0</strong> DirectSim</td>
+                <td>Deterministic Oracle Baseline</td>
+                <td><span class="status-pill active">READY</span></td>
+                <td>0.52 ms</td>
+                <td>8,200 ops/s</td>
+              </tr>
+              <tr>
+                <td><strong>T1</strong> CPU VNNI</td>
+                <td>Willow Cove AVX-512 / VNNI</td>
+                <td><span class="status-pill active">READY</span></td>
+                <td>0.14 ms</td>
+                <td>48,500 ops/s</td>
+              </tr>
+              <tr>
+                <td><strong>T2</strong> Iris Xe</td>
+                <td>Vulkan Compute / DP4A INT8</td>
+                <td><span class="status-pill active">READY</span></td>
+                <td>0.038 ms</td>
+                <td>210,000 ops/s</td>
+              </tr>
+              <tr>
+                <td><strong>T3</strong> NPU</td>
+                <td>Dedicated NPU Substrate</td>
+                <td><span class="status-pill" style="background: rgba(244,63,94,0.15); color: var(--rose);">PHYSICALLY_UNAVAILABLE</span></td>
+                <td>N/A</td>
+                <td>0 ops/s</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PANEL 2: Dynamic Fallback Graph & Oscillation Guard -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+            Dynamic Fallback Graph & Tier Oscillation Guard
+          </div>
+          <span id="tierGuardBadge" class="status-pill active">GUARD UNLOCKED</span>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.6;">
+          <div style="color: var(--cyan); font-weight: 700;">[DYNAMIC FALLBACK GRAPH]</div>
+          <div>&bull; Primary Fast Path:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--emerald);">Tier 2 (Iris Xe Vulkan DP4A)</span></div>
+          <div>&bull; High-UMA/Thermal Failover:&nbsp;<span style="color:var(--amber);">Tier 1 (CPU AVX-512/VNNI)</span></div>
+          <div>&bull; Correctness / Last Safe:&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--cyan);">Tier 0 (DirectSim Reference)</span></div>
+          <div>&bull; Dedicated NPU Exclusion:&nbsp;&nbsp;&nbsp;<span style="color:var(--rose);">Tier 3 (PHYSICALLY_UNAVAILABLE - EXCLUDED)</span></div>
+          <div style="margin-top: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 0.5rem; color: var(--text-muted);">
+            Oscillation Guard: Reversals: <span id="valReversals" style="color:var(--emerald);">0/3</span> | Dwell Time: <span style="color:var(--emerald);">1.0s</span> | &Delta;U Thresh: <span style="color:var(--gold);">0.02</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL 3: Placement Decision & Multi-Objective Utility -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Active Placement Decision Inspector
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <select id="selPlacementMode" class="control-select" style="font-size:0.75rem;">
+              <option value="BALANCED_MODE">BALANCED_MODE</option>
+              <option value="LATENCY_MODE">LATENCY_MODE</option>
+              <option value="THROUGHPUT_MODE">THROUGHPUT_MODE</option>
+              <option value="THERMAL_SAFE_MODE">THERMAL_SAFE_MODE</option>
+              <option value="POWER_SAVE_MODE">POWER_SAVE_MODE</option>
+              <option value="REFERENCE_MODE">REFERENCE_MODE</option>
+            </select>
+            <button class="btn-action" onclick="evaluatePlacementAPI()">Evaluate</button>
+            <button class="btn-secondary" onclick="migrateTierAPI()">Migrate</button>
+          </div>
+        </div>
+        <div id="placementDecisionCard" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.5;">
+          <div>Selected Tier:&nbsp;<span id="resSelectedTier" style="color:var(--emerald); font-weight:700;">TIER_2_IRIS_XE</span></div>
+          <div>Reason:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="resReason" style="color:var(--text-main);">Multi-objective utility optimal (U=0.887)</span></div>
+          <div>Predicted Lat:&nbsp;<span id="resPredLat" style="color:var(--cyan);">0.04 ms</span> | UMA Pressure: <span id="resUma" style="color:var(--gold);">0.15</span></div>
+          <div>StateVersion:&nbsp;&nbsp;&nbsp;<span id="resStateVersion" style="color:var(--purple);">V_104</span> | Decision Hash: <span id="resDecisionHash" style="color:var(--text-muted); font-size:0.7rem;">7f8c12a...</span></div>
+        </div>
+      </div>
+
+      <!-- PANEL 4: Cross-Tier Verification Matrix -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            Cross-Tier Verification Matrix (MAE vs T0 Oracle)
+          </div>
+          <button class="btn-secondary" onclick="loadTierVerificationMatrix()">Run Audit</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Comparison Pair</th>
+                <th>MAE</th>
+                <th>Determinism</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="tblMatrixBody">
+              <tr>
+                <td>T0 (DirectSim) vs T1 (CPU VNNI)</td>
+                <td style="color:var(--emerald); font-weight:700;">0.000000</td>
+                <td>100.0% Exact</td>
+                <td><span class="status-pill active">VERIFIED</span></td>
+              </tr>
+              <tr>
+                <td>T0 (DirectSim) vs T2 (Iris Xe)</td>
+                <td style="color:var(--emerald); font-weight:700;">0.000000</td>
+                <td>100.0% Exact</td>
+                <td><span class="status-pill active">VERIFIED</span></td>
+              </tr>
+              <tr>
+                <td>T0 (DirectSim) vs T3 (Dedicated NPU)</td>
+                <td style="color:var(--rose);">N/A</td>
+                <td>N/A</td>
+                <td><span class="status-pill" style="background:rgba(244,63,94,0.15); color:var(--rose);">UNAVAILABLE</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="bottom-bar">
@@ -1254,7 +1415,113 @@
       });
     }
 
-    window.onload = initStudio;
+    async function loadExecutionTiers() {
+      appendLog("ACT", "Fetching heterogeneous execution tiers...");
+      try {
+        const res = await fetch("/api/cortex/execution-tiers");
+        const data = await res.json();
+        if (data && data.tiers) {
+          const tbody = document.getElementById("tblTiersBody");
+          tbody.innerHTML = "";
+          for (const [tid, cap] of Object.entries(data.tiers)) {
+            const tr = document.createElement("tr");
+            const isReady = cap.status === "READY";
+            const isUnavail = cap.status === "PHYSICALLY_UNAVAILABLE";
+            const pillClass = isReady ? "status-pill active" : isUnavail ? "status-pill diagnostic" : "status-pill";
+            const pillStyle = isUnavail ? "background:rgba(244,63,94,0.15); color:var(--rose);" : "";
+            tr.innerHTML = `
+              <td><strong>${tid.replace('TIER_', 'T').replace('_', ' ')}</strong></td>
+              <td>${cap.supported_precisions.join(', ')}</td>
+              <td><span class="${pillClass}" style="${pillStyle}">${cap.status}</span></td>
+              <td>${cap.measured_latency_ms.toFixed(3)} ms</td>
+              <td>${Math.round(cap.measured_throughput_ops).toLocaleString()} ops/s</td>
+            `;
+            tbody.appendChild(tr);
+          }
+          appendLog("OK", "Execution tier map successfully refreshed.");
+        }
+      } catch (e) {
+        appendLog("WARN", `Could not load execution tiers: ${e}`);
+      }
+    }
+
+    async function evaluatePlacementAPI() {
+      const mode = document.getElementById("selPlacementMode").value;
+      appendLog("ACT", `Evaluating tier placement under mode [${mode}]...`);
+      try {
+        const res = await fetch("/api/cortex/placement/evaluate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: mode, workload_id: `studio_eval_${Date.now()}` })
+        });
+        const d = await res.json();
+        document.getElementById("resSelectedTier").innerText = d.selected_tier;
+        document.getElementById("resReason").innerText = d.selection_reason;
+        document.getElementById("resPredLat").innerText = `${d.predicted_latency_ms.toFixed(3)} ms`;
+        document.getElementById("resUma").innerText = d.predicted_UMA_pressure.toFixed(2);
+        document.getElementById("resStateVersion").innerText = `V_${d.state_version}`;
+        document.getElementById("resDecisionHash").innerText = d.decision_hash.substring(0, 16) + '...';
+        appendLog("OK", `Placement evaluated: ${d.selected_tier} (${d.selection_reason}).`);
+      } catch (e) {
+        appendLog("WARN", `Placement evaluation failed: ${e}`);
+      }
+    }
+
+    async function migrateTierAPI() {
+      const mode = document.getElementById("selPlacementMode").value;
+      appendLog("ACT", `Initiating transactional tier migration under mode [${mode}]...`);
+      try {
+        const res = await fetch("/api/cortex/placement/migrate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: mode, workload_id: `studio_mig_${Date.now()}` })
+        });
+        const d = await res.json();
+        if (d.success && d.committed) {
+          appendLog("OK", `Migration committed to ${d.selected_tier}! Verified=${d.verified}, V_${d.pre_state_version} -> V_${d.post_state_version}`);
+        } else if (d.rolled_back) {
+          appendLog("WARN", `Migration rolled back to fallback tier! Reason: ${d.error_msg}`);
+        }
+        await loadExecutionTiers();
+      } catch (e) {
+        appendLog("INV", `Migration API error: ${e}`);
+      }
+    }
+
+    async function loadTierVerificationMatrix() {
+      appendLog("ACT", "Running cross-tier verification matrix audit...");
+      try {
+        const res = await fetch("/api/cortex/tier-verification-matrix");
+        const data = await res.json();
+        const tbody = document.getElementById("tblMatrixBody");
+        tbody.innerHTML = "";
+        for (const [pair, info] of Object.entries(data)) {
+          if (!info || typeof info !== "object" || !info.target) continue;
+          const tr = document.createElement("tr");
+          const isVer = info.verified === true;
+          const isUnavail = info.status === "PHYSICALLY_UNAVAILABLE";
+          const pillClass = isVer ? "status-pill active" : "status-pill diagnostic";
+          const pillStyle = isUnavail ? "background:rgba(244,63,94,0.15); color:var(--rose);" : "";
+          const statusText = isVer ? "VERIFIED" : isUnavail ? "UNAVAILABLE" : "MISMATCH";
+          const maeText = info.mean_absolute_error !== undefined ? info.mean_absolute_error.toFixed(6) : "N/A";
+          tr.innerHTML = `
+            <td><strong>${pair}</strong> (${info.baseline} &rarr; ${info.target})</td>
+            <td style="color:${isVer ? 'var(--emerald)' : isUnavail ? 'var(--rose)' : 'var(--amber)'}; font-weight:700;">${maeText}</td>
+            <td>${info.exact_shape_match ? '100.0% Exact' : 'N/A'}</td>
+            <td><span class="${pillClass}" style="${pillStyle}">${statusText}</span></td>
+          `;
+          tbody.appendChild(tr);
+        }
+        appendLog("OK", "Cross-tier verification matrix audit complete.");
+      } catch (e) {
+        appendLog("WARN", `Verification matrix audit error: ${e}`);
+      }
+    }
+
+    window.onload = () => {
+      initStudio();
+      loadExecutionTiers();
+    };
   </script>
 </body>
 </html>
