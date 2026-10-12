@@ -1,0 +1,146 @@
+---
+name: krystal-sprint-debugging-and-elemental-runtime
+description: Comprehensive debugging playbook, elemental structure contracts, and operational asset synthesizing the day's sprint solutions across Rust bot, Epistemic Runtime, C ABI, Whisper acoustic pipeline, 32B/16B/64B zero-copy codecs, and Poslední Kmen elemental combat matrices.
+---
+
+# Krystal Sprint Debugging & Elemental Runtime Asset
+
+Use this skill when developing, debugging, verifying, or extending the multi-language subsystems of Krystal Stack: the Elemental Structure, Cinematic & Mortar Ballistics, L.A. Noire MotionScan lipsync, Whisper acoustic pipeline, and Rust/C/Python native bindings.
+
+---
+
+## 1. Elemental Structure & Combat Matrix Contracts
+
+The Krystal Stack elemental system coordinates tactical combat, dynamic terrain terraforming, crafting polarity, and artillery ballistics:
+
+### 1.1 The Five Fundamental Elemental Polarities
+1. **Crystal (`crystal`)**: Aetheric resonance, brittle refraction, sharp kinetic shatter.
+2. **Toxic (`toxic`)**: Acidic decomposition, biological corrosive decay, caustic DOT.
+3. **Druidic / Bark (`druid`)**: Living flora, rapid cellular regeneration, catalyst stabilization.
+4. **Basalt / Fire (`basalt` / `fire`)**: Volcanic thermal density, combustion shockwaves, armor stripping.
+5. **Aether / Celestial (`aether`)**: Quantum coherence, phase gravity gradients, epistemic arbitration.
+
+### 1.2 Elemental Polarity Clash & Amber Catalyst Rule
+* **Unstable Clash**: Mixing `Crystal` $\otimes$ `Toxic` without a stabilizer triggers explosive resonance instability and craft/cast failure (`ElementalPolarityError`).
+* **Catalytic Stabilization**: Adding `Amber Catalyst` (`amber_catalyst` / Druidic Amber) stabilizes the polarity conflict, granting a $+25\%$ power budget increase and generating corrosive crystal shatter shards.
+
+### 1.3 Elemental Impulse & Dynamic Hex Terraforming
+Spell impacts and artillery shells exert physical impulse vectors on the hexagonal terrain (`ELEMENTAL_IMPULSE_MAP`):
+* `crystal`: $(0.15, 0.85, 0.20)$ — crystalline jagged terrain, impairs footing.
+* `toxic`: $(0.05, 0.20, 0.75)$ — acidic sludge pool, corrodes armor, burns over time.
+* `druid`: $(0.60, 0.40, 0.10)$ — overgrowth, movement penalty, root pin.
+* `burning_aether` + `toxic_acid` $\rightarrow$ **Combustion Shockwave** ($+2$ radial damage).
+* `burning_aether` + `crystal_frost` $\rightarrow$ **Thermal Steam Quench** (converts hex to deep mud slag).
+
+### 1.4 Ballistics Coupling
+Mortar shell payloads can be infused with elemental warheads. The terminal plunge velocity couples directly with camera shake, doppler compression, and radial elemental dispersal.
+
+---
+
+## 2. Multi-Language Debugging Playbook & Solutions
+
+Lessons learned and hard-won solutions from resolving CI/CD and multi-language compilation failures:
+
+### 2.1 Rust Cargo Workspace Discipline
+* **Issue**: Subcrates (`src/rust-bot`, `rust/epistemic_runtime`, `krystal-miner`) fail in CI with:
+  `current package believes it's in a workspace when it's not`.
+* **Fix**: Ensure every nested crate directory is explicitly listed in the root [Cargo.toml](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/Cargo.toml) under `[workspace.members]`:
+  ```toml
+  [workspace]
+  members = [
+      "src/rust-bot",
+      "rust/epistemic_runtime",
+      "krystal-miner"
+  ]
+  ```
+* **Artifact Path Rule**: In a Cargo workspace, build artifacts (`target/`) are located at the repository root, not in crate subdirectories.
+
+### 2.2 Rust Borrow Checker & Syntax Guardrails
+* **Double-Colon Scope**: Always reference enum variants with `EnumName::Variant` (e.g. `SystemMode::Autonomous`, `VisemeId::AA`).
+* **No Partial Moves**: When calculating hashes, signatures, or sending events, never move fields out of a struct that will be borrowed or signed later. Use `.clone()` or pass references `&`.
+* **Trait Constraints on Closures**: Structs holding trait objects or closures (`Box<dyn Fn(...)>`) cannot derive `Clone` or `Debug`. Remove these derives and implement custom constructors.
+* **Dead Code Cleanliness**: Prefix unused arguments with `_` (e.g., `_python_ok`, `_stability`) or annotate intentionally preserved ABI fields with `#[allow(dead_code)]`.
+
+### 2.3 Headless Network Test Isolation Pattern
+* **Issue**: Live tests calling `127.0.0.1:8089` crash on headless CI runners where no server is running.
+* **Fix (Ephemeral Port Isolation)**:
+  In Python test suites, spin up an ephemeral background test server on port 0:
+  ```python
+  @classmethod
+  def setUpClass(cls):
+      cls.server = HTTPServer(("127.0.0.1", 0), KrystalHubHandler)
+      cls.port = cls.server.server_address[1]
+      cls.base_url = f"http://127.0.0.1:{cls.port}"
+      cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+      cls.thread.start()
+  ```
+  If relying on external daemons, use a strict pre-flight check in `setUpClass` and invoke `unittest.SkipTest(...)` if the port is unreachable.
+
+### 2.4 C Core ABI & Header Synchronization
+* **Header Rule**: Declarations in `src/c/*.h` must exactly mirror the parameter types, padding, and field order expected by Rust FFI, Python ctypes, and runtime C drivers (`gamesa_kernel_config_t`, `rpg_boost_map_t`).
+
+---
+
+## 3. High-Performance Binary Codecs & Whisper Acoustic Pipeline
+
+### 3.1 Zero-Copy Frame Specification
+| Packet | Magic | Size | Layout | Invariant |
+|---|---|---|---|---|
+| **KBSB MotionScan v2** (`KMCP`) | `b"KMCP"` | 64 B | `>4s I B B B B 8f f 3f I` | `vital_hp <= 6` |
+| **KBSB Mortar Ballistic** (`KMBP`) | `b"KMBP"` | 32 B | `>4s I H B B 3f H H I` | `vital_hp <= 6` |
+| **KBSB Deception Verdict** (`KDVP`) | `b"KDVP"` | 16 B | `>4s I B B H I` | `vital_hp <= 6` |
+
+### 3.2 Compile-Time IEEE 802.3 CRC32 Table
+Replace bit-shifting CRC loops with a 256-element lookup table (`CRC32_TABLE: [u32; 256]`):
+* Generates an **$8\times$ throughput speedup**.
+* Operates identically in Rust and Python (`zlib.crc32`).
+
+### 3.3 Whisper Acoustic Phoneme & Cross-Modal Divergence
+* **Formants**: $F_1$ (jaw opening), $F_2$ (mouth widening/pucker), $F_3$ (rhoticity/tension), Sibilance ratio ($4..8\text{ kHz}$).
+* **Voice Stress Index**: Autonomic nervous system vocal cord tension calculated from pitch $F_0$ elevation and $F_3$ jitter.
+* **Cross-Modal Divergence**:
+  $$\text{divergence} = |\text{stress\_index} - \text{facial\_deception\_score}|$$
+  If divergence $> 0.35$, the suspect is attempting conscious facial suppression while betraying autonomic vocal stress.
+
+---
+
+## 4. Verification & Operational Commands
+
+### 4.1 Running All Multi-Language Tests
+```powershell
+# Python Full Integration Suite (Kinematics, Ballistics, Lipsync, Codecs)
+python -m unittest tests/test_scene_composer_trajectories.py `
+                   tests/test_mortar_camera_and_noir_lipsync.py `
+                   tests/test_cinematic_codec_adaptation.py `
+                   tests/test_advanced_cinematic_and_rust_integration.py
+
+# Rust Bot Unit & Invariant Tests (WSL)
+wsl -e bash -c "source ~/.cargo/env && cd /mnt/c/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework && cargo test -p gamesa-rust-bot && cargo test -p epistemic-runtime"
+```
+
+### 4.2 Running Live Codec Micro-Benchmarks
+```powershell
+python -c "from mimicry_engine.whisper_acoustic_pipeline import WhisperPhonemeAcousticPipeline; print(WhisperPhonemeAcousticPipeline.benchmark_codecs(10000))"
+```
+
+### 4.3 REST Endpoints (Mission Control Hub)
+* `GET  /api/cinematic/status` — Codec capabilities and invariant limits.
+* `GET  /api/cinematic/trajectory/mortar` — Ballistic trajectory samples.
+* `GET  /api/cinematic/benchmark/packets` — Live packet encode/decode performance metrics.
+* `POST /api/cinematic/whisper/predict` — Formant viseme inference and divergence.
+* `POST /api/cinematic/codec/mortar-packet` — 32B KMBP codec roundtrip.
+* `POST /api/cinematic/codec/verdict-packet` — 16B KDVP codec roundtrip.
+* `GET  /api/verification/domains` — 6 Epistemic domains including `cinematic_interrogation`.
+
+---
+
+## 5. System Troubleshooting Reference Matrix
+
+| Symptom | Root Cause | Solution |
+|---|---|---|
+| `VETO_SAFETY_BREACH` (HTTP 400) | `vital_hp > 6` in packet or payload | Clamp `vital_hp <= 6`. Invariant is inviolable. |
+| `CRC32 mismatch` on decode | Endianness mismatch or modified bytes | Use big-endian `>I` format and IEEE 802.3 polynomial. |
+| `ConnectionRefusedError` in test | Live test queried unstarted port | Use `setUpClass` ephemeral port binding (`127.0.0.1:0`). |
+| Rust `unused variable / import` | Compiler warning in strict CI | Clean imports, prefix `_` or add `#[allow(dead_code)]`. |
+| `ElementalPolarityError` | Crystal + Toxic mixed without catalyst | Add `amber_catalyst` reagent to balance polarity. |
+| Divergence $> 0.35$ flagged | Vocal stress contradicts calm face | Suspect masking deception; trigger micro-probe. |
