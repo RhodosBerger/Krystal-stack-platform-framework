@@ -323,6 +323,113 @@ class SpiralAscentTrajectory(CameraTrajectory):
         return d
 
 
+class MortarBallisticCameraTrajectory(CameraTrajectory):
+    """
+    Cinematic Ballistic Mortar Camera Trajectory with plunging fire arc tracking.
+    Simulates high-angle artillery ballistics with follow-cam, bullet-time,
+    and plunging impact perspectives designed for cinematic sequences.
+    """
+    def __init__(
+        self,
+        name: str = "MortarBallisticCam",
+        launch_pos: Vec3 = (-12.0, 1.0, -14.0),
+        target_pos: Vec3 = (0.0, 0.0, 0.0),
+        apex_height: float = 18.0,
+        camera_mode: str = "FOLLOW_SHELL",  # "FOLLOW_SHELL", "CINEMATIC_PLUNGE", "BULLET_TIME"
+        camera_offset_dist: float = 2.8,
+        camera_offset_height: float = 1.2,
+        duration: float = 8.0,
+        initial_fov: float = 50.0,
+        impact_fov: float = 75.0,
+        loop: bool = False
+    ):
+        super().__init__(name=name, duration=duration)
+        self.launch_pos = launch_pos
+        self.target_pos = target_pos
+        self.apex_height = apex_height
+        self.camera_mode = camera_mode
+        self.camera_offset_dist = camera_offset_dist
+        self.camera_offset_height = camera_offset_height
+        self.initial_fov = initial_fov
+        self.impact_fov = impact_fov
+        self.loop = loop
+
+    def get_shell_position(self, s: float) -> Vec3:
+        """Evaluates projectile position on parabolic plunging arc at normalized progress s in [0.0, 1.0]."""
+        s = max(0.0, min(1.0, s))
+        parabola_y = 4.0 * self.apex_height * s * (1.0 - s)
+        px = self.launch_pos[0] + (self.target_pos[0] - self.launch_pos[0]) * s
+        py = self.launch_pos[1] + (self.target_pos[1] - self.launch_pos[1]) * s + parabola_y
+        pz = self.launch_pos[2] + (self.target_pos[2] - self.launch_pos[2]) * s
+        return (px, py, pz)
+
+    def get_shell_velocity(self, s: float) -> Vec3:
+        """Evaluates velocity tangent vector dP/ds."""
+        s = max(0.0, min(1.0, s))
+        dx = self.target_pos[0] - self.launch_pos[0]
+        dy = (self.target_pos[1] - self.launch_pos[1]) + 4.0 * self.apex_height * (1.0 - 2.0 * s)
+        dz = self.target_pos[2] - self.launch_pos[2]
+        return (dx, dy, dz)
+
+    def get_camera_state(self, t: float) -> Tuple[Vec3, Vec3, float]:
+        if self.loop:
+            s_raw = (t % self.duration) / self.duration if self.duration > 1e-5 else 0.0
+        else:
+            s_raw = max(0.0, min(1.0, t / max(1e-5, self.duration)))
+
+        # Time remapping for BULLET_TIME: slows down near apex and pre-impact
+        if self.camera_mode == "BULLET_TIME":
+            s = s_raw * 0.4 + 0.6 * (s_raw * s_raw * (3.0 - 2.0 * s_raw))
+        else:
+            s = s_raw
+
+        shell_pos = self.get_shell_position(s)
+        vel = self.get_shell_velocity(s)
+        vel_mag = max(1e-4, math.sqrt(vel[0]**2 + vel[1]**2 + vel[2]**2))
+        vel_dir = (vel[0] / vel_mag, vel[1] / vel_mag, vel[2] / vel_mag)
+
+        fov = self.initial_fov + (self.impact_fov - self.initial_fov) * s
+
+        if self.camera_mode == "CINEMATIC_PLUNGE":
+            # Camera stands low near ground target looking up at plunging shell
+            cam_pos = (
+                self.target_pos[0] + 3.5 * math.sin(s * 1.5),
+                self.target_pos[1] + 0.8,
+                self.target_pos[2] - 3.5 * math.cos(s * 1.5)
+            )
+            target = shell_pos
+        else:
+            # FOLLOW_SHELL: Camera rides behind and slightly above shell
+            cam_pos = (
+                shell_pos[0] - vel_dir[0] * self.camera_offset_dist,
+                shell_pos[1] - vel_dir[1] * self.camera_offset_dist + self.camera_offset_height,
+                shell_pos[2] - vel_dir[2] * self.camera_offset_dist
+            )
+            # Look ahead along trajectory
+            target = (
+                shell_pos[0] + vel_dir[0] * 4.0,
+                shell_pos[1] + vel_dir[1] * 4.0,
+                shell_pos[2] + vel_dir[2] * 4.0
+            )
+
+        return cam_pos, target, fov
+
+    def to_dict(self) -> Dict[str, Any]:
+        d = super().to_dict()
+        d.update({
+            "launch_pos": list(self.launch_pos),
+            "target_pos": list(self.target_pos),
+            "apex_height": self.apex_height,
+            "camera_mode": self.camera_mode,
+            "camera_offset_dist": self.camera_offset_dist,
+            "camera_offset_height": self.camera_offset_height,
+            "initial_fov": self.initial_fov,
+            "impact_fov": self.impact_fov,
+            "loop": self.loop
+        })
+        return d
+
+
 class SceneActor:
     """An instantiated composite object placed inside a 3D Game Scene."""
     def __init__(
@@ -1079,6 +1186,43 @@ def build_alien_hive_chamber() -> GameScene:
     return sc
 
 
+def build_noir_mortar_interrogation_scene() -> GameScene:
+    """1947 Film-Noir Rainy Alleyway Interrogation locus under Mortar Plunging Arc."""
+    sc = GameScene(
+        "SCENE_NOIR_MORTAR_INTERROGATION",
+        "1947 Film-Noir Interrogation Courtyard",
+        "film_noir_detective",
+        "Rain-slicked cobblestone urban courtyard flanked by tenements, industrial brick facades, gas lamps, and mortar trajectory impact locus.",
+        fog_color=(0.015, 0.02, 0.035),
+        ambient_light=(0.14, 0.18, 0.24)
+    )
+    # 1. Macro Vista Anchor: Damaged Customs Belfry Tower at horizon
+    sc.add_actor(SceneActor("Noir_Belfry", "TOWN_SQUARE_CLOCKTOWER", position=(0.0, 0.5, 3.0), scale=0.9))
+
+    # 2. Meso Blocks: Tenements framing the interrogation alleyway
+    sc.add_actor(SceneActor("Noir_Tenement_West", "HISTORIC_TENEMENT_FACADE", position=(-2.6, 0.0, 0.5), scale=0.9, rotation=(0, 0.2, 0)))
+    sc.add_actor(SceneActor("Noir_Tenement_East", "HISTORIC_TENEMENT_FACADE", position=(2.6, 0.0, 0.5), scale=0.9, rotation=(0, -0.2, 0)))
+
+    # 3. Micro Props: Interrogation lamp, Linden tree, Cafe kiosk
+    sc.add_actor(SceneActor("Interrogation_Lamp", "ORNATE_CAST_IRON_STREETLAMP", position=(0.6, -0.6, -0.8), scale=0.85))
+    sc.add_actor(SceneActor("Alleyway_Lamp_West", "ORNATE_CAST_IRON_STREETLAMP", position=(-1.5, -0.6, -1.2), scale=0.75))
+    sc.add_actor(SceneActor("Courtyard_Linden", "URBAN_LINDEN_TREE", position=(-1.8, -0.4, 1.2), scale=0.8))
+    sc.add_actor(SceneActor("Undercover_Kiosk", "STREET_CAFE_KIOSK", position=(1.8, -0.6, -1.0), scale=0.65))
+
+    # Attach Mortar Ballistic Trajectory plunging down into center
+    mortar_cam = MortarBallisticCameraTrajectory(
+        name="NoirMortarPlungeCam",
+        launch_pos=(-14.0, 2.0, -16.0),
+        target_pos=(0.0, 0.0, -0.4),
+        apex_height=16.0,
+        camera_mode="FOLLOW_SHELL",
+        duration=6.0
+    )
+    sc.set_trajectory(mortar_cam)
+    sc.validate_rules()
+    return sc
+
+
 SCENES_CATALOG: Dict[str, Callable[[], GameScene]] = {
     "SCENE_CYBERPUNK_DISTRICT": build_cyberpunk_district,
     "SCENE_SACRED_ALCHEMICAL_RUINS": build_sacred_alchemical_ruins,
@@ -1089,7 +1233,9 @@ SCENES_CATALOG: Dict[str, Callable[[], GameScene]] = {
     "SCENE_PARISIAN_HAUSSMANN_BOULEVARD": build_parisian_haussmann_boulevard,
     "SCENE_MEDITERRANEAN_COASTAL_PORT": build_mediterranean_coastal_port,
     "SCENE_ALPINE_TIMBER_TOWNSHIP": build_alpine_timber_township,
-    "SCENE_INDUSTRIAL_CANAL_WATERFRONT": build_industrial_canal_waterfront
+    "SCENE_INDUSTRIAL_CANAL_WATERFRONT": build_industrial_canal_waterfront,
+    # 1947 Film Noir Mortar Ballistics & Interrogation Scene
+    "SCENE_NOIR_MORTAR_INTERROGATION": build_noir_mortar_interrogation_scene
 }
 
 
