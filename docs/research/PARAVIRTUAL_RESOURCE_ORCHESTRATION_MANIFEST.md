@@ -318,23 +318,40 @@ To preserve epistemic honesty and prevent overpromising distributed database ACI
 +-----------------------------------------+--------------------------------------------------------+
 ```
 
-### 7.1 Single-Host Actuation: Resource Transaction Protocol (RTP)
-Every staged adjustment to cgroups v2 (`cpu.max`), QMP ballooning, or Hyper-V dynamic memory follows RTP:
+### 7.1 Vrstva poznania vs. Vrstva autority: Autoritatívny prechod
+Hranica v architektúre Krystalu **nie je mechanicky medzi deterministickým a náhodným kódom, ale medzi vrstvou poznania (Epistemic Cognition) a vrstvou autority (Executive Authority)**:
 
-$$\mathbf{PREPARE} \longrightarrow \mathbf{VERIFY\ (VETO\ GATE)} \longrightarrow \mathbf{COMMIT\ |\ COMPENSATE}$$
+- **Vrstva poznania (Model):** Spracúva neistotu, interferenčné matice a časové trendy. Jej výstupom je **výlučne návrh (`CandidateAction`)**.
+- **Vrstva autority (Runtime Verifier):** Drží zvrchované právo rozhodnúť o prechode stavu na základe dôkazov a pamäťovej bezpečnosti.
 
-1. **`PREPARE`:** Stage proposed delta into `ResourceEvidenceEnvelope` in memory. Register pre-baked compensating inverse action (e.g. restoring previous CPU quota).
-2. **`VERIFY (The Deterministic Veto Gate)`:**
-   - **Pravidlo návrhu:** Každé rozhodnutie pravdepodobnostnej vrstvy (WSPT skóre, neurónový odhad, trendový filter) je **výlučne návrhom (`ActionCandidate`)**, nie príkazom.
-   - **Absolútne právo veta:** Deterministická binárna vrstva podrobuje návrh striktným pamäťovým a hardvérovým mantinelom:
-     - *Pamäťová bezpečnosť:* Žiadne prekročenie fyzického limitu pamäte, žiadne vytvorenie OOM stavu, žiadne porušenie zarovnania stránok.
-     - *Fyzické guardrails:* Teplota $T_j < 82^\circ\text{C}$, limit balíka PL1 $\le 32\text{W}$, nulová saturácia UMA zbernice.
-     - *Systémová integrita:* Invariant `[CANONICAL_INVARIANT]` $\text{VITAL\_MAX\_HP} = 6$ a `fault_active == False`.
-     - *Hardvérový dôkaz:* Namerané telemetrické počítadlá potvrdzujú stabilitu.
-   - **Uplatnenie veta:** Ak návrh poruší čo i len jediný deterministický invariant, binárna vrstva uplatní **okamžité právo veta**. Návrh je zamietnutý skôr, než sa dotkne operačného systému, a transakcia prechádza do bezpečného návratu (`COMPENSATE` / `ABORT`).
-3. **`COMMIT | COMPENSATE`:**
-   - Len návrhy, ktoré prejdú cez deterministické právo veta bez námietky, sú zapísané do riadiacej roviny OS a inkrementujú `StateVersion`.
-   - Pri uplatnení veta alebo detekcii zlyhania sa okamžite aplikuje kompenzačný predpis bez akejkoľvek degradácie hostiteľa.
+Rozhodovací proces verifikátora preto nie je obmedzený len na binárne `Áno / Nie`. Využíva **4-hodnotovú epistemickú rozhodovaciu mriežku**:
+
+```
++--------------------------------------------------------------------------------------------------+
+|                            4-HODNOTOVÁ EPISTEMICKÁ ROZHODOVACIA MRIEŽKA                          |
++------------------------------+-------------------------------------+-----------------------------+
+| VERDIKT AUTORITY             | DÔVOD A PODMIENKA                   | NÁSLEDNÁ TRANSKČNÁ AKCIA    |
++------------------------------+-------------------------------------+-----------------------------+
+| 1. COMMIT_APPROVED           | Dôkazy splnené, neistota nízka,     | RTP prechod: STAGE -> COMMIT|
+|    (Schválené)               | žiadne porušenie mantinelov.        | Zápis do cgroups/QMP/Hyper-V|
++------------------------------+-------------------------------------+-----------------------------+
+| 2. DEFER_INSUFFICIENT_EVID   | Bezpečnosť neporušená, ale neistota | Žiadny zásah do OS. Zvýšiť  |
+|    (Zatiaľ nie / Viac dôkazu)| sigma > sigma_prah, málo vzoriek.   | frekvenciu vzorkovania (učí)|
++------------------------------+-------------------------------------+-----------------------------+
+| 3. QUARANTINE_CONTRADICTORY  | Senzory si protirečia (KVM steal OK | Zmraziť zmeny, izolovať tok |
+|    (Sporná telemetria)       | ale /proc runqueue saturovaná).     | a spustiť kalibračnú sondu. |
++------------------------------+-------------------------------------+-----------------------------+
+| 4. VETO_SAFETY_BREACH        | Hrozba OOM, T_j >= 82°C, narušenie  | Okamžité právo veta, COMPEN-|
+|    (Tvrdé zamietnutie)       | invariantu VITAL_MAX_HP == 6.       | SATE, penalizácia modelu.   |
++------------------------------+-------------------------------------+-----------------------------+
+```
+
+$$\mathbf{PROPOSAL} \xrightarrow[\text{Vrstva poznania}]{\mathcal{E}} \mathbf{VERIFIER} \xrightarrow[\text{Vrstva autority}]{\text{Verdikt}} \begin{cases} 
+\text{COMMIT} & \longrightarrow \mathbf{RTP\ STAGE\ \&\ ACT} \\
+\text{DEFER} & \longrightarrow \mathbf{ACTIVE\ MICRO\text{-}PROBE\ (Adaptive\ Sampling)} \\
+\text{QUARANTINE} & \longrightarrow \mathbf{CALIBRATE\ SENSORS} \\
+\text{VETO} & \longrightarrow \mathbf{COMPENSATE\ \&\ FEEDBACK\ PENALTY}
+\end{cases}$$
 
 ### 7.2 Multi-Host Coordination: Distributed Two-Phase Commit (2PC)
 Distributed 2PC is reserved strictly for coordinated cross-host migration where two independent hosts must maintain durable prepare locks:
@@ -361,6 +378,69 @@ Distributed 2PC is reserved strictly for coordinated cross-host migration where 
 - **Migration Readiness Index (MRI):**
   $$\text{MRI} = w_1 \cdot (1 - \text{DirtyRate}) + w_2 \cdot \text{TargetCapacityHeadroom} + w_3 \cdot (1 - \text{NetworkRTT})$$
   *(Note: $\text{MRI} \ge 0.85$ is tagged as `[CALIBRATION_HYPOTHESIS]`, subject to dynamic workload profiling).*
+
+### 7.3 Hybridné schémy rozhodovania a kvantitatívne kalkulácie
+
+Na prepojenie vrstvy poznania s vrstvou autority zavádzame a kalkulujeme štyri hybridné rozhodovacie schémy:
+
+#### Schéma 1: Asymetrická Bayesovská stratová matica (Cost-Regret Gating)
+Pri prideľovaní zdrojov je cena chybného schválenia nebezpečnej akcie exponenciálne vyššia než cena opatrného odloženia:
+
+$$\mathbb{E}[L(a)] = \sum_{s \in \{\text{Bezpečný},\, \text{Rizikový}\}} P(s \mid \mathcal{E}) \cdot C(a, s)$$
+
+Kde matica strát $C(a, s)$ je definovaná:
+- $C(\text{Commit}, \text{Bezpečný}) = 0.0$
+- $C(\text{Commit}, \text{Rizikový}) = 1000.0$ *(Tvrdý pád SLA, OOM, thermal throttling)*
+- $C(\text{Defer}, \text{Bezpečný}) = 0.5$ *(Dočasné oneskorenie zisku z optimalizácie o 200ms)*
+- $C(\text{Defer}, \text{Rizikový}) = 0.1$ *(Správne pozastavenie rizikového kroku)*
+- $C(\text{Veto}, \text{Rizikový}) = 0.0$ *(Perfektná obrana mantinelu)*
+- $C(\text{Veto}, \text{Bezpečný}) = 5.0$ *(Zbytočné odmietnutie validnej optimalizácie)*
+
+**Kalkulácia prahu prechodu z DEFER do COMMIT:**
+Nech model odhaduje pravdepodobnosť bezpečnosti $P(\text{Bezpečný}) = p$ a rizika $P(\text{Rizikový}) = 1 - p$:
+$$\mathbb{E}[L(\text{Commit})] = p \cdot 0 + (1 - p) \cdot 1000 = 1000(1 - p)$$
+$$\mathbb{E}[L(\text{Defer})] = p \cdot 0.5 + (1 - p) \cdot 0.1 = 0.4p + 0.1$$
+
+Verifikátor povolí `COMMIT` vtedy a len vtedy, keď:
+$$\mathbb{E}[L(\text{Commit})] < \mathbb{E}[L(\text{Defer})] \implies 1000 - 1000p < 0.4p + 0.1 \implies 1000.4p > 999.9 \implies p > 99.95\%$$
+Ak je konfidenčné skóre $p \in [85.0\%,\, 99.95\%]$, verifikátor **nezamietne návrh definitívne, ale vráti `DEFER_INSUFFICIENT_EVID`**.
+
+#### Schéma 2: Konfidenčný pás v závislosti od magnitúdy zásahu ($\Delta \text{Quota}$)
+Požadovaná úroveň istoty rastie s veľkosťou požadovanej zmeny alokácie:
+$$p_{\text{req}}(\Delta Q) = p_{\text{base}} + (1 - p_{\text{base}}) \cdot \left(\frac{|\Delta Q|}{Q_{\text{max}}}\right)^\gamma$$
+
+*Príklad kalkulácie (Tiger Lake, $Q_{\text{max}} = 4.0\text{ vCPU}$, $p_{\text{base}} = 0.80$, $\gamma = 0.5$):*
+1. **Mikro-korekcia ($\Delta Q = 0.2\text{ vCPU}$):**
+   $$p_{\text{req}}(0.2) = 0.80 + 0.20 \cdot \sqrt{\frac{0.2}{4.0}} = 0.80 + 0.20 \cdot 0.223 = 84.5\%$$
+   *Verdikt:* Ak model dosahuje konfidenciu 88%, akcia sa **ihneď commitne**.
+2. **Masívna realokácia ($\Delta Q = 2.5\text{ vCPU}$):**
+   $$p_{\text{req}}(2.5) = 0.80 + 0.20 \cdot \sqrt{\frac{2.5}{4.0}} = 0.80 + 0.20 \cdot 0.790 = 95.8\%$$
+   *Verdikt:* Ak má model konfidenciu len 88%, verifikátor vráti **`DEFER`**, pretože neistota je pre takto masívny zásah neprípustná.
+
+#### Schéma 3: Adaptívne mikrosondovanie pri odložení (Active Telemetry Probe)
+Ak verifikátor vráti verdikt `DEFER_INSUFFICIENT_EVID`, systém nezamrzne. Naopak, zvýši vzorkovaciu frekvenciu telemetrie (skráti periódu $T_{\text{sample}}$), aby neistotu rýchlo zredukoval:
+
+$$T_{\text{sample}}(\sigma) = T_{\text{nominal}} \cdot \left(1 - \alpha \cdot \frac{\sigma}{\sigma_{\text{max}}}\right)$$
+
+*Kvantitatívna kalkulácia ($T_{\text{nominal}} = 500\text{ms}$, $\alpha = 0.8$, $\sigma_{\text{max}} = 0.5$):*
+- Stabilný stav s nízkou neistotou ($\sigma = 0.05$):
+  $$T_{\text{sample}} = 500 \cdot \left(1 - 0.8 \cdot \frac{0.05}{0.5}\right) = 500 \cdot (1 - 0.08) = 460\text{ms}$$
+- Stav po verdikte `DEFER` s vysokou neistotou ($\sigma = 0.45$):
+  $$T_{\text{sample}} = 500 \cdot \left(1 - 0.8 \cdot \frac{0.45}{0.5}\right) = 500 \cdot (1 - 0.72) = 140\text{ms}$$
+  *(Vzorkovanie sa zrýchli viac než 3.5-násobne, čím systém do 400ms nazbiera dostatok vzoriek na opätovné posúdenie).*
+
+#### Schéma 4: Spätnoväzbové učenie z odmietnutí (Counterfactual Regret Feedback)
+Systém využíva verdikty autority na kalibráciu budúcich návrhov modelu:
+1. **Pri `VETO_SAFETY_BREACH`:**
+   - Model dostane okamžitú penalizáciu váh v tenzore interferencie:
+     $$\mathcal{I}_{\text{penalty}} \leftarrow \mathcal{I}_{\text{penalty}} + \eta \cdot (\text{SafetyMargin}_{\text{breached}})$$
+   - Zabraňuje modelu opakovane generovať nebezpečné trajektórie.
+2. **Pri `DEFER_INSUFFICIENT_EVID`:**
+   - Model zaznamená, že jeho odhad rozptylu $\sigma$ bol príliš široký, a započíta nové mikrovzorky do online bayesovskej aktualizácie distribúcie $p(\text{latency} \mid \text{workload})$.
+3. **Pri `COMMIT_APPROVED`:**
+   - Model po uplynutí časového horizontu zmeria skutočnú telemetriu a aktualizuje Mean Absolute Calibration Error (MACE).
+
+Týmto je epistemická neistota plne oddelená od exekučnej moci, pričom systém sa kontinuálne učí z každého odloženia aj veta bez ohrozenia stability.
 
 ---
 
