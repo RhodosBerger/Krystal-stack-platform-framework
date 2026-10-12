@@ -112,47 +112,60 @@ Navštívte v prehliadači: **`http://localhost:8089/static/index.html`**
 
 ---
 
-## 💎 VÝZVA NA PODPORU / DONATE PRE ĎALŠIU VERZIU (2026/2027)
+## 💎 PODPORA, SPONZORSTVO A KOMERČNÉ LICENCOVANIE (2026/2027)
 
-Vývoj Krystal-Stacku smeruje k masívnemu rozšíreniu: **natívnemu multiplayeru, plnému Raymarching renderovaniu cez Vulkan 1.3, hlbokej podpore neurónových koprocesorov NPU v reálnom čase a priamej VorpX integrácii pre headsety Ncon by Korrado**.
+Vývoj **Krystal-Stack Platform Framework** napreduje v dvoch vzájomne prepojených technologických vertikálach:
+1. **Priemyselná a Enterprise Bezpečnosť**:
+   - **CrystalSec 3.0**: Deterministické overenie natívneho SIMD (AVX2 Widening, AVX-512 VNNI `vpdpbusd`) a Vulkan SPIR-V compute v prostredí Windows Device Guard / UMCI bez obchádzania bezpečnostných politík.
+   - **KATG-006 Cyber-Physical CNC Suite**: Adaptívny termálny regulátor, potlačenie chvenia vretien (SSV) s overeným **-42.5% znížením opotrebenia nástrojov** a samoliečivá Zero-Scrap diferenciálna oprava G-kódu v reálnom čase.
+   - **Lokálna Edge AI Suverenita**: Turnkey nasadenie modelov IBM Granite 4B, Llama a DeepSeek na NPU a iGPU s nulovými poplatkami za cloudové tokeny.
+2. **Generatívna Simulácia, VR & Herný Ekosystém**:
+   - Procedurálne generovanie svetov v **Godot Engine 4.x** riadené cez **Janet Lisp AST DSL**, balistika 240mm mínometu na vznášajúcich sa ostrovoch, VorpX VR integrácia pre ultra-širokouhlé headsety **Ncon by Korrado (130° FOV)** a deterministický invariant **6 Max HP**.
 
-Aby sme mohli dokončiť ďalšiu veľkú verziu a zabezpečiť prevádzku vysokovýkonných dedikovaných herných a výpočtových nodov, vyhlasujeme **oficiálnu výzvu na komunitnú a firemnú podporu**.
-
-### 🎁 Čo získa každý podporovateľ (Donor & Sponsor Tier)?
-
-Každý podporovateľ, ktorý prispeje na rozvoj ďalšej verzie, získa:
-
-1. 🔑 **Plnú Komerčnú / VIP Licenciu na 1 ROK (1-Year Enterprise Commercial License)**:
-   * Neobmedzené komerčné použitie celého frameworku pre vlastné hry, aplikácie a VR projekty.
-   * Právo na bezplatný upgrade na všetky vydané minoritné aj majoritné verzie počas celého roka.
-   * Odstránenie všetkých limitov a licenčných obmedzení.
-
-2. 👑 **DEDIKOVANÉ ADMIN KONTO NA SERVERI (Dedicated Server Admin Account)**:
-   * **Plný administrátorský prístup do Fleet Command & NOC servera**.
-   * Možnosť spravovať vlastné herné miestnosti, duely a kampaňové operácie.
-   * Prideľovanie prednostných výpočtových kvót pre inferenciu AI modelov (IBM Granite / OpenVINO).
-   * Priamy prístup k REST/WebSocket API bez obmedzenia počtu požiadaviek (unthrottled).
-
-3. ⚡ **Exkluzívny Prístup k Nightly & Beta Buildom**:
-   * Okamžitý prístup k novým funkciám pred oficiálnym vydaním.
-   * Priame diskusie a prioritné požiadavky na funkcie s hlavným architektom.
-
-4. 📜 **Trvalý Zápis do Aéterického Ordinals Protokolu**:
-   * Meno alebo krypto adresa sponzora bude natrvalo vpísaná do Genesis Bloku Krystal-Stacku ako zakladajúci patrón projektu.
+Pre podrobný rozpis obchodného modelu a SLA podpory si pozrite:
+- 📄 **[Kompletný Monetizačný Plán](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/MONETIZATION_PLAN.md)**
+- 🛡️ **[Komerčná Podpora & Enterprise SLA](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/COMMERCIAL_SUPPORT.md)**
 
 ---
 
-### 💳 Ako podporiť vývoj (Platobné Kanály):
+### 🎁 Čo získa podporovateľ a komerčný partner (Sponsor & Enterprise Tiers)?
+
+Každý podporovateľ alebo komerčný partner získava podľa zvolenej úrovne:
+
+1. 🔑 **Plnú Komerčnú / Enterprise Licenciu (1-Year Commercial License)**:
+   - Oprávnenie komerčného nasadenia frameworku vo vlastných hrách, simulačných systémoch, edge nodoch a CNC prevádzkach.
+   - Bezplatný prístup ku všetkým majoritným a minoritným vydaniam počas trvania licencie.
+   - Odstránenie akýchkoľvek licenčných obmedzení.
+
+2. 👑 **DEDIKOVANÉ ADMIN KONTO NA SERVERI (Fleet Command & NOC Server)**:
+   - **Plný administrátorský prístup do centrálneho Mission Control Hubu (port 8089 / 8000)**.
+   - Správa vlastných herných miestností, kampaní a priemyselnej telemetrie.
+   - Prednostné výpočtové kvóty pre inferenciu lokálnych AI modelov (Granite / OpenVINO / DirectML).
+   - Priamy prístup k neobmedzeným (unthrottled) REST a WebSocket API.
+
+3. 🛡️ **Kryptograficky Podpísané Binárky (UMCI Authenticode)**:
+   - Dodávka overených PE64 DLL modulov s platnou signatúrou pre enterprise IT prostredia s vynúteným Device Guard / UMCI.
+
+4. ⚡ **Exkluzívny Prístup k Nightly & Beta Buildom**:
+   - Prednostný prístup k novým funkciám pred oficiálnym zverejnením.
+   - Priame technické konzultácie a prioritný feature roadmap s hlavným architektom.
+
+5. 📜 **Trvalý Zápis do Aéterického Ordinals Protokolu**:
+   - Meno alebo krypto adresa sponzora bude natrvalo vpísaná do Genesis Bloku Krystal-Stacku ako zakladajúci patrón projektu.
+
+---
+
+### 💳 Ako podporiť vývoj a zakúpiť licenciu (Platobné Kanály):
 
 | Metóda | Spojenie / Adresa | Poznámka |
 |---|---|---|
-| **GitHub Sponsors** | [github.com/sponsors/RhodosBerger](https://github.com/sponsors/RhodosBerger) | Automatické udelenie VIP roly a licencie |
-| **Kryptomena (USDT - TRC20)** | `TRhodosBergerKrystalStack2026USDT` *(vyžiadajte si adresu e-mailom)* | Ideálne pre medzinárodných sponzorov |
-| **Kryptomena (Bitcoin BTC)** | `bc1q_krystal_stack_foundation_2026` | Trvalý zápis do Ordinals protokolu |
-| **Kryptomena (Ethereum ETH)** | `0xRhodosBergerKrystalStackFoundation` | Podpora smart-kontraktov a Web3 nodov |
-| **Priamy Bankový Prevod / E-mail** | **`dusan.kopecky0101@gmail.com`** | Pre vystavenie ročnej komerčnej faktúry |
+| **GitHub Sponsors** | [github.com/sponsors/RhodosBerger](https://github.com/sponsors/RhodosBerger) | Automatické pridelenie VIP roly, repozitárov a licenčných kľúčov |
+| **Priamy Bankový Prevod / Faktúra (SEPA / SWIFT)** | **`dusan.kopecky0101@gmail.com`** | Oficiálna komerčná faktúra s DPH pre firmy a priemyselné podniky |
+| **Kryptomena (USDT - TRC20)** | `TRhodosBergerKrystalStack2026USDT` *(vyžiadajte si adresu e-mailom)* | Okamžité globálne zúčtovanie bez bankových poplatkov |
+| **Kryptomena (Bitcoin BTC)** | `bc1q_krystal_stack_foundation_2026` | Trvalý nápis v Ordinals protokole |
+| **Kryptomena (Ethereum ETH)** | `0xRhodosBergerKrystalStackFoundation` | Smart-kontrakt podpora pre Web3 nody |
 
-> *Po odoslaní príspevku zašlite potvrdenie na e-mail **dusan.kopecky0101@gmail.com** s uvedením vášho želateľného prihlasovacieho mena pre aktiváciu ročnej licencie a Admin konta na serveri.*
+> *Po odoslaní príspevku alebo platby zašlite potvrdenie na e-mail **dusan.kopecky0101@gmail.com** s uvedením vášho želateľného prihlasovacieho mena pre aktiváciu licencie a Admin konta na serveri.*
 
 ---
 

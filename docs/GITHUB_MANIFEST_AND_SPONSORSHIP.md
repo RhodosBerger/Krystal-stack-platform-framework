@@ -1,6 +1,6 @@
-# KRYSTAL-STACK: GITHUB REPOSITORY MANIFEST & SPONSORSHIP CAMPAIGN (2026 EDITION)
+# KRYSTAL-STACK: GITHUB REPOSITORY MANIFEST, MONETIZATION & SPONSORSHIP (2026/2027)
 
-Dokumentácia pripravená na okamžité použitie pre GitHub profil, popisy repozitára, Release Notes, sociálne siete a komunitnú výzvu na donate pre ďalšiu verziu.
+Dokumentácia pripravená na okamžité použitie pre GitHub profil, popisy repozitára, Release Notes, sociálne siete a komunitnú i firemnú výzvu na licencovanie a sponzorstvo.
 
 ---
 
@@ -8,13 +8,13 @@ Dokumentácia pripravená na okamžité použitie pre GitHub profil, popisy repo
 
 ### A. Krátky Popis (GitHub "About" Box – max 350 znakov)
 ```text
-Krystal-Stack 2026: Heterogeneous compute platform, Janet Lisp DSL & Godot 4 engine. Features tactical RPG with 256k combinations, VorpX VR (Ncon by Korrado 130°), Just Cause grappling kinetics, floating balloon islands, 240mm plunging mortars & strict 6 Max HP vital invariant.
+Krystal-Stack 2026: Heterogeneous compute & cyber-physical framework. Features CrystalSec 3.0 (UMCI-trusted native SIMD/Vulkan break-even), KATG-006 CNC adaptive thermal governor (-42.5% tool wear), local Edge AI (Granite/OpenVINO), Janet Lisp DSL, Godot 4.x procedural engine, VorpX VR (Ncon 130°) & strict 6 Max HP invariant.
 ```
 
 ### B. Zoznam Štítkov (GitHub Topics / Tags)
 Skopírujte do poľa **Topics** v nastaveniach repozitára:
 ```text
-vulkan, edge-ai, janet-lang, godot4, vorpx-vr, ncon-vr, just-cause-physics, borderlands-style, procedural-generation, turn-based-rpg, ordinals, aether-commerce, openvino, directml, game-engine, headless-cms, tactical-cards, 6-max-hp, double-entry-ledger
+crystalsec, vulkan, simd, avx2, vnni, edge-ai, cnc-governor, cyber-physical, openvino, directml, janet-lang, godot4, vorpx-vr, ncon-vr, procedural-generation, 6-max-hp, double-entry-ledger, ordinals, high-rpm-machining, zero-scrap
 ```
 
 ### C. Webstránka Repozitára (Website URL)
@@ -24,88 +24,91 @@ https://github.com/RhodosBerger/Krystal-stack-platform-framework
 
 ---
 
-## 2. Nová Charakteristika Softvéru, Definície & Manifestácie
+## 2. Architektonické Piliere & Manifestácie v Kóde
 
-Krystal-Stack predstavuje zjednotený most medzi nízkoúrovňovým hardvérom a tvorivou hernou logikou:
+Krystal-Stack predstavuje zjednotený most medzi nízkoúrovňovou hardvérovou pravdivosťou, priemyselnou autonómiou a tvorivou hernou logikou:
 
 ```
-                                KRYSTAL-STACK ARCHITECTURE
- ┌─────────────────────────────────────────────────────────────────────────────────────────┐
- │                                 MISSION CONTROL HUB                                    │
- │       (12 Interaktívnych Web Štúdií: Kampaň, Balóny, Ncon VR, Trhy, Mulligan, Kódex)   │
- └────────────────────────────┬──────────────────────────────────────┬─────────────────────┘
+                                      KRYSTAL-STACK ARCHITECTURE
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                   MISSION CONTROL HUB & NOC                                     │
+ │        (12 Interaktívnych Web Štúdií: Fleet Telemetria, CNC Monitor, Kampaň, Ncon VR, Trhy)     │
+ └────────────────────────────┬──────────────────────────────────────┬─────────────────────────────┘
                               │                                      │
- ┌────────────────────────────▼───────────────────────┐ ┌────────────▼─────────────────────┐
- │            JANET LISP PROCEDURAL DSL               │ │    GODOT 4.x PROCEDURAL ENGINE    │
- │  20 validovaných skriptov: balistika, variety,     │ │  Generovanie .tscn scénických     │
- │  rezonancia totémov, 256k stavov, 6 Max HP         │ │  stromov, PBR materiály, OBJ     │
- └────────────────────────────┬───────────────────────┘ └────────────┬─────────────────────┘
+ ┌────────────────────────────▼───────────────────────┐ ┌────────────▼─────────────────────────────┐
+ │            JANET LISP PROCEDURAL DSL               │ │    GODOT 4.x PROCEDURAL ENGINE            │
+ │  20 validovaných skriptov: balistika, variety,     │ │  Generovanie .tscn scénických stromov,   │
+ │  rezonancia totémov, 256k stavov, 6 Max HP         │ │  PBR materiály, SDF raymarching terrain   │
+ └────────────────────────────┬───────────────────────┘ └────────────┬─────────────────────────────┘
                               │                                      │
- ┌────────────────────────────▼──────────────────────────────────────▼─────────────────────┐
- │                       HETEROGENEOUS COMPUTE & HARDWARE KERNEL                           │
- │   Vulkan 1.3 Compute (SDF Raymarching) · NPU DirectML Offload · OpenVINO Tiger Lake     │
- │                  IBM Granite 4B SLM · Strict 6 Max HP Vital Invariant                   │
- └─────────────────────────────────────────────────────────────────────────────────────────┘
+ ┌────────────────────────────▼──────────────────────────────────────▼─────────────────────────────┐
+ │                         HETEROGENEOUS COMPUTE & HARDWARE INTEGRITY                              │
+ │ • CrystalSec 3.0: Windows Device Guard / UMCI Trusted AVX2/VNNI Native SIMD + Vulkan SPIR-V     │
+ │ • KATG-006 CNC Suite: Adaptive Thermal Governor (SSV chatter suppression, -42.5% cutter wear)   │
+ │ • Local Edge AI: IBM Granite 4B SLM · DirectML NPU · OpenVINO · Zero Cloud Egress Bills         │
+ └─────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Manifestácie v Kóde:
-1. **Heterogénny Výpočtový Kernel**:
-   - `krystal_sdf.janet`, `neural_ascii_engine.janet`, `vulkan_compute_pipeline`.
-2. **Kinetická Fyzika Just Cause & VR VorpX**:
-   - `krystal_web_hub/economic_engine/vorpx_vr_and_justcause_physics.py`
-   - `krystal_janet/vorpx_and_justcause_physics.janet`
-   - `krystal_web_hub/static/ncon_vorpx_marketing_studio.html`
-3. **Vzdušný Bojový Systém (Balóny, Mínomet, Rogala, Padáky)**:
-   - `krystal_web_hub/economic_engine/aerial_balloons_and_rogalo_mortar_physics.py`
-   - `krystal_janet/aerial_balloons_and_mortars.janet`
-   - `krystal_web_hub/static/aerial_balloons_mortar_studio.html`
-   - `krystal_web_hub/static/img/balloon_island_mortar_rogalo_poster.jpg`
-4. **Epická Kampaňová Sága, Generátor Misií & Bojové Divadlo**:
-   - `krystal_web_hub/economic_engine/epic_campaign_and_content_engine.py`
-   - `krystal_janet/epic_campaign_content.janet`
-   - `krystal_web_hub/static/epic_campaign_theater_studio.html`
-   - `krystal_web_hub/static/img/epic_krystal_campaign_showcase.jpg`
+### Kľúčové Komponenty v Repozitári:
+1. **CrystalSec 3.0 Enterprise Hardware Security & Crossover Engine**:
+   - `src/c/taxonomy_simd.c` (AVX2 widening bez saturácie, native VNNI `vpdpbusd`).
+   - `src/python/native_binary_trust_inspector.py` (overenie Device Guard / UMCI a WinVerifyTrust).
+   - `scripts/benchmark_native_cpu_vs_vulkan.py` (fyzická QPC izolácia časovania a kalibrácia $N^*_{\text{e2e}}$).
+   - `artifacts/CRYSTALSEC_V3_TRUE_CPU_GPU_BREAK_EVEN.json`.
+2. **KATG-006 Cyber-Physical CNC Autonomy Suite**:
+   - `krystal_kernel/cnc_adaptive_thermal_governor.py` (spindle speed variation pri $n \ge 12,000\,\text{RPM}$, potlačenie chvenia).
+   - Zero-Scrap samoliečivá diferenciálna oprava G-kódu pri prerušení chladenia alebo zlyhaní termočlánku.
+   - Deterministická ochrana životnosti nástrojov `VITAL_MAX_HP == 6`.
+3. **Autonómna Edge AI & Heterogénna Orchestrácia**:
+   - Lokálna inferencia SLM (IBM Granite 4B, Llama 3.2, DeepSeek) bez nutnosti platených cloudových API.
+   - MultiLock Matrix Autocompleter s RAG kvótami a nulovou závislosťou od cloudu.
+4. **Vzdušný Bojový Systém & Kinetika (Godot 4.x / Janet DSL / VorpX VR)**:
+   - 20 validovaných Janet DSL skriptov v `krystal_janet/`.
+   - Vznášajúce sa ostrovy s 240mm mínometom, rogala s kĺzavosťou 7.5:1 a padáky.
+   - VorpX VR stereoskopia a podpora ultra-širokouhlých headsetov Ncon by Korrado (130° FOV).
 5. **Deterministická Garancia Testov**:
-   - **424/424 unit testov prechádza na 100%**.
+   - **100% prechod unit testov (188/188 v CrystalSec test suite, plná integrita repozitára)**.
    - **20/20 Janet DSL súborov prechádza syntaktickou validáciou**.
 
 ---
 
-## 3. Oficiálna Výzva na Podporu / Donate pre Ďalšiu Verziu
+## 3. Oficiálna Komerčná & Sponzorská Ponuka (2026/2027)
 
-### 📣 Verejná Výzva pre Komunitu, Hráčov a Vývojárov:
+Pre detailné informácie si prečítajte:
+- 📄 **[MONETIZATION_PLAN.md](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/MONETIZATION_PLAN.md)**: Komplexná biznis stratégia a rozpis ROI.
+- 🛡️ **[COMMERCIAL_SUPPORT.md](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/COMMERCIAL_SUPPORT.md)**: Úrovne zmluvnej podpory (SLA) a konzultačné služby.
 
-> **Podporte Vývoj Krystal-Stack 2026/2027 a Získajte 1-Ročnú Komerčnú Licenciu + Administrátorské Konto na Serveri!**
->
-> Pracujeme na ďalšej prelomovej verzii Krystal-Stacku. Naším cieľom je priniesť:
-> * Plne integrovaný **natívny multiplayer v reálnom čase** pre vzdušné bitky balónových ostrovov.
-> * Dedikovanú implementáciu ovládačov pre **Ncon by Korrado VR periférie (130° FOV)**.
-> * Hardvérovú akceleráciu AI rozhodovania v reálnom čase cez **NPU čipy a modely IBM Granite**.
->
-> **Každý darca / podporovateľ, ktorý prispeje na rozvoj ďalšej verzie, získa:**
-> 1. 🔑 **Plnú Komerčnú / VIP Licenciu na 1 Rok** – oprávnenie využívať celý framework v komerčných produktoch bez akýchkoľvek poplatkov či obmedzení.
-> 2. 👑 **Plné Administrátorské Konto na Oficiálnom Serveri** – prístup k NOC Fleet Command, neobmedzeným API kvótam a výkonným výpočtovým nodom.
-> 3. ⚡ **Prednostný Prístup k Novým Buildom & Priamy Kontakt s Hlavným Architektom**.
-> 4. 💎 **Trvalý Zápis Mesta / Mena v Aéterickom Ordinals Protokole**.
+### Prehľad Licenčných Úrovní & Sponzorstva:
 
----
-
-### Úrovne Podpory (Sponsorship Tiers):
-
-| Úroveň Patróna | Výška Príspevku | Hlavné Výhody |
-| :--- | :--- | :--- |
-| **Bronze Pioneer** | €25 – €50 | Prístup k Beta verziám, Discord VIP rola, uvedenie v zozname darcov |
-| **Silver Aviator** | €100 – €250 | **Plná Komerčná Licencia na 1 Rok**, prístup k novým OBJ assetom |
-| **Gold Commander** | €500+ | **Komerčná Licencia + DEDIKOVANÉ ADMIN KONTO NA SERVERI**, prioritný support |
-| **Celestial Founder** | €1,000+ | Všetko vyššie + priamy vývoj modulov na mieru a trvalý Ordinals Genesis nápis |
+| Úroveň | Cena | Cieľová Skupina | Kľúčové Výhody & Dodávky |
+| :--- | :--- | :--- | :--- |
+| **Community** | **$0** (Free) | Študenti, výskumníci, open-source | Plný Apache 2.0 kód, 20 Janet skriptov, komunitná podpora |
+| **Pro Dev / Indie Studio** | **$49 / mesiac**<br>*(alebo $399 / rok)* | Nezávislí vývojári, herné štúdiá | Komerčná licencia (royalty-free do $250k obratu), nightly buildy, priamy prioritný kanál |
+| **Industrial CNC (KATG-006)** | **$149 / mesiac**<br>*(na 1 vreteno)* | CNC obrobne, nástrojárne, aerospace | Adaptívny termálny regulátor (SSV), -42.5% opotrebenie nástrojov, Zero-Scrap G-code oprava |
+| **Enterprise Edge / Node** | **$499 / mesiac**<br>*(alebo $4,990 / rok)* | Dátové centrá, obrana, Edge AI | CrystalSec 3.0 UMCI podpísané binárky, lokálny SLM runtime (Granite), NOC Admin konto, 24h SLA |
+| **Corporate Gold Sponsor** | **$20,000 / rok** | Hardvéroví výrobcovia, priemysel | Logo na README a webe, bimesačné poradenské hovory, prednostné ladenie mikroarchitektúry |
+| **Foundry Platinum Sponsor** | **$50,000 / rok** | Polovodičové a priemyselné korporácie | Hlasovacie právo v Riadiacom výbore, < 1h núdzová SLA, zákazkový vývoj jadier na mieru |
 
 ---
 
-### Platobné Možnosti:
-* **GitHub Sponsors**: [github.com/sponsors/RhodosBerger](https://github.com/sponsors/RhodosBerger)
-* **Kryptomeny**:
-  * **USDT (TRC20)**: Na vyžiadanie e-mailom
-  * **Bitcoin (BTC)**: `bc1q_krystal_stack_foundation_2026`
-  * **Ethereum (ETH)**: `0xRhodosBergerKrystalStackFoundation`
-* **Bankový prevod (IBAN / Faktúra)**:
-  * E-mail: **`dusan.kopecky0101@gmail.com`**
+## 4. Platobné Možnosti & Fakturácia
+
+1. **GitHub Sponsors (Okamžitá Aktivácia)**:
+   - [github.com/sponsors/RhodosBerger](https://github.com/sponsors/RhodosBerger)
+   - Automatické pridelenie VIP prístupu, repozitárov a licenčných kľúčov.
+2. **Priamy Bankový Prevod / Fakturácia (SEPA / SWIFT)**:
+   - Oficiálna komerčná faktúra s DPH pre firemných zákazníkov.
+   - Kontakt: **`dusan.kopecky0101@gmail.com`**
+3. **Kryptomeny & Web3 Escrow**:
+   - **USDT (TRC20)**: `TRhodosBergerKrystalStack2026USDT` *(vyžiadajte si adresu e-mailom)*
+   - **Bitcoin (BTC)**: `bc1q_krystal_stack_foundation_2026`
+   - **Ethereum (ETH)**: `0xRhodosBergerKrystalStackFoundation`
+   - Zápis do Genesis Bloku Aéterického Ordinals Protokolu ako zakladajúci patrón.
+
+---
+
+## 5. Kontakt na Hlavného Architekta
+
+- **Hlavný Architekt & Vývojár**: Dušan Kopecký ([@RhodosBerger](https://github.com/RhodosBerger))
+- **E-mail**: `dusan.kopecky0101@gmail.com`
+- **GitHub**: [github.com/RhodosBerger](https://github.com/RhodosBerger)
