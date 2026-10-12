@@ -55,13 +55,14 @@ class TestVoltageScalingTensorGovernor(unittest.TestCase):
         self.assertEqual(status["critical_undervolt_floor_mv"], -115.0)
 
     def test_strategy_catalog_completeness(self):
-        """Validates that all 5 strategies exist and have complete configurations."""
+        """Validates that all strategies exist and have complete configurations."""
         expected_strategies = [
             VoltageScalingStrategy.AGGRESSIVE_UNDERVOLT_EFFICIENCY,
             VoltageScalingStrategy.BALANCED_ADAPTIVE_DVFS,
             VoltageScalingStrategy.SUSTAINED_HIGH_THROUGHPUT,
             VoltageScalingStrategy.BURST_COMPUTE_OVERDRIVE,
-            VoltageScalingStrategy.THERMAL_FAILSAFE_FALLBACK
+            VoltageScalingStrategy.THERMAL_FAILSAFE_FALLBACK,
+            VoltageScalingStrategy.CONTINUOUS_MAX_COOLING_FAN_100
         ]
 
         for s in expected_strategies:
@@ -158,6 +159,44 @@ class TestVoltageScalingTensorGovernor(unittest.TestCase):
         self.assertIn("tensor_weights", status)
         self.assertIn("available_strategies", status)
         self.assertGreaterEqual(status["history_length"], 1)
+
+    def test_continuous_max_cooling_fan_mode(self):
+        """Tests continuous 100% fan mode, lower thermal resistance, and junction temp reduction."""
+        # 1. Test strategy CONTINUOUS_MAX_COOLING_FAN_100
+        m_max = self.governor.apply_strategy(VoltageScalingStrategy.CONTINUOUS_MAX_COOLING_FAN_100)
+        self.assertEqual(m_max.fan_duty_cycle_pct, 100.0)
+        self.assertEqual(m_max.fan_speed_rpm, 3600)
+        self.assertEqual(m_max.fan_mode, "CONTINUOUS_100_PERCENT")
+        self.assertEqual(m_max.thermal_resistance_c_w, 0.72)
+        self.assertEqual(m_max.vital_max_hp, 6)
+
+        # 2. Compare temperatures: with continuous max fan vs standard cooling curve
+        gov_standard = VoltageScalingTensorGovernor(continuous_max_fan=False)
+        m_standard = gov_standard.apply_strategy(VoltageScalingStrategy.BALANCED_ADAPTIVE_DVFS)
+
+        gov_max_fan = VoltageScalingTensorGovernor(continuous_max_fan=True)
+        m_max_fan = gov_max_fan.apply_strategy(VoltageScalingStrategy.BALANCED_ADAPTIVE_DVFS)
+
+        # Under same workload, max fan must yield lower junction temperature
+        self.assertLess(m_max_fan.junction_temp_c, m_standard.junction_temp_c)
+        temp_delta = m_standard.junction_temp_c - m_max_fan.junction_temp_c
+        self.assertGreater(temp_delta, 5.0, f"Expected substantial temperature drop with 100% fan, got {temp_delta}°C")
+        self.assertEqual(m_max_fan.fan_speed_rpm, 3600)
+        self.assertEqual(m_standard.fan_speed_rpm, 1800)
+
+        # 3. Test toggle via enable_continuous_max_fan
+        gov_toggle = VoltageScalingTensorGovernor(continuous_max_fan=False)
+        self.assertFalse(gov_toggle.continuous_max_fan)
+        m_toggled = gov_toggle.enable_continuous_max_fan(True)
+        self.assertTrue(gov_toggle.continuous_max_fan)
+        self.assertEqual(m_toggled.fan_duty_cycle_pct, 100.0)
+        self.assertEqual(m_toggled.fan_speed_rpm, 3600)
+
+        # 4. Invariant preservation
+        status = gov_toggle.get_full_governor_status()
+        self.assertEqual(status["vital_max_hp_rule"], 6)
+        self.assertTrue(status["continuous_max_fan"])
+        self.assertEqual(status["fan_status"]["fan_speed_rpm"], 3600)
 
 
 if __name__ == "__main__":

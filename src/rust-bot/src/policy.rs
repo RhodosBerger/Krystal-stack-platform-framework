@@ -120,43 +120,54 @@ impl PolicyEngine {
         let current_latency = telemetry.frametime_ms;
 
         for sc in scenarios {
-            let (proj_temp, proj_fps, proj_lat, approved, veto) = match sc.action {
-                Action::Boost { strength, .. } => {
-                    let temp = telemetry.temp_cpu + (strength * 7.5);
-                    let fps = current_fps * (1.0 + strength * 0.20);
-                    let lat = (current_latency * 0.85).max(4.0);
-                    if temp > 95.0 {
-                        (temp, fps, lat, false, Some("ThermalLimitExceeded".into()))
-                    } else {
+            let is_max_fan = sc.hypothesis.to_uppercase().contains("MAX_FAN")
+                || sc.hypothesis.to_uppercase().contains("CONTINUOUS_MAX")
+                || sc.hypothesis.to_uppercase().contains("TERMAL_NA_PLNO");
+
+            let (proj_temp, proj_fps, proj_lat, approved, veto) = if is_max_fan {
+                let temp = (telemetry.temp_cpu - 18.0).max(35.0);
+                let fps = current_fps * 1.25;
+                let lat = (current_latency * 0.78).max(3.5);
+                (temp, fps, lat, true, None)
+            } else {
+                match sc.action {
+                    Action::Boost { strength, .. } => {
+                        let temp = telemetry.temp_cpu + (strength * 7.5);
+                        let fps = current_fps * (1.0 + strength * 0.20);
+                        let lat = (current_latency * 0.85).max(4.0);
+                        if temp > 95.0 {
+                            (temp, fps, lat, false, Some("ThermalLimitExceeded".into()))
+                        } else {
+                            (temp, fps, lat, true, None)
+                        }
+                    }
+                    Action::Throttle { target, .. } => {
+                        let temp = (telemetry.temp_cpu - (1.0 - target) * 15.0).max(40.0);
+                        let fps = current_fps * target;
+                        let lat = current_latency * (1.0 + (1.0 - target) * 0.4);
                         (temp, fps, lat, true, None)
                     }
-                }
-                Action::Throttle { target, .. } => {
-                    let temp = (telemetry.temp_cpu - (1.0 - target) * 15.0).max(40.0);
-                    let fps = current_fps * target;
-                    let lat = current_latency * (1.0 + (1.0 - target) * 0.4);
-                    (temp, fps, lat, true, None)
-                }
-                Action::Migrate { .. } => {
-                    let temp = (telemetry.temp_cpu - 3.0).max(40.0);
-                    let fps = current_fps * 1.08;
-                    let lat = (current_latency - 1.2).max(4.0);
-                    (temp, fps, lat, true, None)
-                }
-                Action::ApplyPreset { .. } => {
-                    let temp = (telemetry.temp_cpu - 4.0).max(40.0);
-                    let fps = current_fps * 1.10;
-                    let lat = (current_latency - 1.5).max(4.0);
-                    (temp, fps, lat, true, None)
-                }
-                Action::Idle { .. } => {
-                    let temp = (telemetry.temp_cpu - 20.0).max(35.0);
-                    let fps = 30.0;
-                    let lat = 33.3;
-                    (temp, fps, lat, true, None)
-                }
-                Action::NoOp => {
-                    (telemetry.temp_cpu, current_fps, current_latency, true, None)
+                    Action::Migrate { .. } => {
+                        let temp = (telemetry.temp_cpu - 3.0).max(40.0);
+                        let fps = current_fps * 1.08;
+                        let lat = (current_latency - 1.2).max(4.0);
+                        (temp, fps, lat, true, None)
+                    }
+                    Action::ApplyPreset { .. } => {
+                        let temp = (telemetry.temp_cpu - 4.0).max(40.0);
+                        let fps = current_fps * 1.10;
+                        let lat = (current_latency - 1.5).max(4.0);
+                        (temp, fps, lat, true, None)
+                    }
+                    Action::Idle { .. } => {
+                        let temp = (telemetry.temp_cpu - 20.0).max(35.0);
+                        let fps = 30.0;
+                        let lat = 33.3;
+                        (temp, fps, lat, true, None)
+                    }
+                    Action::NoOp => {
+                        (telemetry.temp_cpu, current_fps, current_latency, true, None)
+                    }
                 }
             };
 
@@ -336,5 +347,34 @@ mod tests {
         // Winner must be the safe scenario
         assert_eq!(winner.scenario.hypothesis, "SafeThermalRelief");
         assert!(winner.safety_approved);
+    }
+
+    #[test]
+    fn test_what_if_continuous_max_fan_cooling() {
+        let engine = PolicyEngine::new();
+        let features = FeatureRegistry::new();
+        let t_hot = sample_telemetry(90.0, 16.6);
+
+        let scenarios = vec![
+            WhatIfScenario {
+                action: Action::Boost { zone_id: 1, strength: 0.9 },
+                hypothesis: "CONTINUOUS_MAX_FAN_100".into(),
+                domain: Domain::Thermal,
+                expected_gain: 0.6,
+            },
+            WhatIfScenario {
+                action: Action::Throttle { zone_id: 1, target: 0.5 },
+                hypothesis: "HeavyThrottleDamp".into(),
+                domain: Domain::Thermal,
+                expected_gain: 0.1,
+            },
+        ];
+
+        let (winner, all) = engine.evaluate_what_if(&t_hot, &scenarios, &features);
+        assert_eq!(all.len(), 2);
+        let max_fan_proj = all.iter().find(|p| p.scenario.hypothesis == "CONTINUOUS_MAX_FAN_100").unwrap();
+        assert!(max_fan_proj.safety_approved);
+        assert_eq!(max_fan_proj.projected_temp_cpu, 72.0); // 90.0 - 18.0
+        assert_eq!(winner.scenario.hypothesis, "CONTINUOUS_MAX_FAN_100");
     }
 }

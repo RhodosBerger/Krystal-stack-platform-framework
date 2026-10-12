@@ -504,6 +504,19 @@
           <div style="color: #64748b; font-size: 10px; margin-top: 4px;">STAV STABILITY KREMÍKA:</div>
           <div style="font-weight: 700; color: #38bdf8;" id="stabilityVal">STABLE_NOMINAL</div>
         </div>
+
+        <!-- Continuous Max Fan Controller Box -->
+        <div style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 8px; padding: 12px; margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="font-size: 12px; font-weight: 700; color: #38bdf8;">💨 TERMÁL NA PLNO (VENTILÁTOR 100%)</span>
+              <div style="font-size: 11px; color: #94a3b8;" id="fanStatusSubtext">Režim: CONTINUOUS_100_PERCENT | 3600 RPM | R_th: 0.72°C/W</div>
+            </div>
+            <button class="btn-action btn-emerald" id="fanToggleBtn" style="padding: 6px 12px; font-size: 11px;" onclick="toggleContinuousMaxFan()">
+              ❄️ 100% Ventilátor ZAPNUTÝ
+            </button>
+          </div>
+        </div>
       </section>
 
     </div>
@@ -606,6 +619,38 @@
       document.getElementById('latencyVal').textContent = `${curr.service_latency_ms} ms`;
       document.getElementById('joulesPerOpVal').textContent = `${((curr.joules_per_op || 0) * 1e9).toFixed(2)} nJ/op`;
       document.getElementById('stabilityVal').textContent = curr.stability_status || 'STABLE_NOMINAL';
+
+      // Fan status update
+      const fanStatus = governorState.fan_status || {};
+      const isMaxFan = governorState.continuous_max_fan;
+      const fanBtn = document.getElementById('fanToggleBtn');
+      const fanSub = document.getElementById('fanStatusSubtext');
+      if (fanBtn && fanSub) {
+        if (isMaxFan) {
+          fanBtn.className = 'btn-action btn-emerald';
+          fanBtn.textContent = '❄️ 100% Ventilátor ZAPNUTÝ';
+          fanSub.textContent = `Režim: CONTINUOUS_100_PERCENT | ${fanStatus.fan_speed_rpm || 3600} RPM | R_th: ${fanStatus.thermal_resistance_c_w || 0.72}°C/W`;
+        } else {
+          fanBtn.className = 'btn-action';
+          fanBtn.textContent = '💨 Zapnúť Ventilátor na 100%';
+          fanSub.textContent = `Režim: ${fanStatus.fan_mode || 'CURVE'} | ${fanStatus.fan_speed_rpm || 1800} RPM | R_th: ${fanStatus.thermal_resistance_c_w || 1.85}°C/W`;
+        }
+      }
+    }
+
+    async function toggleContinuousMaxFan() {
+      const current = governorState && governorState.continuous_max_fan;
+      try {
+        const resp = await fetch('/api/voltage-governor/fan-control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ continuous_max_fan: !current })
+        });
+        const res = await resp.json();
+        fetchGovernorStatus();
+      } catch (err) {
+        console.warn("Failed to toggle continuous max fan:", err);
+      }
     }
 
     async function selectStrategy(stratName) {

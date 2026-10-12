@@ -2750,6 +2750,19 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(res)
             return
 
+        if path == '/api/voltage-governor/fan-control':
+            continuous_max_fan = bool(req_data.get("continuous_max_fan", True))
+            metrics = GLOBAL_VOLTAGE_TENSOR_GOVERNOR.enable_continuous_max_fan(continuous_max_fan)
+            status = GLOBAL_VOLTAGE_TENSOR_GOVERNOR.get_full_governor_status()
+            self._send_json({
+                "success": True,
+                "continuous_max_fan": continuous_max_fan,
+                "metrics": metrics.to_dict(),
+                "fan_status": status["fan_status"],
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
         # ── UNIVERSAL OPENAI LLM CONNECTOR POST ENDPOINTS ──────────────────
         if path == '/api/llm/configure':
             base_url = req_data.get("base_url")

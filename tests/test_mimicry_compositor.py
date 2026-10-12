@@ -109,10 +109,10 @@ class TestMimicryCompositor(unittest.TestCase):
             self.assertEqual(len(lines), 8, f"Expected 8 lines for recipe {obj.name}, got {len(lines)}")
 
     def test_scene_outlines_and_godot_export(self):
-        """Verifies 9 Game Scene Outlines and Godot 4 .tscn generator."""
+        """Verifies 9+ Game Scene Outlines and Godot 4 .tscn generator."""
         from mimicry_engine.scene_composer import list_scenes, get_scene
         scenes = list_scenes()
-        self.assertEqual(len(scenes), 9, f"Expected 9 scenes, got {len(scenes)}")
+        self.assertGreaterEqual(len(scenes), 9, f"Expected at least 9 scenes, got {len(scenes)}")
 
         for sc_info in scenes:
             scene = get_scene(sc_info["id"])

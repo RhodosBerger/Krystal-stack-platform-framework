@@ -53,6 +53,7 @@ class VoltageScalingStrategy(str, Enum):
     SUSTAINED_HIGH_THROUGHPUT       = "SUSTAINED_HIGH_THROUGHPUT"       # -20 mV: Heavy multi-tenant concurrency
     BURST_COMPUTE_OVERDRIVE         = "BURST_COMPUTE_OVERDRIVE"         # -5 mV: Peak NPU/AI inference burst
     THERMAL_FAILSAFE_FALLBACK       = "THERMAL_FAILSAFE_FALLBACK"       # -100 mV + freq damp: Overheat trip
+    CONTINUOUS_MAX_COOLING_FAN_100  = "CONTINUOUS_MAX_COOLING_FAN_100"  # -30 mV: Continuous 100% Fan (3600 RPM), R_th=0.72°C/W
 
 
 @dataclass
@@ -127,6 +128,17 @@ STRATEGY_CATALOG: Dict[VoltageScalingStrategy, VoltageStrategyConfig] = {
         target_ops_per_watt=95000.0,
         cooling_fan_profile="EMERGENCY_DAMP",
         description="Termálna záchranná brzda (-100 mV): Ochrana čipu pri dosiahnutí kritickej teploty junction Tj > 85°C."
+    ),
+    VoltageScalingStrategy.CONTINUOUS_MAX_COOLING_FAN_100: VoltageStrategyConfig(
+        strategy=VoltageScalingStrategy.CONTINUOUS_MAX_COOLING_FAN_100,
+        target_undervolt_mv=-30.0,
+        base_freq_mhz=3600.0,
+        max_freq_mhz=4800.0,
+        pl1_power_budget_w=55.0,
+        max_burst_duration_s=9999.0,
+        target_ops_per_watt=125000.0,
+        cooling_fan_profile="CONTINUOUS_MAX_100_PERCENT",
+        description="Termál na plno & ventilátor 100% po celý čas: Trvalý maximálny prietok vzduchu (3600 RPM), R_thermal=0.72°C/W, eliminácia throttlingu."
     )
 }
 
@@ -197,6 +209,10 @@ class ServerOperatingMetrics:
     voltage_collapse_margin_mv: float
     stability_status: str
     efficiency_score: float
+    fan_duty_cycle_pct: float = 100.0
+    fan_speed_rpm: int = 3600
+    fan_mode: str = "CONTINUOUS_100_PERCENT"
+    thermal_resistance_c_w: float = 0.72
     vital_max_hp: int = VITAL_MAX_HP
 
     def to_dict(self) -> Dict[str, Any]:
@@ -318,11 +334,15 @@ class VoltageScalingTensorGovernor:
     V_STOCK_BASE = 0.700             # Stock voltage at base 800 MHz (V)
     ALPHA_V = 0.000080               # Linear scaling coefficient (0.08 mV/MHz)
     BETA_V = 1.2e-9                  # Quadratic scaling coefficient (V/MHz^2)
-    R_THERMAL_C_W = 1.85             # Chassis thermal resistance (°C/Watt)
+    R_THERMAL_STANDARD_C_W = 1.85    # Baseline chassis thermal resistance (°C/Watt)
+    R_THERMAL_MAX_FAN_C_W = 0.72     # Continuous 100% fan forced-air thermal resistance (°C/Watt)
+    R_THERMAL_C_W = 0.72             # Active chassis thermal resistance (°C/Watt)
     T_AMBIENT_C = 25.0               # Ambient ambient temp (°C)
     NUM_PHYSICAL_CORES = 4           # 4 physical / 8 logical cores
+    MAX_FAN_RPM = 3600               # 100% duty cycle fan RPM
 
-    def __init__(self):
+    def __init__(self, continuous_max_fan: bool = True):
+        self.continuous_max_fan: bool = continuous_max_fan
         self.active_strategy = VoltageScalingStrategy.BALANCED_ADAPTIVE_DVFS
         self.weights = ServerEfficiencyEvaluationWeights()
         self.current_metrics: Optional[ServerOperatingMetrics] = None
@@ -332,6 +352,22 @@ class VoltageScalingTensorGovernor:
 
         # Initialize baseline evaluation
         self.apply_strategy(self.active_strategy)
+
+    def enable_continuous_max_fan(self, enabled: bool = True) -> ServerOperatingMetrics:
+        """Enables or disables continuous maximum fan cooling (100% duty cycle / 3600 RPM)."""
+        with self._lock:
+            self.continuous_max_fan = bool(enabled)
+            # Re-evaluate current metrics with updated thermal resistance
+            if self.current_metrics:
+                self.current_metrics = self._evaluate_operating_point(
+                    freq_mhz=self.current_metrics.freq_mhz,
+                    undervolt_mv=self.current_metrics.undervolt_offset_mv
+                )
+            else:
+                self.apply_strategy(self.active_strategy)
+            return self.current_metrics
+
+    set_continuous_max_fan = enable_continuous_max_fan
 
     def apply_strategy(self, strategy: VoltageScalingStrategy) -> ServerOperatingMetrics:
         """Applies a selected voltage strategy and computes immediate operating metrics."""
@@ -454,8 +490,43 @@ class VoltageScalingTensorGovernor:
         p_leak = p_dyn * leakage_ratio
         p_total = round(p_dyn + p_leak, 2)
 
+        # Determine fan dynamics and active thermal resistance
+        if self.continuous_max_fan or self.active_strategy == VoltageScalingStrategy.CONTINUOUS_MAX_COOLING_FAN_100:
+            fan_duty = 100.0
+            fan_rpm = self.MAX_FAN_RPM
+            fan_mode_str = "CONTINUOUS_100_PERCENT"
+            active_r_th = self.R_THERMAL_MAX_FAN_C_W
+        else:
+            cfg = STRATEGY_CATALOG.get(self.active_strategy)
+            profile = cfg.cooling_fan_profile if cfg else "ADAPTIVE_CURVE"
+            if profile == "SILENT_ACOUSTIC":
+                fan_duty = 35.0
+                fan_rpm = 1200
+                fan_mode_str = "SILENT_ACOUSTIC"
+                active_r_th = 1.85
+            elif profile == "PERFORMANCE_COOLING":
+                fan_duty = 75.0
+                fan_rpm = 2600
+                fan_mode_str = "PERFORMANCE_COOLING"
+                active_r_th = 1.45
+            elif profile == "MAX_AIRFLOW":
+                fan_duty = 90.0
+                fan_rpm = 3200
+                fan_mode_str = "MAX_AIRFLOW"
+                active_r_th = 1.15
+            elif profile == "EMERGENCY_DAMP":
+                fan_duty = 100.0
+                fan_rpm = 3600
+                fan_mode_str = "EMERGENCY_DAMP"
+                active_r_th = 0.95
+            else:
+                fan_duty = 50.0
+                fan_rpm = 1800
+                fan_mode_str = "ADAPTIVE_CURVE"
+                active_r_th = self.R_THERMAL_STANDARD_C_W
+
         # 4. Junction Temperature: T_j = T_ambient + P_total * R_thermal
-        t_j = round(self._simulated_ambient_temp_c + (p_total * self.R_THERMAL_C_W), 1)
+        t_j = round(self._simulated_ambient_temp_c + (p_total * active_r_th), 1)
 
         # 5. Throughput & Service Latency
         ipc_multiplier = 4.39  # From [MEASURED] FastRingBuffer queue throughput
@@ -491,7 +562,11 @@ class VoltageScalingTensorGovernor:
                 joules_per_op=joules_per_op,
                 voltage_collapse_margin_mv=margin_mv,
                 stability_status=stability,
-                efficiency_score=0.85
+                efficiency_score=0.85,
+                fan_duty_cycle_pct=round(fan_duty, 1),
+                fan_speed_rpm=int(fan_rpm),
+                fan_mode=fan_mode_str,
+                thermal_resistance_c_w=round(active_r_th, 3)
             )
             score = TensorWeightAdaptationAlgorithms.evaluate_pareto_efficiency_score(temp_metrics, self.weights)
 
@@ -509,7 +584,11 @@ class VoltageScalingTensorGovernor:
             joules_per_op=joules_per_op,
             voltage_collapse_margin_mv=margin_mv,
             stability_status=stability,
-            efficiency_score=score
+            efficiency_score=score,
+            fan_duty_cycle_pct=round(fan_duty, 1),
+            fan_speed_rpm=int(fan_rpm),
+            fan_mode=fan_mode_str,
+            thermal_resistance_c_w=round(active_r_th, 3)
         )
 
     def get_full_governor_status(self) -> Dict[str, Any]:
@@ -527,6 +606,13 @@ class VoltageScalingTensorGovernor:
                 "critical_undervolt_floor_mv": CRITICAL_UNDERVOLT_FLOOR_MV,
                 "active_strategy": self.active_strategy.value,
                 "strategy_details": cfg.to_dict(),
+                "continuous_max_fan": self.continuous_max_fan,
+                "fan_status": {
+                    "duty_cycle_pct": self.current_metrics.fan_duty_cycle_pct if self.current_metrics else 100.0,
+                    "fan_speed_rpm": self.current_metrics.fan_speed_rpm if self.current_metrics else self.MAX_FAN_RPM,
+                    "fan_mode": self.current_metrics.fan_mode if self.current_metrics else "CONTINUOUS_100_PERCENT",
+                    "thermal_resistance_c_w": self.current_metrics.thermal_resistance_c_w if self.current_metrics else self.R_THERMAL_MAX_FAN_C_W,
+                },
                 "current_metrics": self.current_metrics.to_dict() if self.current_metrics else {},
                 "tensor_weights": self.weights.to_dict(),
                 "available_strategies": [asdict(c) for c in STRATEGY_CATALOG.values()],

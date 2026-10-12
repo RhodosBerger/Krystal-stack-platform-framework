@@ -372,6 +372,7 @@ pub struct HardwarePreset {
 pub struct PresetGenerator {
     presets: Vec<HardwarePreset>,
     generation_count: u32,
+    pub forced_max_fan: bool,
 }
 
 impl PresetGenerator {
@@ -379,14 +380,23 @@ impl PresetGenerator {
         Self {
             presets: Vec::new(),
             generation_count: 0,
+            forced_max_fan: true,
         }
+    }
+
+    pub fn set_forced_max_fan(&mut self, enabled: bool) {
+        self.forced_max_fan = enabled;
     }
 
     pub fn generate(&mut self, signals: &ControlSignals) -> HardwarePreset {
         self.generation_count += 1;
 
-        // Generate based on current signals
-        let thermal_factor = signals.thermal_headroom;
+        // Generate based on current signals with continuous max fan override
+        let thermal_factor = if self.forced_max_fan {
+            1.0
+        } else {
+            signals.thermal_headroom
+        };
         let power_factor = signals.power_headroom;
 
         let preset = HardwarePreset {
@@ -394,7 +404,11 @@ impl PresetGenerator {
             cpu_freq_mhz: (3000.0 + thermal_factor * 1500.0) as u32,
             gpu_clock_mhz: (1500.0 + thermal_factor * 800.0) as u32,
             power_limit_watts: (100.0 + power_factor * 150.0) as u32,
-            fan_speed_rpm: (1000.0 + (1.0 - thermal_factor) * 2000.0) as u32,
+            fan_speed_rpm: if self.forced_max_fan {
+                3600
+            } else {
+                (1000.0 + (1.0 - thermal_factor) * 2000.0) as u32
+            },
             quality_score: thermal_factor * 0.5 + power_factor * 0.5,
         };
 
@@ -571,6 +585,14 @@ impl UnifiedCore {
     pub fn get_active_preset(&self) -> Option<&HardwarePreset> {
         self.active_preset.as_ref()
     }
+
+    pub fn set_forced_max_fan(&mut self, enabled: bool) {
+        self.preset_generator.set_forced_max_fan(enabled);
+    }
+
+    pub fn is_forced_max_fan(&self) -> bool {
+        self.preset_generator.forced_max_fan
+    }
 }
 
 impl Default for UnifiedCore {
@@ -604,5 +626,26 @@ mod tests {
         }
 
         assert_eq!(core.get_cycle_count(), 100);
+    }
+
+    #[test]
+    fn test_continuous_max_fan_preset() {
+        let mut generator = PresetGenerator::new();
+        generator.set_forced_max_fan(true);
+        let signals = ControlSignals {
+            thermal_control: 0.0,
+            performance_control: 0.0,
+            thermal_headroom: 0.2, // Hot system
+            power_headroom: 0.5,
+            memory_pressure: 0.1,
+        };
+        let preset = generator.generate(&signals);
+        assert_eq!(preset.fan_speed_rpm, 3600);
+        assert_eq!(preset.cpu_freq_mhz, 4500); // 3000 + 1.0 * 1500
+
+        // Test toggle off
+        generator.set_forced_max_fan(false);
+        let preset_off = generator.generate(&signals);
+        assert_eq!(preset_off.fan_speed_rpm, 2600); // 1000 + (1.0 - 0.2) * 2000
     }
 }
