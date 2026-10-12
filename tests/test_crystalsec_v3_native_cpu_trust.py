@@ -251,6 +251,26 @@ class TestCrystalSecV3NativeCpuTrust(unittest.TestCase):
         acc_ref = run_scalar_reduction_reference(data)
         self.assertEqual(acc_ref, 450)
 
+        # Adversarial saturation audit: extreme saturated values A=255, B=127 and B=-128
+        # Proves that AVX2 widening and VNNI vpdpbusd do not suffer from 16-bit intermediate saturation
+        if self.runner.available() and self.runner._dll:
+            dll = self.runner._dll
+            n_adv = 64
+            # Positive adversarial: 255 * 127 = 32385 per pair, sum = 64770 (would saturate signed 16-bit at 32767)
+            raw_a = bytes([255] * n_adv)
+            raw_b_pos = bytes([127] * n_adv)
+            exp_pos = n_adv * (255 * 127)
+            self.assertEqual(dll.taxonomy_int8_dot_scalar(raw_a, raw_b_pos, n_adv, 0), exp_pos)
+            self.assertEqual(dll.taxonomy_int8_dot_avx2(raw_a, raw_b_pos, n_adv, 0), exp_pos)
+            self.assertEqual(dll.taxonomy_int8_dot_vnni(raw_a, raw_b_pos, n_adv, 0), exp_pos)
+
+            # Negative adversarial: 255 * (-128) = -32640 per pair, sum = -65280 (would saturate signed 16-bit at -32768)
+            raw_b_neg = bytes([128] * n_adv)
+            exp_neg = n_adv * (255 * (-128))
+            self.assertEqual(dll.taxonomy_int8_dot_scalar(raw_a, raw_b_neg, n_adv, 0), exp_neg)
+            self.assertEqual(dll.taxonomy_int8_dot_avx2(raw_a, raw_b_neg, n_adv, 0), exp_neg)
+            self.assertEqual(dll.taxonomy_int8_dot_vnni(raw_a, raw_b_neg, n_adv, 0), exp_neg)
+
         # FP32 Horner form test
         data_fp = {"inputs": [0.0, 1.0, 2.0], "coeffs": [1.0, 2.0, 3.0, 4.0]}
         # x=1.0: ((4*1 + 3)*1 + 2)*1 + 1 = (7 + 2)*1 + 1 = 10.0
@@ -267,6 +287,13 @@ class TestCrystalSecV3NativeCpuTrust(unittest.TestCase):
         t2_out, timings = self.gpu.run("FP32_VECTOR_MATH", sw.data)
         v = verify_outputs(t0_out, t2_out, rel_tol=1e-4, abs_tol=1e-3)
         self.assertTrue(v["match"], f"T2 diverges from T0: {v['reason']}")
+
+        # Adversarial INT8 check on Vulkan GPU
+        n_adv = 64
+        gpu_pos, _ = self.gpu.run("INT8_DOT_PRODUCT", {"vector_a": [255] * n_adv, "vector_b": [127] * n_adv})
+        gpu_neg, _ = self.gpu.run("INT8_DOT_PRODUCT", {"vector_a": [255] * n_adv, "vector_b": [-128] * n_adv})
+        self.assertEqual(gpu_pos[0], float(255 * 127))
+        self.assertEqual(gpu_neg[0], float(255 * (-128)))
 
     # 17. test_t1_t2_same_session
     def test_t1_t2_same_session(self):

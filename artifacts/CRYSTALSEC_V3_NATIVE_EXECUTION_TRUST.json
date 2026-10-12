@@ -8,7 +8,7 @@
     "true_t1_vs_t2_break_even": "CALIBRATED",
     "phase_5_3d_dod": "COMPLETE"
   },
-  "timestamp": "2026-10-12T03:40:19Z",
+  "timestamp": "2026-10-12T03:55:20Z",
   "cpu": {
     "model": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
     "architecture": "AMD64",
@@ -16,7 +16,7 @@
     "affinity_mask": "0xff",
     "priority_class": "0x20",
     "effective_frequency_mhz": 2419,
-    "load_percentage": 59,
+    "load_percentage": 35,
     "thermal_state": "STEADY"
   },
   "security_policy": {
@@ -29,7 +29,7 @@
     "provenance_verified": true,
     "trust_verified": true,
     "loaded": true,
-    "sha256": "fa1426749307c4889b8a46d636272f07b0c46d7ebae78b0bd85ffb2f7d9dddb0",
+    "sha256": "ec43b82479eae9973edad79d7cd01c0771242e3e73375dcc8791f74b76d6a030",
     "authenticode_status": "UNSIGNED",
     "loader_error_code": 0,
     "code_integrity_load_outcome": "LOADED_SUCCESS",

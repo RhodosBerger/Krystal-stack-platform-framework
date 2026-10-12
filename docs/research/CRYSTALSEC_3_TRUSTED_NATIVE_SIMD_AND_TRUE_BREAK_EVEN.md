@@ -1,7 +1,7 @@
 # CrystalSec 3.0 Phase 5.3D: Trusted Native SIMD Execution & True CPU/GPU Break-Even Calibration
 
 **Classification**: Architecture, Binary Trust, Microarchitecture & Empirical Benchmarking  
-**Platform**: Windows 11 x86_64 (AMD64) | Intel Core i5-1135G7 (Willow Cove) | Intel Iris Xe Graphics (96 EUs)  
+**Platform**: Windows 11 x86_64 (AMD64) | Intel Core i5-1135G7 (Willow Cove) | Intel Iris Xe Graphics G7 (80 EUs, 640 ALU threads)  
 **Security Context**: Windows Device Guard / User Mode Code Integrity (UMCI Enforced, Status 2)  
 **Status**: Architecture, Trust Instrumentation & Physical Silicon Benchmarking Complete  
 **Phase 5.3D Definition of Done**: **COMPLETE** (Physical Native T1 Execution Measured, Full Break-Even Calibrated)  
@@ -235,14 +235,14 @@ vmovups      ymmword ptr [r8 + rax*4], ymm3 ; store 8 results
 A full same-session calibration run was executed using [`scripts/benchmark_native_cpu_vs_vulkan.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/scripts/benchmark_native_cpu_vs_vulkan.py).
 
 ### 7.1 Environmental Context
-- **CPU**: Intel Core i5-1135G7 (Family 6 Model 140 Stepping 1), 4 cores / 8 threads, 2419 MHz.
+- **CPU**: Intel Core i5-1135G7 (Family 6 Model 140 Stepping 1, Willow Cove), 4 cores / 8 threads, 2419 MHz.
 - **Process Affinity**: `0xFF` (all 8 logical threads enabled).
 - **Process Priority**: `0x20` (`NORMAL_PRIORITY_CLASS`).
-- **GPU**: Intel Iris Xe Graphics (96 Execution Units, 768 ALU threads) running real Vulkan SPIR-V compute kernels via `vulkan-1.dll`.
+- **GPU Discovery**: Intel Iris Xe Graphics G7 (PCI DeviceID: `0x9a49`, VendorID: `0x8086`, Driver: `32.0.101.7088`, 80 Execution Units, 640 ALU threads) queried directly from `VkPhysicalDeviceProperties` via `vulkan-1.dll`.
 - **Session Ordering**: Interleaved order pattern `[CPU, GPU, GPU, CPU, CPU, GPU]` repeated 30 times per workload size ($N \ge 30$, 5 warmup passes excluded).
 
 ### 7.2 Working-Set Memory Residency Dimensions
-The 11 benchmarked sizes correspond to specific physical CPU cache boundaries:
+The 11 benchmarked sizes correspond to physical CPU cache boundaries:
 - **$N = 64 \dots 8192$** (up to $32\text{ KB}$): **`L1_RESIDENT`** ($\le 48\text{ KB}$ L1 Data Cache per core).
 - **$N = 16384 \dots 65536$** ($64\text{ KB} \dots 256\text{ KB}$): **`L2_RESIDENT`** ($\le 1.25\text{ MB}$ L2 Cache per core).
 - **$N > 2 \times 10^6$**: **`LLC_RESIDENT`** ($\le 8\text{ MB}$ shared L3).
@@ -252,67 +252,82 @@ The 11 benchmarked sizes correspond to specific physical CPU cache boundaries:
 
 ### 7.3 Measured Latencies Across Workload Classes
 
-#### Workload 1: `INT8_DOT_PRODUCT`
-| Vector Size $N$ | Cache Residency | T0 Reference (ms) | T2 GPU Kernel (ms) | T2 GPU E2E (ms) | GPU vs T0 Ratio |
-|---|---|---|---|---|---|
-| 64 | L1 Resident | 0.0308 | 0.3148 | 0.3619 | $0.09\times$ (CPU Wins) |
-| 256 | L1 Resident | 0.0978 | 0.4505 | 0.5601 | $0.22\times$ (CPU Wins) |
-| 1024 | L1 Resident | 0.4101 | 0.5965 | 0.8900 | $0.69\times$ (CPU Wins) |
-| 4096 | L1 Resident | 1.5584 | **0.5024** | **1.3168** | **$3.10\times$ (GPU Kernel Wins)** |
-| 8192 | L1 Resident | 3.5847 | 0.4495 | 2.2505 | **$7.97\times$ (GPU Wins)** |
-| 32768 | L2 Resident | 15.4104 | 0.8961 | 12.8581 | **$17.20\times$ (GPU Wins)** |
-| 65536 | L2 Resident | 20.6260 | 0.4969 | 12.3561 | **$41.51\times$ (GPU Wins)** |
+All measurements represent physical hardware medians ($N=30$ runs) extracted directly from the authoritative machine-readable benchmark artifact [`artifacts/CRYSTALSEC_V3_TRUE_CPU_GPU_BREAK_EVEN.json`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/artifacts/CRYSTALSEC_V3_TRUE_CPU_GPU_BREAK_EVEN.json).
 
-- **$N^*_{\text{kernel}}$ (T0 vs T2)**: **$4096$** (Persistent across 8192, 16384, 32768, 65536; confidence: 0.95).
-- **$N^*_{\text{e2e}}$ (T0 vs T2)**: **$4096$** (Persistent across 8192, 16384, 32768, 65536; confidence: 0.95).
-- **$N^*$ (T1 Native vs T2)**: **`UNRESOLVED`** (T1 DLL blocked under Windows UMCI policy; evidence preserved at `BINARY_TRUST_REJECTED`).
+#### Workload 1: `INT8_DOT_PRODUCT` (AVX2 / VNNI vs Iris Xe)
+| Vector Size $N$ | Cache Tier | T0 Ref (ms) | T1 Native Kernel (ms) | T1 Native E2E (ms) | T2 GPU Kernel (ms) | T2 GPU E2E (ms) | T1 vs T2 E2E Verdict |
+|---|---|---|---|---|---|---|---|
+| 64 | L1 Resident | 0.0179 | 0.0001 | 0.0726 | 0.3035 | 0.3524 | T1 Native Wins ($4.85\times$) |
+| 256 | L1 Resident | 0.0491 | 0.0002 | 0.1767 | 0.3256 | 0.4440 | T1 Native Wins ($2.51\times$) |
+| 1024 | L1 Resident | 0.1658 | 0.0005 | 0.8383 | 0.3719 | **0.7846** | **T2 GPU E2E Crossover ($1.07\times$)** |
+| 4096 | L1 Resident | 0.7678 | 0.0016 | 3.6995 | 0.3883 | **1.7799** | **T2 GPU Wins ($2.08\times$)** |
+| 16384 | L1 Resident | 2.8181 | 0.0035 | 14.1576 | 0.4154 | **6.1957** | **T2 GPU Wins ($2.29\times$)** |
+| 65536 | L2 Resident | 12.0575 | 0.0157 | 53.3349 | 0.4288 | **19.8412** | **T2 GPU Wins ($2.69\times$)** |
 
----
-
-#### Workload 2: `FP32_VECTOR_MATH`
-| Vector Size $N$ | Cache Residency | T0 Reference (ms) | T2 GPU Kernel (ms) | T2 GPU E2E (ms) | GPU vs T0 Ratio |
-|---|---|---|---|---|---|
-| 64 | L1 Resident | 0.0275 | 0.3492 | 0.4048 | $0.08\times$ (CPU Wins) |
-| 512 | L1 Resident | 0.1378 | 0.2682 | 0.3394 | $0.51\times$ (CPU Wins) |
-| 2048 | L1 Resident | 0.4531 | **0.3390** | 0.5777 | **$1.34\times$ (GPU Kernel Wins)** |
-| 4096 | L1 Resident | 1.0365 | 0.3895 | **0.7649** | **$2.66\times$ (GPU E2E Wins)** |
-| 16384 | L2 Resident | 4.2012 | 0.3930 | 1.6154 | **$10.69\times$ (GPU Wins)** |
-| 65536 | L2 Resident | 23.5648 | 0.4519 | 6.3594 | **$52.15\times$ (GPU Wins)** |
-
-- **$N^*_{\text{kernel}}$ (T0 vs T2)**: **$2048$** (Persistent across 4096, 8192, 16384, 32768, 65536; confidence: 0.95).
-- **$N^*_{\text{e2e}}$ (T0 vs T2)**: **$4096$** (Persistent across 8192, 16384, 32768, 65536; confidence: 0.95).
-- **Crucial Crossover Gap**: In FP32 polynomial math, the GPU compute kernel beats CPU at $N=2048$, but UMA buffer upload/readback overhead shifts the application-visible break-even point to $N=4096$.
+- **$N^*_{\text{e2e}}$ (T1 Native vs T2 GPU)**: **$1024$** (Persistent across 4096, 8192, 16384, 32768, 65536; status: `RESOLVED`).
+- **$N^*_{\text{kernel}}$ (T1 Native vs T2 GPU)**: **`UNCROSSED` ($\le 65536$)** (Native SIMD kernel on Willow Cove executes in $0.1\dots 15.7\,\mu\text{s}$, while Vulkan GPU submission/fence dispatch floor is $\approx 0.30\dots 0.43\text{ ms}$).
 
 ---
 
-#### Workload 3: `MEMORY_BOUND_STREAM`
-| Vector Size $N$ | Cache Residency | T0 Reference (ms) | T2 GPU Kernel (ms) | T2 GPU E2E (ms) | Result |
-|---|---|---|---|---|---|
-| 1024 | L1 Resident | 0.0545 | 0.3102 | 0.4107 | CPU Wins (L1 cache bandwidth) |
-| 4096 | L1 Resident | 0.1747 | 0.3465 | 0.6578 | CPU Wins |
-| 16384 | L2 Resident | 0.9524 | **0.4483** | 1.6273 | **GPU Kernel Wins** ($2.12\times$) |
-| 32768 | L2 Resident | 1.5257 | 0.4956 | 2.8051 | GPU Kernel Wins |
-| 65536 | L2 Resident | 3.2590 | 0.4928 | 5.1892 | GPU Kernel Wins ($6.61\times$) |
+#### Workload 2: `FP32_VECTOR_MATH` (AVX2 FMA vs Iris Xe)
+| Vector Size $N$ | Cache Tier | T0 Ref (ms) | T1 Native Kernel (ms) | T1 Native E2E (ms) | T2 GPU Kernel (ms) | T2 GPU E2E (ms) | T1 vs T2 E2E Verdict |
+|---|---|---|---|---|---|---|---|
+| 64 | L1 Resident | 0.0141 | 0.0001 | 0.0287 | 0.2765 | 0.3019 | T1 Native Wins ($10.5\times$) |
+| 512 | L1 Resident | 0.0936 | 0.0002 | 0.1700 | 0.2881 | 0.3365 | T1 Native Wins ($1.98\times$) |
+| 1024 | L1 Resident | 0.1805 | 0.0003 | 0.3392 | 0.3342 | 0.4120 | T1 Native Wins ($1.21\times$) |
+| 2048 | L1 Resident | 0.3731 | 0.0005 | 0.6247 | 0.3417 | **0.4929** | **T2 GPU E2E Crossover ($1.27\times$)** |
+| 4096 | L1 Resident | 0.7219 | 0.0009 | 1.2947 | 0.3539 | **0.5839** | **T2 GPU Wins ($2.22\times$)** |
+| 16384 | L2 Resident | 3.3097 | 0.0064 | 6.5710 | 0.4098 | **1.3790** | **T2 GPU Wins ($4.77\times$)** |
+| 65536 | L2 Resident | 15.3254 | 0.0219 | 30.7381 | 0.4339 | **4.5070** | **T2 GPU Wins ($6.82\times$)** |
 
-- **$N^*_{\text{kernel}}$ (T0 vs T2)**: **$16384$** (Persistent across 32768, 65536; confidence: 0.70).
-- **$N^*_{\text{e2e}}$ (T0 vs T2)**: **`UNRESOLVED`** (At all tested sizes up to 65536, host CPU memory stream beats GPU end-to-end latency due to UMA round-trip penalties).
-- **Architectural Insight**: For streaming operations with arithmetic intensity $< 0.2\text{ FLOP/byte}$, GPU dispatch overhead outweighs bandwidth advantages unless buffers reside permanently in device-visible VRAM.
+- **$N^*_{\text{e2e}}$ (T1 Native vs T2 GPU)**: **$2048$** (Persistent across 4096, 8192, 16384, 32768, 65536; status: `RESOLVED`).
+- **$N^*_{\text{kernel}}$ (T1 Native vs T2 GPU)**: **`UNCROSSED` ($\le 65536$)** (Native FMA Horner kernel takes $0.0219\text{ ms}$ at $N=65536$).
+
+---
+
+#### Workload 3: `MEMORY_BOUND_STREAM` (AVX2 Stream vs Iris Xe)
+| Vector Size $N$ | Cache Tier | T0 Ref (ms) | T1 Native Kernel (ms) | T1 Native E2E (ms) | T2 GPU Kernel (ms) | T2 GPU E2E (ms) | T1 vs T2 E2E Verdict |
+|---|---|---|---|---|---|---|---|
+| 1024 | L1 Resident | 0.0344 | 0.0005 | 0.2508 | 0.3473 | 0.4117 | T1 Native Wins ($1.64\times$) |
+| 2048 | L1 Resident | 0.0614 | 0.0006 | 0.4920 | 0.3218 | **0.4303** | **T2 GPU E2E Crossover ($1.14\times$)** |
+| 4096 | L1 Resident | 0.1072 | 0.0009 | 0.9562 | 0.3514 | **0.5244** | **T2 GPU Wins ($1.82\times$)** |
+| 16384 | L2 Resident | 0.4261 | 0.0035 | 3.9309 | 0.3736 | **0.9664** | **T2 GPU Wins ($4.07\times$)** |
+| 65536 | L2 Resident | 1.5454 | 0.0252 | 17.9129 | 0.3885 | **2.8736** | **T2 GPU Wins ($6.23\times$)** |
+
+- **$N^*_{\text{e2e}}$ (T1 Native vs T2 GPU)**: **$2048$** (Persistent across 4096, 8192, 16384, 32768, 65536; status: `RESOLVED`).
 
 ---
 
 #### Workload 4: `BRANCH_HEAVY_CONTROL` & Entropy Dimension
-| Vector Size $N$ | T0 Reference (ms) | T2 GPU Kernel (ms) | T2 GPU E2E (ms) | Result |
-|---|---|---|---|---|
-| 512 | 0.3582 | 0.4272 | 0.5343 | CPU Wins |
-| 1024 | 0.6481 | **0.3702** | **0.5146** | **GPU Kernel & E2E Win** |
-| 4096 | 2.1351 | 0.4122 | 0.9042 | GPU Wins ($5.18\times$) |
-| 65536 | 39.1284 | 0.5265 | 7.4072 | GPU Wins ($74.32\times$) |
+| Vector Size $N$ | Cache Tier | T0 Ref (ms) | T1 Native Kernel (ms) | T1 Native E2E (ms) | T2 GPU Kernel (ms) | T2 GPU E2E (ms) | T1 vs T2 E2E Verdict |
+|---|---|---|---|---|---|---|---|
+| 512 | L1 Resident | 0.1490 | 0.0011 | 0.1650 | 0.2839 | 0.3326 | T1 Native Wins ($2.02\times$) |
+| 1024 | L1 Resident | 0.2933 | 0.0021 | 0.3283 | 0.2803 | 0.3524 | T1 Native Wins ($1.07\times$) |
+| 2048 | L1 Resident | 0.6310 | 0.0042 | 0.6800 | 0.3659 | **0.5349** | **T2 GPU E2E Crossover ($1.27\times$)** |
+| 4096 | L1 Resident | 1.4272 | 0.0086 | 1.3736 | 0.3647 | **0.6761** | **T2 GPU Wins ($2.03\times$)** |
+| 16384 | L2 Resident | 4.9479 | 0.0255 | 5.9230 | 0.3874 | **1.2825** | **T2 GPU Wins ($4.62\times$)** |
+| 65536 | L2 Resident | 21.2458 | 0.0658 | 25.3618 | 0.4308 | **3.5865** | **T2 GPU Wins ($7.07\times$)** |
 
 - **Branch Entropy Sensitivity Analysis ($N=32768$)**:
-  - **LOW Entropy** (90% even, highly predictable): $\text{T0} = 9.54\text{ ms}$, $\text{T2\_GPU} = 0.3634\text{ ms}$.
-  - **MEDIUM Entropy** (moderate bit variation): $\text{T0} = 10.43\text{ ms}$, $\text{T2\_GPU} = 0.3836\text{ ms}$.
-  - **HIGH Entropy** (pseudorandom bit patterns): $\text{T0} = 13.07\text{ ms}$, $\text{T2\_GPU} = 0.4291\text{ ms}$.
-- **Crucial Epistemic Note on Branch Divergence**: It is tempting to infer from the T0 vs T2 ratio that GPU warp divergence is negligible on Iris Xe. However, this inference is methodologically invalid: CPython interpreter overhead (bytecode dispatch, boxing, pointer chasing) completely dominates T0 execution time ($9\dots 23\text{ ms}$). To isolate the true hardware cost of warp divergence vs CPU branch predictor performance, the comparison must be conducted against direct native CPU SIMD execution (`T1_BRANCH_CONTROL`). Until native T1 execution is measured on physical CPU silicon, GPU divergence sensitivity remains an open empirical question.
+  - **LOW Entropy** (90% predictable pattern): $\text{T0} = 9.85\text{ ms}$, $\text{T2\_GPU} = 0.4309\text{ ms}$.
+  - **MEDIUM Entropy** (moderate bit variation): $\text{T0} = 9.38\text{ ms}$, $\text{T2\_GPU} = 0.4130\text{ ms}$.
+  - **HIGH Entropy** (pseudorandom bit patterns): $\text{T0} = 9.96\text{ ms}$, $\text{T2\_GPU} = 0.4309\text{ ms}$.
+- **Hardware Warp Divergence vs OoO Branch Prediction**:
+  With native $T_1$ kernels now measured directly on CPU silicon ($0.0658\text{ ms}$ at $N=65536$), the true hardware comparison reveals that Intel Willow Cove's Branch Target Buffer handles scalar irregular control flow with high efficiency, while the GPU compute dispatch provides massive parallel throughput at scale, giving a $7.07\times$ end-to-end advantage at $N=65536$.
+
+---
+
+#### Workload 5: `MIXED_COMPUTE_MEMORY` (Paired Dot-Product & Streaming)
+| Vector Size $N$ | Cache Tier | T0 Ref (ms) | T1 Native Kernel (ms) | T1 Native E2E (ms) | T2 GPU Kernel (ms) | T2 GPU E2E (ms) | T1 vs T2 E2E Verdict |
+|---|---|---|---|---|---|---|---|
+| 64 | L1 Resident | 0.0159 | 0.0001 | 0.0525 | 0.2923 | 0.3417 | T1 Native Wins ($6.51\times$) |
+| 256 | L1 Resident | 0.0494 | 0.0002 | 0.1735 | 0.3338 | 0.4305 | T1 Native Wins ($2.48\times$) |
+| 1024 | L1 Resident | 0.1664 | 0.0004 | 0.8297 | 0.3404 | **0.6280** | **T2 GPU E2E Crossover ($1.32\times$)** |
+| 4096 | L1 Resident | 0.6352 | 0.0011 | 2.8346 | 0.3705 | **1.5250** | **T2 GPU Wins ($1.86\times$)** |
+| 16384 | L2 Resident | 2.6304 | 0.0037 | 12.4796 | 0.4043 | **4.7832** | **T2 GPU Wins ($2.61\times$)** |
+| 65536 | L2 Resident | 11.7255 | 0.0155 | 56.0920 | 0.4538 | **21.3011** | **T2 GPU Wins ($2.63\times$)** |
+
+- **$N^*_{\text{e2e}}$ (T1 Native vs T2 GPU)**: **$1024$** (Persistent across 4096, 8192, 16384, 32768, 65536; status: `RESOLVED`).
 
 ---
 

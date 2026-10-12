@@ -196,18 +196,20 @@ TAXONOMY_API int32_t taxonomy_int8_dot_avx2(const uint8_t* a, const int8_t* b, s
     apply_test_delay_if_set();
     size_t i = 0;
     __m256i acc_vec = _mm256_setzero_si256();
-    __m256i ones16 = _mm256_set1_epi16(1);
 
-    for (; i + 32 <= n; i += 32) {
-        __m256i va = _mm256_loadu_si256((const __m256i*)(a + i));
-        __m256i vb = _mm256_loadu_si256((const __m256i*)(b + i));
+    /* Process 16 bytes per iteration using exact 16-bit widening without intermediate saturation.
+     * uint8_t in [0, 255] fits in int16_t (0..255).
+     * int8_t in [-128, 127] fits in int16_t (-128..127).
+     * _mm256_madd_epi16 multiplies pairs and produces 32-bit signed sums (up to 64,770),
+     * completely eliminating the 16-bit saturation bottleneck of _mm256_maddubs_epi16. */
+    for (; i + 16 <= n; i += 16) {
+        __m128i a16 = _mm_loadu_si128((const __m128i*)(a + i));
+        __m128i b16 = _mm_loadu_si128((const __m128i*)(b + i));
 
-        /* _mm256_maddubs_epi16: uint8 x int8 -> pairs summed into int16 */
-        __m256i prod16 = _mm256_maddubs_epi16(va, vb);
+        __m256i va16 = _mm256_cvtepu8_epi16(a16);
+        __m256i vb16 = _mm256_cvtepi8_epi16(b16);
 
-        /* _mm256_madd_epi16: pairs of int16 multiplied by 1 and summed into int32 */
-        __m256i prod32 = _mm256_madd_epi16(prod16, ones16);
-
+        __m256i prod32 = _mm256_madd_epi16(va16, vb16);
         acc_vec = _mm256_add_epi32(acc_vec, prod32);
     }
 
@@ -232,11 +234,32 @@ TAXONOMY_API int32_t taxonomy_int8_dot_avx2(const uint8_t* a, const int8_t* b, s
 }
 #endif
 
-#if (defined(__AVX512VNNI__) || defined(__AVX512F__)) && defined(_MSC_VER)
+#if defined(__AVX512VNNI__) || defined(__AVX512F__)
 TAXONOMY_API int32_t taxonomy_int8_dot_vnni(const uint8_t* a, const int8_t* b, size_t n, int apply_relu) {
     apply_test_delay_if_set();
-    /* If AVX-512 VNNI compiler intrinsics available, emit _mm512_dpbusd_epi32 */
-    return taxonomy_int8_dot_avx2(a, b, n, apply_relu);
+    size_t i = 0;
+    __m256i acc_vec = _mm256_setzero_si256();
+
+    /* Direct VNNI vpdpbusd: 4x (uint8 * int8) accumulated directly into int32 lanes.
+     * Zero intermediate 16-bit saturation; accumulates directly into 32-bit registers. */
+    for (; i + 32 <= n; i += 32) {
+        __m256i va = _mm256_loadu_si256((const __m256i*)(a + i));
+        __m256i vb = _mm256_loadu_si256((const __m256i*)(b + i));
+        acc_vec = _mm256_dpbusd_epi32(acc_vec, va, vb);
+    }
+
+    __m128i low128 = _mm256_castsi256_si128(acc_vec);
+    __m128i high128 = _mm256_extracti128_si256(acc_vec, 1);
+    __m128i sum128 = _mm_add_epi32(low128, high128);
+    sum128 = _mm_hadd_epi32(sum128, sum128);
+    sum128 = _mm_hadd_epi32(sum128, sum128);
+    int32_t acc = _mm_cvtsi128_si32(sum128);
+
+    for (; i < n; ++i) {
+        acc += (int32_t)a[i] * (int32_t)b[i];
+    }
+    if (apply_relu && acc < 0) acc = 0;
+    return acc;
 }
 #else
 TAXONOMY_API int32_t taxonomy_int8_dot_vnni(const uint8_t* a, const int8_t* b, size_t n, int apply_relu) {

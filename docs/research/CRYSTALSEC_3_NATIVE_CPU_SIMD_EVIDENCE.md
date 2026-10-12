@@ -2,7 +2,7 @@
 
 **Document Status:** Empirical Verification & Architectural Specification (Local Phase 5.3C Implementation)  
 **Version:** 3.0.53C  
-**Target Hardware:** Intel Core i5-1135G7 (Tiger Lake Family 6 Model 140, Willow Cove Core) + Intel Iris Xe Graphics (96 EUs)  
+**Target Hardware:** Intel Core i5-1135G7 (Tiger Lake Family 6 Model 140, Willow Cove Core) + Intel Iris Xe Graphics G7 (80 EUs, 640 ALU threads)  
 **Host OS:** Windows 11 AMD64 (with DeviceGuard / UMCI Enforced)
 
 ---
