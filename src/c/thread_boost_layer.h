@@ -91,6 +91,53 @@ typedef struct {
 #define GAMESA_ACTION_MIGRATE   0x03
 #define GAMESA_ACTION_IDLE      0x04
 
+#define MAX_BOOST_ZONES GAMESA_MAX_ZONES
+
+typedef struct {
+    uint32_t zone_id;
+    uint32_t p_core_mask;
+    uint32_t e_core_mask;
+    uint32_t gpu_block_start;
+    uint32_t gpu_block_count;
+    uint32_t priority;
+    int active;
+    float current_boost;
+    float thermal_budget;
+    float power_budget;
+} boost_zone_t;
+
+typedef struct {
+    uint32_t p_core_mask;
+    uint32_t e_core_mask;
+    uint32_t gpu_block_start;
+    uint32_t gpu_block_count;
+    uint32_t priority;
+} tbl_zone_config_t;
+
+typedef struct {
+    float clock_multiplier;
+    float thermal_budget;
+    float power_budget;
+} tbl_boost_profile_t;
+
+typedef struct {
+    uint32_t zone_id;
+    float cpu_util;
+    float gpu_util;
+    float temp_cpu;
+    float temp_gpu;
+    float power_draw;
+    int active;
+} tbl_zone_telemetry_t;
+
+int tbl_init(void);
+void tbl_shutdown(void);
+uint32_t tbl_zone_create(tbl_zone_config_t *config);
+int tbl_zone_boost(uint32_t zone_id, tbl_boost_profile_t *profile);
+int tbl_zone_throttle(uint32_t zone_id, float target);
+tbl_zone_telemetry_t tbl_zone_get_telemetry(uint32_t zone_id);
+int tbl_rebalance_under_pressure(float thermal_pressure);
+
 /* ========== Zone Grid Manager ========== */
 
 /** Initialize the thread boost layer */

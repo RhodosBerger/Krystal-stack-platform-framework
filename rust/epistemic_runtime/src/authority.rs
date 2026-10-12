@@ -129,21 +129,21 @@ pub fn arbitrate_authority(
     evidence: &EvidenceVerdictType,
 ) -> (AuthorityVerdictType, &'static str) {
     match safety {
-        SafetyVerdictType.Veto => (
-            AuthorityVerdictType.VetoSafetyBreach,
+        SafetyVerdictType::Veto => (
+            AuthorityVerdictType::VetoSafetyBreach,
             "REJECT_NOOP",
         ),
-        SafetyVerdictType.Pass => match evidence {
-            EvidenceVerdictType.Contradictory => (
-                AuthorityVerdictType.QuarantineContradictoryEvidence,
+        SafetyVerdictType::Pass => match evidence {
+            EvidenceVerdictType::Contradictory => (
+                AuthorityVerdictType::QuarantineContradictoryEvidence,
                 "QUARANTINE_AND_RECALIBRATE",
             ),
-            EvidenceVerdictType.Insufficient => (
-                AuthorityVerdictType.DeferInsufficientEvidence,
+            EvidenceVerdictType::Insufficient => (
+                AuthorityVerdictType::DeferInsufficientEvidence,
                 "TRIGGER_ACTIVE_MICRO_PROBE",
             ),
-            EvidenceVerdictType.Sufficient => (
-                AuthorityVerdictType.CommitApproved,
+            EvidenceVerdictType::Sufficient => (
+                AuthorityVerdictType::CommitApproved,
                 "WOULD_COMMIT",
             ),
         },

@@ -41,6 +41,7 @@ typedef enum {
     COMPONENT_DMA_MODULE,       /* Kernel DMA module */
     COMPONENT_TWEAKER_UI,       /* Tkinter UI */
     COMPONENT_CUSTOM,           /* User-defined */
+    GAMESA_COMPONENT_MEMORY,    /* Memory tier component */
 } gamesa_component_type_t;
 
 /** Component state */
@@ -51,6 +52,10 @@ typedef enum {
     COMP_STATE_ERROR,
     COMP_STATE_STOPPED,
 } gamesa_component_state_t;
+
+#define GAMESA_COMPONENT_CREATED COMP_STATE_INIT
+#define GAMESA_COMPONENT_RUNNING COMP_STATE_RUNNING
+#define GAMESA_COMPONENT_STOPPED COMP_STATE_STOPPED
 
 /** Component descriptor */
 typedef struct {
@@ -83,6 +88,8 @@ typedef enum {
     RIVER_BIDIRECTIONAL,        /* Two-way flow */
 } gamesa_river_direction_t;
 
+#define GAMESA_RIVER_BIDIRECTIONAL RIVER_BIDIRECTIONAL
+
 /** River transport type */
 typedef enum {
     RIVER_TRANSPORT_SHMEM,      /* Shared memory (fastest) */
@@ -91,6 +98,8 @@ typedef enum {
     RIVER_TRANSPORT_QUEUE,      /* Message queue */
     RIVER_TRANSPORT_DMA,        /* DMA buffer (GPU) */
 } gamesa_river_transport_t;
+
+#define GAMESA_RIVER_SHM RIVER_TRANSPORT_SHMEM
 
 /** River QoS settings */
 typedef struct {
@@ -113,12 +122,22 @@ typedef struct {
 
     /* Runtime state */
     void*                       buffer;
+    uint32_t                    buffer_size;
     uint64_t                    bytes_transferred;
     uint64_t                    messages_sent;
     uint64_t                    messages_dropped;
+    uint64_t                    msgs_sent;
+    uint64_t                    msgs_received;
     uint64_t                    last_activity_ns;
     bool                        active;
 } gamesa_river_t;
+
+/** River configuration */
+typedef struct {
+    gamesa_river_transport_t transport;
+    gamesa_river_direction_t direction;
+    uint32_t buffer_size;
+} gamesa_river_config_t;
 
 /** River message header */
 typedef struct {
@@ -163,16 +182,21 @@ typedef struct {
 
 /* ========== Kernel Core ========== */
 
+/** Kernel configuration */
+typedef struct {
+    uint32_t max_components;
+    uint32_t max_rivers;
+} gamesa_kernel_config_t;
+
 /** Kernel state */
 typedef struct {
-    /* Components */
-    gamesa_component_t      components[GAMESA_MAX_COMPONENTS];
+    uint32_t                max_components;
+    uint32_t                max_rivers;
     uint32_t                component_count;
-    pthread_mutex_t         component_lock;
-
-    /* Rivers */
-    gamesa_river_t          rivers[GAMESA_MAX_RIVERS];
     uint32_t                river_count;
+    gamesa_component_t**    components;
+    gamesa_river_t**        rivers;
+    pthread_mutex_t         component_lock;
     pthread_mutex_t         river_lock;
 
     /* Drivers */
@@ -190,74 +214,24 @@ typedef struct {
 /* ========== Kernel API ========== */
 
 /** Initialize kernel */
-int gamesa_kernel_init(gamesa_kernel_t* kernel);
+int gamesa_kernel_init(gamesa_kernel_config_t* config);
 
 /** Shutdown kernel */
-void gamesa_kernel_shutdown(gamesa_kernel_t* kernel);
+void gamesa_kernel_shutdown(void);
 
-/** Start kernel scheduler */
-int gamesa_kernel_start(gamesa_kernel_t* kernel);
+/** Component Management */
+gamesa_component_t* gamesa_component_create(const char* name, gamesa_component_type_t type);
+int gamesa_component_start(gamesa_component_t* comp);
+int gamesa_component_stop(gamesa_component_t* comp);
+void gamesa_component_destroy(gamesa_component_t* comp);
 
-/** Stop kernel */
-void gamesa_kernel_stop(gamesa_kernel_t* kernel);
+/** River Management */
+gamesa_river_t* gamesa_river_create(const char* name, gamesa_river_config_t* config);
+int gamesa_river_send(gamesa_river_t* river, gamesa_river_msg_t* msg);
+int gamesa_river_recv(gamesa_river_t* river, gamesa_river_msg_t* msg, int timeout_ms);
+void gamesa_river_destroy(gamesa_river_t* river);
 
-/* Component Management */
-
-/** Register component */
-int gamesa_component_register(
-    gamesa_kernel_t* kernel,
-    const char* name,
-    gamesa_component_type_t type,
-    const gamesa_component_ops_t* ops,
-    void* config,
-    uint32_t* out_id
-);
-
-/** Start component */
-int gamesa_component_start(gamesa_kernel_t* kernel, uint32_t id);
-
-/** Stop component */
-int gamesa_component_stop(gamesa_kernel_t* kernel, uint32_t id);
-
-/** Get component by ID */
-gamesa_component_t* gamesa_component_get(gamesa_kernel_t* kernel, uint32_t id);
-
-/** Get component by name */
-gamesa_component_t* gamesa_component_find(gamesa_kernel_t* kernel, const char* name);
-
-/* River Management */
-
-/** Create river between components */
-int gamesa_river_create(
-    gamesa_kernel_t* kernel,
-    const char* name,
-    uint32_t source_id,
-    uint32_t sink_id,
-    gamesa_river_transport_t transport,
-    const gamesa_river_qos_t* qos,
-    uint32_t* out_id
-);
-
-/** Destroy river */
-int gamesa_river_destroy(gamesa_kernel_t* kernel, uint32_t id);
-
-/** Send message on river */
-int gamesa_river_send(
-    gamesa_kernel_t* kernel,
-    uint32_t river_id,
-    uint32_t msg_type,
-    const void* data,
-    uint32_t size
-);
-
-/** Receive message from river */
-int gamesa_river_recv(
-    gamesa_kernel_t* kernel,
-    uint32_t river_id,
-    void* buffer,
-    uint32_t* size,
-    uint32_t timeout_ms
-);
+/** River statistics */
 
 /** Get river statistics */
 typedef struct {

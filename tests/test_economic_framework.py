@@ -165,6 +165,14 @@ class TestRoundStateController(unittest.TestCase):
         self.assertIn('EconomicMatchRoot', tscn)
 
 class TestEconomicHttpApi(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try:
+            with urllib.request.urlopen(f"{BASE_URL}/api/economy/state", timeout=1):
+                pass
+        except Exception:
+            raise unittest.SkipTest("Economic HTTP server not running on port 8089; skipping HTTP live integration tests.")
+
     def test_api_state_and_step(self):
         res = urllib.request.urlopen(f"{BASE_URL}/api/economy/state")
         self.assertEqual(res.status, 200)

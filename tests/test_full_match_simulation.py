@@ -27,6 +27,13 @@ def get_json(endpoint: str) -> dict:
         return json.loads(resp.read().decode('utf-8'))
 
 class TestFullMatchSimulation(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try:
+            with urllib.request.urlopen(f"{BASE_URL}/api/economy/state", timeout=1):
+                pass
+        except Exception:
+            raise unittest.SkipTest("Economic HTTP server not running on port 8089; skipping HTTP live integration tests.")
 
     def setUp(self):
         # Reset match to pristine state

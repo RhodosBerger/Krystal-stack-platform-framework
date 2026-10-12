@@ -152,6 +152,20 @@ class QuadraticOracleShaderEngine:
         t1 = (-B - sqrt_delta) / (2.0 * A)
         t2 = (-B + sqrt_delta) / (2.0 * A)
 
+        # If both roots are in the past (ray aiming away), treat as complex hazard veto
+        if t1 < 0.0 and t2 < 0.0:
+            p_apex = (ro_x + apex_t * rd_x, ro_y + apex_t * rd_y, ro_z + apex_t * rd_z)
+            norm = self._calculate_normal(p_apex, manifold)
+            return OracleShaderVerificationResult(
+                is_verified=False,
+                discriminant=-abs(delta) if delta >= 0.0 else delta,
+                roots=(None, None),
+                apex_t=apex_t,
+                analytical_normal=norm,
+                oracle_verdict="COMPLEX_HAZARD_VETO",
+                vital_hp=self.vital_hp
+            )
+
         # Nearest forward root
         t_near = t1 if t1 >= 0.0 else t2
         p_hit = (ro_x + t_near * rd_x, ro_y + t_near * rd_y, ro_z + t_near * rd_z)
@@ -193,12 +207,12 @@ class QuadraticOracleShaderEngine:
         """
         import struct
         # layout(std140):
-        # vec3 quad_curvature (12 bytes) + 4 pad
-        # vec3 quad_linear    (12 bytes) + 4 pad
-        # float quad_constant (4 bytes) + int vital_hp (4 bytes) + 8 pad
-        # total = 48 + 16 = 64 bytes
+        # vec3 quad_curvature (12 bytes) + 4 pad = 16
+        # vec3 quad_linear    (12 bytes) + 4 pad = 16
+        # float quad_constant (4 bytes) + int vital_hp (4 bytes) + 24 pad = 32
+        # total = 16 + 16 + 32 = 64 bytes
         return struct.pack(
-            "fff4xfff4xfi8x",
+            "fff4xfff4xfi24x",
             manifold.a[0], manifold.a[1], manifold.a[2],
             manifold.b[0], manifold.b[1], manifold.b[2],
             manifold.c,

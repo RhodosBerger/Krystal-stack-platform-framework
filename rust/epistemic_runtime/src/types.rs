@@ -76,19 +76,19 @@ pub struct EpistemicValue<T> {
 impl<T> EpistemicValue<T> {
     pub fn get_validity_state(&self, now_ns: u64, max_stale_ns: Option<u64>) -> ValidityState {
         if now_ns < self.valid_from_ns {
-            return ValidityState.Unknown;
+            return ValidityState::Unknown;
         }
         if now_ns > self.valid_to_ns {
-            return ValidityState.Expired;
+            return ValidityState::Expired;
         }
         let stale_limit = max_stale_ns.unwrap_or(((self.valid_to_ns - self.valid_from_ns) as f64 * 0.7) as u64);
         if (now_ns - self.valid_from_ns) > stale_limit {
-            return ValidityState.Stale;
+            return ValidityState::Stale;
         }
-        ValidityState.Fresh
+        ValidityState::Fresh
     }
 
     pub fn is_usable_for_decision(&self, now_ns: u64, max_stale_ns: Option<u64>) -> bool {
-        self.get_validity_state(now_ns, max_stale_ns) == ValidityState.Fresh
+        self.get_validity_state(now_ns, max_stale_ns) == ValidityState::Fresh
     }
 }

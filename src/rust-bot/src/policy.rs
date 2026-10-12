@@ -17,7 +17,6 @@ pub struct PolicyEngine {
     rules: Vec<PolicyRule>,
 }
 
-#[derive(Debug, Clone)]
 struct PolicyRule {
     name: String,
     domain: Domain,

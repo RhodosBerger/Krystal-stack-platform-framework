@@ -20,6 +20,7 @@ pub enum EventKind {
     Decision,
     Error,
     StateChange,
+    Directive,
 }
 
 pub struct EventBus {

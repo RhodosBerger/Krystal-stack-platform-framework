@@ -18,5 +18,7 @@ serde_json = "1.0"
 members = [
     "krystal-miner",
     "krystal-ob",
-    "krystal-bitboard"
+    "krystal-bitboard",
+    "src/rust-bot",
+    "rust/epistemic_runtime"
 ]

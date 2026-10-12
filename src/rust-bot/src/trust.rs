@@ -69,6 +69,7 @@ impl TrustEngine {
             checks_failed.push("power_budget".into());
         }
 
+        let inference_used = inference_hint.is_some();
         // Determine final action
         let action = if !thermal_safe {
             Action::Throttle {
@@ -78,7 +79,7 @@ impl TrustEngine {
         } else if let Some(hint) = inference_hint {
             hint
         } else {
-            policy_result.action
+            policy_result.action.clone()
         };
 
         // Calculate confidence
@@ -103,7 +104,7 @@ impl TrustEngine {
                 thermal_safe,
                 power_safe,
                 policy_valid: policy_result.valid,
-                inference_used: inference_hint.is_some(),
+                inference_used,
                 checks_passed,
                 checks_failed,
             },

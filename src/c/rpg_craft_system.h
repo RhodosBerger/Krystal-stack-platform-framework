@@ -30,6 +30,91 @@ extern "C" {
 #define GAMESA_MAX_PATTERNS     64
 #define GAMESA_MAX_SKILLS       32
 
+#define MAX_RECIPES GAMESA_MAX_RECIPES
+#define MAX_INGREDIENTS GAMESA_MAX_INGREDIENTS
+#define MAX_BOOST_MAPS 32
+
+typedef enum {
+    RPG_ING_CPU_BOOST = 1,
+    RPG_ING_GPU_CLOCK = 2,
+    RPG_ING_POWER_LIMIT = 3,
+    RPG_ING_FAN_CURVE = 4,
+} rpg_ingredient_type_t;
+
+typedef enum {
+    RPG_RARITY_COMMON = 1,
+    RPG_RARITY_RARE = 2,
+    RPG_RARITY_EPIC = 3,
+    RPG_RARITY_LEGENDARY = 4,
+} rpg_rarity_t;
+
+typedef struct {
+    uint32_t type;
+    int amount;
+    float quality;
+} rpg_ingredient_t;
+
+typedef struct {
+    const char *name;
+    uint32_t rarity;
+    uint32_t ingredient_count;
+    rpg_ingredient_t *ingredients;
+} rpg_recipe_config_t;
+
+typedef struct {
+    uint32_t recipe_id;
+    char name[64];
+    uint32_t rarity;
+    uint32_t ingredient_count;
+    rpg_ingredient_t ingredients[MAX_INGREDIENTS];
+} rpg_recipe_t;
+
+typedef struct {
+    float quality_target;
+} rpg_craft_params_t;
+
+typedef struct {
+    uint32_t recipe_id;
+    int cpu_clock_offset;
+    int gpu_clock_offset;
+    int power_limit_pct;
+    int fan_curve_id;
+    int thermal_target;
+} rpg_preset_t;
+
+typedef struct {
+    float boost_factor;
+    uint32_t priority;
+} rpg_zone_params_t;
+
+typedef struct {
+    uint32_t zone_id;
+    float boost_factor;
+    uint32_t priority;
+} rpg_mapped_zone_t;
+
+typedef struct {
+    uint32_t map_id;
+    char name[64];
+    uint32_t zone_count;
+    rpg_mapped_zone_t zones[16];
+} rpg_boost_map_t;
+
+typedef struct {
+    uint32_t total_recipes;
+    uint32_t total_boost_maps;
+    uint32_t active_presets;
+} rpg_craft_stats_t;
+
+int rpg_craft_init(void);
+void rpg_craft_shutdown(void);
+uint32_t rpg_recipe_create(rpg_recipe_config_t *config);
+rpg_preset_t rpg_recipe_craft(uint32_t recipe_id, rpg_craft_params_t *params);
+uint32_t rpg_boost_map_create(const char *name);
+int rpg_boost_map_add_zone(uint32_t map_id, uint32_t zone_id, rpg_zone_params_t *params);
+int rpg_boost_map_apply(uint32_t map_id);
+rpg_craft_stats_t rpg_get_stats(void);
+
 /* ========== Recipe System ========== */
 
 /** Ingredient types for crafting */
