@@ -8,6 +8,9 @@
 > **Direktíva kontinuity a evolúcie (Principle of Continuous Lineage):**  
 > *„Tento šprint nesmie odpojiť vývoj od existujúcich kľúčových mechanizmov. Antigravity musí explicitne vyhodnotiť, ako každý navrhnutý prvok nadväzuje na a rozširuje už zavedené osi ako stavový model, WSPT, transakčnú aktuáciu, hysterezu a epistemickú disciplínu. Nový hypervisor layer má tieto mechanizmy exercovať, nie obísť. Ak niečo nevie ukázať jasné napojenie na tento rodokmeň, označí sa to ako optional alebo defer; nie ako core. Zachovanie vývoja zároveň neznamená zmraziť funkcie, ale ich vývoj. Preto Antigravity pri každej navrhnutej úlohe uvedie, či rozširuje existujúci mechanizmus, všeobecňuje alebo len pridáva izolovanú infraštruktúru. Ak ju len pridáva, má nižšiu prioritu. Stratégia nesie označenie **Evolúcia, nie náhrada**, a v comprehension reporte výslovne zodpovedá, ktoré doterajšie prvky sa v tomto šprinte rozvíjajú a ktoré ostávajú bokom a prečo. Tak sa zachová kontinuita aj autonómia rozhodovania.“*
 
+> **Axióma práva veta binárnej vrstvy (Axiom of Deterministic Veto Power):**  
+> *„Pevné pravidlá a pamäťovo bezpečné operácie deterministickej vrstvy definujú to, čo je v systéme vôbec dovolené. Nad tým operuje pravdepodobnostná vrstva neistoty, predikcií a WSPT arbitráže, tá však nesmie obísť mantinely – smie výlučne navrhovať. **Každé pravdepodobnostné rozhodnutie je len návrh a binárna vrstva s pamäťovou bezpečnosťou má nad ním absolútne právo veta.** Toto je nedotknuteľné jadro architektúry, ktoré Antigravity nesmie za žiadnych okolností rozbiť.“*
+
 ---
 
 ```
@@ -318,13 +321,20 @@ To preserve epistemic honesty and prevent overpromising distributed database ACI
 ### 7.1 Single-Host Actuation: Resource Transaction Protocol (RTP)
 Every staged adjustment to cgroups v2 (`cpu.max`), QMP ballooning, or Hyper-V dynamic memory follows RTP:
 
-$$\mathbf{PREPARE} \longrightarrow \mathbf{VERIFY} \longrightarrow \mathbf{COMMIT\ |\ COMPENSATE}$$
+$$\mathbf{PREPARE} \longrightarrow \mathbf{VERIFY\ (VETO\ GATE)} \longrightarrow \mathbf{COMMIT\ |\ COMPENSATE}$$
 
 1. **`PREPARE`:** Stage proposed delta into `ResourceEvidenceEnvelope` in memory. Register pre-baked compensating inverse action (e.g. restoring previous CPU quota).
-2. **`VERIFY`:** Check system invariants (`[CANONICAL_INVARIANT]` $\text{VITAL\_MAX\_HP} = 6$) and confirm that telemetry evidence guard confirms no anomaly.
+2. **`VERIFY (The Deterministic Veto Gate)`:**
+   - **Pravidlo návrhu:** Každé rozhodnutie pravdepodobnostnej vrstvy (WSPT skóre, neurónový odhad, trendový filter) je **výlučne návrhom (`ActionCandidate`)**, nie príkazom.
+   - **Absolútne právo veta:** Deterministická binárna vrstva podrobuje návrh striktným pamäťovým a hardvérovým mantinelom:
+     - *Pamäťová bezpečnosť:* Žiadne prekročenie fyzického limitu pamäte, žiadne vytvorenie OOM stavu, žiadne porušenie zarovnania stránok.
+     - *Fyzické guardrails:* Teplota $T_j < 82^\circ\text{C}$, limit balíka PL1 $\le 32\text{W}$, nulová saturácia UMA zbernice.
+     - *Systémová integrita:* Invariant `[CANONICAL_INVARIANT]` $\text{VITAL\_MAX\_HP} = 6$ a `fault_active == False`.
+     - *Hardvérový dôkaz:* Namerané telemetrické počítadlá potvrdzujú stabilitu.
+   - **Uplatnenie veta:** Ak návrh poruší čo i len jediný deterministický invariant, binárna vrstva uplatní **okamžité právo veta**. Návrh je zamietnutý skôr, než sa dotkne operačného systému, a transakcia prechádza do bezpečného návratu (`COMPENSATE` / `ABORT`).
 3. **`COMMIT | COMPENSATE`:**
-   - If verified: Apply changes to OS control plane and advance `StateVersion`.
-   - If verification fails or detects divergence: Execute compensation recipe immediately.
+   - Len návrhy, ktoré prejdú cez deterministické právo veta bez námietky, sú zapísané do riadiacej roviny OS a inkrementujú `StateVersion`.
+   - Pri uplatnení veta alebo detekcii zlyhania sa okamžite aplikuje kompenzačný predpis bez akejkoľvek degradácie hostiteľa.
 
 ### 7.2 Multi-Host Coordination: Distributed Two-Phase Commit (2PC)
 Distributed 2PC is reserved strictly for coordinated cross-host migration where two independent hosts must maintain durable prepare locks:
