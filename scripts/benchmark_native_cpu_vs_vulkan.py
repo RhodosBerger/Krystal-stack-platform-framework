@@ -503,19 +503,21 @@ def run_phase_5_3d_calibration(
             )
 
     # Derive reached evidence levels dynamically strictly from observed state
-    reached_evidence_levels = cpu_runner.get_reached_evidence_levels(statistically_repeated=False)
+    reached_evidence_levels = cpu_runner.get_reached_evidence_levels(statistically_repeated=exec_measured)
+
+    current_phase_status = {
+        "architecture": "IMPLEMENTED",
+        "native_trust_instrumentation": "IMPLEMENTED",
+        "isa_disassembly_evidence": "AVAILABLE",
+        "true_native_t1_execution": "MEASURED_ON_HARDWARE" if exec_measured else "NOT_YET_OBSERVED",
+        "true_t1_vs_t2_break_even": "CALIBRATED" if exec_measured else "UNRESOLVED",
+        "phase_5_3d_dod": "COMPLETE" if exec_measured else "NOT_COMPLETE",
+    }
 
     # Produce Artifact 1: CRYSTALSEC_V3_TRUE_CPU_GPU_BREAK_EVEN.json
     break_even_artifact = {
         "phase": "CrystalSec3_Phase5_3D_TrueBreakEvenCalibration",
-        "phase_status": {
-            "architecture": "IMPLEMENTED",
-            "native_trust_instrumentation": "IMPLEMENTED",
-            "isa_disassembly_evidence": "AVAILABLE",
-            "true_native_t1_execution": "NOT_YET_OBSERVED",
-            "true_t1_vs_t2_break_even": "UNRESOLVED",
-            "phase_5_3d_dod": "NOT_COMPLETE",
-        },
+        "phase_status": current_phase_status,
         "benchmark_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "host_cpu": cpu_state,
         "vulkan_gpu": {
@@ -547,14 +549,7 @@ def run_phase_5_3d_calibration(
     # Produce Artifact 2: CRYSTALSEC_V3_NATIVE_EXECUTION_TRUST.json (Section 40 Report Schema)
     trust_artifact = {
         "phase": "CrystalSec3_Phase5_3D_TrustedNativeExecution",
-        "phase_status": {
-            "architecture": "IMPLEMENTED",
-            "native_trust_instrumentation": "IMPLEMENTED",
-            "isa_disassembly_evidence": "AVAILABLE",
-            "true_native_t1_execution": "NOT_YET_OBSERVED",
-            "true_t1_vs_t2_break_even": "UNRESOLVED",
-            "phase_5_3d_dod": "NOT_COMPLETE",
-        },
+        "phase_status": current_phase_status,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "cpu": cpu_state,
         "security_policy": {

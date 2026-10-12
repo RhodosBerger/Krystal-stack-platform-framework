@@ -119,9 +119,9 @@ class WorkloadSynthesizer:
         wl_id = workload_id or f"wl_{workload_class.value}_{size}_{int(time.time()*1000)}"
 
         if workload_class == WorkloadClass.INT8_DOT_PRODUCT:
-            # Saturated INT8 vector pairs
-            a = [(i % 127) - 64 for i in range(size)]
-            b = [((i * 3) % 127) - 64 for i in range(size)]
+            # Canonical INT8: activations uint8 (0..255), weights int8 (-128..127)
+            a = [i % 256 for i in range(size)]
+            b = [((i * 3) % 255) - 128 for i in range(size)]
             return SyntheticWorkload(
                 workload_id=wl_id,
                 workload_class=workload_class,
@@ -169,8 +169,9 @@ class WorkloadSynthesizer:
             )
 
         elif workload_class == WorkloadClass.MIXED_COMPUTE_MEMORY:
-            a = [(i % 127) - 64 for i in range(size)]
-            b = [((i * 2) % 127) - 64 for i in range(size)]
+            # Canonical INT8: activations uint8 (0..255), weights int8 (-128..127)
+            a = [i % 256 for i in range(size)]
+            b = [((i * 2) % 255) - 128 for i in range(size)]
             buf = [float(i) for i in range(size * 2)]
             return SyntheticWorkload(
                 workload_id=wl_id,
@@ -278,7 +279,7 @@ class TaxonomyExecutionEngine:
 
         if wc in (WorkloadClass.INT8_DOT_PRODUCT, WorkloadClass.MIXED_COMPUTE_MEMORY):
             a, b = data["vector_a"], data["vector_b"]
-            return [max(0.0, float(x * y)) for x, y in zip(a, b)]
+            return [float(int(x) * int(y)) for x, y in zip(a, b)]
         elif wc == WorkloadClass.FP32_VECTOR_MATH:
             inputs, c = data["inputs"], data["coeffs"]
             return [c[0] + c[1]*x + c[2]*(x**2) + c[3]*(x**3) for x in inputs]

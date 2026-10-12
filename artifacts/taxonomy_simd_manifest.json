@@ -15,7 +15,7 @@
     "src/c/taxonomy_simd.c": "83a9ccd3a9c88f18b6c75173c55eb035c129745c37f36383a50214416ce8ccec",
     "src/c/taxonomy_simd.h": "dfd9d7d48dec0ae0fc36dbffcb83a05e395aedc17e058d9cb65f7ca07015a3ea"
   },
-  "dll_sha256": null,
+  "dll_sha256": "fa1426749307c4889b8a46d636272f07b0c46d7ebae78b0bd85ffb2f7d9dddb0",
   "supported_kernels": [
     "taxonomy_noop",
     "taxonomy_set_test_delay_ns",

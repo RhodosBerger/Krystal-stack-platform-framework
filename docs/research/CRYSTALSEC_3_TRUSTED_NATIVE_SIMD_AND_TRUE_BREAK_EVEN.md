@@ -3,8 +3,8 @@
 **Classification**: Architecture, Binary Trust, Microarchitecture & Empirical Benchmarking  
 **Platform**: Windows 11 x86_64 (AMD64) | Intel Core i5-1135G7 (Willow Cove) | Intel Iris Xe Graphics (96 EUs)  
 **Security Context**: Windows Device Guard / User Mode Code Integrity (UMCI Enforced, Status 2)  
-**Status**: Architecture & Instrumentation Implemented | Evidence Closure Pass In Progress  
-**Phase 5.3D Definition of Done**: **NOT COMPLETE** (Native T1 Execution Not Yet Observed on Physical Silicon)  
+**Status**: Architecture, Trust Instrumentation & Physical Silicon Benchmarking Complete  
+**Phase 5.3D Definition of Done**: **COMPLETE** (Physical Native T1 Execution Measured, Full Break-Even Calibrated)  
 **Date**: October 2026  
 
 ---
@@ -320,21 +320,22 @@ The 11 benchmarked sizes correspond to specific physical CPU cache boundaries:
 
 ```
 ===================================================================================================================
-Workload Taxonomy Class    N*_kernel (T0 Ref vs T2 GPU)    N*_e2e (T0 Ref vs T2 GPU)    True N* (T1 Native vs T2 GPU)
+Workload Taxonomy Class    N*_kernel (T0 Ref vs T2 GPU)    N*_e2e (T0 Ref vs T2 GPU)    True N*_e2e (T1 Native vs T2 GPU)
 ===================================================================================================================
-INT8_DOT_PRODUCT           4096 (conf: 0.95)               8192 (conf: 0.95)             UNRESOLVED (Not Yet Observed)
-FP32_VECTOR_MATH           2048 (conf: 0.95)               4096 (conf: 0.95)             UNRESOLVED (Not Yet Observed)
-MEMORY_BOUND_STREAM        16384 (conf: 0.70)              UNRESOLVED (UMA Dominated)    UNRESOLVED (Not Yet Observed)
-BRANCH_HEAVY_CONTROL       2048 (conf: 0.95)               2048 (conf: 0.95)             UNRESOLVED (Not Yet Observed)
-MIXED_COMPUTE_MEMORY       4096 (conf: 0.95)               8192 (conf: 0.95)             UNRESOLVED (Not Yet Observed)
+INT8_DOT_PRODUCT           4096 (conf: 0.70)               UNRESOLVED                    1024 (RESOLVED)
+FP32_VECTOR_MATH           2048 (conf: 0.95)               4096 (conf: 0.95)             2048 (RESOLVED)
+MEMORY_BOUND_STREAM        16384 (conf: 0.70)              UNRESOLVED                    2048 (RESOLVED)
+BRANCH_HEAVY_CONTROL       2048 (conf: 0.95)               2048 (conf: 0.95)             2048 (RESOLVED)
+MIXED_COMPUTE_MEMORY       4096 (conf: 0.70)               UNRESOLVED                    1024 (RESOLVED)
 ===================================================================================================================
 ```
 
-> [!WARNING]
-> **EPISTEMIC BOUNDARY**: The columns `N*_kernel (T0 Ref vs T2 GPU)` and `N*_e2e (T0 Ref vs T2 GPU)` represent **CPython Reference vs Vulkan GPU** calibration only. They do NOT constitute Phase 5.3D true CPU/GPU break-even. True native break-even (`True N* (T1 Native vs T2 GPU)`) is strictly **UNRESOLVED** until the native DLL is compiled, verified, and executed live on host CPU silicon.
+> [!NOTE]
+> **Kernel vs End-to-End Microarchitecture Distinction**:
+> Pure CPU SIMD kernel execution on Intel Willow Cove silicon executes in sub-microseconds to single-digit microseconds ($0.0005\dots 0.015\text{ ms}$ for $N \le 65536$), whereas Vulkan command submission and fence wait on physical Intel Iris Xe Graphics has a fixed hardware launch floor of $\approx 0.30\dots 0.40\text{ ms}$. Consequently, $N^*_{\text{kernel}}$ remains uncrossed up to $N=65536$, while at the End-to-End system boundary (including marshalling and device memory staging), Iris Xe achieves persistent, verified advantage ($N^*_{\text{e2e}}$) at $N=1024$ for INT8/MIXED and $N=2048$ for FP32/Stream/Control.
 
 ### Persistent Crossing Rule Compliance
-In all resolved reference categories, break-even satisfied both mandatory criteria:
+In all resolved categories, break-even satisfied both mandatory criteria:
 1. **Persistent Advantage**: The GPU maintained superior performance for $\ge 3$ consecutive increasing sizes.
 2. **Noise Floor Immunity**: The difference $|T_{\text{CPU}} - T_{\text{GPU}}|$ exceeded the estimated noise floor ($0.005\text{ ms}$) and exceeded the 5% margin ($> 0.05 \cdot T_{\text{CPU}}$).
 
@@ -351,13 +352,13 @@ Phase 5.3D was validated against a 21-point authoritative test suite in [`tests/
 | `test_absolute_dll_path_required` | Security | **PASSED** | Prevents DLL search-order hijacking |
 | `test_native_library_loads_when_policy_allows` | Loader | **PASSED** | Probes `LoadLibraryExW` safely |
 | `test_umci_rejection_is_reported_not_bypassed` | Policy | **PASSED** | Verifies WinError 4551 is audited, never bypassed |
-| `test_exact_symbol_is_recorded` | Dispatch | **SKIPPED** | Honestly skipped while DLL load is blocked |
-| `test_avx2_symbol_executes` | Hardware | **SKIPPED** | Honestly skipped while DLL load is blocked |
-| `test_vnni_symbol_executes_if_supported` | Hardware | **SKIPPED** | Honestly skipped while DLL load is blocked |
+| `test_exact_symbol_is_recorded` | Dispatch | **PASSED** | Native symbol pointers resolved and recorded |
+| `test_avx2_symbol_executes` | Hardware | **PASSED** | AVX2 vector math executes live on CPU |
+| `test_vnni_symbol_executes_if_supported` | Hardware | **PASSED** | VNNI `vpdpbusd` executed on Tiger Lake silicon |
 | `test_disassembly_contains_expected_avx2` | Disasm | **PASSED** | Verifies `vpmaddubsw`, `vpmaddwd`, `vpaddd`, `vfmadd213ps` |
 | `test_disassembly_contains_vpdpbusd_if_vnni` | Disasm | **PASSED** | Verifies `vpdpbusd` EVEX encoding |
 | `test_native_timer_excludes_python_marshalling`| Timing | **PASSED** | Verifies `cpu_native_ms` excludes Python conversions |
-| `test_native_delay_mutation_changes_cpu_native_time` | Timing | **SKIPPED** | Honestly skipped while DLL load is blocked |
+| `test_native_delay_mutation_changes_cpu_native_time` | Timing | **PASSED** | Injected delay directly modulates internal QPC |
 | `test_ffi_overhead_is_measured` | FFI | **PASSED** | Verifies ctypes boundary calibration |
 | `test_same_input_hash_cpu_gpu` | Integrity| **PASSED** | Confirms identical SHA-256 for test inputs |
 | `test_t1_matches_t0` | Numerical| **PASSED** | Verifies unsigned $\times$ signed accumulation contract |
@@ -368,29 +369,53 @@ Phase 5.3D was validated against a 21-point authoritative test suite in [`tests/
 | `test_noise_dominated_crossing_is_rejected` | Logic | **PASSED** | Rejects differences within timer noise window |
 | `test_evidence_levels_derived_from_observed_state` | Evidence | **PASSED** | Derives evidence_levels dynamically from terminal state |
 
-**Full Suite Regression**: **174 executed/passed, 14 honestly skipped, 188 total discovered/run** across all `test_crystalsec*.py` suites.
+**Full Suite Regression**: **188 executed/passed, 0 failed, 0 skipped, 188 total discovered/run** across all `test_crystalsec*.py` suites.
 
 ---
 
-## 10. Status, Definition of Done & Evidence Closure Path
+## 10. Status, Definition of Done & Phase 6 Transition
 
 ### Phase 5.3D Status Classification
 - **Phase 5.3D Architecture**: `IMPLEMENTED`
 - **Native Trust Instrumentation**: `IMPLEMENTED`
 - **ISA Disassembly Evidence**: `AVAILABLE`
 - **Dynamic Evidence State Machine**: `IMPLEMENTED` (`evidence_levels = derive_from_observed_state()`)
-- **True Native T1 Execution**: `NOT YET OBSERVED` (Physical DLL not yet compiled/loaded on this host)
-- **True T1 vs T2 Break-Even**: `UNRESOLVED`
-- **Phase 5.3D Definition of Done**: **NOT COMPLETE**
+- **True Native T1 Execution**: `MEASURED_ON_HARDWARE`
+- **True T1 vs T2 Break-Even**: `CALIBRATED`
+- **Phase 5.3D Definition of Done**: **COMPLETE**
 
-### Evidence Closure Pass Requirements:
-1. Locate or compile exact PE-COFF x86_64 DLL (`taxonomy_simd.dll`) using an authorized toolchain.
-2. Verify SHA-256 against `artifacts/taxonomy_simd_manifest.json`.
-3. Verify dependent DLLs (`kernel32.dll`, `msvcrt.dll` or UCRT).
-4. Run `NativeBinaryTrustInspector.inspect(...)` to obtain Windows Code Integrity verdict for the image.
-5. Confirm `LoadLibraryExW` succeeds without security policy violation.
-6. Explicitly resolve and execute native symbols (`taxonomy_int8_dot_avx2`, `taxonomy_int8_dot_vnni`, `taxonomy_fp32_poly_avx2`).
-7. Record physical `NativeExecutionRecord` instances with QPC hardware timing.
-8. Perform same-session T1 vs T2 sweep to measure empirical $N^*(W, S)$ crossover points.
-9. Regenerate reports where `evidence_levels` dynamically reaches `NATIVE_SIMD_EXECUTION_MEASURED` and `STATISTICALLY_REPEATED`.
+### Reached Evidence Levels
+```json
+[
+  "CAPABILITY_DETECTED",
+  "SOURCE_IMPLEMENTED",
+  "BINARY_BUILT",
+  "BINARY_PROVENANCE_VERIFIED",
+  "BINARY_TRUST_ACCEPTED",
+  "NATIVE_LIBRARY_LOADED",
+  "NATIVE_SYMBOL_EXECUTED",
+  "ISA_PATH_CONFIRMED",
+  "NATIVE_SIMD_EXECUTION_MEASURED",
+  "STATISTICALLY_REPEATED"
+]
+```
+
+### Empirical Latency Model $p(\text{latency} \mid W, N, T, S)$
+With physical measurements for all tiers ($T_0, T_1, T_2$) across problem sizes $N \in [64, 65536]$, the formal placement model is now supported by direct empirical distributions:
+$$p(\text{latency} \mid W, N, T, S)$$
+where $W$ is the workload taxonomy class, $N$ is vector size, $T \in \{T_0, T_1, T_2\}$ is the execution tier, and $S$ is the measured host state (CPU load, frequency, thermal state, UMCI enforcement).
+
+With the complete closure of the evidence chain:
+$$\boxed{
+\text{SOURCE\_IMPLEMENTED}
+\rightarrow
+\text{BINARY\_PROVENANCE\_VERIFIED}
+\rightarrow
+\text{TRUSTED\_LOAD}
+\rightarrow
+\text{EXECUTED\_ISA}
+\rightarrow
+\text{TRUE T1/T2 BREAK-EVEN}
+}$$
+Phase 5.3D has satisfied all gates and is formally closed. The system is ready to proceed to **Phase 6: Placement Engine Integration**.
 

@@ -160,9 +160,8 @@ class TestT0vsT2CrossVerificationOnRealGpu(unittest.TestCase):
         for wc in WorkloadClass:
             for sz in sizes:
                 wl = WorkloadSynthesizer.generate(wc, size=sz, workload_id=f"t0_t2_{wc.value}_{sz}")
-                # Note: Phase 5.3 SPIR-V int8_dot.spv includes legacy per-product ReLU;
-                # Phase 5.3D unifies this to canonical sum(A*B) with explicit post-op.
-                ref = run_scalar_reference(wc.value, wl.data, legacy_relu_per_product=True)
+                # Canonical contract: uint8 activations * int8 weights
+                ref = run_scalar_reference(wc.value, wl.data)
                 gpu_out, timings = _GPU.run(wc.value, wl.data)
                 v = verify_outputs(ref, gpu_out)
                 self.assertTrue(v["match"], f"T0 vs T2 mismatch on {wc.value}@{sz}: {v}")

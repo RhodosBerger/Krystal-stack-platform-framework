@@ -14,7 +14,7 @@ void main() {
     uint i = gl_GlobalInvocationID.x;
     if (i >= p.n) return;
     int shift = int((i & 3u) * 8u);
-    int a = bitfieldExtract(int(a_packed[i >> 2]), shift, 8);  // sign-extending extract
-    int b = bitfieldExtract(int(b_packed[i >> 2]), shift, 8);
-    o[i] = float(max(0, a * b));
+    uint a = bitfieldExtract(a_packed[i >> 2], shift, 8);      // zero-extending uint8 extract
+    int b = bitfieldExtract(int(b_packed[i >> 2]), shift, 8);  // sign-extending int8 extract
+    o[i] = float(int(a) * b);
 }

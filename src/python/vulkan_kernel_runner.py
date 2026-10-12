@@ -433,8 +433,14 @@ TAXONOMY_KERNELS: Dict[str, str] = {
 }
 
 
+def _pack_uint8(values: Sequence[int]) -> bytes:
+    raw = array("B", [int(x) & 0xFF for x in values]).tobytes()
+    pad = (-len(raw)) % 4
+    return raw + b"\x00" * pad
+
+
 def _pack_int8(values: Sequence[int]) -> bytes:
-    raw = array("b", values).tobytes()
+    raw = array("b", [max(-128, min(127, int(x))) for x in values]).tobytes()
     pad = (-len(raw)) % 4
     return raw + b"\x00" * pad
 
@@ -491,7 +497,7 @@ class TaxonomyGpuKernels:
         if kname == "int8_dot":
             va, vb = data["vector_a"], data["vector_b"]
             n = min(len(va), len(vb))
-            a, b = _pack_int8(va[:n]), _pack_int8(vb[:n])
+            a, b = _pack_uint8(va[:n]), _pack_int8(vb[:n])
             params = PARAMS_STRUCT.pack(n, 1, 0, 0, 0.0, 0.0, 0.0, 0.0)
         elif kname == "fp32_poly":
             xs, c = data["inputs"], list(data["coeffs"]) + [0.0] * 4

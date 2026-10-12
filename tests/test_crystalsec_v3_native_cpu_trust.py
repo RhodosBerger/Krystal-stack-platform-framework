@@ -382,13 +382,28 @@ class TestCrystalSecV3NativeCpuTrust(unittest.TestCase):
         self.assertNotIn("NATIVE_LIBRARY_LOADED", levels_missing_bin)
         self.assertNotIn("NATIVE_SIMD_EXECUTION_MEASURED", levels_missing_bin)
 
-        # Runner on this host without DLL must yield at most CAPABILITY_DETECTED and SOURCE_IMPLEMENTED
-        reached = self.runner.get_reached_evidence_levels()
-        self.assertIn("CAPABILITY_DETECTED", reached)
-        self.assertIn("SOURCE_IMPLEMENTED", reached)
-        self.assertNotIn("BINARY_TRUST_ACCEPTED", reached)
-        self.assertNotIn("NATIVE_LIBRARY_LOADED", reached)
-        self.assertNotIn("NATIVE_SIMD_EXECUTION_MEASURED", reached)
+        # Runner targeting non-existent DLL must yield at most CAPABILITY_DETECTED and SOURCE_IMPLEMENTED
+        runner_missing = NativeCpuSimdRunner(dll_path="non_existent_taxonomy_simd.dll")
+        reached_missing = runner_missing.get_reached_evidence_levels()
+        self.assertIn("CAPABILITY_DETECTED", reached_missing)
+        self.assertIn("SOURCE_IMPLEMENTED", reached_missing)
+        self.assertNotIn("BINARY_TRUST_ACCEPTED", reached_missing)
+        self.assertNotIn("NATIVE_LIBRARY_LOADED", reached_missing)
+        self.assertNotIn("NATIVE_SIMD_EXECUTION_MEASURED", reached_missing)
+
+        # Live runner on this host: verify that reached evidence levels exactly match the observed state
+        reached_live = self.runner.get_reached_evidence_levels()
+        if self.runner.available():
+            self.assertIn("BINARY_BUILT", reached_live)
+            self.assertIn("BINARY_PROVENANCE_VERIFIED", reached_live)
+            self.assertIn("BINARY_TRUST_ACCEPTED", reached_live)
+            self.assertIn("NATIVE_LIBRARY_LOADED", reached_live)
+            if self.runner.last_execution_record is not None:
+                self.assertIn("NATIVE_SYMBOL_EXECUTED", reached_live)
+                self.assertIn("NATIVE_SIMD_EXECUTION_MEASURED", reached_live)
+        else:
+            self.assertNotIn("NATIVE_LIBRARY_LOADED", reached_live)
+            self.assertNotIn("NATIVE_SIMD_EXECUTION_MEASURED", reached_live)
 
 
 if __name__ == "__main__":
