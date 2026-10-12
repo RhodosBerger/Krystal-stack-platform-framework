@@ -1,72 +1,78 @@
 # Commercial Support & Enterprise Services (2026/2027)
 
-## 🚀 Enterprise Acceleration & High-Integrity Support
+## 🚀 Enterprise Acceleration & High-Integrity Engineering
 
-While the core of **Krystal-Stack Platform Framework** is open-source (Apache 2.0), mission-critical industrial manufacturing, enterprise security, and production-grade simulations demand guaranteed uptime, verified cryptographic provenance, and direct access to low-level systems architects.
+While the core of the **Krystal-Stack Platform Framework** is open-source under the Apache 2.0 license, mission-critical enterprise environments, aerospace machine shops, and high-performance computing clusters require formal service level agreements, dedicated engineering support, and verified hardware execution integrity.
 
-We provide formal commercial support plans, customized silicon integration, and enterprise licensing for organizations operating high-performance heterogeneous workloads.
+We provide formal commercial support plans, customized silicon integration, and enterprise engineering services for organizations deploying Krystal-Stack technologies.
 
 ---
 
 ## 🏢 Enterprise Licensable Solutions
 
-### 1. CrystalSec 3.0 Enterprise Hardware Security Suite
-*For defense, banking, government, and corporate infrastructure requiring zero-compromise code integrity.*
-- **Pre-Compiled & Authenticode-Signed Binaries**: Fully compliant with Windows Device Guard and User Mode Code Integrity (UMCI Enforced, Status 2).
-- **Physical Microarchitectural Profiling**: Tailored break-even calibration ($N^*$) for your exact CPU/GPU clusters (Intel Core, Xeon, AMD Ryzen, NVIDIA/Intel GPUs).
-- **Transactional Actuation Plane**: State rollback, hardware bounds safety, and formal telemetry invariants.
+### 1. CrystalSec 3.0 Enterprise Hardware Security & Crossover Profiling
+*Maturity: `PRODUCTION_AVAILABLE` / `PILOT_AVAILABLE`*
+- **Windows Device Guard & UMCI Verification**: Turnkey guidance and integration of native PE64 DLL modules compliant with strict enterprise User Mode Code Integrity (Status 2) policies without requiring IT security exceptions or dangerous dynamic JIT shellcode.
+- **Physical Break-Even Calibration ($N^*_{\text{e2e}}$)**: Empirical microarchitectural profiling determining the exact data crossover point where GPU compute shaders overcome native CPU SIMD (AVX2/VNNI) on customer hardware.
+- **Corporate PKI & Authenticode Integration**: Custom configuration of build pipelines to sign native modules using the client's internal Certificate Authority (CA) or Hardware Security Module (HSM).
+- **Transactional Actuation Plane**: Formal in-memory state snapshotting, transaction boundaries, and software rollback mechanisms to prevent state corruption during actuation faults.
 
-### 2. KATG-006 Cyber-Physical CNC Autonomy Suite
-*For precision machine shops, aerospace foundries, and high-speed CNC manufacturing.*
-- **High-RPM Adaptive Thermal Governor**: Eliminates harmonic chatter and prevents thermal runaway at $n \ge 12,000\,\text{RPM}$ with verified **-42.5% cutter tool wear reduction**.
-- **Zero-Scrap Self-Healing Differential Engine**: Automatic on-the-fly G-code repair during thermocouple disconnects or coolant collapse.
-- **Tool Vitality Carousel Management**: Deterministic `VITAL_MAX_HP == 6` life tracking.
+### 2. KATG-006 Cyber-Physical CNC Suite (Pilot & Co-Development)
+*Maturity: `PILOT_AVAILABLE` / `SIMULATION_VALIDATED`*
+- **Adaptive Thermal Governor Evaluation**: In-situ testing of Spindle Speed Variation (SSV) algorithms designed to disrupt harmonic chatter frequencies during high-RPM operations ($n \ge 12,000\,\text{RPM}$).
+- **Scrap-Risk Reduction Workflow**: Real-time G-code trajectory differential repair designed to pause or reroute feeds during recoverable sensor alerts (coolant pressure drops, thermal warnings), mitigating workpiece loss risks.
+- **Tool Health Analytics (`ToolHealthState ∈ [0,6]`)**: Discrete 7-tier algorithmic classification of cutting tool wear based on spindle load spikes and cutting energy accumulation.
 
-### 3. Edge AI & Heterogeneous Node Orchestrator
-*For data sovereignty and eliminating third-party cloud API costs.*
-- **Local SLM Ingestion**: Turnkey local deployment of IBM Granite 4B, Llama, and DeepSeek models on NPU / Vulkan GPU / AVX2 CPU.
-- **MultiLock Matrix Autocompleter**: Low-latency cache indexing and internal RAG pipelines.
+### 3. Edge AI Sovereignty & Local SLM Ingestion
+*Maturity: `PRODUCTION_AVAILABLE`*
+- **Local Model Serving**: Turnkey deployment of IBM Granite 4B, Llama 3.2, and DeepSeek SLMs executing locally on Intel Iris Xe Vulkan GPU, NPU (DirectML / OpenVINO), and AVX2/VNNI CPU.
+- **Data Residency Assurance**: 100% air-gapped on-premises execution with zero recurring cloud API token fees.
 
 ---
 
 ## 🛠️ Service Level Agreements (SLA) & Support Tiers
 
-| Feature | Community | Professional Support | Enterprise SLA (Mission-Critical) |
+| Service Metric | Community | Professional Support | Enterprise Commercial SLA |
 | :--- | :--- | :--- | :--- |
-| **Target Audience** | Open-source devs, hobbyists | Small teams, CNC shops | Foundries, Aerospace, Financial IT |
-| **Pricing** | $0 / Free | **$499 / month** | **Custom (from $2,500 / month)** |
-| **Response Time (P1 Critical)** | Community best effort | **< 8 business hours** | **< 1 hour (24/7/365)** |
-| **Response Time (P2 Major)** | Community best effort | **< 24 hours** | **< 4 hours** |
-| **Response Time (P3 Normal)** | Community best effort | **< 48 hours** | **< 12 hours** |
-| **Communication Channel** | Public GitHub Issues | Private Slack / Teams channel | Dedicated Senior Architect & Phone |
-| **Signed Binaries (UMCI)** | Build from source | Included quarterly | HSM-signed on-demand custom builds |
-| **Architecture Review** | N/A | Annual review | Quarterly deep-dive silicon audit |
-| **Emergency Engineering** | N/A | Discounted rate ($200/hr) | **15 hours / month included** |
-| **Custom G-Code Post-Processors**| N/A | 1 machine included | Unlimited fleet support |
+| **Target Audience** | Open-source devs, students | Small teams, game studios | Defense, Aerospace, Enterprise IT |
+| **Pricing** | $0 / Free | **$499 / month** | **From $2,500 / month (Custom)** |
+| **Severity 1 (Critical Outage)** | Community best effort | **< 8 business hours** | **< 4 business hours** *(or 24/7 on-call add-on)* |
+| **Severity 2 (Major Impairment)** | Community best effort | **< 24 business hours** | **< 8 business hours** |
+| **Severity 3 (Minor / Inquiries)**| Community best effort | **< 48 business hours** | **< 24 business hours** |
+| **Communication Channel** | Public GitHub Issues | Private Slack / Teams | Dedicated Senior Architect & Direct Hotline |
+| **Authenticode / UMCI Integration** | Build from source | Setup documentation | Assisted PKI / HSM pipeline configuration |
+| **Architecture Silicon Review** | N/A | Annual review | Quarterly microarchitectural audit |
+| **Emergency Engineering Hours** | N/A | Discounted ($200/hr) | **10 engineering hours / month included** |
+| **CNC Post-Processor Adaptation** | N/A | Pilot advisory | Custom post-processor co-development |
+
+### Severity Definitions & Service Commitments:
+- **Severity 1 (Critical)**: Production system down, complete kernel failure, or blocking security violation under UMCI.
+- **Severity 2 (Major)**: Significant feature degradation without workaround, high-latency crossover anomalies.
+- **Severity 3 (Minor)**: Documentation questions, optimization requests, or general feature enhancement inquiries.
+- **Service Credits**: Enterprise SLA contracts include standard service credit mechanisms (5% monthly credit per missed Severity 1 response window, capped at 30% of monthly subscription fee).
 
 ---
 
 ## 🧠 Specialized Engineering & Architecture Consulting
 
-Our core engineering team is available for targeted high-impact consulting engagements:
+Our engineering team is available for targeted consulting engagements:
 
-1. **Hardware Microarchitecture Tuning**:
-   - Custom SIMD vectorization (AVX2, AVX-512 VNNI, ARM NEON, RISC-V Vector).
-   - Vulkan Compute shader optimization and zero-copy UMA memory layout configuration.
-2. **CNC Controller & Cyber-Physical Adaptation**:
-   - Interfacing KATG-006 with proprietary 3-axis / 5-axis CNC controllers (Fanuc, Siemens Sinumerik, Heidenhain, Haas).
-   - In-situ acoustic and vibration sensor integration.
+1. **Microarchitectural Profiling & SIMD Vectorization**:
+   - Custom low-level vectorization for AVX2, AVX-512 VNNI, and Vulkan Compute SPIR-V kernels.
+   - Cache-residency profiling across L1, L2, LLC, and unified memory architectures (UMA).
+2. **Cyber-Physical CNC Controller Interfacing**:
+   - Building custom telemetry bridges for Siemens Sinumerik, Heidenhain, Fanuc, and Haas machine tools.
+   - Sensor data collection and calibration for high-speed machining environments.
 3. **Enterprise Windows Security Hardening**:
-   - Integrating native modules under strict corporate AppLocker, WDAC (Windows Defender Application Control), and UMCI environments.
+   - Auditing C/C++ native modules against Windows Defender Application Control (WDAC), AppLocker, and Device Guard policies.
 
 ---
 
 ## 📞 Procurement & Contact
 
-For formal enterprise quotes, Master Services Agreements (MSA), or pilot program onboarding:
+To request a formal Enterprise quote, Master Services Agreement (MSA), or pilot program onboarding:
 
-- **Lead Architect & Enterprise Liaison**: Dušan Kopecký
+- **Principal Architect & Enterprise Contact**: Dušan Kopecký
 - **Direct Email**: **`dusan.kopecky0101@gmail.com`**
 - **GitHub Sponsorship Portal**: [github.com/sponsors/RhodosBerger](https://github.com/sponsors/RhodosBerger)
-- **Repository Issues / Inquiries**: [https://github.com/RhodosBerger/Krystal-stack-platform-framework/issues](https://github.com/RhodosBerger/Krystal-stack-platform-framework/issues)
-- **Billing Entity**: Official commercial invoice (EU VAT / International wire transfer available upon request).
+- **Billing Entity**: Standard commercial invoices with EU VAT ID and international wire transfer (SEPA / SWIFT) support.

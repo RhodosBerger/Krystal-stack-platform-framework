@@ -114,58 +114,52 @@ Navštívte v prehliadači: **`http://localhost:8089/static/index.html`**
 
 ## 💎 PODPORA, SPONZORSTVO A KOMERČNÉ LICENCOVANIE (2026/2027)
 
-Vývoj **Krystal-Stack Platform Framework** napreduje v dvoch vzájomne prepojených technologických vertikálach:
-1. **Priemyselná a Enterprise Bezpečnosť**:
-   - **CrystalSec 3.0**: Deterministické overenie natívneho SIMD (AVX2 Widening, AVX-512 VNNI `vpdpbusd`) a Vulkan SPIR-V compute v prostredí Windows Device Guard / UMCI bez obchádzania bezpečnostných politík.
-   - **KATG-006 Cyber-Physical CNC Suite**: Adaptívny termálny regulátor, potlačenie chvenia vretien (SSV) s overeným **-42.5% znížením opotrebenia nástrojov** a samoliečivá Zero-Scrap diferenciálna oprava G-kódu v reálnom čase.
-   - **Lokálna Edge AI Suverenita**: Turnkey nasadenie modelov IBM Granite 4B, Llama a DeepSeek na NPU a iGPU s nulovými poplatkami za cloudové tokeny.
-2. **Generatívna Simulácia, VR & Herný Ekosystém**:
-   - Procedurálne generovanie svetov v **Godot Engine 4.x** riadené cez **Janet Lisp AST DSL**, balistika 240mm mínometu na vznášajúcich sa ostrovoch, VorpX VR integrácia pre ultra-širokouhlé headsety **Ncon by Korrado (130° FOV)** a deterministický invariant **6 Max HP**.
+Vývoj **Krystal-Stack Platform Framework** sa riadi striktným **Commercial Evidence Frameworkom** a napreduje v dvoch vzájomne prepojených technologických líniách:
 
-Pre podrobný rozpis obchodného modelu a SLA podpory si pozrite:
-- 📄 **[Kompletný Monetizačný Plán](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/MONETIZATION_PLAN.md)**
-- 🛡️ **[Komerčná Podpora & Enterprise SLA](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/COMMERCIAL_SUPPORT.md)**
+1. **Enterprise Bezpečnosť, Hardvér & Priemysel**:
+   - **CrystalSec 3.0 Enterprise Hardware Security (`PRODUCTION_AVAILABLE`)**: Deterministické overenie natívneho SIMD (AVX2 Widening, AVX-512 VNNI `vpdpbusd`) a Vulkan SPIR-V compute v prostredí Windows Device Guard / UMCI (Status 2) s fyzickou QPC mikroarchitektonickou izoláciou a empirickou kalibráciou crossoveru ($N^*_{\text{e2e}}$).
+   - **KATG-006 Cyber-Physical CNC Suite (`PILOT_AVAILABLE`)**: Integrácia adaptívneho termálneho regulátora, potlačenie chvenia vretien (Spindle Speed Variation pri $n \ge 12\,000\,\text{RPM}$), workflow na zníženie rizika nepodarkov (**Scrap-Risk Reduction**) cez diferenciálnu opravu G-kódu pri výpadku senzorov a diskrétny model vitality nástrojov **`ToolHealthState ∈ [0,6]`**.
+   - **Lokálna Edge AI Suverenita (`PRODUCTION_AVAILABLE`)**: Lokálna inferencia modelov IBM Granite 4B, Llama 3.2 a DeepSeek na NPU a iGPU s **0 recurring poplatkami za cloudové tokeny** a úplnou dátovou suverenitou.
+2. **Generatívna Simulácia, VR & Herný Ekosystém**:
+   - Procedurálne generovanie svetov v **Godot Engine 4.x** riadené cez **Janet Lisp AST DSL (`PRODUCTION_AVAILABLE`)**, balistika 240mm mínometu na vznášajúcich sa ostrovoch, VorpX VR integrácia pre ultra-širokouhlé headsety **Ncon by Korrado (130° FOV, `PILOT_AVAILABLE`)** a deterministický invariant **6 Max HP**.
+
+Podrobná dokumentácia:
+- 📄 **[Kompletný Monetizačný Plán & Evidence Framework](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/MONETIZATION_PLAN.md)**
+- 🛡️ **[Komerčná Podpora, SLA & Konzultácie](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/COMMERCIAL_SUPPORT.md)**
 
 ---
 
 ### 🎁 Čo získa podporovateľ a komerčný partner (Sponsor & Enterprise Tiers)?
 
-Každý podporovateľ alebo komerčný partner získava podľa zvolenej úrovne:
+Podľa zvolenej úrovne (od komunitnej podpory po Enterprise zmluvu):
 
 1. 🔑 **Plnú Komerčnú / Enterprise Licenciu (1-Year Commercial License)**:
-   - Oprávnenie komerčného nasadenia frameworku vo vlastných hrách, simulačných systémoch, edge nodoch a CNC prevádzkach.
-   - Bezplatný prístup ku všetkým majoritným a minoritným vydaniam počas trvania licencie.
-   - Odstránenie akýchkoľvek licenčných obmedzení.
+   - Oprávnenie komerčného nasadenia frameworku vo vlastných aplikáciách, hrách, edge nodoch a CNC prevádzkach.
+   - Bezplatný prístup ku všetkým vydaniam počas trvania licencie a odstránenie limitov.
 
-2. 👑 **DEDIKOVANÉ ADMIN KONTO NA SERVERI (Fleet Command & NOC Server)**:
-   - **Plný administrátorský prístup do centrálneho Mission Control Hubu (port 8089 / 8000)**.
-   - Správa vlastných herných miestností, kampaní a priemyselnej telemetrie.
-   - Prednostné výpočtové kvóty pre inferenciu lokálnych AI modelov (Granite / OpenVINO / DirectML).
-   - Priamy prístup k neobmedzeným (unthrottled) REST a WebSocket API.
+2. 👑 **DEDIKOVANÉ ADMIN KONTO NA SERVERI (Fleet Command & Mission Control)**:
+   - **Plný prístup do centrálneho riadiaceho hubu (port 8089 / 8000)**.
+   - Správa telemetrie nodov, herných relácií a vyhradené prednostné kvóty pre lokálnu inferenciu AI modelov (Granite / OpenVINO / DirectML).
+   - Prístup k neobmedzeným (unthrottled) REST a WebSocket rozhraniam.
 
-3. 🛡️ **Kryptograficky Podpísané Binárky (UMCI Authenticode)**:
-   - Dodávka overených PE64 DLL modulov s platnou signatúrou pre enterprise IT prostredia s vynúteným Device Guard / UMCI.
+3. 🛡️ **Asistencia pri Integrácii Firemného Podpisovania (UMCI / PKI)**:
+   - Podpora pri konfigurácii podpisovania natívnych PE64 DLL modulov cez firemnú certifikačnú autoritu (CA) alebo HSM pre prostredia s vynúteným Device Guard / UMCI.
 
 4. ⚡ **Exkluzívny Prístup k Nightly & Beta Buildom**:
    - Prednostný prístup k novým funkciám pred oficiálnym zverejnením.
-   - Priame technické konzultácie a prioritný feature roadmap s hlavným architektom.
-
-5. 📜 **Trvalý Zápis do Aéterického Ordinals Protokolu**:
-   - Meno alebo krypto adresa sponzora bude natrvalo vpísaná do Genesis Bloku Krystal-Stacku ako zakladajúci patrón projektu.
+   - Priame technické konzultácie a účasť na formovaní roadmapy.
 
 ---
 
-### 💳 Ako podporiť vývoj a zakúpiť licenciu (Platobné Kanály):
+### 💳 Podnikové Platobné Kanály & Fakturácia:
 
 | Metóda | Spojenie / Adresa | Poznámka |
 |---|---|---|
-| **GitHub Sponsors** | [github.com/sponsors/RhodosBerger](https://github.com/sponsors/RhodosBerger) | Automatické pridelenie VIP roly, repozitárov a licenčných kľúčov |
-| **Priamy Bankový Prevod / Faktúra (SEPA / SWIFT)** | **`dusan.kopecky0101@gmail.com`** | Oficiálna komerčná faktúra s DPH pre firmy a priemyselné podniky |
-| **Kryptomena (USDT - TRC20)** | `TRhodosBergerKrystalStack2026USDT` *(vyžiadajte si adresu e-mailom)* | Okamžité globálne zúčtovanie bez bankových poplatkov |
-| **Kryptomena (Bitcoin BTC)** | `bc1q_krystal_stack_foundation_2026` | Trvalý nápis v Ordinals protokole |
-| **Kryptomena (Ethereum ETH)** | `0xRhodosBergerKrystalStackFoundation` | Smart-kontrakt podpora pre Web3 nody |
+| **Priamy Bankový Prevod / Faktúra (SEPA / SWIFT)** | **`dusan.kopecky0101@gmail.com`** | Oficiálna komerčná faktúra s DPH (Net 30 pre zmluvných partnerov) |
+| **GitHub Sponsors** | [github.com/sponsors/RhodosBerger](https://github.com/sponsors/RhodosBerger) | Automatické pridelenie rolí, repozitárov a licenčných kľúčov |
+| **Alternatívne Krypto Kanály (Web3)** | `TRhodosBergerKrystalStack2026USDT` / `bc1q_krystal_stack_foundation_2026` | Voliteľné zúčtovanie (USDT TRC20 / BTC / ETH) na vyžiadanie |
 
-> *Po odoslaní príspevku alebo platby zašlite potvrdenie na e-mail **dusan.kopecky0101@gmail.com** s uvedením vášho želateľného prihlasovacieho mena pre aktiváciu licencie a Admin konta na serveri.*
+> *Pre objednávky, pilotné testovanie a vystavenie faktúry kontaktujte priamo hlavného architekta: **`dusan.kopecky0101@gmail.com`**.*
 
 ---
 

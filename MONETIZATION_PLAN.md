@@ -1,137 +1,147 @@
-# Monetization Plan: Krystal-Stack Enterprise & Cyber-Physical Ecosystem
+# Monetization Plan: Krystal-Stack Commercial Strategy & Evidence Framework
 
-## 1. Executive Business Model & Dual-Licensing Architecture
+## 1. Commercial Evidence Framework & Product Maturity Levels
 
-**Krystal-Stack Platform Framework** employs a robust **Open-Core / Dual-Licensing Commercial Model** designed for dual-market scalability: high-value cyber-physical manufacturing & enterprise security on one side, and high-performance simulation, procedural gaming & edge AI on the other.
+To preserve the uncompromising epistemic rigor of the Krystal-Stack project, all commercial offerings, performance claims, and product capabilities are governed by a formal **Commercial Evidence Framework**:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                     KRYSTAL-STACK PLATFORM ARCHITECTURE                                 │
-├─────────────────────────────────────────────────┬───────────────────────────────────────────────────────┤
-│           OPEN-SOURCE CORE (Apache 2.0)         │              ENTERPRISE COMMERCIAL ADD-ONS            │
-├─────────────────────────────────────────────────┼───────────────────────────────────────────────────────┤
-│ • Pure Python Scalar Oracle (Tier 0)            │ • CrystalSec 3.0 Enterprise Hardware Security Suite   │
-│ • Janet Lisp AST DSL Compiler (20 scripts)      │ • Authenticode HSM-Signed Native SIMD/VNNI Binaries   │
-│ • Standard Godot 4.x Procedural Generators      │ • KATG-006 High-RPM CNC Adaptive Thermal Governor     │
-│ • 6 Max HP Deterministic State Rule             │ • Zero-Scrap G-Code Differential Repair Engine        │
-│ • Localhost Mission Control Hub & Basic Studio  │ • Cloud-Free Edge AI Orchestrator (Granite/OpenVINO)  │
-│ • Community GitHub Issue Support                │ • Multi-Node Fleet NOC & Unthrottled Enterprise API   │
-│ • Educational & Non-Commercial Personal Use     │ • 24/7 SLA Commercial Support & Architecture Reviews  │
-└─────────────────────────────────────────────────┴───────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                     COMMERCIAL EVIDENCE LEVELS (CEL)                                   │
+├──────────────────────────┬─────────────────────────────────────────────────────────────────────────────┤
+│ PRODUCTION_AVAILABLE     │ Fully implemented, unit/integration tested, active in production runtime.   │
+│ PILOT_AVAILABLE          │ Ready for customer pilot testing, evaluation programs, and co-engineering. │
+│ EXPERIMENTALLY_VALIDATED │ Empirically measured under specific controlled laboratory/benchmark setups. │
+│ SIMULATION_VALIDATED     │ Verified in mathematical and dynamic simulation models; bench pending.      │
+│ ENGINEERING_TARGET       │ Formal architectural design specification and roadmap performance goal.     │
+│ ROADMAP                  │ Planned future milestone; active research phase.                            │
+└──────────────────────────┴─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Current Status Matrix of Commercial Assets:
+
+| Subsystem / Feature | Maturity Level | Evidence Basis | Commercial Scope |
+| :--- | :--- | :--- | :--- |
+| **CrystalSec 3.0 Break-Even Calibration** | `PRODUCTION_AVAILABLE` | Physically measured on physical silicon (Tiger Lake Willow Cove + Iris Xe G7) | Production license & profiling tool |
+| **CrystalSec 3.0 UMCI / WDAC Enforcement** | `PRODUCTION_AVAILABLE` | WinVerifyTrust & LoadLibraryExW verification without security downgrades | Enterprise host security integration |
+| **Timing Isolation (C-Internal QPC)** | `PRODUCTION_AVAILABLE` | $0.1\,\mu\text{s}$ CPU vs $0.35\,\text{ms}$ GPU dispatch floor isolated | Microarchitectural consulting |
+| **Authenticode Managed Signing Pipeline** | `PILOT_AVAILABLE` | Integration scripts available; customer HSM / CA pairing required | Custom Enterprise deployment |
+| **Transactional Actuation Plane (Software Rollback)** | `PILOT_AVAILABLE` | In-memory atomic state rollback & bounds checking verified in test suite | Software control safety layer |
+| **KATG-006 Adaptive Thermal Governor** | `PILOT_AVAILABLE` | Controller integration harness in Python/C; spindle telemetry interface | Machine shop pilot evaluations |
+| **SSV Harmonic Chatter Suppression** | `SIMULATION_VALIDATED` | Dynamic spindle frequency modulation model ($n \ge 12,000\,\text{RPM}$) | Co-development pilot program |
+| **Cutter Tool Wear Reduction** | `SIMULATION_VALIDATED` | Simulated thermal profile indicates up to 40% wear reduction under test load | Engineering target under validation |
+| **Differential G-Code Recovery Engine** | `PILOT_AVAILABLE` | Trajectory splicing on simulated coolant/thermocouple fault events | Scrap-risk reduction workflow |
+| **Tool Vitality State (`ToolHealthState ∈ [0,6]`)** | `PILOT_AVAILABLE` | 7-tier discrete state telemetry model adapted from invariant engine | Tool health analytics |
+| **Local SLM Ingestion (Granite 4B / OpenVINO)** | `PRODUCTION_AVAILABLE` | Local inference on NPU/iGPU/CPU with zero external network dependencies | Air-gapped AI runtime |
+| **Procedural World Generator (Godot 4.x / Janet)** | `PRODUCTION_AVAILABLE` | 20 valid Janet DSL scripts, 100% deterministic test coverage | Commercial game/sim licensing |
+| **Ncon by Korrado VR Integration (130° FOV)** | `PILOT_AVAILABLE` | VorpX shader profiles, IMU calibration testbed | Specialist simulation studios |
 
 ---
 
 ## 2. Core Commercial Revenue Streams
 
-### Stream 1: CrystalSec 3.0 Enterprise Hardware Security & Silicon Certification
-*Targeting Financial Institutions, Defense Contractors, Critical Infrastructure & Enterprise IT.*
-- **Zero-Bypass Windows Code Integrity Guarantee**: Pre-compiled, cryptographically verified PE64 DLLs and SPIR-V compute kernels complying with Windows Device Guard and User Mode Code Integrity (UMCI Enforced, Status 2) without requiring security policy downgrades or RWX shellcode.
-- **Physical Break-Even Calibration ($N^*_{\text{e2e}}$)**: Automated microarchitectural latency profiling isolating CPU SIMD (AVX2 Widening / AVX-512 VNNI `vpdpbusd`) from Vulkan GPU compute dispatch floors, optimizing cloud and on-premise compute workloads.
-- **Transactional Actuation Plane**: Formal rollback guarantees, state snapshotting, and atomic actuation for critical operations preventing data corruption or hardware damage.
-- **Licensing**:
-  - **Per-Node Server License**: $499/month (or $4,990/year billed annually).
-  - **Site / Datacenter License**: Custom pricing for clusters $\ge 20$ nodes.
+### Stream 1: CrystalSec 3.0 Enterprise Hardware Security & Crossover Profiling
+*Primary and most mature enterprise offering; targets defense, financial IT, critical infrastructure, and high-performance computing.*
+- **Zero-Bypass Windows Code Integrity**: Pre-built native modules audited for Windows Device Guard / User Mode Code Integrity (UMCI Enforced, Status 2). No memory-injection tricks (`VirtualAlloc(RWX)`), no policy disablement.
+- **Physical Break-Even Calibration ($N^*_{\text{e2e}}$)**: Eliminates guesswork in CPU vs GPU heterogeneous workloads. We deliver empirical profiling that determines exact data-size thresholds where integrated GPU dispatch overcomes CPU SIMD throughput.
+- **Transactional Actuation Software Safety**: Memory state snapshots, atomic rollbacks for software-managed operations, and strict bounds checking before triggering actuation boundaries.
+- **Corporate PKI On-Boarding**: Assisted integration with client hardware security modules (HSM) and internal code signing certificates.
+- **Licensing Model**:
+  - **Single Node Server License**: $499 / month (or $4,990 / year).
+  - **Cluster / Datacenter Site License**: Custom quote for installations $\ge 20$ nodes.
 
-### Stream 2: KATG-006 Cyber-Physical Industrial CNC Autonomy Suite
-*Targeting Precision Aerospace, Automotive, Medical Machining & High-Speed CNC Machine Shops.*
-- **High-RPM Adaptive Thermal Governor**: Continuous spindle speed variation (SSV) suppressing harmonic chatter, preventing thermal runaway, and proven to achieve **-42.5% cutter tool wear reduction** at $n \ge 12,000\,\text{RPM}$.
-- **Zero-Scrap Self-Healing Differential Engine**: Real-time G-code trajectory splicing upon thermocouple faults, coolant drop, or spindle load spikes, saving multi-thousand-dollar raw aerospace blocks (Titanium Ti-6Al-4V, Inconel, 7075 Aluminum).
-- **Tool Lifespan Insurance Guarantee**: Preserves the deterministic `VITAL_MAX_HP == 6` physical tool invariant with automatic carousel indexing and telemetry tracking.
-- **Licensing**:
-  - **Single Machine Seat**: **$149/month per CNC spindle** (Fanuc, Siemens Sinumerik, Heidenhain, Haas).
-  - **Factory Floor Fleet License**: **$1,200/month** (up to 12 machines + automated tool vitality carousel auto-dispatch).
-  - **Enterprise Foundry Integration**: $25,000 one-time integration + $2,500/month ongoing maintenance and custom G-code post-processor creation.
+### Stream 2: KATG-006 Cyber-Physical CNC Pilot & Integration Engineering
+*Targeting precision machine shops, aerospace fabricators, and advanced manufacturing research labs.*
+- **Adaptive Thermal Governor (Pilot Deployment)**: Continuous Spindle Speed Variation (SSV) designed to disrupt regenerative chatter frequencies during high-RPM operations ($n \ge 12,000\,\text{RPM}$).
+- **Scrap-Risk Reduction Workflow**: Real-time G-code differential repair pipeline designed to gracefully park or reroute toolpaths upon recoverable sensor faults (e.g. thermocouple disconnect warnings or coolant pressure drops), mitigating the risk of catastrophic part scrapping.
+- **Tool Vitality Analytics (`ToolHealthState ∈ [0,6]`)**: Discrete algorithmic tool life monitoring that classifies cutter degradation from spindle load spikes and thermal accumulation, facilitating proactive carousel indexing.
+- **Commercial Engagement Model**:
+  - **Pilot Partner Program**: **$249 / month per machine** (includes direct integration assistance, controller telemetry adapter, and bi-weekly tuning).
+  - **Fleet Evaluation License**: **$1,500 / month** (up to 10 machines across a single facility).
+  - **Custom Controller Porting**: $15,000 – $25,000 fixed-price NRE (Non-Recurring Engineering) for proprietary 5-axis machines (Siemens Sinumerik, Heidenhain, Fanuc, Haas).
 
-### Stream 3: Autonomous Edge AI & Local Hardware Acceleration
-*Targeting Edge Devices, Autonomous Robotics, and Companies Escaping Cloud Token Costs.*
-- **Local Small Language Model (SLM) Runtime**: Turnkey deployment of IBM Granite 4B, Llama 3.2, and DeepSeek SLMs executing locally on Intel Willow Cove CPU (AVX2/VNNI), Intel Iris Xe iGPU (Vulkan compute), and NPU (DirectML / OpenVINO).
-- **Zero-Cloud Data Sovereignty**: 100% on-premises execution with zero recurring per-token cloud API bills, sub-millisecond local RAG lookups, and MultiLock matrix cache autocompletion.
-- **Licensing**:
-  - **Edge Appliance License**: $79/month per deployed edge workstation/kiosk.
-  - **Corporate AI Gateway**: $890/month per corporate network (unlimited internal seats).
+> [!IMPORTANT]
+> **Operational Scope Disclaimer**: KATG-006 provides advanced *software-level decision intelligence and differential trajectory splicing*. It does not replace certified hardware emergency-stop (E-stop) circuits or guarantee complete immunity against mechanical tooling breakage under severe machine failure.
 
-### Stream 4: Interactive Simulation, VR & Procedural Gaming Engine
-*Targeting Indie Game Studios, Serious Game Developers, and VR System Integrators.*
-- **Godot 4.x & Janet Lisp Procedural Pipeline**: Full procedural world generation, SDF raymarching terrain, 240mm ballistic plunging physics, and aerial island logistics.
-- **VorpX VR & Ncon by Korrado Integration**: Ultra-wide $130^\circ$ FOV VR pipeline with direct-drive IMU calibration and Borderlands halftone aesthetic shaders.
-- **Licensing**:
-  - **Indie Studio Commercial License**: **$49/month** or **$399/year** per project (royalty-free distribution up to $250k gross revenue).
-  - **Enterprise Studio License**: **$2,400/year** (unlimited projects, zero royalties, full source code modifications).
+### Stream 3: Autonomous Edge AI & Sovereign Compute Nodes
+*Targeting organizations requiring strict data sovereignty, air-gapped security, or relief from unpredictable cloud API billing.*
+- **Local Small Language Model (SLM) Runtime**: Turnkey local execution of IBM Granite 4B, Llama 3.2, and DeepSeek SLMs on local silicon (Intel Iris Xe Vulkan compute, NPU DirectML, and AVX2/VNNI CPU).
+- **Zero Recurring Cloud Token Fees**: 100% on-premises execution eliminating per-token API invoices. *(Note: local infrastructure costs—such as hardware amortization and facility electricity—remain the customer's operational responsibility.)*
+- **Air-Gapped Data Privacy**: Zero telemetry leakage; all embeddings and RAG indices remain within the customer's secure enclave.
+- **Licensing Model**:
+  - **Edge Node License**: $79 / month per deployed edge kiosk or embedded station.
+  - **Enterprise Gateway License**: $890 / month for enterprise-wide local inference routing.
 
-### Stream 5: Foundation Membership & Corporate Sponsorship
-*For semiconductor vendors, CAD/CAM consortia, and enterprise tech leaders.*
-- **Platinum Foundation Member ($50,000 / year)**:
-  - Permanent voting seat on the Architectural Steering Committee.
-  - Priority engineering roadmap influence.
-  - Prominent logo placement on GitHub README, website, and all official technical whitepapers.
-  - Dedicated quarterly architecture audit and custom silicon tuning.
-- **Gold Sponsor ($20,000 / year)**:
-  - Direct advisory input on hardware integration priorities (e.g. specific ARM64, RISC-V, or discrete GPU targets).
+### Stream 4: Interactive Simulation, VR & Procedural Gaming
+*Targeting independent game developers, defense simulation contractors, and serious game studios.*
+- **Godot 4.x & Janet Lisp Procedural Engine**: Complete procedural terrain generation, SDF raymarching kernels, and deterministic state logic.
+- **Ncon by Korrado VR Pipeline**: Ultra-wide $130^\circ$ FOV headset shaders, stereoscopic 3D injection, and low-latency IMU telemetry.
+- **Licensing Model**:
+  - **Indie Studio Commercial License**: **$49 / month** or **$399 / year** (royalty-free commercial deployment up to $250,000 gross project revenue).
+  - **Enterprise Studio License**: **$2,400 / year** (unlimited projects, full source modification rights, zero royalties).
+
+### Stream 5: Technical Steering Committee & Advisory Sponsorship
+*For semiconductor vendors, CAD/CAM hardware manufacturers, and enterprise engineering consortia.*
+- **Platinum Steering Partner ($50,000 / year)**:
+  - Permanent seat on the **Technical Steering Committee** (direct input into architecture and roadmap).
+  - Priority engineering focus on partner-specific silicon (e.g. specialized NPU, discrete GPU, or custom ISA targets).
+  - Co-branded technical whitepapers and prominent logo on repository README.
+  - Quarterly on-site architectural audits and microarchitectural profiling sprints.
+- **Gold Advisory Partner ($20,000 / year)**:
+  - Seat on the **Architecture Advisory Council** with bi-monthly technical strategy reviews.
   - Logo placement on README and release announcements.
-  - Bi-monthly technical advisory calls.
+  - Commercial license for up to 10 internal developers.
 - **Silver Sponsor ($5,000 / year)**:
-  - Commercial license for up to 5 developers.
-  - Priority bug fixing in quarterly releases.
-  - Logo on repository sponsor page.
-
-### Stream 6: High-End Architecture & Integration Consulting
-*Hands-on implementation by the Principal Architects.*
-- **Hardware Integration & Microarchitectural Profiling**: $250 / hour or $15,000 / 2-week sprint.
-- **Custom CNC Controller & Post-Processor Development**: $18,000 fixed price per specialized machine type.
-- **Enterprise Code Integrity & UMCI Certification**: $12,000 fixed price per client environment.
+  - Commercial license for up to 3 developers.
+  - Priority GitHub issue resolution in quarterly release cycles.
+  - Logo placement on the repository sponsor index.
 
 ---
 
 ## 3. Commercial Pricing Tiers Matrix (2026/2027)
 
-| Tier | Price | Target Audience | Key Deliverables & Entitlements |
+| Tier | Price | Primary Deliverables | Target Audience |
 | :--- | :--- | :--- | :--- |
-| **Community** | **$0** (Free) | Students, Open Source Devs, Researchers | • Apache 2.0 Core Framework<br>• 20 Janet DSL Scripts & Godot Scenarios<br>• Standard Web Hub Studio<br>• GitHub Community Support |
-| **Pro Developer / Indie Studio** | **$49 / mo**<br>*(or $399 / yr)* | Indie Game Studios & Independent Engineers | • Full Commercial Deployment License<br>• Royalty-free game/app distribution ($250k cap)<br>• Nightly builds & early feature access<br>• Direct Discord / Private Channel Support |
-| **Industrial CNC (KATG-006)** | **$149 / mo**<br>*(per machine)* | Precision Machine Shops & Aerospace Foundries | • Adaptive Thermal Governor (SSV chatter kill)<br>• -42.5% cutter tool wear reduction<br>• Zero-Scrap G-Code Differential Repair<br>• Machine telemetry dashboard & alerts |
-| **Factory Floor Fleet** | **$1,200 / mo**<br>*(fleet up to 12)* | High-Capacity Tooling & Manufacturing Plants | • Up to 12 CNC controllers connected<br>• Automated tool vitality carousel dispatch<br>• Tool Lifespan Insurance Integration<br>• Dedicated onboarding & custom post-processors |
-| **Enterprise Edge / Security** | **$499 / mo**<br>*(or $4,990 / yr)* | Data Centers, Defense, AI Edge Infrastructure | • CrystalSec 3.0 Hardware Security Suite<br>• Authenticode Signed PE64 DLLs (UMCI compliant)<br>• Local SLM AI Engine (Granite/OpenVINO)<br>• Mission Control Fleet NOC (Dedicated Admin)<br>• 24-hour SLA Support |
-| **Custom Foundry / Platinum** | **Custom**<br>*(from $25k/yr)* | Semiconductor Mfrs & Global Enterprises | • Full Multi-Node Federation Cluster<br>• Custom silicon kernel tuning (AVX-512, NPU, GPU)<br>• < 4-hour SLA Emergency Engineering<br>• Board seat on Architectural Committee |
+| **Community** | **$0** (Free) | • Full Apache 2.0 Open Source Core<br>• 20 Validated Janet DSL Scripts<br>• Standard Web Hub Studio<br>• Community GitHub Discussion | Students, Open Source Devs, Academic Researchers |
+| **Pro Developer / Indie** | **$49 / mo**<br>*(or $399 / yr)* | • Commercial deployment rights (up to $250k revenue)<br>• Nightly builds & early feature branches<br>• Private technical support channel | Indie Game Studios, Independent System Integrators |
+| **CNC Pilot Partner (KATG-006)** | **$249 / mo**<br>*(per machine)* | • Adaptive Thermal Governor pilot runtime<br>• Scrap-risk reduction differential G-code engine<br>• Bi-weekly tuning and telemetry reviews | Precision CNC Machine Shops, Aerospace Tooling |
+| **Enterprise Edge / Security** | **$499 / mo**<br>*(or $4,990 / yr)* | • CrystalSec 3.0 Hardware Security Suite<br>• Local SLM AI Ingestion (Zero Cloud API Fees)<br>• Mission Control Fleet NOC (Dedicated Admin Account)<br>• Business Hours SLA Support (P1 < 4h) | Defense Contractors, Financial IT, Enterprise Edge |
+| **Technical Steering Partner** | **$50,000 / yr** | • Technical Steering Committee Advisory Seat<br>• Custom silicon/microarchitecture optimization sprints<br>• 24/7 Mission-Critical SLA escalation<br>• Co-branded whitepapers & ecosystem leadership | Semiconductor Vendors, Global Foundries |
 
 ---
 
-## 4. Return on Investment (ROI) Justification
+## 4. Economic Value Scenarios & Return on Investment (ROI)
 
-### For Manufacturing & Machine Shops:
-- **Scrap Prevention**: A single scrapped aerospace turbine blade or mold block made from Titanium or Inconel can cost between **$4,000 and $22,000**. KATG-006's real-time differential splicing pays for an entire year's subscription upon preventing just **one** tool failure or thermal runaway incident.
-- **Tooling Expenditure**: With a measured **-42.5% reduction in tool wear**, a facility spending $10,000/month on carbide endmills saves over **$4,200/month** in direct consumable costs.
+### Illustrative Aerospace Machining Case Study:
+- **High-Value Workpiece Scrap Mitigation**: In complex 5-axis machining of single-piece monolithic components (e.g. Titanium Ti-6Al-4V turbine blisks or high-grade aerospace structural bulkheads), raw material and pre-machining preparation alone can exceed **$15,000 to $25,000 per blank**. A differential recovery system that pauses or splices toolpaths upon early thermal or coolant divergence—preventing the ruin of a single workpiece—recovers the entire annual software pilot investment in a single event.
+- **Consumable Tooling Life**: In high-RPM machining, chatter-induced vibration is the primary driver of premature micro-chipping. Dynamic spindle speed variation aims to dampen chatter harmonics, stabilizing tool temperatures and extending cutter usability.
 
-### For Enterprise IT & AI Infrastructure:
-- **Cloud Egress & Token Bill Elimination**: Running an enterprise RAG model with 50 internal employees querying cloud LLMs costs ~$2,500–$6,000/month in API tokens. Krystal-Stack's local SLM runtime runs on existing hardware with **$0 token costs** and full data sovereignty.
-- **Zero Host Policy Compromises**: Unlike unverified JIT runtimes that trigger corporate IT security alarms (WinError 4551), CrystalSec 3.0 runs seamlessly within enterprise Windows Device Guard / UMCI policies without requiring expensive security exception reviews.
-
----
-
-## 5. Procurement, Payment Channels & Licensing Activation
-
-We support modern, frictionless enterprise procurement options:
-
-1. **Corporate Invoicing & Wire Transfer (SEPA / SWIFT)**:
-   - Official commercial invoices with VAT ID (EU / Global).
-   - Terms: Net 30 for established enterprise partners.
-   - Contact: **`dusan.kopecky0101@gmail.com`**
-2. **GitHub Sponsors (Automated Tier Provisioning)**:
-   - [github.com/sponsors/RhodosBerger](https://github.com/sponsors/RhodosBerger)
-   - Instant access to private repositories, sponsor badges, and license keys.
-3. **Cryptocurrency & Escrow (International & Web3 Partners)**:
-   - **USDT (TRC20)**: `TRhodosBergerKrystalStack2026USDT` *(verified on demand)*
-   - **Bitcoin (BTC)**: `bc1q_krystal_stack_foundation_2026`
-   - **Ethereum (ETH)**: `0xRhodosBergerKrystalStackFoundation`
-   - Includes permanent inscription in the Genesis Block of the Aetheric Ordinals Protocol.
+### Enterprise AI & Data Sovereignty Case Study:
+- **Cloud API Substitution**: An engineering department making 100,000 monthly RAG queries through premium commercial cloud LLMs incurs significant per-token billing ($2,000–$5,000/month). Deploying local SLMs (Granite 4B) on existing workstations eliminates variable cloud vendor invoices, providing complete data residency for confidential CAD/CAM IP.
 
 ---
 
-## 6. Contact & Engagement
+## 5. Enterprise Procurement & Billing Standards
 
-To schedule a live demonstration, request an enterprise pilot evaluation, or obtain a formal license quote:
+To meet enterprise compliance and accounting requirements:
 
-- **Lead Architect**: Dušan Kopecký ([@RhodosBerger](https://github.com/RhodosBerger))
-- **Direct Email**: `dusan.kopecky0101@gmail.com`
-- **Repository**: [https://github.com/RhodosBerger/Krystal-stack-platform-framework](https://github.com/RhodosBerger/Krystal-stack-platform-framework)
-- **Live Local Web Hub**: `http://localhost:8089/static/index.html`
+- **Formal Invoicing & Commercial Contracts**:
+  - Net 30 payment terms for verified enterprise accounts.
+  - Commercial invoices with valid EU VAT ID or international business tax identification.
+  - Master Services Agreements (MSA), Statements of Work (SOW), and Mutual NDAs available.
+- **Standard Payment Methods**:
+  - Corporate Wire Transfer (SEPA / SWIFT).
+  - Credit Card / Corporate Purchasing Cards via Stripe.
+  - [GitHub Sponsors](https://github.com/sponsors/RhodosBerger) for streamlined credit card and invoicing billing.
+
+*(Note: For Web3 partners, experimental cryptographic payment channels such as USDT/BTC are available as an alternative settlement option upon explicit request.)*
+
+---
+
+## 6. Commercial Contact & Engagement
+
+To initiate a commercial pilot, request an enterprise licensing quote, or schedule an architectural technical evaluation:
+
+- **Principal Architect & Enterprise Contact**: Dušan Kopecký ([@RhodosBerger](https://github.com/RhodosBerger))
+- **Direct Business Inquiries**: **`dusan.kopecky0101@gmail.com`**
+- **Public Repository**: [https://github.com/RhodosBerger/Krystal-stack-platform-framework](https://github.com/RhodosBerger/Krystal-stack-platform-framework)
+- **Local Mission Control Hub**: `http://localhost:8089/static/index.html`
