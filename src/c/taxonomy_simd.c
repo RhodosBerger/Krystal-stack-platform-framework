@@ -14,7 +14,8 @@
   #include <time.h>
 #endif
 
-static TaxonomyExecutionInfo g_last_info = {0, 0, 0, 0.0};
+static TaxonomyExecutionInfo g_last_info = {0, 0, 0, 0.0, 0};
+static volatile uint64_t g_test_delay_ns = 0;
 
 static double get_time_ms(void) {
 #ifdef _WIN32
@@ -34,6 +35,24 @@ static double get_time_ms(void) {
 #endif
 }
 
+static uint64_t get_time_ns(void) {
+#ifdef _WIN32
+    static LARGE_INTEGER freq;
+    static int initialized = 0;
+    if (!initialized) {
+        QueryPerformanceFrequency(&freq);
+        initialized = 1;
+    }
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    return (uint64_t)((counter.QuadPart * 1000000000ULL) / freq.QuadPart);
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+#endif
+}
+
 static uint64_t get_cycles(void) {
 #if defined(_MSC_VER)
     return __rdtsc();
@@ -42,6 +61,31 @@ static uint64_t get_cycles(void) {
 #else
     return 0;
 #endif
+}
+
+static void apply_test_delay_if_set(void) {
+    uint64_t delay = g_test_delay_ns;
+    if (delay == 0) return;
+    uint64_t start = get_time_ns();
+    while ((get_time_ns() - start) < delay) {
+#if defined(_MSC_VER)
+        _mm_pause();
+#elif defined(__GNUC__) || defined(__clang__)
+        __builtin_ia32_pause();
+#endif
+    }
+}
+
+TAXONOMY_API void taxonomy_noop(void) {
+    /* No-op calibration target for FFI boundary measurement */
+}
+
+TAXONOMY_API void taxonomy_set_test_delay_ns(uint64_t delay_ns) {
+    g_test_delay_ns = delay_ns;
+}
+
+TAXONOMY_API uint64_t taxonomy_get_test_delay_ns(void) {
+    return g_test_delay_ns;
 }
 
 static void raw_cpuid(int cpuInfo[4], int func, int subfunc) {
@@ -137,13 +181,68 @@ static int select_path(int requested, const CpuNativeCapabilities* caps) {
    1. INT8 CANONICAL CONTRACT: uint8 activations x int8 weights -> int32 acc
    ========================================================================= */
 
-static int32_t int8_dot_reduction_scalar(const uint8_t* a, const int8_t* b, size_t n) {
+TAXONOMY_API int32_t taxonomy_int8_dot_scalar(const uint8_t* a, const int8_t* b, size_t n, int apply_relu) {
+    apply_test_delay_if_set();
     int32_t acc = 0;
     for (size_t i = 0; i < n; ++i) {
         acc += (int32_t)a[i] * (int32_t)b[i];
     }
+    if (apply_relu && acc < 0) acc = 0;
     return acc;
 }
+
+#if defined(__AVX2__) || defined(_MSC_VER)
+TAXONOMY_API int32_t taxonomy_int8_dot_avx2(const uint8_t* a, const int8_t* b, size_t n, int apply_relu) {
+    apply_test_delay_if_set();
+    size_t i = 0;
+    __m256i acc_vec = _mm256_setzero_si256();
+    __m256i ones16 = _mm256_set1_epi16(1);
+
+    for (; i + 32 <= n; i += 32) {
+        __m256i va = _mm256_loadu_si256((const __m256i*)(a + i));
+        __m256i vb = _mm256_loadu_si256((const __m256i*)(b + i));
+
+        /* _mm256_maddubs_epi16: uint8 x int8 -> pairs summed into int16 */
+        __m256i prod16 = _mm256_maddubs_epi16(va, vb);
+
+        /* _mm256_madd_epi16: pairs of int16 multiplied by 1 and summed into int32 */
+        __m256i prod32 = _mm256_madd_epi16(prod16, ones16);
+
+        acc_vec = _mm256_add_epi32(acc_vec, prod32);
+    }
+
+    /* Horizontal reduction of 8x 32-bit ints in acc_vec */
+    __m128i low128 = _mm256_castsi256_si128(acc_vec);
+    __m128i high128 = _mm256_extracti128_si256(acc_vec, 1);
+    __m128i sum128 = _mm_add_epi32(low128, high128);
+    sum128 = _mm_hadd_epi32(sum128, sum128);
+    sum128 = _mm_hadd_epi32(sum128, sum128);
+    int32_t acc = _mm_cvtsi128_si32(sum128);
+
+    /* Scalar tail */
+    for (; i < n; ++i) {
+        acc += (int32_t)a[i] * (int32_t)b[i];
+    }
+    if (apply_relu && acc < 0) acc = 0;
+    return acc;
+}
+#else
+TAXONOMY_API int32_t taxonomy_int8_dot_avx2(const uint8_t* a, const int8_t* b, size_t n, int apply_relu) {
+    return taxonomy_int8_dot_scalar(a, b, n, apply_relu);
+}
+#endif
+
+#if (defined(__AVX512VNNI__) || defined(__AVX512F__)) && defined(_MSC_VER)
+TAXONOMY_API int32_t taxonomy_int8_dot_vnni(const uint8_t* a, const int8_t* b, size_t n, int apply_relu) {
+    apply_test_delay_if_set();
+    /* If AVX-512 VNNI compiler intrinsics available, emit _mm512_dpbusd_epi32 */
+    return taxonomy_int8_dot_avx2(a, b, n, apply_relu);
+}
+#else
+TAXONOMY_API int32_t taxonomy_int8_dot_vnni(const uint8_t* a, const int8_t* b, size_t n, int apply_relu) {
+    return taxonomy_int8_dot_avx2(a, b, n, apply_relu);
+}
+#endif
 
 TAXONOMY_API int taxonomy_int8_dot_reduction(
     const uint8_t* activations,
@@ -161,55 +260,40 @@ TAXONOMY_API int taxonomy_int8_dot_reduction(
     int path = select_path(requested_path, &caps);
     if (path < 0) return TAXONOMY_STATUS_UNSUPPORTED_ISA;
 
-    double t0 = get_time_ms();
+    uint64_t t0 = get_time_ns();
     uint64_t c0 = get_cycles();
 
-    int32_t acc = int8_dot_reduction_scalar(activations, weights, n);
-    if (apply_relu_post_op && acc < 0) {
-        acc = 0;
+    int32_t acc = 0;
+    switch (path) {
+        case TAXONOMY_PATH_VNNI:
+            acc = taxonomy_int8_dot_vnni(activations, weights, n, apply_relu_post_op);
+            break;
+        case TAXONOMY_PATH_AVX512:
+        case TAXONOMY_PATH_AVX2:
+            acc = taxonomy_int8_dot_avx2(activations, weights, n, apply_relu_post_op);
+            break;
+        case TAXONOMY_PATH_SCALAR:
+        default:
+            path = TAXONOMY_PATH_SCALAR;
+            acc = taxonomy_int8_dot_scalar(activations, weights, n, apply_relu_post_op);
+            break;
     }
     *out_accumulator = acc;
 
-    double elapsed = get_time_ms() - t0;
+    uint64_t elapsed_ns = get_time_ns() - t0;
     uint64_t cycles = get_cycles() - c0;
 
     g_last_info.selected_path = (uint32_t)path;
     g_last_info.status_code = TAXONOMY_STATUS_OK;
     g_last_info.cycles_elapsed = cycles;
-    g_last_info.elapsed_ms = elapsed;
+    g_last_info.native_time_ns = elapsed_ns;
+    g_last_info.elapsed_ms = (double)elapsed_ns / 1000000.0;
     if (info) *info = g_last_info;
 
     return TAXONOMY_STATUS_OK;
 }
 
-static void int8_dot_scalar(const uint8_t* a, const int8_t* b, float* out, size_t n) {
-    for (size_t i = 0; i < n; ++i) {
-        int32_t prod = (int32_t)a[i] * (int32_t)b[i];
-        out[i] = (float)prod;
-    }
-}
-
-#if defined(__AVX2__) || defined(_MSC_VER)
-static void int8_dot_avx2(const uint8_t* a, const int8_t* b, float* out, size_t n) {
-    size_t i = 0;
-    for (; i + 8 <= n; i += 8) {
-        __m128i a_bytes = _mm_loadl_epi64((const __m128i*)(a + i));
-        __m128i b_bytes = _mm_loadl_epi64((const __m128i*)(b + i));
-
-        __m256i a32 = _mm256_cvtepu8_epi32(a_bytes);
-        __m256i b32 = _mm256_cvtepi8_epi32(b_bytes);
-
-        __m256i prod32 = _mm256_mullo_epi32(a32, b32);
-        __m256 prod_ps = _mm256_cvtepi32_ps(prod32);
-
-        _mm256_storeu_ps(out + i, prod_ps);
-    }
-    for (; i < n; ++i) {
-        out[i] = (float)((int32_t)a[i] * (int32_t)b[i]);
-    }
-}
-#endif
-
+/* Vectorized product array: out[i] = (int32_t)a[i] * (int32_t)b[i] */
 TAXONOMY_API int taxonomy_int8_dot(
     const uint8_t* activations,
     const int8_t* weights,
@@ -225,31 +309,39 @@ TAXONOMY_API int taxonomy_int8_dot(
     int path = select_path(requested_path, &caps);
     if (path < 0) return TAXONOMY_STATUS_UNSUPPORTED_ISA;
 
-    double t0 = get_time_ms();
+    uint64_t t0 = get_time_ns();
     uint64_t c0 = get_cycles();
+    apply_test_delay_if_set();
 
-    switch (path) {
+    size_t i = 0;
 #if defined(__AVX2__) || defined(_MSC_VER)
-        case TAXONOMY_PATH_AVX2:
-        case TAXONOMY_PATH_AVX512:
-        case TAXONOMY_PATH_VNNI:
-            int8_dot_avx2(activations, weights, out, n);
-            break;
+    if (path == TAXONOMY_PATH_AVX2 || path == TAXONOMY_PATH_AVX512 || path == TAXONOMY_PATH_VNNI) {
+        for (; i + 8 <= n; i += 8) {
+            __m128i a_bytes = _mm_loadl_epi64((const __m128i*)(activations + i));
+            __m128i b_bytes = _mm_loadl_epi64((const __m128i*)(weights + i));
+
+            __m256i a32 = _mm256_cvtepu8_epi32(a_bytes);
+            __m256i b32 = _mm256_cvtepi8_epi32(b_bytes);
+
+            __m256i prod32 = _mm256_mullo_epi32(a32, b32);
+            __m256 prod_ps = _mm256_cvtepi32_ps(prod32);
+
+            _mm256_storeu_ps(out + i, prod_ps);
+        }
+    }
 #endif
-        case TAXONOMY_PATH_SCALAR:
-        default:
-            path = TAXONOMY_PATH_SCALAR;
-            int8_dot_scalar(activations, weights, out, n);
-            break;
+    for (; i < n; ++i) {
+        out[i] = (float)((int32_t)activations[i] * (int32_t)weights[i]);
     }
 
-    double elapsed = get_time_ms() - t0;
+    uint64_t elapsed_ns = get_time_ns() - t0;
     uint64_t cycles = get_cycles() - c0;
 
     g_last_info.selected_path = (uint32_t)path;
     g_last_info.status_code = TAXONOMY_STATUS_OK;
     g_last_info.cycles_elapsed = cycles;
-    g_last_info.elapsed_ms = elapsed;
+    g_last_info.native_time_ns = elapsed_ns;
+    g_last_info.elapsed_ms = (double)elapsed_ns / 1000000.0;
     if (info) *info = g_last_info;
 
     return TAXONOMY_STATUS_OK;
@@ -259,7 +351,8 @@ TAXONOMY_API int taxonomy_int8_dot(
    2. FP32_VECTOR_MATH: y = ((c3*x + c2)*x + c1)*x + c0 (Horner form)
    ========================================================================= */
 
-static void fp32_poly_scalar(const float* x, const float* c, float* out, size_t n) {
+TAXONOMY_API void taxonomy_fp32_poly_scalar(const float* x, const float* c, float* out, size_t n) {
+    apply_test_delay_if_set();
     float c0 = c[0], c1 = c[1], c2 = c[2], c3 = c[3];
     for (size_t i = 0; i < n; ++i) {
         float xi = x[i];
@@ -268,7 +361,8 @@ static void fp32_poly_scalar(const float* x, const float* c, float* out, size_t 
 }
 
 #if defined(__AVX2__) || defined(_MSC_VER)
-static void fp32_poly_avx2(const float* x, const float* c, float* out, size_t n) {
+TAXONOMY_API void taxonomy_fp32_poly_avx2(const float* x, const float* c, float* out, size_t n) {
+    apply_test_delay_if_set();
     size_t i = 0;
     __m256 vc0 = _mm256_set1_ps(c[0]);
     __m256 vc1 = _mm256_set1_ps(c[1]);
@@ -287,7 +381,15 @@ static void fp32_poly_avx2(const float* x, const float* c, float* out, size_t n)
         out[i] = ((c[3] * xi + c[2]) * xi + c[1]) * xi + c[0];
     }
 }
+#else
+TAXONOMY_API void taxonomy_fp32_poly_avx2(const float* x, const float* c, float* out, size_t n) {
+    taxonomy_fp32_poly_scalar(x, c, out, n);
+}
 #endif
+
+TAXONOMY_API void taxonomy_fp32_poly_avx512(const float* x, const float* c, float* out, size_t n) {
+    taxonomy_fp32_poly_avx2(x, c, out, n);
+}
 
 TAXONOMY_API int taxonomy_fp32_poly(
     const float* inputs,
@@ -304,31 +406,32 @@ TAXONOMY_API int taxonomy_fp32_poly(
     int path = select_path(requested_path, &caps);
     if (path < 0) return TAXONOMY_STATUS_UNSUPPORTED_ISA;
 
-    double t0 = get_time_ms();
+    uint64_t t0 = get_time_ns();
     uint64_t c0 = get_cycles();
 
     switch (path) {
-#if defined(__AVX2__) || defined(_MSC_VER)
-        case TAXONOMY_PATH_AVX2:
         case TAXONOMY_PATH_AVX512:
-        case TAXONOMY_PATH_VNNI:
-            fp32_poly_avx2(inputs, coeffs, out, n);
+            taxonomy_fp32_poly_avx512(inputs, coeffs, out, n);
             break;
-#endif
+        case TAXONOMY_PATH_AVX2:
+        case TAXONOMY_PATH_VNNI:
+            taxonomy_fp32_poly_avx2(inputs, coeffs, out, n);
+            break;
         case TAXONOMY_PATH_SCALAR:
         default:
             path = TAXONOMY_PATH_SCALAR;
-            fp32_poly_scalar(inputs, coeffs, out, n);
+            taxonomy_fp32_poly_scalar(inputs, coeffs, out, n);
             break;
     }
 
-    double elapsed = get_time_ms() - t0;
+    uint64_t elapsed_ns = get_time_ns() - t0;
     uint64_t cycles = get_cycles() - c0;
 
     g_last_info.selected_path = (uint32_t)path;
     g_last_info.status_code = TAXONOMY_STATUS_OK;
     g_last_info.cycles_elapsed = cycles;
-    g_last_info.elapsed_ms = elapsed;
+    g_last_info.native_time_ns = elapsed_ns;
+    g_last_info.elapsed_ms = (double)elapsed_ns / 1000000.0;
     if (info) *info = g_last_info;
 
     return TAXONOMY_STATUS_OK;
@@ -338,7 +441,8 @@ TAXONOMY_API int taxonomy_fp32_poly(
    3. MEMORY_BOUND_STREAM: out[i] = buffer[i * stride] * 1.001f
    ========================================================================= */
 
-static void memory_stream_scalar(const float* buffer, size_t total, size_t stride, float* out, size_t count) {
+TAXONOMY_API void taxonomy_memory_stream_scalar(const float* buffer, size_t total, size_t stride, float* out, size_t count) {
+    apply_test_delay_if_set();
     for (size_t i = 0; i < count; ++i) {
         size_t idx = i * stride;
         if (idx < total) {
@@ -348,7 +452,8 @@ static void memory_stream_scalar(const float* buffer, size_t total, size_t strid
 }
 
 #if defined(__AVX2__) || defined(_MSC_VER)
-static void memory_stream_avx2(const float* buffer, size_t total, size_t stride, float* out, size_t count) {
+TAXONOMY_API void taxonomy_memory_stream_avx2(const float* buffer, size_t total, size_t stride, float* out, size_t count) {
+    apply_test_delay_if_set();
     size_t i = 0;
     __m256 scale = _mm256_set1_ps(1.001f);
     
@@ -364,6 +469,10 @@ static void memory_stream_avx2(const float* buffer, size_t total, size_t stride,
             out[i] = buffer[idx] * 1.001f;
         }
     }
+}
+#else
+TAXONOMY_API void taxonomy_memory_stream_avx2(const float* buffer, size_t total, size_t stride, float* out, size_t count) {
+    taxonomy_memory_stream_scalar(buffer, total, stride, out, count);
 }
 #endif
 
@@ -383,31 +492,30 @@ TAXONOMY_API int taxonomy_memory_stream(
     int path = select_path(requested_path, &caps);
     if (path < 0) return TAXONOMY_STATUS_UNSUPPORTED_ISA;
 
-    double t0 = get_time_ms();
+    uint64_t t0 = get_time_ns();
     uint64_t c0 = get_cycles();
 
     switch (path) {
-#if defined(__AVX2__) || defined(_MSC_VER)
         case TAXONOMY_PATH_AVX2:
         case TAXONOMY_PATH_AVX512:
         case TAXONOMY_PATH_VNNI:
-            memory_stream_avx2(buffer, total_elements, stride, out, out_count);
+            taxonomy_memory_stream_avx2(buffer, total_elements, stride, out, out_count);
             break;
-#endif
         case TAXONOMY_PATH_SCALAR:
         default:
             path = TAXONOMY_PATH_SCALAR;
-            memory_stream_scalar(buffer, total_elements, stride, out, out_count);
+            taxonomy_memory_stream_scalar(buffer, total_elements, stride, out, out_count);
             break;
     }
 
-    double elapsed = get_time_ms() - t0;
+    uint64_t elapsed_ns = get_time_ns() - t0;
     uint64_t cycles = get_cycles() - c0;
 
     g_last_info.selected_path = (uint32_t)path;
     g_last_info.status_code = TAXONOMY_STATUS_OK;
     g_last_info.cycles_elapsed = cycles;
-    g_last_info.elapsed_ms = elapsed;
+    g_last_info.native_time_ns = elapsed_ns;
+    g_last_info.elapsed_ms = (double)elapsed_ns / 1000000.0;
     if (info) *info = g_last_info;
 
     return TAXONOMY_STATUS_OK;
@@ -417,7 +525,8 @@ TAXONOMY_API int taxonomy_memory_stream(
    4. BRANCH_HEAVY_CONTROL: Intentionally executes genuine branch tree
    ========================================================================= */
 
-static void branch_control_scalar(const int32_t* keys, float* out, size_t n) {
+TAXONOMY_API void taxonomy_branch_control_scalar(const int32_t* keys, float* out, size_t n) {
+    apply_test_delay_if_set();
     for (size_t i = 0; i < n; ++i) {
         int32_t k = keys[i];
         int32_t v;
@@ -450,18 +559,19 @@ TAXONOMY_API int taxonomy_branch_control(
     int path = select_path(requested_path, &caps);
     if (path < 0) return TAXONOMY_STATUS_UNSUPPORTED_ISA;
 
-    double t0 = get_time_ms();
+    uint64_t t0 = get_time_ns();
     uint64_t c0 = get_cycles();
 
-    branch_control_scalar(keys, out, n);
+    taxonomy_branch_control_scalar(keys, out, n);
 
-    double elapsed = get_time_ms() - t0;
+    uint64_t elapsed_ns = get_time_ns() - t0;
     uint64_t cycles = get_cycles() - c0;
 
     g_last_info.selected_path = (uint32_t)path;
     g_last_info.status_code = TAXONOMY_STATUS_OK;
     g_last_info.cycles_elapsed = cycles;
-    g_last_info.elapsed_ms = elapsed;
+    g_last_info.native_time_ns = elapsed_ns;
+    g_last_info.elapsed_ms = (double)elapsed_ns / 1000000.0;
     if (info) *info = g_last_info;
 
     return TAXONOMY_STATUS_OK;
@@ -471,7 +581,7 @@ TAXONOMY_API int taxonomy_branch_control(
    5. MIXED_COMPUTE_MEMORY
    ========================================================================= */
 
-TAXONOMY_API int taxonomy_mixed_compute_memory(
+TAXONOMY_API int taxonomy_mixed_native(
     const uint8_t* activations,
     const int8_t* weights,
     float* out,
@@ -480,6 +590,17 @@ TAXONOMY_API int taxonomy_mixed_compute_memory(
     TaxonomyExecutionInfo* info
 ) {
     return taxonomy_int8_dot(activations, weights, out, n, requested_path, info);
+}
+
+TAXONOMY_API int taxonomy_mixed_compute_memory(
+    const uint8_t* activations,
+    const int8_t* weights,
+    float* out,
+    size_t n,
+    int requested_path,
+    TaxonomyExecutionInfo* info
+) {
+    return taxonomy_mixed_native(activations, weights, out, n, requested_path, info);
 }
 
 TAXONOMY_API int taxonomy_last_execution_info(TaxonomyExecutionInfo* out_info) {

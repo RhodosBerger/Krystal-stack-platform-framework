@@ -15,18 +15,18 @@ extern "C" {
 #endif
 
 /*
- * CrystalSec 3.0 Phase 5.3C / 5.3D - Native CPU SIMD Taxonomy Kernels
+ * CrystalSec 3.0 Phase 5.3D - Trusted Native SIMD Taxonomy Kernels
  *
- * Canonical Numerical Contract:
+ * Authoritative Canonical Numerical Contract:
  * - INT8 Canonical Semantics:
  *     input A: uint8_t activations
  *     input B: int8_t weights
  *     accumulator: int32_t
- *     operation: sum(A[i] * B[i]) - pure dot product accumulation
+ *     operation: acc = sum(uint8(A[i]) * int8(B[i])) - pure dot-product accumulation
  *     post-op activation: explicit and separate (e.g. ReLU max(0, acc))
  * - FP32_VECTOR_MATH: Horner form cubic polynomial y = ((c3*x + c2)*x + c1)*x + c0
  * - MEMORY_BOUND_STREAM: strided access out[i] = buffer[i * stride] * 1.001f
- * - BRANCH_HEAVY_CONTROL: genuine scalar branch tree (testing branch predictor)
+ * - BRANCH_HEAVY_CONTROL: genuine scalar branch tree (testing CPU branch predictor)
  * - MIXED_COMPUTE_MEMORY: paired dot-product and stream traversal
  */
 
@@ -48,6 +48,7 @@ typedef struct {
     uint32_t status_code;       /* 0=SUCCESS, non-zero=ERROR */
     uint64_t cycles_elapsed;
     double elapsed_ms;
+    uint64_t native_time_ns;
 } TaxonomyExecutionInfo;
 
 #define TAXONOMY_PATH_AUTO     0
@@ -61,9 +62,27 @@ typedef struct {
 #define TAXONOMY_STATUS_UNSUPPORTED_ISA   -2
 #define TAXONOMY_STATUS_EXECUTION_FAILED  -3
 
+/* Discovery & Diagnostic Utilities */
 TAXONOMY_API int taxonomy_get_capabilities(CpuNativeCapabilities* out_caps);
+TAXONOMY_API void taxonomy_noop(void);
+TAXONOMY_API void taxonomy_set_test_delay_ns(uint64_t delay_ns);
+TAXONOMY_API uint64_t taxonomy_get_test_delay_ns(void);
 
-/* Pure canonical dot-product reduction: acc = sum(activations[i] * weights[i]) */
+/* Explicit Symbol Exports */
+TAXONOMY_API int32_t taxonomy_int8_dot_scalar(const uint8_t* a, const int8_t* b, size_t n, int apply_relu);
+TAXONOMY_API int32_t taxonomy_int8_dot_avx2(const uint8_t* a, const int8_t* b, size_t n, int apply_relu);
+TAXONOMY_API int32_t taxonomy_int8_dot_vnni(const uint8_t* a, const int8_t* b, size_t n, int apply_relu);
+
+TAXONOMY_API void taxonomy_fp32_poly_scalar(const float* x, const float* c, float* out, size_t n);
+TAXONOMY_API void taxonomy_fp32_poly_avx2(const float* x, const float* c, float* out, size_t n);
+TAXONOMY_API void taxonomy_fp32_poly_avx512(const float* x, const float* c, float* out, size_t n);
+
+TAXONOMY_API void taxonomy_memory_stream_scalar(const float* buf, size_t total, size_t stride, float* out, size_t count);
+TAXONOMY_API void taxonomy_memory_stream_avx2(const float* buf, size_t total, size_t stride, float* out, size_t count);
+
+TAXONOMY_API void taxonomy_branch_control_scalar(const int32_t* keys, float* out, size_t n);
+
+/* High-Level Taxonomy Dispatchers */
 TAXONOMY_API int taxonomy_int8_dot_reduction(
     const uint8_t* activations,
     const int8_t* weights,
@@ -74,7 +93,6 @@ TAXONOMY_API int taxonomy_int8_dot_reduction(
     TaxonomyExecutionInfo* info
 );
 
-/* Vectorized INT8 product: out[i] = (int32_t)activations[i] * (int32_t)weights[i] */
 TAXONOMY_API int taxonomy_int8_dot(
     const uint8_t* activations,
     const int8_t* weights,
@@ -105,6 +123,15 @@ TAXONOMY_API int taxonomy_memory_stream(
 
 TAXONOMY_API int taxonomy_branch_control(
     const int32_t* keys,
+    float* out,
+    size_t n,
+    int requested_path,
+    TaxonomyExecutionInfo* info
+);
+
+TAXONOMY_API int taxonomy_mixed_native(
+    const uint8_t* activations,
+    const int8_t* weights,
     float* out,
     size_t n,
     int requested_path,

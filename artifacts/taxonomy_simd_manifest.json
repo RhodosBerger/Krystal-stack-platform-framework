@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.0.0",
-  "phase": "CrystalSec3_Phase5_3C_Native_CPU_SIMD",
+  "schema_version": "1.1.0",
+  "phase": "CrystalSec3_Phase5_3D_TrustedNativeExecution",
   "target_binary": "taxonomy_simd.dll",
   "target_architecture": "x86_64",
   "compiler": "MSVC / Clang / GCC (configurable)",
@@ -12,21 +12,46 @@
     "/fp:precise"
   ],
   "source_files": {
-    "src/c/taxonomy_simd.c": "1e978bc49eae6b7c4d92a3be14067d3dd5c08c4ba72ec317b1eb5b55803019d7",
-    "src/c/taxonomy_simd.h": "3bf6d5099d762a02ea04c1a685a0d86ea5d888f4882b1db0761f009821033e20"
+    "src/c/taxonomy_simd.c": "83a9ccd3a9c88f18b6c75173c55eb035c129745c37f36383a50214416ce8ccec",
+    "src/c/taxonomy_simd.h": "dfd9d7d48dec0ae0fc36dbffcb83a05e395aedc17e058d9cb65f7ca07015a3ea"
   },
   "dll_sha256": null,
   "supported_kernels": [
+    "taxonomy_noop",
+    "taxonomy_set_test_delay_ns",
+    "taxonomy_get_test_delay_ns",
     "taxonomy_get_capabilities",
+    "taxonomy_int8_dot_scalar",
+    "taxonomy_int8_dot_avx2",
+    "taxonomy_int8_dot_vnni",
+    "taxonomy_fp32_poly_scalar",
+    "taxonomy_fp32_poly_avx2",
+    "taxonomy_fp32_poly_avx512",
+    "taxonomy_memory_stream_scalar",
+    "taxonomy_memory_stream_avx2",
+    "taxonomy_branch_control_scalar",
+    "taxonomy_mixed_native",
+    "taxonomy_int8_dot_reduction",
     "taxonomy_int8_dot",
     "taxonomy_fp32_poly",
     "taxonomy_memory_stream",
     "taxonomy_branch_control",
     "taxonomy_mixed_compute_memory",
-    "taxonomy_last_execution_info",
-    "taxonomy_int8_dot_reduction"
+    "taxonomy_last_execution_info"
   ],
   "evidence_policy": {
+    "evidence_stages": [
+      "CAPABILITY_DETECTED",
+      "SOURCE_IMPLEMENTED",
+      "BINARY_BUILT",
+      "BINARY_PROVENANCE_VERIFIED",
+      "BINARY_TRUST_ACCEPTED",
+      "NATIVE_LIBRARY_LOADED",
+      "NATIVE_SYMBOL_EXECUTED",
+      "ISA_PATH_CONFIRMED",
+      "NATIVE_SIMD_EXECUTION_MEASURED",
+      "STATISTICALLY_REPEATED"
+    ],
     "allowed_labels": [
       "HOST_CPU_REFERENCE",
       "NATIVE_SCALAR_MEASURED",
@@ -37,8 +62,9 @@
       "STATISTICALLY_REPEATED",
       "CAPABILITY_DETECTED",
       "UNAVAILABLE",
-      "MODELED_PRIOR"
+      "MODELED_PRIOR",
+      "BINARY_TRUST_REJECTED"
     ],
-    "fallback_rule": "Never emit HARDWARE_MEASURED for Python fallback. Report UNAVAILABLE if native path is missing."
+    "fallback_rule": "Never emit HARDWARE_MEASURED or NATIVE_*_MEASURED for Python fallback. Report BINARY_TRUST_REJECTED or UNAVAILABLE if native path is blocked by security policy or missing."
   }
 }

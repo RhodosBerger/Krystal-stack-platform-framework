@@ -69,7 +69,7 @@ class TestNativeSimdPureLogic(unittest.TestCase):
             # Point runner to corrupted binary with expected hash
             runner = NativeCpuSimdRunner(dll_path=dummy_path, manifest_path=dummy_manifest_path)
             self.assertFalse(runner.available())
-            self.assertIn("hash mismatch", runner.unavailable_reason.lower())
+            self.assertTrue("binary_hash_mismatch" in runner.unavailable_reason.lower() or "mismatch" in runner.unavailable_reason.lower())
         finally:
             if os.path.exists(dummy_path):
                 os.remove(dummy_path)
