@@ -1122,6 +1122,9 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/voltage-governor', '/voltage-tensor', '/voltage-studio', '/voltage-scaling'):
             self._serve_file(os.path.join(STATIC_DIR, "voltage_tensor_governor_studio.html"), "text/html")
             return
+        if path in ('/elemental-studio', '/elemental-matrix', '/elemental-map', '/elements-studio'):
+            self._serve_file(os.path.join(STATIC_DIR, "elemental_hypervisor_matrix_studio.html"), "text/html")
+            return
         if path in ('/llm-studio', '/openai-studio', '/llm-connector', '/openai-llm', '/llm-gateway'):
             self._serve_file(os.path.join(STATIC_DIR, "llm_openai_studio.html"), "text/html")
             return
