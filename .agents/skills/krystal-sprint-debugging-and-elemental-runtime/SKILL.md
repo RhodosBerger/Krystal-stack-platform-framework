@@ -222,3 +222,29 @@ The **PROTIX (Predictive Real-time Observation & Toxic-Invariant eXecution)** mo
   - `POST /api/ml/protix/evaluate` — Evaluates accuracy, RMSE, MAE, and Silhouette Score.
 * **Universal Platform Invariant**: `VITAL_MAX_HP == 6` strictly clamped across all predictions and training targets.
 
+---
+
+## 8. Network Task Arbiter: Stred Medzi Endpointami a Plánovaním Úloh
+
+Architektonický **"Stred"** rieši rozpor medzi rigidnými synchrónnymi HTTP endpointmi a abstraktným plánovaním sieťových úloh:
+
+### 8.1 Štruktúra Arbitrážneho Mosta
+1. **Dual-Path Ingress**:
+   - **Fast-Path Bypass** ($<0.1\text{ ms}$): Pre kritické bezpečnostné zásahy a invarianty (`CRITICAL_REALTIME`).
+   - **Scheduled Quantum Dispatch** ($3.5\text{ ms}$ budget): Pre inferenciu modelu PROTIX, herné ťahy a asynchrónne dávky.
+2. **QoS Priority Rings**:
+   - `Band 0 (CRITICAL_REALTIME)`: Termálne havárie, ventilátor 100%, ochrana `VITAL_MAX_HP == 6`.
+   - `Band 1 (HIGH_INFERENCE)`: Prediktívne ML úlohy PROTIX ($<0.4\text{ ms}$).
+   - `Band 2 (STANDARD_GAME_STATE)`: Zápis do herného ledgeru a ťahy v Poslední Kmen.
+   - `Band 3 (BACKGROUND_BATCH)`: Hĺbkové evaluácie modelov, telemetrické logy.
+3. **Fyzikálne Ukotvený Backpressure**:
+   - Prepojenie s Ohmovým zákonom ($I = \frac{V}{R_{\text{eff}}} \le 10\text{ A}$) a termálnym odporom ($R_{\text{th}} = 0.72^\circ\text{C/W}$).
+   - Pri $T \ge 75^\circ\text{C}$ alebo prekročení prúdu arbiter odmietne nové nedôležité požiadavky (`NETWORK_ARBITER_CONGESTION_BACKPRESSURE`).
+4. **Rozpočet na Rámec (60 FPS / 16.6 ms Frame Budget)**:
+   - Presne $3.5\text{ ms}$ vyhradených pre sieťové úlohy eliminuje bufferbloat a chattering.
+
+### 8.2 Overenie
+```powershell
+python -m unittest tests/test_network_task_arbiter.py
+```
+
