@@ -5,6 +5,9 @@
 > *The Hypervisor executes virtualization (isolation, hardware emulation, execution contexts).  
 > Krystal Stack orchestrates paravirtual governance (predictive, transactional, interference-aware resource envelopes).*
 
+> **Direktíva kontinuity a evolúcie (Principle of Continuous Lineage):**  
+> *„Tento šprint nesmie odpojiť vývoj od existujúcich kľúčových mechanizmov. Antigravity musí explicitne vyhodnotiť, ako každý navrhnutý prvok nadväzuje na a rozširuje už zavedené osi ako stavový model, WSPT, transakčnú aktuáciu, hysterezu a epistemickú disciplínu. Nový hypervisor layer má tieto mechanizmy exercovať, nie obísť. Ak niečo nevie ukázať jasné napojenie na tento rodokmeň, označí sa to ako optional alebo defer; nie ako core. Zachovanie vývoja zároveň neznamená zmraziť funkcie, ale ich vývoj. Preto Antigravity pri každej navrhnutej úlohe uvedie, či rozširuje existujúci mechanizmus, všeobecňuje alebo len pridáva izolovanú infraštruktúru. Ak ju len pridáva, má nižšiu prioritu. Stratégia nesie označenie **Evolúcia, nie náhrada**, a v comprehension reporte výslovne zodpovedá, ktoré doterajšie prvky sa v tomto šprinte rozvíjajú a ktoré ostávajú bokom a prečo. Tak sa zachová kontinuita aj autonómia rozhodovania.“*
+
 ---
 
 ```
@@ -61,32 +64,50 @@ The development of the Paravirtual Resource Orchestration Toolkit (PROT) must **
 
 ```
 ==============================================================================================================
-                              GENEALOGICAL LINEAGE MAPPING TABLE
+                               GENEALOGICAL LINEAGE MAPPING TABLE
 ==============================================================================================================
 CORE AXIS              EXISTING MECHANISM                     PROPOSED EXTENSION             STATUS     PRIO
 --------------------------------------------------------------------------------------------------------------
-1. State Model         ExecutionState, MultiLockMatrix,       ParavirtualEnvelopeState       Extends    CORE
-                       PhaseController (LIQUID/CRYSTAL/GAS)   Host/Guest bound matrices      existing   (P1)
+1. Stavový model       ExecutionState, MultiLockMatrix,       ParavirtualEnvelopeState       Rozširuje  CORE
+   (State Model)       PhaseController (LIQUID/CRYSTAL/GAS)   Host/Guest bound matrices      existujúci (P1)
+                       VITAL_MAX_HP = 6, state transition                                    mechanizmus
 
-2. WSPT & Value-       PlacementEngine.evaluate_placement,    System-wide cross-VM           General-   CORE
-   Density             UCB Bandit (ovo), regret_calculator    interference matrix I_i(X)     izes       (P1)
+2. WSPT & Hodnotová    PlacementEngine.evaluate_placement,    System-wide cross-VM           Všeobec-   CORE
+   Hustota (Arbitration)UCB Bandit (ovo), regret_calculator   interference matrix I_i(X),    ňuje       (P1)
+                       Vital urgency factor S_i(t)            multi-tenant priority scaling
 
-3. Transactional       MigrationArbiter.execute_migration_    Staged 2-Phase Commit (2PC)    Extends    CORE
-   Actuation           transaction, VersionManager rollback   for cgroups v2 and QMP         existing   (P1)
+3. Transakčná          MigrationArbiter.execute_migration_    Staged 2-Phase Commit (2PC)    Rozširuje  CORE
+   Aktuácia (2PC)      transaction, VersionManager rollback   for cgroups v2 (cpu.max)       existujúci (P1)
+                       atomic tier-switch on verification     and QMP ballooning actuation   mechanizmus
 
-4. Hysteresis &        tier_hysteresis_prevents_oscillation,  Dynamic hysteresis (h >= 2d)   Extends    CORE
-   Anti-Chatter        dual-threshold control plane band      anti-ping-pong for vCPU/RAM    existing   (P1)
+4. Hystereza a Anti-   tier_hysteresis_prevents_oscillation,  Dynamic lookahead hysteresis   Rozširuje  CORE
+   Chatter Ochrana     dual-threshold control plane band      (h >= 2d) anti-ping-pong for   existujúci (P1)
+                       dwell-time suppression filters         vCPU allocation & migrations   mechanizmus
 
-5. Epistemic           derive_evidence_levels,                Strict UI manifest separation: General-   CORE
-   Discipline          capability != provenance != measured   [INVARIANT] vs [HYPOTHESIS]    izes       (P1)
+5. Epistemická         derive_evidence_levels,                Strict UI manifest separation: Všeobec-   CORE
+   Disciplína          capability != provenance != measured   [CANONICAL_INVARIANT] vs       ňuje       (P1)
+                       hardware counters vs telemetry flags   [WORKING_HYPOTHESIS] display              (P1)
 ==============================================================================================================
 ```
 
 ### 2.1 Task Categorization Rules
 When proposing any feature or engineering task in this sprint, it must be explicitly categorized:
-1. **Extends Existing Mechanism:** Direct lineage to active classes and invariants. (*High Priority / Core*)
-2. **Generalizes Existing Mechanism:** Expands an existing scalar/single-tenant pattern to multi-tenant system space. (*High Priority / Core*)
-3. **Adds Isolated Infrastructure:** New daemon, external broker, or third-party glue without Krystal lineage. (*Low Priority / Optional or Deferred*)
+1. **Rozširuje existujúci mechanizmus (Extends Existing Mechanism):** Direct lineage to active classes and invariants. (*High Priority / Core P1*)
+2. **Všeobecňuje existujúci mechanizmus (Generalizes Existing Mechanism):** Expands an existing scalar/single-tenant pattern to multi-tenant system space. (*High Priority / Core P1*)
+3. **Len pridáva izolovanú infraštruktúru (Adds Isolated Infrastructure):** New daemon, external broker, or third-party glue without Krystal lineage. (*Low Priority / Optional or Deferred P2-P3*)
+
+### 2.2 Granular Task Evaluation Matrix (Sprint Backlog)
+
+| Task ID | Component & Work Package | Lineage to Established Krystal Mechanism | Evolution Type | Sprint Priority | Epistemic Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **TSK-01** | `ParavirtualEnvelopeState` & Bound Contract Matrix | Directly inherits from `ExecutionState`, `MultiLockMatrix`, and `PhaseController`. Enforces envelope state machine (`IDLE` $\to$ `STAGED` $\to$ `ACTIVE` $\to$ `COMPENSATING`). | **Rozširuje existujúci mechanizmus** | **CORE (P1)** | `[CANONICAL_INVARIANT]` |
+| **TSK-02** | Multi-Tenant Cross-Workload WSPT Interference Arbiter | Generalizes `PlacementEngine.evaluate_placement` and UCB Bandit into multi-workload matrix $\mathcal{I}_i(\vec{X})$ (LLC cache, memory bus, and storage collision). | **Všeobecňuje existujúci mechanizmus** | **CORE (P1)** | `[WORKING_HYPOTHESIS]` $\mathcal{H}_{\text{wspt}}$ |
+| **TSK-03** | Two-Phase Commit (2PC) cgroups v2 & QMP Actuator | Extends `MigrationArbiter.execute_migration_transaction` and `VersionManager` with transactional staging, hardware counter proof gate, and atomic rollback. | **Rozširuje existujúci mechanizmus** | **CORE (P1)** | `[CANONICAL_INVARIANT]` |
+| **TSK-04** | Dynamic Lookahead Hysteresis Anti-Ping-Pong Damping | Extends `tier_hysteresis_prevents_oscillation` with dynamic dead-band gap $h \ge 2\hat{\delta}$ to prevent vCPU/RAM allocation flapping under bursty loads. | **Rozširuje existujúci mechanizmus** | **CORE (P1)** | `[WORKING_HYPOTHESIS]` $\mathcal{H}_{\text{hyst}}$ |
+| **TSK-05** | Epistemic UI Kit: Manifest Dashboard (Command Surface, Diff, Timeline) | Generalizes `derive_evidence_levels` into visual governance. Displays strictly isolated streams: Invariant Truths, Working Hypotheses, and Empirical Telemetry. | **Všeobecňuje existujúci mechanizmus** | **CORE (P1)** | `[CANONICAL_INVARIANT]` |
+| **TSK-06** | Falsification Pass Test Suite (`FP-01` to `FP-04`) | Extends pytest verification harness (`test_crystalsec_v3_*.py`) with deliberate stress-testing and boundary falsification of working hypotheses. | **Rozširuje existujúci mechanizmus** | **CORE (P1)** | `[EMPIRICAL_PROBE_TARGET]` |
+| **TSK-07** | Standalone External RPC Message Broker / Gateway Daemon | Adds isolated daemon and external protocol translation without direct connection to Krystal scheduling or state invariants. | **Len pridáva izolovanú infraštruktúru** | **DEFERRED (P3)** | `[WORKING_HYPOTHESIS]` |
+| **TSK-08** | Full Production KubeVirt CRD Operator & Webhook Reconciler | Heavy Kubernetes controller infrastructure that distracts from core mathematical and paravirtual validation. | **Len pridáva izolovanú infraštruktúru** | **DEFERRED (P3)** | `[WORKING_HYPOTHESIS]` |
 
 ---
 
@@ -273,17 +294,44 @@ Before committing to full production adapter implementations, Krystal requires a
 
 ## 9. Comprehension Report: Retained Lineage vs. Deferred Elements
 
-### 9.1 Elements Under Active Evolution in this Sprint
-1. **`crystalsec_v3` Placement & Arbitration:** Evolves from single-host native SIMD vs. GPU placement into multi-VM resource envelope arbitration.
-2. **`MigrationArbiter` & Transactional Engine:** Evolves from in-memory tier switching into hypervisor-level Two-Phase Commit (`prepare` -> `verify` -> `commit` / `rollback`).
-3. **`TigerLakeTurboUnblocker` Hardware Guardrails:** Extended to become the physical constraint provider for $E_{\text{host}}$ (thermal, PL1/PL2, Arrhenius longevity).
-4. **`ShadowOracle` Degradation Profiling:** Reused to quantify cross-VM LLC cache contention and memory bus saturation.
+Tento comprehension report výslovne zodpovedá, ktoré doterajšie prvky sa v tomto šprinte rozvíjajú a ktoré ostávajú bokom a prečo, čím sa garantuje kontinuita aj autonómia rozhodovania bez zbytočného zmrazenia vývoja.
 
-### 9.2 Elements Intentionally Retained / Left Deferred (and Why)
-1. **Godot 4.x Procedural Scene Generation & Card Game Rules:** Retained in stable state. Touching gaming assets would dilute focus from paravirtual resource governance.
-2. **Native UMCI Code Signing Pass:** Retained under existing policy (Status 2: UMCI active). Paravirtual user-space governance operates without weakening host kernel security.
-3. **Custom Hypervisor Development:** Intentionally excluded. Virtualization is handled by KVM/QEMU; Krystal Stack acts strictly as the paravirtual orchestration layer.
-4. **Full Production KubeVirt Controller:** Deferred to Phase 2. First establish falsified mathematical boundaries on lightweight KVM/QMP before building heavy Kubernetes CRD reconcilers.
+### 9.1 Ktoré doterajšie prvky sa v tomto šprinte rozvíjajú (Active Evolution)
+V tomto šprinte sa nerozbieha žiadny izolovaný greenfield projekt. Všetky prioritné práce predstavujú priamu evolúciu existujúcich mechanizmov:
+
+1. **`ExecutionState` & `PhaseController` (`LIQUID/CRYSTAL/GAS`):**
+   - *Pôvod:* Riadenie fázových prechodov a multizámkovej matice pre lokálne worker vlákna a pamäťové zóny.
+   - *Evolúcia:* Rozšírenie na `ParavirtualEnvelopeState`, kde obálky hostiteľa a hosťa prechádzajú stavovým automatom (`IDLE` $\to$ `STAGED` $\to$ `ACTIVE` $\to$ `COMPENSATING`) pri zachovaní invariantu integrity $\text{VITAL\_MAX\_HP} = 6$.
+2. **`PlacementEngine.evaluate_placement` & Algoritmické modely UCB Bandita (`openvino_oneapi_system`):**
+   - *Pôvod:* Skalárne vyhodnocovanie umiestnenia úloh medzi Willow Cove CPU a Iris Xe GPU podľa pomeru hodnota/čas.
+   - *Evolúcia:* Všeobecnenie na systémovú multi-tenant maticu krížovej interferencie $\mathcal{I}_i(\vec{X})$. WSPT semantika sa rozširuje z lokálneho dispatchu na globálne paravirtuálne riadenie CPU kvót (`cpu.max`) a QMP ballooningu.
+3. **`MigrationArbiter.execute_migration_transaction` & `VersionManager`:**
+   - *Pôvod:* Transakčné prepínanie heterogénnych výpočtových tierov v pamäti s automatickým rollbackom pri zlyhaní testu verifikácie.
+   - *Evolúcia:* Rozšírenie na plnohodnotný Two-Phase Commit (2PC) nad hypervízorovými rozhraniami (cgroups v2, QMP socket, libvirt NUMA affinity). Každá zmena alokácie je najprv staged, verifikovaná hardvérovými počítadlami a v prípade anomálie kompenzačne vrátená.
+4. **`tier_hysteresis_prevents_oscillation` & Dwell-Time filtre:**
+   - *Pôvod:* Dvojprahové pásmo v riadiacej rovine zamedzujúce kmitaniu medzi CPU a GPU pri drobných fluktuáciách zaťaženia.
+   - *Evolúcia:* Implementácia dynamickej lookahead hysterezy ($h \ge 2\hat{\delta}$) na potlačenie vCPU ping-pongu a nechceného nafukovania/vyfukovania pamäte pri periodických burstoch (FP-03).
+5. **`derive_evidence_levels` & Epistemická disciplína:**
+   - *Pôvod:* Prísne oddelenie formálnych úrovní evidencie: $\text{capability} \neq \text{provenance} \neq \text{trusted load} \neq \text{executed ISA} \neq \text{measured performance}$.
+   - *Evolúcia:* Všeobecnenie do UI Manifestu a telemetrického filtra. UI striktne vizuálne oddeľuje apriórne invarianty (`[CANONICAL_INVARIANT]`), nepotvrdené predikčné modely (`[WORKING_HYPOTHESIS]`) a nameranú hardvérovú pravdu (`[EMPIRICAL_PROBE_TARGET]`).
+
+### 9.2 Ktoré prvky ostávajú bokom a prečo (Explicitly Deferred Elements)
+Princíp kontinuity vyžaduje zachovať autonómiu a nerozptyľovať vývojovú kapacitu na periférne moduly, ktoré nesúvisia s paravirtuálnou guberniou:
+
+1. **Godot 4.x Procedural Scene Generation & Kartový engine:**
+   - *Prečo ostáva bokom:* Moduly pre procedurálne generovanie terénov, ostrovov a herných kariet sú plne stabilizované. Ich modifikácia počas tohto šprintu by nepriniesla žiadny benefit pre hypervízorovú vrstvu a rozptyľovala by overovacie kapacity.
+2. **Natívny UMCI Code Signing Pass & Kernel Ovládače:**
+   - *Prečo ostáva bokom:* Systém beží v súlade s platnou bezpečnostnou politikou (Status 2: UMCI active). Paravirtuálna vrstva Krystal je čisto používateľská (user-space) kooperatívna gubernia operujúca cez štandardné Linux cgroups v2 / QMP sockety a nevyžaduje vývoj neoverených ovládačov v ring 0.
+3. **Vývoj vlastného natívneho hypervízora:**
+   - *Prečo ostáva bokom:* Virtualizáciu hardvéru, izoláciu pamäťových stránok a CPU kontexty rieši KVM/QEMU. Krystal Stack nestavia konkurenčný hypervízor; stavia nad ním prediktívnu, transakčnú a interferenčne citlivú riadiacu vrstvu.
+4. **Plný produkčný KubeVirt Operator / CRD Reconciler:**
+   - *Prečo ostáva bokom:* KubeVirt adaptér je zaradený ako `OPTIONAL/DEFERRED (P3)`. Pred nasadením ťažkopádnych Kubernetes operátorov je nevyhnutné matematicky a empiricky overiť základné moduly a falsifikačné testy (FP-01 až FP-04) na priamom KVM/cgroups rozhraní.
+5. **Samostatný externý RPC broker / nový background daemon:**
+   - *Prečo ostáva bokom:* Pridanie izolovanej infraštruktúry bez rodokmeňa by porušilo princíp kontinuity. Komunikácia využíva existujúce sockety a overené procesné mechanizmy Krystalu.
+
+### 9.3 Zachovanie kontinuity aj autonómie rozhodovania
+- **Kontinuita:** Zaručuje, že žiadny existujúci testovací invariant, rozhranie ani stabilný mechanizmus sa nezruší ani neobíde. Nová vrstva stavia na základoch overených viac než 1 100 testami.
+- **Autonómia rozhodovania:** Umožňuje tímu slobodne inovovať v oblasti multi-tenant predikcie a arbitráže bez toho, aby bol uzamknutý proprietárnymi hypervízorovými nástrojmi alebo umelo brzdený periférnymi subsystemami. Všetky neoverené tézy nesú status `[WORKING_HYPOTHESIS]` a prechádzajú falsifikačným protokolom skôr, než sa stanú kanonickými.
 
 ---
 
