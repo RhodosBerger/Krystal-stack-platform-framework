@@ -179,3 +179,46 @@ The Krystal Elemental Structure directly maps gameplay and physical polarities t
   ```
 * **Platform Invariant**: `VITAL_MAX_HP == 6` strictly preserved in 100% of telemetry frames.
 
+---
+
+## 7. PROTIX Machine Learning Models & Neural Structures
+
+The **PROTIX (Predictive Real-time Observation & Toxic-Invariant eXecution)** model suite implements formal deep learning architectures and multi-task neural heads adhering to `@skill:ml-best-practices`:
+
+### 7.1 Multi-Task Deep Learning Architecture
+* **Trunk**: `Input(12)` $\rightarrow$ `Dense(64, Swish)` $\rightarrow$ `LayerNorm` $\rightarrow$ `Dropout(0.1)` $\rightarrow$ `Dense(32, Swish)`.
+* **Head 1 (Classification - 5 classes Softmax)**: Tactical Opponent Action:
+  1. `TOXIC_SPORE_STRIKE`: Corrosive burst.
+  2. `ACID_MUD_QUENCH`: Thermal damping & terrain sludge.
+  3. `CATALYZED_SHARD_BURST`: Amber-stabilized crystal shatter.
+  4. `DEFENSIVE_RESIN_ABSORB`: Bark/resin absorption.
+  5. `DRAIN_MANA_CORROSION`: Resource starvation overtime.
+* **Head 2 (Regression - 3 outputs)**: Continuous telemetry & damage prediction (`predicted_damage`, `predicted_undervolt_mv`, `predicted_temperature_c`).
+* **Head 3 (Clustering / Dimensionality Reduction - 2D Projection)**: Projects representations into a 2D latent space with k-Means clustering and Silhouette Score ($s \in [-1, 1]$), identifying 3 tactical archetypes:
+  - `AGGRESSIVE_STRIKER`: High damage, high thermal output ($(-1.8, 1.2)$).
+  - `TACTICAL_COUNTER_HARVEST`: Balanced reactive, amber catalyst user ($(0.5, 0.2)$).
+  - `RESILIENT_FORTIFIER`: Defensive bark soak, low heat ($(1.5, -1.4)$).
+* **Head 4 (Risk & Anomaly Detection - Sigmoid)**: Invariant breach probability $P(\text{hazard})$ ensuring safety boundaries.
+
+### 7.2 Preprocessing & Machine Learning Structures
+* **$Z$-Score Standardization**: $z = \frac{x - \mu}{\sigma}$ with division-by-zero protection ($\sigma \ge 10^{-6}$).
+* **Chronological Dataset Splitting**: 70% Train, 15% Validation, 15% Test without temporal leakage.
+* **Vectorized Native Core**: Executes in $<0.4\text{ ms}$ (measured $\approx 310\text{ }\mu\text{s}$) with zero external heavy framework dependency lock-in.
+* **Formal Keras 3 Graph Builder**: Generates production-ready JSON graph specification compliant with `keras.models.model_from_json`.
+
+### 7.3 Operational Commands & Testing
+* **CLI Engine & Multi-Task Evaluation**:
+  ```powershell
+  python krystal_kernel/protix_ml_models.py
+  ```
+* **Unit Test Suite**:
+  ```powershell
+  python -m unittest tests/test_protix_ml_models.py
+  ```
+* **Mission Control REST Endpoints**:
+  - `GET  /api/ml/protix/architecture` — Returns Keras 3 Functional API graph.
+  - `GET  /api/ml/protix/status` — Returns model config and catalog enums.
+  - `POST /api/ml/protix/predict` — Multi-head real-time inference ($<0.4\text{ ms}$).
+  - `POST /api/ml/protix/evaluate` — Evaluates accuracy, RMSE, MAE, and Silhouette Score.
+* **Universal Platform Invariant**: `VITAL_MAX_HP == 6` strictly clamped across all predictions and training targets.
+

@@ -150,6 +150,11 @@ from krystal_kernel.voltage_scaling_tensor_governor import (
 from krystal_kernel.elemental_hypervisor_telemetry_matrix import (
     GLOBAL_ELEMENTAL_HYPERVISOR_MATRIX
 )
+from krystal_kernel.protix_ml_models import (
+    GLOBAL_PROTIX_ML_ENGINE,
+    ProtixMLStructureEngine,
+    ProtixModelConfig
+)
 from krystal_kernel.openai_llm_connector import (
     GLOBAL_OPENAI_CONNECTOR,
     OpenAILLMConnector,
@@ -1751,6 +1756,25 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_ELEMENTAL_HYPERVISOR_MATRIX.export_full_manifest())
             return
 
+        # ── PROTIX MACHINE LEARNING & NEURAL STRUCTURE ENDPOINTS (GET) ─────
+        if path == '/api/ml/protix/architecture':
+            self._send_json(GLOBAL_PROTIX_ML_ENGINE.get_keras_graph_specification())
+            return
+
+        if path == '/api/ml/protix/status':
+            self._send_json({
+                "model_name": GLOBAL_PROTIX_ML_ENGINE.config.model_name,
+                "input_dim": GLOBAL_PROTIX_ML_ENGINE.config.input_dim,
+                "action_classes": [a.value for a in GLOBAL_PROTIX_ML_ENGINE.actions_catalog],
+                "cluster_archetypes": [c.value for c in GLOBAL_PROTIX_ML_ENGINE.archetypes_catalog],
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/ml/protix/evaluate':
+            self._send_json(GLOBAL_PROTIX_ML_ENGINE.evaluate_model_suite(test_count=120))
+            return
+
         # ── UNIVERSAL OPENAI LLM CONNECTOR ENDPOINTS (GET) ──────────────────
         if path == '/api/llm/status':
             self._send_json(GLOBAL_OPENAI_CONNECTOR.get_status())
@@ -2772,6 +2796,37 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "fan_status": status["fan_status"],
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
+            return
+
+        # ── PROTIX MACHINE LEARNING & NEURAL STRUCTURE ENDPOINTS (POST) ────
+        if path == '/api/ml/protix/predict':
+            features = req_data.get("features")
+            if not features or not isinstance(features, list) or len(features) < 12:
+                p_hp = float(req_data.get("player_hp", 5.0))
+                o_hp = float(req_data.get("opponent_hp", 4.0))
+                t_cpu = float(req_data.get("temp_cpu_c", 55.0))
+                t_gpu = float(req_data.get("temp_gpu_c", 58.0))
+                ftime = float(req_data.get("frametime_ms", 12.0))
+                volt = float(req_data.get("voltage_v", 0.85))
+                fan = float(req_data.get("fan_duty_pct", 100.0))
+                pol_c = float(req_data.get("polarity_crystal", 0.5))
+                pol_t = float(req_data.get("polarity_toxic", 0.3))
+                pol_d = float(req_data.get("polarity_druid", 0.2))
+                pol_f = float(req_data.get("polarity_fire", 0.4))
+                q_depth = float(req_data.get("queue_depth", 15.0))
+                features = [p_hp, o_hp, t_cpu, t_gpu, ftime, volt, fan, pol_c, pol_t, pol_d, pol_f, q_depth]
+
+            res = GLOBAL_PROTIX_ML_ENGINE.predict(features)
+            self._send_json({
+                "success": True,
+                "prediction": res.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/ml/protix/evaluate':
+            t_count = int(req_data.get("test_count", 120))
+            self._send_json(GLOBAL_PROTIX_ML_ENGINE.evaluate_model_suite(test_count=t_count))
             return
 
         # ── UNIVERSAL OPENAI LLM CONNECTOR POST ENDPOINTS ──────────────────
