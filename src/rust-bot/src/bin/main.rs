@@ -2,7 +2,6 @@
 
 use gamesa_bot::{GamesaBot, Config, TelemetrySnapshot};
 use chrono::Utc;
-use std::time::Duration;
 
 fn main() {
     // Initialize logging

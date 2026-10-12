@@ -48,6 +48,10 @@ pub use cinematic_bridge::{
     KBSBMotionScanPacket, VisemeId, EmotionId, DeceptionDetector,
     InterrogationVerdict, MortarTrajectoryPredictor, CinematicBridgeError,
     KMCP_FRAME_SIZE, KMCP_MAGIC,
+    KBSBMortarBallisticPacket, KBSBDeceptionVerdictPacket,
+    AcousticWhisperPredictor, AcousticSpectralBands, AcousticPrediction,
+    KBSBMotionScanPacketBatch,
+    KMBP_FRAME_SIZE, KMBP_MAGIC, KDVP_FRAME_SIZE, KDVP_MAGIC,
 };
 
 /// Main orchestrator combining all components

@@ -52,6 +52,11 @@ try:
         SupportedCodecType, VisemeLODLevel, KBSBMotionScanBinaryCodec,
         AdaptiveCinematicController
     )
+    from mimicry_engine.whisper_acoustic_pipeline import (
+        KBSBMortarBallisticCodec, KBSBDeceptionVerdictCodec,
+        WhisperPhonemeAcousticPipeline, AcousticSpectralBands,
+        MortarCameraMode, InterrogationVerdict
+    )
     mimicry_available = True
     cinematic_engine_available = True
 except Exception as e:
@@ -2377,6 +2382,19 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                     "duration": duration,
                     "step_count": len(samples),
                     "samples": samples
+                })
+
+        # ── API: Cinematic Packet & Acoustic Pipeline Micro-Benchmark ─
+        elif norm_path == "/api/cinematic/benchmark/packets":
+            if not cinematic_engine_available:
+                self.send_json({"status": "UNAVAILABLE", "message": "Cinematic engine offline"}, status=503)
+            else:
+                qs = parse_qs(parsed.query)
+                iterations = max(50, min(20000, int(qs.get("iterations", [1000])[0])))
+                bench_res = WhisperPhonemeAcousticPipeline.benchmark_codecs(iterations)
+                self.send_json({
+                    "status": "OK",
+                    "benchmark": bench_res
                 })
 
         # ── API: OpenWorld Status ──────────────────────────────────
@@ -5491,6 +5509,166 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "interrogation_resolution": "PROCEED" if authority_verdict == "COMMIT_APPROVED" else "HOLD"
             })
 
+        # ── API: Whisper Acoustic Phoneme & Voice Stress Predictor ─
+        elif self.path == "/api/cinematic/whisper/predict":
+            if not cinematic_engine_available:
+                self.send_json({"status": "ERROR", "message": "Cinematic engine offline."}, status=503)
+                return
+
+            vital_hp = int(data.get("vital_hp", 6))
+            if vital_hp > 6:
+                self.send_json({
+                    "status": "VETO",
+                    "error": "VITAL_MAX_HP invariant breach",
+                    "vital_hp": vital_hp
+                }, status=400)
+                return
+
+            bands = AcousticSpectralBands(
+                f1_hz=float(data.get("f1_hz", 500.0)),
+                f2_hz=float(data.get("f2_hz", 1500.0)),
+                f3_hz=float(data.get("f3_hz", 2500.0)),
+                sibilance_ratio=float(data.get("sibilance_ratio", 0.1)),
+                energy_rms=float(data.get("energy_rms", 0.5)),
+                pitch_hz=float(data.get("pitch_hz", 140.0))
+            )
+            facial_deception = float(data.get("facial_deception_score", 0.0))
+            prediction = WhisperPhonemeAcousticPipeline.predict_from_bands(
+                bands=bands,
+                facial_deception_score=facial_deception
+            )
+
+            self.send_json({
+                "status": "SUCCESS",
+                "prediction": prediction.to_dict(),
+                "bands": bands.to_dict(),
+                "vital_hp": vital_hp,
+                "deception_masked": (prediction.cross_modal_divergence > 0.35)
+            })
+
+        # ── API: KBSB-MortarBallistic 32-Byte Binary Packet Codec ──
+        elif self.path == "/api/cinematic/codec/mortar-packet":
+            if not cinematic_engine_available:
+                self.send_json({"status": "ERROR", "message": "Cinematic engine offline."}, status=503)
+                return
+
+            action = data.get("action", "encode")
+            if action == "encode":
+                vital_hp = int(data.get("vital_hp", 6))
+                if vital_hp > 6:
+                    self.send_json({
+                        "status": "VETO",
+                        "error": "VITAL_MAX_HP invariant breach",
+                        "vital_hp": vital_hp
+                    }, status=400)
+                    return
+
+                ts_ms = int(data.get("timestamp_ms", 0))
+                progress = float(data.get("progress", 0.0))
+                camera_mode = data.get("camera_mode", "FOLLOW_SHELL")
+                shell_pos = tuple(data.get("shell_pos", [0.0, 0.0, 0.0]))
+                speed = float(data.get("speed", 0.0))
+                shake = float(data.get("shake", 0.0))
+
+                encoded_bytes = KBSBMortarBallisticCodec.encode_frame(
+                    timestamp_ms=ts_ms,
+                    progress=progress,
+                    vital_hp=vital_hp,
+                    camera_mode=camera_mode,
+                    shell_pos=shell_pos,
+                    speed=speed,
+                    shake=shake
+                )
+                import base64
+                self.send_json({
+                    "status": "SUCCESS",
+                    "action": "encode",
+                    "packet_size": len(encoded_bytes),
+                    "hex_data": encoded_bytes.hex(),
+                    "base64_data": base64.b64encode(encoded_bytes).decode("ascii")
+                })
+            elif action == "decode":
+                import base64
+                raw_bytes = None
+                if "hex_data" in data:
+                    raw_bytes = bytes.fromhex(data["hex_data"])
+                elif "base64_data" in data:
+                    raw_bytes = base64.b64decode(data["base64_data"])
+
+                if not raw_bytes:
+                    self.send_json({"status": "ERROR", "message": "Missing hex_data or base64_data"}, status=400)
+                    return
+
+                try:
+                    decoded = KBSBMortarBallisticCodec.decode_frame(raw_bytes)
+                    self.send_json({
+                        "status": "SUCCESS",
+                        "action": "decode",
+                        "packet": decoded
+                    })
+                except Exception as e:
+                    self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+            else:
+                self.send_json({"status": "ERROR", "message": f"Unsupported action: {action}"}, status=400)
+
+        # ── API: KBSB-DeceptionVerdict 16-Byte Binary Packet Codec ──
+        elif self.path == "/api/cinematic/codec/verdict-packet":
+            if not cinematic_engine_available:
+                self.send_json({"status": "ERROR", "message": "Cinematic engine offline."}, status=503)
+                return
+
+            action = data.get("action", "encode")
+            if action == "encode":
+                vital_hp = int(data.get("vital_hp", 6))
+                if vital_hp > 6:
+                    self.send_json({
+                        "status": "VETO",
+                        "error": "VITAL_MAX_HP invariant breach",
+                        "vital_hp": vital_hp
+                    }, status=400)
+                    return
+
+                ts_ms = int(data.get("timestamp_ms", 0))
+                verdict = data.get("verdict", "TRUTH")
+                deception_score = float(data.get("deception_score", 0.0))
+
+                encoded_bytes = KBSBDeceptionVerdictCodec.encode_frame(
+                    timestamp_ms=ts_ms,
+                    verdict=verdict,
+                    vital_hp=vital_hp,
+                    deception_score=deception_score
+                )
+                import base64
+                self.send_json({
+                    "status": "SUCCESS",
+                    "action": "encode",
+                    "packet_size": len(encoded_bytes),
+                    "hex_data": encoded_bytes.hex(),
+                    "base64_data": base64.b64encode(encoded_bytes).decode("ascii")
+                })
+            elif action == "decode":
+                import base64
+                raw_bytes = None
+                if "hex_data" in data:
+                    raw_bytes = bytes.fromhex(data["hex_data"])
+                elif "base64_data" in data:
+                    raw_bytes = base64.b64decode(data["base64_data"])
+
+                if not raw_bytes:
+                    self.send_json({"status": "ERROR", "message": "Missing hex_data or base64_data"}, status=400)
+                    return
+
+                try:
+                    decoded = KBSBDeceptionVerdictCodec.decode_frame(raw_bytes)
+                    self.send_json({
+                        "status": "SUCCESS",
+                        "action": "decode",
+                        "packet": decoded
+                    })
+                except Exception as e:
+                    self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+            else:
+                self.send_json({"status": "ERROR", "message": f"Unsupported action: {action}"}, status=400)
 
         # ── API: OpenWorld Natural Language Compilation ───────────
         elif self.path == "/api/openworld/compile":

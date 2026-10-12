@@ -47,6 +47,14 @@ from mimicry_engine.cinematic_codec_adaptation import (
     KBSBMotionScanBinaryCodec,
     AdaptiveCinematicController
 )
+from mimicry_engine.whisper_acoustic_pipeline import (
+    KBSBMortarBallisticCodec,
+    KBSBDeceptionVerdictCodec,
+    WhisperPhonemeAcousticPipeline,
+    AcousticSpectralBands,
+    MortarCameraMode,
+    InterrogationVerdict
+)
 
 
 class TestAdvancedCinematicAndRustIntegration(unittest.TestCase):
@@ -332,6 +340,215 @@ class TestAdvancedCinematicAndRustIntegration(unittest.TestCase):
         self.assertEqual(st["domain_id"], "cinematic_interrogation")
         self.assertIn("geometry", st)
         self.assertGreater(st["geometry"]["composite_utility_u"], 4.0)
+
+    def test_10_mortar_ballistic_32b_packet_codec(self):
+        """Validates 32-byte exact zero-copy layout and CRC32 for KBSBMortarBallisticPacket."""
+        encoded = KBSBMortarBallisticCodec.encode_frame(
+            timestamp_ms=3450,
+            progress=0.75,
+            vital_hp=6,
+            camera_mode=MortarCameraMode.CINEMATIC_PLUNGE,
+            shell_pos=(-12.5, 18.25, -4.75),
+            speed=28.4,
+            shake=0.185
+        )
+        self.assertEqual(len(encoded), 32)
+        self.assertEqual(encoded[:4], b"KMBP")
+
+        # Unpack raw binary layout
+        magic, ts, prog_q16, hp, c_mode, sx, sy, sz, sp_u16, sh_u16, crc = struct.unpack(
+            ">4sIHBB3fHHI", encoded
+        )
+        self.assertEqual(magic, b"KMBP")
+        self.assertEqual(ts, 3450)
+        self.assertEqual(hp, 6)
+        self.assertEqual(c_mode, 2)  # CINEMATIC_PLUNGE
+        self.assertAlmostEqual(prog_q16 / 65535.0, 0.75, places=3)
+        self.assertAlmostEqual(sx, -12.5, places=2)
+        self.assertAlmostEqual(sy, 18.25, places=2)
+        self.assertAlmostEqual(sz, -4.75, places=2)
+        self.assertAlmostEqual(sp_u16 / 100.0, 28.4, places=1)
+        self.assertAlmostEqual(sh_u16 / 1000.0, 0.185, places=3)
+
+        # Decode and verify dictionary output
+        decoded = KBSBMortarBallisticCodec.decode_frame(encoded)
+        self.assertEqual(decoded["magic"], "KMBP")
+        self.assertEqual(decoded["vital_hp"], 6)
+        self.assertEqual(decoded["camera_mode"], "CINEMATIC_PLUNGE")
+        self.assertEqual(decoded["shell_pos"], [-12.5, 18.25, -4.75])
+
+        # Test invariant protection: vital_hp > 6 raises ValueError
+        with self.assertRaises(ValueError):
+            KBSBMortarBallisticCodec.encode_frame(
+                timestamp_ms=1000,
+                progress=0.5,
+                vital_hp=7,
+                camera_mode=MortarCameraMode.FOLLOW_SHELL,
+                shell_pos=(0.0, 0.0, 0.0),
+                speed=10.0,
+                shake=0.0
+            )
+
+    def test_11_deception_verdict_16b_packet_codec(self):
+        """Validates 16-byte exact zero-copy layout and CRC32 for KBSBDeceptionVerdictPacket."""
+        encoded = KBSBDeceptionVerdictCodec.encode_frame(
+            timestamp_ms=5200,
+            verdict=InterrogationVerdict.LIE,
+            vital_hp=6,
+            deception_score=0.885
+        )
+        self.assertEqual(len(encoded), 16)
+        self.assertEqual(encoded[:4], b"KDVP")
+
+        # Unpack raw binary layout
+        magic, ts, v_val, hp, dec_q16, crc = struct.unpack(">4sIBBHI", encoded)
+        self.assertEqual(magic, b"KDVP")
+        self.assertEqual(ts, 5200)
+        self.assertEqual(v_val, 2)  # LIE
+        self.assertEqual(hp, 6)
+        self.assertAlmostEqual(dec_q16 / 65535.0, 0.885, places=3)
+
+        # Decode and verify
+        decoded = KBSBDeceptionVerdictCodec.decode_frame(encoded)
+        self.assertEqual(decoded["magic"], "KDVP")
+        self.assertEqual(decoded["verdict"], "LIE")
+        self.assertEqual(decoded["vital_hp"], 6)
+        self.assertAlmostEqual(decoded["deception_score"], 0.885, places=2)
+
+        # Test invariant protection: vital_hp > 6 raises ValueError
+        with self.assertRaises(ValueError):
+            KBSBDeceptionVerdictCodec.encode_frame(
+                timestamp_ms=2000,
+                verdict=InterrogationVerdict.TRUTH,
+                vital_hp=10,
+                deception_score=0.1
+            )
+
+    def test_12_whisper_acoustic_pipeline_and_cross_modal_divergence(self):
+        """Tests Whisper acoustic formant analysis and acoustic-visual divergence."""
+        # 1. Sibilant test
+        bands_ss = AcousticSpectralBands(
+            f1_hz=450.0,
+            f2_hz=1600.0,
+            f3_hz=2700.0,
+            sibilance_ratio=0.55,
+            energy_rms=0.6,
+            pitch_hz=135.0
+        )
+        pred_ss = WhisperPhonemeAcousticPipeline.predict_from_bands(bands_ss, facial_deception_score=0.2)
+        self.assertEqual(pred_ss.viseme, "SS")
+        self.assertGreater(pred_ss.confidence, 0.7)
+
+        # 2. Silence test
+        bands_rest = AcousticSpectralBands(
+            f1_hz=200.0,
+            f2_hz=800.0,
+            f3_hz=2000.0,
+            sibilance_ratio=0.01,
+            energy_rms=0.005,
+            pitch_hz=0.0
+        )
+        pred_rest = WhisperPhonemeAcousticPipeline.predict_from_bands(bands_rest, facial_deception_score=0.0)
+        self.assertEqual(pred_rest.viseme, "REST")
+
+        # 3. High stress + low visual score = High cross-modal divergence (masked deception)
+        bands_stressed = AcousticSpectralBands(
+            f1_hz=700.0,
+            f2_hz=1400.0,
+            f3_hz=3200.0,  # High vocal cord tension
+            sibilance_ratio=0.12,
+            energy_rms=0.8,
+            pitch_hz=260.0  # Elevated pitch
+        )
+        pred_stressed = WhisperPhonemeAcousticPipeline.predict_from_bands(bands_stressed, facial_deception_score=0.15)
+        self.assertGreater(pred_stressed.stress_index, 0.6)
+        self.assertGreater(pred_stressed.cross_modal_divergence, 0.45)
+
+    def test_13_server_cinematic_benchmark_packets(self):
+        """Tests GET /api/cinematic/benchmark/packets."""
+        status_code, body = self._http_get("/api/cinematic/benchmark/packets?iterations=500")
+        self.assertEqual(status_code, 200)
+        self.assertEqual(body["status"], "OK")
+        bench = body["benchmark"]
+        self.assertEqual(bench["status"], "PASS_HIGH_PERFORMANCE")
+        self.assertEqual(bench["invariant_vital_hp"], 6)
+        self.assertGreater(bench["kmbp_32b"]["ops_per_sec"], 50000)
+        self.assertGreater(bench["kdvp_16b"]["ops_per_sec"], 50000)
+        self.assertGreater(bench["whisper_acoustic_pipeline"]["inferences_per_sec"], 50000)
+
+    def test_14_server_whisper_predict_endpoint(self):
+        """Tests POST /api/cinematic/whisper/predict."""
+        payload = {
+            "f1_hz": 750.0,
+            "f2_hz": 1200.0,
+            "f3_hz": 2400.0,
+            "sibilance_ratio": 0.1,
+            "energy_rms": 0.5,
+            "pitch_hz": 130.0,
+            "facial_deception_score": 0.15,
+            "vital_hp": 6
+        }
+        status_code, body = self._http_post("/api/cinematic/whisper/predict", payload)
+        self.assertEqual(status_code, 200)
+        self.assertEqual(body["status"], "SUCCESS")
+        self.assertEqual(body["vital_hp"], 6)
+        self.assertEqual(body["prediction"]["viseme"], "AA")
+        self.assertFalse(body["deception_masked"])
+
+        # VETO invariant test
+        bad_payload = dict(payload, vital_hp=8)
+        code_bad, body_bad = self._http_post("/api/cinematic/whisper/predict", bad_payload)
+        self.assertEqual(code_bad, 400)
+        self.assertEqual(body_bad["status"], "VETO")
+
+    def test_15_server_mortar_and_verdict_packet_endpoints(self):
+        """Tests POST /api/cinematic/codec/mortar-packet and verdict-packet."""
+        # 1. Mortar encode & decode
+        m_enc = {
+            "action": "encode",
+            "timestamp_ms": 1200,
+            "progress": 0.35,
+            "vital_hp": 6,
+            "camera_mode": "CINEMATIC_PLUNGE",
+            "shell_pos": [-5.0, 14.2, -8.0],
+            "speed": 22.5,
+            "shake": 0.14
+        }
+        code_m, enc_m = self._http_post("/api/cinematic/codec/mortar-packet", m_enc)
+        self.assertEqual(code_m, 200)
+        self.assertEqual(enc_m["status"], "SUCCESS")
+        self.assertEqual(enc_m["packet_size"], 32)
+        hex_m = enc_m["hex_data"]
+
+        code_dec_m, dec_m = self._http_post("/api/cinematic/codec/mortar-packet", {"action": "decode", "hex_data": hex_m})
+        self.assertEqual(code_dec_m, 200)
+        self.assertEqual(dec_m["packet"]["vital_hp"], 6)
+        self.assertEqual(dec_m["packet"]["camera_mode"], "CINEMATIC_PLUNGE")
+
+        # 2. Verdict encode & decode
+        v_enc = {
+            "action": "encode",
+            "timestamp_ms": 1800,
+            "verdict": "LIE",
+            "vital_hp": 6,
+            "deception_score": 0.92
+        }
+        code_v, enc_v = self._http_post("/api/cinematic/codec/verdict-packet", v_enc)
+        self.assertEqual(code_v, 200)
+        self.assertEqual(enc_v["status"], "SUCCESS")
+        self.assertEqual(enc_v["packet_size"], 16)
+        hex_v = enc_v["hex_data"]
+
+        code_dec_v, dec_v = self._http_post("/api/cinematic/codec/verdict-packet", {"action": "decode", "hex_data": hex_v})
+        self.assertEqual(code_dec_v, 200)
+        self.assertEqual(dec_v["packet"]["vital_hp"], 6)
+        self.assertEqual(dec_v["packet"]["verdict"], "LIE")
+
+        # 3. Invariant breaches
+        code_bad_m, _ = self._http_post("/api/cinematic/codec/mortar-packet", dict(m_enc, vital_hp=9))
+        self.assertEqual(code_bad_m, 400)
+        code_bad_v, _ = self._http_post("/api/cinematic/codec/verdict-packet", dict(v_enc, vital_hp=7))
+        self.assertEqual(code_bad_v, 400)
 
 
 if __name__ == "__main__":

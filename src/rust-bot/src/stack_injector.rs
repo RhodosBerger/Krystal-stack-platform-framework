@@ -2,10 +2,10 @@
 //!
 //! Calls into C demos and bridges to keep Rust in sync with C runtime.
 
-use std::process::Command;
-
 pub struct StackInjector {
+    #[allow(dead_code)]
     c_runtime_path: String,
+    #[allow(dead_code)]
     python_bridge_socket: String,
 }
 

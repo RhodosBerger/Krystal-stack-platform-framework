@@ -46,6 +46,7 @@ pub struct CombatLatencyPolicy {
     in_combat: bool,
     combat_start_time: Option<std::time::Instant>,
     p_core_mask: u32,
+    #[allow(dead_code)]
     e_core_mask: u32,
 }
 

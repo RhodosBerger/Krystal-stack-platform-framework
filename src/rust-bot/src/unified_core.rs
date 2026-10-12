@@ -4,8 +4,7 @@
 //! Handles real-time telemetry, decisions, and hardware control.
 
 use std::collections::VecDeque;
-use std::sync::{Arc, RwLock};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use serde::{Deserialize, Serialize};
 
 // ============================================================
@@ -314,7 +313,7 @@ impl PhaseEngine {
         }
     }
 
-    pub fn update(&mut self, gradient: f64, stability: f64) -> Phase {
+    pub fn update(&mut self, gradient: f64, _stability: f64) -> Phase {
         let old_phase = self.phase;
 
         self.temperature = 0.9 * self.temperature + 0.1 * gradient.abs();

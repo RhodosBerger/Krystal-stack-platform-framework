@@ -21,6 +21,7 @@ pub struct GridReplica {
 
 pub struct GridInjector {
     last_replica: Option<GridReplica>,
+    #[allow(dead_code)]
     c_grid_path: String,
 }
 
@@ -53,7 +54,7 @@ impl GridInjector {
     }
 
     /// Sync specific zone
-    pub fn sync_zone(&self, zone_id: u32) -> Option<GridCell> {
+    pub fn sync_zone(&self, _zone_id: u32) -> Option<GridCell> {
         // Would fetch specific zone from C
         None
     }

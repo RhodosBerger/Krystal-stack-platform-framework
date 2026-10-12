@@ -1,6 +1,5 @@
 //! Event Bus for async communication
 
-use crate::{TelemetrySnapshot, Action, Domain};
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use chrono::{DateTime, Utc};

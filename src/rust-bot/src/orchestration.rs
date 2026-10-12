@@ -12,7 +12,7 @@
 //! 9. Log all events
 
 use crate::{
-    TelemetrySnapshot, Action, Domain, CpuState, GpuState,
+    TelemetrySnapshot, CpuState, GpuState,
     CpuGovernor, GpuTelemetry, GridEngine, PolicyEngine, MicroInference,
     FeatureRegistry, TimeSeriesLogger, Config,
 };
@@ -24,7 +24,7 @@ use crate::grid_injector::GridInjector;
 use crate::fallback::{FallbackManager, TrustLevel};
 use crate::events::{Event, EventKind, EventBus};
 
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use chrono::Utc;
 
 /// Orchestrator state
@@ -91,10 +91,11 @@ impl Orchestrator {
     pub fn run_cycle(&mut self, telemetry: TelemetrySnapshot) -> CycleResult {
         let cycle_start = Instant::now();
         self.cycle_count += 1;
+        self.last_cycle = cycle_start;
 
         // 1. Check prerequisites
-        let python_ok = self.check_python_bridge();
-        let c_runtime_ok = self.check_c_runtime();
+        let _python_ok = self.check_python_bridge();
+        let _c_runtime_ok = self.check_c_runtime();
 
         // 2. Collect and validate telemetry
         let (validated_telemetry, trust_level) = self.validate_telemetry(&telemetry);
