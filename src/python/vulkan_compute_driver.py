@@ -18,16 +18,15 @@ ARCHITECTURAL SPECIFICATION:
       local .spv file if present.
 """
 
+import ctypes
+import hashlib
+import math
 import os
 import sys
-import ctypes
-import math
 import time
-import uuid
-import hashlib
+from dataclasses import asdict, dataclass
 from enum import Enum, IntFlag
-from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, Tuple, Optional, List
+from typing import Any
 
 # Vulkan Return Codes
 VK_SUCCESS = 0
@@ -88,16 +87,19 @@ VK_COMMAND_BUFFER_LEVEL_PRIMARY = 0
 # PHASE 1-2 ARCHITECTURAL ENUMS & DATA STRUCTURES
 # ============================================================================
 
+
 class ReadbackPolicy(str, Enum):
     """Policies governing GPU-to-CPU buffer readback."""
-    ALWAYS = "ALWAYS"                               # Legacy path: read back every single frame
-    ON_DEMAND = "ON_DEMAND"                         # Canonical: read back only when consumer requires it
-    SHADOW_SAMPLE_ONLY = "SHADOW_SAMPLE_ONLY"       # Read back strictly on frames sampled by shadow oracle
-    DISABLED_EXCEPT_FAULT = "DISABLED_EXCEPT_FAULT" # Read back suppressed unless diagnosing a fault
+
+    ALWAYS = "ALWAYS"  # Legacy path: read back every single frame
+    ON_DEMAND = "ON_DEMAND"  # Canonical: read back only when consumer requires it
+    SHADOW_SAMPLE_ONLY = "SHADOW_SAMPLE_ONLY"  # Read back strictly on frames sampled by shadow oracle
+    DISABLED_EXCEPT_FAULT = "DISABLED_EXCEPT_FAULT"  # Read back suppressed unless diagnosing a fault
 
 
 class ReadbackReason(str, Enum):
     """Explicit justification for transferring GPU SSBOs to host memory."""
+
     UI_FRAME_REQUEST = "UI_FRAME_REQUEST"
     SHADOW_ORACLE_SAMPLE = "SHADOW_ORACLE_SAMPLE"
     DEBUG_CAPTURE = "DEBUG_CAPTURE"
@@ -108,14 +110,16 @@ class ReadbackReason(str, Enum):
 @dataclass
 class ReadbackRequest:
     """Formal descriptor for an on-demand readback operation."""
+
     reason: ReadbackReason
     frame_id: int
-    requested_buffers: List[str]
+    requested_buffers: list[str]
     timestamp: float
 
 
 class FaultInjectionMask(IntFlag):
     """Abstraction-layer fault injection mask for deterministic resilience testing."""
+
     NONE = 0
     OOM_ALLOCATION_FAULT = 1 << 0
     FENCE_TIMEOUT_STALL = 1 << 1
@@ -125,6 +129,7 @@ class FaultInjectionMask(IntFlag):
 
 class GpuRecoveryState(str, Enum):
     """Explicit state of the GPU compute subsystem."""
+
     READY = "READY"
     DEGRADED = "DEGRADED"
     FAULT_DETECTED = "FAULT_DETECTED"
@@ -138,6 +143,7 @@ class GpuRecoveryState(str, Enum):
 @dataclass
 class FaultRecord:
     """Immutable audit entry for an injected fault and its recovery path."""
+
     fault_id: str
     fault_type: str
     injection_stage: str
@@ -148,8 +154,9 @@ class FaultRecord:
     fallback_backend: str
     ledger_hash: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
 
 # Ctypes Structures
 class VkApplicationInfo(ctypes.Structure):
@@ -163,6 +170,7 @@ class VkApplicationInfo(ctypes.Structure):
         ("apiVersion", ctypes.c_uint32),
     ]
 
+
 class VkInstanceCreateInfo(ctypes.Structure):
     _fields_ = [
         ("sType", ctypes.c_uint32),
@@ -174,6 +182,7 @@ class VkInstanceCreateInfo(ctypes.Structure):
         ("enabledExtensionCount", ctypes.c_uint32),
         ("ppEnabledExtensionNames", ctypes.POINTER(ctypes.c_char_p)),
     ]
+
 
 class VkPhysicalDeviceProperties(ctypes.Structure):
     _fields_ = [
@@ -188,6 +197,7 @@ class VkPhysicalDeviceProperties(ctypes.Structure):
         ("sparseProperties", ctypes.c_uint32 * 5),
     ]
 
+
 class VkQueueFamilyProperties(ctypes.Structure):
     _fields_ = [
         ("queueFlags", ctypes.c_uint32),
@@ -195,6 +205,7 @@ class VkQueueFamilyProperties(ctypes.Structure):
         ("timestampValidBits", ctypes.c_uint32),
         ("minImageTransferGranularity", ctypes.c_uint32 * 3),
     ]
+
 
 class VkDeviceQueueCreateInfo(ctypes.Structure):
     _fields_ = [
@@ -205,6 +216,7 @@ class VkDeviceQueueCreateInfo(ctypes.Structure):
         ("queueCount", ctypes.c_uint32),
         ("pQueuePriorities", ctypes.POINTER(ctypes.c_float)),
     ]
+
 
 class VkDeviceCreateInfo(ctypes.Structure):
     _fields_ = [
@@ -220,6 +232,7 @@ class VkDeviceCreateInfo(ctypes.Structure):
         ("pEnabledFeatures", ctypes.c_void_p),
     ]
 
+
 class VkBufferCreateInfo(ctypes.Structure):
     _fields_ = [
         ("sType", ctypes.c_uint32),
@@ -232,12 +245,14 @@ class VkBufferCreateInfo(ctypes.Structure):
         ("pQueueFamilyIndices", ctypes.POINTER(ctypes.c_uint32)),
     ]
 
+
 class VkMemoryRequirements(ctypes.Structure):
     _fields_ = [
         ("size", ctypes.c_uint64),
         ("alignment", ctypes.c_uint64),
         ("memoryTypeBits", ctypes.c_uint32),
     ]
+
 
 class VkMemoryAllocateInfo(ctypes.Structure):
     _fields_ = [
@@ -247,19 +262,23 @@ class VkMemoryAllocateInfo(ctypes.Structure):
         ("memoryTypeIndex", ctypes.c_uint32),
     ]
 
+
 class VkMemoryType(ctypes.Structure):
     _fields_ = [("propertyFlags", ctypes.c_uint32), ("heapIndex", ctypes.c_uint32)]
 
+
 class VkMemoryHeap(ctypes.Structure):
     _fields_ = [("size", ctypes.c_uint64), ("flags", ctypes.c_uint32)]
+
 
 class VkPhysicalDeviceMemoryProperties(ctypes.Structure):
     _fields_ = [
         ("memoryTypeCount", ctypes.c_uint32),
         ("memoryTypes", VkMemoryType * 32),
         ("memoryHeapCount", ctypes.c_uint32),
-        ("memoryHeaps", VkMemoryHeap * 16)
+        ("memoryHeaps", VkMemoryHeap * 16),
     ]
+
 
 class VkDescriptorSetLayoutBinding(ctypes.Structure):
     _fields_ = [
@@ -270,6 +289,7 @@ class VkDescriptorSetLayoutBinding(ctypes.Structure):
         ("pImmutableSamplers", ctypes.c_void_p),
     ]
 
+
 class VkDescriptorSetLayoutCreateInfo(ctypes.Structure):
     _fields_ = [
         ("sType", ctypes.c_uint32),
@@ -279,11 +299,13 @@ class VkDescriptorSetLayoutCreateInfo(ctypes.Structure):
         ("pBindings", ctypes.POINTER(VkDescriptorSetLayoutBinding)),
     ]
 
+
 class VkDescriptorPoolSize(ctypes.Structure):
     _fields_ = [
         ("type", ctypes.c_uint32),
         ("descriptorCount", ctypes.c_uint32),
     ]
+
 
 class VkDescriptorPoolCreateInfo(ctypes.Structure):
     _fields_ = [
@@ -295,6 +317,7 @@ class VkDescriptorPoolCreateInfo(ctypes.Structure):
         ("pPoolSizes", ctypes.POINTER(VkDescriptorPoolSize)),
     ]
 
+
 class VkDescriptorSetAllocateInfo(ctypes.Structure):
     _fields_ = [
         ("sType", ctypes.c_uint32),
@@ -304,12 +327,14 @@ class VkDescriptorSetAllocateInfo(ctypes.Structure):
         ("pSetLayouts", ctypes.POINTER(ctypes.c_void_p)),
     ]
 
+
 class VkDescriptorBufferInfo(ctypes.Structure):
     _fields_ = [
         ("buffer", ctypes.c_void_p),
         ("offset", ctypes.c_uint64),
         ("range", ctypes.c_uint64),
     ]
+
 
 class VkWriteDescriptorSet(ctypes.Structure):
     _fields_ = [
@@ -325,6 +350,7 @@ class VkWriteDescriptorSet(ctypes.Structure):
         ("pTexelBufferView", ctypes.c_void_p),
     ]
 
+
 class VkShaderModuleCreateInfo(ctypes.Structure):
     _fields_ = [
         ("sType", ctypes.c_uint32),
@@ -333,6 +359,7 @@ class VkShaderModuleCreateInfo(ctypes.Structure):
         ("codeSize", ctypes.c_size_t),
         ("pCode", ctypes.POINTER(ctypes.c_uint32)),
     ]
+
 
 class VkPipelineShaderStageCreateInfo(ctypes.Structure):
     _fields_ = [
@@ -345,6 +372,7 @@ class VkPipelineShaderStageCreateInfo(ctypes.Structure):
         ("pSpecializationInfo", ctypes.c_void_p),
     ]
 
+
 class VkPipelineLayoutCreateInfo(ctypes.Structure):
     _fields_ = [
         ("sType", ctypes.c_uint32),
@@ -355,6 +383,7 @@ class VkPipelineLayoutCreateInfo(ctypes.Structure):
         ("pushConstantRangeCount", ctypes.c_uint32),
         ("pPushConstantRanges", ctypes.c_void_p),
     ]
+
 
 class VkComputePipelineCreateInfo(ctypes.Structure):
     _fields_ = [
@@ -367,6 +396,7 @@ class VkComputePipelineCreateInfo(ctypes.Structure):
         ("basePipelineIndex", ctypes.c_int32),
     ]
 
+
 class VkCommandPoolCreateInfo(ctypes.Structure):
     _fields_ = [
         ("sType", ctypes.c_uint32),
@@ -374,6 +404,7 @@ class VkCommandPoolCreateInfo(ctypes.Structure):
         ("flags", ctypes.c_uint32),
         ("queueFamilyIndex", ctypes.c_uint32),
     ]
+
 
 class VkCommandBufferAllocateInfo(ctypes.Structure):
     _fields_ = [
@@ -384,6 +415,7 @@ class VkCommandBufferAllocateInfo(ctypes.Structure):
         ("commandBufferCount", ctypes.c_uint32),
     ]
 
+
 class VkCommandBufferBeginInfo(ctypes.Structure):
     _fields_ = [
         ("sType", ctypes.c_uint32),
@@ -391,6 +423,7 @@ class VkCommandBufferBeginInfo(ctypes.Structure):
         ("flags", ctypes.c_uint32),
         ("pInheritanceInfo", ctypes.c_void_p),
     ]
+
 
 class VkSubmitInfo(ctypes.Structure):
     _fields_ = [
@@ -405,12 +438,14 @@ class VkSubmitInfo(ctypes.Structure):
         ("pSignalSemaphores", ctypes.c_void_p),
     ]
 
+
 class VkFenceCreateInfo(ctypes.Structure):
     _fields_ = [
         ("sType", ctypes.c_uint32),
         ("pNext", ctypes.c_void_p),
         ("flags", ctypes.c_uint32),
     ]
+
 
 class UBOParams(ctypes.Structure):
     _fields_ = [
@@ -436,7 +471,7 @@ class VulkanComputeDriver:
 
     def __init__(self, prefer_gpu: bool = True):
         self.dll_path = "C:\\Windows\\System32\\vulkan-1.dll"
-        self.is_windows = (sys.platform == "win32")
+        self.is_windows = sys.platform == "win32"
         self.vulkan_lib = None
         self.vulkan_available = False
         self.device_name = "CPU SIMD Fallback (Software)"
@@ -488,7 +523,7 @@ class VulkanComputeDriver:
         self.pipeline_ready = False
         self.host_memory_type_index = -1
         self.fallback_count = 0
-        self.dispatch_errors: List[str] = []
+        self.dispatch_errors: list[str] = []
         self.workgroup_size = (8, 8, 1)
         self.last_timings = {
             "prep_time_ms": 0.0,
@@ -514,7 +549,7 @@ class VulkanComputeDriver:
         self.readback_skipped: int = 0
         self.bytes_read_back: int = 0
         self.bytes_avoided_estimate: int = 0
-        self.gpu_memory_topology: Dict[str, Any] = {
+        self.gpu_memory_topology: dict[str, Any] = {
             "uma": True,
             "selected_compute_memory_type": -1,
             "flags": [],
@@ -530,7 +565,7 @@ class VulkanComputeDriver:
 
         # Safe Fault-Injection Interceptor & Recovery State Machine
         self.fault_injection_mask: FaultInjectionMask = FaultInjectionMask.NONE
-        self.fault_history: List[FaultRecord] = []
+        self.fault_history: list[FaultRecord] = []
         self.recovery_state: GpuRecoveryState = GpuRecoveryState.READY
         self.shadow_oracle: Any = None
 
@@ -551,7 +586,7 @@ class VulkanComputeDriver:
             vkCreateInstance.argtypes = [
                 ctypes.POINTER(VkInstanceCreateInfo),
                 ctypes.c_void_p,
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vkCreateInstance.restype = ctypes.c_int32
 
@@ -562,7 +597,7 @@ class VulkanComputeDriver:
                 applicationVersion=1,
                 pEngineName=b"KrystalVulkanEngine",
                 engineVersion=1,
-                apiVersion=(1 << 22) | (3 << 12)  # Vulkan 1.3
+                apiVersion=(1 << 22) | (3 << 12),  # Vulkan 1.3
             )
 
             create_info = VkInstanceCreateInfo(
@@ -573,7 +608,7 @@ class VulkanComputeDriver:
                 enabledLayerCount=0,
                 ppEnabledLayerNames=None,
                 enabledExtensionCount=0,
-                ppEnabledExtensionNames=None
+                ppEnabledExtensionNames=None,
             )
 
             instance = ctypes.c_void_p()
@@ -596,7 +631,7 @@ class VulkanComputeDriver:
             vkEnumeratePhysicalDevices.argtypes = [
                 ctypes.c_void_p,
                 ctypes.POINTER(ctypes.c_uint32),
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vkEnumeratePhysicalDevices.restype = ctypes.c_int32
 
@@ -608,14 +643,17 @@ class VulkanComputeDriver:
                 vkEnumeratePhysicalDevices(self.instance, ctypes.byref(count), devices)
 
                 vkGetPhysicalDeviceProperties = self.vulkan_lib.vkGetPhysicalDeviceProperties
-                vkGetPhysicalDeviceProperties.argtypes = [ctypes.c_void_p, ctypes.POINTER(VkPhysicalDeviceProperties)]
+                vkGetPhysicalDeviceProperties.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.POINTER(VkPhysicalDeviceProperties),
+                ]
                 vkGetPhysicalDeviceProperties.restype = None
 
                 vkGetPhysicalDeviceQueueFamilyProperties = self.vulkan_lib.vkGetPhysicalDeviceQueueFamilyProperties
                 vkGetPhysicalDeviceQueueFamilyProperties.argtypes = [
                     ctypes.c_void_p,
                     ctypes.POINTER(ctypes.c_uint32),
-                    ctypes.POINTER(VkQueueFamilyProperties)
+                    ctypes.POINTER(VkQueueFamilyProperties),
                 ]
                 vkGetPhysicalDeviceQueueFamilyProperties.restype = None
 
@@ -677,7 +715,7 @@ class VulkanComputeDriver:
                 ctypes.c_void_p,
                 ctypes.POINTER(VkDeviceCreateInfo),
                 ctypes.c_void_p,
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vl.vkCreateDevice.restype = ctypes.c_int32
 
@@ -688,7 +726,7 @@ class VulkanComputeDriver:
                 flags=0,
                 queueFamilyIndex=self.compute_queue_family,
                 queueCount=1,
-                pQueuePriorities=priority
+                pQueuePriorities=priority,
             )
             device_info = VkDeviceCreateInfo(
                 sType=VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -700,10 +738,15 @@ class VulkanComputeDriver:
                 ppEnabledLayerNames=None,
                 enabledExtensionCount=0,
                 ppEnabledExtensionNames=None,
-                pEnabledFeatures=None
+                pEnabledFeatures=None,
             )
             device = ctypes.c_void_p()
-            res = vl.vkCreateDevice(self.physical_device, ctypes.byref(device_info), None, ctypes.byref(device))
+            res = vl.vkCreateDevice(
+                self.physical_device,
+                ctypes.byref(device_info),
+                None,
+                ctypes.byref(device),
+            )
             if res != VK_SUCCESS or not device.value:
                 self.dispatch_errors.append(f"vkCreateDevice failed with code {res}")
                 return
@@ -715,7 +758,7 @@ class VulkanComputeDriver:
                 ctypes.c_void_p,
                 ctypes.c_uint32,
                 ctypes.c_uint32,
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vl.vkGetDeviceQueue.restype = None
             queue = ctypes.c_void_p()
@@ -727,7 +770,10 @@ class VulkanComputeDriver:
             self.compute_queue_ready = True
 
             # 3. Memory Properties & UMA Topology Mapping
-            vl.vkGetPhysicalDeviceMemoryProperties.argtypes = [ctypes.c_void_p, ctypes.POINTER(VkPhysicalDeviceMemoryProperties)]
+            vl.vkGetPhysicalDeviceMemoryProperties.argtypes = [
+                ctypes.c_void_p,
+                ctypes.POINTER(VkPhysicalDeviceMemoryProperties),
+            ]
             vl.vkGetPhysicalDeviceMemoryProperties.restype = None
             mem_props = VkPhysicalDeviceMemoryProperties()
             vl.vkGetPhysicalDeviceMemoryProperties(self.physical_device, ctypes.byref(mem_props))
@@ -738,14 +784,18 @@ class VulkanComputeDriver:
 
             for i in range(mem_props.memoryTypeCount):
                 flags = mem_props.memoryTypes[i].propertyFlags
-                is_host_vis_coh = (flags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) == (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+                is_host_vis_coh = (
+                    flags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+                ) == (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
                 is_dev_local = bool(flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
                 if is_host_vis_coh and is_dev_local:
                     best_dev_local_host_visible = i
                 elif is_host_vis_coh and fallback_host_visible < 0:
                     fallback_host_visible = i
 
-            self.host_memory_type_index = best_dev_local_host_visible if best_dev_local_host_visible >= 0 else fallback_host_visible
+            self.host_memory_type_index = (
+                best_dev_local_host_visible if best_dev_local_host_visible >= 0 else fallback_host_visible
+            )
 
             if self.host_memory_type_index < 0:
                 self.dispatch_errors.append("No HOST_VISIBLE + HOST_COHERENT memory type found")
@@ -756,14 +806,22 @@ class VulkanComputeDriver:
             sel_heap_idx = mem_props.memoryTypes[self.host_memory_type_index].heapIndex
             sel_heap_size = mem_props.memoryHeaps[sel_heap_idx].size
             flag_names = []
-            if sel_flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT: flag_names.append("DEVICE_LOCAL")
-            if sel_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT: flag_names.append("HOST_VISIBLE")
-            if sel_flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT: flag_names.append("HOST_COHERENT")
-            if sel_flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT: flag_names.append("HOST_CACHED")
-            if sel_flags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT: flag_names.append("LAZILY_ALLOCATED")
+            if sel_flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT:
+                flag_names.append("DEVICE_LOCAL")
+            if sel_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT:
+                flag_names.append("HOST_VISIBLE")
+            if sel_flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT:
+                flag_names.append("HOST_COHERENT")
+            if sel_flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT:
+                flag_names.append("HOST_CACHED")
+            if sel_flags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT:
+                flag_names.append("LAZILY_ALLOCATED")
 
             self.gpu_memory_topology = {
-                "uma": self.is_intel_iris or bool(sel_flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT and sel_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
+                "uma": self.is_intel_iris
+                or bool(
+                    sel_flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT and sel_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                ),
                 "selected_compute_memory_type": self.host_memory_type_index,
                 "flags": flag_names,
                 "heap_index": sel_heap_idx,
@@ -781,24 +839,45 @@ class VulkanComputeDriver:
                 ctypes.c_void_p,
                 ctypes.POINTER(VkDescriptorSetLayoutCreateInfo),
                 ctypes.c_void_p,
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vl.vkCreateDescriptorSetLayout.restype = ctypes.c_int32
 
             bindings = (VkDescriptorSetLayoutBinding * 3)(
-                VkDescriptorSetLayoutBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, None),
-                VkDescriptorSetLayoutBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, None),
-                VkDescriptorSetLayoutBinding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, None),
+                VkDescriptorSetLayoutBinding(
+                    0,
+                    VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                    1,
+                    VK_SHADER_STAGE_COMPUTE_BIT,
+                    None,
+                ),
+                VkDescriptorSetLayoutBinding(
+                    1,
+                    VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                    1,
+                    VK_SHADER_STAGE_COMPUTE_BIT,
+                    None,
+                ),
+                VkDescriptorSetLayoutBinding(
+                    2,
+                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                    1,
+                    VK_SHADER_STAGE_COMPUTE_BIT,
+                    None,
+                ),
             )
             dsl_info = VkDescriptorSetLayoutCreateInfo(
                 sType=VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
                 pNext=None,
                 flags=0,
                 bindingCount=3,
-                pBindings=bindings
+                pBindings=bindings,
             )
             ds_layout = ctypes.c_void_p()
-            if vl.vkCreateDescriptorSetLayout(self.device, ctypes.byref(dsl_info), None, ctypes.byref(ds_layout)) != VK_SUCCESS:
+            if (
+                vl.vkCreateDescriptorSetLayout(self.device, ctypes.byref(dsl_info), None, ctypes.byref(ds_layout))
+                != VK_SUCCESS
+            ):
                 self.dispatch_errors.append("vkCreateDescriptorSetLayout failed")
                 return
             self.descriptor_set_layout = ds_layout
@@ -808,7 +887,7 @@ class VulkanComputeDriver:
                 ctypes.c_void_p,
                 ctypes.POINTER(VkPipelineLayoutCreateInfo),
                 ctypes.c_void_p,
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vl.vkCreatePipelineLayout.restype = ctypes.c_int32
 
@@ -819,10 +898,18 @@ class VulkanComputeDriver:
                 setLayoutCount=1,
                 pSetLayouts=(ctypes.c_void_p * 1)(self.descriptor_set_layout.value),
                 pushConstantRangeCount=0,
-                pPushConstantRanges=None
+                pPushConstantRanges=None,
             )
             pipe_layout = ctypes.c_void_p()
-            if vl.vkCreatePipelineLayout(self.device, ctypes.byref(pipe_layout_info), None, ctypes.byref(pipe_layout)) != VK_SUCCESS:
+            if (
+                vl.vkCreatePipelineLayout(
+                    self.device,
+                    ctypes.byref(pipe_layout_info),
+                    None,
+                    ctypes.byref(pipe_layout),
+                )
+                != VK_SUCCESS
+            ):
                 self.dispatch_errors.append("vkCreatePipelineLayout failed")
                 return
             self.pipeline_layout = pipe_layout
@@ -837,7 +924,7 @@ class VulkanComputeDriver:
                 ctypes.c_void_p,
                 ctypes.POINTER(VkShaderModuleCreateInfo),
                 ctypes.c_void_p,
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vl.vkCreateShaderModule.restype = ctypes.c_int32
 
@@ -847,10 +934,18 @@ class VulkanComputeDriver:
                 pNext=None,
                 flags=0,
                 codeSize=len(spv_bytes),
-                pCode=code_u32
+                pCode=code_u32,
             )
             shader_module = ctypes.c_void_p()
-            if vl.vkCreateShaderModule(self.device, ctypes.byref(sm_info), None, ctypes.byref(shader_module)) != VK_SUCCESS:
+            if (
+                vl.vkCreateShaderModule(
+                    self.device,
+                    ctypes.byref(sm_info),
+                    None,
+                    ctypes.byref(shader_module),
+                )
+                != VK_SUCCESS
+            ):
                 self.dispatch_errors.append("vkCreateShaderModule failed")
                 return
             self.shader_module = shader_module
@@ -862,7 +957,7 @@ class VulkanComputeDriver:
                 ctypes.c_uint32,
                 ctypes.POINTER(VkComputePipelineCreateInfo),
                 ctypes.c_void_p,
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vl.vkCreateComputePipelines.restype = ctypes.c_int32
 
@@ -873,7 +968,7 @@ class VulkanComputeDriver:
                 stage=VK_SHADER_STAGE_COMPUTE_BIT,
                 module=self.shader_module,
                 pName=b"main",
-                pSpecializationInfo=None
+                pSpecializationInfo=None,
             )
             comp_pipe_info = VkComputePipelineCreateInfo(
                 sType=VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
@@ -882,10 +977,20 @@ class VulkanComputeDriver:
                 stage=stage_info,
                 layout=self.pipeline_layout,
                 basePipelineHandle=None,
-                basePipelineIndex=-1
+                basePipelineIndex=-1,
             )
             pipeline = ctypes.c_void_p()
-            if vl.vkCreateComputePipelines(self.device, None, 1, ctypes.byref(comp_pipe_info), None, ctypes.byref(pipeline)) != VK_SUCCESS:
+            if (
+                vl.vkCreateComputePipelines(
+                    self.device,
+                    None,
+                    1,
+                    ctypes.byref(comp_pipe_info),
+                    None,
+                    ctypes.byref(pipeline),
+                )
+                != VK_SUCCESS
+            ):
                 self.dispatch_errors.append("vkCreateComputePipelines failed")
                 return
             self.pipeline = pipeline
@@ -896,7 +1001,7 @@ class VulkanComputeDriver:
                 ctypes.c_void_p,
                 ctypes.POINTER(VkCommandPoolCreateInfo),
                 ctypes.c_void_p,
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vl.vkCreateCommandPool.restype = ctypes.c_int32
 
@@ -904,10 +1009,18 @@ class VulkanComputeDriver:
                 sType=VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                 pNext=None,
                 flags=VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-                queueFamilyIndex=self.compute_queue_family
+                queueFamilyIndex=self.compute_queue_family,
             )
             cmd_pool = ctypes.c_void_p()
-            if vl.vkCreateCommandPool(self.device, ctypes.byref(cmd_pool_info), None, ctypes.byref(cmd_pool)) != VK_SUCCESS:
+            if (
+                vl.vkCreateCommandPool(
+                    self.device,
+                    ctypes.byref(cmd_pool_info),
+                    None,
+                    ctypes.byref(cmd_pool),
+                )
+                != VK_SUCCESS
+            ):
                 self.dispatch_errors.append("vkCreateCommandPool failed")
                 return
             self.command_pool = cmd_pool
@@ -915,7 +1028,7 @@ class VulkanComputeDriver:
             vl.vkAllocateCommandBuffers.argtypes = [
                 ctypes.c_void_p,
                 ctypes.POINTER(VkCommandBufferAllocateInfo),
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vl.vkAllocateCommandBuffers.restype = ctypes.c_int32
 
@@ -924,7 +1037,7 @@ class VulkanComputeDriver:
                 pNext=None,
                 commandPool=self.command_pool,
                 level=VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                commandBufferCount=1
+                commandBufferCount=1,
             )
             cmd_buf = ctypes.c_void_p()
             if vl.vkAllocateCommandBuffers(self.device, ctypes.byref(cmd_alloc), ctypes.byref(cmd_buf)) != VK_SUCCESS:
@@ -937,15 +1050,11 @@ class VulkanComputeDriver:
                 ctypes.c_void_p,
                 ctypes.POINTER(VkFenceCreateInfo),
                 ctypes.c_void_p,
-                ctypes.POINTER(ctypes.c_void_p)
+                ctypes.POINTER(ctypes.c_void_p),
             ]
             vl.vkCreateFence.restype = ctypes.c_int32
 
-            fence_info = VkFenceCreateInfo(
-                sType=VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-                pNext=None,
-                flags=0
-            )
+            fence_info = VkFenceCreateInfo(sType=VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, pNext=None, flags=0)
             fence = ctypes.c_void_p()
             if vl.vkCreateFence(self.device, ctypes.byref(fence_info), None, ctypes.byref(fence)) != VK_SUCCESS:
                 self.dispatch_errors.append("vkCreateFence failed")
@@ -970,6 +1079,7 @@ class VulkanComputeDriver:
         # 2. Check embedded bytecode module
         try:
             from src.shaders.raymarch_spv_bytes import RAYMARCH_SPV_BYTES
+
             return RAYMARCH_SPV_BYTES
         except ImportError:
             pass
@@ -1007,14 +1117,14 @@ class VulkanComputeDriver:
             ctypes.c_void_p,
             ctypes.POINTER(VkBufferCreateInfo),
             ctypes.c_void_p,
-            ctypes.POINTER(ctypes.c_void_p)
+            ctypes.POINTER(ctypes.c_void_p),
         ]
         vl.vkCreateBuffer.restype = ctypes.c_int32
 
         vl.vkGetBufferMemoryRequirements.argtypes = [
             ctypes.c_void_p,
             ctypes.c_void_p,
-            ctypes.POINTER(VkMemoryRequirements)
+            ctypes.POINTER(VkMemoryRequirements),
         ]
         vl.vkGetBufferMemoryRequirements.restype = None
 
@@ -1022,11 +1132,16 @@ class VulkanComputeDriver:
             ctypes.c_void_p,
             ctypes.POINTER(VkMemoryAllocateInfo),
             ctypes.c_void_p,
-            ctypes.POINTER(ctypes.c_void_p)
+            ctypes.POINTER(ctypes.c_void_p),
         ]
         vl.vkAllocateMemory.restype = ctypes.c_int32
 
-        vl.vkBindBufferMemory.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint64]
+        vl.vkBindBufferMemory.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_uint64,
+        ]
         vl.vkBindBufferMemory.restype = ctypes.c_int32
 
         vl.vkMapMemory.argtypes = [
@@ -1035,11 +1150,11 @@ class VulkanComputeDriver:
             ctypes.c_uint64,
             ctypes.c_uint64,
             ctypes.c_uint32,
-            ctypes.POINTER(ctypes.c_void_p)
+            ctypes.POINTER(ctypes.c_void_p),
         ]
         vl.vkMapMemory.restype = ctypes.c_int32
 
-        def _allocate_buffer(size_bytes: int, usage: int) -> Tuple[ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]:
+        def _allocate_buffer(size_bytes: int, usage: int) -> tuple[ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]:
             binfo = VkBufferCreateInfo(
                 sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                 pNext=None,
@@ -1048,7 +1163,7 @@ class VulkanComputeDriver:
                 usage=usage,
                 sharingMode=0,
                 queueFamilyIndexCount=0,
-                pQueueFamilyIndices=None
+                pQueueFamilyIndices=None,
             )
             buf = ctypes.c_void_p()
             if vl.vkCreateBuffer(self.device, ctypes.byref(binfo), None, ctypes.byref(buf)) != VK_SUCCESS:
@@ -1061,7 +1176,7 @@ class VulkanComputeDriver:
                 sType=VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                 pNext=None,
                 allocationSize=reqs.size,
-                memoryTypeIndex=self.host_memory_type_index
+                memoryTypeIndex=self.host_memory_type_index,
             )
             mem = ctypes.c_void_p()
             if vl.vkAllocateMemory(self.device, ctypes.byref(alloc_info), None, ctypes.byref(mem)) != VK_SUCCESS:
@@ -1092,7 +1207,7 @@ class VulkanComputeDriver:
             ctypes.c_void_p,
             ctypes.POINTER(VkDescriptorPoolCreateInfo),
             ctypes.c_void_p,
-            ctypes.POINTER(ctypes.c_void_p)
+            ctypes.POINTER(ctypes.c_void_p),
         ]
         vl.vkCreateDescriptorPool.restype = ctypes.c_int32
 
@@ -1106,7 +1221,7 @@ class VulkanComputeDriver:
             flags=0,
             maxSets=1,
             poolSizeCount=2,
-            pPoolSizes=pool_sizes
+            pPoolSizes=pool_sizes,
         )
         desc_pool = ctypes.c_void_p()
         if vl.vkCreateDescriptorPool(self.device, ctypes.byref(pool_info), None, ctypes.byref(desc_pool)) != VK_SUCCESS:
@@ -1116,7 +1231,7 @@ class VulkanComputeDriver:
         vl.vkAllocateDescriptorSets.argtypes = [
             ctypes.c_void_p,
             ctypes.POINTER(VkDescriptorSetAllocateInfo),
-            ctypes.POINTER(ctypes.c_void_p)
+            ctypes.POINTER(ctypes.c_void_p),
         ]
         vl.vkAllocateDescriptorSets.restype = ctypes.c_int32
 
@@ -1125,7 +1240,7 @@ class VulkanComputeDriver:
             pNext=None,
             descriptorPool=self.descriptor_pool,
             descriptorSetCount=1,
-            pSetLayouts=(ctypes.c_void_p * 1)(self.descriptor_set_layout.value)
+            pSetLayouts=(ctypes.c_void_p * 1)(self.descriptor_set_layout.value),
         )
         desc_set = ctypes.c_void_p()
         if vl.vkAllocateDescriptorSets(self.device, ctypes.byref(ds_alloc), ctypes.byref(desc_set)) != VK_SUCCESS:
@@ -1138,7 +1253,7 @@ class VulkanComputeDriver:
             ctypes.c_uint32,
             ctypes.POINTER(VkWriteDescriptorSet),
             ctypes.c_uint32,
-            ctypes.c_void_p
+            ctypes.c_void_p,
         ]
         vl.vkUpdateDescriptorSets.restype = None
 
@@ -1158,7 +1273,7 @@ class VulkanComputeDriver:
                 descriptorType=VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
                 pImageInfo=None,
                 pBufferInfo=ctypes.pointer(buf_infos[0]),
-                pTexelBufferView=None
+                pTexelBufferView=None,
             ),
             VkWriteDescriptorSet(
                 sType=VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -1170,7 +1285,7 @@ class VulkanComputeDriver:
                 descriptorType=VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
                 pImageInfo=None,
                 pBufferInfo=ctypes.pointer(buf_infos[1]),
-                pTexelBufferView=None
+                pTexelBufferView=None,
             ),
             VkWriteDescriptorSet(
                 sType=VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -1182,7 +1297,7 @@ class VulkanComputeDriver:
                 descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                 pImageInfo=None,
                 pBufferInfo=ctypes.pointer(buf_infos[2]),
-                pTexelBufferView=None
+                pTexelBufferView=None,
             ),
         )
         vl.vkUpdateDescriptorSets(self.device, 3, writes, 0, None)
@@ -1197,7 +1312,11 @@ class VulkanComputeDriver:
             return
 
         if self.descriptor_pool:
-            vl.vkDestroyDescriptorPool.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+            vl.vkDestroyDescriptorPool.argtypes = [
+                ctypes.c_void_p,
+                ctypes.c_void_p,
+                ctypes.c_void_p,
+            ]
             vl.vkDestroyDescriptorPool.restype = None
             vl.vkDestroyDescriptorPool(self.device, self.descriptor_pool, None)
             self.descriptor_pool = None
@@ -1205,7 +1324,11 @@ class VulkanComputeDriver:
 
         vl.vkFreeMemory.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
         vl.vkFreeMemory.restype = None
-        vl.vkDestroyBuffer.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+        vl.vkDestroyBuffer.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+        ]
         vl.vkDestroyBuffer.restype = None
 
         for buf, mem in [
@@ -1229,11 +1352,11 @@ class VulkanComputeDriver:
         height: int,
         t: float,
         mode: str,
-        cam_pos: Tuple[float, float, float],
+        cam_pos: tuple[float, float, float],
         step_budget: int,
-        readback: Optional[bool] = None,
-        readback_reason: Optional[ReadbackReason] = None
-    ) -> Tuple[List[int], List[int]]:
+        readback: bool | None = None,
+        readback_reason: ReadbackReason | None = None,
+    ) -> tuple[list[int], list[int]]:
         """
         Executes real Vulkan compute dispatch on hardware queue with fence synchronization
         and persistent, low-readback buffer architecture.
@@ -1270,29 +1393,40 @@ class VulkanComputeDriver:
             time=t,
             entropy_threshold=0.5,
             pad0=0.0,
-            pad1=0.0
+            pad1=0.0,
         )
         ctypes.memmove(self.ubo_mapped, ctypes.byref(ubo_data), ctypes.sizeof(UBOParams))
-        t_prep_done = time.perf_counter()
+        _t_prep_done = time.perf_counter()
 
         # 2. Record command buffer
-        vl.vkResetFences.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkResetFences.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkResetFences.restype = ctypes.c_int32
         vl.vkResetFences(self.device, 1, ctypes.byref(self.fence))
 
-        vl.vkBeginCommandBuffer.argtypes = [ctypes.c_void_p, ctypes.POINTER(VkCommandBufferBeginInfo)]
+        vl.vkBeginCommandBuffer.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(VkCommandBufferBeginInfo),
+        ]
         vl.vkBeginCommandBuffer.restype = ctypes.c_int32
 
         begin_info = VkCommandBufferBeginInfo(
             sType=VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
             pNext=None,
             flags=VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-            pInheritanceInfo=None
+            pInheritanceInfo=None,
         )
         if vl.vkBeginCommandBuffer(self.command_buffer, ctypes.byref(begin_info)) != VK_SUCCESS:
             raise RuntimeError("vkBeginCommandBuffer failed")
 
-        vl.vkCmdBindPipeline.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p]
+        vl.vkCmdBindPipeline.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.c_void_p,
+        ]
         vl.vkCmdBindPipeline.restype = None
         vl.vkCmdBindPipeline(self.command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, self.pipeline)
 
@@ -1304,7 +1438,7 @@ class VulkanComputeDriver:
             ctypes.c_uint32,
             ctypes.POINTER(ctypes.c_void_p),
             ctypes.c_uint32,
-            ctypes.c_void_p
+            ctypes.c_void_p,
         ]
         vl.vkCmdBindDescriptorSets.restype = None
         vl.vkCmdBindDescriptorSets(
@@ -1315,10 +1449,15 @@ class VulkanComputeDriver:
             1,
             (ctypes.c_void_p * 1)(self.descriptor_set.value),
             0,
-            None
+            None,
         )
 
-        vl.vkCmdDispatch.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32]
+        vl.vkCmdDispatch.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.c_uint32,
+            ctypes.c_uint32,
+        ]
         vl.vkCmdDispatch.restype = None
         groups_x = (width + 7) // 8
         groups_y = (height + 7) // 8
@@ -1347,7 +1486,12 @@ class VulkanComputeDriver:
             raise RuntimeError("VK_ERROR_DEVICE_LOST (simulated by FaultInterceptor)")
 
         # 3. Submit
-        vl.vkQueueSubmit.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(VkSubmitInfo), ctypes.c_void_p]
+        vl.vkQueueSubmit.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.POINTER(VkSubmitInfo),
+            ctypes.c_void_p,
+        ]
         vl.vkQueueSubmit.restype = ctypes.c_int32
 
         submit_info = VkSubmitInfo(
@@ -1359,7 +1503,7 @@ class VulkanComputeDriver:
             commandBufferCount=1,
             pCommandBuffers=(ctypes.c_void_p * 1)(self.command_buffer.value),
             signalSemaphoreCount=0,
-            pSignalSemaphores=None
+            pSignalSemaphores=None,
         )
         if vl.vkQueueSubmit(self.queue, 1, ctypes.byref(submit_info), self.fence) != VK_SUCCESS:
             raise RuntimeError("vkQueueSubmit failed")
@@ -1382,9 +1526,24 @@ class VulkanComputeDriver:
             raise RuntimeError("VK_TIMEOUT (simulated fence stall)")
 
         # 4. Wait for fence
-        vl.vkWaitForFences.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint32, ctypes.c_uint64]
+        vl.vkWaitForFences.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.POINTER(ctypes.c_void_p),
+            ctypes.c_uint32,
+            ctypes.c_uint64,
+        ]
         vl.vkWaitForFences.restype = ctypes.c_int32
-        if vl.vkWaitForFences(self.device, 1, (ctypes.c_void_p * 1)(self.fence.value), 1, 1_000_000_000) != VK_SUCCESS:
+        if (
+            vl.vkWaitForFences(
+                self.device,
+                1,
+                (ctypes.c_void_p * 1)(self.fence.value),
+                1,
+                1_000_000_000,
+            )
+            != VK_SUCCESS
+        ):
             raise RuntimeError("vkWaitForFences timed out or failed")
 
         t_gpu_done = time.perf_counter()
@@ -1401,11 +1560,11 @@ class VulkanComputeDriver:
             should_readback = True
             self.readback_requests += 1
         elif self.readback_policy == ReadbackPolicy.ON_DEMAND:
-            should_readback = (readback_reason is not None)
+            should_readback = readback_reason is not None
             if should_readback:
                 self.readback_requests += 1
         elif self.readback_policy == ReadbackPolicy.SHADOW_SAMPLE_ONLY:
-            should_readback = (readback_reason == ReadbackReason.SHADOW_ORACLE_SAMPLE)
+            should_readback = readback_reason == ReadbackReason.SHADOW_ORACLE_SAMPLE
             if should_readback:
                 self.readback_requests += 1
         elif self.readback_policy == ReadbackPolicy.DISABLED_EXCEPT_FAULT:
@@ -1442,7 +1601,14 @@ class VulkanComputeDriver:
             "frame_time_ms": round(dt_total * 1000.0, 3),
         }
         self.last_dispatch_us = round(dt_total * 1e6, 1)
-        self.readback_mb_s = round((buffer_bytes / (1024 * 1024)) / max(1e-6, (readback_time_ms / 1000.0)), 2) if readback_time_ms > 0 else 0.0
+        self.readback_mb_s = (
+            round(
+                (buffer_bytes / (1024 * 1024)) / max(1e-6, (readback_time_ms / 1000.0)),
+                2,
+            )
+            if readback_time_ms > 0
+            else 0.0
+        )
         self.real_gpu_dispatch = True
         self.compute_backend = "VULKAN_GPU"
         self.recovery_state = GpuRecoveryState.READY
@@ -1455,11 +1621,11 @@ class VulkanComputeDriver:
         height: int,
         t: float,
         mode: str = "CYBERPUNK",
-        cam_pos: Tuple[float, float, float] = (0.0, 0.0, -3.2),
+        cam_pos: tuple[float, float, float] = (0.0, 0.0, -3.2),
         step_budget: int = 32,
-        readback: Optional[bool] = None,
-        readback_reason: Optional[ReadbackReason] = None
-    ) -> Tuple[List[int], List[int]]:
+        readback: bool | None = None,
+        readback_reason: ReadbackReason | None = None,
+    ) -> tuple[list[int], list[int]]:
         """
         Executes 3D raymarching pass.
         Attempts native Vulkan compute dispatch if hardware is available and healthy;
@@ -1481,8 +1647,14 @@ class VulkanComputeDriver:
         if can_dispatch:
             try:
                 glyphs, colors = self._dispatch_vulkan_compute(
-                    width, height, t, mode, cam_pos, step_budget,
-                    readback=readback, readback_reason=readback_reason
+                    width,
+                    height,
+                    t,
+                    mode,
+                    cam_pos,
+                    step_budget,
+                    readback=readback,
+                    readback_reason=readback_reason,
                 )
                 if self.shadow_oracle and readback_reason == ReadbackReason.SHADOW_ORACLE_SAMPLE and glyphs:
                     self.shadow_oracle.submit_sample(
@@ -1513,9 +1685,9 @@ class VulkanComputeDriver:
         height: int,
         t: float,
         mode: str = "CYBERPUNK",
-        cam_pos: Tuple[float, float, float] = (0.0, 0.0, -3.2),
-        step_budget: int = 32
-    ) -> Tuple[List[int], List[int]]:
+        cam_pos: tuple[float, float, float] = (0.0, 0.0, -3.2),
+        step_budget: int = 32,
+    ) -> tuple[list[int], list[int]]:
         """
         CPU Reference Implementation (Mathematical Correctness Oracle).
         Pure-Python simulation of the intended compute kernel.
@@ -1523,8 +1695,8 @@ class VulkanComputeDriver:
         t0 = time.perf_counter()
         total_pixels = width * height
 
-        glyphs: List[int] = [0] * total_pixels
-        colors: List[int] = [0] * total_pixels
+        glyphs: list[int] = [0] * total_pixels
+        colors: list[int] = [0] * total_pixels
 
         aspect = (width / height) * 0.52
         light_dir = (0.577, 0.577, -0.577)
@@ -1534,7 +1706,7 @@ class VulkanComputeDriver:
         core_r = 0.55 + 0.12 * math.sin(t * 3.5)
 
         for y in range(height):
-            screen_y = (1.0 - (y / height) * 2.0)
+            screen_y = 1.0 - (y / height) * 2.0
             row_offset = y * width
             for x in range(width):
                 screen_x = ((x / width) * 2.0 - 1.0) * aspect
@@ -1578,9 +1750,9 @@ class VulkanComputeDriver:
                 idx = row_offset + x
                 if hit:
                     eps = 0.003
-                    nx = (math.sqrt((px + eps)**2 + pz**2) - r1) - (math.sqrt(px**2 + pz**2) - r1)
+                    nx = (math.sqrt((px + eps) ** 2 + pz**2) - r1) - (math.sqrt(px**2 + pz**2) - r1)
                     ny = py
-                    nz = (math.sqrt(px**2 + (pz + eps)**2) - r1) - (math.sqrt(px**2 + pz**2) - r1)
+                    nz = (math.sqrt(px**2 + (pz + eps) ** 2) - r1) - (math.sqrt(px**2 + pz**2) - r1)
                     mag = math.sqrt(nx * nx + ny * ny + nz * nz)
                     if mag > 1e-5:
                         nx, ny, nz = nx / mag, ny / mag, nz / mag
@@ -1619,9 +1791,9 @@ class VulkanComputeDriver:
         height: int = 40,
         t: float = 0.5,
         mode: str = "CYBERPUNK",
-        cam_pos: Tuple[float, float, float] = (0.0, 0.0, -3.2),
-        step_budget: int = 32
-    ) -> Dict[str, Any]:
+        cam_pos: tuple[float, float, float] = (0.0, 0.0, -3.2),
+        step_budget: int = 32,
+    ) -> dict[str, Any]:
         """
         Executes both GPU hardware dispatch and CPU reference oracle,
         calculating match ratios and error metrics.
@@ -1632,8 +1804,14 @@ class VulkanComputeDriver:
         # Force GPU execution with readback enabled for verification
         self.prefer_gpu = True
         gpu_glyphs, gpu_colors = self.execute_raymarch(
-            width, height, t, mode, cam_pos, step_budget,
-            readback=True, readback_reason=ReadbackReason.DEBUG_CAPTURE
+            width,
+            height,
+            t,
+            mode,
+            cam_pos,
+            step_budget,
+            readback=True,
+            readback_reason=ReadbackReason.DEBUG_CAPTURE,
         )
         assert self.real_gpu_dispatch, "GPU dispatch failed during verification"
 
@@ -1649,6 +1827,7 @@ class VulkanComputeDriver:
         max_err = max(color_diffs)
 
         import hashlib
+
         h = hashlib.sha256()
         h.update(bytes(gpu_glyphs))
         for c in gpu_colors:
@@ -1673,9 +1852,8 @@ class VulkanComputeDriver:
         }
 
     def materialize_readback(
-        self,
-        reason: ReadbackReason = ReadbackReason.EXPLICIT_API_REQUEST
-    ) -> Tuple[List[int], List[int]]:
+        self, reason: ReadbackReason = ReadbackReason.EXPLICIT_API_REQUEST
+    ) -> tuple[list[int], list[int]]:
         """
         Explicit on-demand readback of currently resident GPU frame buffers
         without triggering a new dispatch.
@@ -1711,7 +1889,7 @@ class VulkanComputeDriver:
         prev_hash = self.fault_history[-1].ledger_hash if self.fault_history else "0" * 64
         hasher = hashlib.sha256()
         hasher.update(prev_hash.encode("utf-8"))
-        hasher.update(f"{fault_type}:{stage}:{frame_id}:{actual_recovery}:{latency_ms}".encode("utf-8"))
+        hasher.update(f"{fault_type}:{stage}:{frame_id}:{actual_recovery}:{latency_ms}".encode())
         rec = FaultRecord(
             fault_id=f"FAULT-{len(self.fault_history) + 1:04d}",
             fault_type=fault_type,
@@ -1780,33 +1958,57 @@ class VulkanComputeDriver:
             self._destroy_buffers()
 
             if self.fence:
-                vl.vkDestroyFence.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+                vl.vkDestroyFence.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                ]
                 vl.vkDestroyFence(self.device, self.fence, None)
                 self.fence = None
 
             if self.command_pool:
-                vl.vkDestroyCommandPool.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+                vl.vkDestroyCommandPool.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                ]
                 vl.vkDestroyCommandPool(self.device, self.command_pool, None)
                 self.command_pool = None
                 self.command_buffer = None
 
             if self.pipeline:
-                vl.vkDestroyPipeline.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+                vl.vkDestroyPipeline.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                ]
                 vl.vkDestroyPipeline(self.device, self.pipeline, None)
                 self.pipeline = None
 
             if self.pipeline_layout:
-                vl.vkDestroyPipelineLayout.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+                vl.vkDestroyPipelineLayout.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                ]
                 vl.vkDestroyPipelineLayout(self.device, self.pipeline_layout, None)
                 self.pipeline_layout = None
 
             if self.shader_module:
-                vl.vkDestroyShaderModule.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+                vl.vkDestroyShaderModule.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                ]
                 vl.vkDestroyShaderModule(self.device, self.shader_module, None)
                 self.shader_module = None
 
             if self.descriptor_set_layout:
-                vl.vkDestroyDescriptorSetLayout.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+                vl.vkDestroyDescriptorSetLayout.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                ]
                 vl.vkDestroyDescriptorSetLayout(self.device, self.descriptor_set_layout, None)
                 self.descriptor_set_layout = None
 
@@ -1824,7 +2026,7 @@ class VulkanComputeDriver:
     def __del__(self):
         self.cleanup()
 
-    def get_telemetry(self) -> Dict[str, Any]:
+    def get_telemetry(self) -> dict[str, Any]:
         """Returns driver status, active GPU device, memory topology, and dispatch timings."""
         groups_x = (self.buffer_width + 7) // 8 if self.buffer_width > 0 else 0
         groups_y = (self.buffer_height + 7) // 8 if self.buffer_height > 0 else 0
@@ -1855,7 +2057,9 @@ class VulkanComputeDriver:
             "dispatch_count": self.dispatch_count,
             "last_dispatch_us": self.last_dispatch_us,
             "readback_mb_s": self.readback_mb_s,
-            "ssbo_readback_kb_per_frame": round((self.buffer_width * self.buffer_height * 5) / 1024.0, 2) if self.buffer_width > 0 else 19.2,
+            "ssbo_readback_kb_per_frame": round((self.buffer_width * self.buffer_height * 5) / 1024.0, 2)
+            if self.buffer_width > 0
+            else 19.2,
             "device_detected": self.device_detected,
             "real_gpu_dispatch": self.real_gpu_dispatch,
             "compute_backend": self.compute_backend,

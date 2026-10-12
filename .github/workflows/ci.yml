@@ -71,6 +71,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu || true
           pip install -r requirements.txt
           pip install pytest pytest-cov
 
@@ -141,7 +142,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build
+          sudo apt-get install -y build-essential cmake ninja-build libvulkan-dev
 
       - name: Build C core
         run: |
@@ -162,7 +163,7 @@ jobs:
   test-gpu:
     runs-on: [self-hosted, gpu]
     needs: [test-python, test-rust]
-    if: github.ref == 'refs/heads/main'
+    if: false # Disabled on GitHub cloud runners until self-hosted GPU runner is registered
     steps:
       - uses: actions/checkout@v4
 
@@ -235,6 +236,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs: package
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
 

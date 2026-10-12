@@ -14,7 +14,7 @@ Implements:
 
 import math
 import time
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Any
 
 
 class SymplecticCyclicEngine:
@@ -34,13 +34,13 @@ class SymplecticCyclicEngine:
     def __init__(
         self,
         organism_id: str = "Organism-Alpha-Prime",
-        mass_inertia: Optional[List[float]] = None,
-        spring_constants: Optional[List[float]] = None,
-        homeostatic_setpoints: Optional[List[float]] = None,
-        barrier_limits: Optional[List[float]] = None,
+        mass_inertia: list[float] | None = None,
+        spring_constants: list[float] | None = None,
+        homeostatic_setpoints: list[float] | None = None,
+        barrier_limits: list[float] | None = None,
         linear_damping_gamma: float = 0.05,
         nonlinear_entropy_beta: float = 2.5,
-        enable_economic_forcing: bool = True
+        enable_economic_forcing: bool = True,
     ):
         self.organism_id = organism_id
         # Dimension N = 4
@@ -54,8 +54,8 @@ class SymplecticCyclicEngine:
         self.enable_economic_forcing = enable_economic_forcing
 
         # Initial coordinates q and momentum p
-        self.q: List[float] = list(self.q_star)
-        self.p: List[float] = [0.0, 0.0, 0.0, 0.0]
+        self.q: list[float] = list(self.q_star)
+        self.p: list[float] = [0.0, 0.0, 0.0, 0.0]
 
         # External state inputs
         self.visual_entropy: float = 0.25
@@ -68,7 +68,7 @@ class SymplecticCyclicEngine:
         self.cycle_count: int = 0
         self.last_update_time: float = time.perf_counter()
 
-    def potential_gradient(self, q_vec: List[float]) -> List[float]:
+    def potential_gradient(self, q_vec: list[float]) -> list[float]:
         """
         Computes -dV/dq for the potential energy field:
         V(q) = 1/2 sum(k_i * (q_i - q_i*)^2) + sum(xi_i / (q_max_i - q_i)^2)
@@ -82,19 +82,19 @@ class SymplecticCyclicEngine:
 
             # Barrier repulsion near physical upper limit
             dist_to_limit = max(0.01, self.q_max[i] - q_vec[i])
-            f_barrier = - (2.0 * xi) / (dist_to_limit ** 3)
+            f_barrier = -(2.0 * xi) / (dist_to_limit**3)
 
             forces.append(f_harmonic + f_barrier)
         return forces
 
-    def dissipative_force(self, p_vec: List[float], entropy: float, congestion: float = 0.0) -> List[float]:
+    def dissipative_force(self, p_vec: list[float], entropy: float, congestion: float = 0.0) -> list[float]:
         """
         Computes non-conservative drag: Gamma(p, E) = -(gamma_0 + beta * E^2 + beta * congestion^2) * p
         """
-        effective_drag = self.gamma_0 + self.beta * (entropy ** 2) + self.beta * (congestion ** 2)
+        effective_drag = self.gamma_0 + self.beta * (entropy**2) + self.beta * (congestion**2)
         return [-effective_drag * p_i for p_i in p_vec]
 
-    def economic_forcing(self, t: float) -> List[float]:
+    def economic_forcing(self, t: float) -> list[float]:
         """
         Computes dynamic market driving force vector based on economic cycles.
         """
@@ -105,7 +105,13 @@ class SymplecticCyclicEngine:
         f_fps = 0.5 * math.cos(t * 0.1)
         return [0.0, f_fps, 0.0, f_econ]
 
-    def symplectic_step(self, dt: float, visual_entropy: float, gpu_temp: float = 48.0, mesh_congestion: float = 0.0):
+    def symplectic_step(
+        self,
+        dt: float,
+        visual_entropy: float,
+        gpu_temp: float = 48.0,
+        mesh_congestion: float = 0.0,
+    ):
         """
         Advances the phase space trajectory by dt using 2nd-order Symplectic Velocity-Verlet.
         Preserves Liouville symplectic 2-form area in phase space.
@@ -124,16 +130,10 @@ class SymplecticCyclicEngine:
         f_total_t = [fc + fd + fe for fc, fd, fe in zip(f_cons_t, f_diss_t, f_econ_t)]
 
         # 2. Half-step momentum update: p(t + dt/2) = p(t) + 0.5 * dt * F_total(t)
-        p_half = [
-            self.p[i] + 0.5 * dt * f_total_t[i]
-            for i in range(4)
-        ]
+        p_half = [self.p[i] + 0.5 * dt * f_total_t[i] for i in range(4)]
 
         # 3. Full-step coordinate update: q(t + dt) = q(t) + dt * (p_half / m)
-        q_next = [
-            self.q[i] + dt * (p_half[i] / self.mass[i])
-            for i in range(4)
-        ]
+        q_next = [self.q[i] + dt * (p_half[i] / self.mass[i]) for i in range(4)]
 
         # Clamp q coordinates strictly within safe physical intervals
         for i in range(4):
@@ -147,10 +147,7 @@ class SymplecticCyclicEngine:
         f_total_next = [fc + fd + fe for fc, fd, fe in zip(f_cons_next, f_diss_next, f_econ_next)]
 
         # 5. Half-step momentum completion: p(t + dt) = p_half + 0.5 * dt * F_total_next
-        p_next = [
-            p_half[i] + 0.5 * dt * f_total_next[i]
-            for i in range(4)
-        ]
+        p_next = [p_half[i] + 0.5 * dt * f_total_next[i] for i in range(4)]
 
         self.q = q_next
         self.p = p_next
@@ -187,7 +184,7 @@ class SymplecticCyclicEngine:
         Determines current brainwave state (ALPHA, BETA, GAMMA, OMEGA)
         and adjusts control actuations.
         """
-        momentum_norm = math.sqrt(sum(p_i ** 2 for p_i in self.p))
+        momentum_norm = math.sqrt(sum(p_i**2 for p_i in self.p))
 
         # Check critical thresholds (Omega Phase: Backpressure / Thermal protection)
         if self.visual_entropy > 0.70 or self.gpu_temp_c > 80.0 or self.mesh_congestion > 0.60:
@@ -199,7 +196,7 @@ class SymplecticCyclicEngine:
         else:
             self.cognitive_phase = "ALPHA"
 
-    def get_control_actuation(self) -> Dict[str, Any]:
+    def get_control_actuation(self) -> dict[str, Any]:
         """
         Translates current Hamiltonian phase space coordinates into concrete
         rendering, threading, and resource partition settings.
@@ -211,25 +208,45 @@ class SymplecticCyclicEngine:
             step_budget = 16
             style = "BLUEPRINT_EDGE"
             priority = "LOW"
-            vram_dist = {"mining_percent": 0.0, "render_percent": 40.0, "inference_percent": 50.0, "buffer_percent": 10.0}
+            vram_dist = {
+                "mining_percent": 0.0,
+                "render_percent": 40.0,
+                "inference_percent": 50.0,
+                "buffer_percent": 10.0,
+            }
         elif phase == "GAMMA":
             # Peak Force: Full raymarching steps, maximum priority
             step_budget = 48
             style = "HIGH_FIDELITY"
             priority = "REALTIME"
-            vram_dist = {"mining_percent": 20.0, "render_percent": 70.0, "inference_percent": 5.0, "buffer_percent": 5.0}
+            vram_dist = {
+                "mining_percent": 20.0,
+                "render_percent": 70.0,
+                "inference_percent": 5.0,
+                "buffer_percent": 5.0,
+            }
         elif phase == "BETA":
             # Active Flow: Balanced settings
             step_budget = 32
             style = "CYBERPUNK"
             priority = "NORMAL"
-            vram_dist = {"mining_percent": 30.0, "render_percent": 50.0, "inference_percent": 15.0, "buffer_percent": 5.0}
+            vram_dist = {
+                "mining_percent": 30.0,
+                "render_percent": 50.0,
+                "inference_percent": 15.0,
+                "buffer_percent": 5.0,
+            }
         else:
             # ALPHA: Idle / Synthesis: Low step budget, power conservation
             step_budget = 20
             style = "CYBERPUNK"
             priority = "IDLE"
-            vram_dist = {"mining_percent": 75.0, "render_percent": 15.0, "inference_percent": 5.0, "buffer_percent": 5.0}
+            vram_dist = {
+                "mining_percent": 75.0,
+                "render_percent": 15.0,
+                "inference_percent": 5.0,
+                "buffer_percent": 5.0,
+            }
 
         # Fine-tune step budget with continuous complexity coordinate q[0]
         step_budget = int(step_budget * max(0.6, min(1.4, self.q[0])))
@@ -238,10 +255,10 @@ class SymplecticCyclicEngine:
             "raymarch_step_budget": max(12, min(64, step_budget)),
             "active_style_palette": style,
             "thread_priority": priority,
-            "vram_zone_distribution": vram_dist
+            "vram_zone_distribution": vram_dist,
         }
 
-    def generate_phase_trajectory(self, num_points: int = 32, dt: float = 0.033) -> List[Tuple[float, float]]:
+    def generate_phase_trajectory(self, num_points: int = 32, dt: float = 0.033) -> list[tuple[float, float]]:
         """
         Projects an un-damped short-term orbit in (q[0], p[0]) phase space
         for real-time holographic canvas visualization.
@@ -261,7 +278,7 @@ class SymplecticCyclicEngine:
 
         return trajectory
 
-    def to_schema_dict(self) -> Dict[str, Any]:
+    def to_schema_dict(self) -> dict[str, Any]:
         """
         Serializes current state conforming to schemas/cyclic_architecture_schema.json.
         """
@@ -279,11 +296,11 @@ class SymplecticCyclicEngine:
                 "homeostatic_setpoints": [round(q, 3) for q in self.q_star],
                 "barrier_limits": [round(lim, 3) for lim in self.q_max],
                 "linear_damping_gamma": self.gamma_0,
-                "nonlinear_entropy_beta": self.beta
+                "nonlinear_entropy_beta": self.beta,
             },
             "state_vector": {
                 "q_coordinates": [round(x, 4) for x in self.q],
-                "p_momentum": [round(x, 4) for x in self.p]
+                "p_momentum": [round(x, 4) for x in self.p],
             },
             "telemetry": {
                 "total_energy_h": round(h_val, 4),
@@ -292,7 +309,7 @@ class SymplecticCyclicEngine:
                 "lyapunov_stability_index": self.lyapunov_stability_index(),
                 "visual_entropy": round(self.visual_entropy, 4),
                 "gpu_temperature_c": round(self.gpu_temp_c, 1),
-                "economic_budget": round(self.economic_budget, 1)
+                "economic_budget": round(self.economic_budget, 1),
             },
-            "control_actuation": self.get_control_actuation()
+            "control_actuation": self.get_control_actuation(),
         }

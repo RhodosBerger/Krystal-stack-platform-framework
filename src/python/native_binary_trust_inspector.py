@@ -20,7 +20,8 @@ import platform
 import subprocess
 from ctypes import wintypes
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Optional
+from typing import Any
+
 
 # WinTrust GUID & Structures
 class _GUID(ctypes.Structure):
@@ -31,10 +32,14 @@ class _GUID(ctypes.Structure):
         ("Data4", ctypes.c_ubyte * 8),
     ]
 
+
 _WINTRUST_ACTION_GENERIC_VERIFY_V2 = _GUID(
-    0x00AAC56B, 0xCD44, 0x11D0,
-    (ctypes.c_ubyte * 8)(0x8C, 0xC2, 0x00, 0xC0, 0x4F, 0xC2, 0x95, 0xEE)
+    0x00AAC56B,
+    0xCD44,
+    0x11D0,
+    (ctypes.c_ubyte * 8)(0x8C, 0xC2, 0x00, 0xC0, 0x4F, 0xC2, 0x95, 0xEE),
 )
+
 
 class _WINTRUST_FILE_INFO(ctypes.Structure):
     _fields_ = [
@@ -43,6 +48,7 @@ class _WINTRUST_FILE_INFO(ctypes.Structure):
         ("hFile", wintypes.HANDLE),
         ("pgKnownSubject", ctypes.c_void_p),
     ]
+
 
 class _WINTRUST_DATA(ctypes.Structure):
     _fields_ = [
@@ -67,8 +73,8 @@ class BinaryTrustReport:
     file_path: str
     sha256: str
     authenticode_status: str
-    certificate_subject: Optional[str]
-    certificate_thumbprint: Optional[str]
+    certificate_subject: str | None
+    certificate_thumbprint: str | None
     signature_validity: bool
     win_verify_trust_result: str
     code_integrity_load_outcome: str
@@ -79,7 +85,7 @@ class BinaryTrustReport:
     can_execute_native: bool
     diagnostic_note: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -91,8 +97,12 @@ class NativeBinaryTrustInspector:
         if platform.system() != "Windows":
             return "NON_WINDOWS"
         try:
-            cmd = ["powershell", "-NoProfile", "-Command",
-                   "(Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\\Microsoft\\Windows\\DeviceGuard).UsermodeCodeIntegrityPolicyEnforcementStatus"]
+            cmd = [
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                "(Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\\Microsoft\\Windows\\DeviceGuard).UsermodeCodeIntegrityPolicyEnforcementStatus",
+            ]
             res = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
             out_code = res.stdout.strip()
             if out_code == "2":
@@ -106,7 +116,7 @@ class NativeBinaryTrustInspector:
             return "UNKNOWN"
 
     @staticmethod
-    def inspect(file_path: str, manifest_path: Optional[str] = None) -> BinaryTrustReport:
+    def inspect(file_path: str, manifest_path: str | None = None) -> BinaryTrustReport:
         abs_path = os.path.abspath(file_path) if file_path else ""
         host_policy = NativeBinaryTrustInspector.query_umci_status()
 
@@ -170,7 +180,11 @@ class NativeBinaryTrustInspector:
         if platform.system() == "Windows":
             try:
                 wintrust = ctypes.windll.wintrust
-                wintrust.WinVerifyTrust.argtypes = [wintypes.HWND, ctypes.POINTER(_GUID), ctypes.c_void_p]
+                wintrust.WinVerifyTrust.argtypes = [
+                    wintypes.HWND,
+                    ctypes.POINTER(_GUID),
+                    ctypes.c_void_p,
+                ]
                 wintrust.WinVerifyTrust.restype = wintypes.LONG
 
                 file_info = _WINTRUST_FILE_INFO(
@@ -183,18 +197,22 @@ class NativeBinaryTrustInspector:
                     cbStruct=ctypes.sizeof(_WINTRUST_DATA),
                     pPolicyCallbackData=None,
                     pSIPClientData=None,
-                    dwUIChoice=2,        # WTD_UI_NONE
+                    dwUIChoice=2,  # WTD_UI_NONE
                     fdwRevocationChecks=0,  # WTD_REVOKE_NONE
-                    dwUnionChoice=1,       # WTD_CHOICE_FILE
+                    dwUnionChoice=1,  # WTD_CHOICE_FILE
                     pFile=ctypes.pointer(file_info),
-                    dwStateAction=0,       # WTD_STATEACTION_IGNORE
+                    dwStateAction=0,  # WTD_STATEACTION_IGNORE
                     hWVTStateData=None,
                     pwszURLReference=None,
                     dwProvFlags=0x00000080 | 0x00000010,  # WTD_CACHE_ONLY_URL_RETRIEVAL | WTD_REVOCATION_CHECK_NONE
                     dwUIContext=0,
                     pSignatureSettings=None,
                 )
-                wvt_res = wintrust.WinVerifyTrust(None, ctypes.byref(_WINTRUST_ACTION_GENERIC_VERIFY_V2), ctypes.byref(trust_data))
+                wvt_res = wintrust.WinVerifyTrust(
+                    None,
+                    ctypes.byref(_WINTRUST_ACTION_GENERIC_VERIFY_V2),
+                    ctypes.byref(trust_data),
+                )
                 wvt_result_str = hex(wvt_res & 0xFFFFFFFF)
 
                 if wvt_res == 0:
@@ -216,7 +234,11 @@ class NativeBinaryTrustInspector:
             # 5. Controlled Loader Probe via LoadLibraryExW (LOAD_WITH_ALTERED_SEARCH_PATH)
             try:
                 kernel32 = ctypes.windll.kernel32
-                kernel32.LoadLibraryExW.argtypes = [wintypes.LPCWSTR, wintypes.HANDLE, wintypes.DWORD]
+                kernel32.LoadLibraryExW.argtypes = [
+                    wintypes.LPCWSTR,
+                    wintypes.HANDLE,
+                    wintypes.DWORD,
+                ]
                 kernel32.LoadLibraryExW.restype = ctypes.c_void_p
                 kernel32.FreeLibrary.argtypes = [ctypes.c_void_p]
                 kernel32.FreeLibrary.restype = wintypes.BOOL

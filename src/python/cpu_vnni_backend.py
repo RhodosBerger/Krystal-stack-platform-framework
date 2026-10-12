@@ -10,17 +10,12 @@ Platform Invariant: VITAL_MAX_HP == 6 (Unconditional).
 
 from __future__ import annotations
 
-import array
-import math
-import os
 import platform
-import struct
-import sys
 import threading
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 VITAL_MAX_HP: int = 6
 
@@ -36,6 +31,7 @@ class ExecutionMode(str, Enum):
 @dataclass
 class CpuVnniCapability:
     """Hardware capability inspection report for CPU SIMD & tensor units."""
+
     cpu_model: str
     architecture: str
     has_avx2: bool
@@ -52,13 +48,14 @@ class CpuVnniCapability:
     vnni_capable: bool = False
     execution_evidence: str = "HOST_CPU_EMULATED"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 @dataclass
 class CpuVnniTelemetry:
     """Live runtime telemetry emitted by CPU VNNI execution passes."""
+
     timestamp: float
     execution_mode: str
     workload_size: int
@@ -69,7 +66,7 @@ class CpuVnniTelemetry:
     package_pressure_contribution: float
     real_vnni_execution: bool
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -84,7 +81,7 @@ class CpuVnniBackend:
         self._lock = threading.RLock()
         self.force_scalar_fallback = force_scalar_fallback
         self.capability = self._detect_hardware_capability()
-        self._execution_history: List[CpuVnniTelemetry] = []
+        self._execution_history: list[CpuVnniTelemetry] = []
 
         # Current telemetry state
         self.current_frequency_ghz: float = 2.40
@@ -126,10 +123,10 @@ class CpuVnniBackend:
 
     def execute_dot_product(
         self,
-        vector_a: List[int],
-        vector_b: List[int],
+        vector_a: list[int],
+        vector_b: list[int],
         precision: str = "INT8",
-    ) -> Tuple[int, CpuVnniTelemetry]:
+    ) -> tuple[int, CpuVnniTelemetry]:
         """
         Executes dot product over integer vectors.
         Uses 4-way packed integer dot product (simulating vpdpbusd VNNI instruction).
@@ -152,10 +149,10 @@ class CpuVnniBackend:
                 for i in range(0, n - remainder, step):
                     # vpdpbusd quad accumulate
                     q0 = (vector_a[i] & 0xFF) * (vector_b[i] & 0xFF)
-                    q1 = (vector_a[i+1] & 0xFF) * (vector_b[i+1] & 0xFF)
-                    q2 = (vector_a[i+2] & 0xFF) * (vector_b[i+2] & 0xFF)
-                    q3 = (vector_a[i+3] & 0xFF) * (vector_b[i+3] & 0xFF)
-                    accum += (q0 + q1 + q2 + q3)
+                    q1 = (vector_a[i + 1] & 0xFF) * (vector_b[i + 1] & 0xFF)
+                    q2 = (vector_a[i + 2] & 0xFF) * (vector_b[i + 2] & 0xFF)
+                    q3 = (vector_a[i + 3] & 0xFF) * (vector_b[i + 3] & 0xFF)
+                    accum += q0 + q1 + q2 + q3
 
                 for i in range(n - remainder, n):
                     accum += (vector_a[i] & 0xFF) * (vector_b[i] & 0xFF)
@@ -191,9 +188,9 @@ class CpuVnniBackend:
 
     def execute_tensor_workload(
         self,
-        input_tensor: List[float],
-        weights: List[float],
-    ) -> Tuple[List[float], CpuVnniTelemetry]:
+        input_tensor: list[float],
+        weights: list[float],
+    ) -> tuple[list[float], CpuVnniTelemetry]:
         """Executes a 1D tensor transformation with element-wise ReLU activation."""
         start_t = time.perf_counter()
         n = min(len(input_tensor), len(weights))
@@ -202,12 +199,14 @@ class CpuVnniBackend:
         with self._lock:
             for i in range(n):
                 val = input_tensor[i] * weights[i]
-                output[i] = val if val > 0.0 else 0.0  # ReLU
+                output[i] = max(0.0, val)  # ReLU
 
             duration_s = max(1e-7, time.perf_counter() - start_t)
             telemetry = CpuVnniTelemetry(
                 timestamp=time.time(),
-                execution_mode=ExecutionMode.VNNI_INT8_EMULATED.value if self.capability.vnni_capable else ExecutionMode.SCALAR_FALLBACK.value,
+                execution_mode=ExecutionMode.VNNI_INT8_EMULATED.value
+                if self.capability.vnni_capable
+                else ExecutionMode.SCALAR_FALLBACK.value,
                 workload_size=n,
                 latency_ms=round(duration_s * 1000.0, 4),
                 throughput_ops_sec=round(n / duration_s, 1),
@@ -219,6 +218,6 @@ class CpuVnniBackend:
             self._execution_history.append(telemetry)
             return output, telemetry
 
-    def get_telemetry_history(self) -> List[Dict[str, Any]]:
+    def get_telemetry_history(self) -> list[dict[str, Any]]:
         with self._lock:
             return [t.to_dict() for t in self._execution_history]

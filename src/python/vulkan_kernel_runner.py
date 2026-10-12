@@ -27,8 +27,9 @@ import struct
 import threading
 import time
 from array import array
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any
 
 from src.python import vulkan_compute_driver as vk
 
@@ -44,7 +45,7 @@ _FENCE_TIMEOUT_NS = 5_000_000_000
 class KernelTimings:
     marshal_ms: float = 0.0
     upload_ms: float = 0.0
-    gpu_ms: float = 0.0          # record + submit + fence wait
+    gpu_ms: float = 0.0  # record + submit + fence wait
     readback_ms: float = 0.0
     unmarshal_ms: float = 0.0
 
@@ -58,7 +59,7 @@ class KernelTimings:
         """Everything a Python caller holding Python lists pays."""
         return self.marshal_ms + self.device_path_ms + self.unmarshal_ms
 
-    def to_dict(self) -> Dict[str, float]:
+    def to_dict(self) -> dict[str, float]:
         return {
             "marshal_ms": round(self.marshal_ms, 4),
             "upload_ms": round(self.upload_ms, 4),
@@ -87,17 +88,17 @@ class _Pipeline:
     pipeline: ctypes.c_void_p
     desc_pool: ctypes.c_void_p
     desc_set: ctypes.c_void_p
-    buffers: List[Optional[_Buffer]] = field(default_factory=lambda: [None, None, None, None])
+    buffers: list[_Buffer | None] = field(default_factory=lambda: [None, None, None, None])
 
 
 class VulkanContext:
     """Process-wide Vulkan device / queue / command buffer for generic compute kernels."""
 
-    _instance: Optional["VulkanContext"] = None
+    _instance: VulkanContext | None = None
     _lock = threading.Lock()
 
     @classmethod
-    def get(cls) -> "VulkanContext":
+    def get(cls) -> VulkanContext:
         with cls._lock:
             if cls._instance is None:
                 cls._instance = VulkanContext()
@@ -114,7 +115,7 @@ class VulkanContext:
         self.cmd_buf = None
         self.fence = None
         self.mem_type = -1
-        self.pipelines: Dict[str, _Pipeline] = {}
+        self.pipelines: dict[str, _Pipeline] = {}
         self._probe = None
         try:
             self._init()
@@ -133,20 +134,47 @@ class VulkanContext:
         self.device_name = probe.device_name
         qf = probe.compute_queue_family
 
-        vl.vkCreateDevice.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkDeviceCreateInfo), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkCreateDevice.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkDeviceCreateInfo),
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkCreateDevice.restype = ctypes.c_int32
         prio = (ctypes.c_float * 1)(1.0)
-        qinfo = vk.VkDeviceQueueCreateInfo(sType=vk.VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, pNext=None, flags=0,
-                                           queueFamilyIndex=qf, queueCount=1, pQueuePriorities=prio)
-        dinfo = vk.VkDeviceCreateInfo(sType=vk.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, pNext=None, flags=0,
-                                      queueCreateInfoCount=1, pQueueCreateInfos=ctypes.pointer(qinfo),
-                                      enabledLayerCount=0, ppEnabledLayerNames=None, enabledExtensionCount=0,
-                                      ppEnabledExtensionNames=None, pEnabledFeatures=None)
+        qinfo = vk.VkDeviceQueueCreateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            pNext=None,
+            flags=0,
+            queueFamilyIndex=qf,
+            queueCount=1,
+            pQueuePriorities=prio,
+        )
+        dinfo = vk.VkDeviceCreateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+            pNext=None,
+            flags=0,
+            queueCreateInfoCount=1,
+            pQueueCreateInfos=ctypes.pointer(qinfo),
+            enabledLayerCount=0,
+            ppEnabledLayerNames=None,
+            enabledExtensionCount=0,
+            ppEnabledExtensionNames=None,
+            pEnabledFeatures=None,
+        )
         device = ctypes.c_void_p()
-        self._check(vl.vkCreateDevice(probe.physical_device, ctypes.byref(dinfo), None, ctypes.byref(device)), "vkCreateDevice")
+        self._check(
+            vl.vkCreateDevice(probe.physical_device, ctypes.byref(dinfo), None, ctypes.byref(device)),
+            "vkCreateDevice",
+        )
         self.device = device
 
-        vl.vkGetDeviceQueue.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkGetDeviceQueue.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.c_uint32,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkGetDeviceQueue.restype = None
         queue = ctypes.c_void_p()
         vl.vkGetDeviceQueue(device, qf, 0, ctypes.byref(queue))
@@ -154,7 +182,10 @@ class VulkanContext:
             raise RuntimeError("vkGetDeviceQueue returned null")
         self.queue = queue
 
-        vl.vkGetPhysicalDeviceMemoryProperties.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkPhysicalDeviceMemoryProperties)]
+        vl.vkGetPhysicalDeviceMemoryProperties.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkPhysicalDeviceMemoryProperties),
+        ]
         vl.vkGetPhysicalDeviceMemoryProperties.restype = None
         props = vk.VkPhysicalDeviceMemoryProperties()
         vl.vkGetPhysicalDeviceMemoryProperties(probe.physical_device, ctypes.byref(props))
@@ -171,62 +202,165 @@ class VulkanContext:
         if self.mem_type < 0:
             raise RuntimeError("no HOST_VISIBLE|HOST_COHERENT memory type")
 
-        vl.vkCreateCommandPool.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkCommandPoolCreateInfo), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkCreateCommandPool.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkCommandPoolCreateInfo),
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkCreateCommandPool.restype = ctypes.c_int32
-        pinfo = vk.VkCommandPoolCreateInfo(sType=vk.VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, pNext=None,
-                                           flags=vk.VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, queueFamilyIndex=qf)
+        pinfo = vk.VkCommandPoolCreateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            pNext=None,
+            flags=vk.VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            queueFamilyIndex=qf,
+        )
         pool = ctypes.c_void_p()
-        self._check(vl.vkCreateCommandPool(device, ctypes.byref(pinfo), None, ctypes.byref(pool)), "vkCreateCommandPool")
+        self._check(
+            vl.vkCreateCommandPool(device, ctypes.byref(pinfo), None, ctypes.byref(pool)),
+            "vkCreateCommandPool",
+        )
         self.cmd_pool = pool
 
-        vl.vkAllocateCommandBuffers.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkCommandBufferAllocateInfo), ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkAllocateCommandBuffers.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkCommandBufferAllocateInfo),
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkAllocateCommandBuffers.restype = ctypes.c_int32
-        ainfo = vk.VkCommandBufferAllocateInfo(sType=vk.VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, pNext=None,
-                                               commandPool=pool, level=vk.VK_COMMAND_BUFFER_LEVEL_PRIMARY, commandBufferCount=1)
+        ainfo = vk.VkCommandBufferAllocateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            pNext=None,
+            commandPool=pool,
+            level=vk.VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            commandBufferCount=1,
+        )
         cbuf = ctypes.c_void_p()
-        self._check(vl.vkAllocateCommandBuffers(device, ctypes.byref(ainfo), ctypes.byref(cbuf)), "vkAllocateCommandBuffers")
+        self._check(
+            vl.vkAllocateCommandBuffers(device, ctypes.byref(ainfo), ctypes.byref(cbuf)),
+            "vkAllocateCommandBuffers",
+        )
         self.cmd_buf = cbuf
 
-        vl.vkCreateFence.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkFenceCreateInfo), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkCreateFence.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkFenceCreateInfo),
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkCreateFence.restype = ctypes.c_int32
         finfo = vk.VkFenceCreateInfo(sType=vk.VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, pNext=None, flags=0)
         fence = ctypes.c_void_p()
-        self._check(vl.vkCreateFence(device, ctypes.byref(finfo), None, ctypes.byref(fence)), "vkCreateFence")
+        self._check(
+            vl.vkCreateFence(device, ctypes.byref(finfo), None, ctypes.byref(fence)),
+            "vkCreateFence",
+        )
         self.fence = fence
 
         # Function prototypes used on the hot path.
-        vl.vkCreateBuffer.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkBufferCreateInfo), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkCreateBuffer.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkBufferCreateInfo),
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkCreateBuffer.restype = ctypes.c_int32
-        vl.vkGetBufferMemoryRequirements.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.POINTER(vk.VkMemoryRequirements)]
+        vl.vkGetBufferMemoryRequirements.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkMemoryRequirements),
+        ]
         vl.vkGetBufferMemoryRequirements.restype = None
-        vl.vkAllocateMemory.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkMemoryAllocateInfo), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkAllocateMemory.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkMemoryAllocateInfo),
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkAllocateMemory.restype = ctypes.c_int32
-        vl.vkBindBufferMemory.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint64]
+        vl.vkBindBufferMemory.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_uint64,
+        ]
         vl.vkBindBufferMemory.restype = ctypes.c_int32
-        vl.vkMapMemory.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_uint32, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkMapMemory.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_uint64,
+            ctypes.c_uint64,
+            ctypes.c_uint32,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkMapMemory.restype = ctypes.c_int32
         vl.vkFreeMemory.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
         vl.vkFreeMemory.restype = None
-        vl.vkDestroyBuffer.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+        vl.vkDestroyBuffer.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+        ]
         vl.vkDestroyBuffer.restype = None
-        vl.vkUpdateDescriptorSets.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(vk.VkWriteDescriptorSet), ctypes.c_uint32, ctypes.c_void_p]
+        vl.vkUpdateDescriptorSets.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.POINTER(vk.VkWriteDescriptorSet),
+            ctypes.c_uint32,
+            ctypes.c_void_p,
+        ]
         vl.vkUpdateDescriptorSets.restype = None
-        vl.vkResetFences.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkResetFences.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkResetFences.restype = ctypes.c_int32
-        vl.vkBeginCommandBuffer.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkCommandBufferBeginInfo)]
+        vl.vkBeginCommandBuffer.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkCommandBufferBeginInfo),
+        ]
         vl.vkBeginCommandBuffer.restype = ctypes.c_int32
-        vl.vkCmdBindPipeline.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p]
+        vl.vkCmdBindPipeline.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.c_void_p,
+        ]
         vl.vkCmdBindPipeline.restype = None
-        vl.vkCmdBindDescriptorSets.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32,
-                                               ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint32, ctypes.c_void_p]
+        vl.vkCmdBindDescriptorSets.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.c_uint32,
+            ctypes.POINTER(ctypes.c_void_p),
+            ctypes.c_uint32,
+            ctypes.c_void_p,
+        ]
         vl.vkCmdBindDescriptorSets.restype = None
-        vl.vkCmdDispatch.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32]
+        vl.vkCmdDispatch.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.c_uint32,
+            ctypes.c_uint32,
+        ]
         vl.vkCmdDispatch.restype = None
         vl.vkEndCommandBuffer.argtypes = [ctypes.c_void_p]
         vl.vkEndCommandBuffer.restype = ctypes.c_int32
-        vl.vkQueueSubmit.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(vk.VkSubmitInfo), ctypes.c_void_p]
+        vl.vkQueueSubmit.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.POINTER(vk.VkSubmitInfo),
+            ctypes.c_void_p,
+        ]
         vl.vkQueueSubmit.restype = ctypes.c_int32
-        vl.vkWaitForFences.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint32, ctypes.c_uint64]
+        vl.vkWaitForFences.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.POINTER(ctypes.c_void_p),
+            ctypes.c_uint32,
+            ctypes.c_uint64,
+        ]
         vl.vkWaitForFences.restype = ctypes.c_int32
 
     @staticmethod
@@ -244,58 +378,154 @@ class VulkanContext:
         if len(code) % 4 != 0 or len(code) < 20:
             raise RuntimeError(f"invalid SPIR-V: {spv_path}")
 
-        vl.vkCreateDescriptorSetLayout.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkDescriptorSetLayoutCreateInfo), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkCreateDescriptorSetLayout.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkDescriptorSetLayoutCreateInfo),
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkCreateDescriptorSetLayout.restype = ctypes.c_int32
-        bindings = (vk.VkDescriptorSetLayoutBinding * 4)(*[
-            vk.VkDescriptorSetLayoutBinding(i, vk.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, vk.VK_SHADER_STAGE_COMPUTE_BIT, None)
-            for i in range(4)
-        ])
-        dsl_info = vk.VkDescriptorSetLayoutCreateInfo(sType=vk.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, pNext=None,
-                                                      flags=0, bindingCount=4, pBindings=bindings)
+        bindings = (vk.VkDescriptorSetLayoutBinding * 4)(
+            *[
+                vk.VkDescriptorSetLayoutBinding(
+                    i,
+                    vk.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                    1,
+                    vk.VK_SHADER_STAGE_COMPUTE_BIT,
+                    None,
+                )
+                for i in range(4)
+            ]
+        )
+        dsl_info = vk.VkDescriptorSetLayoutCreateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            pNext=None,
+            flags=0,
+            bindingCount=4,
+            pBindings=bindings,
+        )
         ds_layout = ctypes.c_void_p()
-        self._check(vl.vkCreateDescriptorSetLayout(dev, ctypes.byref(dsl_info), None, ctypes.byref(ds_layout)), "vkCreateDescriptorSetLayout")
+        self._check(
+            vl.vkCreateDescriptorSetLayout(dev, ctypes.byref(dsl_info), None, ctypes.byref(ds_layout)),
+            "vkCreateDescriptorSetLayout",
+        )
 
-        vl.vkCreatePipelineLayout.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkPipelineLayoutCreateInfo), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkCreatePipelineLayout.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkPipelineLayoutCreateInfo),
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkCreatePipelineLayout.restype = ctypes.c_int32
-        pl_info = vk.VkPipelineLayoutCreateInfo(sType=vk.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, pNext=None, flags=0,
-                                                setLayoutCount=1, pSetLayouts=(ctypes.c_void_p * 1)(ds_layout.value),
-                                                pushConstantRangeCount=0, pPushConstantRanges=None)
+        pl_info = vk.VkPipelineLayoutCreateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            pNext=None,
+            flags=0,
+            setLayoutCount=1,
+            pSetLayouts=(ctypes.c_void_p * 1)(ds_layout.value),
+            pushConstantRangeCount=0,
+            pPushConstantRanges=None,
+        )
         pipe_layout = ctypes.c_void_p()
-        self._check(vl.vkCreatePipelineLayout(dev, ctypes.byref(pl_info), None, ctypes.byref(pipe_layout)), "vkCreatePipelineLayout")
+        self._check(
+            vl.vkCreatePipelineLayout(dev, ctypes.byref(pl_info), None, ctypes.byref(pipe_layout)),
+            "vkCreatePipelineLayout",
+        )
 
-        vl.vkCreateShaderModule.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkShaderModuleCreateInfo), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkCreateShaderModule.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkShaderModuleCreateInfo),
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkCreateShaderModule.restype = ctypes.c_int32
         code_u32 = (ctypes.c_uint32 * (len(code) // 4)).from_buffer_copy(code)
-        sm_info = vk.VkShaderModuleCreateInfo(sType=vk.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO, pNext=None, flags=0,
-                                              codeSize=len(code), pCode=code_u32)
+        sm_info = vk.VkShaderModuleCreateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+            pNext=None,
+            flags=0,
+            codeSize=len(code),
+            pCode=code_u32,
+        )
         module = ctypes.c_void_p()
-        self._check(vl.vkCreateShaderModule(dev, ctypes.byref(sm_info), None, ctypes.byref(module)), "vkCreateShaderModule")
+        self._check(
+            vl.vkCreateShaderModule(dev, ctypes.byref(sm_info), None, ctypes.byref(module)),
+            "vkCreateShaderModule",
+        )
 
-        vl.vkCreateComputePipelines.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(vk.VkComputePipelineCreateInfo), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkCreateComputePipelines.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.POINTER(vk.VkComputePipelineCreateInfo),
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkCreateComputePipelines.restype = ctypes.c_int32
-        stage = vk.VkPipelineShaderStageCreateInfo(sType=vk.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, pNext=None, flags=0,
-                                                   stage=vk.VK_SHADER_STAGE_COMPUTE_BIT, module=module, pName=b"main",
-                                                   pSpecializationInfo=None)
-        cp_info = vk.VkComputePipelineCreateInfo(sType=vk.VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO, pNext=None, flags=0,
-                                                 stage=stage, layout=pipe_layout, basePipelineHandle=None, basePipelineIndex=-1)
+        stage = vk.VkPipelineShaderStageCreateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            pNext=None,
+            flags=0,
+            stage=vk.VK_SHADER_STAGE_COMPUTE_BIT,
+            module=module,
+            pName=b"main",
+            pSpecializationInfo=None,
+        )
+        cp_info = vk.VkComputePipelineCreateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+            pNext=None,
+            flags=0,
+            stage=stage,
+            layout=pipe_layout,
+            basePipelineHandle=None,
+            basePipelineIndex=-1,
+        )
         pipeline = ctypes.c_void_p()
-        self._check(vl.vkCreateComputePipelines(dev, None, 1, ctypes.byref(cp_info), None, ctypes.byref(pipeline)), "vkCreateComputePipelines")
+        self._check(
+            vl.vkCreateComputePipelines(dev, None, 1, ctypes.byref(cp_info), None, ctypes.byref(pipeline)),
+            "vkCreateComputePipelines",
+        )
 
-        vl.vkCreateDescriptorPool.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkDescriptorPoolCreateInfo), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkCreateDescriptorPool.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkDescriptorPoolCreateInfo),
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkCreateDescriptorPool.restype = ctypes.c_int32
         sizes = (vk.VkDescriptorPoolSize * 1)(vk.VkDescriptorPoolSize(vk.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 4))
-        dp_info = vk.VkDescriptorPoolCreateInfo(sType=vk.VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, pNext=None, flags=0,
-                                                maxSets=1, poolSizeCount=1, pPoolSizes=sizes)
+        dp_info = vk.VkDescriptorPoolCreateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            pNext=None,
+            flags=0,
+            maxSets=1,
+            poolSizeCount=1,
+            pPoolSizes=sizes,
+        )
         pool = ctypes.c_void_p()
-        self._check(vl.vkCreateDescriptorPool(dev, ctypes.byref(dp_info), None, ctypes.byref(pool)), "vkCreateDescriptorPool")
+        self._check(
+            vl.vkCreateDescriptorPool(dev, ctypes.byref(dp_info), None, ctypes.byref(pool)),
+            "vkCreateDescriptorPool",
+        )
 
-        vl.vkAllocateDescriptorSets.argtypes = [ctypes.c_void_p, ctypes.POINTER(vk.VkDescriptorSetAllocateInfo), ctypes.POINTER(ctypes.c_void_p)]
+        vl.vkAllocateDescriptorSets.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(vk.VkDescriptorSetAllocateInfo),
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
         vl.vkAllocateDescriptorSets.restype = ctypes.c_int32
-        ds_alloc = vk.VkDescriptorSetAllocateInfo(sType=vk.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, pNext=None,
-                                                  descriptorPool=pool, descriptorSetCount=1,
-                                                  pSetLayouts=(ctypes.c_void_p * 1)(ds_layout.value))
+        ds_alloc = vk.VkDescriptorSetAllocateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            pNext=None,
+            descriptorPool=pool,
+            descriptorSetCount=1,
+            pSetLayouts=(ctypes.c_void_p * 1)(ds_layout.value),
+        )
         dset = ctypes.c_void_p()
-        self._check(vl.vkAllocateDescriptorSets(dev, ctypes.byref(ds_alloc), ctypes.byref(dset)), "vkAllocateDescriptorSets")
+        self._check(
+            vl.vkAllocateDescriptorSets(dev, ctypes.byref(ds_alloc), ctypes.byref(dset)),
+            "vkAllocateDescriptorSets",
+        )
 
         p = _Pipeline(name, ds_layout, pipe_layout, module, pipeline, pool, dset)
         self.pipelines[name] = p
@@ -305,23 +535,43 @@ class VulkanContext:
     def _alloc(self, size: int) -> _Buffer:
         vl, dev = self.vl, self.device
         size = max(_MIN_BUFFER_BYTES, size)
-        binfo = vk.VkBufferCreateInfo(sType=vk.VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, pNext=None, flags=0, size=size,
-                                      usage=vk.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, sharingMode=0,
-                                      queueFamilyIndexCount=0, pQueueFamilyIndices=None)
+        binfo = vk.VkBufferCreateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            pNext=None,
+            flags=0,
+            size=size,
+            usage=vk.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+            sharingMode=0,
+            queueFamilyIndexCount=0,
+            pQueueFamilyIndices=None,
+        )
         buf = ctypes.c_void_p()
-        self._check(vl.vkCreateBuffer(dev, ctypes.byref(binfo), None, ctypes.byref(buf)), "vkCreateBuffer")
+        self._check(
+            vl.vkCreateBuffer(dev, ctypes.byref(binfo), None, ctypes.byref(buf)),
+            "vkCreateBuffer",
+        )
         reqs = vk.VkMemoryRequirements()
         vl.vkGetBufferMemoryRequirements(dev, buf, ctypes.byref(reqs))
-        ainfo = vk.VkMemoryAllocateInfo(sType=vk.VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, pNext=None,
-                                        allocationSize=reqs.size, memoryTypeIndex=self.mem_type)
+        ainfo = vk.VkMemoryAllocateInfo(
+            sType=vk.VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            pNext=None,
+            allocationSize=reqs.size,
+            memoryTypeIndex=self.mem_type,
+        )
         mem = ctypes.c_void_p()
-        self._check(vl.vkAllocateMemory(dev, ctypes.byref(ainfo), None, ctypes.byref(mem)), "vkAllocateMemory")
+        self._check(
+            vl.vkAllocateMemory(dev, ctypes.byref(ainfo), None, ctypes.byref(mem)),
+            "vkAllocateMemory",
+        )
         self._check(vl.vkBindBufferMemory(dev, buf, mem, 0), "vkBindBufferMemory")
         mapped = ctypes.c_void_p()
-        self._check(vl.vkMapMemory(dev, mem, 0, reqs.size, 0, ctypes.byref(mapped)), "vkMapMemory")
+        self._check(
+            vl.vkMapMemory(dev, mem, 0, reqs.size, 0, ctypes.byref(mapped)),
+            "vkMapMemory",
+        )
         return _Buffer(buf, mem, mapped, size)
 
-    def _free(self, b: Optional[_Buffer]) -> None:
+    def _free(self, b: _Buffer | None) -> None:
         if b is None:
             return
         self.vl.vkFreeMemory(self.device, b.mem, None)  # implicitly unmaps
@@ -341,18 +591,36 @@ class VulkanContext:
         if not changed:
             return
         infos = (vk.VkDescriptorBufferInfo * 4)(*[vk.VkDescriptorBufferInfo(b.buf, 0, b.capacity) for b in p.buffers])
-        writes = (vk.VkWriteDescriptorSet * 4)(*[
-            vk.VkWriteDescriptorSet(sType=vk.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, pNext=None, dstSet=p.desc_set,
-                                    dstBinding=i, dstArrayElement=0, descriptorCount=1,
-                                    descriptorType=vk.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, pImageInfo=None,
-                                    pBufferInfo=ctypes.pointer(infos[i]), pTexelBufferView=None)
-            for i in range(4)
-        ])
+        writes = (vk.VkWriteDescriptorSet * 4)(
+            *[
+                vk.VkWriteDescriptorSet(
+                    sType=vk.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    pNext=None,
+                    dstSet=p.desc_set,
+                    dstBinding=i,
+                    dstArrayElement=0,
+                    descriptorCount=1,
+                    descriptorType=vk.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                    pImageInfo=None,
+                    pBufferInfo=ctypes.pointer(infos[i]),
+                    pTexelBufferView=None,
+                )
+                for i in range(4)
+            ]
+        )
         self.vl.vkUpdateDescriptorSets(self.device, 4, writes, 0, None)
 
     # -------------------------------------------------------------- dispatch
-    def dispatch(self, p: _Pipeline, params: bytes, a: bytes, b: bytes, out_nbytes: int, threads: int,
-                 timings: KernelTimings) -> bytes:
+    def dispatch(
+        self,
+        p: _Pipeline,
+        params: bytes,
+        a: bytes,
+        b: bytes,
+        out_nbytes: int,
+        threads: int,
+        timings: KernelTimings,
+    ) -> bytes:
         vl, dev = self.vl, self.device
         t0 = time.perf_counter()
         self._ensure_buffers(p, (len(params), len(a), max(len(b), 4), out_nbytes))
@@ -363,20 +631,48 @@ class VulkanContext:
         t1 = time.perf_counter()
 
         vl.vkResetFences(dev, 1, ctypes.byref(self.fence))
-        begin = vk.VkCommandBufferBeginInfo(sType=vk.VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, pNext=None,
-                                            flags=vk.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, pInheritanceInfo=None)
-        self._check(vl.vkBeginCommandBuffer(self.cmd_buf, ctypes.byref(begin)), "vkBeginCommandBuffer")
+        begin = vk.VkCommandBufferBeginInfo(
+            sType=vk.VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            pNext=None,
+            flags=vk.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+            pInheritanceInfo=None,
+        )
+        self._check(
+            vl.vkBeginCommandBuffer(self.cmd_buf, ctypes.byref(begin)),
+            "vkBeginCommandBuffer",
+        )
         vl.vkCmdBindPipeline(self.cmd_buf, vk.VK_PIPELINE_BIND_POINT_COMPUTE, p.pipeline)
-        vl.vkCmdBindDescriptorSets(self.cmd_buf, vk.VK_PIPELINE_BIND_POINT_COMPUTE, p.pipe_layout, 0, 1,
-                                   (ctypes.c_void_p * 1)(p.desc_set.value), 0, None)
+        vl.vkCmdBindDescriptorSets(
+            self.cmd_buf,
+            vk.VK_PIPELINE_BIND_POINT_COMPUTE,
+            p.pipe_layout,
+            0,
+            1,
+            (ctypes.c_void_p * 1)(p.desc_set.value),
+            0,
+            None,
+        )
         vl.vkCmdDispatch(self.cmd_buf, max(1, (threads + LOCAL_SIZE_X - 1) // LOCAL_SIZE_X), 1, 1)
         self._check(vl.vkEndCommandBuffer(self.cmd_buf), "vkEndCommandBuffer")
-        submit = vk.VkSubmitInfo(sType=vk.VK_STRUCTURE_TYPE_SUBMIT_INFO, pNext=None, waitSemaphoreCount=0,
-                                 pWaitSemaphores=None, pWaitDstStageMask=None, commandBufferCount=1,
-                                 pCommandBuffers=(ctypes.c_void_p * 1)(self.cmd_buf.value),
-                                 signalSemaphoreCount=0, pSignalSemaphores=None)
-        self._check(vl.vkQueueSubmit(self.queue, 1, ctypes.byref(submit), self.fence), "vkQueueSubmit")
-        self._check(vl.vkWaitForFences(dev, 1, (ctypes.c_void_p * 1)(self.fence.value), 1, _FENCE_TIMEOUT_NS), "vkWaitForFences")
+        submit = vk.VkSubmitInfo(
+            sType=vk.VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            pNext=None,
+            waitSemaphoreCount=0,
+            pWaitSemaphores=None,
+            pWaitDstStageMask=None,
+            commandBufferCount=1,
+            pCommandBuffers=(ctypes.c_void_p * 1)(self.cmd_buf.value),
+            signalSemaphoreCount=0,
+            pSignalSemaphores=None,
+        )
+        self._check(
+            vl.vkQueueSubmit(self.queue, 1, ctypes.byref(submit), self.fence),
+            "vkQueueSubmit",
+        )
+        self._check(
+            vl.vkWaitForFences(dev, 1, (ctypes.c_void_p * 1)(self.fence.value), 1, _FENCE_TIMEOUT_NS),
+            "vkWaitForFences",
+        )
         t2 = time.perf_counter()
 
         out = ctypes.string_at(p.buffers[3].mapped, out_nbytes)
@@ -396,14 +692,21 @@ class VulkanContext:
             for p in self.pipelines.values():
                 for b in p.buffers:
                     self._free(b)
-                for fn, handle in (("vkDestroyDescriptorPool", p.desc_pool), ("vkDestroyPipeline", p.pipeline),
-                                   ("vkDestroyShaderModule", p.module), ("vkDestroyPipelineLayout", p.pipe_layout),
-                                   ("vkDestroyDescriptorSetLayout", p.ds_layout)):
+                for fn, handle in (
+                    ("vkDestroyDescriptorPool", p.desc_pool),
+                    ("vkDestroyPipeline", p.pipeline),
+                    ("vkDestroyShaderModule", p.module),
+                    ("vkDestroyPipelineLayout", p.pipe_layout),
+                    ("vkDestroyDescriptorSetLayout", p.ds_layout),
+                ):
                     f = getattr(vl, fn)
                     f.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
                     f.restype = None
                     f(dev, handle, None)
-            for fn, handle in (("vkDestroyFence", self.fence), ("vkDestroyCommandPool", self.cmd_pool)):
+            for fn, handle in (
+                ("vkDestroyFence", self.fence),
+                ("vkDestroyCommandPool", self.cmd_pool),
+            ):
                 f = getattr(vl, fn)
                 f.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
                 f.restype = None
@@ -424,9 +727,9 @@ class VulkanContext:
 # ============================================================================
 
 # workload class value -> shader basename
-TAXONOMY_KERNELS: Dict[str, str] = {
+TAXONOMY_KERNELS: dict[str, str] = {
     "INT8_DOT_PRODUCT": "int8_dot",
-    "MIXED_COMPUTE_MEMORY": "int8_dot",   # T0 MIXED currently consumes only vector_a/vector_b
+    "MIXED_COMPUTE_MEMORY": "int8_dot",  # T0 MIXED currently consumes only vector_a/vector_b
     "FP32_VECTOR_MATH": "fp32_poly",
     "MEMORY_BOUND_STREAM": "mem_stream",
     "BRANCH_HEAVY_CONTROL": "branch_heavy",
@@ -448,13 +751,17 @@ def _pack_int8(values: Sequence[int]) -> bytes:
 class TaxonomyGpuKernels:
     """Runs taxonomy workloads on the real Vulkan device. Returns (outputs, KernelTimings)."""
 
-    def __init__(self, context: Optional[VulkanContext] = None, shader_dir: str = TAXONOMY_SHADER_DIR):
+    def __init__(
+        self,
+        context: VulkanContext | None = None,
+        shader_dir: str = TAXONOMY_SHADER_DIR,
+    ):
         self.shader_dir = shader_dir
         self._ctx = context
         self._reason = ""
 
     @property
-    def ctx(self) -> Optional[VulkanContext]:
+    def ctx(self) -> VulkanContext | None:
         if self._ctx is None:
             self._ctx = VulkanContext.get()
         return self._ctx
@@ -464,8 +771,9 @@ class TaxonomyGpuKernels:
         if ctx is None or not ctx.ok:
             self._reason = ctx.reason if ctx is not None else "no context"
             return False
-        missing = [k for k in set(TAXONOMY_KERNELS.values())
-                   if not os.path.exists(os.path.join(self.shader_dir, k + ".spv"))]
+        missing = [
+            k for k in set(TAXONOMY_KERNELS.values()) if not os.path.exists(os.path.join(self.shader_dir, k + ".spv"))
+        ]
         if missing:
             self._reason = f"missing SPIR-V: {missing} (run scripts/build_shaders.ps1)"
             return False
@@ -483,7 +791,7 @@ class TaxonomyGpuKernels:
     def supports(self, workload_class: str) -> bool:
         return workload_class in TAXONOMY_KERNELS
 
-    def run(self, workload_class: str, data: Dict[str, Any]) -> Tuple[List[float], KernelTimings]:
+    def run(self, workload_class: str, data: dict[str, Any]) -> tuple[list[float], KernelTimings]:
         if workload_class not in TAXONOMY_KERNELS:
             raise ValueError(f"no GPU kernel for {workload_class}")
         ctx = self.ctx
@@ -528,19 +836,30 @@ class TaxonomyGpuKernels:
         return result, t
 
 
-def verify_outputs(reference: Sequence[float], candidate: Sequence[float],
-                   rel_tol: float = 1e-5, abs_tol: float = 1e-4) -> Dict[str, Any]:
+def verify_outputs(
+    reference: Sequence[float],
+    candidate: Sequence[float],
+    rel_tol: float = 1e-5,
+    abs_tol: float = 1e-4,
+) -> dict[str, Any]:
     """Element-wise comparison against the T0 reference. Exact classes still use the tolerance
     path, but integer-valued results below 2**24 are represented exactly in float32."""
     if len(reference) != len(candidate):
-        return {"match": False, "reason": f"length {len(candidate)} != {len(reference)}",
-                "max_abs_error": None, "mismatches": None}
+        return {
+            "match": False,
+            "reason": f"length {len(candidate)} != {len(reference)}",
+            "max_abs_error": None,
+            "mismatches": None,
+        }
     mism, max_err = 0, 0.0
     for r, c in zip(reference, candidate):
         err = abs(r - c)
-        if err > max_err:
-            max_err = err
+        max_err = max(max_err, err)
         if err > max(abs_tol, rel_tol * abs(r)):
             mism += 1
-    return {"match": mism == 0, "reason": "" if mism == 0 else f"{mism} elements outside tolerance",
-            "max_abs_error": max_err, "mismatches": mism}
+    return {
+        "match": mism == 0,
+        "reason": "" if mism == 0 else f"{mism} elements outside tolerance",
+        "max_abs_error": max_err,
+        "mismatches": mism,
+    }

@@ -13,34 +13,36 @@ Usage:
     k.reward(0.8)
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Callable, Any, Tuple
-from enum import Enum, auto
-import math
+import json
 import random
 import time
-import json
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Any
 
 
 class Phase(Enum):
     """System phase - determines exploration vs exploitation."""
-    SOLID = auto()      # Stable, exploit known good
-    LIQUID = auto()     # Adaptive, balanced
-    GAS = auto()        # Exploring, high variance
-    PLASMA = auto()     # Breakthrough mode
+
+    SOLID = auto()  # Stable, exploit known good
+    LIQUID = auto()  # Adaptive, balanced
+    GAS = auto()  # Exploring, high variance
+    PLASMA = auto()  # Breakthrough mode
 
 
 @dataclass
 class State:
     """Lightweight state container."""
-    values: Dict[str, float] = field(default_factory=dict)
+
+    values: dict[str, float] = field(default_factory=dict)
     timestamp: float = field(default_factory=time.time)
 
-    def to_vector(self) -> List[float]:
+    def to_vector(self) -> list[float]:
         return list(self.values.values())
 
     @classmethod
-    def from_dict(cls, d: Dict[str, float]) -> "State":
+    def from_dict(cls, d: dict[str, float]) -> "State":
         return cls(values=d, timestamp=time.time())
 
 
@@ -53,11 +55,11 @@ class MicroLearner:
         self.gamma = gamma
         self.last_value = 0.0
 
-    def predict(self, state: List[float]) -> float:
+    def predict(self, state: list[float]) -> float:
         """Predict value of state."""
-        return sum(w * s for w, s in zip(self.weights, state[:len(self.weights)]))
+        return sum(w * s for w, s in zip(self.weights, state[: len(self.weights)]))
 
-    def update(self, state: List[float], reward: float, next_state: List[float]) -> float:
+    def update(self, state: list[float], reward: float, next_state: list[float]) -> float:
         """TD update, returns error."""
         current = self.predict(state)
         next_val = self.predict(next_state)
@@ -65,7 +67,7 @@ class MicroLearner:
         error = target - current
 
         # Update weights
-        for i, s in enumerate(state[:len(self.weights)]):
+        for i, s in enumerate(state[: len(self.weights)]):
             self.weights[i] += self.lr * error * s
 
         self.last_value = current
@@ -79,7 +81,7 @@ class MicroPhase:
         self.temperature = 0.3
         self.critical = critical_temp
         self.phase = Phase.SOLID
-        self.history: List[float] = []
+        self.history: list[float] = []
 
     def update(self, gradient: float, stability: float) -> Phase:
         """Update phase based on gradient and stability."""
@@ -103,7 +105,12 @@ class MicroPhase:
 
     def exploration_rate(self) -> float:
         """Get exploration rate based on phase."""
-        rates = {Phase.SOLID: 0.05, Phase.LIQUID: 0.2, Phase.GAS: 0.5, Phase.PLASMA: 0.9}
+        rates = {
+            Phase.SOLID: 0.05,
+            Phase.LIQUID: 0.2,
+            Phase.GAS: 0.5,
+            Phase.PLASMA: 0.9,
+        }
         return rates[self.phase]
 
 
@@ -114,11 +121,11 @@ class MicroSwarm:
         self.particles = [[random.random() for _ in range(dim)] for _ in range(n_particles)]
         self.velocities = [[0.0] * dim for _ in range(n_particles)]
         self.best_positions = [p[:] for p in self.particles]
-        self.best_scores = [-float('inf')] * n_particles
+        self.best_scores = [-float("inf")] * n_particles
         self.global_best = self.particles[0][:]
-        self.global_best_score = -float('inf')
+        self.global_best_score = -float("inf")
 
-    def step(self, objective: Callable[[List[float]], float]) -> List[float]:
+    def step(self, objective: Callable[[list[float]], float]) -> list[float]:
         """One optimization step."""
         w, c1, c2 = 0.7, 1.5, 1.5
 
@@ -136,9 +143,7 @@ class MicroSwarm:
             # Update velocity and position
             for j in range(len(p)):
                 r1, r2 = random.random(), random.random()
-                v[j] = (w * v[j] +
-                       c1 * r1 * (self.best_positions[i][j] - p[j]) +
-                       c2 * r2 * (self.global_best[j] - p[j]))
+                v[j] = w * v[j] + c1 * r1 * (self.best_positions[i][j] - p[j]) + c2 * r2 * (self.global_best[j] - p[j])
                 p[j] = max(0, min(1, p[j] + v[j]))
 
         return self.global_best
@@ -164,6 +169,7 @@ class MicroController:
 @dataclass
 class KrystalConfig:
     """SDK configuration."""
+
     state_dim: int = 8
     action_dim: int = 4
     learning_rate: float = 0.1
@@ -208,19 +214,21 @@ class Krystal:
             k.reward(acc - loss)
     """
 
-    def __init__(self, config: Optional[KrystalConfig] = None):
+    def __init__(self, config: KrystalConfig | None = None):
         self.config = config or KrystalConfig()
 
         # Core components
         self.learner = MicroLearner(dim=self.config.state_dim, lr=self.config.learning_rate)
         self.phase = MicroPhase() if self.config.enable_phase else None
-        self.swarm = MicroSwarm(self.config.swarm_particles, self.config.action_dim) if self.config.enable_swarm else None
+        self.swarm = (
+            MicroSwarm(self.config.swarm_particles, self.config.action_dim) if self.config.enable_swarm else None
+        )
         self.controller = MicroController()
 
         # State tracking
-        self.current_state: Optional[State] = None
-        self.previous_state: Optional[State] = None
-        self.last_action: List[float] = [0.5] * self.config.action_dim
+        self.current_state: State | None = None
+        self.previous_state: State | None = None
+        self.last_action: list[float] = [0.5] * self.config.action_dim
         self.total_reward = 0.0
         self.cycle = 0
 
@@ -230,10 +238,10 @@ class Krystal:
             "total_reward": 0.0,
             "avg_td_error": 0.0,
             "phase_history": [],
-            "best_score": -float('inf')
+            "best_score": -float("inf"),
         }
 
-    def observe(self, observation: Dict[str, float]) -> "Krystal":
+    def observe(self, observation: dict[str, float]) -> "Krystal":
         """
         Observe current state.
 
@@ -247,7 +255,7 @@ class Krystal:
         self.current_state = State.from_dict(observation)
         return self
 
-    def decide(self, objective: Optional[Callable[[List[float]], float]] = None) -> List[float]:
+    def decide(self, objective: Callable[[list[float]], float] | None = None) -> list[float]:
         """
         Decide on action based on current state.
 
@@ -266,7 +274,7 @@ class Krystal:
         # Pad/truncate to expected dimension
         while len(state_vec) < self.config.state_dim:
             state_vec.append(0.0)
-        state_vec = state_vec[:self.config.state_dim]
+        state_vec = state_vec[: self.config.state_dim]
 
         # Get exploration rate from phase
         explore_rate = self.phase.exploration_rate() if self.phase else 0.1
@@ -314,11 +322,7 @@ class Krystal:
             curr_vec.append(0.0)
 
         # TD learning update
-        td_error = self.learner.update(
-            prev_vec[:self.config.state_dim],
-            r,
-            curr_vec[:self.config.state_dim]
-        )
+        td_error = self.learner.update(prev_vec[: self.config.state_dim], r, curr_vec[: self.config.state_dim])
 
         # Update phase based on TD error magnitude
         if self.phase:
@@ -330,15 +334,14 @@ class Krystal:
                 self.metrics["phase_history"].pop(0)
 
         # Track best
-        if r > self.metrics["best_score"]:
-            self.metrics["best_score"] = r
+        self.metrics["best_score"] = max(self.metrics["best_score"], r)
 
         # Running average of TD error
         self.metrics["avg_td_error"] = 0.95 * self.metrics["avg_td_error"] + 0.05 * abs(td_error)
 
         return td_error
 
-    def optimize(self, objective: Callable[[List[float]], float], iterations: int = 50) -> Tuple[List[float], float]:
+    def optimize(self, objective: Callable[[list[float]], float], iterations: int = 50) -> tuple[list[float], float]:
         """
         Run optimization to find best action.
 
@@ -375,12 +378,12 @@ class Krystal:
         """Get current phase name."""
         return self.phase.phase.name if self.phase else "LIQUID"
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get current metrics."""
         return {
             **self.metrics,
             "phase": self.get_phase(),
-            "exploration_rate": self.phase.exploration_rate() if self.phase else 0.1
+            "exploration_rate": self.phase.exploration_rate() if self.phase else 0.1,
         }
 
     def save(self, path: str):
@@ -390,8 +393,8 @@ class Krystal:
             "metrics": self.metrics,
             "config": {
                 "state_dim": self.config.state_dim,
-                "action_dim": self.config.action_dim
-            }
+                "action_dim": self.config.action_dim,
+            },
         }
         with open(path, "w") as f:
             json.dump(data, f)
@@ -410,48 +413,56 @@ class Krystal:
 # Convenience factory functions
 def create_game_optimizer() -> Krystal:
     """Pre-configured for game optimization."""
-    return Krystal(KrystalConfig(
-        state_dim=8,      # fps, temp, power, gpu_util, cpu_util, mem, latency, quality
-        action_dim=4,     # gpu_clock, power_limit, quality, vsync
-        learning_rate=0.15,
-        swarm_particles=8
-    ))
+    return Krystal(
+        KrystalConfig(
+            state_dim=8,  # fps, temp, power, gpu_util, cpu_util, mem, latency, quality
+            action_dim=4,  # gpu_clock, power_limit, quality, vsync
+            learning_rate=0.15,
+            swarm_particles=8,
+        )
+    )
 
 
 def create_server_optimizer() -> Krystal:
     """Pre-configured for server/load balancing."""
-    return Krystal(KrystalConfig(
-        state_dim=6,      # cpu, mem, disk_io, net_io, latency, queue_depth
-        action_dim=3,     # worker_count, cache_size, timeout
-        learning_rate=0.1,
-        swarm_particles=5
-    ))
+    return Krystal(
+        KrystalConfig(
+            state_dim=6,  # cpu, mem, disk_io, net_io, latency, queue_depth
+            action_dim=3,  # worker_count, cache_size, timeout
+            learning_rate=0.1,
+            swarm_particles=5,
+        )
+    )
 
 
 def create_ml_optimizer() -> Krystal:
     """Pre-configured for ML hyperparameter tuning."""
-    return Krystal(KrystalConfig(
-        state_dim=4,      # loss, accuracy, epoch_time, memory
-        action_dim=4,     # lr, batch_size, momentum, weight_decay
-        learning_rate=0.05,
-        swarm_particles=10
-    ))
+    return Krystal(
+        KrystalConfig(
+            state_dim=4,  # loss, accuracy, epoch_time, memory
+            action_dim=4,  # lr, batch_size, momentum, weight_decay
+            learning_rate=0.05,
+            swarm_particles=10,
+        )
+    )
 
 
 def create_iot_optimizer() -> Krystal:
     """Pre-configured for IoT/edge devices."""
-    return Krystal(KrystalConfig(
-        state_dim=4,      # battery, signal, temp, throughput
-        action_dim=2,     # tx_power, sleep_interval
-        learning_rate=0.2,
-        swarm_particles=3
-    ))
+    return Krystal(
+        KrystalConfig(
+            state_dim=4,  # battery, signal, temp, throughput
+            action_dim=2,  # tx_power, sleep_interval
+            learning_rate=0.2,
+            swarm_particles=3,
+        )
+    )
 
 
 __version__ = "0.1.0"
 
 
-def health_check() -> Dict[str, Any]:
+def health_check() -> dict[str, Any]:
     """
     Run health check on KrystalSDK components.
 
@@ -484,7 +495,7 @@ def health_check() -> Dict[str, Any]:
     # Test MicroSwarm
     try:
         swarm = MicroSwarm(n_particles=3, dim=2)
-        best = swarm.step(lambda x: -sum(xi**2 for xi in x))
+        _best = swarm.step(lambda x: -sum(xi**2 for xi in x))
         results["components"]["swarm"] = {"ok": True, "particles": 3}
     except Exception as e:
         results["components"]["swarm"] = {"ok": False, "error": str(e)}
@@ -509,9 +520,13 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="KrystalSDK - Adaptive Intelligence")
-    parser.add_argument("command", nargs="?", default="demo",
-                       choices=["demo", "health", "version", "bench"],
-                       help="Command to run")
+    parser.add_argument(
+        "command",
+        nargs="?",
+        default="demo",
+        choices=["demo", "health", "version", "bench"],
+        help="Command to run",
+    )
     parser.add_argument("--cycles", type=int, default=100, help="Demo cycles")
     parser.add_argument("--json", action="store_true", help="JSON output")
     args = parser.parse_args()
@@ -541,8 +556,15 @@ def main():
         elapsed = time.time() - start
         ops_per_sec = 10000 / elapsed
         if args.json:
-            print(json.dumps({"cycles": 10000, "elapsed_s": round(elapsed, 3),
-                             "ops_per_sec": round(ops_per_sec, 1)}))
+            print(
+                json.dumps(
+                    {
+                        "cycles": 10000,
+                        "elapsed_s": round(elapsed, 3),
+                        "ops_per_sec": round(ops_per_sec, 1),
+                    }
+                )
+            )
         else:
             print(f"10000 cycles in {elapsed:.3f}s ({ops_per_sec:.0f} ops/sec)")
 
@@ -553,11 +575,11 @@ def main():
 
         fps, temp = 45, 70
         for i in range(args.cycles):
-            k.observe({"fps": fps/60, "temp": temp/100, "gpu_util": 0.8, "power": 0.6})
+            k.observe({"fps": fps / 60, "temp": temp / 100, "gpu_util": 0.8, "power": 0.6})
             action = k.decide()
             fps = 45 + action[0] * 30 + random.gauss(0, 2)
             temp = 60 + action[0] * 30 + random.gauss(0, 3)
-            k.reward((fps/60) - (temp/200))
+            k.reward((fps / 60) - (temp / 200))
 
         if args.json:
             print(json.dumps(k.get_metrics(), indent=2))

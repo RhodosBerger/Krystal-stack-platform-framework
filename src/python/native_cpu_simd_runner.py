@@ -30,19 +30,16 @@ from __future__ import annotations
 import ctypes
 import hashlib
 import json
-import math
 import os
 import platform
-import struct
 import time
-from array import array
+from collections.abc import Sequence
 from ctypes import wintypes
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Any
 
 from src.python.native_binary_trust_inspector import (
-    BinaryTrustReport,
     NativeBinaryTrustInspector,
 )
 
@@ -75,9 +72,9 @@ def derive_evidence_levels(
     isa_confirmed: bool,
     native_simd_measured: bool,
     statistically_repeated: bool,
-) -> List[str]:
+) -> list[str]:
     """Derives exact reached evidence levels strictly from observed terminal state.
-    
+
     Rule: evidence_levels = derive_from_observed_state()
     Never returns unreached stages.
     """
@@ -150,6 +147,7 @@ class EvidenceLabel(str, Enum):
 @dataclass
 class CpuNativeCapabilities:
     """Hardware capability inspection report for CPU SIMD & tensor units."""
+
     sse42: bool = False
     avx: bool = False
     avx2: bool = False
@@ -163,7 +161,7 @@ class CpuNativeCapabilities:
     cpu_model: str = ""
     architecture: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -178,7 +176,7 @@ class NativeSimdTimings:
     def end_to_end_ms(self) -> float:
         return self.marshal_ms + self.ffi_call_overhead_ms + self.cpu_native_ms + self.unmarshal_ms
 
-    def to_dict(self) -> Dict[str, float]:
+    def to_dict(self) -> dict[str, float]:
         return {
             "marshal_ms": round(self.marshal_ms, 6),
             "ffi_call_overhead_ms": round(self.ffi_call_overhead_ms, 6),
@@ -195,7 +193,7 @@ class NativeExecutionRecord:
     selected_path: str
     function_symbol: str
     function_address: str
-    capability_snapshot: Dict[str, Any]
+    capability_snapshot: dict[str, Any]
     input_hash: str
     output_hash: str
     status_code: int
@@ -203,7 +201,7 @@ class NativeExecutionRecord:
     cycles_elapsed: int
     timestamp: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -246,31 +244,60 @@ def detect_cpu_capabilities() -> CpuNativeCapabilities:
     try:
         kernel32 = ctypes.windll.kernel32
         kernel32.VirtualAlloc.restype = ctypes.c_void_p
-        kernel32.VirtualAlloc.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_uint32, ctypes.c_uint32]
+        kernel32.VirtualAlloc.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.c_uint32,
+        ]
         kernel32.VirtualProtect.restype = ctypes.c_int32
-        kernel32.VirtualProtect.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]
+        kernel32.VirtualProtect.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(ctypes.c_uint32),
+        ]
 
-        out_buf = kernel32.VirtualAlloc(None, 64, 0x3000, 0x04) # PAGE_READWRITE
+        out_buf = kernel32.VirtualAlloc(None, 64, 0x3000, 0x04)  # PAGE_READWRITE
         if not out_buf:
             return caps
 
-        cpuid_asm = bytes([
-            0x53,                         # push rbx
-            0x49, 0x89, 0xCA,             # mov r10, rcx
-            0x89, 0xD0,                   # mov eax, edx
-            0x44, 0x89, 0xC1,             # mov ecx, r8d
-            0x0F, 0xA2,                   # cpuid
-            0x41, 0x89, 0x02,             # mov [r10], eax
-            0x41, 0x89, 0x5A, 0x04,       # mov [r10+4], ebx
-            0x41, 0x89, 0x4A, 0x08,       # mov [r10+8], ecx
-            0x41, 0x89, 0x52, 0x0C,       # mov [r10+12], edx
-            0x5B,                         # pop rbx
-            0xC3                          # ret
-        ])
+        cpuid_asm = bytes(
+            [
+                0x53,  # push rbx
+                0x49,
+                0x89,
+                0xCA,  # mov r10, rcx
+                0x89,
+                0xD0,  # mov eax, edx
+                0x44,
+                0x89,
+                0xC1,  # mov ecx, r8d
+                0x0F,
+                0xA2,  # cpuid
+                0x41,
+                0x89,
+                0x02,  # mov [r10], eax
+                0x41,
+                0x89,
+                0x5A,
+                0x04,  # mov [r10+4], ebx
+                0x41,
+                0x89,
+                0x4A,
+                0x08,  # mov [r10+8], ecx
+                0x41,
+                0x89,
+                0x52,
+                0x0C,  # mov [r10+12], edx
+                0x5B,  # pop rbx
+                0xC3,  # ret
+            ]
+        )
         c_ptr = kernel32.VirtualAlloc(None, len(cpuid_asm), 0x3000, 0x04)
         ctypes.memmove(c_ptr, cpuid_asm, len(cpuid_asm))
         old = ctypes.c_uint32()
-        kernel32.VirtualProtect(c_ptr, len(cpuid_asm), 0x20, ctypes.byref(old)) # PAGE_EXECUTE_READ
+        kernel32.VirtualProtect(c_ptr, len(cpuid_asm), 0x20, ctypes.byref(old))  # PAGE_EXECUTE_READ
 
         cpuid_fn = ctypes.WINFUNCTYPE(None, ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32)(c_ptr)
 
@@ -293,14 +320,26 @@ def detect_cpu_capabilities() -> CpuNativeCapabilities:
 
         # XGETBV for OS extended state
         if has_osxsave:
-            xgetbv_asm = bytes([
-                0x49, 0x89, 0xCA,             # mov r10, rcx
-                0x89, 0xD1,                   # mov ecx, edx (xcr_num)
-                0x0F, 0x01, 0xD0,             # xgetbv
-                0x41, 0x89, 0x02,             # mov [r10], eax
-                0x41, 0x89, 0x52, 0x04,       # mov [r10+4], edx
-                0xC3                          # ret
-            ])
+            xgetbv_asm = bytes(
+                [
+                    0x49,
+                    0x89,
+                    0xCA,  # mov r10, rcx
+                    0x89,
+                    0xD1,  # mov ecx, edx (xcr_num)
+                    0x0F,
+                    0x01,
+                    0xD0,  # xgetbv
+                    0x41,
+                    0x89,
+                    0x02,  # mov [r10], eax
+                    0x41,
+                    0x89,
+                    0x52,
+                    0x04,  # mov [r10+4], edx
+                    0xC3,  # ret
+                ]
+            )
             x_ptr = kernel32.VirtualAlloc(None, len(xgetbv_asm), 0x3000, 0x04)
             ctypes.memmove(x_ptr, xgetbv_asm, len(xgetbv_asm))
             kernel32.VirtualProtect(x_ptr, len(xgetbv_asm), 0x20, ctypes.byref(old))
@@ -336,7 +375,7 @@ def verify_outputs(
     candidate: Sequence[float],
     rel_tol: float = 1e-5,
     abs_tol: float = 1e-4,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Element-wise comparison against reference."""
     if len(reference) != len(candidate):
         return {
@@ -348,8 +387,7 @@ def verify_outputs(
     mism, max_err = 0, 0.0
     for r, c in zip(reference, candidate):
         err = abs(r - c)
-        if err > max_err:
-            max_err = err
+        max_err = max(max_err, err)
         if err > max(abs_tol, rel_tol * abs(r)):
             mism += 1
     return {
@@ -381,12 +419,12 @@ class NativeCpuSimdRunner:
         self.capabilities = detect_cpu_capabilities()
         self.trust_report = NativeBinaryTrustInspector.inspect(self.dll_path, self.manifest_path)
 
-        self._dll: Optional[ctypes.CDLL] = None
+        self._dll: ctypes.CDLL | None = None
         self._available = False
         self._unavailable_reason = ""
-        self._module_handle: Optional[int] = None
+        self._module_handle: int | None = None
         self._ffi_overhead_ns: float = 0.0
-        self._last_execution_record: Optional[NativeExecutionRecord] = None
+        self._last_execution_record: NativeExecutionRecord | None = None
 
         self._init_library()
 
@@ -416,7 +454,11 @@ class NativeCpuSimdRunner:
         # Controlled loading via LoadLibraryExW with explicit path handling
         try:
             kernel32 = ctypes.windll.kernel32
-            kernel32.LoadLibraryExW.argtypes = [wintypes.LPCWSTR, wintypes.HANDLE, wintypes.DWORD]
+            kernel32.LoadLibraryExW.argtypes = [
+                wintypes.LPCWSTR,
+                wintypes.HANDLE,
+                wintypes.DWORD,
+            ]
             kernel32.LoadLibraryExW.restype = ctypes.c_void_p
 
             h_mod = kernel32.LoadLibraryExW(self.dll_path, None, 0x00000008)  # LOAD_WITH_ALTERED_SEARCH_PATH
@@ -456,51 +498,89 @@ class NativeCpuSimdRunner:
         dll.taxonomy_get_test_delay_ns.restype = ctypes.c_uint64
 
         # Explicit Symbols
-        dll.taxonomy_int8_dot_scalar.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int]
+        dll.taxonomy_int8_dot_scalar.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_int,
+        ]
         dll.taxonomy_int8_dot_scalar.restype = ctypes.c_int32
 
-        dll.taxonomy_int8_dot_avx2.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int]
+        dll.taxonomy_int8_dot_avx2.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_int,
+        ]
         dll.taxonomy_int8_dot_avx2.restype = ctypes.c_int32
 
-        dll.taxonomy_int8_dot_vnni.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int]
+        dll.taxonomy_int8_dot_vnni.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_int,
+        ]
         dll.taxonomy_int8_dot_vnni.restype = ctypes.c_int32
 
         # High-level dispatchers
         dll.taxonomy_int8_dot_reduction.argtypes = [
-            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t,
-            ctypes.POINTER(ctypes.c_int32), ctypes.c_int, ctypes.c_int,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.POINTER(ctypes.c_int32),
+            ctypes.c_int,
+            ctypes.c_int,
             ctypes.POINTER(_C_TaxonomyExecutionInfo),
         ]
         dll.taxonomy_int8_dot_reduction.restype = ctypes.c_int
 
         dll.taxonomy_int8_dot.argtypes = [
-            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
-            ctypes.c_size_t, ctypes.c_int, ctypes.POINTER(_C_TaxonomyExecutionInfo),
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_int,
+            ctypes.POINTER(_C_TaxonomyExecutionInfo),
         ]
         dll.taxonomy_int8_dot.restype = ctypes.c_int
 
         dll.taxonomy_fp32_poly.argtypes = [
-            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
-            ctypes.c_size_t, ctypes.c_int, ctypes.POINTER(_C_TaxonomyExecutionInfo),
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_int,
+            ctypes.POINTER(_C_TaxonomyExecutionInfo),
         ]
         dll.taxonomy_fp32_poly.restype = ctypes.c_int
 
         dll.taxonomy_memory_stream.argtypes = [
-            ctypes.c_void_p, ctypes.c_size_t, ctypes.c_size_t,
-            ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_size_t,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_int,
             ctypes.POINTER(_C_TaxonomyExecutionInfo),
         ]
         dll.taxonomy_memory_stream.restype = ctypes.c_int
 
         dll.taxonomy_branch_control.argtypes = [
-            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t,
-            ctypes.c_int, ctypes.POINTER(_C_TaxonomyExecutionInfo),
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_int,
+            ctypes.POINTER(_C_TaxonomyExecutionInfo),
         ]
         dll.taxonomy_branch_control.restype = ctypes.c_int
 
         dll.taxonomy_mixed_native.argtypes = [
-            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
-            ctypes.c_size_t, ctypes.c_int, ctypes.POINTER(_C_TaxonomyExecutionInfo),
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_int,
+            ctypes.POINTER(_C_TaxonomyExecutionInfo),
         ]
         dll.taxonomy_mixed_native.restype = ctypes.c_int
 
@@ -536,14 +616,14 @@ class NativeCpuSimdRunner:
         return self._unavailable_reason
 
     @property
-    def dll_sha256(self) -> Optional[str]:
+    def dll_sha256(self) -> str | None:
         return self.trust_report.sha256 if self.trust_report else None
 
     @property
-    def last_execution_record(self) -> Optional[NativeExecutionRecord]:
+    def last_execution_record(self) -> NativeExecutionRecord | None:
         return self._last_execution_record
 
-    def get_reached_evidence_levels(self, statistically_repeated: bool = False) -> List[str]:
+    def get_reached_evidence_levels(self, statistically_repeated: bool = False) -> list[str]:
         """Derives reached evidence stages strictly based on actual observed state."""
         tr = self.trust_report
         c_source_exists = os.path.exists(os.path.join(_ROOT, "src", "c", "taxonomy_simd.c"))
@@ -571,9 +651,9 @@ class NativeCpuSimdRunner:
     def run(
         self,
         workload_class: str,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         requested_path: str = "AUTO",
-    ) -> Tuple[List[float], NativeSimdTimings, Dict[str, Any]]:
+    ) -> tuple[list[float], NativeSimdTimings, dict[str, Any]]:
         """Executes workload on native CPU library.
         Returns: (output, timings, metadata)
         """
@@ -764,9 +844,9 @@ class NativeCpuSimdRunner:
 # Deterministic scalar reference oracle for T0 verification
 def run_scalar_reference(
     workload_class: str,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     legacy_relu_per_product: bool = False,
-) -> List[float]:
+) -> list[float]:
     """Pure-Python canonical scalar reference oracle (T0)."""
     if workload_class in ("INT8_DOT_PRODUCT", "MIXED_COMPUTE_MEMORY"):
         va = data["vector_a"]
@@ -809,7 +889,7 @@ def run_scalar_reference(
 
 
 def run_scalar_reduction_reference(
-    data: Dict[str, Any],
+    data: dict[str, Any],
     apply_relu_post_op: bool = False,
 ) -> int:
     """Canonical pure dot-product reduction: acc = sum(uint8(a) * int8(b))."""
