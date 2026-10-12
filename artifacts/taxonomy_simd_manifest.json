@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "CrystalSec3_Phase5_3C_Native_CPU_SIMD",
+  "target_binary": "taxonomy_simd.dll",
+  "target_architecture": "x86_64",
+  "compiler": "MSVC / Clang / GCC (configurable)",
+  "compiler_flags": [
+    "/O2",
+    "/W4",
+    "/LD",
+    "/arch:AVX2",
+    "/fp:precise"
+  ],
+  "source_files": {
+    "src/c/taxonomy_simd.c": "1e978bc49eae6b7c4d92a3be14067d3dd5c08c4ba72ec317b1eb5b55803019d7",
+    "src/c/taxonomy_simd.h": "3bf6d5099d762a02ea04c1a685a0d86ea5d888f4882b1db0761f009821033e20"
+  },
+  "dll_sha256": null,
+  "supported_kernels": [
+    "taxonomy_get_capabilities",
+    "taxonomy_int8_dot",
+    "taxonomy_fp32_poly",
+    "taxonomy_memory_stream",
+    "taxonomy_branch_control",
+    "taxonomy_mixed_compute_memory",
+    "taxonomy_last_execution_info",
+    "taxonomy_int8_dot_reduction"
+  ],
+  "evidence_policy": {
+    "allowed_labels": [
+      "HOST_CPU_REFERENCE",
+      "NATIVE_SCALAR_MEASURED",
+      "NATIVE_AVX2_MEASURED",
+      "NATIVE_AVX512_MEASURED",
+      "NATIVE_VNNI_MEASURED",
+      "HARDWARE_MEASURED",
+      "STATISTICALLY_REPEATED",
+      "CAPABILITY_DETECTED",
+      "UNAVAILABLE",
+      "MODELED_PRIOR"
+    ],
+    "fallback_rule": "Never emit HARDWARE_MEASURED for Python fallback. Report UNAVAILABLE if native path is missing."
+  }
+}

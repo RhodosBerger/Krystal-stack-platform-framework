@@ -1,0 +1,1548 @@
+{
+  "phase": "CrystalSec3_Phase5_3C_Native_CPU_SIMD",
+  "benchmark_timestamp": "2026-10-12T02:40:34Z",
+  "cpu": {
+    "model": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+    "architecture": "AMD64",
+    "capabilities": {
+      "sse42": true,
+      "avx": true,
+      "avx2": true,
+      "fma": true,
+      "avx512f": true,
+      "avx512bw": true,
+      "avx512vl": true,
+      "avx512_vnni": true,
+      "os_avx_state": true,
+      "os_avx512_state": true,
+      "cpu_model": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+      "architecture": "AMD64"
+    }
+  },
+  "gpu": {
+    "available": true,
+    "device": "Intel(R) Iris(R) Xe Graphics",
+    "reason": ""
+  },
+  "native_cpu_simd": {
+    "available": false,
+    "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1",
+    "dll_sha256": null
+  },
+  "break_even_estimates": {
+    "INT8_DOT_PRODUCT_T0_vs_T2": {
+      "workload_class": "INT8_DOT_PRODUCT",
+      "kernel_break_even": 1024,
+      "end_to_end_break_even": null,
+      "confidence": 0.5,
+      "supporting_sizes": [
+        1024,
+        4096,
+        16384
+      ],
+      "reason": "Persistent crossover observed"
+    },
+    "FP32_VECTOR_MATH_T0_vs_T2": {
+      "workload_class": "FP32_VECTOR_MATH",
+      "kernel_break_even": 1024,
+      "end_to_end_break_even": null,
+      "confidence": 0.5,
+      "supporting_sizes": [
+        1024,
+        4096,
+        16384
+      ],
+      "reason": "Persistent crossover observed"
+    },
+    "MEMORY_BOUND_STREAM_T0_vs_T2": {
+      "workload_class": "MEMORY_BOUND_STREAM",
+      "kernel_break_even": null,
+      "end_to_end_break_even": null,
+      "confidence": 0.0,
+      "supporting_sizes": [],
+      "reason": "No persistent crossover in tested range"
+    },
+    "BRANCH_HEAVY_CONTROL_T0_vs_T2": {
+      "workload_class": "BRANCH_HEAVY_CONTROL",
+      "kernel_break_even": 1024,
+      "end_to_end_break_even": 1024,
+      "confidence": 1.0,
+      "supporting_sizes": [
+        1024,
+        4096,
+        16384
+      ],
+      "reason": "Persistent crossover observed"
+    },
+    "MIXED_COMPUTE_MEMORY_T0_vs_T2": {
+      "workload_class": "MIXED_COMPUTE_MEMORY",
+      "kernel_break_even": null,
+      "end_to_end_break_even": null,
+      "confidence": 0.0,
+      "supporting_sizes": [],
+      "reason": "No persistent crossover in tested range"
+    }
+  },
+  "measurements": {
+    "INT8_DOT_PRODUCT": {
+      "64": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.03408,
+            "median_ms": 0.0322,
+            "p95_ms": 0.0519,
+            "p99_ms": 0.0519,
+            "stdev_ms": 0.0064
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.03408,
+            "median_ms": 0.0322,
+            "p95_ms": 0.0519,
+            "p99_ms": 0.0519,
+            "stdev_ms": 0.0064
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0116,
+            "upload_ms": 0.008,
+            "gpu_ms": 0.2557,
+            "readback_ms": 0.0065,
+            "unmarshal_ms": 0.0034
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.2579,
+            "median_ms": 0.2591,
+            "p95_ms": 0.2868,
+            "p99_ms": 0.2868,
+            "stdev_ms": 0.01673
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.28484,
+            "median_ms": 0.2849,
+            "p95_ms": 0.3171,
+            "p99_ms": 0.3171,
+            "stdev_ms": 0.01888
+          }
+        }
+      },
+      "256": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.05486,
+            "median_ms": 0.0543,
+            "p95_ms": 0.06,
+            "p99_ms": 0.06,
+            "stdev_ms": 0.00177
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.05486,
+            "median_ms": 0.0543,
+            "p95_ms": 0.06,
+            "p99_ms": 0.06,
+            "stdev_ms": 0.00177
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0426,
+            "upload_ms": 0.0123,
+            "gpu_ms": 0.2885,
+            "readback_ms": 0.0104,
+            "unmarshal_ms": 0.0088
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.26777,
+            "median_ms": 0.2652,
+            "p95_ms": 0.2885,
+            "p99_ms": 0.2885,
+            "stdev_ms": 0.01124
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.33402,
+            "median_ms": 0.3316,
+            "p95_ms": 0.3626,
+            "p99_ms": 0.3626,
+            "stdev_ms": 0.0141
+          }
+        }
+      },
+      "1024": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.37186,
+            "median_ms": 0.42155,
+            "p95_ms": 0.5399,
+            "p99_ms": 0.5399,
+            "stdev_ms": 0.11628
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.37186,
+            "median_ms": 0.42155,
+            "p95_ms": 0.5399,
+            "p99_ms": 0.5399,
+            "stdev_ms": 0.11628
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.1447,
+            "upload_ms": 0.0105,
+            "gpu_ms": 0.2991,
+            "readback_ms": 0.0167,
+            "unmarshal_ms": 0.0203
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.2871,
+            "median_ms": 0.2804,
+            "p95_ms": 0.3222,
+            "p99_ms": 0.3222,
+            "stdev_ms": 0.02391
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.46891,
+            "median_ms": 0.47165,
+            "p95_ms": 0.5226,
+            "p99_ms": 0.5226,
+            "stdev_ms": 0.03955
+          }
+        }
+      },
+      "4096": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 1.44362,
+            "median_ms": 1.31265,
+            "p95_ms": 2.4504,
+            "p99_ms": 2.4504,
+            "stdev_ms": 0.53956
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 1.44362,
+            "median_ms": 1.31265,
+            "p95_ms": 2.4504,
+            "p99_ms": 2.4504,
+            "stdev_ms": 0.53956
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.5423,
+            "upload_ms": 0.0148,
+            "gpu_ms": 0.2962,
+            "readback_ms": 0.0453,
+            "unmarshal_ms": 0.0701
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.43585,
+            "median_ms": 0.3224,
+            "p95_ms": 1.4034,
+            "p99_ms": 1.4034,
+            "stdev_ms": 0.32417
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 1.08825,
+            "median_ms": 0.95565,
+            "p95_ms": 2.3954,
+            "p99_ms": 2.3954,
+            "stdev_ms": 0.45653
+          }
+        }
+      },
+      "16384": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 5.00299,
+            "median_ms": 3.8388,
+            "p95_ms": 8.2878,
+            "p99_ms": 8.2878,
+            "stdev_ms": 1.94612
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 5.00299,
+            "median_ms": 3.8388,
+            "p95_ms": 8.2878,
+            "p99_ms": 8.2878,
+            "stdev_ms": 1.94612
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 2.3122,
+            "upload_ms": 0.066,
+            "gpu_ms": 1.7104,
+            "readback_ms": 0.5535,
+            "unmarshal_ms": 0.4945
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.57009,
+            "median_ms": 0.34735,
+            "p95_ms": 1.7104,
+            "p99_ms": 1.7104,
+            "stdev_ms": 0.48542
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 2.50053,
+            "median_ms": 2.04195,
+            "p95_ms": 5.1366,
+            "p99_ms": 5.1366,
+            "stdev_ms": 1.08203
+          }
+        }
+      }
+    },
+    "FP32_VECTOR_MATH": {
+      "64": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.05136,
+            "median_ms": 0.0239,
+            "p95_ms": 0.3081,
+            "p99_ms": 0.3081,
+            "stdev_ms": 0.08563
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.05136,
+            "median_ms": 0.0239,
+            "p95_ms": 0.3081,
+            "p99_ms": 0.3081,
+            "stdev_ms": 0.08563
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 1.9265441875138123e-07,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0203,
+            "upload_ms": 0.0142,
+            "gpu_ms": 0.6311,
+            "readback_ms": 0.0098,
+            "unmarshal_ms": 0.0066
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.39443,
+            "median_ms": 0.31145,
+            "p95_ms": 0.9178,
+            "p99_ms": 0.9178,
+            "stdev_ms": 0.20373
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.431,
+            "median_ms": 0.3487,
+            "p95_ms": 0.9703,
+            "p99_ms": 0.9703,
+            "stdev_ms": 0.21193
+          }
+        }
+      },
+      "256": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.09161,
+            "median_ms": 0.08685,
+            "p95_ms": 0.1163,
+            "p99_ms": 0.1163,
+            "stdev_ms": 0.01295
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.09161,
+            "median_ms": 0.08685,
+            "p95_ms": 0.1163,
+            "p99_ms": 0.1163,
+            "stdev_ms": 0.01295
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 8.56889646883019e-06,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0248,
+            "upload_ms": 0.0089,
+            "gpu_ms": 0.2695,
+            "readback_ms": 0.0064,
+            "unmarshal_ms": 0.008
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.35982,
+            "median_ms": 0.33135,
+            "p95_ms": 0.5828,
+            "p99_ms": 0.5828,
+            "stdev_ms": 0.09172
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.42908,
+            "median_ms": 0.3952,
+            "p95_ms": 0.6413,
+            "p99_ms": 0.6413,
+            "stdev_ms": 0.10791
+          }
+        }
+      },
+      "1024": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.37626,
+            "median_ms": 0.4285,
+            "p95_ms": 0.5029,
+            "p99_ms": 0.5029,
+            "stdev_ms": 0.12413
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.37626,
+            "median_ms": 0.4285,
+            "p95_ms": 0.5029,
+            "p99_ms": 0.5029,
+            "stdev_ms": 0.12413
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0008804499993857462,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0468,
+            "upload_ms": 0.01,
+            "gpu_ms": 0.2638,
+            "readback_ms": 0.0177,
+            "unmarshal_ms": 0.0127
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.36367,
+            "median_ms": 0.3192,
+            "p95_ms": 0.6568,
+            "p99_ms": 0.6568,
+            "stdev_ms": 0.10871
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.51489,
+            "median_ms": 0.4646,
+            "p95_ms": 0.9128,
+            "p99_ms": 0.9128,
+            "stdev_ms": 0.14712
+          }
+        }
+      },
+      "4096": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 1.20444,
+            "median_ms": 1.13725,
+            "p95_ms": 1.9371,
+            "p99_ms": 1.9371,
+            "stdev_ms": 0.39039
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 1.20444,
+            "median_ms": 1.13725,
+            "p95_ms": 1.9371,
+            "p99_ms": 1.9371,
+            "stdev_ms": 0.39039
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.07958319975296035,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.1219,
+            "upload_ms": 0.0089,
+            "gpu_ms": 0.2768,
+            "readback_ms": 0.0535,
+            "unmarshal_ms": 0.0426
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.31494,
+            "median_ms": 0.2762,
+            "p95_ms": 0.6303,
+            "p99_ms": 0.6303,
+            "stdev_ms": 0.10801
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.55526,
+            "median_ms": 0.4988,
+            "p95_ms": 0.9266,
+            "p99_ms": 0.9266,
+            "stdev_ms": 0.13751
+          }
+        }
+      },
+      "16384": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 3.93947,
+            "median_ms": 4.01405,
+            "p95_ms": 4.8438,
+            "p99_ms": 4.8438,
+            "stdev_ms": 0.63703
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 3.93947,
+            "median_ms": 4.01405,
+            "p95_ms": 4.8438,
+            "p99_ms": 4.8438,
+            "stdev_ms": 0.63703
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 5.384483188390732,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.9192,
+            "upload_ms": 0.0749,
+            "gpu_ms": 0.5173,
+            "readback_ms": 0.1806,
+            "unmarshal_ms": 0.1805
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.44533,
+            "median_ms": 0.2884,
+            "p95_ms": 1.6304,
+            "p99_ms": 1.6304,
+            "stdev_ms": 0.40153
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 1.55816,
+            "median_ms": 1.1806,
+            "p95_ms": 3.4877,
+            "p99_ms": 3.4877,
+            "stdev_ms": 0.74435
+          }
+        }
+      }
+    },
+    "MEMORY_BOUND_STREAM": {
+      "64": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.05549,
+            "median_ms": 0.02605,
+            "p95_ms": 0.3127,
+            "p99_ms": 0.3127,
+            "stdev_ms": 0.08578
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.05549,
+            "median_ms": 0.02605,
+            "p95_ms": 0.3127,
+            "p99_ms": 0.3127,
+            "stdev_ms": 0.08578
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 1.8554687528649083e-05,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0624,
+            "upload_ms": 0.0105,
+            "gpu_ms": 0.2775,
+            "readback_ms": 0.0061,
+            "unmarshal_ms": 0.0069
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.30276,
+            "median_ms": 0.29045,
+            "p95_ms": 0.3881,
+            "p99_ms": 0.3881,
+            "stdev_ms": 0.03466
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.42237,
+            "median_ms": 0.3901,
+            "p95_ms": 0.5881,
+            "p99_ms": 0.5881,
+            "stdev_ms": 0.0841
+          }
+        }
+      },
+      "256": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.04875,
+            "median_ms": 0.0488,
+            "p95_ms": 0.0509,
+            "p99_ms": 0.0509,
+            "stdev_ms": 0.00112
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.04875,
+            "median_ms": 0.0488,
+            "p95_ms": 0.0509,
+            "p99_ms": 0.0509,
+            "stdev_ms": 0.00112
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 1.8554687528649083e-05,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0329,
+            "upload_ms": 0.0068,
+            "gpu_ms": 0.2563,
+            "readback_ms": 0.0062,
+            "unmarshal_ms": 0.0048
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.26356,
+            "median_ms": 0.26435,
+            "p95_ms": 0.2733,
+            "p99_ms": 0.2733,
+            "stdev_ms": 0.00744
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.32573,
+            "median_ms": 0.32095,
+            "p95_ms": 0.3664,
+            "p99_ms": 0.3664,
+            "stdev_ms": 0.02016
+          }
+        }
+      },
+      "1024": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.02472,
+            "median_ms": 0.02465,
+            "p95_ms": 0.0258,
+            "p99_ms": 0.0258,
+            "stdev_ms": 0.00041
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.02472,
+            "median_ms": 0.02465,
+            "p95_ms": 0.0258,
+            "p99_ms": 0.0258,
+            "stdev_ms": 0.00041
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 1.8554687528649083e-05,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0547,
+            "upload_ms": 0.0081,
+            "gpu_ms": 0.2578,
+            "readback_ms": 0.0086,
+            "unmarshal_ms": 0.008
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.46963,
+            "median_ms": 0.2642,
+            "p95_ms": 2.193,
+            "p99_ms": 2.193,
+            "stdev_ms": 0.57572
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.59042,
+            "median_ms": 0.3501,
+            "p95_ms": 2.6823,
+            "p99_ms": 2.6823,
+            "stdev_ms": 0.69964
+          }
+        }
+      },
+      "4096": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.19322,
+            "median_ms": 0.19005,
+            "p95_ms": 0.215,
+            "p99_ms": 0.215,
+            "stdev_ms": 0.01001
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.19322,
+            "median_ms": 0.19005,
+            "p95_ms": 0.215,
+            "p99_ms": 0.215,
+            "stdev_ms": 0.01001
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 1.8554687528649083e-05,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.1974,
+            "upload_ms": 0.0145,
+            "gpu_ms": 0.3704,
+            "readback_ms": 0.0211,
+            "unmarshal_ms": 0.0242
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.30303,
+            "median_ms": 0.27235,
+            "p95_ms": 0.484,
+            "p99_ms": 0.484,
+            "stdev_ms": 0.06776
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.59482,
+            "median_ms": 0.5726,
+            "p95_ms": 0.7841,
+            "p99_ms": 0.7841,
+            "stdev_ms": 0.08991
+          }
+        }
+      },
+      "16384": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.45391,
+            "median_ms": 0.4168,
+            "p95_ms": 0.6261,
+            "p99_ms": 0.6261,
+            "stdev_ms": 0.09272
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.45391,
+            "median_ms": 0.4168,
+            "p95_ms": 0.6261,
+            "p99_ms": 0.6261,
+            "stdev_ms": 0.09272
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 1.8554687528649083e-05,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.9372,
+            "upload_ms": 0.0143,
+            "gpu_ms": 0.2836,
+            "readback_ms": 0.0465,
+            "unmarshal_ms": 0.0695
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.49014,
+            "median_ms": 0.33165,
+            "p95_ms": 1.5393,
+            "p99_ms": 1.5393,
+            "stdev_ms": 0.36761
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 1.61669,
+            "median_ms": 1.3712,
+            "p95_ms": 3.3273,
+            "p99_ms": 3.3273,
+            "stdev_ms": 0.60596
+          }
+        }
+      }
+    },
+    "BRANCH_HEAVY_CONTROL": {
+      "64": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.04638,
+            "median_ms": 0.0388,
+            "p95_ms": 0.136,
+            "p99_ms": 0.136,
+            "stdev_ms": 0.03016
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.04638,
+            "median_ms": 0.0388,
+            "p95_ms": 0.136,
+            "p99_ms": 0.136,
+            "stdev_ms": 0.03016
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.007,
+            "upload_ms": 0.0078,
+            "gpu_ms": 0.2572,
+            "readback_ms": 0.0038,
+            "unmarshal_ms": 0.0026
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.26469,
+            "median_ms": 0.2589,
+            "p95_ms": 0.2932,
+            "p99_ms": 0.2932,
+            "stdev_ms": 0.01356
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.28762,
+            "median_ms": 0.2806,
+            "p95_ms": 0.3241,
+            "p99_ms": 0.3241,
+            "stdev_ms": 0.01672
+          }
+        }
+      },
+      "256": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.16287,
+            "median_ms": 0.16315,
+            "p95_ms": 0.1655,
+            "p99_ms": 0.1655,
+            "stdev_ms": 0.00167
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.16287,
+            "median_ms": 0.16315,
+            "p95_ms": 0.1655,
+            "p99_ms": 0.1655,
+            "stdev_ms": 0.00167
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0251,
+            "upload_ms": 0.0184,
+            "gpu_ms": 0.6828,
+            "readback_ms": 0.0153,
+            "unmarshal_ms": 0.0149
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.43806,
+            "median_ms": 0.25515,
+            "p95_ms": 1.6601,
+            "p99_ms": 1.6601,
+            "stdev_ms": 0.42688
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.48556,
+            "median_ms": 0.29595,
+            "p95_ms": 1.7365,
+            "p99_ms": 1.7365,
+            "stdev_ms": 0.43907
+          }
+        }
+      },
+      "1024": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.66355,
+            "median_ms": 0.6566,
+            "p95_ms": 0.72,
+            "p99_ms": 0.72,
+            "stdev_ms": 0.02198
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.66355,
+            "median_ms": 0.6566,
+            "p95_ms": 0.72,
+            "p99_ms": 0.72,
+            "stdev_ms": 0.02198
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0709,
+            "upload_ms": 0.0161,
+            "gpu_ms": 1.0962,
+            "readback_ms": 0.0317,
+            "unmarshal_ms": 0.0286
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.60515,
+            "median_ms": 0.29355,
+            "p95_ms": 2.6651,
+            "p99_ms": 2.6651,
+            "stdev_ms": 0.72793
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.71951,
+            "median_ms": 0.3907,
+            "p95_ms": 2.8121,
+            "p99_ms": 2.8121,
+            "stdev_ms": 0.74247
+          }
+        }
+      },
+      "4096": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 2.19005,
+            "median_ms": 1.9655,
+            "p95_ms": 4.8382,
+            "p99_ms": 4.8382,
+            "stdev_ms": 0.94975
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 2.19005,
+            "median_ms": 1.9655,
+            "p95_ms": 4.8382,
+            "p99_ms": 4.8382,
+            "stdev_ms": 0.94975
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.1249,
+            "upload_ms": 0.0079,
+            "gpu_ms": 0.2546,
+            "readback_ms": 0.0482,
+            "unmarshal_ms": 0.0386
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.30712,
+            "median_ms": 0.29905,
+            "p95_ms": 0.3944,
+            "p99_ms": 0.3944,
+            "stdev_ms": 0.03811
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.683,
+            "median_ms": 0.6984,
+            "p95_ms": 0.8639,
+            "p99_ms": 0.8639,
+            "stdev_ms": 0.11144
+          }
+        }
+      },
+      "16384": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 10.16736,
+            "median_ms": 9.83615,
+            "p95_ms": 15.1302,
+            "p99_ms": 15.1302,
+            "stdev_ms": 2.00129
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 10.16736,
+            "median_ms": 9.83615,
+            "p95_ms": 15.1302,
+            "p99_ms": 15.1302,
+            "stdev_ms": 2.00129
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.8819,
+            "upload_ms": 0.0274,
+            "gpu_ms": 0.3818,
+            "readback_ms": 0.1828,
+            "unmarshal_ms": 0.2689
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.65307,
+            "median_ms": 0.36905,
+            "p95_ms": 3.3324,
+            "p99_ms": 3.3324,
+            "stdev_ms": 0.8936
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 1.96972,
+            "median_ms": 1.6926,
+            "p95_ms": 5.194,
+            "p99_ms": 5.194,
+            "stdev_ms": 1.09365
+          }
+        }
+      }
+    },
+    "MIXED_COMPUTE_MEMORY": {
+      "64": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.06776,
+            "median_ms": 0.03125,
+            "p95_ms": 0.3872,
+            "p99_ms": 0.3872,
+            "stdev_ms": 0.10652
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.06776,
+            "median_ms": 0.03125,
+            "p95_ms": 0.3872,
+            "p99_ms": 0.3872,
+            "stdev_ms": 0.10652
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0162,
+            "upload_ms": 0.0135,
+            "gpu_ms": 0.299,
+            "readback_ms": 0.0073,
+            "unmarshal_ms": 0.0053
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.63009,
+            "median_ms": 0.3396,
+            "p95_ms": 2.3934,
+            "p99_ms": 2.3934,
+            "stdev_ms": 0.61331
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.68311,
+            "median_ms": 0.37415,
+            "p95_ms": 2.464,
+            "p99_ms": 2.464,
+            "stdev_ms": 0.62364
+          }
+        }
+      },
+      "256": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.05994,
+            "median_ms": 0.0546,
+            "p95_ms": 0.0785,
+            "p99_ms": 0.0785,
+            "stdev_ms": 0.00857
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.05994,
+            "median_ms": 0.0546,
+            "p95_ms": 0.0785,
+            "p99_ms": 0.0785,
+            "stdev_ms": 0.00857
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.0433,
+            "upload_ms": 0.0119,
+            "gpu_ms": 0.2938,
+            "readback_ms": 0.007,
+            "unmarshal_ms": 0.0054
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.29373,
+            "median_ms": 0.29225,
+            "p95_ms": 0.3201,
+            "p99_ms": 0.3201,
+            "stdev_ms": 0.01532
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.37155,
+            "median_ms": 0.36215,
+            "p95_ms": 0.4412,
+            "p99_ms": 0.4412,
+            "stdev_ms": 0.03048
+          }
+        }
+      },
+      "1024": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.37047,
+            "median_ms": 0.3055,
+            "p95_ms": 0.6799,
+            "p99_ms": 0.6799,
+            "stdev_ms": 0.15931
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.37047,
+            "median_ms": 0.3055,
+            "p95_ms": 0.6799,
+            "p99_ms": 0.6799,
+            "stdev_ms": 0.15931
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.1499,
+            "upload_ms": 0.0133,
+            "gpu_ms": 0.2888,
+            "readback_ms": 0.0197,
+            "unmarshal_ms": 0.02
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.4624,
+            "median_ms": 0.42315,
+            "p95_ms": 0.7155,
+            "p99_ms": 0.7155,
+            "stdev_ms": 0.14653
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 0.69567,
+            "median_ms": 0.65335,
+            "p95_ms": 0.962,
+            "p99_ms": 0.962,
+            "stdev_ms": 0.17222
+          }
+        }
+      },
+      "4096": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 2.17623,
+            "median_ms": 2.1004,
+            "p95_ms": 2.691,
+            "p99_ms": 2.691,
+            "stdev_ms": 0.33098
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 2.17623,
+            "median_ms": 2.1004,
+            "p95_ms": 2.691,
+            "p99_ms": 2.691,
+            "stdev_ms": 0.33098
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 0.3591,
+            "upload_ms": 0.0187,
+            "gpu_ms": 0.3386,
+            "readback_ms": 0.0542,
+            "unmarshal_ms": 0.1326
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 0.61005,
+            "median_ms": 0.3626,
+            "p95_ms": 2.2305,
+            "p99_ms": 2.2305,
+            "stdev_ms": 0.55435
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 1.58767,
+            "median_ms": 1.1164,
+            "p95_ms": 5.1645,
+            "p99_ms": 5.1645,
+            "stdev_ms": 1.24552
+          }
+        }
+      },
+      "16384": {
+        "T0_PYTHON": {
+          "evidence_label": "HOST_CPU_REFERENCE",
+          "kernel": {
+            "count": 10,
+            "mean_ms": 15.3163,
+            "median_ms": 8.21015,
+            "p95_ms": 73.4673,
+            "p99_ms": 73.4673,
+            "stdev_ms": 19.47806
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 15.3163,
+            "median_ms": 8.21015,
+            "p95_ms": 73.4673,
+            "p99_ms": 73.4673,
+            "stdev_ms": 19.47806
+          }
+        },
+        "T1_NATIVE_CPU": {
+          "evidence_label": "UNAVAILABLE",
+          "reason": "Native library missing at C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll. Run scripts/build_taxonomy_simd.ps1"
+        },
+        "T2_VULKAN": {
+          "evidence_label": "HARDWARE_MEASURED",
+          "device": "Intel(R) Iris(R) Xe Graphics",
+          "correctness_vs_t0": {
+            "match": true,
+            "reason": "",
+            "max_abs_error": 0.0,
+            "mismatches": 0
+          },
+          "timing_split_median_ms": {
+            "marshal_ms": 1.6789,
+            "upload_ms": 0.0284,
+            "gpu_ms": 0.3762,
+            "readback_ms": 0.171,
+            "unmarshal_ms": 0.2391
+          },
+          "kernel": {
+            "count": 10,
+            "mean_ms": 1.38634,
+            "median_ms": 0.534,
+            "p95_ms": 8.6294,
+            "p99_ms": 8.6294,
+            "stdev_ms": 2.42351
+          },
+          "end_to_end": {
+            "count": 10,
+            "mean_ms": 7.33702,
+            "median_ms": 3.2823,
+            "p95_ms": 31.3904,
+            "p99_ms": 31.3904,
+            "stdev_ms": 8.81517
+          }
+        }
+      }
+    }
+  }
+}
