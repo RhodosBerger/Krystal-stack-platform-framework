@@ -90,6 +90,15 @@ DOMAIN_ARCHETYPES: Dict[str, DomainArchetype] = {
         dimension_names=["Controllability", "Blast Containment", "Recovery Speed", "Invariant Preservation"],
         units=["control_idx", "containment_pct", "recovery_ms", "inv_score"],
         typical_weights=[0.20, 0.30, 0.30, 0.20]
+    ),
+    "cinematic_interrogation": DomainArchetype(
+        domain_id="cinematic_interrogation",
+        display_name="Cinematic Ballistics & Noire Interrogation",
+        description="L.A. Noire MotionScan lip-sync visemes, mortar trajectory ballistics, and KMCP 64-byte codec",
+        dimensions=["TRJ", "LIP", "DEC", "KMCP"],
+        dimension_names=["Trajectory Ballistics (Mortar)", "Lip-Sync Viseme Fidelity", "Deception Micro-Expressions", "KMCP Codec Invariant Protection"],
+        units=["apex_m", "viseme_accuracy_pct", "deception_score", "packet_bytes"],
+        typical_weights=[0.25, 0.25, 0.25, 0.25]
     )
 }
 
@@ -192,6 +201,14 @@ class CrossDomainComparator:
             s_rec = max(0.0, 5.0 - (mttr / 2.0))
             s_int = 5.0 if raw_values[3] > 0.5 else 0.5
             scores.extend([s_ctl, s_bls, s_rec, s_int])
+
+        elif domain_id == "cinematic_interrogation":
+            # raw: [apex_m, viseme_accuracy_pct, deception_score, packet_bytes]
+            s_trj = min(5.0, (raw_values[0] / 20.0) * 5.0)
+            s_lip = min(5.0, (raw_values[1] / 100.0) * 5.0)
+            s_dec = min(5.0, raw_values[2] * 5.0)
+            s_kmcp = 5.0 if raw_values[3] == 64.0 else max(0.0, 5.0 - abs(raw_values[3] - 64.0))
+            scores.extend([s_trj, s_lip, s_dec, s_kmcp])
 
         # Clamp all
         clamped_scores = [round(max(0.0, min(5.0, s)), 2) for s in scores]

@@ -169,7 +169,7 @@
     /* ── DOMAIN SELECTOR ────────────────────────────────── */
     .domain-bar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
       gap: 1rem;
     }
 
@@ -583,22 +583,16 @@
     <div class="brand">
       <div class="brand-logo">K</div>
       <div>
-        <div class="brand-title">Krystal Unified Verification & Closed-Loop Studio</div>
-        <div class="brand-subtitle">CRYSTALSEC 2.X // CLOSED-LOOP POLICY VERIFICATION</div>
+        <div class="brand-title">Krystal Unified Simulation &amp; Verification Layer</div>
+        <div class="brand-subtitle">EPISTEMIC CYCLE // 6-DOMAIN COMPARATIVE ENGINE</div>
       </div>
     </div>
     <div class="header-badges">
-      <span class="status-pill live-sse" id="sseBadge">
-        <span class="pulse-dot"></span>
-        LIVE SSE CONNECTED
-      </span>
-      <span class="status-pill active" id="consumerModeBadge">
-        ACTIVE_REGULATION
-      </span>
       <span class="vital-badge" title="Vital Invariant Enforced">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         VITAL 6-HP CEILING
       </span>
+      <span class="status-pill active" id="conductBadge">[ACT] [!LCK] [CNF] [!HAZ]</span>
     </div>
   </header>
 
@@ -1090,6 +1084,7 @@
       else if (domainId === "cyber_physical_cnc") currentSubject = "adaptive_spindle_rpm";
       else if (domainId === "linux_kernel_resource") currentSubject = "cgroup_v2_isolator";
       else if (domainId === "fault_injection_recovery") currentSubject = "core_thermal_shock";
+      else if (domainId === "cinematic_interrogation") currentSubject = "noir_mortar_interrogation";
 
       document.querySelectorAll(".domain-btn").forEach((b, idx) => {
         b.classList.toggle("active", Object.keys(DOMAIN_DEFS)[idx] === domainId);
@@ -1103,7 +1098,8 @@
       "llm_runtime": { dims: ["LAT", "TPS", "MEM", "ROB"] },
       "cyber_physical_cnc": { dims: ["THG", "RPM", "CUT", "COL"] },
       "linux_kernel_resource": { dims: ["PRS", "SCH", "MEM", "COM"] },
-      "fault_injection_recovery": { dims: ["CTL", "BLS", "REC", "INT"] }
+      "fault_injection_recovery": { dims: ["CTL", "BLS", "REC", "INT"] },
+      "cinematic_interrogation": { dims: ["TRJ", "LIP", "DEC", "KMCP"] }
     };
 
     async function loadDomainState(domain, subject) {

@@ -2603,7 +2603,8 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 ("llm_runtime", "crystalsec_openvino"),
                 ("cyber_physical_cnc", "adaptive_spindle_rpm"),
                 ("linux_kernel_resource", "cgroup_v2_isolator"),
-                ("fault_injection_recovery", "core_thermal_shock")
+                ("fault_injection_recovery", "core_thermal_shock"),
+                ("cinematic_interrogation", "noir_mortar_interrogation")
             ]:
                 raw = GLOBAL_VERIFICATION_FACADE._sample_domain_telemetry(d_id, s_id)
                 vec = GLOBAL_VERIFICATION_FACADE.comparator.normalize_domain_metrics(d_id, s_id, raw)

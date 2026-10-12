@@ -313,6 +313,27 @@ class TestAdvancedCinematicAndRustIntegration(unittest.TestCase):
         self.assertEqual(body4["verdict"], "VETO_SAFETY_BREACH")
         self.assertEqual(body4["lifecycle_action"], "REJECT_NOOP")
 
+    def test_09_verification_domain_integration(self):
+        """Tests that cinematic_interrogation is registered as the 6th Epistemic domain."""
+        status_code, body = self._http_get("/api/verification/domains")
+        self.assertEqual(status_code, 200)
+        self.assertEqual(body["status"], "OK")
+        self.assertIn("cinematic_interrogation", body["domains"])
+        d = body["domains"]["cinematic_interrogation"]
+        self.assertEqual(d["dimensions"], ["TRJ", "LIP", "DEC", "KMCP"])
+
+        # Test state sampling
+        status_code, state_body = self._http_get(
+            "/api/verification/state/cinematic_interrogation/noir_mortar_interrogation"
+        )
+        self.assertEqual(status_code, 200)
+        self.assertEqual(state_body["status"], "OK")
+        st = state_body["state"]
+        self.assertEqual(st["domain_id"], "cinematic_interrogation")
+        self.assertIn("geometry", st)
+        self.assertGreater(st["geometry"]["composite_utility_u"], 4.0)
+
 
 if __name__ == "__main__":
     unittest.main()
+
