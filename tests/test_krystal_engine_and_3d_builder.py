@@ -10,6 +10,15 @@ import json
 BASE_URL = "http://127.0.0.1:8089"
 
 class TestKrystalEngineCore(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try:
+            with urllib.request.urlopen(f"{BASE_URL}/api/status", timeout=1.0) as resp:
+                if resp.status != 200:
+                    raise unittest.SkipTest("Krystal Engine daemon on 127.0.0.1:8089 is offline; skipping HTTP live integration tests.")
+        except Exception:
+            raise unittest.SkipTest("Krystal Engine daemon on 127.0.0.1:8089 is offline; skipping HTTP live integration tests.")
+
     def setUp(self):
         try:
             req = urllib.request.Request(

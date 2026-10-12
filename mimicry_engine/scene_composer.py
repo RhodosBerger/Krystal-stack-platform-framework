@@ -23,6 +23,306 @@ from mimicry_engine.primitives import (
 )
 from mimicry_engine.mimic_recipes import get_recipe, MimicObject, RECIPES_CATALOG
 
+class CameraTrajectory:
+    """Base class for dynamic camera paths and kinematic trajectories in 3D scenes."""
+    def __init__(self, name: str = "Trajectory", duration: float = 10.0):
+        self.name = name
+        self.duration = duration
+
+    def get_camera_state(self, t: float) -> Tuple[Vec3, Vec3, float]:
+        """Returns (position, target, fov_degrees) at time t."""
+        raise NotImplementedError
+
+    def sample_path(self, num_points: int = 32) -> List[Vec3]:
+        """Samples camera positions along the trajectory duration."""
+        points = []
+        for i in range(num_points):
+            t = (i / max(1, num_points - 1)) * self.duration
+            pos, _, _ = self.get_camera_state(t)
+            points.append(pos)
+        return points
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": self.__class__.__name__,
+            "name": self.name,
+            "duration": self.duration
+        }
+
+
+class OrbitalTrajectory(CameraTrajectory):
+    """
+    Harmonic orbital camera path revolving around an anchor target.
+    Supports radius breathing, height bobbing, and angular velocity.
+    """
+    def __init__(
+        self,
+        name: str = "OrbitalTrack",
+        center: Vec3 = (0.0, 0.2, 0.0),
+        radius: float = 6.5,
+        height: float = 2.2,
+        angular_speed: float = 0.35,
+        elevation_oscillation: float = 0.0,
+        fov: float = 60.0,
+        duration: float = 18.0
+    ):
+        super().__init__(name=name, duration=duration)
+        self.center = center
+        self.radius = radius
+        self.height = height
+        self.angular_speed = angular_speed
+        self.elevation_oscillation = elevation_oscillation
+        self.fov = fov
+
+    def get_camera_state(self, t: float) -> Tuple[Vec3, Vec3, float]:
+        ang = t * self.angular_speed
+        x = self.center[0] + self.radius * math.sin(ang)
+        y = self.center[1] + self.height + self.elevation_oscillation * math.sin(ang * 2.0)
+        z = self.center[2] - self.radius * math.cos(ang)
+        return (x, y, z), self.center, self.fov
+
+    def to_dict(self) -> Dict[str, Any]:
+        d = super().to_dict()
+        d.update({
+            "center": list(self.center),
+            "radius": self.radius,
+            "height": self.height,
+            "angular_speed": self.angular_speed,
+            "elevation_oscillation": self.elevation_oscillation,
+            "fov": self.fov
+        })
+        return d
+
+
+class FlythroughSplineTrajectory(CameraTrajectory):
+    """
+    Smooth Catmull-Rom spline camera trajectory passing through key waypoints.
+    Automatically computes tangent-following camera orientation.
+    """
+    def __init__(
+        self,
+        name: str = "FlythroughSpline",
+        waypoints: Optional[List[Vec3]] = None,
+        duration: float = 12.0,
+        fov: float = 65.0,
+        closed: bool = False
+    ):
+        super().__init__(name=name, duration=duration)
+        self.waypoints = waypoints or [
+            (-6.0, 3.5, -6.0),
+            (-2.0, 1.8, -1.0),
+            (0.0, 1.2, 1.5),
+            (3.0, 2.4, 0.0),
+            (6.0, 4.0, -4.0)
+        ]
+        self.fov = fov
+        self.closed = closed
+
+    def _catmull_rom(self, p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, u: float) -> Vec3:
+        """Standard cubic Catmull-Rom spline evaluation."""
+        u2 = u * u
+        u3 = u2 * u
+        res = [0.0, 0.0, 0.0]
+        for i in range(3):
+            res[i] = 0.5 * (
+                (2.0 * p1[i]) +
+                (-p0[i] + p2[i]) * u +
+                (2.0 * p0[i] - 5.0 * p1[i] + 4.0 * p2[i] - p3[i]) * u2 +
+                (-p0[i] + 3.0 * p1[i] - 3.0 * p2[i] + p3[i]) * u3
+            )
+        return (res[0], res[1], res[2])
+
+    def get_position_at(self, s: float) -> Vec3:
+        """Evaluates spline at normalized progress s in [0.0, 1.0]."""
+        pts = self.waypoints
+        n = len(pts)
+        if n == 0:
+            return (0.0, 0.0, 0.0)
+        if n == 1:
+            return pts[0]
+        if n == 2:
+            s = max(0.0, min(1.0, s))
+            return (
+                pts[0][0] + (pts[1][0] - pts[0][0]) * s,
+                pts[0][1] + (pts[1][1] - pts[0][1]) * s,
+                pts[0][2] + (pts[1][2] - pts[0][2]) * s
+            )
+
+        if self.closed:
+            s = s % 1.0
+            num_segments = n
+            scaled = s * num_segments
+            seg_idx = int(scaled) % num_segments
+            u = scaled - math.floor(scaled)
+            p0 = pts[(seg_idx - 1) % n]
+            p1 = pts[seg_idx]
+            p2 = pts[(seg_idx + 1) % n]
+            p3 = pts[(seg_idx + 2) % n]
+        else:
+            s = max(0.0, min(1.0, s))
+            num_segments = n - 1
+            scaled = s * num_segments
+            seg_idx = min(int(scaled), num_segments - 1)
+            u = scaled - seg_idx
+            p0 = pts[max(0, seg_idx - 1)]
+            p1 = pts[seg_idx]
+            p2 = pts[min(n - 1, seg_idx + 1)]
+            p3 = pts[min(n - 1, seg_idx + 2)]
+
+        return self._catmull_rom(p0, p1, p2, p3, u)
+
+    def get_camera_state(self, t: float) -> Tuple[Vec3, Vec3, float]:
+        norm_t = (t % self.duration) / self.duration if self.closed else max(0.0, min(1.0, t / max(1e-5, self.duration)))
+        pos = self.get_position_at(norm_t)
+        dt = 0.02
+        norm_next = ((norm_t + dt) % 1.0) if self.closed else min(1.0, norm_t + dt)
+        pos_next = self.get_position_at(norm_next)
+        tangent = (pos_next[0] - pos[0], pos_next[1] - pos[1], pos_next[2] - pos[2])
+        tan_len = math.sqrt(tangent[0]**2 + tangent[1]**2 + tangent[2]**2)
+        if tan_len > 1e-5:
+            target = (pos[0] + tangent[0]/tan_len * 2.0, pos[1] + tangent[1]/tan_len * 2.0, pos[2] + tangent[2]/tan_len * 2.0)
+        else:
+            target = (pos[0], pos[1], pos[2] + 2.0)
+        return pos, target, self.fov
+
+    def to_dict(self) -> Dict[str, Any]:
+        d = super().to_dict()
+        d.update({
+            "waypoints": [list(w) for w in self.waypoints],
+            "fov": self.fov,
+            "closed": self.closed
+        })
+        return d
+
+
+class CinematicDollyZoomTrajectory(CameraTrajectory):
+    """
+    Vertigo / Dolly Zoom effect: camera translates toward or away from a subject
+    while dynamically altering FOV to keep the subject's screen size constant.
+    """
+    def __init__(
+        self,
+        name: str = "DollyZoomTrack",
+        target: Vec3 = (0.0, 0.5, 0.0),
+        start_pos: Vec3 = (0.0, 1.8, -8.0),
+        end_pos: Vec3 = (0.0, 1.0, -2.5),
+        initial_fov: float = 45.0,
+        duration: float = 6.0,
+        loop: bool = False
+    ):
+        super().__init__(name=name, duration=duration)
+        self.target = target
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.initial_fov = initial_fov
+        self.loop = loop
+
+        # Calculate initial distance to target
+        dx = start_pos[0] - target[0]
+        dy = start_pos[1] - target[1]
+        dz = start_pos[2] - target[2]
+        self.initial_dist = max(1e-3, math.sqrt(dx*dx + dy*dy + dz*dz))
+        # Constant projected height factor = 2 * dist * tan(fov / 2)
+        self.target_visible_height = 2.0 * self.initial_dist * math.tan(math.radians(initial_fov / 2.0))
+
+    def get_camera_state(self, t: float) -> Tuple[Vec3, Vec3, float]:
+        if self.loop:
+            progress = (t % self.duration) / self.duration if self.duration > 1e-5 else 0.0
+        else:
+            progress = max(0.0, min(1.0, t / max(1e-5, self.duration)))
+
+        s = progress * progress * (3.0 - 2.0 * progress)  # smoothstep
+
+        pos = (
+            self.start_pos[0] + (self.end_pos[0] - self.start_pos[0]) * s,
+            self.start_pos[1] + (self.end_pos[1] - self.start_pos[1]) * s,
+            self.start_pos[2] + (self.end_pos[2] - self.start_pos[2]) * s
+        )
+        dx = pos[0] - self.target[0]
+        dy = pos[1] - self.target[1]
+        dz = pos[2] - self.target[2]
+        curr_dist = max(1e-3, math.sqrt(dx*dx + dy*dy + dz*dz))
+
+        # Dynamically adjust FOV so target maintains exact screen size
+        half_fov_rad = math.atan(self.target_visible_height / (2.0 * curr_dist))
+        fov_deg = math.degrees(half_fov_rad * 2.0)
+        fov_deg = max(10.0, min(140.0, fov_deg))
+
+        return pos, self.target, fov_deg
+
+    def to_dict(self) -> Dict[str, Any]:
+        d = super().to_dict()
+        d.update({
+            "target": list(self.target),
+            "start_pos": list(self.start_pos),
+            "end_pos": list(self.end_pos),
+            "initial_fov": self.initial_fov,
+            "loop": self.loop
+        })
+        return d
+
+
+class SpiralAscentTrajectory(CameraTrajectory):
+    """
+    Helical / Spiral ascent trajectory circling around vertical landmark
+    (e.g., Clocktower, Obelisk, or Data Spire) while elevating.
+    """
+    def __init__(
+        self,
+        name: str = "SpiralAscentTrack",
+        center: Vec3 = (0.0, 0.0, 0.0),
+        start_radius: float = 7.0,
+        end_radius: float = 3.2,
+        start_height: float = 0.4,
+        end_height: float = 6.5,
+        revolutions: float = 2.0,
+        duration: float = 12.0,
+        fov: float = 58.0,
+        loop: bool = False
+    ):
+        super().__init__(name=name, duration=duration)
+        self.center = center
+        self.start_radius = start_radius
+        self.end_radius = end_radius
+        self.start_height = start_height
+        self.end_height = end_height
+        self.revolutions = revolutions
+        self.fov = fov
+        self.loop = loop
+
+    def get_camera_state(self, t: float) -> Tuple[Vec3, Vec3, float]:
+        if self.loop:
+            progress = (t % self.duration) / self.duration if self.duration > 1e-5 else 0.0
+        else:
+            progress = max(0.0, min(1.0, t / max(1e-5, self.duration)))
+
+        theta = progress * (2.0 * math.pi * self.revolutions)
+        radius = self.start_radius + (self.end_radius - self.start_radius) * progress
+        height = self.start_height + (self.end_height - self.start_height) * progress
+
+        pos = (
+            self.center[0] + radius * math.sin(theta),
+            self.center[1] + height,
+            self.center[2] - radius * math.cos(theta)
+        )
+        target = (self.center[0], self.center[1] + height * 0.75 + 0.5, self.center[2])
+        return pos, target, self.fov
+
+    def to_dict(self) -> Dict[str, Any]:
+        d = super().to_dict()
+        d.update({
+            "center": list(self.center),
+            "start_radius": self.start_radius,
+            "end_radius": self.end_radius,
+            "start_height": self.start_height,
+            "end_height": self.end_height,
+            "revolutions": self.revolutions,
+            "fov": self.fov,
+            "loop": self.loop
+        })
+        return d
+
+
 class SceneActor:
     """An instantiated composite object placed inside a 3D Game Scene."""
     def __init__(
@@ -93,9 +393,14 @@ class GameScene:
         self.ground_level: float = -1.2
         self.validation_result: Optional["CompositionValidationResult"] = None
         self.seed: int = 42
+        self.default_trajectory: Optional[CameraTrajectory] = None
 
     def add_actor(self, actor: SceneActor) -> "GameScene":
         self.actors.append(actor)
+        return self
+
+    def set_trajectory(self, trajectory: CameraTrajectory) -> "GameScene":
+        self.default_trajectory = trajectory
         return self
 
     def validate_rules(self) -> "CompositionValidationResult":
@@ -134,7 +439,8 @@ class GameScene:
         t: float = 0.0,
         cam_orbit_dist: float = 6.5,
         cam_height: float = 2.2,
-        glyph_ramp: str = " .:-=+*#%@"
+        glyph_ramp: str = " .:-=+*#%@",
+        trajectory: Optional[CameraTrajectory] = None
     ) -> str:
         """Raymarches the entire game scene into an ASCII viewport."""
         aspect = (width / height) * 0.52
@@ -143,19 +449,32 @@ class GameScene:
         l_mag = math.sqrt(light_dir[0]**2 + light_dir[1]**2 + light_dir[2]**2)
         light_dir = (light_dir[0]/l_mag, light_dir[1]/l_mag, light_dir[2]/l_mag)
 
-        # Orbiting cinematic camera
-        cam_angle = t * 0.35
-        ro = (cam_orbit_dist * math.sin(cam_angle), cam_height, -cam_orbit_dist * math.cos(cam_angle))
-        ta = (0.0, 0.2, 0.0)
+        active_traj = trajectory or self.default_trajectory
+        if active_traj is not None:
+            ro, ta, fov = active_traj.get_camera_state(t)
+            half_rad = math.radians(max(5.0, min(160.0, fov)) / 2.0)
+            focal_length = 1.0 / max(1e-4, math.tan(half_rad))
+        else:
+            # Orbiting cinematic camera
+            cam_angle = t * 0.35
+            ro = (cam_orbit_dist * math.sin(cam_angle), cam_height, -cam_orbit_dist * math.cos(cam_angle))
+            ta = (0.0, 0.2, 0.0)
+            focal_length = 1.6
 
         # Basis
         ww = v_sub(ta, ro)
         l_ww = math.sqrt(ww[0]**2 + ww[1]**2 + ww[2]**2)
-        ww = (ww[0]/l_ww, ww[1]/l_ww, ww[2]/l_ww)
+        if l_ww < 1e-5:
+            ww = (0.0, 0.0, 1.0)
+        else:
+            ww = (ww[0]/l_ww, ww[1]/l_ww, ww[2]/l_ww)
 
         uu = (ww[2], 0.0, -ww[0])
         l_uu = math.sqrt(uu[0]**2 + uu[2]**2)
-        uu = (uu[0]/max(1e-5, l_uu), 0.0, uu[2]/max(1e-5, l_uu))
+        if l_uu < 1e-5:
+            uu = (1.0, 0.0, 0.0)
+        else:
+            uu = (uu[0]/l_uu, 0.0, uu[2]/l_uu)
         vv = (uu[1]*ww[2] - uu[2]*ww[1], uu[2]*ww[0] - uu[0]*ww[2], uu[0]*ww[1] - uu[1]*ww[0])
 
         for y in range(height):
@@ -164,7 +483,7 @@ class GameScene:
             for x in range(width):
                 nx = ((x / width) * 2.0 - 1.0) * aspect
 
-                rd = v_add(v_add(v_scale(uu, nx), v_scale(vv, ny)), v_scale(ww, 1.6))
+                rd = v_add(v_add(v_scale(uu, nx), v_scale(vv, ny)), v_scale(ww, focal_length))
                 l_rd = math.sqrt(rd[0]**2 + rd[1]**2 + rd[2]**2)
                 rd = (rd[0]/l_rd, rd[1]/l_rd, rd[2]/l_rd)
 
@@ -202,7 +521,7 @@ class GameScene:
 
         return "\n".join(lines)
 
-    def export_godot_tscn(self) -> str:
+    def export_godot_tscn(self, trajectory: Optional[CameraTrajectory] = None) -> str:
         """Generates a complete Godot 4.x .tscn text scene representing this game scene."""
         # Embed rule validation and invariant metadata in Godot scene
         if not self.validation_result:
@@ -211,7 +530,10 @@ class GameScene:
         rule_score = round(self.validation_result.compliance_score, 4) if self.validation_result else 1.0
         rule_passed = "true" if (self.validation_result and self.validation_result.passed) else "false"
 
-        scene_str = f"""[gd_scene load_steps=5 format=3 uid="uid://krystal_scene_{self.scene_id.lower()}"]
+        active_traj = trajectory or self.default_trajectory
+        load_steps = 6 if active_traj is not None else 5
+
+        scene_str = f"""[gd_scene load_steps={load_steps} format=3 uid="uid://krystal_scene_{self.scene_id.lower()}"]
 
 [ext_resource type="Script" path="res://scripts/KrystalHoloBridge.gd" id="1_bridge"]
 
@@ -231,7 +553,19 @@ roughness = 0.4
 [sub_resource type="BoxMesh" id="Mesh_Ground"]
 material = SubResource("Mat_Ground")
 size = Vector3(50, 0.2, 50)
-
+"""
+        if active_traj is not None:
+            pts = active_traj.sample_path(num_points=32)
+            pts_str = ", ".join(f"{round(p[0], 3)}, {round(p[1], 3)}, {round(p[2], 3)}" for p in pts)
+            tilts_str = ", ".join("0" for _ in pts)
+            scene_str += f"""
+[sub_resource type="Curve3D" id="Curve3D_CamTrack"]
+_data = {{
+"points": PackedVector3Array({pts_str}),
+"tilts": PackedFloat32Array({tilts_str})
+}}
+"""
+        scene_str += f"""
 [node name="{self.scene_id}" type="Node3D"]
 script = ExtResource("1_bridge")
 metadata/vital_max_hp = 6
@@ -247,11 +581,30 @@ transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 
 light_color = Color(0.9, 0.95, 1, 1)
 light_energy = 2.0
 shadow_enabled = true
+"""
+        if active_traj is not None:
+            init_pos, _, init_fov = active_traj.get_camera_state(0.0)
+            scene_str += f"""
+[node name="CameraTrack" type="Path3D" parent="."]
+curve = SubResource("Curve3D_CamTrack")
+metadata/trajectory_type = "{active_traj.__class__.__name__}"
+metadata/duration = {active_traj.duration}
 
+[node name="PathFollow3D" type="PathFollow3D" parent="CameraTrack"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, {round(init_pos[0], 3)}, {round(init_pos[1], 3)}, {round(init_pos[2], 3)})
+loop = true
+
+[node name="Camera3D" type="Camera3D" parent="CameraTrack/PathFollow3D"]
+fov = {round(init_fov, 2)}
+current = true
+"""
+        else:
+            scene_str += f"""
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.939, 0.342, 0, -0.342, 0.939, 0, 3.5, 8.0)
 current = true
-
+"""
+        scene_str += f"""
 [node name="Ground" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, {self.ground_level}, 0)
 mesh = SubResource("Mesh_Ground")
@@ -285,6 +638,7 @@ metadata/vital_hp = {actor.vital_hp}
             "fog_color": list(self.fog_color),
             "ambient_light": list(self.ambient_light),
             "seed": self.seed,
+            "trajectory": self.default_trajectory.to_dict() if self.default_trajectory else None,
             "validation": self.validation_result.to_dict() if self.validation_result else None
         }
 

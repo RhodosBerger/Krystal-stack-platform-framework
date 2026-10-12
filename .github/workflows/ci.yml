@@ -235,7 +235,7 @@ jobs:
       - name: Prepare artifacts
         run: |
           mkdir -p dist/bin
-          cp src/rust-bot/target/release/gamesa-bot dist/bin/ 2>/dev/null || true
+          cp target/release/gamesa-bot dist/bin/ 2>/dev/null || cp src/rust-bot/target/release/gamesa-bot dist/bin/ 2>/dev/null || true
           cp -r dist/*.whl dist/ 2>/dev/null || true
 
       - name: Upload artifacts
@@ -298,9 +298,15 @@ jobs:
           elif [ -f "Cargo.toml" ]; then
             cargo doc --no-deps
           fi
+          mkdir -p doc-dist
+          if [ -d "target/doc" ]; then
+            cp -r target/doc/* doc-dist/
+          elif [ -d "src/rust-bot/target/doc" ]; then
+            cp -r src/rust-bot/target/doc/* doc-dist/
+          fi
 
       - name: Upload docs
         uses: actions/upload-artifact@v4
         with:
           name: docs
-          path: src/rust-bot/target/doc/
+          path: doc-dist/
