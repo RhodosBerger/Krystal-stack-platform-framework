@@ -10,7 +10,9 @@ import math
 from typing import Dict, Any, List, Optional, Tuple
 from krystal_lang.ast_nodes import (
     ProgramNode, QueueDefinition, GeometricShapeDecl,
-    TransformOp, StreamPipeline, QuantumLoop
+    TransformOp, StreamPipeline, QuantumLoop,
+    ConditionExpr, ConditionalBranch, ConditionalLadder,
+    WhatIfScenarioNode, WhatIfBlockNode
 )
 
 class KrystalLexer:
@@ -20,7 +22,8 @@ class KrystalLexer:
         ("NUMBER",      r"-?\d+(\.\d+)?"),
         ("STRING",      r'"[^"]*"'),
         ("VEC3",        r"\[\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*\]"),
-        ("KEYWORD",     r"\b(module|queue|shape|pipeline|loop|from|to|transform|action|type|priority|capacity|spatial|iterations|scale|csg|rate|folds|amp|freq|thickness)\b"),
+        ("KEYWORD",     r"\b(module|queue|shape|pipeline|loop|if|elif|else|what_if|scenario|fallback|criterion|hypothesis|when|cost|utility|on|from|to|transform|action|type|priority|capacity|spatial|iterations|scale|csg|rate|folds|amp|freq|thickness)\b"),
+        ("COMP_OP",     r"(>=|<=|==|!=|>|<)"),
         ("IDENTIFIER",  r"[a-zA-Z_][a-zA-Z0-9_]*"),
         ("LBRACE",      r"\{"),
         ("RBRACE",      r"\}"),
@@ -111,6 +114,10 @@ class KrystalCompiler:
                 program.pipelines.append(self._parse_pipeline())
             elif tok[1].lower() == "loop":
                 program.loops.append(self._parse_loop())
+            elif tok[1].lower() == "if":
+                program.conditionals.append(self._parse_conditional_ladder())
+            elif tok[1].lower() == "what_if":
+                program.what_ifs.append(self._parse_what_if_block())
             else:
                 self.pos += 1  # Skip unrecognized token gracefully
 
@@ -247,6 +254,187 @@ class KrystalCompiler:
                 self.pos += 1
         return loop
 
+    def _parse_condition_expr(self, text: str) -> ConditionExpr:
+        m = re.match(r"([a-zA-Z_][a-zA-Z0-9_]*)\s*(>=|<=|==|!=|>|<)\s*(.+)", text.strip())
+        if m:
+            field = m.group(1)
+            op = m.group(2)
+            val_str = m.group(3).strip()
+            try:
+                val = float(val_str)
+            except ValueError:
+                if val_str.lower() == "true": val = True
+                elif val_str.lower() == "false": val = False
+                else: val = val_str.strip('"\'')
+            return ConditionExpr(field=field, op=op, value=val)
+        return ConditionExpr(field="status", op="==", value=text.strip())
+
+    def _parse_conditional_ladder(self) -> ConditionalLadder:
+        self._next()  # consume 'if'
+        ladder_name = "CondLadder"
+        tok = self._next()
+        if tok and tok[0] == "IDENTIFIER":
+            ladder_name = tok[1]
+
+        src_queue = "InStream"
+        peek = self._peek()
+        if peek and peek[1].lower() == "on":
+            self._next()
+            src_tok = self._next()
+            if src_tok: src_queue = src_tok[1]
+
+        if_branch = ConditionalBranch()
+        if self._match("LBRACE"):
+            while not self._match("RBRACE") and self.pos < len(self.tokens):
+                kt = self._next()
+                if not kt: break
+                key = kt[1].lower()
+                self._match("COLON")
+                vt = self._next()
+                if not vt: break
+                if key == "when":
+                    cond_str = vt[1]
+                    while self.pos < len(self.tokens) and self._peek() and self._peek()[0] in ("COMP_OP", "NUMBER", "STRING", "IDENTIFIER"):
+                        cond_str += " " + self._next()[1]
+                    if_branch.condition = self._parse_condition_expr(cond_str)
+                elif key == "to":
+                    if_branch.target_queue = vt[1]
+                elif key == "action":
+                    if_branch.action = vt[1].upper()
+                self._match("COMMA")
+
+        elif_branches = []
+        else_branch = None
+
+        while self.pos < len(self.tokens):
+            pk = self._peek()
+            if not pk: break
+            if pk[1].lower() == "elif":
+                self._next()  # consume 'elif'
+                elif_b = ConditionalBranch()
+                if self._match("LBRACE"):
+                    while not self._match("RBRACE") and self.pos < len(self.tokens):
+                        kt = self._next()
+                        if not kt: break
+                        key = kt[1].lower()
+                        self._match("COLON")
+                        vt = self._next()
+                        if not vt: break
+                        if key == "when":
+                            cond_str = vt[1]
+                            while self.pos < len(self.tokens) and self._peek() and self._peek()[0] in ("COMP_OP", "NUMBER", "STRING", "IDENTIFIER"):
+                                cond_str += " " + self._next()[1]
+                            elif_b.condition = self._parse_condition_expr(cond_str)
+                        elif key == "to":
+                            elif_b.target_queue = vt[1]
+                        elif key == "action":
+                            elif_b.action = vt[1].upper()
+                        self._match("COMMA")
+                elif_branches.append(elif_b)
+            elif pk[1].lower() == "else":
+                self._next()  # consume 'else'
+                else_b = ConditionalBranch(condition=None)
+                if self._match("LBRACE"):
+                    while not self._match("RBRACE") and self.pos < len(self.tokens):
+                        kt = self._next()
+                        if not kt: break
+                        key = kt[1].lower()
+                        self._match("COLON")
+                        vt = self._next()
+                        if not vt: break
+                        if key == "to":
+                            else_b.target_queue = vt[1]
+                        elif key == "action":
+                            else_b.action = vt[1].upper()
+                        self._match("COMMA")
+                else_branch = else_b
+                break
+            else:
+                break
+
+        return ConditionalLadder(
+            name=ladder_name,
+            source_queue=src_queue,
+            if_branch=if_branch,
+            elif_branches=elif_branches,
+            else_branch=else_branch
+        )
+
+    def _parse_what_if_block(self) -> WhatIfBlockNode:
+        self._next()  # consume 'what_if'
+        block_name = "WhatIfBlock"
+        tok = self._next()
+        if tok and tok[0] == "IDENTIFIER":
+            block_name = tok[1]
+
+        src_queue = "InboundStream"
+        peek = self._peek()
+        if peek and peek[1].lower() == "on":
+            self._next()
+            src_tok = self._next()
+            if src_tok: src_queue = src_tok[1]
+
+        scenarios = []
+        fallback_q = "FallbackSink"
+        criterion = "MAX_UTILITY"
+
+        if self._match("LBRACE"):
+            while not self._match("RBRACE") and self.pos < len(self.tokens):
+                pk = self._peek()
+                if not pk: break
+                if pk[1].lower() == "scenario":
+                    self._next()  # consume 'scenario'
+                    sc_name = "Scenario"
+                    sct = self._next()
+                    if sct and sct[0] == "IDENTIFIER":
+                        sc_name = sct[1]
+                    hyp = sc_name
+                    target_q = "OutQueue"
+                    action = "SPECULATE"
+                    cost = 0.1
+                    utility = 0.8
+                    if self._match("LBRACE"):
+                        while not self._match("RBRACE") and self.pos < len(self.tokens):
+                            kt = self._next()
+                            if not kt: break
+                            key = kt[1].lower()
+                            self._match("COLON")
+                            vt = self._next()
+                            if not vt: break
+                            if key == "hypothesis": hyp = vt[1].strip('"\'')
+                            elif key == "to": target_q = vt[1]
+                            elif key == "action": action = vt[1].upper()
+                            elif key in ("cost", "cost_penalty"): cost = float(vt[1])
+                            elif key in ("utility", "expected_utility"): utility = float(vt[1])
+                            self._match("COMMA")
+                    scenarios.append(WhatIfScenarioNode(
+                        name=sc_name, hypothesis=hyp, target_queue=target_q,
+                        action=action, cost_penalty=cost, expected_utility=utility
+                    ))
+                elif pk[1].lower() == "fallback":
+                    self._next()
+                    self._match("COLON")
+                    ft = self._next()
+                    if ft: fallback_q = ft[1]
+                    self._match("COMMA")
+                elif pk[1].lower() == "criterion":
+                    self._next()
+                    self._match("COLON")
+                    ct = self._next()
+                    if ct: criterion = ct[1].upper()
+                    self._match("COMMA")
+                else:
+                    self.pos += 1
+
+        return WhatIfBlockNode(
+            name=block_name,
+            source_queue=src_queue,
+            scenarios=scenarios,
+            fallback_queue=fallback_q,
+            commit_criterion=criterion
+        )
+
+
     def _partition_queues(self, program: ProgramNode) -> List[Dict[str, Any]]:
         """
         Decomposes pipelines into topological execution stages.
@@ -352,6 +540,78 @@ class KrystalCompiler:
                 "op": "OP_SYMMETRY_FOLD",
                 "iterations": loop.iterations,
                 "dihedral_fold": loop.symmetry_fold
+            })
+            pc += 1
+
+        # 5. Conditional Ladders (if / elif / else)
+        for cond in program.conditionals:
+            bc.append({
+                "pc": pc,
+                "op": "OP_BRANCH_IF",
+                "ladder_name": cond.name,
+                "source_queue": cond.source_queue,
+                "condition": {
+                    "field": cond.if_branch.condition.field if cond.if_branch.condition else "default",
+                    "op": cond.if_branch.condition.op if cond.if_branch.condition else "==",
+                    "val": cond.if_branch.condition.value if cond.if_branch.condition else True
+                },
+                "target_queue": cond.if_branch.target_queue,
+                "action": cond.if_branch.action,
+                "csg_hyperplane": [1.0, 0.0, 0.0, 0.0]
+            })
+            pc += 1
+
+            for i, elif_b in enumerate(cond.elif_branches):
+                bc.append({
+                    "pc": pc,
+                    "op": "OP_BRANCH_ELIF",
+                    "ladder_name": cond.name,
+                    "index": i,
+                    "source_queue": cond.source_queue,
+                    "condition": {
+                        "field": elif_b.condition.field if elif_b.condition else "default",
+                        "op": elif_b.condition.op if elif_b.condition else "==",
+                        "val": elif_b.condition.value if elif_b.condition else True
+                    },
+                    "target_queue": elif_b.target_queue,
+                    "action": elif_b.action,
+                    "csg_hyperplane": [0.0, 1.0, 0.0, float(i + 1) * 0.5]
+                })
+                pc += 1
+
+            if cond.else_branch:
+                bc.append({
+                    "pc": pc,
+                    "op": "OP_BRANCH_ELSE",
+                    "ladder_name": cond.name,
+                    "source_queue": cond.source_queue,
+                    "target_queue": cond.else_branch.target_queue,
+                    "action": cond.else_branch.action,
+                    "csg_hyperplane": [-1.0, 0.0, 0.0, 0.0]
+                })
+                pc += 1
+
+        # 6. What-If Speculative Blocks
+        for wib in program.what_ifs:
+            sc_list = []
+            for sc in wib.scenarios:
+                sc_list.append({
+                    "name": sc.name,
+                    "hypothesis": sc.hypothesis,
+                    "target_queue": sc.target_queue,
+                    "action": sc.action,
+                    "cost_penalty": sc.cost_penalty,
+                    "expected_utility": sc.expected_utility
+                })
+            bc.append({
+                "pc": pc,
+                "op": "OP_WHAT_IF_SPECULATE",
+                "block_name": wib.name,
+                "source_queue": wib.source_queue,
+                "fallback_queue": wib.fallback_queue,
+                "criterion": wib.commit_criterion,
+                "scenarios": sc_list,
+                "radial_bifurcation_fold": max(3, len(sc_list))
             })
             pc += 1
 

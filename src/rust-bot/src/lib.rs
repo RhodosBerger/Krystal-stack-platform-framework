@@ -33,7 +33,7 @@ pub use trust::{TrustEngine, TrustedDecision};
 pub use cpu_governor::CpuGovernor;
 pub use gpu_telemetry::GpuTelemetry;
 pub use grid_engine::{GridEngine, HexCell};
-pub use policy::{PolicyEngine, PolicyResult};
+pub use policy::{PolicyEngine, PolicyResult, WhatIfScenario, WhatIfProjection};
 pub use micro_inference::MicroInference;
 pub use feature_registry::FeatureRegistry;
 pub use time_series::TimeSeriesLogger;

@@ -28,21 +28,63 @@ class TopologicalVM:
             "active_queues": 0,
             "average_throughput_pps": 0.0,
             "queue_depths": {},
+            "what_if_resolutions": 0,
             "engine_mode": "LOCK_FREE_RING" if use_fast_queue else "STANDARD_MUTEX"
         }
         self._init_channels()
 
+    def _create_channel(self, name: str, capacity: int = 256):
+        if self.use_fast_queue:
+            self.channels[name] = FastRingBuffer(capacity)
+        else:
+            self.channels[name] = queue.Queue(maxsize=capacity)
+        self.metrics["queue_depths"][name] = 0
+
     def _init_channels(self):
         for instr in self.bytecode:
-            if instr.get("op") == "OP_ALLOC_QUEUE":
+            op = instr.get("op")
+            if op == "OP_ALLOC_QUEUE":
                 q_name = instr["name"]
                 cap = instr.get("capacity", 256)
-                if self.use_fast_queue:
-                    self.channels[q_name] = FastRingBuffer(cap)
-                else:
-                    self.channels[q_name] = queue.Queue(maxsize=cap)
-                self.metrics["queue_depths"][q_name] = 0
+                if q_name not in self.channels:
+                    self._create_channel(q_name, cap)
+            elif op in ("OP_BRANCH_IF", "OP_BRANCH_ELIF", "OP_BRANCH_ELSE"):
+                for qk in ("source_queue", "target_queue"):
+                    qn = instr.get(qk)
+                    if qn and qn not in self.channels:
+                        self._create_channel(qn, 256)
+            elif op == "OP_WHAT_IF_SPECULATE":
+                for qk in ("source_queue", "fallback_queue"):
+                    qn = instr.get(qk)
+                    if qn and qn not in self.channels:
+                        self._create_channel(qn, 256)
+                for sc in instr.get("scenarios", []):
+                    tq = sc.get("target_queue")
+                    if tq and tq not in self.channels:
+                        self._create_channel(tq, 256)
         self.metrics["active_queues"] = len(self.channels)
+
+    def _eval_condition(self, pkt: Any, cond: Dict[str, Any]) -> bool:
+        if not isinstance(pkt, dict):
+            return True
+        field = cond.get("field", "status")
+        op = cond.get("op", "==")
+        val = cond.get("val")
+
+        if field not in pkt:
+            return False
+
+        pkt_val = pkt[field]
+        try:
+            if op == ">": return float(pkt_val) > float(val)
+            elif op == "<": return float(pkt_val) < float(val)
+            elif op == ">=": return float(pkt_val) >= float(val)
+            elif op == "<=": return float(pkt_val) <= float(val)
+            elif op == "==": return pkt_val == val or str(pkt_val) == str(val)
+            elif op == "!=": return pkt_val != val and str(pkt_val) != str(val)
+        except (ValueError, TypeError):
+            return str(pkt_val) == str(val)
+        return False
 
     def inject_input(self, queue_name: str, item: Any) -> bool:
         """Injects data packet into a target queue."""
@@ -70,9 +112,10 @@ class TopologicalVM:
         for _ in range(cycles):
             self.metrics["cycles"] += 1
 
-            # Dispatch pipelines
+            # Dispatch instructions
             for instr in self.bytecode:
-                if instr.get("op") == "OP_QUEUE_DISPATCH":
+                op = instr.get("op")
+                if op == "OP_QUEUE_DISPATCH":
                     src = instr["from_queue"]
                     dst = instr["to_queue"]
                     action = instr.get("action", "PASS")
@@ -81,7 +124,6 @@ class TopologicalVM:
                         src_q = self.channels[src]
                         dst_q = self.channels[dst]
 
-                        # Process up to 8 packets per pipeline step
                         for _ in range(8):
                             if src_q.empty():
                                 break
@@ -116,6 +158,89 @@ class TopologicalVM:
                                     packets_this_step += 1
                                 except (queue.Empty, queue.Full):
                                     break
+
+                elif op == "OP_BRANCH_IF":
+                    ladder_name = instr.get("ladder_name")
+                    src = instr.get("source_queue")
+                    ladder_branches = [
+                        b for b in self.bytecode
+                        if b.get("ladder_name") == ladder_name and b.get("op") in ("OP_BRANCH_IF", "OP_BRANCH_ELIF", "OP_BRANCH_ELSE")
+                    ]
+
+                    if src in self.channels:
+                        src_q = self.channels[src]
+                        for _ in range(8):
+                            if src_q.empty():
+                                break
+                            try:
+                                pkt = src_q.get_nowait()
+                            except Exception:
+                                break
+                            if pkt is None:
+                                break
+
+                            routed = False
+                            for branch in ladder_branches:
+                                b_op = branch.get("op")
+                                b_cond = branch.get("condition")
+                                b_dst = branch.get("target_queue")
+
+                                if b_op == "OP_BRANCH_ELSE" or (b_cond and self._eval_condition(pkt, b_cond)):
+                                    if b_dst in self.channels:
+                                        out_pkt = dict(pkt) if isinstance(pkt, dict) else {"payload": pkt}
+                                        out_pkt["branch_taken"] = b_op
+                                        out_pkt["ladder"] = ladder_name
+                                        self.channels[b_dst].put_nowait(out_pkt)
+                                        packets_this_step += 1
+                                        routed = True
+                                        break
+
+                            if not routed:
+                                src_q.put_nowait(pkt)
+                                break
+
+                elif op in ("OP_BRANCH_ELIF", "OP_BRANCH_ELSE"):
+                    pass
+
+                elif op == "OP_WHAT_IF_SPECULATE":
+                    src = instr.get("source_queue")
+                    fb = instr.get("fallback_queue")
+                    scenarios = instr.get("scenarios", [])
+
+                    if src in self.channels:
+                        src_q = self.channels[src]
+                        for _ in range(8):
+                            if src_q.empty():
+                                break
+                            try:
+                                pkt = src_q.get_nowait()
+                            except Exception:
+                                break
+                            if pkt is None:
+                                break
+
+                            # Speculative simulation across all candidate scenarios
+                            best_sc = None
+                            best_score = -float('inf')
+
+                            for sc in scenarios:
+                                exp_u = float(sc.get("expected_utility", 0.8))
+                                cost = float(sc.get("cost_penalty", 0.1))
+                                net_score = exp_u - cost
+                                if net_score > best_score:
+                                    best_score = net_score
+                                    best_sc = sc
+
+                            target_q_name = best_sc["target_queue"] if (best_sc and best_sc["target_queue"] in self.channels) else fb
+                            if target_q_name and target_q_name in self.channels:
+                                dst_q = self.channels[target_q_name]
+                                out_pkt = dict(pkt) if isinstance(pkt, dict) else {"payload": pkt}
+                                out_pkt["what_if_winner"] = best_sc["name"] if best_sc else "Fallback"
+                                out_pkt["utility_score"] = round(best_score, 3)
+                                out_pkt["hypothesis"] = best_sc["hypothesis"] if best_sc else "None"
+                                dst_q.put_nowait(out_pkt)
+                                packets_this_step += 1
+                                self.metrics["what_if_resolutions"] = self.metrics.get("what_if_resolutions", 0) + 1
 
         # Update telemetry
         dt = max(1e-5, time.perf_counter() - t0)

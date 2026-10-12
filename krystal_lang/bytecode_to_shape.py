@@ -48,6 +48,39 @@ class BytecodeShapeTranspiler:
                     "from": instr["from_queue"],
                     "to": instr["to_queue"]
                 })
+            elif op in ("OP_BRANCH_IF", "OP_BRANCH_ELIF", "OP_BRANCH_ELSE"):
+                self.pipelines.append({
+                    "from": instr.get("source_queue"),
+                    "to": instr.get("target_queue")
+                })
+            elif op == "OP_WHAT_IF_SPECULATE":
+                src = instr.get("source_queue")
+                for sc in instr.get("scenarios", []):
+                    self.pipelines.append({
+                        "from": src,
+                        "to": sc.get("target_queue")
+                    })
+                fb = instr.get("fallback_queue")
+                if fb:
+                    self.pipelines.append({
+                        "from": src,
+                        "to": fb
+                    })
+
+        # Ensure all referenced pipeline queues have spatial metric coordinates
+        allocated_names = {q["name"] for q in self.queues}
+        idx = 0
+        for pipe in self.pipelines:
+            for qn in (pipe.get("from"), pipe.get("to")):
+                if qn and qn not in allocated_names:
+                    angle = (idx / 4.0) * 2.0 * math.pi
+                    self.queues.append({
+                        "name": qn,
+                        "pos": (round(3.0 * math.cos(angle), 2), 0.5, round(3.0 * math.sin(angle), 2)),
+                        "radius": 0.45
+                    })
+                    allocated_names.add(qn)
+                    idx += 1
 
     def evaluate_program_sdf(self, p: Vec3, t: float = 0.0) -> float:
         """

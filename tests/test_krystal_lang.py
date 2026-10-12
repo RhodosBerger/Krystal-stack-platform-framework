@@ -149,6 +149,145 @@ class TestKrystalLang(unittest.TestCase):
         self.assertGreater(m["packets_processed"], 50)
         self.assertGreater(m["average_throughput_pps"], 1000.0)
 
+    def test_07_conditional_branching_if_elif_else(self):
+        """Tests compiling and executing if / elif / else conditional ladders."""
+        code = """
+        module ThermalGovernorModule
+        queue InboundTelemetry { priority: 3, capacity: 64 }
+        queue CriticalThrottleQueue { priority: 3, capacity: 64 }
+        queue WarningQueue { priority: 2, capacity: 64 }
+        queue NominalQueue { priority: 1, capacity: 64 }
+
+        if ThermalLadder on InboundTelemetry {
+            when: temp_cpu > 90.0
+            to: CriticalThrottleQueue
+            action: THROTTLE
+        }
+        elif {
+            when: temp_cpu > 75.0
+            to: WarningQueue
+            action: WARN
+        }
+        else {
+            to: NominalQueue
+            action: PASS
+        }
+        """
+        res = self.compiler.compile(code)
+        self.assertEqual(res["module_name"], "ThermalGovernorModule")
+        ast = res["program_ast"]
+        self.assertEqual(len(ast.conditionals), 1)
+        ladder = ast.conditionals[0]
+        self.assertEqual(ladder.name, "ThermalLadder")
+        self.assertEqual(ladder.source_queue, "InboundTelemetry")
+        self.assertEqual(ladder.if_branch.target_queue, "CriticalThrottleQueue")
+        self.assertEqual(len(ladder.elif_branches), 1)
+        self.assertEqual(ladder.elif_branches[0].target_queue, "WarningQueue")
+        self.assertIsNotNone(ladder.else_branch)
+        self.assertEqual(ladder.else_branch.target_queue, "NominalQueue")
+
+        # Verify bytecode opcodes
+        ops = [instr["op"] for instr in res["bytecode"]]
+        self.assertIn("OP_BRANCH_IF", ops)
+        self.assertIn("OP_BRANCH_ELIF", ops)
+        self.assertIn("OP_BRANCH_ELSE", ops)
+
+        # Run in TopologicalVM
+        vm = TopologicalVM(res)
+        # 1. Packet exceeding 90°C -> CriticalThrottleQueue
+        vm.inject_input("InboundTelemetry", {"id": 1, "temp_cpu": 95.5})
+        # 2. Packet between 75°C and 90°C -> WarningQueue
+        vm.inject_input("InboundTelemetry", {"id": 2, "temp_cpu": 82.0})
+        # 3. Packet below 75°C -> NominalQueue
+        vm.inject_input("InboundTelemetry", {"id": 3, "temp_cpu": 60.0})
+
+        m = vm.step_execution(cycles=5)
+        self.assertGreaterEqual(m["packets_processed"], 3)
+        self.assertEqual(vm.metrics["queue_depths"]["CriticalThrottleQueue"], 1)
+        self.assertEqual(vm.metrics["queue_depths"]["WarningQueue"], 1)
+        self.assertEqual(vm.metrics["queue_depths"]["NominalQueue"], 1)
+
+    def test_08_what_if_speculative_counterfactual_execution(self):
+        """Tests compiling and executing what_if counterfactual speculative blocks."""
+        code = """
+        module SpeculativeGovernorModule
+        queue CandidateStream { priority: 3, capacity: 64 }
+        queue TurboQueue { priority: 3, capacity: 64 }
+        queue EcoQueue { priority: 2, capacity: 64 }
+        queue SafeFallbackQueue { priority: 1, capacity: 64 }
+
+        what_if PolicyEvaluation on CandidateStream {
+            scenario OverclockHigh {
+                hypothesis: "MAX_FPS"
+                to: TurboQueue
+                action: BOOST
+                cost: 0.15
+                utility: 0.95
+            }
+            scenario EcoLowPower {
+                hypothesis: "LOW_HEAT"
+                to: EcoQueue
+                action: THROTTLE
+                cost: 0.05
+                utility: 0.70
+            }
+            fallback: SafeFallbackQueue
+            criterion: MAX_UTILITY
+        }
+        """
+        res = self.compiler.compile(code)
+        ast = res["program_ast"]
+        self.assertEqual(len(ast.what_ifs), 1)
+        wib = ast.what_ifs[0]
+        self.assertEqual(wib.name, "PolicyEvaluation")
+        self.assertEqual(wib.source_queue, "CandidateStream")
+        self.assertEqual(len(wib.scenarios), 2)
+        self.assertEqual(wib.commit_criterion, "MAX_UTILITY")
+
+        # Verify bytecode
+        ops = [instr["op"] for instr in res["bytecode"]]
+        self.assertIn("OP_WHAT_IF_SPECULATE", ops)
+
+        # Run in TopologicalVM
+        vm = TopologicalVM(res)
+        vm.inject_input("CandidateStream", {"tick": 42, "workload": "raymarching"})
+        m = vm.step_execution(cycles=1)
+
+        self.assertGreater(m["packets_processed"], 0)
+        self.assertEqual(m["what_if_resolutions"], 1)
+        # Winner must be OverclockHigh (utility 0.95 - 0.15 = 0.80 vs 0.65)
+        self.assertEqual(vm.metrics["queue_depths"]["TurboQueue"], 1)
+        winner_pkt = vm.channels["TurboQueue"].get_nowait()
+        self.assertEqual(winner_pkt["what_if_winner"], "OverclockHigh")
+        self.assertAlmostEqual(winner_pkt["utility_score"], 0.80, places=2)
+
+    def test_09_branching_and_what_if_shape_rendering(self):
+        """Tests 3D SDF and ASCII manifold rendering of branching and what-if programs."""
+        code = """
+        module ManifoldBifurcation
+        queue InboundStream { priority: 3, capacity: 64 }
+        queue BranchA { priority: 2, capacity: 64 }
+        queue BranchB { priority: 2, capacity: 64 }
+
+        if Bifurcation on InboundStream {
+            when: energy > 50.0
+            to: BranchA
+            action: PASS
+        }
+        else {
+            to: BranchB
+            action: PASS
+        }
+        """
+        res = self.compiler.compile(code)
+        transpiler = BytecodeShapeTranspiler(res)
+        d_val = transpiler.evaluate_program_sdf((0.0, 0.0, 0.0), t=1.0)
+        self.assertIsInstance(d_val, float)
+
+        ascii_art = transpiler.render_shape_ascii(width=40, height=10, t=1.0)
+        self.assertEqual(len(ascii_art.splitlines()), 10)
+
 
 if __name__ == "__main__":
     unittest.main()
+

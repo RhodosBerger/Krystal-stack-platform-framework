@@ -54,9 +54,51 @@ class QuantumLoop(ASTNode):
     body: List[ASTNode] = field(default_factory=list)
 
 @dataclass
+class ConditionExpr(ASTNode):
+    field: str
+    op: str  # '>', '<', '>=', '<=', '==', '!='
+    value: Union[float, int, str, bool]
+
+@dataclass
+class ConditionalBranch(ASTNode):
+    condition: Optional[ConditionExpr] = None  # None indicates 'else'
+    target_queue: str = ""
+    action: str = "PASS"
+    pipeline: Optional[StreamPipeline] = None
+    hyperplane_normal: Tuple[float, float, float] = (1.0, 0.0, 0.0)
+    hyperplane_offset: float = 0.0
+
+@dataclass
+class ConditionalLadder(ASTNode):
+    name: str
+    source_queue: str
+    if_branch: ConditionalBranch
+    elif_branches: List[ConditionalBranch] = field(default_factory=list)
+    else_branch: Optional[ConditionalBranch] = None
+
+@dataclass
+class WhatIfScenarioNode(ASTNode):
+    name: str
+    hypothesis: str
+    target_queue: str
+    action: str = "SPECULATE"
+    cost_penalty: float = 0.1
+    expected_utility: float = 0.8
+
+@dataclass
+class WhatIfBlockNode(ASTNode):
+    name: str
+    source_queue: str
+    scenarios: List[WhatIfScenarioNode] = field(default_factory=list)
+    fallback_queue: str = "FallbackSink"
+    commit_criterion: str = "MAX_UTILITY"  # 'MAX_UTILITY', 'MIN_LATENCY', 'ZERO_HAZARD'
+
+@dataclass
 class ProgramNode(ASTNode):
     name: str
     queues: List[QueueDefinition] = field(default_factory=list)
     shapes: List[GeometricShapeDecl] = field(default_factory=list)
     pipelines: List[StreamPipeline] = field(default_factory=list)
     loops: List[QuantumLoop] = field(default_factory=list)
+    conditionals: List[ConditionalLadder] = field(default_factory=list)
+    what_ifs: List[WhatIfBlockNode] = field(default_factory=list)
