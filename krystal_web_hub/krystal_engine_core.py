@@ -147,6 +147,9 @@ from krystal_kernel.voltage_scaling_tensor_governor import (
     GLOBAL_VOLTAGE_TENSOR_GOVERNOR,
     VoltageScalingStrategy
 )
+from krystal_kernel.elemental_hypervisor_telemetry_matrix import (
+    GLOBAL_ELEMENTAL_HYPERVISOR_MATRIX
+)
 from krystal_kernel.openai_llm_connector import (
     GLOBAL_OPENAI_CONNECTOR,
     OpenAILLMConnector,
@@ -1738,6 +1741,11 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         # ── SERVER VOLTAGE SCALING & TENSOR WEIGHTS GOVERNOR ENDPOINTS ─────
         if path == '/api/voltage-governor/status':
             self._send_json(GLOBAL_VOLTAGE_TENSOR_GOVERNOR.get_full_governor_status())
+            return
+
+        # ── ELEMENTAL STRUCTURE & MATRIX HYPERVISOR STATISTICAL MAP ────────
+        if path == '/api/elemental/hypervisor-map':
+            self._send_json(GLOBAL_ELEMENTAL_HYPERVISOR_MATRIX.export_full_manifest())
             return
 
         # ── UNIVERSAL OPENAI LLM CONNECTOR ENDPOINTS (GET) ──────────────────
