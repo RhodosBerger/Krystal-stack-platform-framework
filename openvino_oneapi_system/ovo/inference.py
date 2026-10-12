@@ -24,7 +24,10 @@ class OpenVinoInferenceEngine:
         self.backend = "simulated"
         self._openvino_available = False
         try:
-            from openvino.runtime import Core  # type: ignore
+            try:
+                from openvino import Core  # type: ignore
+            except ImportError:
+                from openvino.runtime import Core  # type: ignore
 
             self._openvino_core = Core()
             self._openvino_available = True

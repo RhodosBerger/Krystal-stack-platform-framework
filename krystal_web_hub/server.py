@@ -370,7 +370,8 @@ def engine_worker_loop():
                     row_offset = y * cols
                     line_chars = []
                     for x in range(cols):
-                        g_idx = glyphs[row_offset + x]
+                        idx = row_offset + x
+                        g_idx = glyphs[idx] if idx < len(glyphs) else 0
                         if mode == "CYBERPUNK":
                             ch = BLOCK_CHARS[min(4, max(0, g_idx))]
                         elif mode == "BLUEPRINT_EDGE":

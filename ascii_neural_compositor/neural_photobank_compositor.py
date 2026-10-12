@@ -10,7 +10,10 @@ except ImportError:
     HAS_CV2 = False
 
 try:
-    from openvino.runtime import Core
+    try:
+        from openvino import Core
+    except ImportError:
+        from openvino.runtime import Core
     HAS_OPENVINO = True
 except ImportError:
     HAS_OPENVINO = False

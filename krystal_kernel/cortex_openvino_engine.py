@@ -187,7 +187,10 @@ class OpenVINOProcessGovernor:
         
         # Check if native OpenVINO package is present
         try:
-            import openvino.runtime as ov
+            try:
+                import openvino as ov
+            except ImportError:
+                import openvino.runtime as ov
             self.ov_core = ov.Core()
             self.openvino_available = True
             self.backend_name = f"OpenVINO-Runtime-{ov.__version__}"

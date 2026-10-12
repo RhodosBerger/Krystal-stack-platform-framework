@@ -13,7 +13,10 @@ from ..repositories.telemetry_repository import TelemetryRepository
 import os
 
 try:
-    from openvino.runtime import Core
+    try:
+        from openvino import Core
+    except ImportError:
+        from openvino.runtime import Core
     OPENVINO_AVAILABLE = True
 except ImportError:
     OPENVINO_AVAILABLE = False

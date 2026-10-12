@@ -1,21 +1,21 @@
 === LINUX PERFORMANCE REPORT (ASCII) ===
 
-Baseline  mean latency: 1.5448 ms
-Adaptive  mean latency: 0.5343 ms
-Latency improvement:    65.41%
+Baseline  mean latency: 19.3260 ms
+Adaptive  mean latency: 5.0568 ms
+Latency improvement:    73.83%
 
-Baseline  throughput:   653.95
-Adaptive  throughput:   2157.62
-Throughput improvement: 229.93%
+Baseline  throughput:   125.70
+Adaptive  throughput:   281.52
+Throughput improvement: 123.96%
 
-Baseline  utility:      1.0164
-Adaptive  utility:      3.7357
-Utility improvement:    267.55%
+Baseline  utility:      -1.4087
+Adaptive  utility:      -0.1075
+Utility improvement:    92.37%
 
-Sysbench baseline events/s: 2587.97
-Sysbench adaptive events/s: 5203.66
-Sysbench improvement:       101.07%
+Sysbench baseline events/s: 1443.71
+Sysbench adaptive events/s: 2663.54
+Sysbench improvement:       84.49%
 
 Action samples:
 Baseline first 10 actions: [(2, 1), (2, 1), (2, 1), (2, 1), (2, 1), (2, 1), (2, 1), (2, 1), (2, 1), (2, 1)]
-Adaptive first 10 actions: [(2, 1), (4, 1), (4, 2), (8, 2), (8, 3), (12, 3), (16, 4), (24, 6), (24, 6), (24, 6)]
+Adaptive first 10 actions: [(2, 1), (4, 1), (4, 2), (8, 2), (8, 3), (12, 3), (16, 4), (24, 6), (24, 6), (8, 2)]

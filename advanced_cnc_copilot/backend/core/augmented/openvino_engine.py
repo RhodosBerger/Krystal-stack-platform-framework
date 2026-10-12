@@ -9,11 +9,12 @@ import time
 from enum import Enum
 from typing import Any, Dict, Optional, List
 
-# Simulating OpenVINO imports for environment where it might not be fully configured
 try:
-    # from openvino.runtime import Core
-    # OPEN_VINO_AVAILABLE = True
-    OPEN_VINO_AVAILABLE = False # Mocking for this environment as per typical constraints
+    try:
+        from openvino import Core
+    except ImportError:
+        from openvino.runtime import Core
+    OPEN_VINO_AVAILABLE = True
 except ImportError:
     OPEN_VINO_AVAILABLE = False
 
@@ -49,7 +50,10 @@ class OpenVINOEngine:
         
         if OPEN_VINO_AVAILABLE:
             try:
-                from openvino.runtime import Core
+                try:
+                    from openvino import Core
+                except ImportError:
+                    from openvino.runtime import Core
                 self.core = Core()
                 available_devices = self.core.available_devices
                 logger.info(f"OpenVINO Initialized. Available Devices: {available_devices}")

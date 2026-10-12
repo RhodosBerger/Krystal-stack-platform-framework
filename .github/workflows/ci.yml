@@ -54,19 +54,30 @@ jobs:
   test-python:
     runs-on: ubuntu-22.04
     needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+        experimental: [false]
+        include:
+          - python-version: "3.14"
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-${{ hashFiles('requirements.txt') }}
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            pip-${{ matrix.python-version }}-
 
       - name: Install dependencies
         run: |
