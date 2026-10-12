@@ -1,0 +1,15 @@
+[package]
+name = "epistemic-runtime"
+version = "0.1.0"
+edition = "2021"
+description = "Krystal Stack - Typed Epistemic Authority Runtime (PROT Sprint A)"
+license = "MIT"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[lib]
+name = "epistemic_runtime"
+path = "src/lib.rs"
+crate-type = ["lib", "cdylib"]

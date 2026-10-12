@@ -95,6 +95,10 @@ jobs:
           python -m src.python.krystal_sdk health --json
           python -m src.python.krystal_sdk bench --json
 
+      - name: Procedural Land Throughput & Determinism Benchmark Gate
+        run: |
+          python scripts/benchmark_procedural_land.py --ci
+
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:

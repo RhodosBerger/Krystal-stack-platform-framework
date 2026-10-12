@@ -1,0 +1,123 @@
+{
+  "verdict": "COMMIT_APPROVED",
+  "safety_proof": {
+    "verdict": "PASS",
+    "memory_safety_check": {
+      "tenant_id_length": 10,
+      "max_tenant_id_length": 128,
+      "pointer_bounds_valid": true,
+      "zero_copy_descriptor_valid": true
+    },
+    "resource_safety_check": {
+      "current_mem_rss_bytes": 1073741824,
+      "requested_mem_bytes": 536870912,
+      "required_headroom_bytes": 1073741824
+    },
+    "physical_safety_check": {
+      "current_thermal_celsius": 52.4,
+      "thermal_limit_celsius": 79.84,
+      "current_power_watts": 18.2,
+      "power_ceiling_watts": 28.0
+    },
+    "system_invariants_check": {
+      "vital_hp": 6,
+      "vital_max_hp_rule": 6,
+      "state_version_continuous": true
+    },
+    "policy_version": {
+      "policy_id": "POL-SAFETY-DEFAULT",
+      "version": "v1.0.0-sprintA",
+      "provenance": "KrystalStack:SafetyWorkingGroup",
+      "validity_domain": "virtual_compute_node",
+      "calibration_source": "[CALIBRATION_HYPOTHESIS]:HostBaselineProfile",
+      "created_at_ns": 1700000000000000000
+    },
+    "evaluated_at_ns": 1200000000,
+    "violations": []
+  },
+  "evidence_proof": {
+    "verdict": "SUFFICIENT",
+    "freshness_eval": {
+      "fresh_values_count": 3,
+      "stale_envelopes_count": 0,
+      "expired_values_count": 0,
+      "max_acceptable_age_ns": 1500000000,
+      "is_fresh": true
+    },
+    "provenance_eval": {
+      "provenances": [
+        "KvmQemuAdapter:cgroups_v2+qmp"
+      ],
+      "trusted_registry_match": true
+    },
+    "cross_sensor_consistency": {
+      "domains_analyzed": [
+        "cpu.usage",
+        "memory.rss",
+        "hardware.thermal"
+      ],
+      "contradictions_found": 0,
+      "is_consistent": true
+    },
+    "sample_count_eval": {
+      "observed_samples": 1,
+      "required_samples": 1,
+      "is_sufficient": true
+    },
+    "calibration_error_eval": {
+      "max_observed_calibration_error": 0.02,
+      "max_allowable_calibration_error": 0.12,
+      "is_calibrated": true
+    },
+    "domain_eval": {
+      "action_domains": [
+        "cpu",
+        "memory"
+      ],
+      "compatible": true
+    },
+    "state_version_eval": {
+      "candidate_source_version": {
+        "major": 1,
+        "minor": 0,
+        "sequence": 10,
+        "wall_timestamp_utc": 1700000000.0,
+        "clock_domain_id": "host_clock_0",
+        "causal_parent": null
+      },
+      "compatible": true
+    },
+    "clock_validity_eval": {
+      "observed_clock_domains": [
+        "host_clock_0"
+      ],
+      "clock_synchrony_valid": true
+    },
+    "evaluated_at_ns": 1200000000,
+    "contradictions": [],
+    "gaps": []
+  },
+  "policy_version": {
+    "policy_id": "POL-SAFETY-DEFAULT",
+    "version": "v1.0.0-sprintA",
+    "provenance": "KrystalStack:SafetyWorkingGroup",
+    "validity_domain": "virtual_compute_node",
+    "calibration_source": "[CALIBRATION_HYPOTHESIS]:HostBaselineProfile",
+    "created_at_ns": 1700000000000000000
+  },
+  "state_version": {
+    "major": 1,
+    "minor": 0,
+    "sequence": 10,
+    "wall_timestamp_utc": 1700000000.0,
+    "clock_domain_id": "host_clock_0",
+    "causal_parent": null
+  },
+  "evaluated_at_ns": 1200000000,
+  "evidence_refs": [
+    "ENV-FIXTURE-001"
+  ],
+  "action_id": "ACT-FIXTURE-101",
+  "lifecycle_action": "WOULD_COMMIT",
+  "audit_hash": "a1b2c3d4e5f6789012345678"
+}

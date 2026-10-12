@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krystal-Stack // Server Voltage Scaling & Tensor Weights Governor Studio</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal_ui_system.css">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 50% 10%, #0c1427 0%, #050811 100%);
+      color: #e2e8f0;
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .studio-container {
+      max-width: 1720px;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Top HUD Navigation */
+    .studio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(12, 20, 39, 0.8);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(216, 174, 75, 0.35);
+      border-radius: 12px;
+      padding: 16px 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 21px;
+      font-weight: 900;
+      color: #d8ae4b;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-strip {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .hud-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-hp {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+    }
+
+    .badge-volt {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid #f59e0b;
+      color: #fde68a;
+    }
+
+    .badge-strategy {
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid #00f0ff;
+      color: #a5f3fc;
+    }
+
+    .badge-floor {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      color: #6ee7b7;
+    }
+
+    /* 3-Column Studio Grid */
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 460px 1fr 440px;
+      gap: 20px;
+    }
+
+    .studio-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+
+    .card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 1px;
+      color: #00f0ff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Strategy Cards */
+    .strategy-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .strategy-card {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .strategy-card:hover {
+      border-color: rgba(0, 240, 255, 0.4);
+      background: rgba(0, 240, 255, 0.05);
+    }
+
+    .strategy-card.active {
+      border: 1px solid #00f0ff;
+      background: rgba(0, 240, 255, 0.1);
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.25);
+    }
+
+    .strategy-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .strategy-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      color: #d8ae4b;
+      letter-spacing: 0.5px;
+    }
+
+    .strategy-uv {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .strategy-desc {
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    .strategy-metrics-line {
+      display: flex;
+      gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      color: #cbd5e1;
+    }
+
+    /* Weight Tensor Visualizer */
+    .weight-tensor-box {
+      background: linear-gradient(135deg, rgba(216, 174, 75, 0.08) 0%, rgba(0, 240, 255, 0.08) 100%);
+      border: 1px solid rgba(216, 174, 75, 0.25);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .weights-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .weight-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .weight-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    .weight-bar-bg {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .weight-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    /* Live Telemetry Meters */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .meter-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meter-label {
+      font-size: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    .meter-val {
+      font-size: 16px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .score-badge-large {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(0, 240, 255, 0.15) 100%);
+      border: 1px solid #10b981;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .score-large-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 40px;
+      font-weight: 800;
+      color: #10b981;
+      text-shadow: 0 0 18px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Buttons */
+    .btn-action {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
+    }
+
+    .btn-action:hover {
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #d8ae4b 0%, #b88e28 100%);
+      color: #0a0e17;
+    }
+
+    .btn-gold:hover {
+      background: linear-gradient(135deg, #ecc566 0%, #d8ae4b 100%);
+    }
+
+    .btn-emerald {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .btn-emerald:hover {
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    }
+
+    /* Pareto Table */
+    .pareto-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+    }
+
+    .pareto-table th {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+    }
+
+    .pareto-table td {
+      padding: 6px 8px;
+      border-bottom: 1px dotted rgba(255, 255, 255, 0.05);
+    }
+
+    .pareto-table tr:hover {
+      background: rgba(0, 240, 255, 0.05);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="studio-container">
+    
+    <!-- Top HUD Navigation -->
+    <header class="studio-header">
+      <div class="brand-title">
+        <span>⚡ SERVER VOLTAGE SCALING STRATEGIES & TENSOR WEIGHTS GOVERNOR</span>
+      </div>
+      <div class="badge-strip">
+        <span class="hud-badge badge-hp">VITAL_MAX_HP = 6</span>
+        <span class="hud-badge badge-volt">SAFE_VOLT &le; 1.05V</span>
+        <span class="hud-badge badge-floor">UV_FLOOR = -115 mV</span>
+        <span class="hud-badge badge-strategy" id="activeStrategyBadge">BALANCED_ADAPTIVE_DVFS</span>
+      </div>
+    </header>
+
+    <!-- 3-Column Studio Grid -->
+    <div class="studio-grid">
+      
+      <!-- ── COLUMN 1: VOLTAGE SCALING STRATEGIES ─────────────────────────── -->
+      <section class="studio-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>⚡ 1. VOLTAGE SCALING STRATEGIES</span>
+          </div>
+        </div>
+
+        <div style="font-size: 11px; color: #94a3b8;">
+          Vyberte stratégiu riadenia napätia. Každá stratégia dynamicky rekalibruje offset napätia, profil chladenia a výkonnostný rozpočet PL1:
+        </div>
+
+        <div class="strategy-list" id="strategyList">
+          <!-- Populated by JS -->
+        </div>
+
+        <div style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 10px; font-size: 11px; color: #fde68a;">
+          <strong>CMOS Scaling Zákon:</strong><br>
+          Dynamická spotreba klesá s druhou mocninou napätia: $P_{dyn} = C_{eff} \cdot f \cdot V^2$. Zníženie napätia o 15% znižuje spotrebu jadier až o 28%.
+        </div>
+      </section>
+
+      <!-- ── COLUMN 2: TENSOR EVALUATION WEIGHTS (W) ──────────────────────── -->
+      <section class="studio-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>⚖️ 2. TENSOR EVALUATION WEIGHTS W</span>
+          </div>
+          <button class="btn-action btn-gold" style="padding: 6px 12px; font-size: 11px;" onclick="runParetoSearch()">
+            🎯 Pareto Search
+          </button>
+        </div>
+
+        <div class="weight-tensor-box">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; font-weight: 700; color: #d8ae4b;">6-DIMENZIONÁLNY TENZOR VÁH W:</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #10b981;" id="weightsSumBadge">&Sigma; = 1.0000</span>
+          </div>
+
+          <div class="weights-grid" id="weightsGrid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div style="font-size: 12px; font-weight: 700; color: #cbd5e1;">ALGORITMICKÉ PRELADENIE VÁH PODĽA ZÁŤAŽE:</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+          <button class="btn-action" style="font-size: 11px; padding: 8px 6px;" onclick="adaptWeights('idle')">
+            💤 Idle Workload
+          </button>
+          <button class="btn-action btn-emerald" style="font-size: 11px; padding: 8px 6px;" onclick="adaptWeights('nominal')">
+            ⚖️ Balanced Workload
+          </button>
+          <button class="btn-action btn-gold" style="font-size: 11px; padding: 8px 6px;" onclick="adaptWeights('burst')">
+            ⚡ Burst Peak SLA
+          </button>
+        </div>
+
+        <div style="font-size: 12px; font-weight: 700; color: #cbd5e1; margin-top: 6px;">PARETO FRONTIER GRID VÝSLEDKY:</div>
+        <div style="max-height: 220px; overflow-y: auto; background: rgba(0,0,0,0.4); border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+          <table class="pareto-table" id="paretoTable">
+            <thead>
+              <tr>
+                <th>Freq</th>
+                <th>UV</th>
+                <th>Volt</th>
+                <th>Power</th>
+                <th>Temp</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="paretoTbody">
+              <tr><td colspan="6" style="text-align: center; color: #64748b;">Kliknite na Pareto Search pre výpočet optima</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── COLUMN 3: LIVE SERVER OPERATING TELEMETRY ────────────────────── -->
+      <section class="studio-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📊 3. LIVE SERVER OPERATING TELEMETRY</span>
+          </div>
+        </div>
+
+        <div class="score-badge-large">
+          <div class="score-large-num" id="efficiencyScoreVal">--</div>
+          <div style="font-size: 11px; text-transform: uppercase; color: #6ee7b7; letter-spacing: 1px;">
+            Celkové Skóre Efektivity Servera S &isin; [0, 1]
+          </div>
+        </div>
+
+        <div class="telemetry-grid">
+          <div class="meter-box">
+            <div class="meter-label">Efektívne Napätie V_eff</div>
+            <div class="meter-val" style="color: #38bdf8;" id="effVoltVal">-- V</div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-label">Stock Napätie V_stock</div>
+            <div class="meter-val" style="color: #94a3b8;" id="stockVoltVal">-- V</div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-label">Undervolt Offset</div>
+            <div class="meter-val" style="color: #d8ae4b;" id="undervoltVal">-- mV</div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-label">Frekvencia Jadier</div>
+            <div class="meter-val" style="color: #f8fafc;" id="freqVal">-- MHz</div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-label">Celková Spotreba P_tot</div>
+            <div class="meter-val" style="color: #f59e0b;" id="powerTotVal">-- W</div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-label">Junction Teplota T_j</div>
+            <div class="meter-val" style="color: #ef4444;" id="tempVal">-- °C</div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-label">Serverová Priepustnosť</div>
+            <div class="meter-val" style="color: #10b981;" id="throughputVal">-- ops/s</div>
+          </div>
+          <div class="meter-box">
+            <div class="meter-label">Odozva Latencie SLA</div>
+            <div class="meter-val" style="color: #a5f3fc;" id="latencyVal">-- ms</div>
+          </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.35); padding: 10px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+          <div style="color: #64748b; font-size: 10px;">JOULES PER OP (ENERGETICKÁ CENA):</div>
+          <div style="font-size: 14px; font-weight: 700; color: #10b981;" id="joulesPerOpVal">-- nJ/op</div>
+          <div style="color: #64748b; font-size: 10px; margin-top: 4px;">STAV STABILITY KREMÍKA:</div>
+          <div style="font-weight: 700; color: #38bdf8;" id="stabilityVal">STABLE_NOMINAL</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    let governorState = null;
+
+    const WEIGHT_COLORS = {
+      w_energy: '#10b981',
+      w_latency: '#38bdf8',
+      w_thermal: '#ef4444',
+      w_stability: '#d8ae4b',
+      w_throughput: '#a855f7',
+      w_lifespan: '#00f0ff'
+    };
+
+    const WEIGHT_LABELS = {
+      w_energy: 'w_energy (Spotreba a Joules/Op)',
+      w_latency: 'w_latency (Odozva a SLA Termíny)',
+      w_thermal: 'w_thermal (Junction Teplota)',
+      w_stability: 'w_stability (Bezpečnostný Margin Napätia)',
+      w_throughput: 'w_throughput (Priepustnosť Operácií)',
+      w_lifespan: 'w_lifespan (Ochrana Životnosti Hradiel)'
+    };
+
+    async function fetchGovernorStatus() {
+      try {
+        const resp = await fetch('/api/voltage-governor/status');
+        if (!resp.ok) return;
+        governorState = await resp.json();
+        renderStudio();
+      } catch (err) {
+        console.warn("Fetch governor status error:", err);
+      }
+    }
+
+    function renderStudio() {
+      if (!governorState) return;
+
+      const curr = governorState.current_metrics || {};
+      const w = governorState.tensor_weights || {};
+      const activeStrat = governorState.active_strategy;
+
+      // 1. HUD badge
+      document.getElementById('activeStrategyBadge').textContent = activeStrat;
+
+      // 2. Strategies
+      const listEl = document.getElementById('strategyList');
+      listEl.innerHTML = '';
+      (governorState.available_strategies || []).forEach(strat => {
+        const card = document.createElement('div');
+        card.className = `strategy-card ${strat.strategy === activeStrat ? 'active' : ''}`;
+        card.onclick = () => selectStrategy(strat.strategy);
+        card.innerHTML = `
+          <div class="strategy-head">
+            <span class="strategy-title">${strat.strategy}</span>
+            <span class="strategy-uv">${strat.target_undervolt_mv} mV</span>
+          </div>
+          <div class="strategy-desc">${strat.description}</div>
+          <div class="strategy-metrics-line">
+            <span>Freq: ${strat.base_freq_mhz}–${strat.max_freq_mhz} MHz</span>
+            <span>PL1: ${strat.pl1_power_budget_w} W</span>
+            <span>Fan: ${strat.cooling_fan_profile}</span>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+
+      // 3. Tensor Weights
+      const wGrid = document.getElementById('weightsGrid');
+      wGrid.innerHTML = '';
+      Object.keys(WEIGHT_LABELS).forEach(k => {
+        const val = w[k] || 0.0;
+        const pct = (val * 100).toFixed(1);
+        const col = WEIGHT_COLORS[k] || '#00f0ff';
+        const row = document.createElement('div');
+        row.className = 'weight-item';
+        row.innerHTML = `
+          <div class="weight-head">
+            <span style="color: ${col};">${WEIGHT_LABELS[k]}</span>
+            <span style="font-family: 'JetBrains Mono', monospace;">${val.toFixed(4)} (${pct}%)</span>
+          </div>
+          <div class="weight-bar-bg">
+            <div class="weight-bar-fill" style="width: ${pct}%; background: ${col};"></div>
+          </div>
+        `;
+        wGrid.appendChild(row);
+      });
+
+      // 4. Telemetry
+      document.getElementById('efficiencyScoreVal').textContent = (curr.efficiency_score || 0).toFixed(4);
+      document.getElementById('effVoltVal').textContent = `${curr.voltage_effective_v} V`;
+      document.getElementById('stockVoltVal').textContent = `${curr.voltage_stock_v} V`;
+      document.getElementById('undervoltVal').textContent = `${curr.undervolt_offset_mv} mV`;
+      document.getElementById('freqVal').textContent = `${curr.freq_mhz} MHz`;
+      document.getElementById('powerTotVal').textContent = `${curr.power_total_w} W`;
+      document.getElementById('tempVal').textContent = `${curr.junction_temp_c} °C`;
+      document.getElementById('throughputVal').textContent = `${(curr.throughput_ops_sec || 0).toLocaleString()} ops/s`;
+      document.getElementById('latencyVal').textContent = `${curr.service_latency_ms} ms`;
+      document.getElementById('joulesPerOpVal').textContent = `${((curr.joules_per_op || 0) * 1e9).toFixed(2)} nJ/op`;
+      document.getElementById('stabilityVal').textContent = curr.stability_status || 'STABLE_NOMINAL';
+    }
+
+    async function selectStrategy(stratName) {
+      try {
+        const resp = await fetch('/api/voltage-governor/strategy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ strategy: stratName })
+        });
+        const res = await resp.json();
+        fetchGovernorStatus();
+      } catch (err) {
+        console.warn("Failed to set strategy:", err);
+      }
+    }
+
+    async function adaptWeights(mode) {
+      let q = 15;
+      let rps = 450.0;
+      if (mode === 'idle') {
+        q = 2;
+        rps = 40.0;
+      } else if (mode === 'burst') {
+        q = 80;
+        rps = 1800.0;
+      }
+      try {
+        const resp = await fetch('/api/voltage-governor/tune-weights', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ queue_depth: q, request_rate_rps: rps })
+        });
+        const res = await resp.json();
+        fetchGovernorStatus();
+      } catch (err) {
+        console.warn("Failed to adapt weights:", err);
+      }
+    }
+
+    async function runParetoSearch() {
+      try {
+        const resp = await fetch('/api/voltage-governor/pareto-search', { method: 'POST' });
+        const res = await resp.json();
+        const tbody = document.getElementById('paretoTbody');
+        tbody.innerHTML = '';
+        (res.grid_sample || []).forEach(p => {
+          const tr = document.createElement('tr');
+          const isBest = res.best_pareto_point && (p.freq_mhz === res.best_pareto_point.freq_mhz && p.undervolt_mv === res.best_pareto_point.undervolt_mv);
+          tr.style.background = isBest ? 'rgba(16, 185, 129, 0.2)' : '';
+          tr.innerHTML = `
+            <td style="color:${isBest ? '#10b981' : '#f8fafc'}; font-weight:${isBest ? '700' : '400'};">${p.freq_mhz} MHz</td>
+            <td>${p.undervolt_mv} mV</td>
+            <td>${p.voltage_v.toFixed(3)} V</td>
+            <td>${p.power_w.toFixed(1)} W</td>
+            <td>${p.temp_c.toFixed(1)} °C</td>
+            <td style="color:#00f0ff; font-weight:700;">${p.score.toFixed(4)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        fetchGovernorStatus();
+      } catch (err) {
+        console.warn("Pareto search error:", err);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchGovernorStatus();
+      setInterval(fetchGovernorStatus, 4000);
+    });
+  </script>
+</body>
+</html>

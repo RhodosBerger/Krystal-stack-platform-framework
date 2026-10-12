@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krystal-Stack // Divergent Sphere Predictor & RAM/VRM Unifier Studio</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal_ui_system.css">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 50% 10%, #0d1527 0%, #060913 100%);
+      color: #e2e8f0;
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .studio-container {
+      max-width: 1720px;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .studio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(13, 21, 39, 0.8);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(216, 174, 75, 0.35);
+      border-radius: 12px;
+      padding: 16px 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 21px;
+      font-weight: 900;
+      color: #d8ae4b;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-strip {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .hud-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-hp {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+    }
+
+    .badge-sphere {
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid #00f0ff;
+      color: #a5f3fc;
+    }
+
+    .badge-vrm {
+      background: rgba(255, 215, 0, 0.15);
+      border: 1px solid #ffd700;
+      color: #fde047;
+    }
+
+    .badge-ram {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      color: #6ee7b7;
+    }
+
+    /* Grid Layout */
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .studio-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+
+    .card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 1px;
+      color: #00f0ff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Canvas styling */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      background: #060913;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Metrics Grid */
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .metric-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffd700;
+    }
+
+    /* Form Controls */
+    .btn-action {
+      background: linear-gradient(135deg, #d8ae4b 0%, #b8860b 100%);
+      color: #000;
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 1px;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(216, 174, 75, 0.35);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(216, 174, 75, 0.55);
+    }
+
+    /* VRM Phase Indicators */
+    .vrm-phases-container {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .phase-chip {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      transition: all 0.3s ease;
+    }
+
+    .phase-chip.active {
+      border-color: #ffd700;
+      background: rgba(255, 215, 0, 0.15);
+      color: #ffd700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+
+    /* RAM Bar */
+    .ram-bar-container {
+      width: 100%;
+      height: 18px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .ram-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #00f0ff);
+      transition: width 0.3s ease;
+    }
+
+    /* Pre format */
+    pre.code-view {
+      margin: 0;
+      background: #020408;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #38bdf8;
+      max-height: 220px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="studio-container">
+
+    <!-- HUD Header -->
+    <header class="studio-header">
+      <div class="brand-title">
+        <span>🌐</span> DIVERGENT SPHERE &amp; RAM/VRM UNIFIER PIPELINE
+      </div>
+      <div class="badge-strip">
+        <span class="hud-badge badge-hp">VITAL RULE: 6 HP MAX</span>
+        <span class="hud-badge badge-sphere" id="hudRiskBadge">RISK: INITIALIZING</span>
+        <span class="hud-badge badge-vrm" id="hudVrmBadge">VRM: -- PHASES</span>
+        <span class="hud-badge badge-ram" id="hudRamBadge">UMA: -- GB/s</span>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <div class="studio-grid">
+
+      <!-- LEFT: Divergent Sphere Predictor -->
+      <div class="studio-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔮</span> DIVERGENT SPHERE OF NUMERATION PREDICTOR (S²)
+          </div>
+          <span style="font-family:'JetBrains Mono'; font-size:12px; color:#38bdf8;">RIEMANNIAN STEREOGRAPHY</span>
+        </div>
+
+        <div class="canvas-container">
+          <canvas id="sphereCanvas"></canvas>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Lyapunov Exponent</span>
+            <span class="metric-value" id="valLyapunov">0.000</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Stereo Zeta (Z)</span>
+            <span class="metric-value" id="valZeta">0.000</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Harmonic Res.</span>
+            <span class="metric-value" id="valFreq">0.0 Hz</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Horizon Steps</span>
+            <span class="metric-value" id="valHorizon">0</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex; gap:12px; align-items:center;">
+          <input type="text" id="inputVector" value="1.8, 3.4, -0.9, 2.7, 4.1" 
+                 style="flex:1; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:10px 12px; font-family:'JetBrains Mono'; font-size:12px; color:#fff;"
+                 placeholder="Vstupný stavový vektor (oddelené čiarkami)"/>
+          <button class="btn-action" onclick="executePipeline()">
+            <span>⚡</span> SPUSTIŤ PIPELINE
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: RAM Unifier & VRM Power Allocation -->
+      <div class="studio-card">
+        <div class="card-header">
+          <div class="card-title" style="color:#ffd700;">
+            <span>⚡</span> VRM POWER ALLOCATION &amp; MULTIPHASE DRIVER
+          </div>
+          <span style="font-family:'JetBrains Mono'; font-size:12px; color:#ffd700;">DIGITAL PWM DRMOS</span>
+        </div>
+
+        <!-- VRM Metrics -->
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Active Phases</span>
+            <span class="metric-value" id="valActivePhases" style="color:#ffd700;">-- / 12</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Total Current</span>
+            <span class="metric-value" id="valTotalCurrent" style="color:#38bdf8;">-- A</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Core Voltage</span>
+            <span class="metric-value" id="valVoltage" style="color:#10b981;">-- V</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">VRM Temp</span>
+            <span class="metric-value" id="valVrmTemp" style="color:#f87171;">-- °C</span>
+          </div>
+        </div>
+
+        <!-- 12-Phase Matrix Display -->
+        <div>
+          <span style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase;">12-Fázová Topológia VRM DrMOS</span>
+          <div class="vrm-phases-container" id="vrmPhasesContainer"></div>
+        </div>
+
+        <!-- RAM Unifier Section -->
+        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top:14px; display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:'Cinzel'; font-size:13px; font-weight:700; color:#10b981;">UNIFIED RAM (UMA) COHERENT POOL</span>
+            <span style="font-family:'JetBrains Mono'; font-size:12px; color:#38bdf8;" id="ramUsageText">-- MB / 8192 MB</span>
+          </div>
+          <div class="ram-bar-container">
+            <div class="ram-bar-fill" id="ramBarFill" style="width: 20%;"></div>
+          </div>
+        </div>
+
+        <!-- JSON Output Inspector -->
+        <div>
+          <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-bottom:6px; text-transform:uppercase;">Štruktúrovaný Výstup Pipeline (JSON Telemetria)</div>
+          <pre class="code-view" id="jsonOutputView">Načítavam stav pipeline...</pre>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let pipelineData = null;
+    let sphereRotation = 0;
+
+    // Initialize 12 VRM phase chips
+    const vrmContainer = document.getElementById('vrmPhasesContainer');
+    for (let i = 1; i <= 12; i++) {
+      const chip = document.createElement('div');
+      chip.className = 'phase-chip';
+      chip.id = `phase_chip_${i}`;
+      chip.innerHTML = `<div>PH ${i}</div><div style="font-size:9px; color:#64748b;">OFF</div>`;
+      vrmContainer.appendChild(chip);
+    }
+
+    // Canvas rendering loop
+    const canvas = document.getElementById('sphereCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function renderSphere() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const r = Math.min(cx, cy) * 0.72;
+
+      sphereRotation += 0.008;
+
+      // Outer Sphere Glow
+      const grad = ctx.createRadialGradient(cx, cy - r * 0.2, 10, cx, cy, r);
+      grad.addColorStop(0, '#111c33');
+      grad.addColorStop(0.7, '#070c18');
+      grad.addColorStop(1, '#020408');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Equator & Latitude Lines
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+      ctx.lineWidth = 1;
+      for (let lat = -60; lat <= 60; lat += 30) {
+        const radLat = lat * Math.PI / 180;
+        const latY = cy - Math.sin(radLat) * r;
+        const latR = Math.cos(radLat) * r;
+        ctx.beginPath();
+        ctx.ellipse(cx, latY, latR, latR * 0.35, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Rotating Longitude Lines
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+      for (let lon = 0; lon < Math.PI; lon += Math.PI / 4) {
+        const curLon = lon + sphereRotation;
+        const lonW = Math.cos(curLon) * r;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, Math.abs(lonW), r, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // North Pole (Infinite Divergence Marker)
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(cx, cy - r, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fca5a5';
+      ctx.font = '10px "JetBrains Mono"';
+      ctx.textAlign = 'center';
+      ctx.fillText('NORTH POLE (DIVERGENCE ∞)', cx, cy - r - 8);
+
+      // South Pole (Convergence Marker)
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(cx, cy + r, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#6ee7b7';
+      ctx.fillText('SOUTH POLE (CONVERGENCE 0)', cx, cy + r + 16);
+
+      // Plot active prediction point on sphere
+      if (pipelineData && pipelineData.prediction) {
+        const coords = pipelineData.prediction.spherical_coords;
+        // Project onto 2D view using rotation
+        const ptX = cx + coords.xi * r;
+        const ptY = cy - coords.zeta * r;
+
+        let ptColor = '#10b981';
+        if (pipelineData.prediction.risk_tier === 'HARMONIC_RESONANT') ptColor = '#00f0ff';
+        else if (pipelineData.prediction.risk_tier === 'ELEVATED_DRIFT') ptColor = '#ffd700';
+        else if (pipelineData.prediction.risk_tier === 'CRITICAL_DIVERGENT') ptColor = '#ef4444';
+
+        // Glowing pulse
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = ptColor;
+        ctx.fillStyle = ptColor;
+        ctx.beginPath();
+        ctx.arc(ptX, ptY, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = ptColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(ptX, ptY, 14, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px "JetBrains Mono"';
+        ctx.fillText(`Z: ${coords.zeta.toFixed(2)}`, ptX, ptY - 18);
+      }
+
+      requestAnimationFrame(renderSphere);
+    }
+    requestAnimationFrame(renderSphere);
+
+    async function fetchStatus() {
+      try {
+        const resp = await fetch('/api/divergent-sphere/status');
+        const data = await resp.json();
+        if (data.last_output) {
+          updateUI(data.last_output);
+        } else {
+          executePipeline();
+        }
+      } catch (err) {
+        console.error("Status fetch error:", err);
+      }
+    }
+
+    async function executePipeline() {
+      const rawVector = document.getElementById('inputVector').value;
+      const parsedVector = rawVector.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+
+      try {
+        const resp = await fetch('/api/divergent-sphere/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input_vector: parsedVector })
+        });
+        const out = await resp.json();
+        updateUI(out);
+      } catch (err) {
+        alert("Chyba pri spúšťaní pipeline: " + err.message);
+      }
+    }
+
+    function updateUI(out) {
+      pipelineData = out;
+      const pred = out.prediction;
+      const vrm = out.vrm_allocation;
+      const ram = out.ram_unification;
+
+      // Update HUD badges
+      document.getElementById('hudRiskBadge').textContent = `RISK: ${pred.risk_tier}`;
+      document.getElementById('hudVrmBadge').textContent = `VRM: ${vrm.active_phases}/${vrm.total_phases} PH`;
+      document.getElementById('hudRamBadge').textContent = `UMA: ${ram.bandwidth_gb_s} GB/s`;
+
+      // Update Metric Values
+      document.getElementById('valLyapunov').textContent = pred.lyapunov_exponent.toFixed(3);
+      document.getElementById('valZeta').textContent = pred.spherical_coords.zeta.toFixed(3);
+      document.getElementById('valFreq').textContent = pred.resonant_harmonic_freq.toFixed(1) + ' Hz';
+      document.getElementById('valHorizon').textContent = pred.divergence_horizon_steps;
+
+      // VRM Metrics
+      document.getElementById('valActivePhases').textContent = `${vrm.active_phases} / ${vrm.total_phases}`;
+      document.getElementById('valTotalCurrent').textContent = `${vrm.total_current_a} A`;
+      document.getElementById('valVoltage').textContent = `${vrm.target_voltage_v} V`;
+      document.getElementById('valVrmTemp').textContent = `${vrm.thermal_vrm_celsius} °C`;
+
+      // Update 12 VRM Chips
+      for (let i = 1; i <= 12; i++) {
+        const chip = document.getElementById(`phase_chip_${i}`);
+        if (i <= vrm.active_phases) {
+          chip.className = 'phase-chip active';
+          chip.innerHTML = `<div>PH ${i}</div><div style="font-size:9px; color:#ffd700;">${vrm.current_per_phase_a}A</div>`;
+        } else {
+          chip.className = 'phase-chip';
+          chip.innerHTML = `<div>PH ${i}</div><div style="font-size:9px; color:#64748b;">OFF</div>`;
+        }
+      }
+
+      // RAM Unifier
+      document.getElementById('ramUsageText').textContent = `${ram.allocated_mb.toFixed(1)} MB / ${ram.total_unified_pool_mb} MB`;
+      const pct = (ram.allocated_mb / ram.total_unified_pool_mb) * 100;
+      document.getElementById('ramBarFill').style.width = `${pct}%`;
+
+      // JSON Inspector
+      document.getElementById('jsonOutputView').textContent = JSON.stringify(out, null, 2);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchStatus();
+    });
+  </script>
+</body>
+</html>

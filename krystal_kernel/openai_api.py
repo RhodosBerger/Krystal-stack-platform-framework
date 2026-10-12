@@ -123,10 +123,25 @@ def _route(ctx: ApiContext, method: str, path: str, headers: Dict[str, str], bod
 
     if method == "GET":
         if route == "/v1/models":
-            return _json(200, {"object": "list", "data": [
+            models_list = [
                 {"id": EMBED_MODEL, "object": "model", "created": int(ctx.started), "owned_by": "krystal-stack", "capabilities": ["embeddings"]},
                 {"id": CHAT_MODEL, "object": "model", "created": int(ctx.started), "owned_by": "krystal-stack", "capabilities": ["chat"],
-                 "note": "reference model, not an LLM"}]})
+                 "note": "reference model, not an LLM"}
+            ]
+            try:
+                from .openai_llm_connector import GLOBAL_OPENAI_CONNECTOR
+                for m_id in GLOBAL_OPENAI_CONNECTOR.cached_models:
+                    if m_id not in (EMBED_MODEL, CHAT_MODEL):
+                        models_list.append({
+                            "id": m_id,
+                            "object": "model",
+                            "created": int(ctx.started),
+                            "owned_by": "openai-compatible-upstream",
+                            "capabilities": ["chat"]
+                        })
+            except Exception:
+                pass
+            return _json(200, {"object": "list", "data": models_list})
         if route == "/metrics":
             return 200, {"Content-Type": "text/plain; version=0.0.4"}, ctx.kernel.prometheus().encode("utf-8")
         if route == "/api/kernel/status":
@@ -204,8 +219,6 @@ def _embeddings(ctx: ApiContext, data: Dict[str, Any], tenant: str) -> Response:
 
 def _chat(ctx: ApiContext, data: Dict[str, Any], tenant: str) -> Response:
     model = data.get("model", CHAT_MODEL)
-    if model != CHAT_MODEL:
-        return _err(404, f"Model '{model}' not found.", code="model_not_found", param="model")
     if data.get("stream"):
         return _err(400, "stream=true is not supported by this server.", param="stream", code="stream_not_supported")
     msgs = data.get("messages")
@@ -214,6 +227,26 @@ def _chat(ctx: ApiContext, data: Dict[str, Any], tenant: str) -> Response:
     contents = [m["content"] for m in msgs]
     if any(len(c) > MAX_CHARS for c in contents):
         return _err(400, f"Each message is limited to {MAX_CHARS} characters.", param="messages", code="input_too_large")
+
+    # If an external/upstream LLM model is requested
+    if model != CHAT_MODEL:
+        try:
+            from .openai_llm_connector import GLOBAL_OPENAI_CONNECTOR
+            if model in GLOBAL_OPENAI_CONNECTOR.cached_models or GLOBAL_OPENAI_CONNECTOR.config.get_effective_key() or GLOBAL_OPENAI_CONNECTOR.config.allow_remote:
+                res = GLOBAL_OPENAI_CONNECTOR.chat_completion(
+                    messages=msgs,
+                    model=model,
+                    temperature=data.get("temperature"),
+                    max_tokens=data.get("max_tokens")
+                )
+                if "error" in res:
+                    err_dict = res["error"]
+                    return _err(502, err_dict.get("message", "Upstream LLM error"), code=err_dict.get("code", "upstream_error"))
+                return _json(200, res)
+        except Exception:
+            pass
+        return _err(404, f"Model '{model}' not found.", code="model_not_found", param="model")
+
     last_user = next((m["content"] for m in reversed(msgs) if m["role"] == "user"), contents[-1])
     stats = ctx.kernel.submit("text_stats", {"texts": [last_user]}, kind="chat", cost=1, deadline_ms=5000, tenant=tenant).result(timeout=10)[0]
     text = (f"[{CHAT_MODEL}] This server has no language model attached. Your last user message has {stats['words']} words "

@@ -584,6 +584,62 @@ from .speculative_engine_frontiers import (
     GLOBAL_SPECULATIVE_FRONTIERS
 )
 
+from .central_unit_amplifier import (
+    CentralUnitCoreModularityAmplifier,
+    GLOBAL_CORE_MODULARITY_AMPLIFIER
+)
+
+from .voltage_tensor_governor import (
+    VoltageScalingStrategy,
+    VoltageScalingTensorGovernor,
+    GLOBAL_VOLTAGE_TENSOR_GOVERNOR
+)
+
+from .openai_llm_bridge import (
+    OpenAILLMConnector,
+    OpenAIEndpointConfig,
+    GLOBAL_OPENAI_CONNECTOR
+)
+
+from .divergent_sphere_bridge import (
+    DivergentSpherePipeline,
+    DivergentSphereNumerationPredictor,
+    UnifiedRamGovernor,
+    VrmAllocationController,
+    DivergentSpherePipelineOutput,
+    GLOBAL_DIVERGENT_SPHERE_PIPELINE
+)
+
+from .procedural_land_benchmark_bridge import (
+    BenchmarkStatus,
+    TerrainSurfaceSample,
+    ProceduralLandBenchmarkResult,
+    ProceduralLandBenchmarkEngine,
+    GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE
+)
+
+from .polymorphic_shape_blender_platform import (
+    LanguageMode,
+    CoordinateSystemType,
+    CartesianCoordinateDescriptor,
+    CoordinateSystemConverter,
+    MultilingualLookupRegistry,
+    ShapeArchetype,
+    ModifierType,
+    ShapeCommandType,
+    ShapeModifierSpec,
+    ShapeEconomicPlan,
+    PolymorphicShapeInstance,
+    ShapeTemplateFactory,
+    ShapeEconomicObserver,
+    BlenderScriptGenerator,
+    CommandShapePlatform,
+    GLOBAL_SHAPE_PLATFORM
+)
+
+
+
+
 
 
 

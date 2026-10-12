@@ -1,0 +1,20 @@
+{
+  "value": 52.4,
+  "provenance": "CppHardwareProbe:hwmon:coretemp",
+  "evidence_kind": "HARDWARE_MEASURED",
+  "uncertainty": 0.02,
+  "valid_from_ns": 1700000000000000000,
+  "valid_to_ns": 1700000002000000000,
+  "domain": "hardware.thermal",
+  "state_version": {
+    "major": 1,
+    "minor": 0,
+    "sequence": 42,
+    "wall_timestamp_utc": 1700000000.0,
+    "clock_domain_id": "host_clock_0",
+    "causal_parent": "b9a1c0d4"
+  },
+  "source_adapter": "CppHardwareProbe",
+  "clock_domain_id": "host_clock_0",
+  "calibration_error": 0.015
+}

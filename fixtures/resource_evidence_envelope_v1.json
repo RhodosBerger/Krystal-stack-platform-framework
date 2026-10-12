@@ -1,0 +1,89 @@
+{
+  "schema_version": "2.0.0-sprintA",
+  "envelope_id": "ENV-FIXTURE-001",
+  "state_version": {
+    "major": 1,
+    "minor": 0,
+    "sequence": 10,
+    "wall_timestamp_utc": 1700000000.0,
+    "clock_domain_id": "host_clock_0",
+    "causal_parent": null
+  },
+  "provenance": "KvmQemuAdapter:cgroups_v2+qmp",
+  "host_fingerprint": "node-alpha-01",
+  "hypervisor_type": "kvm",
+  "guest_id": "guest-vm-7",
+  "clock_domain_id": "host_clock_0",
+  "host_monotonic_ns": 1000000000,
+  "wall_timestamp_utc": 1700000000.0,
+  "sequence_number": 10,
+  "causal_parent": null,
+  "canonical_normalized": {
+    "cpu_usage_pct": {
+      "value": 45.0,
+      "provenance": "KvmQemuAdapter:cgroups_v2:cpu.stat",
+      "evidence_kind": "RUNTIME_MEASURED",
+      "uncertainty": 0.03,
+      "valid_from_ns": 1000000000,
+      "valid_to_ns": 3000000000,
+      "domain": "cpu.usage",
+      "state_version": {
+        "major": 1,
+        "minor": 0,
+        "sequence": 10,
+        "wall_timestamp_utc": 1700000000.0,
+        "clock_domain_id": "host_clock_0",
+        "causal_parent": null
+      },
+      "source_adapter": "KvmQemuAdapter",
+      "clock_domain_id": "host_clock_0",
+      "calibration_error": 0.01
+    },
+    "memory_rss_bytes": {
+      "value": 1073741824,
+      "provenance": "KvmQemuAdapter:cgroups_v2:memory.current",
+      "evidence_kind": "RUNTIME_MEASURED",
+      "uncertainty": 0.01,
+      "valid_from_ns": 1000000000,
+      "valid_to_ns": 3000000000,
+      "domain": "memory.rss",
+      "state_version": {
+        "major": 1,
+        "minor": 0,
+        "sequence": 10,
+        "wall_timestamp_utc": 1700000000.0,
+        "clock_domain_id": "host_clock_0",
+        "causal_parent": null
+      },
+      "source_adapter": "KvmQemuAdapter",
+      "clock_domain_id": "host_clock_0",
+      "calibration_error": 0.005
+    },
+    "temperature_celsius": {
+      "value": 52.4,
+      "provenance": "KvmQemuAdapter:hwmon:coretemp",
+      "evidence_kind": "HARDWARE_MEASURED",
+      "uncertainty": 0.02,
+      "valid_from_ns": 1000000000,
+      "valid_to_ns": 3000000000,
+      "domain": "hardware.thermal",
+      "state_version": {
+        "major": 1,
+        "minor": 0,
+        "sequence": 10,
+        "wall_timestamp_utc": 1700000000.0,
+        "clock_domain_id": "host_clock_0",
+        "causal_parent": null
+      },
+      "source_adapter": "KvmQemuAdapter",
+      "clock_domain_id": "host_clock_0",
+      "calibration_error": 0.02
+    }
+  },
+  "adapter_native": {
+    "cpu.native.backend": "cgroups_v2",
+    "cpu.native.raw_policy": "quota_100ms",
+    "cpu.native.usage_usec": 450000
+  },
+  "epistemic_tag": "[CANONICAL_INVARIANT]"
+}

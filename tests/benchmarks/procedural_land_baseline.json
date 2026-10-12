@@ -1,0 +1,33 @@
+{
+  "benchmark_name": "NPU SDF Continuous Terrain & Procedural Land Compiler Baseline",
+  "version": "1.0.0",
+  "vital_max_hp_rule": 6,
+  "thresholds": {
+    "max_raymarch_latency_ms": 15.0,
+    "min_chunk_throughput_chunks_per_sec": 45.0,
+    "max_tile_generation_latency_ms": 22.2,
+    "max_allowed_throughput_drop_pct": 10.0
+  },
+  "canonical_seeds": {
+    "42": {
+      "seed": 42,
+      "biome": "Crystal_Severni_Stity",
+      "expected_mean_elevation": 2.791,
+      "expected_surface_hash": "3ff0846f7924ce349076a925f3633ccf27d142b603d09697266a6eaedb3ad170"
+    },
+    "1337": {
+      "seed": 1337,
+      "biome": "Druid_Pradavny_Les",
+      "expected_mean_elevation": 2.3377,
+      "expected_surface_hash": "a0e582294d8a97e707406fabcd50ee7249aeb850d735ce402bfc698cf81db84f"
+    }
+  },
+  "baseline_metrics": {
+    "measured_raymarch_latency_ms": 1.25,
+    "measured_chunk_throughput": 850.0,
+    "measured_tile_latency_ms": 2.50,
+    "target_fps": 120,
+    "npu_tops_target": 12.4
+  },
+  "last_updated_iso": "2026-10-12T17:36:00Z"
+}

@@ -139,6 +139,37 @@ from krystal_web_hub.economic_engine import (
     GLOBAL_EVOLVED_SVG_ENGINE,
     GLOBAL_EXECUTION_ARCHITECTURE_ENGINE
 )
+from krystal_kernel.central_unit_core_modularity_amplifier import (
+    GLOBAL_CORE_MODULARITY_AMPLIFIER,
+    CentralUnitCoreModularityAmplifier
+)
+from krystal_kernel.voltage_scaling_tensor_governor import (
+    GLOBAL_VOLTAGE_TENSOR_GOVERNOR,
+    VoltageScalingStrategy
+)
+from krystal_kernel.openai_llm_connector import (
+    GLOBAL_OPENAI_CONNECTOR,
+    OpenAILLMConnector,
+    OpenAIEndpointConfig
+)
+from krystal_kernel.divergent_sphere_pipeline import (
+    GLOBAL_DIVERGENT_SPHERE_PIPELINE,
+    DivergentSpherePipeline
+)
+from krystal_kernel.procedural_land_benchmark_engine import (
+    GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE,
+    ProceduralLandBenchmarkEngine
+)
+from krystal_web_hub.economic_engine.polymorphic_shape_blender_platform import (
+    GLOBAL_SHAPE_PLATFORM,
+    LanguageMode,
+    CoordinateSystemType,
+    MultilingualLookupRegistry,
+    ShapeArchetype,
+    ShapeModifierSpec,
+    ModifierType,
+    ShapeCommandType
+)
 from krystal_web_hub.economic_engine.sovereign_citadel_gameplay import (
     GLOBAL_SOVEREIGN_CITADEL_ENGINE
 )
@@ -1082,6 +1113,24 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/wsl-emulator', '/wsl-studio', '/virtual-linux', '/wsl-terminal'):
             self._serve_file(os.path.join(STATIC_DIR, "wsl_emulator_studio.html"), "text/html")
             return
+        if path in ('/central-unit-amplifier', '/amplifier-studio', '/risc-npu-amplifier', '/risc-emulator', '/core-modularity'):
+            self._serve_file(os.path.join(STATIC_DIR, "central_unit_amplifier_studio.html"), "text/html")
+            return
+        if path in ('/voltage-governor', '/voltage-tensor', '/voltage-studio', '/voltage-scaling'):
+            self._serve_file(os.path.join(STATIC_DIR, "voltage_tensor_governor_studio.html"), "text/html")
+            return
+        if path in ('/llm-studio', '/openai-studio', '/llm-connector', '/openai-llm', '/llm-gateway'):
+            self._serve_file(os.path.join(STATIC_DIR, "llm_openai_studio.html"), "text/html")
+            return
+        if path in ('/divergent-sphere', '/divergent-pipeline', '/ram-vrm-studio', '/divergent-studio'):
+            self._serve_file(os.path.join(STATIC_DIR, "divergent_sphere_studio.html"), "text/html")
+            return
+        if path in ('/procedural-benchmark', '/land-benchmark', '/terrain-benchmark', '/ci-cd-benchmark'):
+            self._serve_file(os.path.join(STATIC_DIR, "procedural_land_benchmark_studio.html"), "text/html")
+            return
+        if path in ('/shape-studio', '/shape-platform', '/blender-library', '/polymorphic-shapes'):
+            self._serve_file(os.path.join(STATIC_DIR, "polymorphic_shape_studio.html"), "text/html")
+            return
         if path in ('/terrain-synthesis', '/continuous-world', '/npu-sdf-terrain', '/posledni-kmen-synthesis', '/sdf-terrain'):
             self._serve_file(os.path.join(STATIC_DIR, "npu_sdf_terrain_studio.html"), "text/html")
             return
@@ -1671,6 +1720,143 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         # ── EXECUTION ARCHITECTURE & METRIC STRATIFICATION ─────────────────
         if path == '/api/execution-architecture/metrics':
             self._send_json(GLOBAL_EXECUTION_ARCHITECTURE_ENGINE.get_metrics_catalog())
+            return
+
+        # ── CENTRAL UNIT CORE MODULARITY AMPLIFIER & RISC-NPU ENDPOINTS ─────
+        if path == '/api/amplifier/status':
+            self._send_json(GLOBAL_CORE_MODULARITY_AMPLIFIER.get_full_amplifier_status())
+            return
+
+        if path == '/api/amplifier/assets':
+            self._send_json({
+                "success": True,
+                "assets": [a.to_dict() for a in GLOBAL_CORE_MODULARITY_AMPLIFIER.compiled_assets],
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── SERVER VOLTAGE SCALING & TENSOR WEIGHTS GOVERNOR ENDPOINTS ─────
+        if path == '/api/voltage-governor/status':
+            self._send_json(GLOBAL_VOLTAGE_TENSOR_GOVERNOR.get_full_governor_status())
+            return
+
+        # ── UNIVERSAL OPENAI LLM CONNECTOR ENDPOINTS (GET) ──────────────────
+        if path == '/api/llm/status':
+            self._send_json(GLOBAL_OPENAI_CONNECTOR.get_status())
+            return
+
+        if path == '/api/llm/models':
+            self._send_json({
+                "success": True,
+                "cached_models": GLOBAL_OPENAI_CONNECTOR.cached_models,
+                "active_model": GLOBAL_OPENAI_CONNECTOR.config.model_name,
+                "endpoint_type": GLOBAL_OPENAI_CONNECTOR.config.endpoint_type,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── DIVERGENT SPHERE PREDICTOR & RAM/VRM UNIFIER (GET) ──────────────
+        if path == '/api/divergent-sphere/status':
+            self._send_json(GLOBAL_DIVERGENT_SPHERE_PIPELINE.get_status())
+            return
+
+        if path == '/api/divergent-sphere/svg':
+            pipe_out = GLOBAL_DIVERGENT_SPHERE_PIPELINE.last_output or GLOBAL_DIVERGENT_SPHERE_PIPELINE.run_pipeline()
+            svg_data = pipe_out.generate_svg_blueprint()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/svg+xml; charset=utf-8")
+            self.send_header("Content-Length", str(len(svg_data.encode('utf-8'))))
+            self.end_headers()
+            self.wfile.write(svg_data.encode('utf-8'))
+            return
+
+        # ── PROCEDURAL LAND BENCHMARK & CI/CD THROUGHPUT (GET) ──────────────
+        if path == '/api/procedural-benchmark/status':
+            self._send_json(GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE.get_status())
+            return
+
+        if path == '/api/procedural-benchmark/baseline':
+            self._send_json(GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE.baseline_data)
+            return
+
+        # ── POLYMORPHIC SHAPE & BLENDER PLATFORM (GET) ──────────────────────
+        if path == '/api/shapes/language':
+            u = urllib.parse.urlparse(self.path)
+            q_map = urllib.parse.parse_qs(u.query)
+            l_str = (q_map.get("lang") or [GLOBAL_SHAPE_PLATFORM.get_language_mode().value])[0]
+            try:
+                target_lang = LanguageMode(l_str.upper())
+            except ValueError:
+                target_lang = GLOBAL_SHAPE_PLATFORM.get_language_mode()
+            self._send_json({
+                "success": True,
+                "active_language": GLOBAL_SHAPE_PLATFORM.get_language_mode().value,
+                "supported_languages": [m.value for m in LanguageMode],
+                "translations": MultilingualLookupRegistry.get_all_translations(target_lang)
+            })
+            return
+
+        if path == '/api/shapes/coordinates':
+            u = urllib.parse.urlparse(self.path)
+            q_map = urllib.parse.parse_qs(u.query)
+            shape_id = (q_map.get("shape_id") or [None])[0]
+            sys_str = (q_map.get("system") or ["BLENDER_Z_UP"])[0]
+            l_str = (q_map.get("lang") or [GLOBAL_SHAPE_PLATFORM.get_language_mode().value])[0]
+            try:
+                sys_enum = CoordinateSystemType(sys_str)
+            except ValueError:
+                sys_enum = CoordinateSystemType.BLENDER_Z_UP
+            try:
+                target_lang = LanguageMode(l_str.upper())
+            except ValueError:
+                target_lang = GLOBAL_SHAPE_PLATFORM.get_language_mode()
+            coord_data = GLOBAL_SHAPE_PLATFORM.get_coordinate_analysis(shape_id, target_system=sys_enum, lang=target_lang) if shape_id else None
+            self._send_json({"success": bool(coord_data), "coordinates": coord_data})
+            return
+
+        if path == '/api/shapes/status':
+            u = urllib.parse.urlparse(self.path)
+            q_map = urllib.parse.parse_qs(u.query)
+            l_str = (q_map.get("lang") or [None])[0]
+            target_lang = None
+            if l_str:
+                try:
+                    target_lang = LanguageMode(l_str.upper())
+                except ValueError:
+                    pass
+            self._send_json(GLOBAL_SHAPE_PLATFORM.get_status(lang=target_lang))
+            return
+
+        if path == '/api/shapes/library':
+            u = urllib.parse.urlparse(self.path)
+            q_map = urllib.parse.parse_qs(u.query)
+            l_str = (q_map.get("lang") or [None])[0]
+            target_lang = None
+            if l_str:
+                try:
+                    target_lang = LanguageMode(l_str.upper())
+                except ValueError:
+                    pass
+            self._send_json({
+                "success": True,
+                "shapes": GLOBAL_SHAPE_PLATFORM.get_library(lang=target_lang),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/shapes/get':
+            u = urllib.parse.urlparse(self.path)
+            q_map = urllib.parse.parse_qs(u.query)
+            shape_id = (q_map.get("shape_id") or [None])[0]
+            l_str = (q_map.get("lang") or [None])[0]
+            target_lang = None
+            if l_str:
+                try:
+                    target_lang = LanguageMode(l_str.upper())
+                except ValueError:
+                    pass
+            shape_data = GLOBAL_SHAPE_PLATFORM.get_shape(shape_id, lang=target_lang) if shape_id else None
+            self._send_json({"success": bool(shape_data), "shape": shape_data})
             return
 
         # ── GODOT 4 CANVAS & 3D ARENA ENDPOINTS (GET) ──────────────────────
@@ -2526,6 +2712,205 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             req_data = json.loads(post_data) if post_data else {}
         except json.JSONDecodeError:
             req_data = {}
+
+        # ── CENTRAL UNIT CORE MODULARITY AMPLIFIER & RISC-NPU POST ENDPOINTS ──
+        if path == '/api/amplifier/calibrate':
+            self._send_json(GLOBAL_CORE_MODULARITY_AMPLIFIER.calibrate_core_modularity().to_dict())
+            return
+
+        if path == '/api/amplifier/compile-matrices':
+            self._send_json(GLOBAL_CORE_MODULARITY_AMPLIFIER.compile_user_matrices())
+            return
+
+        if path == '/api/amplifier/risc/execute':
+            max_cycles = int(req_data.get("max_cycles", 1000))
+            self._send_json(GLOBAL_CORE_MODULARITY_AMPLIFIER.execute_risc_emulation(max_cycles=max_cycles))
+            return
+
+        # ── SERVER VOLTAGE SCALING & TENSOR WEIGHTS POST ENDPOINTS ─────────
+        if path == '/api/voltage-governor/strategy':
+            strat_name = req_data.get("strategy", "BALANCED_ADAPTIVE_DVFS")
+            try:
+                strat_enum = VoltageScalingStrategy(strat_name)
+            except ValueError:
+                strat_enum = VoltageScalingStrategy.BALANCED_ADAPTIVE_DVFS
+            metrics = GLOBAL_VOLTAGE_TENSOR_GOVERNOR.apply_strategy(strat_enum)
+            self._send_json({"success": True, "applied_strategy": strat_enum.value, "metrics": metrics.to_dict(), "vital_max_hp_rule": VITAL_MAX_HP})
+            return
+
+        if path == '/api/voltage-governor/tune-weights':
+            q_depth = int(req_data.get("queue_depth", 15))
+            rps = float(req_data.get("request_rate_rps", 450.0))
+            res = GLOBAL_VOLTAGE_TENSOR_GOVERNOR.adapt_weights_to_workload(queue_depth=q_depth, request_rate_rps=rps)
+            self._send_json(res)
+            return
+
+        if path == '/api/voltage-governor/pareto-search':
+            res = GLOBAL_VOLTAGE_TENSOR_GOVERNOR.search_pareto_optimal_operating_point()
+            self._send_json(res)
+            return
+
+        # ── UNIVERSAL OPENAI LLM CONNECTOR POST ENDPOINTS ──────────────────
+        if path == '/api/llm/configure':
+            base_url = req_data.get("base_url")
+            api_key = req_data.get("api_key")
+            model_name = req_data.get("model_name")
+            timeout_sec = float(req_data.get("timeout_sec", 30.0))
+            endpoint_type = req_data.get("endpoint_type")
+            res = GLOBAL_OPENAI_CONNECTOR.configure(
+                base_url=base_url,
+                api_key=api_key,
+                model_name=model_name,
+                timeout_sec=timeout_sec,
+                endpoint_type=endpoint_type
+            )
+            self._send_json(res)
+            return
+
+        if path == '/api/llm/probe':
+            res = GLOBAL_OPENAI_CONNECTOR.probe_endpoint()
+            self._send_json(res)
+            return
+
+        if path == '/api/llm/chat':
+            messages = req_data.get("messages", [])
+            model = req_data.get("model")
+            temperature = float(req_data.get("temperature", 0.7))
+            max_tokens = int(req_data.get("max_tokens", 1024))
+            res = GLOBAL_OPENAI_CONNECTOR.chat_completion(
+                messages=messages,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            self._send_json(res)
+            return
+
+        # ── DIVERGENT SPHERE PREDICTOR & RAM/VRM UNIFIER (POST) ─────────────
+        if path == '/api/divergent-sphere/run':
+            vec = req_data.get("input_vector")
+            overclock = float(req_data.get("overclock_override_pct", 0.0))
+            out = GLOBAL_DIVERGENT_SPHERE_PIPELINE.run_pipeline(input_vector=vec, overclock_override_pct=overclock)
+            self._send_json(out.to_dict())
+            return
+
+        if path == '/api/divergent-sphere/predict':
+            vec = req_data.get("input_vector", [1.0, 2.0, 3.0])
+            pred = GLOBAL_DIVERGENT_SPHERE_PIPELINE.predictor.predict(vec)
+            self._send_json(pred.to_dict())
+            return
+
+        if path == '/api/divergent-sphere/vrm-allocate':
+            overclock = float(req_data.get("overclock_override_pct", 0.0))
+            out = GLOBAL_DIVERGENT_SPHERE_PIPELINE.run_pipeline(overclock_override_pct=overclock)
+            self._send_json(out.vrm_allocation.to_dict())
+            return
+
+        # ── PROCEDURAL LAND BENCHMARK & CI/CD THROUGHPUT (POST) ─────────────
+        if path == '/api/procedural-benchmark/run':
+            seed = int(req_data.get("seed", 42))
+            chunks = int(req_data.get("chunk_count", 60))
+            biome = req_data.get("biome", "Crystal_Severni_Stity")
+            grid_sz = int(req_data.get("grid_size", 32))
+            res = GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE.run_benchmark(
+                chunk_count=chunks,
+                grid_size=grid_sz,
+                seed=seed,
+                biome=biome
+            )
+            self._send_json(res.to_dict())
+            return
+
+        if path == '/api/procedural-benchmark/update-baseline':
+            last = GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE.last_result
+            if not last:
+                last = GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE.run_benchmark(seed=42)
+            res = GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE.update_baseline_with_result(last)
+            self._send_json(res)
+            return
+
+        # ── POLYMORPHIC SHAPE & BLENDER PLATFORM (POST) ─────────────────────
+        if path == '/api/shapes/language':
+            l_str = req_data.get("language", "SK")
+            try:
+                mode = LanguageMode(l_str.upper())
+            except ValueError:
+                mode = LanguageMode.SK
+            active_lang = GLOBAL_SHAPE_PLATFORM.set_language_mode(mode)
+            self._send_json({
+                "success": True,
+                "active_language": active_lang.value,
+                "supported_languages": [m.value for m in LanguageMode],
+                "translations": MultilingualLookupRegistry.get_all_translations(active_lang)
+            })
+            return
+
+        if path == '/api/shapes/create':
+            arch_str = req_data.get("archetype", "TACTICAL_OBELISK")
+            try:
+                arch = ShapeArchetype(arch_str)
+            except ValueError:
+                arch = ShapeArchetype.TACTICAL_OBELISK
+            name = req_data.get("name")
+            params = req_data.get("parameters")
+            instance = GLOBAL_SHAPE_PLATFORM.create_shape(archetype=arch, name=name, parameters=params)
+            self._send_json({"success": True, "shape": instance.to_dict()})
+            return
+
+        if path == '/api/shapes/morph':
+            shape_id = req_data.get("shape_id")
+            new_params = req_data.get("parameters", {})
+            instance = GLOBAL_SHAPE_PLATFORM.morph_shape(shape_id, new_params)
+            self._send_json({"success": bool(instance), "shape": instance.to_dict() if instance else None})
+            return
+
+        if path == '/api/shapes/export-blender':
+            shape_id = req_data.get("shape_id")
+            l_str = req_data.get("lang")
+            target_lang = None
+            if l_str:
+                try:
+                    target_lang = LanguageMode(l_str.upper())
+                except ValueError:
+                    pass
+            script = GLOBAL_SHAPE_PLATFORM.export_blender_script(shape_id, lang=target_lang) if shape_id else None
+            self._send_json({"success": bool(script), "blender_script": script})
+            return
+
+        if path == '/api/shapes/command':
+            cmd_type = req_data.get("command")
+            shape_id = req_data.get("shape_id")
+            if cmd_type == "APPLY_MODIFIER":
+                mod_raw = req_data.get("modifier", {})
+                m_type_str = mod_raw.get("modifier_type", "BEVEL")
+                try:
+                    m_type = ModifierType(m_type_str)
+                except ValueError:
+                    m_type = ModifierType.BEVEL
+                mod_spec = ShapeModifierSpec(modifier_type=m_type, parameters=mod_raw.get("parameters", {}))
+                instance = GLOBAL_SHAPE_PLATFORM.apply_modifier(shape_id, mod_spec)
+                self._send_json({"success": bool(instance), "shape": instance.to_dict() if instance else None})
+                return
+            elif cmd_type == "SET_LANGUAGE_MODE":
+                l_str = req_data.get("language_mode", "SK")
+                try:
+                    target_mode = LanguageMode(l_str.upper())
+                except ValueError:
+                    target_mode = LanguageMode.SK
+                new_lang = GLOBAL_SHAPE_PLATFORM.set_language_mode(target_mode)
+                self._send_json({"success": True, "active_language": new_lang.value})
+                return
+            elif cmd_type == "CONVERT_COORDINATES":
+                sys_str = req_data.get("coordinate_system", "BLENDER_Z_UP")
+                try:
+                    sys_enum = CoordinateSystemType(sys_str)
+                except ValueError:
+                    sys_enum = CoordinateSystemType.BLENDER_Z_UP
+                analysis = GLOBAL_SHAPE_PLATFORM.get_coordinate_analysis(shape_id, target_system=sys_enum) if shape_id else None
+                self._send_json({"success": bool(analysis), "coordinates": analysis})
+                return
+            self._send_json({"success": False, "error": f"Unknown shape command: {cmd_type}"})
+            return
 
         # 1. Procedural Scene Generation
         if path == '/api/bot/generate-scene':

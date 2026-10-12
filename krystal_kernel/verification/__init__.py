@@ -98,4 +98,68 @@ __all__ = [
     "AntiOscillationGuard",
     "ExperimentLedgerEntry",
     "ConsumerMode",
+    # Epistemic Runtime Skeleton (PROT Sprint A)
+    "StateVersion",
+    "ValidityState",
+    "EvidenceKind",
+    "EpistemicValue",
+    "PolicyVersion",
+    "DynamicSafetyPolicy",
+    "DynamicEvidencePolicy",
+    "PolicyRegistry",
+    "GLOBAL_POLICY_REGISTRY",
+    "ResourceVector",
+    "ExpectedDelta",
+    "ResourceEvidenceEnvelope",
+    "SafetyTier",
+    "SafetyVerdictType",
+    "EvidenceVerdictType",
+    "AuthorityVerdictType",
+    "ReversibilityClass",
+    "FailureLifecycleStage",
+    "SafetyViolationRecord",
+    "SafetyProof",
+    "EvidenceProof",
+    "AuthorityProofBundle",
+    "CandidateAction",
+    "SafetyGate",
+    "EvidenceGate",
+    "DualAuthorityGate",
 ]
+
+from krystal_kernel.verification.state_version import StateVersion
+from krystal_kernel.verification.epistemic_value import (
+    ValidityState,
+    EvidenceKind,
+    EpistemicValue
+)
+from krystal_kernel.verification.policy_registry import (
+    PolicyVersion,
+    DynamicSafetyPolicy,
+    DynamicEvidencePolicy,
+    PolicyRegistry,
+    GLOBAL_POLICY_REGISTRY
+)
+from krystal_kernel.verification.resource_evidence_envelope import (
+    ResourceVector,
+    ExpectedDelta,
+    ResourceEvidenceEnvelope
+)
+from krystal_kernel.verification.proof_bundle import (
+    SafetyTier,
+    SafetyVerdictType,
+    EvidenceVerdictType,
+    AuthorityVerdictType,
+    ReversibilityClass,
+    FailureLifecycleStage,
+    SafetyViolationRecord,
+    SafetyProof,
+    EvidenceProof,
+    AuthorityProofBundle
+)
+from krystal_kernel.verification.authority_gate import (
+    CandidateAction,
+    SafetyGate,
+    EvidenceGate,
+    DualAuthorityGate
+)

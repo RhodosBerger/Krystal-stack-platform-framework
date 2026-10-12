@@ -1,0 +1,37 @@
+{
+  "action_id": "ACT-FIXTURE-101",
+  "source_state_version": {
+    "major": 1,
+    "minor": 0,
+    "sequence": 10,
+    "wall_timestamp_utc": 1700000000.0,
+    "clock_domain_id": "host_clock_0",
+    "causal_parent": null
+  },
+  "generated_at_ns": 1000000000,
+  "valid_until_ns": 3500000000,
+  "action_type": "RESIZE_BALLOON",
+  "target_tenant_id": "guest-vm-7",
+  "expected_delta": {
+    "metric_deltas": {
+      "cpu_usage_pct": -5.0,
+      "temperature_celsius": -1.5
+    },
+    "confidence": 0.92,
+    "validity_window_ns": 2000000000
+  },
+  "required_resources": {
+    "cpu_normalized_share": 0.1,
+    "memory_bytes": 536870912,
+    "io_bandwidth_bytes_sec": 0.0,
+    "network_bandwidth_bytes_sec": 0.0,
+    "gpu_compute_units": 0.0,
+    "thermal_celsius": 0.0,
+    "power_watts": 0.0
+  },
+  "evidence_refs": [
+    "ENV-FIXTURE-001"
+  ],
+  "reversibility": "COMPENSABLE",
+  "vital_hp": 6
+}

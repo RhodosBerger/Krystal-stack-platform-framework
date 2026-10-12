@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krystal-Stack // Polymorphic Shape &amp; Blender Platform (Multilingual Cartesian Engine)</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/krystal_ui_system.css">
+
+  <style>
+    :root {
+      --bg-dark: #060913;
+      --panel-bg: rgba(13, 21, 39, 0.78);
+      --border-gold: rgba(216, 174, 75, 0.35);
+      --neon-cyan: #00f0ff;
+      --neon-gold: #ffd700;
+      --neon-amber: #f59e0b;
+      --axis-red: #ef4444;
+      --axis-green: #22c55e;
+      --axis-blue: #3b82f6;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 50% 10%, #0d1527 0%, #060913 100%);
+      color: #e2e8f0;
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .studio-container {
+      max-width: 1780px;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Header */
+    .studio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-gold);
+      border-radius: 12px;
+      padding: 16px 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 21px;
+      font-weight: 900;
+      color: #d8ae4b;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Language Switcher */
+    .lang-switcher-bar {
+      display: flex;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .btn-lang {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-lang:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-lang.active {
+      background: linear-gradient(135deg, rgba(216, 174, 75, 0.3) 0%, rgba(216, 174, 75, 0.1) 100%);
+      border: 1px solid #d8ae4b;
+      color: #ffd700;
+      box-shadow: 0 0 10px rgba(216, 174, 75, 0.4);
+    }
+
+    /* HUD Badges */
+    .badge-strip {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hud-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-hp {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+    }
+
+    .badge-shapes {
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid #00f0ff;
+      color: #a5f3fc;
+    }
+
+    .badge-cost {
+      background: rgba(255, 215, 0, 0.15);
+      border: 1px solid #ffd700;
+      color: #fde047;
+    }
+
+    .badge-blender {
+      background: rgba(234, 88, 12, 0.15);
+      border: 1px solid #ea580c;
+      color: #fdba74;
+    }
+
+    /* Studio Layout */
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 1200px) {
+      .studio-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .studio-card {
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+
+    .card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 21px;
+      letter-spacing: 1px;
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 3D Canvas */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      background: #040711;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    .canvas-container:active {
+      cursor: grabbing;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Canvas Overlays */
+    .canvas-overlay-axis {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      pointer-events: none;
+    }
+
+    .axis-pip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .axis-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Coordinate Inspector Subpanel */
+    .coord-inspector-panel {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .coord-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .coord-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .coord-box-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .coord-box-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    /* Octant Bars */
+    .octant-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .octant-chip {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .octant-chip-label {
+      font-size: 9.5px;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .octant-chip-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fde047;
+    }
+
+    .octant-bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .octant-bar-fill {
+      height: 100%;
+      background: #ffd700;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Metrics Grid */
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .metric-box {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffd700;
+    }
+
+    /* Buttons */
+    .btn-action {
+      background: linear-gradient(135deg, #00f0ff 0%, #0088cc 100%);
+      color: #000;
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0, 240, 255, 0.35);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 240, 255, 0.55);
+    }
+
+    .btn-blender {
+      background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+      color: #fff;
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      font-size: 12px;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-blender:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(234, 88, 12, 0.45);
+    }
+
+    .form-input, .form-select {
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #fff;
+    }
+
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #94a3b8;
+    }
+
+    /* HP Pip Bar */
+    .hp-bar-container {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .hp-pip {
+      flex: 1;
+      height: 12px;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      border-radius: 3px;
+      transition: all 0.2s ease;
+    }
+
+    .hp-pip.active {
+      background: #ef4444;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    }
+
+    pre.code-view {
+      margin: 0;
+      background: #020408;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #fdba74;
+      max-height: 240px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="studio-container">
+
+    <!-- Top Header -->
+    <header class="studio-header">
+      <div class="brand-title">
+        <span>🔶</span> <span id="uiTitle">POLYMORPHIC SHAPE &amp; BLENDER PLATFORM</span>
+      </div>
+
+      <!-- Language Mode Switcher -->
+      <div class="lang-switcher-bar">
+        <button class="btn-lang active" id="btnLangSK" onclick="switchLanguage('SK')">🇸🇰 SK</button>
+        <button class="btn-lang" id="btnLangEN" onclick="switchLanguage('EN')">🇬🇧 EN</button>
+        <button class="btn-lang" id="btnLangCZ" onclick="switchLanguage('CZ')">🇨🇿 CZ</button>
+        <button class="btn-lang" id="btnLangDE" onclick="switchLanguage('DE')">🇩🇪 DE</button>
+      </div>
+
+      <div class="badge-strip">
+        <span class="hud-badge badge-hp" id="badgeVitalRule">VITAL: 6 HP MAX</span>
+        <span class="hud-badge badge-shapes" id="hudShapesBadge">SHAPES: -- REGISTERED</span>
+        <span class="hud-badge badge-cost" id="hudValuationBadge">VALUATION: -- CRYSTAL</span>
+        <span class="hud-badge badge-blender">BLENDER 4.x CARTESIAN</span>
+      </div>
+    </header>
+
+    <!-- Main Studio Grid -->
+    <div class="studio-grid">
+
+      <!-- LEFT: 3D Viewport & Cartesian Coordinate Inspector -->
+      <div class="studio-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>💠</span> <span id="uiViewportTitle">3D PARAMETRICKÝ VIEWPORT &amp; KARTEZIÁNSKA SÚSTAVA</span>
+          </div>
+          <span style="font-family:'JetBrains Mono'; font-size:12px; color:#00f0ff;" id="activeArchetypeLabel">OBELISK</span>
+        </div>
+
+        <!-- 3D Canvas -->
+        <div class="canvas-container" id="canvasContainer">
+          <canvas id="viewport3D"></canvas>
+          <div class="canvas-overlay-axis">
+            <div class="axis-pip">
+              <span class="axis-dot" style="background:#ef4444;"></span>
+              <span style="color:#ef4444;" id="uiAxisXLabel">+X: Doprava (Abscisa)</span>
+            </div>
+            <div class="axis-pip">
+              <span class="axis-dot" style="background:#22c55e;"></span>
+              <span style="color:#22c55e;" id="uiAxisYLabel">+Y: Dopredu (Ordináta)</span>
+            </div>
+            <div class="axis-pip">
+              <span class="axis-dot" style="background:#3b82f6;"></span>
+              <span style="color:#3b82f6;" id="uiAxisZLabel">+Z: Nahor (Blender Z-Up)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Template Selector & Creation -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <select id="templateSelector" class="form-select" style="flex:1;" onchange="loadTemplate()">
+            <option value="TACTICAL_OBELISK">Kryštálový Taktický Obelisk</option>
+            <option value="CITADEL_SPIRE">Kybernetická Citadela (Veža)</option>
+            <option value="BIOPHILIC_ORGANIC">Druidská Špirálová Svätyňa</option>
+            <option value="KINETIC_MECHANISM">Modulárne Ozubené Koleso</option>
+            <option value="ETHEREAL_CRYSTAL">Oktaedrický Klastr Aetheru</option>
+            <option value="TACTICAL_DRONE">Prieskumný Taktický Dron</option>
+          </select>
+          <button class="btn-action" onclick="createMorphedShape()">
+            <span>✨</span> <span id="btnCreateText">VYTVORIŤ TVAR</span>
+          </button>
+        </div>
+
+        <!-- Parametric Morph Sliders -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="slider-row">
+            <div class="slider-header">
+              <span id="uiSliderHeightLabel">Výška / Škála</span>
+              <span id="labelParamHeight">4.5</span>
+            </div>
+            <input type="range" id="sliderHeight" min="1.0" max="10.0" step="0.1" value="4.5" oninput="onParamChange()"/>
+          </div>
+          <div class="slider-row">
+            <div class="slider-header">
+              <span id="uiSliderRadiusLabel">Polomer / Radius</span>
+              <span id="labelParamRadius">1.2</span>
+            </div>
+            <input type="range" id="sliderRadius" min="0.4" max="4.0" step="0.05" value="1.2" oninput="onParamChange()"/>
+          </div>
+        </div>
+
+        <!-- Modifier Quick Buttons -->
+        <div style="display:flex; gap:8px;">
+          <button class="btn-action" style="flex:1; font-size:11px;" onclick="addModifier('BEVEL')">+ BEVEL</button>
+          <button class="btn-action" style="flex:1; font-size:11px;" onclick="addModifier('SOLIDIFY')">+ SOLIDIFY</button>
+          <button class="btn-action" style="flex:1; font-size:11px;" onclick="addModifier('ARRAY')">+ ARRAY</button>
+          <button class="btn-action" style="flex:1; font-size:11px;" onclick="addModifier('MIRROR')">+ MIRROR</button>
+        </div>
+
+        <!-- Cartesian Coordinate System Inspector -->
+        <div class="coord-inspector-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11px; font-weight:700; color:#00f0ff; text-transform:uppercase;" id="uiCoordInspectorTitle">
+              📐 DESCRIPTIVE MESH &amp; KARTEZIÁNSKA SÚSTAVA BLENDERU
+            </span>
+            <select id="coordSystemSelect" class="form-select" style="padding:4px 8px; font-size:11px;" onchange="onCoordSystemChange()">
+              <option value="BLENDER_Z_UP">Blender 4.x (Z-Up, Y-Forward, Metrické)</option>
+              <option value="OPENGL_WEBGL_Y_UP">WebGL / OpenGL (Y-Up, -Z-Forward)</option>
+              <option value="UNREAL_Z_UP_LH">Unreal Engine (Z-Up, X-Forward, LH)</option>
+              <option value="GODOT_Y_UP">Godot 3D (Y-Up, +Z-Back)</option>
+            </select>
+          </div>
+
+          <!-- Centroid & Bounds Metrics -->
+          <div class="coord-grid">
+            <div class="coord-box">
+              <span class="coord-box-label" id="uiCentroidLabel">Geometrické Ťažisko</span>
+              <span class="coord-box-value" id="valCentroid">[0.0, 0.0, 2.68]</span>
+            </div>
+            <div class="coord-box">
+              <span class="coord-box-label" id="uiDimsLabel">Rozmery (Š × H × V)</span>
+              <span class="coord-box-value" id="valDimensions">2.4 × 2.4 × 4.8</span>
+            </div>
+            <div class="coord-box">
+              <span class="coord-box-label" id="uiSphericalLabel">Sférické (r, θ, φ)</span>
+              <span class="coord-box-value" id="valSpherical">2.68 m, 0.0°, 0.0°</span>
+            </div>
+          </div>
+
+          <!-- 8 Octants Distribution -->
+          <div>
+            <span style="font-size:10.5px; font-weight:700; color:#94a3b8; text-transform:uppercase;" id="uiOctantsLabel">
+              Distribúcia Vrcholov v 8 Karteziánskych Oktantoch
+            </span>
+            <div class="octant-container" id="octantsContainer" style="margin-top:6px;"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- RIGHT: Economic Planning & Blender Script Generator -->
+      <div class="studio-card">
+        <div class="card-header">
+          <div class="card-title" style="color:#ffd700;">
+            <span>📊</span> <span id="uiEconomicTitle">EKONOMICKÝ PLÁNOVAČ &amp; BLENDER EXPORTER</span>
+          </div>
+          <span style="font-family:'JetBrains Mono'; font-size:12px; color:#ffd700;" id="activeLangTag">LANG: SK</span>
+        </div>
+
+        <!-- Economic Metrics -->
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label" id="uiLabelCrystal">Kryštály</span>
+            <span class="metric-value" id="valCrystalCost" style="color:#00f0ff;">--</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label" id="uiLabelMana">Mana Náklad</span>
+            <span class="metric-value" id="valManaCost" style="color:#bf5af2;">--</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label" id="uiLabelGold">Zlato</span>
+            <span class="metric-value" id="valGoldCost" style="color:#ffd700;">--</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label" id="uiLabelBuildTime">Výrobný Čas</span>
+            <span class="metric-value" id="valBuildTime">-- s</span>
+          </div>
+        </div>
+
+        <!-- Structural Health (Strict 6 HP Max Invariant) -->
+        <div style="background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase;" id="uiLabelStructuralHp">
+              Štrukturálna Odolnosť (VITAL 6 HP RULE)
+            </span>
+            <span style="font-family:'JetBrains Mono'; font-weight:bold; color:#ef4444;" id="valHpText">6 / 6 HP</span>
+          </div>
+          <div class="hp-bar-container" id="hpPipContainer">
+            <div class="hp-pip active"></div>
+            <div class="hp-pip active"></div>
+            <div class="hp-pip active"></div>
+            <div class="hp-pip active"></div>
+            <div class="hp-pip active"></div>
+            <div class="hp-pip active"></div>
+          </div>
+        </div>
+
+        <!-- Blender Script Exporter -->
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:8px;">
+            <span style="font-size:11px; font-weight:700; color:#ea580c; text-transform:uppercase;" id="uiLabelBlenderScript">
+              Blender 4.x Python Skript (bpy)
+            </span>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-blender" onclick="copyBlenderScript()">
+                <span>📋</span> <span id="btnCopyScriptText">KOPÍROVAŤ SKRIPT</span>
+              </button>
+              <button class="btn-action" style="padding:8px 12px; font-size:11px;" onclick="downloadObjMesh()">
+                <span>💾</span> <span id="btnDownloadObjText">OBJ SIEŤ</span>
+              </button>
+            </div>
+          </div>
+          <pre class="code-view" id="blenderScriptView">Načítavam Blender skript...</pre>
+        </div>
+
+        <!-- Registered Library Shape List -->
+        <div>
+          <span style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase;" id="uiLabelLibraryList">
+            Knižnica Inštancií Tvarov
+          </span>
+          <div id="shapeLibraryList" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; max-height:110px; overflow:auto;"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let currentLanguage = 'SK';
+    let currentShapeId = null;
+    let currentShapeData = null;
+    let currentCoordSystem = 'BLENDER_Z_UP';
+    let currentTranslations = {};
+
+    let rotX = 0.45;
+    let rotY = 0.65;
+    let isDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+
+    const canvas = document.getElementById('viewport3D');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Mouse drag rotation
+    const container = document.getElementById('canvasContainer');
+    container.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      rotY += dx * 0.01;
+      rotX += dy * 0.01;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    // 3D Rendering with Cartesian Coordinate Axes & Ground Grid
+    function render3D() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2 + 30;
+      const scale = 36;
+
+      if (!isDragging) {
+        rotY += 0.003; // Smooth auto rotation
+      }
+
+      // 1. Draw Ground Cartesian Grid (XY plane in Blender Z-Up)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let i = -4; i <= 4; i++) {
+        const p1 = project3D(i * 1.5, -4 * 1.5, 0, cx, cy, scale);
+        const p2 = project3D(i * 1.5, 4 * 1.5, 0, cx, cy, scale);
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+
+        const p3 = project3D(-4 * 1.5, i * 1.5, 0, cx, cy, scale);
+        const p4 = project3D(4 * 1.5, i * 1.5, 0, cx, cy, scale);
+        ctx.beginPath();
+        ctx.moveTo(p3.x, p3.y);
+        ctx.lineTo(p4.x, p4.y);
+        ctx.stroke();
+      }
+
+      // 2. Draw Cartesian Coordinate Axes from Origin (0,0,0)
+      const pOrigin = project3D(0, 0, 0, cx, cy, scale);
+
+      // +X Axis (Red)
+      const pX = project3D(3.5, 0, 0, cx, cy, scale);
+      drawArrow(pOrigin, pX, '#ef4444', 2.5, '+X');
+
+      // +Y Axis (Green)
+      const pY = project3D(0, 3.5, 0, cx, cy, scale);
+      drawArrow(pOrigin, pY, '#22c55e', 2.5, '+Y');
+
+      // +Z Axis (Blue - Blender Z-Up)
+      const pZ = project3D(0, 0, 3.5, cx, cy, scale);
+      drawArrow(pOrigin, pZ, '#3b82f6', 2.5, '+Z');
+
+      // Origin Dot
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(pOrigin.x, pOrigin.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3. Draw Shape Wireframe
+      const h = parseFloat(document.getElementById('sliderHeight').value) || 4.5;
+      const r = parseFloat(document.getElementById('sliderRadius').value) || 1.2;
+      const segs = 8;
+
+      const bVerts = [];
+      const tVerts = [];
+      for (let i = 0; i < segs; i++) {
+        const a = (Math.PI * 2 / segs) * i;
+        bVerts.push(project3D(r * Math.cos(a), r * Math.sin(a), 0, cx, cy, scale));
+        tVerts.push(project3D(r * 0.35 * Math.cos(a), r * 0.35 * Math.sin(a), h, cx, cy, scale));
+      }
+      const apex = project3D(0, 0, h + r * 0.35, cx, cy, scale);
+
+      // Bottom ring
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      for (let i = 0; i < segs; i++) {
+        const nxt = (i + 1) % segs;
+        ctx.moveTo(bVerts[i].x, bVerts[i].y);
+        ctx.lineTo(bVerts[nxt].x, bVerts[nxt].y);
+      }
+      ctx.stroke();
+
+      // Top ring
+      ctx.strokeStyle = '#ffd700';
+      ctx.beginPath();
+      for (let i = 0; i < segs; i++) {
+        const nxt = (i + 1) % segs;
+        ctx.moveTo(tVerts[i].x, tVerts[i].y);
+        ctx.lineTo(tVerts[nxt].x, tVerts[nxt].y);
+      }
+      ctx.stroke();
+
+      // Side pillars & Apex
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.75)';
+      ctx.beginPath();
+      for (let i = 0; i < segs; i++) {
+        ctx.moveTo(bVerts[i].x, bVerts[i].y);
+        ctx.lineTo(tVerts[i].x, tVerts[i].y);
+        ctx.lineTo(apex.x, apex.y);
+      }
+      ctx.stroke();
+
+      // Draw Centroid Indicator
+      if (currentShapeData && currentShapeData.coordinate_descriptor) {
+        const cent = currentShapeData.coordinate_descriptor.centroid;
+        const pCent = project3D(cent[0], cent[1], cent[2], cx, cy, scale);
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(pCent.x, pCent.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(render3D);
+    }
+    requestAnimationFrame(render3D);
+
+    function drawArrow(from, to, color, width, label) {
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+
+      // Label
+      ctx.font = 'bold 11px "JetBrains Mono"';
+      ctx.fillText(label, to.x + 6, to.y - 4);
+    }
+
+    function project3D(x, y, z, cx, cy, scale) {
+      // Rotation around Y
+      let x1 = x * Math.cos(rotY) + y * Math.sin(rotY);
+      let y1 = -x * Math.sin(rotY) + y * Math.cos(rotY);
+      let z1 = z;
+
+      // Rotation around X
+      let y2 = y1 * Math.cos(rotX) - z1 * Math.sin(rotX);
+      let z2 = y1 * Math.sin(rotX) + z1 * Math.cos(rotX);
+
+      // Isometric projection
+      return {
+        x: cx + x1 * scale,
+        y: cy - z2 * scale
+      };
+    }
+
+    // Language Switching
+    async function switchLanguage(lang) {
+      currentLanguage = lang;
+      ['SK', 'EN', 'CZ', 'DE'].forEach(l => {
+        const b = document.getElementById(`btnLang${l}`);
+        if (b) b.classList.toggle('active', l === lang);
+      });
+      document.getElementById('activeLangTag').textContent = `LANG: ${lang}`;
+
+      try {
+        const resp = await fetch('/api/shapes/language', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ language: lang })
+        });
+        const data = await resp.json();
+        if (data.translations) {
+          currentTranslations = data.translations;
+          applyTranslations(data.translations);
+        }
+      } catch (err) {
+        console.error("Lang error:", err);
+      }
+
+      fetchPlatformStatus();
+      if (currentShapeId) {
+        selectShape(currentShapeId);
+      }
+    }
+
+    function applyTranslations(t) {
+      if (!t) return;
+      if (t.platform_title) document.getElementById('uiTitle').textContent = t.platform_title.toUpperCase();
+      if (t.vital_hp_rule) document.getElementById('badgeVitalRule').textContent = t.vital_hp_rule.toUpperCase();
+      if (t.btn_create_shape) document.getElementById('btnCreateText').textContent = t.btn_create_shape.toUpperCase();
+      if (t.btn_copy_script) document.getElementById('btnCopyScriptText').textContent = t.btn_copy_script.toUpperCase();
+      if (t.btn_download_obj) document.getElementById('btnDownloadObjText').textContent = t.btn_download_obj.toUpperCase();
+
+      if (t.crystal_cost) document.getElementById('uiLabelCrystal').textContent = t.crystal_cost;
+      if (t.mana_cost) document.getElementById('uiLabelMana').textContent = t.mana_cost;
+      if (t.gold_cost) document.getElementById('uiLabelGold').textContent = t.gold_cost;
+      if (t.build_time) document.getElementById('uiLabelBuildTime').textContent = t.build_time;
+      if (t.structural_hp) document.getElementById('uiLabelStructuralHp').textContent = `${t.structural_hp} (VITAL 6 HP RULE)`;
+
+      if (t.centroid) document.getElementById('uiCentroidLabel').textContent = t.centroid;
+      if (t.dimensions) document.getElementById('uiDimsLabel').textContent = t.dimensions;
+      if (t.spherical_coords) document.getElementById('uiSphericalLabel').textContent = t.spherical_coords;
+      if (t.octants_distribution) document.getElementById('uiOctantsLabel').textContent = t.octants_distribution;
+
+      if (t.axis_x) document.getElementById('uiAxisXLabel').textContent = t.axis_x;
+      if (t.axis_y) document.getElementById('uiAxisYLabel').textContent = t.axis_y;
+      if (t.axis_z) document.getElementById('uiAxisZLabel').textContent = t.axis_z;
+    }
+
+    async function fetchPlatformStatus() {
+      try {
+        const resp = await fetch(`/api/shapes/status?lang=${currentLanguage}`);
+        const data = await resp.json();
+        document.getElementById('hudShapesBadge').textContent = `SHAPES: ${data.registered_shapes_count} REGISTERED`;
+        document.getElementById('hudValuationBadge').textContent = `VALUATION: ${data.total_crystal_valuation} CRYSTAL`;
+
+        renderShapeList(data.shapes || []);
+        if (data.shapes && data.shapes.length > 0 && !currentShapeId) {
+          selectShape(data.shapes[0].shape_id);
+        }
+      } catch (err) {
+        console.error("Status error:", err);
+      }
+    }
+
+    function renderShapeList(shapes) {
+      const listDiv = document.getElementById('shapeLibraryList');
+      listDiv.innerHTML = '';
+      shapes.forEach(s => {
+        const chip = document.createElement('div');
+        chip.style.cssText = 'background:rgba(0,0,0,0.5); border:1px solid #334155; border-radius:6px; padding:6px 10px; font-family:"JetBrains Mono"; font-size:11px; cursor:pointer; color:#38bdf8;';
+        chip.textContent = `${s.localized_name || s.name} (${s.economic_plan.structural_hp} HP)`;
+        chip.onclick = () => selectShape(s.shape_id);
+        listDiv.appendChild(chip);
+      });
+    }
+
+    async function selectShape(shapeId) {
+      currentShapeId = shapeId;
+      try {
+        const resp = await fetch(`/api/shapes/get?shape_id=${shapeId}&lang=${currentLanguage}`);
+        const data = await resp.json();
+        if (data.shape) {
+          currentShapeData = data.shape;
+          updateUI(data.shape);
+        }
+        fetchCoordinateAnalysis(shapeId);
+        fetchBlenderScript(shapeId);
+      } catch (err) {
+        console.error("Select error:", err);
+      }
+    }
+
+    async function fetchCoordinateAnalysis(shapeId) {
+      try {
+        const resp = await fetch(`/api/shapes/coordinates?shape_id=${shapeId}&system=${currentCoordSystem}&lang=${currentLanguage}`);
+        const data = await resp.json();
+        if (data.coordinates) {
+          renderCoordinates(data.coordinates);
+        }
+      } catch (err) {
+        console.error("Coordinate fetch error:", err);
+      }
+    }
+
+    function renderCoordinates(c) {
+      document.getElementById('valCentroid').textContent = `[${c.centroid[0].toFixed(2)}, ${c.centroid[1].toFixed(2)}, ${c.centroid[2].toFixed(2)}]`;
+      document.getElementById('valDimensions').textContent = `${c.dimensions.width_x.toFixed(1)} × ${c.dimensions.depth_y.toFixed(1)} × ${c.dimensions.height_z.toFixed(1)}`;
+      document.getElementById('valSpherical').textContent = `${c.spherical_centroid.radius_r.toFixed(2)} m, ${c.spherical_centroid.theta_deg.toFixed(1)}°, ${c.spherical_centroid.phi_deg.toFixed(1)}°`;
+
+      // Render 8 Octants
+      const octContainer = document.getElementById('octantsContainer');
+      octContainer.innerHTML = '';
+      for (let i = 1; i <= 8; i++) {
+        const key = `octant_${i}`;
+        const oct = c.octant_distribution[key] || { vertex_count: 0, percentage: 0, label: key };
+        const chip = document.createElement('div');
+        chip.className = 'octant-chip';
+        chip.innerHTML = `
+          <div class="octant-chip-label" title="${oct.label}">O${i}: ${oct.label}</div>
+          <div class="octant-chip-val">${oct.percentage}% (${oct.vertex_count})</div>
+          <div class="octant-bar">
+            <div class="octant-bar-fill" style="width: ${oct.percentage}%;"></div>
+          </div>
+        `;
+        octContainer.appendChild(chip);
+      }
+    }
+
+    async function onCoordSystemChange() {
+      currentCoordSystem = document.getElementById('coordSystemSelect').value;
+      if (currentShapeId) {
+        fetchCoordinateAnalysis(currentShapeId);
+      }
+    }
+
+    async function fetchBlenderScript(shapeId) {
+      try {
+        const resp = await fetch('/api/shapes/export-blender', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ shape_id: shapeId, lang: currentLanguage })
+        });
+        const res = await resp.json();
+        document.getElementById('blenderScriptView').textContent = res.blender_script || "Skript nie je dostupný.";
+      } catch (err) {
+        document.getElementById('blenderScriptView').textContent = "Chyba načítania skriptu.";
+      }
+    }
+
+    function updateUI(shape) {
+      const p = shape.parameters;
+      const plan = shape.economic_plan;
+
+      document.getElementById('activeArchetypeLabel').textContent = shape.localized_name || shape.archetype;
+      document.getElementById('templateSelector').value = shape.archetype;
+
+      if (p.height) document.getElementById('sliderHeight').value = p.height;
+      else if (p.scale) document.getElementById('sliderHeight').value = p.scale;
+      document.getElementById('labelParamHeight').textContent = document.getElementById('sliderHeight').value;
+
+      if (p.base_radius) document.getElementById('sliderRadius').value = p.base_radius;
+      else if (p.radius) document.getElementById('sliderRadius').value = p.radius;
+      document.getElementById('labelParamRadius').textContent = document.getElementById('sliderRadius').value;
+
+      // Economic HUD
+      document.getElementById('valCrystalCost').textContent = `${plan.crystal_cost}`;
+      document.getElementById('valManaCost').textContent = `${plan.mana_cost}`;
+      document.getElementById('valGoldCost').textContent = `${plan.gold_cost}`;
+      document.getElementById('valBuildTime').textContent = `${plan.build_time_seconds} s`;
+      document.getElementById('valHpText').textContent = `${plan.structural_hp} / ${plan.vital_max_hp_rule} HP`;
+
+      // Update HP pips (Strict 6 HP Rule)
+      const pipContainer = document.getElementById('hpPipContainer');
+      pipContainer.innerHTML = '';
+      for (let i = 1; i <= plan.vital_max_hp_rule; i++) {
+        const pip = document.createElement('div');
+        pip.className = `hp-pip ${i <= plan.structural_hp ? 'active' : ''}`;
+        pipContainer.appendChild(pip);
+      }
+    }
+
+    async function onParamChange() {
+      const h = parseFloat(document.getElementById('sliderHeight').value);
+      const r = parseFloat(document.getElementById('sliderRadius').value);
+      document.getElementById('labelParamHeight').textContent = h;
+      document.getElementById('labelParamRadius').textContent = r;
+
+      if (currentShapeId) {
+        try {
+          const resp = await fetch('/api/shapes/morph', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              shape_id: currentShapeId,
+              parameters: { height: h, base_radius: r, radius: r, scale: h }
+            })
+          });
+          const res = await resp.json();
+          if (res.shape) {
+            updateUI(res.shape);
+            fetchCoordinateAnalysis(currentShapeId);
+            fetchBlenderScript(currentShapeId);
+          }
+        } catch (err) {}
+      }
+    }
+
+    async function createMorphedShape() {
+      const arch = document.getElementById('templateSelector').value;
+      const h = parseFloat(document.getElementById('sliderHeight').value);
+      const r = parseFloat(document.getElementById('sliderRadius').value);
+
+      try {
+        const resp = await fetch('/api/shapes/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            archetype: arch,
+            parameters: { height: h, base_radius: r, radius: r, scale: h }
+          })
+        });
+        const res = await resp.json();
+        if (res.shape) {
+          selectShape(res.shape.shape_id);
+          fetchPlatformStatus();
+        }
+      } catch (err) {
+        alert("Chyba pri vytváraní tvaru: " + err.message);
+      }
+    }
+
+    async function addModifier(modType) {
+      if (!currentShapeId) return;
+      try {
+        const resp = await fetch('/api/shapes/command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            command: 'APPLY_MODIFIER',
+            shape_id: currentShapeId,
+            modifier: {
+              modifier_type: modType,
+              parameters: { width: 0.06, segments: 2, count: 2, thickness: 0.1 }
+            }
+          })
+        });
+        const res = await resp.json();
+        if (res.shape) {
+          updateUI(res.shape);
+          fetchCoordinateAnalysis(currentShapeId);
+          fetchBlenderScript(currentShapeId);
+        }
+      } catch (err) {
+        alert("Chyba aplikácie modifikátora: " + err.message);
+      }
+    }
+
+    function copyBlenderScript() {
+      const code = document.getElementById('blenderScriptView').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("Blender 4.x Python skript bol úspešne skopírovaný!");
+      });
+    }
+
+    async function downloadObjMesh() {
+      if (!currentShapeId) return;
+      try {
+        const resp = await fetch(`/api/shapes/get?shape_id=${currentShapeId}`);
+        const data = await resp.json();
+        // Trigger OBJ generation from server or synthesize
+        const blob = new Blob([document.getElementById('blenderScriptView').textContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${currentShapeId}_blender.py`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("Export error:", err);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchPlatformStatus();
+    });
+  </script>
+</body>
+</html>
