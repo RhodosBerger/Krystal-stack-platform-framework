@@ -1,6 +1,14 @@
 {
   "phase": "CrystalSec3_Phase5_3D_TrustedNativeExecution",
-  "timestamp": "2026-10-12T03:09:45Z",
+  "phase_status": {
+    "architecture": "IMPLEMENTED",
+    "native_trust_instrumentation": "IMPLEMENTED",
+    "isa_disassembly_evidence": "AVAILABLE",
+    "true_native_t1_execution": "NOT_YET_OBSERVED",
+    "true_t1_vs_t2_break_even": "UNRESOLVED",
+    "phase_5_3d_dod": "NOT_COMPLETE"
+  },
+  "timestamp": "2026-10-12T03:17:15Z",
   "cpu": {
     "model": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
     "architecture": "AMD64",
@@ -8,12 +16,12 @@
     "affinity_mask": "0xff",
     "priority_class": "0x20",
     "effective_frequency_mhz": 2419,
-    "load_percentage": 88,
-    "thermal_state": "THERMALLY_CONSTRAINED"
+    "load_percentage": 52,
+    "thermal_state": "STEADY"
   },
   "security_policy": {
-    "umci_active": false,
-    "policy_classification": "UNKNOWN",
+    "umci_active": true,
+    "policy_classification": "UMCI_ENFORCED",
     "binary_execution_trusted": false
   },
   "native_binary": {
@@ -24,7 +32,8 @@
     "sha256": "",
     "authenticode_status": "FILE_NOT_FOUND",
     "loader_error_code": 126,
-    "code_integrity_load_outcome": "FILE_NOT_FOUND"
+    "code_integrity_load_outcome": "FILE_NOT_FOUND",
+    "diagnostic_note": "OBSERVED: File not found at 'C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll' (WinError 126). HYPOTHESIS: Build toolchain not present on host. UNKNOWN: Actual Code Integrity load verdict cannot be evaluated on non-existent binary."
   },
   "isa": {
     "avx2": {
@@ -55,7 +64,7 @@
   },
   "native_execution": {
     "measured": false,
-    "reason": "DLL load blocked by Windows UMCI policy without Authenticode trust",
+    "reason": "OBSERVED: File not found at 'C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\src\\c\\taxonomy_simd.dll' (loader error 126). HYPOTHESIS: Build toolchain not present on host. UNKNOWN: Code Integrity verdict cannot be evaluated until binary is present.",
     "symbols_executed": []
   },
   "cross_tier": {
@@ -64,24 +73,26 @@
       "INT8_DOT_PRODUCT_T0_vs_T2": {
         "workload_class": "INT8_DOT_PRODUCT",
         "kernel_break_even": 4096,
-        "end_to_end_break_even": 4096,
+        "end_to_end_break_even": 8192,
         "confidence": 0.95,
         "supporting_sizes": [
           16384,
           32768,
           65536
         ],
-        "reason": "Kernel crossover at N*=4096 (sustained across [16384, 32768, 65536]); E2E crossover at N*=4096 (sustained across [16384, 32768, 65536])",
-        "role": "REFERENCE_ORACLE_CALIBRATION_ONLY"
+        "reason": "Kernel crossover at N*=4096 (sustained across [16384, 32768, 65536]); E2E crossover at N*=8192 (sustained across [32768, 65536])",
+        "role": "REFERENCE_ORACLE_CALIBRATION_ONLY",
+        "epistemic_warning": "CPython reference vs Vulkan GPU only. NOT Phase 5.3D true CPU/GPU break-even."
       },
       "INT8_DOT_PRODUCT_T1_vs_T2": {
         "workload_class": "INT8_DOT_PRODUCT",
+        "role": "TRUE_NATIVE_SIMD_BREAK_EVEN",
+        "status": "UNRESOLVED",
         "kernel_break_even": null,
         "end_to_end_break_even": null,
         "confidence": 0.0,
         "supporting_sizes": [],
-        "reason": "T1 native SIMD execution unavailable under active Windows security policy; break-even unresolved",
-        "role": "TRUE_NATIVE_SIMD_BREAK_EVEN"
+        "reason": "T1 native SIMD execution not yet observed on physical CPU silicon; break-even is UNRESOLVED."
       },
       "FP32_VECTOR_MATH_T0_vs_T2": {
         "workload_class": "FP32_VECTOR_MATH",
@@ -95,16 +106,18 @@
           65536
         ],
         "reason": "Kernel crossover at N*=2048 (sustained across [8192, 16384, 32768, 65536]); E2E crossover at N*=4096 (sustained across [16384, 32768, 65536])",
-        "role": "REFERENCE_ORACLE_CALIBRATION_ONLY"
+        "role": "REFERENCE_ORACLE_CALIBRATION_ONLY",
+        "epistemic_warning": "CPython reference vs Vulkan GPU only. NOT Phase 5.3D true CPU/GPU break-even."
       },
       "FP32_VECTOR_MATH_T1_vs_T2": {
         "workload_class": "FP32_VECTOR_MATH",
+        "role": "TRUE_NATIVE_SIMD_BREAK_EVEN",
+        "status": "UNRESOLVED",
         "kernel_break_even": null,
         "end_to_end_break_even": null,
         "confidence": 0.0,
         "supporting_sizes": [],
-        "reason": "T1 native SIMD execution unavailable under active Windows security policy; break-even unresolved",
-        "role": "TRUE_NATIVE_SIMD_BREAK_EVEN"
+        "reason": "T1 native SIMD execution not yet observed on physical CPU silicon; break-even is UNRESOLVED."
       },
       "MEMORY_BOUND_STREAM_T0_vs_T2": {
         "workload_class": "MEMORY_BOUND_STREAM",
@@ -115,76 +128,72 @@
           65536
         ],
         "reason": "Kernel crossover at N*=16384 (sustained across [65536]); E2E crossover UNRESOLVED (less than 3 consecutive sizes exceeding noise)",
-        "role": "REFERENCE_ORACLE_CALIBRATION_ONLY"
+        "role": "REFERENCE_ORACLE_CALIBRATION_ONLY",
+        "epistemic_warning": "CPython reference vs Vulkan GPU only. NOT Phase 5.3D true CPU/GPU break-even."
       },
       "MEMORY_BOUND_STREAM_T1_vs_T2": {
         "workload_class": "MEMORY_BOUND_STREAM",
+        "role": "TRUE_NATIVE_SIMD_BREAK_EVEN",
+        "status": "UNRESOLVED",
         "kernel_break_even": null,
         "end_to_end_break_even": null,
         "confidence": 0.0,
         "supporting_sizes": [],
-        "reason": "T1 native SIMD execution unavailable under active Windows security policy; break-even unresolved",
-        "role": "TRUE_NATIVE_SIMD_BREAK_EVEN"
+        "reason": "T1 native SIMD execution not yet observed on physical CPU silicon; break-even is UNRESOLVED."
       },
       "BRANCH_HEAVY_CONTROL_T0_vs_T2": {
         "workload_class": "BRANCH_HEAVY_CONTROL",
-        "kernel_break_even": 1024,
-        "end_to_end_break_even": 1024,
+        "kernel_break_even": 2048,
+        "end_to_end_break_even": 2048,
         "confidence": 0.95,
         "supporting_sizes": [
-          4096,
           8192,
           16384,
           32768,
           65536
         ],
-        "reason": "Kernel crossover at N*=1024 (sustained across [4096, 8192, 16384, 32768, 65536]); E2E crossover at N*=1024 (sustained across [4096, 8192, 16384, 32768, 65536])",
-        "role": "REFERENCE_ORACLE_CALIBRATION_ONLY"
+        "reason": "Kernel crossover at N*=2048 (sustained across [8192, 16384, 32768, 65536]); E2E crossover at N*=2048 (sustained across [8192, 16384, 32768, 65536])",
+        "role": "REFERENCE_ORACLE_CALIBRATION_ONLY",
+        "epistemic_warning": "CPython reference vs Vulkan GPU only. NOT Phase 5.3D true CPU/GPU break-even."
       },
       "BRANCH_HEAVY_CONTROL_T1_vs_T2": {
         "workload_class": "BRANCH_HEAVY_CONTROL",
+        "role": "TRUE_NATIVE_SIMD_BREAK_EVEN",
+        "status": "UNRESOLVED",
         "kernel_break_even": null,
         "end_to_end_break_even": null,
         "confidence": 0.0,
         "supporting_sizes": [],
-        "reason": "T1 native SIMD execution unavailable under active Windows security policy; break-even unresolved",
-        "role": "TRUE_NATIVE_SIMD_BREAK_EVEN"
+        "reason": "T1 native SIMD execution not yet observed on physical CPU silicon; break-even is UNRESOLVED."
       },
       "MIXED_COMPUTE_MEMORY_T0_vs_T2": {
         "workload_class": "MIXED_COMPUTE_MEMORY",
-        "kernel_break_even": 2048,
-        "end_to_end_break_even": 4096,
+        "kernel_break_even": 4096,
+        "end_to_end_break_even": 8192,
         "confidence": 0.95,
         "supporting_sizes": [
-          8192,
           16384,
           32768,
           65536
         ],
-        "reason": "Kernel crossover at N*=2048 (sustained across [8192, 16384, 32768, 65536]); E2E crossover at N*=4096 (sustained across [16384, 32768, 65536])",
-        "role": "REFERENCE_ORACLE_CALIBRATION_ONLY"
+        "reason": "Kernel crossover at N*=4096 (sustained across [16384, 32768, 65536]); E2E crossover at N*=8192 (sustained across [32768, 65536])",
+        "role": "REFERENCE_ORACLE_CALIBRATION_ONLY",
+        "epistemic_warning": "CPython reference vs Vulkan GPU only. NOT Phase 5.3D true CPU/GPU break-even."
       },
       "MIXED_COMPUTE_MEMORY_T1_vs_T2": {
         "workload_class": "MIXED_COMPUTE_MEMORY",
+        "role": "TRUE_NATIVE_SIMD_BREAK_EVEN",
+        "status": "UNRESOLVED",
         "kernel_break_even": null,
         "end_to_end_break_even": null,
         "confidence": 0.0,
         "supporting_sizes": [],
-        "reason": "T1 native SIMD execution unavailable under active Windows security policy; break-even unresolved",
-        "role": "TRUE_NATIVE_SIMD_BREAK_EVEN"
+        "reason": "T1 native SIMD execution not yet observed on physical CPU silicon; break-even is UNRESOLVED."
       }
     }
   },
   "evidence_levels": [
     "CAPABILITY_DETECTED",
-    "SOURCE_IMPLEMENTED",
-    "BINARY_BUILT",
-    "BINARY_PROVENANCE_VERIFIED",
-    "BINARY_TRUST_ACCEPTED",
-    "NATIVE_LIBRARY_LOADED",
-    "NATIVE_SYMBOL_EXECUTED",
-    "ISA_PATH_CONFIRMED",
-    "NATIVE_SIMD_EXECUTION_MEASURED",
-    "STATISTICALLY_REPEATED"
+    "SOURCE_IMPLEMENTED"
   ]
 }

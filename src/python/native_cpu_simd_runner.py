@@ -64,6 +64,75 @@ class EvidenceStage(str, Enum):
     STATISTICALLY_REPEATED = "STATISTICALLY_REPEATED"
 
 
+def derive_evidence_levels(
+    capabilities_detected: bool,
+    source_implemented: bool,
+    binary_built: bool,
+    provenance_verified: bool,
+    trust_accepted: bool,
+    library_loaded: bool,
+    symbol_executed: bool,
+    isa_confirmed: bool,
+    native_simd_measured: bool,
+    statistically_repeated: bool,
+) -> List[str]:
+    """Derives exact reached evidence levels strictly from observed terminal state.
+    
+    Rule: evidence_levels = derive_from_observed_state()
+    Never returns unreached stages.
+    """
+    levels = []
+    if capabilities_detected:
+        levels.append(EvidenceStage.CAPABILITY_DETECTED.value)
+    else:
+        return levels
+
+    if source_implemented:
+        levels.append(EvidenceStage.SOURCE_IMPLEMENTED.value)
+    else:
+        return levels
+
+    if binary_built:
+        levels.append(EvidenceStage.BINARY_BUILT.value)
+    else:
+        return levels
+
+    if provenance_verified:
+        levels.append(EvidenceStage.BINARY_PROVENANCE_VERIFIED.value)
+    else:
+        return levels
+
+    if trust_accepted:
+        levels.append(EvidenceStage.BINARY_TRUST_ACCEPTED.value)
+    else:
+        return levels
+
+    if library_loaded:
+        levels.append(EvidenceStage.NATIVE_LIBRARY_LOADED.value)
+    else:
+        return levels
+
+    if symbol_executed:
+        levels.append(EvidenceStage.NATIVE_SYMBOL_EXECUTED.value)
+    else:
+        return levels
+
+    if isa_confirmed:
+        levels.append(EvidenceStage.ISA_PATH_CONFIRMED.value)
+    else:
+        return levels
+
+    if native_simd_measured:
+        levels.append(EvidenceStage.NATIVE_SIMD_EXECUTION_MEASURED.value)
+    else:
+        return levels
+
+    if statistically_repeated:
+        levels.append(EvidenceStage.STATISTICALLY_REPEATED.value)
+
+    return levels
+
+
 class EvidenceLabel(str, Enum):
     HOST_CPU_REFERENCE = "HOST_CPU_REFERENCE"
     NATIVE_SCALAR_MEASURED = "NATIVE_SCALAR_MEASURED"
@@ -473,6 +542,31 @@ class NativeCpuSimdRunner:
     @property
     def last_execution_record(self) -> Optional[NativeExecutionRecord]:
         return self._last_execution_record
+
+    def get_reached_evidence_levels(self, statistically_repeated: bool = False) -> List[str]:
+        """Derives reached evidence stages strictly based on actual observed state."""
+        tr = self.trust_report
+        c_source_exists = os.path.exists(os.path.join(_ROOT, "src", "c", "taxonomy_simd.c"))
+        bin_built = os.path.exists(self.dll_path)
+        prov_ok = bool(tr and tr.provenance_verified)
+        trust_ok = bool(tr and tr.execution_trusted)
+        lib_loaded = self.available() and (self._module_handle is not None)
+        sym_exec = self._last_execution_record is not None
+        isa_conf = os.path.exists(os.path.join(_ROOT, "artifacts", "taxonomy_simd_disassembly.txt")) and sym_exec
+        native_meas = sym_exec and (self._last_execution_record.cpu_native_ns > 0)
+
+        return derive_evidence_levels(
+            capabilities_detected=bool(self.capabilities.avx2 or self.capabilities.sse42),
+            source_implemented=c_source_exists,
+            binary_built=bin_built,
+            provenance_verified=prov_ok,
+            trust_accepted=trust_ok,
+            library_loaded=lib_loaded,
+            symbol_executed=sym_exec,
+            isa_confirmed=isa_conf,
+            native_simd_measured=native_meas,
+            statistically_repeated=statistically_repeated and native_meas,
+        )
 
     def run(
         self,

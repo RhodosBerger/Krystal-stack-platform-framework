@@ -2,8 +2,9 @@
 
 **Classification**: Architecture, Binary Trust, Microarchitecture & Empirical Benchmarking  
 **Platform**: Windows 11 x86_64 (AMD64) | Intel Core i5-1135G7 (Willow Cove) | Intel Iris Xe Graphics (96 EUs)  
-**Security Context**: Windows Device Guard / User Mode Code Integrity (UMCI Enforced)  
-**Status**: Authoritative Milestone Research Document  
+**Security Context**: Windows Device Guard / User Mode Code Integrity (UMCI Enforced, Status 2)  
+**Status**: Architecture & Instrumentation Implemented | Evidence Closure Pass In Progress  
+**Phase 5.3D Definition of Done**: **NOT COMPLETE** (Native T1 Execution Not Yet Observed on Physical Silicon)  
 **Date**: October 2026  
 
 ---
@@ -20,7 +21,8 @@ Under this axiom:
 1. Having an AVX2 or VNNI flag in CPUID does **not** prove vector instructions were executed.
 2. Having a valid source hash in a manifest does **not** prove Windows kernel code integrity accepts the binary.
 3. Interpreted Python execution cannot serve as a performance proxy for native CPU SIMD ($T_1$).
-4. Break-even points ($N^*_{\text{kernel}}$, $N^*_{\text{e2e}}$) must be derived from **physically measured native execution**, or honestly classified as `UNRESOLVED` if execution is blocked by host security policies.
+4. Break-even points ($N^*_{\text{kernel}}$, $N^*_{\text{e2e}}$) must be derived from **physically measured native execution**, or honestly classified as `UNRESOLVED` if execution is blocked by host security policies or missing binaries.
+5. Evidence levels must be dynamically derived from the actual observed terminal state (`evidence_levels = derive_from_observed_state()`), never emitted as a static predetermined list.
 
 ---
 
@@ -307,29 +309,32 @@ The 11 benchmarked sizes correspond to specific physical CPU cache boundaries:
 | 65536 | 39.1284 | 0.5265 | 7.4072 | GPU Wins ($74.32\times$) |
 
 - **Branch Entropy Sensitivity Analysis ($N=32768$)**:
-  - **LOW Entropy** (90% even, highly predictable): $\text{T0} = 29.05\text{ ms}$, $\text{T2\_GPU} = 0.4023\text{ ms}$.
-  - **MEDIUM Entropy** (moderate bit variation): $\text{T0} = 18.73\text{ ms}$, $\text{T2\_GPU} = 0.6259\text{ ms}$.
-  - **HIGH Entropy** (pseudorandom bit patterns): $\text{T0} = 22.16\text{ ms}$, $\text{T2\_GPU} = 0.4190\text{ ms}$.
-- **Finding**: On Intel Iris Xe, compute shader EU SIMD lanes execute branch divergence with minimal warp serialization overhead when total workgroup size exceeds EU thread dispatch granularity.
+  - **LOW Entropy** (90% even, highly predictable): $\text{T0} = 9.54\text{ ms}$, $\text{T2\_GPU} = 0.3634\text{ ms}$.
+  - **MEDIUM Entropy** (moderate bit variation): $\text{T0} = 10.43\text{ ms}$, $\text{T2\_GPU} = 0.3836\text{ ms}$.
+  - **HIGH Entropy** (pseudorandom bit patterns): $\text{T0} = 13.07\text{ ms}$, $\text{T2\_GPU} = 0.4291\text{ ms}$.
+- **Crucial Epistemic Note on Branch Divergence**: It is tempting to infer from the T0 vs T2 ratio that GPU warp divergence is negligible on Iris Xe. However, this inference is methodologically invalid: CPython interpreter overhead (bytecode dispatch, boxing, pointer chasing) completely dominates T0 execution time ($9\dots 23\text{ ms}$). To isolate the true hardware cost of warp divergence vs CPU branch predictor performance, the comparison must be conducted against direct native CPU SIMD execution (`T1_BRANCH_CONTROL`). Until native T1 execution is measured on physical CPU silicon, GPU divergence sensitivity remains an open empirical question.
 
 ---
 
 ## 8. Summary of Break-Even Calibrations
 
 ```
-====================================================================================================
-Workload Taxonomy Class    N*_kernel (T0 vs T2)    N*_e2e (T0 vs T2)     N* (T1 Native vs T2)
-====================================================================================================
-INT8_DOT_PRODUCT           4096 (conf: 0.95)       4096 (conf: 0.95)     UNRESOLVED (UMCI Blocked)
-FP32_VECTOR_MATH           2048 (conf: 0.95)       4096 (conf: 0.95)     UNRESOLVED (UMCI Blocked)
-MEMORY_BOUND_STREAM        16384 (conf: 0.70)      UNRESOLVED (UMA)      UNRESOLVED (UMCI Blocked)
-BRANCH_HEAVY_CONTROL       1024 (conf: 0.95)       1024 (conf: 0.95)     UNRESOLVED (UMCI Blocked)
-MIXED_COMPUTE_MEMORY       2048 (conf: 0.95)       4096 (conf: 0.95)     UNRESOLVED (UMCI Blocked)
-====================================================================================================
+===================================================================================================================
+Workload Taxonomy Class    N*_kernel (T0 Ref vs T2 GPU)    N*_e2e (T0 Ref vs T2 GPU)    True N* (T1 Native vs T2 GPU)
+===================================================================================================================
+INT8_DOT_PRODUCT           4096 (conf: 0.95)               8192 (conf: 0.95)             UNRESOLVED (Not Yet Observed)
+FP32_VECTOR_MATH           2048 (conf: 0.95)               4096 (conf: 0.95)             UNRESOLVED (Not Yet Observed)
+MEMORY_BOUND_STREAM        16384 (conf: 0.70)              UNRESOLVED (UMA Dominated)    UNRESOLVED (Not Yet Observed)
+BRANCH_HEAVY_CONTROL       2048 (conf: 0.95)               2048 (conf: 0.95)             UNRESOLVED (Not Yet Observed)
+MIXED_COMPUTE_MEMORY       4096 (conf: 0.95)               8192 (conf: 0.95)             UNRESOLVED (Not Yet Observed)
+===================================================================================================================
 ```
 
+> [!WARNING]
+> **EPISTEMIC BOUNDARY**: The columns `N*_kernel (T0 Ref vs T2 GPU)` and `N*_e2e (T0 Ref vs T2 GPU)` represent **CPython Reference vs Vulkan GPU** calibration only. They do NOT constitute Phase 5.3D true CPU/GPU break-even. True native break-even (`True N* (T1 Native vs T2 GPU)`) is strictly **UNRESOLVED** until the native DLL is compiled, verified, and executed live on host CPU silicon.
+
 ### Persistent Crossing Rule Compliance
-In all resolved categories, break-even satisfied both mandatory criteria:
+In all resolved reference categories, break-even satisfied both mandatory criteria:
 1. **Persistent Advantage**: The GPU maintained superior performance for $\ge 3$ consecutive increasing sizes.
 2. **Noise Floor Immunity**: The difference $|T_{\text{CPU}} - T_{\text{GPU}}|$ exceeded the estimated noise floor ($0.005\text{ ms}$) and exceeded the 5% margin ($> 0.05 \cdot T_{\text{CPU}}$).
 
@@ -337,7 +342,7 @@ In all resolved categories, break-even satisfied both mandatory criteria:
 
 ## 9. Verification & Regression Matrix
 
-Phase 5.3D was validated against a 20-point authoritative test suite in [`tests/test_crystalsec_v3_native_cpu_trust.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_crystalsec_v3_native_cpu_trust.py):
+Phase 5.3D was validated against a 21-point authoritative test suite in [`tests/test_crystalsec_v3_native_cpu_trust.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_crystalsec_v3_native_cpu_trust.py):
 
 | Test Case | Scope | Outcome | Epistemic Rationale |
 |---|---|---|---|
@@ -361,19 +366,31 @@ Phase 5.3D was validated against a 20-point authoritative test suite in [`tests/
 | `test_break_even_uses_native_t1_not_t0` | Logic | **PASSED** | Rejects `HOST_CPU_REFERENCE` for break-even claim |
 | `test_break_even_requires_three_persistent_sizes`| Logic | **PASSED** | Requires 3 consecutive sizes to declare crossover |
 | `test_noise_dominated_crossing_is_rejected` | Logic | **PASSED** | Rejects differences within timer noise window |
+| `test_evidence_levels_derived_from_observed_state` | Evidence | **PASSED** | Derives evidence_levels dynamically from terminal state |
 
-**Full Suite Regression**: **187 passed / 14 honestly skipped / 0 failed** across all `test_crystalsec*.py` suites.
+**Full Suite Regression**: **174 executed/passed, 14 honestly skipped, 188 total discovered/run** across all `test_crystalsec*.py` suites.
 
 ---
 
-## 10. Conclusion & Architectural Handoff to Phase 6
+## 10. Status, Definition of Done & Evidence Closure Path
 
-Phase 5.3D achieves a milestone in engineering rigor:
-1. **Windows Code Integrity**: Fully preserved. No security bypasses, RWX JIT tricks, or loader tampering were introduced.
-2. **Epistemic Honesty**: Physical GPU numbers are separated from reference Python numbers, and native CPU SIMD status is accurately reported based on Windows security acceptance.
-3. **Canonical Contract**: Pure dot-product accumulation ($acc = \sum \text{uint8}(a) \cdot \text{int8}(b)$) is standardized across C, Python, and SPIR-V.
-4. **Placement Heuristics**: Phase 6 scheduler and predictive routing components can now consume empirical break-even points:
+### Phase 5.3D Status Classification
+- **Phase 5.3D Architecture**: `IMPLEMENTED`
+- **Native Trust Instrumentation**: `IMPLEMENTED`
+- **ISA Disassembly Evidence**: `AVAILABLE`
+- **Dynamic Evidence State Machine**: `IMPLEMENTED` (`evidence_levels = derive_from_observed_state()`)
+- **True Native T1 Execution**: `NOT YET OBSERVED` (Physical DLL not yet compiled/loaded on this host)
+- **True T1 vs T2 Break-Even**: `UNRESOLVED`
+- **Phase 5.3D Definition of Done**: **NOT COMPLETE**
 
-$$N^*(W, S)$$
+### Evidence Closure Pass Requirements:
+1. Locate or compile exact PE-COFF x86_64 DLL (`taxonomy_simd.dll`) using an authorized toolchain.
+2. Verify SHA-256 against `artifacts/taxonomy_simd_manifest.json`.
+3. Verify dependent DLLs (`kernel32.dll`, `msvcrt.dll` or UCRT).
+4. Run `NativeBinaryTrustInspector.inspect(...)` to obtain Windows Code Integrity verdict for the image.
+5. Confirm `LoadLibraryExW` succeeds without security policy violation.
+6. Explicitly resolve and execute native symbols (`taxonomy_int8_dot_avx2`, `taxonomy_int8_dot_vnni`, `taxonomy_fp32_poly_avx2`).
+7. Record physical `NativeExecutionRecord` instances with QPC hardware timing.
+8. Perform same-session T1 vs T2 sweep to measure empirical $N^*(W, S)$ crossover points.
+9. Regenerate reports where `evidence_levels` dynamically reaches `NATIVE_SIMD_EXECUTION_MEASURED` and `STATISTICALLY_REPEATED`.
 
-where $W \in \{\text{INT8}, \text{FP32}, \text{STREAM}, \text{BRANCH}, \text{MIXED}\}$ and $S$ reflects system thermal and UMA residency states.

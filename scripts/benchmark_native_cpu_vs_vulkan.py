@@ -410,7 +410,7 @@ def run_phase_5_3d_calibration(
             t2_e_med = t2_e2e_medians[-1] if t2_e2e_medians else -1.0
             print(f"  N={sz:6d} [{residency[:11]:11s}] | T0_ref={t0_med:8.4f} ms | T2_gpu_k={t2_k_med:8.4f} ms | T2_gpu_e2e={t2_e_med:8.4f} ms")
 
-        # Break-Even Analysis: T1 vs T2 (if T1 available) and T0 vs T2 (reference only)
+        # Break-Even Analysis: T1 vs T2 (true native break-even) and T0 vs T2 (reference oracle only)
         if gpu.available():
             # T0 vs T2 Reference Crossover
             est_t0 = calculate_persistent_break_even(
@@ -418,6 +418,7 @@ def run_phase_5_3d_calibration(
             )
             t0_dict = est_t0.to_dict()
             t0_dict["role"] = "REFERENCE_ORACLE_CALIBRATION_ONLY"
+            t0_dict["epistemic_warning"] = "CPython reference vs Vulkan GPU only. NOT Phase 5.3D true CPU/GPU break-even."
             break_even_summary[f"{wc_name}_T0_vs_T2"] = t0_dict
 
             # T1 vs T2 True Native Break-Even
@@ -427,16 +428,18 @@ def run_phase_5_3d_calibration(
                 )
                 t1_dict = est_t1.to_dict()
                 t1_dict["role"] = "TRUE_NATIVE_SIMD_BREAK_EVEN"
+                t1_dict["status"] = "RESOLVED"
                 break_even_summary[f"{wc_name}_T1_vs_T2"] = t1_dict
             else:
                 break_even_summary[f"{wc_name}_T1_vs_T2"] = {
                     "workload_class": wc_name,
+                    "role": "TRUE_NATIVE_SIMD_BREAK_EVEN",
+                    "status": "UNRESOLVED",
                     "kernel_break_even": None,
                     "end_to_end_break_even": None,
                     "confidence": 0.0,
                     "supporting_sizes": [],
-                    "reason": "T1 native SIMD execution unavailable under active Windows security policy; break-even unresolved",
-                    "role": "TRUE_NATIVE_SIMD_BREAK_EVEN",
+                    "reason": "T1 native SIMD execution not yet observed on physical CPU silicon; break-even is UNRESOLVED.",
                 }
 
     # Branch Entropy Dimension Analysis for BRANCH_HEAVY_CONTROL
@@ -461,12 +464,58 @@ def run_phase_5_3d_calibration(
             "sizes": ent_sizes,
             "t0_medians_ms": [round(x, 4) for x in t0_ent_meds],
             "t2_gpu_medians_ms": [round(x, 4) for x in t2_ent_meds],
+            "epistemic_note": "T0 CPython interpreter overhead dominates; GPU branch divergence cost cannot be isolated until native T1 is measured.",
         }
         print(f"  Entropy {entropy_level:6s} -> T0={t0_ent_meds[-1]:.4f} ms, T2_gpu={t2_ent_meds[-1]:.4f} ms (N=32768)")
+
+    # Determine execution reason and status
+    trust_report = cpu_runner.trust_report
+    if cpu_runner.available():
+        exec_reason = "Physical execution active on CPU silicon"
+        exec_measured = True
+        symbols_executed = [
+            "taxonomy_noop",
+            "taxonomy_set_test_delay_ns",
+            "taxonomy_int8_dot",
+            "taxonomy_fp32_poly",
+            "taxonomy_memory_stream",
+            "taxonomy_branch_control",
+            "taxonomy_mixed_native",
+        ]
+    else:
+        exec_measured = False
+        symbols_executed = []
+        if not os.path.exists(cpu_runner.dll_path):
+            exec_reason = (
+                f"OBSERVED: File not found at '{cpu_runner.dll_path}' (loader error 126). "
+                "HYPOTHESIS: Build toolchain not present on host. "
+                "UNKNOWN: Code Integrity verdict cannot be evaluated until binary is present."
+            )
+        elif trust_report.loader_error_code == 4551:
+            exec_reason = (
+                "BLOCKED_BY_UMCI_POLICY: DLL load rejected by Windows Code Integrity / UMCI "
+                "(WinError 4551 / ERROR_IMAGE_INTEGRITY_VIOLATION)."
+            )
+        else:
+            exec_reason = (
+                f"LOAD_FAILED: DLL load failed with error {trust_report.loader_error_code} "
+                f"({trust_report.code_integrity_load_outcome})."
+            )
+
+    # Derive reached evidence levels dynamically strictly from observed state
+    reached_evidence_levels = cpu_runner.get_reached_evidence_levels(statistically_repeated=False)
 
     # Produce Artifact 1: CRYSTALSEC_V3_TRUE_CPU_GPU_BREAK_EVEN.json
     break_even_artifact = {
         "phase": "CrystalSec3_Phase5_3D_TrueBreakEvenCalibration",
+        "phase_status": {
+            "architecture": "IMPLEMENTED",
+            "native_trust_instrumentation": "IMPLEMENTED",
+            "isa_disassembly_evidence": "AVAILABLE",
+            "true_native_t1_execution": "NOT_YET_OBSERVED",
+            "true_t1_vs_t2_break_even": "UNRESOLVED",
+            "phase_5_3d_dod": "NOT_COMPLETE",
+        },
         "benchmark_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "host_cpu": cpu_state,
         "vulkan_gpu": {
@@ -496,9 +545,16 @@ def run_phase_5_3d_calibration(
         json.dump(break_even_artifact, f, indent=2)
 
     # Produce Artifact 2: CRYSTALSEC_V3_NATIVE_EXECUTION_TRUST.json (Section 40 Report Schema)
-    trust_report = cpu_runner.trust_report
     trust_artifact = {
         "phase": "CrystalSec3_Phase5_3D_TrustedNativeExecution",
+        "phase_status": {
+            "architecture": "IMPLEMENTED",
+            "native_trust_instrumentation": "IMPLEMENTED",
+            "isa_disassembly_evidence": "AVAILABLE",
+            "true_native_t1_execution": "NOT_YET_OBSERVED",
+            "true_t1_vs_t2_break_even": "UNRESOLVED",
+            "phase_5_3d_dod": "NOT_COMPLETE",
+        },
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "cpu": cpu_state,
         "security_policy": {
@@ -515,6 +571,7 @@ def run_phase_5_3d_calibration(
             "authenticode_status": trust_report.authenticode_status,
             "loader_error_code": trust_report.loader_error_code,
             "code_integrity_load_outcome": trust_report.code_integrity_load_outcome,
+            "diagnostic_note": trust_report.diagnostic_note,
         },
         "isa": {
             "avx2": {
@@ -534,23 +591,15 @@ def run_phase_5_3d_calibration(
             },
         },
         "native_execution": {
-            "measured": cpu_runner.available(),
-            "reason": "DLL load blocked by Windows UMCI policy without Authenticode trust" if not cpu_runner.available() else "Physical execution active",
-            "symbols_executed": [
-                "taxonomy_noop",
-                "taxonomy_set_test_delay_ns",
-                "taxonomy_int8_dot",
-                "taxonomy_fp32_poly",
-                "taxonomy_memory_stream",
-                "taxonomy_branch_control",
-                "taxonomy_mixed_native",
-            ] if cpu_runner.available() else [],
+            "measured": exec_measured,
+            "reason": exec_reason,
+            "symbols_executed": symbols_executed,
         },
         "cross_tier": {
             "same_session": True,
             "break_even": break_even_summary,
         },
-        "evidence_levels": [stage.value for stage in EvidenceStage],
+        "evidence_levels": reached_evidence_levels,
     }
 
     with open(_OUT_TRUST_ARTIFACT, "w", encoding="utf-8") as f:
@@ -559,10 +608,17 @@ def run_phase_5_3d_calibration(
     print("\n================================================================================")
     print("Break-Even Calibration Summary:")
     for k, v in break_even_summary.items():
-        print(f"  {k:35s} -> N*_kernel: {str(v['kernel_break_even']):8s} | N*_e2e: {str(v['end_to_end_break_even']):8s} (conf: {v['confidence']})")
-    print(f"\nArtifact 1 saved: {_OUT_BREAK_EVEN_ARTIFACT}")
+        role = v.get("role", "")
+        status = v.get("status", "")
+        k_be = str(v.get("kernel_break_even"))
+        e_be = str(v.get("end_to_end_break_even"))
+        print(f"  {k:35s} -> [{role}] N*_kernel: {k_be:8s} | N*_e2e: {e_be:8s} ({status})")
+    print(f"\nReached Evidence Levels: {reached_evidence_levels}")
+    print(f"Artifact 1 saved: {_OUT_BREAK_EVEN_ARTIFACT}")
     print(f"Artifact 2 saved: {_OUT_TRUST_ARTIFACT}")
     print("================================================================================")
+
+    return break_even_artifact
 
     return break_even_artifact
 

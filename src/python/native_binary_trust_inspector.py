@@ -77,6 +77,7 @@ class BinaryTrustReport:
     provenance_verified: bool
     execution_trusted: bool
     can_execute_native: bool
+    diagnostic_note: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -86,8 +87,28 @@ class NativeBinaryTrustInspector:
     """Audits file integrity, signature validity, and Windows UMCI loader acceptance."""
 
     @staticmethod
+    def query_umci_status() -> str:
+        if platform.system() != "Windows":
+            return "NON_WINDOWS"
+        try:
+            cmd = ["powershell", "-NoProfile", "-Command",
+                   "(Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\\Microsoft\\Windows\\DeviceGuard).UsermodeCodeIntegrityPolicyEnforcementStatus"]
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            out_code = res.stdout.strip()
+            if out_code == "2":
+                return "UMCI_ENFORCED"
+            elif out_code == "1":
+                return "UMCI_AUDIT"
+            elif out_code == "0":
+                return "UMCI_DISABLED"
+            return f"UNKNOWN_CODE_{out_code}"
+        except Exception:
+            return "UNKNOWN"
+
+    @staticmethod
     def inspect(file_path: str, manifest_path: Optional[str] = None) -> BinaryTrustReport:
         abs_path = os.path.abspath(file_path) if file_path else ""
+        host_policy = NativeBinaryTrustInspector.query_umci_status()
 
         # Default fallback values
         sha256_val = ""
@@ -97,12 +118,16 @@ class NativeBinaryTrustInspector:
         sig_valid = False
         wvt_result_str = "0xFFFFFFFF"
         load_outcome = "FILE_NOT_FOUND"
-        loader_err = -1
-        policy_class = "STANDARD"
+        loader_err = 126
         prov_verified = False
         exec_trusted = False
 
         if not os.path.exists(abs_path):
+            diag = (
+                f"OBSERVED: File not found at '{abs_path}' (WinError 126). "
+                f"HYPOTHESIS: Build toolchain not present on host. "
+                f"UNKNOWN: Actual Code Integrity load verdict cannot be evaluated on non-existent binary."
+            )
             return BinaryTrustReport(
                 file_path=abs_path,
                 sha256="",
@@ -113,10 +138,11 @@ class NativeBinaryTrustInspector:
                 win_verify_trust_result="0xFFFFFFFF",
                 code_integrity_load_outcome="FILE_NOT_FOUND",
                 loader_error_code=126,
-                policy_classification="UNKNOWN",
+                policy_classification=host_policy,
                 provenance_verified=False,
                 execution_trusted=False,
                 can_execute_native=False,
+                diagnostic_note=diag,
             )
 
         # 1. Compute SHA-256
@@ -137,21 +163,8 @@ class NativeBinaryTrustInspector:
             except Exception:
                 prov_verified = False
 
-        # 3. Inspect Windows UMCI status via DeviceGuard
-        if platform.system() == "Windows":
-            try:
-                cmd = ["powershell", "-NoProfile", "-Command",
-                       "(Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\\Microsoft\\Windows\\DeviceGuard).UsermodeCodeIntegrityPolicyEnforcementStatus"]
-                res = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
-                out_code = res.stdout.strip()
-                if out_code == "2":
-                    policy_class = "UMCI_ENFORCED"
-                elif out_code == "1":
-                    policy_class = "UMCI_AUDIT"
-                else:
-                    policy_class = "UMCI_DISABLED"
-            except Exception:
-                policy_class = "UNKNOWN"
+        # 3. Policy classification from host
+        policy_class = host_policy
 
         # 4. Check Authenticode Signature via WinVerifyTrust
         if platform.system() == "Windows":

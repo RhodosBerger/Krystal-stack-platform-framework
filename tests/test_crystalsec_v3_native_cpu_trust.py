@@ -359,5 +359,38 @@ class TestCrystalSecV3NativeCpuTrust(unittest.TestCase):
         self.assertIn("No persistent crossover", est.reason)
 
 
+    # 21. test_evidence_levels_derived_from_observed_state
+    def test_evidence_levels_derived_from_observed_state(self):
+        from src.python.native_cpu_simd_runner import derive_evidence_levels
+
+        # Rule: evidence_levels = derive_from_observed_state()
+        # When binary is not built, evidence stops strictly at SOURCE_IMPLEMENTED
+        levels_missing_bin = derive_evidence_levels(
+            capabilities_detected=True,
+            source_implemented=True,
+            binary_built=False,
+            provenance_verified=False,
+            trust_accepted=False,
+            library_loaded=False,
+            symbol_executed=False,
+            isa_confirmed=False,
+            native_simd_measured=False,
+            statistically_repeated=False,
+        )
+        self.assertEqual(levels_missing_bin, ["CAPABILITY_DETECTED", "SOURCE_IMPLEMENTED"])
+        self.assertNotIn("BINARY_TRUST_ACCEPTED", levels_missing_bin)
+        self.assertNotIn("NATIVE_LIBRARY_LOADED", levels_missing_bin)
+        self.assertNotIn("NATIVE_SIMD_EXECUTION_MEASURED", levels_missing_bin)
+
+        # Runner on this host without DLL must yield at most CAPABILITY_DETECTED and SOURCE_IMPLEMENTED
+        reached = self.runner.get_reached_evidence_levels()
+        self.assertIn("CAPABILITY_DETECTED", reached)
+        self.assertIn("SOURCE_IMPLEMENTED", reached)
+        self.assertNotIn("BINARY_TRUST_ACCEPTED", reached)
+        self.assertNotIn("NATIVE_LIBRARY_LOADED", reached)
+        self.assertNotIn("NATIVE_SIMD_EXECUTION_MEASURED", reached)
+
+
 if __name__ == "__main__":
     unittest.main()
+
