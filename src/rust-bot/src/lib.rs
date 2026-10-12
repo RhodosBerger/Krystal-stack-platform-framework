@@ -24,6 +24,7 @@ pub mod stack_injector;
 pub mod grid_injector;
 pub mod fallback;
 pub mod unified_core;
+pub mod cinematic_bridge;
 
 pub use types::*;
 pub use config::Config;
@@ -43,6 +44,11 @@ pub use stack_injector::{StackInjector, BoostInjection};
 pub use grid_injector::{GridInjector, GridReplica, GridCell as InjectorCell};
 pub use fallback::{FallbackManager, TrustLevel};
 pub use unified_core::{UnifiedCore, HardwareTelemetry, HardwarePreset, Phase, SystemMode};
+pub use cinematic_bridge::{
+    KBSBMotionScanPacket, VisemeId, EmotionId, DeceptionDetector,
+    InterrogationVerdict, MortarTrajectoryPredictor, CinematicBridgeError,
+    KMCP_FRAME_SIZE, KMCP_MAGIC,
+};
 
 /// Main orchestrator combining all components
 pub struct GamesaBot {

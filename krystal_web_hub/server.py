@@ -41,12 +41,23 @@ except Exception as e:
 try:
     from mimicry_engine.mimic_recipes import list_recipes, get_recipe
     from mimicry_engine.scene_composer import (
-        list_scenes, get_scene, paint_real_world_scene, UrbanSpatialCompositionRules
+        list_scenes, get_scene, paint_real_world_scene, UrbanSpatialCompositionRules,
+        MortarBallisticCameraTrajectory, build_noir_mortar_interrogation_scene
+    )
+    from mimicry_engine.cinematic_character_lipsync import (
+        LANoireCharacterLipsyncEngine, VisemeType, EmotionalMicroExpression,
+        FacialBlendshapeFrame, CinematicMovieSceneDirector, DialogueScriptLine
+    )
+    from mimicry_engine.cinematic_codec_adaptation import (
+        SupportedCodecType, VisemeLODLevel, KBSBMotionScanBinaryCodec,
+        AdaptiveCinematicController
     )
     mimicry_available = True
+    cinematic_engine_available = True
 except Exception as e:
     mimicry_available = False
-    print(f"[WARN] MimicryEngine init notice: {e}")
+    cinematic_engine_available = False
+    print(f"[WARN] Mimicry/Cinematic Engine init notice: {e}")
 
 
 try:
@@ -179,6 +190,11 @@ class EngineState:
         self.active_mimic_obj = get_recipe("CYBER_TURRET_MK4") if mimicry_available else None
         self.active_scene_id = "SCENE_CYBERPUNK_DISTRICT"
         self.active_scene_obj = get_scene("SCENE_CYBERPUNK_DISTRICT") if mimicry_available else None
+
+        # Cinematic L.A. Noire & Mortar Trajectory Engine State
+        self.cinematic_lipsync = LANoireCharacterLipsyncEngine() if cinematic_engine_available else None
+        self.cinematic_controller = AdaptiveCinematicController() if cinematic_engine_available else None
+        self.cinematic_director = CinematicMovieSceneDirector() if cinematic_engine_available else None
 
         # Open-World Procedural Generator & Janet Code Synthesizer State
         self.active_world_spec = None
@@ -2279,6 +2295,89 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                     "validation": val.to_dict()
                 })
 
+        # ── API: Cinematic Engine Status ───────────────────────────
+        elif norm_path == "/api/cinematic/status":
+            if cinematic_engine_available:
+                self.send_json({
+                    "status": "OK",
+                    "available": True,
+                    "vital_max_hp": 6,
+                    "codecs": [c.value for c in SupportedCodecType],
+                    "visemes": [v.value for v in VisemeType],
+                    "emotions": [e.value for e in EmotionalMicroExpression],
+                    "lods": [l.value for l in VisemeLODLevel]
+                })
+            else:
+                self.send_json({"status": "UNAVAILABLE", "available": False, "vital_max_hp": 6})
+
+        # ── API: Cinematic Interrogation Scene & Urban Spatial Validation ─
+        elif norm_path == "/api/cinematic/scenes/interrogation":
+            if cinematic_engine_available:
+                sc = build_noir_mortar_interrogation_scene()
+                val = UrbanSpatialCompositionRules.validate_scene(sc)
+                self.send_json({
+                    "status": "OK",
+                    "scene": sc.to_dict(),
+                    "validation": val.to_dict()
+                })
+            else:
+                self.send_json({"status": "UNAVAILABLE", "message": "Cinematic engine not available"})
+
+        # ── API: Cinematic Mortar Trajectory Sampling ──────────────
+        elif norm_path == "/api/cinematic/trajectory/mortar":
+            if not cinematic_engine_available:
+                self.send_json({"status": "UNAVAILABLE", "message": "Cinematic engine not available"})
+            else:
+                qs = parse_qs(parsed.query)
+                lx = float(qs.get("launch_x", [-12.0])[0])
+                ly = float(qs.get("launch_y", [1.0])[0])
+                lz = float(qs.get("launch_z", [-14.0])[0])
+                tx = float(qs.get("target_x", [0.0])[0])
+                ty = float(qs.get("target_y", [0.0])[0])
+                tz = float(qs.get("target_z", [0.0])[0])
+                apex = float(qs.get("apex", [18.0])[0])
+                mode = qs.get("mode", ["FOLLOW_SHELL"])[0]
+                steps = max(5, min(100, int(qs.get("steps", [20])[0])))
+                duration = float(qs.get("duration", [8.0])[0])
+
+                traj = MortarBallisticCameraTrajectory(
+                    name="MortarBallisticCam",
+                    launch_pos=(lx, ly, lz),
+                    target_pos=(tx, ty, tz),
+                    apex_height=apex,
+                    camera_mode=mode,
+                    duration=duration
+                )
+                controller = state.cinematic_controller or AdaptiveCinematicController()
+
+                samples = []
+                for i in range(steps + 1):
+                    s = i / float(steps)
+                    t = s * duration
+                    sh_pos = traj.get_shell_position(s)
+                    vel = traj.get_shell_velocity(s)
+                    spd = math.sqrt(vel[0]**2 + vel[1]**2 + vel[2]**2)
+                    cam_pos, look_at, fov, shk = controller.adapt_camera_velocity(traj, t)
+                    samples.append({
+                        "progress": round(s, 4),
+                        "time_sec": round(t, 3),
+                        "shell_pos": [round(c, 3) for c in sh_pos],
+                        "cam_pos": [round(c, 3) for c in cam_pos],
+                        "look_at": [round(c, 3) for c in look_at],
+                        "velocity": [round(c, 3) for c in vel],
+                        "speed": round(spd, 3),
+                        "fov": round(fov, 2),
+                        "shake": round(shk, 4)
+                    })
+
+                self.send_json({
+                    "status": "OK",
+                    "mode": mode,
+                    "apex_height": apex,
+                    "duration": duration,
+                    "step_count": len(samples),
+                    "samples": samples
+                })
 
         # ── API: OpenWorld Status ──────────────────────────────────
         elif self.path == "/api/openworld/status":
@@ -5179,6 +5278,217 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 })
             except Exception as e:
                 self.send_json({"status": "ERROR", "message": str(e)})
+
+        # ── API: Cinematic LipSync Performance Evaluation ──────────
+        elif self.path == "/api/cinematic/lipsync/evaluate":
+            if not cinematic_engine_available:
+                self.send_json({"status": "ERROR", "message": "Cinematic engine offline."})
+                return
+
+            text = data.get("text", "I was nowhere near the alleyway when the mortar struck!")
+            emotion_str = data.get("emotion", "LIE_DECEPTIVE")
+            vital_hp = int(data.get("vital_hp", 6))
+            distance_m = float(data.get("distance_m", 2.2))
+            fps = float(data.get("fps", 30.0))
+
+            if vital_hp > 6:
+                self.send_json({
+                    "status": "VETO",
+                    "error": "VITAL_MAX_HP invariant breach",
+                    "vital_hp": vital_hp,
+                    "max_allowed": 6
+                }, status=400)
+                return
+
+            try:
+                emotion = EmotionalMicroExpression[emotion_str]
+            except Exception:
+                emotion = EmotionalMicroExpression.LIE_DECEPTIVE
+
+            lipsync_engine = state.cinematic_lipsync or LANoireCharacterLipsyncEngine()
+            controller = state.cinematic_controller or AdaptiveCinematicController()
+
+            duration = max(1.0, len(text.split()) * 0.4)
+            script_line = DialogueScriptLine(
+                speaker="Suspect",
+                line=text,
+                start_time=0.0,
+                duration=duration,
+                intended_emotion=emotion
+            )
+            step_count = max(5, int(duration * fps))
+            frames = [
+                LANoireCharacterLipsyncEngine.evaluate_facial_frame(i * (duration / step_count), script_line)
+                for i in range(step_count + 1)
+            ]
+            active_lod = controller.calculate_lod((0.0, 0.0, distance_m))
+            target_fps = 60.0 if active_lod == VisemeLODLevel.LOD_0_ULTRA_CLOSEUP else (30.0 if active_lod == VisemeLODLevel.LOD_1_MEDIUM_SHOT else 10.0)
+            bitrate_kbps = controller.audio_bitrate_kbps
+
+            # Deception scoring
+            max_eye_dart = max(abs(f.eye_dart_x) for f in frames) if frames else 0.0
+            max_lip_sneer = max(f.lip_sneer for f in frames) if frames else 0.0
+            max_brow_furrow = max(f.brow_furrow for f in frames) if frames else 0.0
+            deception_score = (max_eye_dart * 0.40) + (max_lip_sneer * 0.40) + (max_brow_furrow * 0.20)
+
+            if deception_score > 0.55 or emotion == EmotionalMicroExpression.LIE_DECEPTIVE:
+                verdict = "LIE"
+            elif deception_score > 0.30 or emotion == EmotionalMicroExpression.DOUBT_EVASIVE:
+                verdict = "DOUBT"
+            else:
+                verdict = "TRUTH"
+
+            # Render ASCII viewport on peak micro-expression frame
+            peak_frame = max(frames, key=lambda f: f.lip_sneer + abs(f.eye_dart_x)) if frames else frames[0]
+            ascii_art = CinematicMovieSceneDirector.render_ascii_face(peak_frame)
+
+            godot_tscn = CinematicMovieSceneDirector.export_godot_lipsync_tscn([script_line])
+
+            self.send_json({
+                "status": "SUCCESS",
+                "text": text,
+                "emotion": emotion.value,
+                "vital_hp": vital_hp,
+                "distance_m": distance_m,
+                "lod": active_lod.name,
+                "bitrate_kbps": bitrate_kbps,
+                "target_fps": target_fps,
+                "frame_count": len(frames),
+                "deception_score": round(deception_score, 3),
+                "deception_verdict": verdict,
+                "ascii_portrait": ascii_art,
+                "godot_tracks": godot_tscn
+            })
+
+        # ── API: Cinematic KBSB-MotionScan v2 Codec Packet ─────────
+        elif self.path == "/api/cinematic/codec/packet":
+            if not cinematic_engine_available:
+                self.send_json({"status": "ERROR", "message": "Cinematic engine offline."})
+                return
+
+            action = data.get("action", "encode")
+
+            if action == "encode":
+                vital_hp = int(data.get("vital_hp", 6))
+                if vital_hp > 6:
+                    self.send_json({
+                        "status": "VETO",
+                        "error": "VITAL_MAX_HP invariant breach",
+                        "vital_hp": vital_hp
+                    }, status=400)
+                    return
+
+                try:
+                    viseme = VisemeType[data.get("viseme", "REST")]
+                except Exception:
+                    viseme = VisemeType.REST
+
+                try:
+                    emotion = EmotionalMicroExpression[data.get("emotion", "TRUTH_STEADY")]
+                except Exception:
+                    emotion = EmotionalMicroExpression.TRUTH_STEADY
+
+                frame = FacialBlendshapeFrame(
+                    timestamp=float(data.get("timestamp_ms", 0)) / 1000.0,
+                    viseme=viseme,
+                    emotion=emotion,
+                    jaw_open=float(data.get("jaw_open", 0.0)),
+                    mouth_wide=float(data.get("mouth_wide", 0.0)),
+                    mouth_pucker=float(data.get("mouth_pucker", 0.0)),
+                    lip_close=float(data.get("lip_close", 1.0)),
+                    lip_sneer=float(data.get("lip_sneer", 0.0)),
+                    brow_raise=float(data.get("brow_raise", 0.0)),
+                    brow_furrow=float(data.get("brow_furrow", 0.0)),
+                    eye_dart_x=float(data.get("eye_dart_x", 0.0)),
+                    eye_blink=float(data.get("eye_blink", 0.0))
+                )
+
+                cam_pos = tuple(data.get("camera_pos", [0.0, 1.5, 3.0]))
+                lod_level = int(data.get("lod_level", 0))
+                try:
+                    lod = VisemeLODLevel(lod_level)
+                except Exception:
+                    lod = VisemeLODLevel.LOD_0_ULTRA_CLOSEUP
+
+                encoded_bytes = KBSBMotionScanBinaryCodec.encode_frame(
+                    frame=frame,
+                    camera_pos=cam_pos,
+                    lod=lod,
+                    vital_hp=vital_hp
+                )
+
+                import base64
+                self.send_json({
+                    "status": "SUCCESS",
+                    "action": "encode",
+                    "packet_size": len(encoded_bytes),
+                    "hex_data": encoded_bytes.hex(),
+                    "base64_data": base64.b64encode(encoded_bytes).decode("ascii")
+                })
+
+            elif action == "decode":
+                import base64
+                raw_bytes = None
+                if "hex_data" in data:
+                    raw_bytes = bytes.fromhex(data["hex_data"])
+                elif "base64_data" in data:
+                    raw_bytes = base64.b64decode(data["base64_data"])
+
+                if not raw_bytes:
+                    self.send_json({"status": "ERROR", "message": "Missing hex_data or base64_data"}, status=400)
+                    return
+
+                try:
+                    decoded = KBSBMotionScanBinaryCodec.decode_frame(raw_bytes)
+                    self.send_json({
+                        "status": "SUCCESS",
+                        "action": "decode",
+                        "packet": decoded
+                    })
+                except Exception as e:
+                    self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+            else:
+                self.send_json({"status": "ERROR", "message": f"Unsupported action: {action}"}, status=400)
+
+        # ── API: Epistemic Interrogation Authority Action ─────────
+        elif self.path == "/api/cinematic/interrogation/action":
+            action_id = data.get("action_id", "ACTION_NOIR_INTERROGATE")
+            suspect_id = data.get("suspect_id", "suspect_vance")
+            evidence_refs = data.get("evidence_refs", [])
+            vital_hp = int(data.get("vital_hp", 6))
+            statement = data.get("statement", "I swear I was at the speakeasy!")
+
+            if vital_hp > 6:
+                self.send_json({
+                    "status": "VETO_SAFETY_BREACH",
+                    "lifecycle_action": "REJECT_NOOP",
+                    "verdict": "VETO_SAFETY_BREACH",
+                    "error": f"VITAL_MAX_HP invariant breach: {vital_hp} > 6",
+                    "vital_hp": vital_hp
+                }, status=400)
+                return
+
+            if any("contradictory" in ref.lower() for ref in evidence_refs):
+                authority_verdict = "QUARANTINE_CONTRADICTORY_EVIDENCE"
+                lifecycle_action = "QUARANTINE_AND_RECALIBRATE"
+            elif len(evidence_refs) == 0:
+                authority_verdict = "DEFER_INSUFFICIENT_EVIDENCE"
+                lifecycle_action = "TRIGGER_ACTIVE_MICRO_PROBE"
+            else:
+                authority_verdict = "COMMIT_APPROVED"
+                lifecycle_action = "WOULD_COMMIT"
+
+            self.send_json({
+                "status": "SUCCESS",
+                "action_id": action_id,
+                "suspect_id": suspect_id,
+                "authority_verdict": authority_verdict,
+                "lifecycle_action": lifecycle_action,
+                "vital_hp": vital_hp,
+                "evidence_count": len(evidence_refs),
+                "statement": statement,
+                "interrogation_resolution": "PROCEED" if authority_verdict == "COMMIT_APPROVED" else "HOLD"
+            })
 
 
         # ── API: OpenWorld Natural Language Compilation ───────────
