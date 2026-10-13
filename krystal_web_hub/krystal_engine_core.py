@@ -235,6 +235,12 @@ from krystal_kernel.strand_npu_action_puzzle_engine import (
     PuzzleActionType,
     ProcessorStrandStatus
 )
+from krystal_kernel.small_model_core_rag_engine import (
+    GLOBAL_SMALL_MODEL_RAG_ENGINE,
+    SmallModelCoreRagEngine,
+    CoreKnowledgeDomain,
+    SmallModelSpec
+)
 from krystal_web_hub.economic_engine.polymorphic_shape_blender_platform import (
     GLOBAL_SHAPE_PLATFORM,
     LanguageMode,
@@ -1218,6 +1224,9 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/strand-puzzle-studio', '/action-puzzle', '/npu-interpreter', '/life-puzzle', '/strand_npu_action_puzzle_studio.html'):
             self._serve_file(os.path.join(STATIC_DIR, "strand_npu_action_puzzle_studio.html"), "text/html")
             return
+        if path in ('/slm-rag-studio', '/core-rag', '/small-model-ui', '/knowledge-copilot', '/small_model_core_rag_studio.html'):
+            self._serve_file(os.path.join(STATIC_DIR, "small_model_core_rag_studio.html"), "text/html")
+            return
         if path in ('/shape-studio', '/shape-platform', '/blender-library', '/polymorphic-shapes'):
             self._serve_file(os.path.join(STATIC_DIR, "polymorphic_shape_studio.html"), "text/html")
             return
@@ -1978,6 +1987,19 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json({
                 "success": True,
                 "processors": {pid: p.to_dict() for pid, p in GLOBAL_STRAND_NPU_ENGINE.processors.items()},
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── SMALL MODEL CORE RAG & UI SYSTEM (GET) ─────────────────────────
+        if path in ('/api/slm-rag/status', '/api/small-model/status'):
+            self._send_json(GLOBAL_SMALL_MODEL_RAG_ENGINE.get_status())
+            return
+
+        if path in ('/api/slm-rag/domains', '/api/small-model/domains'):
+            self._send_json({
+                "success": True,
+                "domains": GLOBAL_SMALL_MODEL_RAG_ENGINE.get_domains(),
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return
@@ -3550,6 +3572,38 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json({
                 "success": True,
                 "puzzle": new_puz.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── SMALL MODEL CORE RAG & UI SYSTEM (POST) ────────────────────────
+        if path in ('/api/slm-rag/query', '/api/small-model/query'):
+            q = req_data.get("query", "")
+            top_k = int(req_data.get("top_k", 3))
+            domain_str = req_data.get("domain")
+            d_filter = None
+            if domain_str and domain_str in CoreKnowledgeDomain.__members__:
+                d_filter = CoreKnowledgeDomain[domain_str]
+            res = GLOBAL_SMALL_MODEL_RAG_ENGINE.synthesize_query(query=q, top_k=top_k, domain_filter=d_filter)
+            self._send_json({
+                "success": True,
+                "result": res.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path in ('/api/slm-rag/retrieve', '/api/small-model/retrieve'):
+            q = req_data.get("query", "")
+            top_k = int(req_data.get("top_k", 4))
+            domain_str = req_data.get("domain")
+            d_filter = None
+            if domain_str and domain_str in CoreKnowledgeDomain.__members__:
+                d_filter = CoreKnowledgeDomain[domain_str]
+            hits = GLOBAL_SMALL_MODEL_RAG_ENGINE.retrieve_chunks(query=q, top_k=top_k, domain_filter=d_filter)
+            self._send_json({
+                "success": True,
+                "query": q,
+                "hits": [{"chunk": c.to_dict(), "score": round(sc, 4)} for c, sc in hits],
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return

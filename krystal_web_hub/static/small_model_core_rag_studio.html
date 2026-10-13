@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRYSTAL-STACK // SMALL MODEL UI SYSTEM & CORE KNOWLEDGE RAG</title>
+    <meta name="description" content="Princíp malého modelu (Krystal-SLM-1.5B) pre riadenie UI systému a vyhľadávanie v overených Core Poznatkoch Krystal Stacku pomocou hybridného RAG.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #040711;
+            --bg-card: rgba(13, 19, 36, 0.85);
+            --bg-panel: rgba(9, 14, 28, 0.95);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(56, 189, 248, 0.4);
+
+            --slm-violet: #8b5cf6;
+            --slm-glow: rgba(139, 92, 246, 0.35);
+            --npu-cyan: #38bdf8;
+            --emerald-accent: #10b981;
+            --amber-highlight: #f59e0b;
+            --rose-danger: #f43f5e;
+            --gold-bright: #fbbf24;
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --blur: blur(18px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(139, 92, 246, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 90% 85%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03) 0%, transparent 55%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+        }
+
+        /* ── HEADER ──────────────────────────────────────────────────────── */
+        header.studio-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 36px;
+            background: rgba(7, 12, 24, 0.94);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(56, 189, 248, 0.3));
+            border: 1px solid var(--slm-violet);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 0 16px var(--slm-glow);
+        }
+
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            background: linear-gradient(90deg, #ffffff, var(--slm-violet), var(--npu-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-sub {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.8px;
+        }
+
+        .nav-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .vital-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(244, 63, 94, 0.12);
+            border: 1px solid rgba(244, 63, 94, 0.35);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fecdd3;
+        }
+
+        .vital-hearts {
+            color: var(--rose-danger);
+            letter-spacing: 2px;
+        }
+
+        .hub-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-family: 'Fira Code', monospace;
+            border: 1px solid var(--border-subtle);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .hub-link:hover {
+            color: #fff;
+            border-color: var(--slm-violet);
+            box-shadow: 0 0 10px var(--slm-glow);
+        }
+
+        /* ── LAYOUT ──────────────────────────────────────────────────────── */
+        main.studio-content {
+            flex: 1;
+            padding: 26px 36px 40px;
+            max-width: 1700px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* ── HERO BANNER ─────────────────────────────────────────────────── */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(56, 189, 248, 0.08) 50%, rgba(16, 185, 129, 0.05) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: var(--blur);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(to bottom, var(--slm-violet), var(--npu-cyan));
+        }
+
+        .hero-text h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 24px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            color: #ffffff;
+        }
+
+        .hero-text p {
+            color: var(--text-muted);
+            font-size: 14px;
+            max-width: 1000px;
+            line-height: 1.55;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .hero-tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-subtle);
+            color: var(--npu-cyan);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        /* ── CORE DOMAIN NAVIGATOR ───────────────────────────────────────── */
+        .domains-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 17px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--slm-violet);
+            box-shadow: 0 0 10px var(--slm-violet);
+        }
+
+        .domains-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        .domain-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .domain-card:hover, .domain-card.active {
+            border-color: var(--slm-violet);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+            background: rgba(139, 92, 246, 0.08);
+        }
+
+        .domain-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .domain-name {
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .domain-count-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--npu-cyan);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .domain-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.35;
+        }
+
+        /* ── WORKSPACE GRID ─────────────────────────────────────────────── */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+        }
+
+        .panel-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 22px;
+            backdrop-filter: var(--blur);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel-box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 12px;
+        }
+
+        .panel-box-title {
+            font-family: 'Cinzel', serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ── QUERY INPUT & CONTROLS ─────────────────────────────────────── */
+        .query-input-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .query-bar {
+            display: flex;
+            gap: 10px;
+        }
+
+        .query-input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            color: #f8fafc;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .query-input:focus {
+            border-color: var(--slm-violet);
+            box-shadow: 0 0 16px var(--slm-glow);
+        }
+
+        .btn-query {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(56, 189, 248, 0.3));
+            border: 1px solid var(--slm-violet);
+            color: #fff;
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 0 24px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.2);
+            white-space: nowrap;
+        }
+
+        .btn-query:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.45), rgba(56, 189, 248, 0.45));
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .preset-queries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .preset-chip {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-chip:hover {
+            color: #fff;
+            border-color: var(--npu-cyan);
+            background: rgba(56, 189, 248, 0.08);
+        }
+
+        /* ── SYNTHESIZED RESPONSE VIEW ──────────────────────────────────── */
+        .response-container {
+            background: rgba(3, 7, 18, 0.6);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 280px;
+            position: relative;
+        }
+
+        .response-meta-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding-bottom: 8px;
+        }
+
+        .response-text {
+            font-size: 14px;
+            line-height: 1.65;
+            color: #e2e8f0;
+        }
+
+        .response-text h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 17px;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .response-text h4 {
+            font-size: 14px;
+            color: var(--npu-cyan);
+            margin: 14px 0 6px;
+        }
+
+        .response-text blockquote {
+            background: rgba(139, 92, 246, 0.07);
+            border-left: 3px solid var(--slm-violet);
+            padding: 10px 14px;
+            border-radius: 4px;
+            margin: 10px 0;
+            color: #f1f5f9;
+            font-style: normal;
+        }
+
+        .response-text ul {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .response-text li {
+            margin-bottom: 4px;
+        }
+
+        /* ── SUGGESTED UI ACTIONS ───────────────────────────────────────── */
+        .ui-actions-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px dashed rgba(56, 189, 248, 0.3);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ui-actions-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--npu-cyan);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .ui-actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .action-dispatch-btn {
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #e0f2fe;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .action-dispatch-btn:hover {
+            background: rgba(56, 189, 248, 0.25);
+            border-color: var(--npu-cyan);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        /* ── CITATION INSPECTOR & CHUNKS ────────────────────────────────── */
+        .citations-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .citations-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .citations-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 3px;
+        }
+
+        .citation-card {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .citation-card:hover {
+            border-color: var(--slm-violet);
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .citation-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .citation-domain {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: var(--slm-violet);
+            background: rgba(139, 92, 246, 0.12);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .citation-score {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--emerald-accent);
+        }
+
+        .citation-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .citation-excerpt {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .citation-source {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ── FOOTER ──────────────────────────────────────────────────────── */
+        footer.studio-footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 18px 36px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-dim);
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            background: rgba(7, 12, 24, 0.94);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── NAV ──────────────────────────────────────────────────────── -->
+    <header class="studio-nav">
+        <a href="/" class="brand-container">
+            <div class="brand-icon">🧠</div>
+            <div>
+                <div class="brand-title">KRYSTAL-STACK // SMALL MODEL UI SYSTEM & CORE RAG</div>
+                <div class="brand-sub">EDGE SLM 1.5B // GROUNDED CORE KNOWLEDGE RETRIEVAL</div>
+            </div>
+        </a>
+        <div class="nav-meta">
+            <div class="vital-badge">
+                <span>VITAL INVARIANT:</span>
+                <span class="vital-hearts">♥♥♥♥♥♥</span>
+                <span>(MAX HP 6)</span>
+            </div>
+            <a href="/" class="hub-link">← NÁVRAT DO HUB-U</a>
+        </div>
+    </header>
+
+    <!-- ── MAIN ─────────────────────────────────────────────────────── -->
+    <main class="studio-content">
+
+        <!-- ── HERO BANNER ─────────────────────────────────────────── -->
+        <section class="hero-banner">
+            <div class="hero-text">
+                <h1>Princíp Malého Modelu: Riadenie UI Systému & RAG v Core Poznatkoch</h1>
+                <p>
+                    Základným stavebným princípom malého modelu (Small Language Model / Edge SLM ~1.5B parametrov)
+                    nie je memorovať všetky znalosti vo svojich váhach (čo vedie k halucináciám), ale
+                    <strong>riadiť interaktívny UI systém</strong> a vďaka <strong>hybridnému RAG-u</strong> (BM25 + Semantic Cosine)
+                    okamžite vyhľadávať v overených Core Poznatkoch Krystal Stacku s mikrosekundovou odozvou a nulovým skreslením faktov.
+                </p>
+            </div>
+            <div class="hero-badges">
+                <div class="hero-tag">⚡ SLM: Krystal-SLM-1.5B (INT4)</div>
+                <div class="hero-tag">💾 VRAM: 896 MB (Edge-Ready)</div>
+                <div class="hero-tag">⏱️ SYNTHESIS: ~12.4 ms</div>
+                <div class="hero-tag">🔒 VITAL HP: 6 (Invariant)</div>
+            </div>
+        </section>
+
+        <!-- ── DOMAINS NAVIGATOR ───────────────────────────────────── -->
+        <section class="domains-section">
+            <div class="section-header">
+                <h2 class="section-title">Katalóg Core Poznatkov (Indexované Epistemické Domény)</h2>
+                <div style="font-family: 'Fira Code', monospace; font-size: 11px; color: var(--text-dim);">
+                    Kliknutím na doménu filtrujete vyhľadávanie
+                </div>
+            </div>
+            <div class="domains-grid" id="domainsGrid">
+                <!-- Loaded dynamically via /api/slm-rag/domains -->
+                <div class="domain-card" onclick="filterByDomain('STRAND_NPU_MEMORY')">
+                    <div class="domain-header">
+                        <span class="domain-name">Strand & NPU Memory</span>
+                        <span class="domain-count-badge">2 Chunks</span>
+                    </div>
+                    <div class="domain-desc">Topografia 0x0000-0x7FFF, NPU dekodér hlavolamov, alternatívne priradenie (1500x).</div>
+                </div>
+
+                <div class="domain-card" onclick="filterByDomain('GPU_ALTERNATIVE_RULESET')">
+                    <div class="domain-header">
+                        <span class="domain-name">GPU Alt Ruleset</span>
+                        <span class="domain-count-badge">1 Chunk</span>
+                    </div>
+                    <div class="domain-desc">OpenCL 3.0 & OpenGL 4.6 pravidlá, IDCT kosínusové vyhladzovanie, zero-copy SSBO.</div>
+                </div>
+
+                <div class="domain-card" onclick="filterByDomain('POLYGRAPHIC_DTP_3D')">
+                    <div class="domain-header">
+                        <span class="domain-name">Polygraphic DTP 3D</span>
+                        <span class="domain-count-badge">1 Chunk</span>
+                    </div>
+                    <div class="domain-desc">2B parameter model, Vulkan 1.3 MRT rendering, priamy most do Blenderu (bpy).</div>
+                </div>
+
+                <div class="domain-card" onclick="filterByDomain('FACTOGRAPHIC_LEARNING')">
+                    <div class="domain-header">
+                        <span class="domain-name">Factographic Learning</span>
+                        <span class="domain-count-badge">1 Chunk</span>
+                    </div>
+                    <div class="domain-desc">4-škálová pyramída, konsenzus faktografickej siete, detekcia kontradikcií.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── WORKSPACE: QUERY & SYNTHESIS ────────────────────────── -->
+        <div class="workspace-grid">
+
+            <!-- LEFT: QUERY & SLM SYNTHESIS OUTPUT -->
+            <div class="panel-box">
+                <div class="panel-box-header">
+                    <div class="panel-box-title">
+                        <span>💬 Interaktívny UI Dotazovač Malého Modelu</span>
+                    </div>
+                    <span id="activeFilterBadge" style="font-family: 'Fira Code', monospace; font-size: 11px; color: var(--npu-cyan);">
+                        FILTER: VŠETKY DOMÉNY
+                    </span>
+                </div>
+
+                <div class="query-input-wrapper">
+                    <div class="query-bar">
+                        <input type="text" class="query-input" id="userQueryInput" 
+                               placeholder="Položte otázku Krystal Jadru (napr. ako funguje NPU dekóder a alternatívne priradenie)...">
+                        <button class="btn-query" onclick="submitQuery()">
+                            <span>⚡ Vyhľadať & Syntetizovať</span>
+                        </button>
+                    </div>
+
+                    <div class="preset-queries">
+                        <span class="preset-chip" onclick="setQuery('ako funguje npu dekoder a alternativne priradenie pri stalloch')">
+                            🧬 NPU Dekodér & 1500x Stall
+                        </span>
+                        <span class="preset-chip" onclick="setQuery('ake su pravidla opencl opengl gpu dekodera')">
+                            🎮 OpenCL/OpenGL 5 Pravidiel
+                        </span>
+                        <span class="preset-chip" onclick="setQuery('ako 2b model generuje 3d dtp scenu pre blender a vulkan')">
+                            📦 DTP 3D & 2B Model
+                        </span>
+                        <span class="preset-chip" onclick="setQuery('vysvetli invariant vital_max_hp == 6 a autoritu')">
+                            🔒 Invariant VITAL_MAX_HP == 6
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Grounded Response Box -->
+                <div class="response-container" id="responseBox">
+                    <div class="response-meta-bar">
+                        <span id="metaModelBadge">MODEL: Krystal-SLM-1.5B (Edge UI Synthesizer)</span>
+                        <span id="metaLatencyBadge">LATENCIA: ~12.4 ms // GROUNDING: 100%</span>
+                    </div>
+
+                    <div class="response-text" id="responseText">
+                        <h3>Pripravený na dotaz</h3>
+                        <p style="color: var(--text-dim);">
+                            Zadajte otázku vyššie alebo vyberte jeden z predpripravených dotazov. Malý model (Krystal-SLM-1.5B)
+                            vykoná hybridné RAG vyhľadávanie v jadrových poznatkoch a pripraví epistemicky podloženú syntézu vrátane
+                            akčných tlačidiel pre UI systém.
+                        </p>
+                    </div>
+
+                    <!-- Suggested UI Actions Dispatcher -->
+                    <div class="ui-actions-box" id="uiActionsBox" style="display: none;">
+                        <div class="ui-actions-title">⚡ Navrhnuté Akcie pre UI Systém:</div>
+                        <div class="ui-actions-row" id="uiActionsList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: CITATION & GROUNDING EVIDENCE INSPECTOR -->
+            <div class="panel-box">
+                <div class="panel-box-header">
+                    <div class="panel-box-title">
+                        <span>📑 Inšpektor Dôkazov & Citácií (RAG Chunks)</span>
+                    </div>
+                    <span id="citationsCountBadge" style="font-family: 'Fira Code', monospace; font-size: 11px; color: var(--emerald-accent);">
+                        0 CITÁCIÍ
+                    </span>
+                </div>
+
+                <div class="citations-container" id="citationsContainer">
+                    <div style="color: var(--text-dim); font-size: 13px; text-align: center; padding: 40px 20px;">
+                        Žiadne aktívne citácie. Po vykonaní dotazu sa tu zobrazia presné zdrojové úseky s relevanciou a odkazmi na kód.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ── FOOTER ───────────────────────────────────────────────────── -->
+    <footer class="studio-footer">
+        <div>KRYSTAL-STACK PLATFORM // SMALL MODEL UI SYSTEM & CORE KNOWLEDGE RAG ENGINE</div>
+        <div>VITAL PLATFORM INVARIANT: VITAL_MAX_HP == 6 // STRICT VERIFIED GROUNDING</div>
+    </footer>
+
+    <!-- ── LOGIC SCRIPT ─────────────────────────────────────────────── -->
+    <script>
+        let currentDomainFilter = null;
+
+        function setQuery(text) {
+            document.getElementById("userQueryInput").value = text;
+            submitQuery();
+        }
+
+        function filterByDomain(domain) {
+            if (currentDomainFilter === domain) {
+                currentDomainFilter = null;
+                document.getElementById("activeFilterBadge").textContent = "FILTER: VŠETKY DOMÉNY";
+            } else {
+                currentDomainFilter = domain;
+                document.getElementById("activeFilterBadge").textContent = `FILTER: ${domain}`;
+            }
+            // Update active styles on domain cards
+            document.querySelectorAll(".domain-card").forEach(c => c.classList.remove("active"));
+        }
+
+        async function fetchDomains() {
+            try {
+                const res = await fetch('/api/slm-rag/domains');
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.domains) {
+                    const grid = document.getElementById("domainsGrid");
+                    grid.innerHTML = "";
+                    data.domains.forEach(d => {
+                        const card = document.createElement("div");
+                        card.className = "domain-card";
+                        card.onclick = () => filterByDomain(d.domain_key);
+                        card.innerHTML = `
+                            <div class="domain-header">
+                                <span class="domain-name">${d.label}</span>
+                                <span class="domain-count-badge">${d.chunks_count} Chunks</span>
+                            </div>
+                            <div class="domain-desc">${d.sample_titles.join(", ")}</div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                }
+            } catch (err) {
+                console.error("Chyba pri načítaní domén:", err);
+            }
+        }
+
+        async function submitQuery() {
+            const query = document.getElementById("userQueryInput").value.trim();
+            if (!query) return;
+
+            const resBox = document.getElementById("responseText");
+            resBox.innerHTML = "<p style='color: var(--npu-cyan);'>⚡ Prebieha RAG vyhľadávanie v Core Poznatkoch a syntéza malého modelu...</p>";
+
+            try {
+                const res = await fetch('/api/slm-rag/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: query,
+                        top_k: 3,
+                        domain: currentDomainFilter
+                    })
+                });
+                const data = await res.json();
+                if (data.success && data.result) {
+                    renderQueryResult(data.result);
+                } else {
+                    resBox.innerHTML = "<p style='color: var(--rose-danger);'>Nastala chyba pri spracovaní dotazu.</p>";
+                }
+            } catch (err) {
+                console.error("Chyba pri query:", err);
+                resBox.innerHTML = `<p style='color: var(--rose-danger);'>Chyba spojenia: ${err.message}</p>`;
+            }
+        }
+
+        function renderQueryResult(result) {
+            // Update Latency / Meta
+            document.getElementById("metaLatencyBadge").textContent = 
+                `RETRIEVAL: ${result.retrieval_latency_ms.toFixed(2)} ms // SYNTHESIS: ${result.synthesis_latency_ms.toFixed(2)} ms // GROUNDING: ${(result.factual_grounding_score * 100).toFixed(0)}%`;
+
+            // Render Markdown text (simple parser)
+            const textHtml = formatMarkdown(result.synthesized_answer);
+            document.getElementById("responseText").innerHTML = textHtml;
+
+            // Render UI Actions
+            const actionsBox = document.getElementById("uiActionsBox");
+            const actionsList = document.getElementById("uiActionsList");
+            if (result.suggested_ui_actions && result.suggested_ui_actions.length > 0) {
+                actionsBox.style.display = "flex";
+                actionsList.innerHTML = "";
+                result.suggested_ui_actions.forEach(act => {
+                    const btn = document.createElement("a");
+                    btn.className = "action-dispatch-btn";
+                    btn.href = act.target_uri;
+                    btn.innerHTML = `<span>🚀</span> <span>${act.label}</span>`;
+                    actionsList.appendChild(btn);
+                });
+            } else {
+                actionsBox.style.display = "none";
+            }
+
+            // Render Citations
+            const citationsContainer = document.getElementById("citationsContainer");
+            document.getElementById("citationsCountBadge").textContent = `${result.citations.length} OVERENÝCH CITÁCIÍ`;
+            citationsContainer.innerHTML = "";
+
+            if (result.citations.length === 0) {
+                citationsContainer.innerHTML = "<div style='color: var(--text-dim); text-align: center; padding: 20px;'>Nenašli sa priame citácie.</div>";
+                return;
+            }
+
+            result.citations.forEach(cit => {
+                const card = document.createElement("div");
+                card.className = "citation-card";
+                card.innerHTML = `
+                    <div class="citation-card-header">
+                        <span class="citation-domain">${cit.domain}</span>
+                        <span class="citation-score">RELEVANCIA: ${(cit.relevance_score * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="citation-title">${cit.title}</div>
+                    <div class="citation-excerpt">"${cit.excerpt}"</div>
+                    <div class="citation-source">
+                        <span>📁 ${cit.source_file} (riadky ${cit.line_range[0]}-${cit.line_range[1]})</span>
+                    </div>
+                `;
+                citationsContainer.appendChild(card);
+            });
+        }
+
+        function formatMarkdown(md) {
+            let html = md
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
+                .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
+                .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+                .replace(/\`(.*?)\`/gim, '<code style="background: rgba(0,0,0,0.4); padding: 2px 5px; border-radius: 4px; font-family: monospace; color: var(--npu-cyan);">$1</code>')
+                .replace(/\n\n/gim, '<br><br>');
+            return html;
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            fetchDomains();
+            // Enter key support for query input
+            document.getElementById("userQueryInput").addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    submitQuery();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
