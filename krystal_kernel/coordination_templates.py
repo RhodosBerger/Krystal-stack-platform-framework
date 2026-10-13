@@ -68,16 +68,28 @@ from krystal_kernel.estimation_task_planner import (
     EstimationPlanReport,
     build_canonical_estimation_dag
 )
+from krystal_kernel.nextgen_algorithms_and_templates import (
+    GLOBAL_NEXTGEN_ALGORITHMS_SUITE,
+    MultiTenantInterferenceTensorAlgorithm,
+    SymplecticPhaseSpaceGovernorAlgorithm,
+    HeterogeneousBreakEvenPlacementAlgorithm,
+    OnlineCalibrationLedgerAlgorithm,
+    GoldenRatioHarmonicTensorAlgorithm
+)
 
 
 @unique
 class CoordinationTemplateId(str, Enum):
     """Canonical Coordination Template Identifiers."""
-    TEMPLATE_ULTRA_LOW_JITTER_REALTIME     = "TEMPLATE_ULTRA_LOW_JITTER_REALTIME"
-    TEMPLATE_BALANCED_ADAPTIVE_CADENCE     = "TEMPLATE_BALANCED_ADAPTIVE_CADENCE"
-    TEMPLATE_THERMAL_RESCUE_PACING         = "TEMPLATE_THERMAL_RESCUE_PACING"
-    TEMPLATE_COUNTERFACTUAL_SHADOW_BURST   = "TEMPLATE_COUNTERFACTUAL_SHADOW_BURST"
-    TEMPLATE_MISSION_CONTROL_TELEMETRY_SYNC = "TEMPLATE_MISSION_CONTROL_TELEMETRY_SYNC"
+    TEMPLATE_ULTRA_LOW_JITTER_REALTIME              = "TEMPLATE_ULTRA_LOW_JITTER_REALTIME"
+    TEMPLATE_BALANCED_ADAPTIVE_CADENCE              = "TEMPLATE_BALANCED_ADAPTIVE_CADENCE"
+    TEMPLATE_THERMAL_RESCUE_PACING                  = "TEMPLATE_THERMAL_RESCUE_PACING"
+    TEMPLATE_COUNTERFACTUAL_SHADOW_BURST            = "TEMPLATE_COUNTERFACTUAL_SHADOW_BURST"
+    TEMPLATE_MISSION_CONTROL_TELEMETRY_SYNC         = "TEMPLATE_MISSION_CONTROL_TELEMETRY_SYNC"
+    TEMPLATE_NEXTGEN_SYMPLECTIC_TENSOR_HARMONY      = "TEMPLATE_NEXTGEN_SYMPLECTIC_TENSOR_HARMONY"
+    TEMPLATE_NEXTGEN_HETEROGENEOUS_ROOFLINE_DISPATCH = "TEMPLATE_NEXTGEN_HETEROGENEOUS_ROOFLINE_DISPATCH"
+    TEMPLATE_NEXTGEN_EPISTEMIC_CALIBRATION_LEDGER   = "TEMPLATE_NEXTGEN_EPISTEMIC_CALIBRATION_LEDGER"
+    TEMPLATE_NEXTGEN_MULTI_TENANT_ISOLATION_SLICE   = "TEMPLATE_NEXTGEN_MULTI_TENANT_ISOLATION_SLICE"
 
 
 @dataclass
@@ -97,6 +109,7 @@ class CoordinationTemplate:
     npu_dp4a_mode: bool
     plan_bias: float
     is_shadow_only: bool
+    nextgen_algorithm: Optional[str] = None
     vital_max_hp: int = VITAL_MAX_HP
 
     def to_dict(self) -> Dict[str, Any]:
@@ -118,6 +131,7 @@ class CoordinatedDispatchReport:
     hardware_status_after: Dict[str, Any]
     policy_state: str
     temporal_state: str
+    nextgen_algorithm_result: Optional[Dict[str, Any]] = None
     vital_max_hp: int = VITAL_MAX_HP
 
     def to_dict(self) -> Dict[str, Any]:
@@ -206,6 +220,74 @@ CANONICAL_TEMPLATES: Dict[CoordinationTemplateId, CoordinationTemplate] = {
         plan_bias=0.45,
         is_shadow_only=False
     ),
+    CoordinationTemplateId.TEMPLATE_NEXTGEN_SYMPLECTIC_TENSOR_HARMONY: CoordinationTemplate(
+        template_id=CoordinationTemplateId.TEMPLATE_NEXTGEN_SYMPLECTIC_TENSOR_HARMONY,
+        name="Next-Gen Symplectic Phase-Space & Tensor Harmony",
+        description="Sub-millisecond QPC integration (1.0ms) with Symplectic Hamiltonian conservation and Golden Ratio D6 dihedral harmonic tensor.",
+        target_cadence_ms=1.0,
+        timer_resolution_ms=1,
+        use_high_res_waitable_timer=True,
+        mmcss_profile="Pro Audio",
+        cpu_affinity_mask=0x000F,  # P-Cores
+        cpu_priority_class="HIGH_PRIORITY_CLASS",
+        target_pl1_watts=32.0,
+        npu_streams=4,
+        npu_dp4a_mode=True,
+        plan_bias=0.90,
+        is_shadow_only=False,
+        nextgen_algorithm="SYMPLECTIC_HARMONIC_TENSOR"
+    ),
+    CoordinationTemplateId.TEMPLATE_NEXTGEN_HETEROGENEOUS_ROOFLINE_DISPATCH: CoordinationTemplate(
+        template_id=CoordinationTemplateId.TEMPLATE_NEXTGEN_HETEROGENEOUS_ROOFLINE_DISPATCH,
+        name="Next-Gen Heterogeneous Break-Even Roofline Dispatch",
+        description="Evaluates real-time break-even surface to dynamically route workloads across CPU SIMD, GPU Vulkan, and NPU DP4A.",
+        target_cadence_ms=5.0,
+        timer_resolution_ms=1,
+        use_high_res_waitable_timer=True,
+        mmcss_profile="Games",
+        cpu_affinity_mask=0x00FF,
+        cpu_priority_class="HIGH_PRIORITY_CLASS",
+        target_pl1_watts=28.0,
+        npu_streams=4,
+        npu_dp4a_mode=True,
+        plan_bias=0.60,
+        is_shadow_only=False,
+        nextgen_algorithm="BREAK_EVEN_PLACEMENT"
+    ),
+    CoordinationTemplateId.TEMPLATE_NEXTGEN_EPISTEMIC_CALIBRATION_LEDGER: CoordinationTemplate(
+        template_id=CoordinationTemplateId.TEMPLATE_NEXTGEN_EPISTEMIC_CALIBRATION_LEDGER,
+        name="Next-Gen Online Epistemic Calibration Ledger",
+        description="Recursive prediction error tracking and confidence calibration with Dual-Gate safety proofs.",
+        target_cadence_ms=8.0,
+        timer_resolution_ms=2,
+        use_high_res_waitable_timer=True,
+        mmcss_profile=None,
+        cpu_affinity_mask=0x00FF,
+        cpu_priority_class="NORMAL_PRIORITY_CLASS",
+        target_pl1_watts=24.0,
+        npu_streams=2,
+        npu_dp4a_mode=True,
+        plan_bias=0.20,
+        is_shadow_only=False,
+        nextgen_algorithm="CALIBRATION_LEDGER"
+    ),
+    CoordinationTemplateId.TEMPLATE_NEXTGEN_MULTI_TENANT_ISOLATION_SLICE: CoordinationTemplate(
+        template_id=CoordinationTemplateId.TEMPLATE_NEXTGEN_MULTI_TENANT_ISOLATION_SLICE,
+        name="Next-Gen Multi-Tenant Interference Tensor Isolation",
+        description="Contention tensor minimization across LLC, memory bandwidth, and thermal budget to prevent cross-tenant thrashing.",
+        target_cadence_ms=12.0,
+        timer_resolution_ms=2,
+        use_high_res_waitable_timer=True,
+        mmcss_profile=None,
+        cpu_affinity_mask=0x00F0,  # E-Cores for background isolation
+        cpu_priority_class="NORMAL_PRIORITY_CLASS",
+        target_pl1_watts=20.0,
+        npu_streams=2,
+        npu_dp4a_mode=True,
+        plan_bias=-0.10,
+        is_shadow_only=False,
+        nextgen_algorithm="INTERFERENCE_TENSOR"
+    ),
 }
 
 
@@ -239,7 +321,8 @@ class CoordinationTemplateEngine:
     ) -> CoordinatedDispatchReport:
         """
         Applies template settings to Windows API timers and hardware layers,
-        executes the estimation task DAG, and benchmarks timer jitter.
+        executes the estimation task DAG, benchmarks timer jitter, and evaluates
+        the attached next-generation algorithm.
         """
         assert VITAL_MAX_HP == 6, "Constitutional Invariant VITAL_MAX_HP == 6 violated in template dispatch"
 
@@ -289,7 +372,49 @@ class CoordinationTemplateEngine:
         )
         dag_report = dag.execute(self.hw, self.timer)
 
-        # 6. Gather Post-Execution Hardware Status
+        # 6. Execute Next-Gen Algorithm if declared on template
+        nextgen_algo_res = None
+        if tmpl.nextgen_algorithm == "SYMPLECTIC_HARMONIC_TENSOR":
+            symp = SymplecticPhaseSpaceGovernorAlgorithm().step(q=1.0, p=0.0, dt_ms=tmpl.target_cadence_ms)
+            points = GoldenRatioHarmonicTensorAlgorithm().generate_harmonic_cycle(scale=100.0)
+            nextgen_algo_res = {
+                "algorithm": "SYMPLECTIC_HARMONIC_TENSOR",
+                "symplectic": symp.to_dict(),
+                "harmonic_points_count": len(points),
+                "energy_conserved": symp.is_conserved
+            }
+        elif tmpl.nextgen_algorithm == "BREAK_EVEN_PLACEMENT":
+            decision = HeterogeneousBreakEvenPlacementAlgorithm().evaluate_placement(
+                task_name=f"Task_{tmpl.name}",
+                total_mflops=500.0,
+                data_payload_mb=32.0
+            )
+            nextgen_algo_res = {
+                "algorithm": "BREAK_EVEN_PLACEMENT",
+                "placement": decision.to_dict()
+            }
+        elif tmpl.nextgen_algorithm == "CALIBRATION_LEDGER":
+            calib = OnlineCalibrationLedgerAlgorithm().record_prediction(
+                predicted_confidence=0.95,
+                observed_accuracy=0.92
+            )
+            nextgen_algo_res = {
+                "algorithm": "CALIBRATION_LEDGER",
+                "calibration": calib.to_dict()
+            }
+        elif tmpl.nextgen_algorithm == "INTERFERENCE_TENSOR":
+            interf = MultiTenantInterferenceTensorAlgorithm().evaluate_interference(
+                workload_a="MissionControl_HUD",
+                workload_b="BackgroundBatchWorker",
+                footprint_a_mb=256.0,
+                footprint_b_mb=1024.0
+            )
+            nextgen_algo_res = {
+                "algorithm": "INTERFERENCE_TENSOR",
+                "interference": interf.to_dict()
+            }
+
+        # 7. Gather Post-Execution Hardware Status
         hw_after = self.hw.get_full_status()
 
         total_us = clock.elapsed_us(t_start)
@@ -305,6 +430,7 @@ class CoordinationTemplateEngine:
             hardware_status_after=hw_after,
             policy_state=to_wire_token(PolicyState.POL_ACTIVE),
             temporal_state=to_wire_token(TemporalState.TMP_FRESH),
+            nextgen_algorithm_result=nextgen_algo_res,
             vital_max_hp=VITAL_MAX_HP
         )
 

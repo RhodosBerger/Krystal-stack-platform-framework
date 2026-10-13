@@ -381,6 +381,21 @@ from .linux_hw_monitor_utility import (  # noqa: F401
     GLOBAL_LINUX_HW_MONITOR
 )
 
+from .nextgen_algorithms_and_templates import (  # noqa: F401
+    InterferenceContentionReport,
+    MultiTenantInterferenceTensorAlgorithm,
+    SymplecticState,
+    SymplecticPhaseSpaceGovernorAlgorithm,
+    PlacementDecision,
+    HeterogeneousBreakEvenPlacementAlgorithm,
+    CalibrationStatus,
+    OnlineCalibrationLedgerAlgorithm,
+    HarmonicTensorPoint,
+    GoldenRatioHarmonicTensorAlgorithm,
+    NextGenAlgorithmsSuite,
+    GLOBAL_NEXTGEN_ALGORITHMS_SUITE
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -484,5 +499,11 @@ __all__ = [
     "HardwareResourceCategory", "HardwareAllocationSnapshot", "CpuSchedulerAllocation",
     "MemoryUmaAllocation", "GpuAcceleratorAllocation", "NpuCascadeAllocation",
     "PowerThermalAllocation", "StorageIoAllocation", "NetworkSocketsAllocation",
-    "EpistemicInvariantsAllocation", "LinuxHwMonitorUtility", "GLOBAL_LINUX_HW_MONITOR"
+    "EpistemicInvariantsAllocation", "LinuxHwMonitorUtility", "GLOBAL_LINUX_HW_MONITOR",
+    "InterferenceContentionReport", "MultiTenantInterferenceTensorAlgorithm",
+    "SymplecticState", "SymplecticPhaseSpaceGovernorAlgorithm",
+    "PlacementDecision", "HeterogeneousBreakEvenPlacementAlgorithm",
+    "CalibrationStatus", "OnlineCalibrationLedgerAlgorithm",
+    "HarmonicTensorPoint", "GoldenRatioHarmonicTensorAlgorithm",
+    "NextGenAlgorithmsSuite", "GLOBAL_NEXTGEN_ALGORITHMS_SUITE"
 ]

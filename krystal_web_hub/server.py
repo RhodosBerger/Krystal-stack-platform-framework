@@ -1017,6 +1017,17 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Coordination Templates (Canonical & Next-Gen) ──────
+        elif norm_path in ("/api/templates/catalog", "/api/coordination/templates"):
+            from krystal_kernel.coordination_templates import GLOBAL_COORDINATION_TEMPLATE_ENGINE
+            self.send_json({
+                "status": "OK",
+                "templates": GLOBAL_COORDINATION_TEMPLATE_ENGINE.list_templates(),
+                "active_template": GLOBAL_COORDINATION_TEMPLATE_ENGINE.active_template_id.value,
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Radius Derivative vs Cosine Topology Engine ───────
         elif norm_path in ("/api/topology/radius-vs-cosine", "/api/procedural/topology/status"):
             from krystal_kernel.radius_derivative_vs_cosine_topology import GLOBAL_TOPOLOGY_COMPARATOR
@@ -3818,6 +3829,27 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "trace": result,
                 "vital_max_hp": 6
             })
+            return
+
+        # ── API: Coordination Template Dispatch ─────────────────────
+        elif self.path in ("/api/templates/dispatch", "/api/coordination/dispatch"):
+            from krystal_kernel.coordination_templates import GLOBAL_COORDINATION_TEMPLATE_ENGINE, CoordinationTemplateId
+            t_id_str = data.get("template_id", "TEMPLATE_NEXTGEN_SYMPLECTIC_TENSOR_HARMONY")
+            ticks = int(data.get("cadence_ticks", 3))
+            try:
+                t_id = CoordinationTemplateId(t_id_str)
+                report = GLOBAL_COORDINATION_TEMPLATE_ENGINE.dispatch_template(t_id, cadence_ticks=ticks)
+                self.send_json({
+                    "status": "OK",
+                    "report": report.to_dict(),
+                    "vital_max_hp": 6
+                })
+            except Exception as e:
+                self.send_json({
+                    "status": "ERROR",
+                    "error": str(e),
+                    "vital_max_hp": 6
+                })
             return
 
         # ── API: CrystalSec 3.0 Placement Evaluation ───────────────
