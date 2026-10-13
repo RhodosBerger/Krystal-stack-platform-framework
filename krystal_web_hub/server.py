@@ -2440,6 +2440,73 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Chained Convolutional Matrix Workloads & Boolean CRUD DB ────
+        elif path in ("/api/matrix-workloads/telemetry", "/api/matrix/telemetry"):
+            from krystal_kernel.convolutional_matrix_workloads import (
+                GLOBAL_BOOLEAN_CRUD_DATABASE,
+                GLOBAL_MATRIX_STREAMING_LOG_SERVICE,
+                CANONICAL_CONVOLUTION_KERNELS
+            )
+            self.send_json({
+                "status": "OK",
+                "database_entities": len(GLOBAL_BOOLEAN_CRUD_DATABASE.entities),
+                "active_kernels": [k.kernel_id for k in CANONICAL_CONVOLUTION_KERNELS.values()],
+                "total_logs": len(GLOBAL_MATRIX_STREAMING_LOG_SERVICE.ring_buffer),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/matrix-workloads/logs", "/api/matrix/logs"):
+            from krystal_kernel.convolutional_matrix_workloads import GLOBAL_MATRIX_STREAMING_LOG_SERVICE
+            logs = GLOBAL_MATRIX_STREAMING_LOG_SERVICE.get_recent_logs(limit=40)
+            self.send_json({
+                "status": "OK",
+                "logs": logs,
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/matrix-workloads/database", "/api/matrix/database"):
+            from krystal_kernel.convolutional_matrix_workloads import GLOBAL_BOOLEAN_CRUD_DATABASE
+            records = GLOBAL_BOOLEAN_CRUD_DATABASE.query_entities()
+            self.send_json({
+                "status": "OK",
+                "records": records,
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Matrix-Convolutional Image Generator MVP ─────────────────────
+        elif path in ("/api/matrix-image/latest", "/api/matrix-image/telemetry"):
+            from krystal_kernel.matrix_image_generator_mvp import GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE
+            artifact = GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE.get_latest_artifact()
+            if not artifact:
+                artifact = GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE.generate_image()
+            self.send_json({
+                "status": "OK",
+                "artifact": artifact.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/matrix-image/palettes", "/api/matrix-image/colors"):
+            from krystal_kernel.matrix_image_generator_mvp import GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE
+            self.send_json({
+                "status": "OK",
+                "palettes": GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE.list_palettes(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/matrix-image/latent-modes", "/api/matrix-image/modes"):
+            from krystal_kernel.matrix_image_generator_mvp import GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE
+            self.send_json({
+                "status": "OK",
+                "latent_modes": GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE.list_latent_modes(),
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Status ────────────────────────────────────────────
         elif path == "/api/status":
             with state.lock:
@@ -3956,6 +4023,97 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                     "error": str(e),
                     "vital_max_hp": 6
                 }, status=400)
+            return
+
+        # ── API: Chained Matrix Workloads & Boolean CRUD Pipeline ─────────────
+        elif self.path in ("/api/matrix-workloads/run-pipeline", "/api/matrix/run-pipeline"):
+            from krystal_kernel.convolutional_matrix_workloads import (
+                GLOBAL_CHAINED_MATRIX_WORKLOAD_PIPELINE,
+                BooleanMatrix
+            )
+            rows = int(data.get("rows", 8))
+            cols = int(data.get("cols", 8))
+            init_bits = data.get("initial_bits")
+            init_matrix = BooleanMatrix(rows=rows, cols=cols, initial_bits=init_bits) if init_bits else None
+            report = GLOBAL_CHAINED_MATRIX_WORKLOAD_PIPELINE.execute_pipeline(initial_matrix=init_matrix)
+            self.send_json({
+                "status": "OK",
+                "report": report.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/matrix-workloads/crud", "/api/matrix/crud"):
+            from krystal_kernel.convolutional_matrix_workloads import (
+                GLOBAL_BOOLEAN_CRUD_DATABASE,
+                BooleanMatrix
+            )
+            action = str(data.get("action", "READ")).upper()
+            entity_id = data.get("entity_id", "")
+            name = data.get("name", entity_id)
+            coll = data.get("collection", "default")
+            meta = data.get("metadata", {})
+
+            if action == "CREATE":
+                bits = data.get("bits")
+                mat = BooleanMatrix(rows=8, cols=8, initial_bits=bits) if bits else BooleanMatrix(rows=8, cols=8)
+                ent = GLOBAL_BOOLEAN_CRUD_DATABASE.create_entity(entity_id=entity_id, name=name, matrix=mat, collection=coll, metadata=meta)
+                self.send_json({"status": "CREATED", "entity": ent.to_dict(), "vital_max_hp": 6})
+                return
+            elif action == "CONVOLVE":
+                k_id = data.get("kernel_id", "KERNEL_DIFFUSION_SMOOTHER_3X3")
+                ent = GLOBAL_BOOLEAN_CRUD_DATABASE.convolve_entity_update(entity_id=entity_id, kernel_id=k_id)
+                if ent:
+                    self.send_json({"status": "CONVOLVED", "entity": ent.to_dict(), "vital_max_hp": 6})
+                else:
+                    self.send_json({"status": "NOT_FOUND", "entity_id": entity_id}, status=404)
+                return
+            elif action == "DELETE":
+                deleted = GLOBAL_BOOLEAN_CRUD_DATABASE.delete_entity(entity_id=entity_id)
+                self.send_json({"status": "DELETED" if deleted else "NOT_FOUND", "entity_id": entity_id, "vital_max_hp": 6})
+                return
+            else: # READ / QUERY
+                ent = GLOBAL_BOOLEAN_CRUD_DATABASE.get_entity(entity_id) if entity_id else None
+                if ent:
+                    self.send_json({"status": "OK", "entity": ent.to_dict(), "vital_max_hp": 6})
+                else:
+                    records = GLOBAL_BOOLEAN_CRUD_DATABASE.query_entities(collection=coll if coll != "default" else None)
+                    self.send_json({"status": "OK", "records": records, "vital_max_hp": 6})
+                return
+
+        # ── API: Matrix-Convolutional Image Generator MVP ─────────────────────
+        elif self.path in ("/api/matrix-image/generate", "/api/matrix-image/synthesize"):
+            from krystal_kernel.matrix_image_generator_mvp import (
+                GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE,
+                ImageGenerationConfig,
+                LatentSeedMode,
+                ImageColorPalette
+            )
+            mode_str = data.get("latent_mode", "CELLULAR_AUTOMATON")
+            pal_str = data.get("palette", "KRYSTAL_CYBERPUNK")
+            mode = LatentSeedMode[mode_str] if mode_str in LatentSeedMode.__members__ else LatentSeedMode.CELLULAR_AUTOMATON
+            palette = ImageColorPalette[pal_str] if pal_str in ImageColorPalette.__members__ else ImageColorPalette.KRYSTAL_CYBERPUNK
+
+            cfg = ImageGenerationConfig(
+                width=int(data.get("width", 32)),
+                height=int(data.get("height", 32)),
+                seed=int(data.get("seed", 42)),
+                latent_mode=mode,
+                entity_id=data.get("entity_id"),
+                palette=palette,
+                convolution_pipeline=data.get("convolution_pipeline", [
+                    "diffuse_3x3", "edge_detect_3x3", "majority_3x3", "invariant_6hp_3x3"
+                ]),
+                scale_factor=int(data.get("scale_factor", 8)),
+                enable_hud_overlay=bool(data.get("enable_hud_overlay", True)),
+                vital_hp=int(data.get("vital_hp", 6))
+            )
+            artifact = GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE.generate_image(cfg)
+            self.send_json({
+                "status": "OK",
+                "artifact": artifact.to_dict(),
+                "vital_max_hp": 6
+            })
             return
 
         # ── API: CrystalSec 2.0 LLM Execution Plane & Copilot ───────

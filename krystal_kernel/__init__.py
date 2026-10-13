@@ -214,6 +214,37 @@ from .automated_command_actors import (  # noqa: F401
     GLOBAL_ACTOR_SYSTEM_COORDINATOR
 )
 
+from .convolutional_matrix_workloads import (  # noqa: F401
+    BooleanMatrix,
+    ConvolutionKernel,
+    CANONICAL_CONVOLUTION_KERNELS,
+    convolve_boolean_matrix,
+    MatrixStreamingLogEntry,
+    MatrixStreamingLogService,
+    GLOBAL_MATRIX_STREAMING_LOG_SERVICE,
+    BooleanEntity,
+    BooleanMatrixCrudDatabase,
+    GLOBAL_BOOLEAN_CRUD_DATABASE,
+    WorkloadStageResult,
+    ChainedPipelineExecutionReport,
+    ChainedMatrixWorkloadPipeline,
+    GLOBAL_CHAINED_MATRIX_WORKLOAD_PIPELINE
+)
+
+from .matrix_image_generator_mvp import (  # noqa: F401
+    LatentSeedMode,
+    ImageColorPalette,
+    ImageGenerationConfig,
+    GeneratedImageArtifact,
+    LatentTopologyLayer,
+    ConvolutionalDiffusionLayer,
+    HarmonicColorTensorLayer,
+    EpistemicHudInlayLayer,
+    MatrixImageRasterExporter,
+    MatrixImageGeneratorEngine,
+    GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -272,5 +303,14 @@ __all__ = [
     "SocketCommandOpcode", "BulkParameterSocketPacket", "BulkParameterSocketServer",
     "send_bulk_parameters_via_client", "ActorLoopState", "BaseAutonomousCommandLoopActor",
     "HardwareRegulationLoopActor", "NpuBatchTuningLoopActor", "EpistemicGovernorLoopActor",
-    "AutonomousActorSystemCoordinator", "GLOBAL_ACTOR_SYSTEM_COORDINATOR"
+    "AutonomousActorSystemCoordinator", "GLOBAL_ACTOR_SYSTEM_COORDINATOR",
+    "BooleanMatrix", "ConvolutionKernel", "CANONICAL_CONVOLUTION_KERNELS",
+    "convolve_boolean_matrix", "MatrixStreamingLogEntry", "MatrixStreamingLogService",
+    "GLOBAL_MATRIX_STREAMING_LOG_SERVICE", "BooleanEntity", "BooleanMatrixCrudDatabase",
+    "GLOBAL_BOOLEAN_CRUD_DATABASE", "WorkloadStageResult", "ChainedPipelineExecutionReport",
+    "ChainedMatrixWorkloadPipeline", "GLOBAL_CHAINED_MATRIX_WORKLOAD_PIPELINE",
+    "LatentSeedMode", "ImageColorPalette", "ImageGenerationConfig", "GeneratedImageArtifact",
+    "LatentTopologyLayer", "ConvolutionalDiffusionLayer", "HarmonicColorTensorLayer",
+    "EpistemicHudInlayLayer", "MatrixImageRasterExporter", "MatrixImageGeneratorEngine",
+    "GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE"
 ]

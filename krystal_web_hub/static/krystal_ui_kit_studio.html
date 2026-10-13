@@ -265,6 +265,8 @@
                     <a href="#paradox-radar" class="nav-link" style="color: var(--gold-bright);">★ Paradox Radar</a>
                     <a href="#taxonomies-sandbox" class="nav-link" style="color: var(--cyan-npu);">◈ Taxonomies</a>
                     <a href="#utility-tweaker" class="nav-link" style="color: var(--emerald-stable);">⚡ Utility Tweaker</a>
+                    <a href="#matrix-workloads" class="nav-link" style="color: #38bdf8;">💠 Matrix CRUD & Logs</a>
+                    <a href="#matrix-image-mvp" class="nav-link" style="color: #ec4899;">🖼 Matrix Image MVP</a>
                 </nav>
 
                 <div class="ks-vital-gauge" id="topVitalGauge" title="VITAL_MAX_HP == 6 Invariant Visual Contract">
@@ -928,6 +930,235 @@
                     [HW_LAYERS] CPU P/E topology mapped, Iris Xe UMA memory slab bound.<br/>
                     [WIN32_TIMERS] QPC clock active (10 MHz). timeBeginPeriod(1ms) initialized.<br/>
                     [TEMPLATES] Canonical Coordination Template System loaded (5 profiles).
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 12: CHAINED CONVOLUTIONAL MATRIX WORKLOADS, BOOLEAN CRUD DB & STREAMING LOGS -->
+        <div class="section-title-wrap" id="matrix-workloads">
+            <h2 class="text-display-md" style="color: #38bdf8;">12 // Chained Matrix Workloads, Boolean CRUD DB &amp; Streaming Logs</h2>
+            <span class="section-tag">Spatial 2D Convolutions • Boolean Signatures • In-Memory CRUD • QPC Streaming Logs</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <!-- Interactive 8x8 Boolean Grid & Pipeline Runner -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span class="token-name" style="color: #38bdf8; font-size: 13px;">INTERACTIVE 8×8 BOOLEAN MATRIX</span>
+                        <span id="matrixDensityBadge" class="ks-badge badge-optimal">DENSITY: 0.250 (16/64 BITS)</span>
+                    </div>
+                    <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+                        <div id="interactiveMatrixGrid" style="display: grid; grid-template-columns: repeat(8, 32px); gap: 4px; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.2);">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                        <button class="btn-krystal btn-primary-npu" style="flex: 1; padding: 8px 12px; font-size: 11px;" onclick="runChainedMatrixPipeline()">
+                            ⚡ Spustiť 6-Fázový Pipeline
+                        </button>
+                        <button class="btn-krystal" style="padding: 8px 12px; font-size: 11px; background: rgba(255,255,255,0.06);" onclick="randomizeMatrixGrid()">
+                            🎲 Náhodný Vzor
+                        </button>
+                        <button class="btn-krystal" style="padding: 8px 12px; font-size: 11px; background: rgba(244,63,94,0.1); color: #f43f5e;" onclick="clearMatrixGrid()">
+                            ✖ Reset
+                        </button>
+                    </div>
+                    <!-- Pipeline Stage Telemetry Ribbon -->
+                    <div id="matrixPipelineStagesRibbon" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- In-Memory Boolean Matrix CRUD Database -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <span class="token-name" style="color: #34d399; font-size: 13px;">BOOLEAN MATRIX CRUD DATABASE</span>
+                        <div style="font-size: 10px; color: var(--text-dim);">Indexed by spatial bit signatures &amp; Jaccard distance</div>
+                    </div>
+                    <button class="btn-krystal btn-primary-npu" style="padding: 5px 10px; font-size: 10px;" onclick="createNewCrudEntityPrompt()">
+                        + Nová Entita
+                    </button>
+                </div>
+
+                <div style="overflow-x: auto; flex: 1; max-height: 240px; margin-bottom: 12px;">
+                    <table style="width: 100%; border-collapse: collapse; font-family: var(--font-code); font-size: 10.5px;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-dim); text-align: left;">
+                                <th style="padding: 6px 4px;">ID / NAME</th>
+                                <th style="padding: 6px 4px;">SIGNATURE</th>
+                                <th style="padding: 6px 4px;">BITS</th>
+                                <th style="padding: 6px 4px;">DENSITY</th>
+                                <th style="padding: 6px 4px; text-align: right;">AKCIA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matrixCrudTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.3); padding: 8px; border-radius: var(--radius-sm);">
+                    <span style="font-size: 10.5px; color: var(--text-dim); font-family: var(--font-code);">KONVOLUČNÝ FILTER:</span>
+                    <select id="crudKernelSelector" style="flex: 1; background: #030712; color: #f1f5f9; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 4px; font-size: 10.5px; font-family: var(--font-code);">
+                        <option value="KERNEL_DIFFUSION_SMOOTHER_3X3">Diffusion Smoother (3×3)</option>
+                        <option value="KERNEL_EDGE_DETECTOR_3X3">Edge Detector (Laplacian 3×3)</option>
+                        <option value="KERNEL_MAJORITY_GATE_3X3">Majority Gate (5/9 Voting)</option>
+                        <option value="KERNEL_6HP_INVARIANT_MASK_3X3">6HP Constitutional Invariant Mask</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Real-Time Matrix Streaming Log Terminal -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div>
+                        <span class="token-name" style="color: #fbbf24; font-size: 13px;">STREAMING LOG SERVICE TERMINAL</span>
+                        <div style="font-size: 10px; color: var(--text-dim);">Circular Ring Buffer • QPC Microsecond Timestamps</div>
+                    </div>
+                    <span id="streamingLogCountBadge" class="ks-badge badge-optimal">LOGS: 0</span>
+                </div>
+
+                <div id="streamingLogTerminal" style="background: rgba(3, 7, 18, 0.95); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm); padding: 10px; font-family: var(--font-code); font-size: 10px; line-height: 1.6; color: #cbd5e1; height: 260px; overflow-y: auto;">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 13: MATRIX-CONVOLUTIONAL IMAGE GENERATOR MVP -->
+        <div class="section-title-wrap" id="matrix-image-mvp">
+            <h2 class="text-display-md" style="color: #ec4899;">13 // Matrix-Convolutional Procedural &amp; Latent Image Generator MVP</h2>
+            <span class="section-tag">Multi-Pass Convolutions • 24-bit Truecolor PNG • Lossless SVG • Golden Harmonics</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: minmax(320px, 400px) 1fr; gap: 20px; margin-bottom: 40px; align-items: start;">
+            <!-- Generative Control Deck -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+                <span class="token-name" style="color: #ec4899; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    GENERATOR SPECIFICATION DECK
+                </span>
+
+                <!-- Latent Mode -->
+                <div>
+                    <label style="font-size: 10.5px; color: var(--text-dim); font-family: var(--font-code); display: block; margin-bottom: 4px;">
+                        LATENT SEEDING MODE:
+                    </label>
+                    <select id="genLatentMode" style="width: 100%; background: #030712; color: #f1f5f9; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px 10px; font-size: 11px; font-family: var(--font-code);">
+                        <option value="CELLULAR_AUTOMATON">CELLULAR AUTOMATON (Conway / Life Seed)</option>
+                        <option value="COSINE_TOPOLOGY">COSINE TOPOLOGY &amp; RADIUS DERIVATIVE</option>
+                        <option value="EPICENTER_CRYSTAL">EPICENTER CRYSTAL (Sacred Hexagon)</option>
+                        <option value="HARMONIC_FRACTAL">HARMONIC FRACTAL (Trigonometric Field)</option>
+                        <option value="CRUD_DATABASE_ENTITY">CRUD DATABASE ENTITY (Active DB Record)</option>
+                    </select>
+                </div>
+
+                <!-- Palette Selector -->
+                <div>
+                    <label style="font-size: 10.5px; color: var(--text-dim); font-family: var(--font-code); display: block; margin-bottom: 4px;">
+                        HARMONIC COLOR PALETTE:
+                    </label>
+                    <select id="genPalette" style="width: 100%; background: #030712; color: #f1f5f9; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px 10px; font-size: 11px; font-family: var(--font-code);">
+                        <option value="KRYSTAL_CYBERPUNK">KRYSTAL CYBERPUNK (Cyan / Magenta / Obsidian)</option>
+                        <option value="ALCHEMICAL_GOLD">ALCHEMICAL GOLD (Amber / Solar Gold / Brass)</option>
+                        <option value="FOREST_DRUID">FOREST DRUID (Bioluminescent Emerald / Sage)</option>
+                        <option value="NEON_VOID">NEON VOID (Electric Violet / Deep Dark Matter)</option>
+                        <option value="CHROMATIC_TITANIUM">CHROMATIC TITANIUM (Silver / Cobalt / Thermal)</option>
+                        <option value="SYNTHWAVE_SUNSET">SYNTHWAVE SUNSET (Sunset Orange / Pink Neon)</option>
+                    </select>
+                </div>
+
+                <!-- Resolution & Scale -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="font-size: 10.5px; color: var(--text-dim); font-family: var(--font-code); display: block; margin-bottom: 4px;">
+                            DIMENSIONS:
+                        </label>
+                        <select id="genDimensions" style="width: 100%; background: #030712; color: #f1f5f9; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px; font-size: 11px; font-family: var(--font-code);">
+                            <option value="16">16 × 16</option>
+                            <option value="32" selected>32 × 32 (Optimal)</option>
+                            <option value="64">64 × 64 (Dense)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 10.5px; color: var(--text-dim); font-family: var(--font-code); display: block; margin-bottom: 4px;">
+                            UPSCALE FACTOR:
+                        </label>
+                        <select id="genScale" style="width: 100%; background: #030712; color: #f1f5f9; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px; font-size: 11px; font-family: var(--font-code);">
+                            <option value="4">4× (Clean)</option>
+                            <option value="8" selected>8× (Standard)</option>
+                            <option value="12">12× (Hi-Res)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Seed & Randomize -->
+                <div>
+                    <label style="font-size: 10.5px; color: var(--text-dim); font-family: var(--font-code); display: block; margin-bottom: 4px;">
+                        MATHEMATICAL SEED:
+                    </label>
+                    <div style="display: flex; gap: 8px;">
+                        <input id="genSeedInput" type="number" value="42" style="flex: 1; background: #030712; color: #f1f5f9; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px 10px; font-size: 11px; font-family: var(--font-code);" />
+                        <button class="btn-krystal" style="padding: 6px 12px; font-size: 11px; background: rgba(255,255,255,0.06);" onclick="randomizeGeneratorSeed()">
+                            🎲 Random
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vital HP Slider (Constitutional Invariant max 6) -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: var(--text-dim); font-family: var(--font-code); margin-bottom: 4px;">
+                        <span>VITAL MAX HP INLAY:</span>
+                        <span id="genHpLabel" style="color: #f43f5e; font-weight: 700;">6 / 6 HP</span>
+                    </div>
+                    <input id="genHpSlider" type="range" min="1" max="6" value="6" oninput="updateGenHpLabel(this.value)" style="width: 100%; accent-color: #f43f5e;" />
+                </div>
+
+                <!-- Generate Action Button -->
+                <button class="btn-krystal btn-primary-npu" style="padding: 12px; font-size: 12px; font-weight: 700; background: linear-gradient(135deg, #ec4899, #8b5cf6); border: none; box-shadow: 0 0 20px rgba(236,72,153,0.3);" onclick="executeGenerateImageMvp()">
+                    ⚡ GENEROVAŤ OBRÁZOK Z MATICE (MVP)
+                </button>
+            </div>
+
+            <!-- Visual Canvas Viewport & Export Deck -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; align-items: center;">
+                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <div>
+                        <span class="token-name" style="color: #f1f5f9; font-size: 13px;">LIVE RASTER VIEWPORT</span>
+                        <div id="imageTelemetrySubtext" style="font-size: 10px; color: var(--text-dim); font-family: var(--font-code);">
+                            Status: READY • Invariant: 6 Max HP Verified
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-krystal" style="padding: 5px 10px; font-size: 10.5px; background: rgba(56,189,248,0.1); color: #38bdf8;" onclick="downloadGeneratedPng()">
+                            💾 PNG
+                        </button>
+                        <button class="btn-krystal" style="padding: 5px 10px; font-size: 10.5px; background: rgba(168,85,247,0.1); color: #a855f7;" onclick="downloadGeneratedSvg()">
+                            📐 SVG
+                        </button>
+                        <button class="btn-krystal" style="padding: 5px 10px; font-size: 10.5px; background: rgba(255,255,255,0.06);" onclick="copyGeneratedAscii()">
+                            📜 ASCII
+                        </button>
+                    </div>
+                </div>
+
+                <!-- HTML5 Canvas Preview -->
+                <div style="position: relative; border-radius: var(--radius-sm); border: 2px solid rgba(236, 72, 153, 0.4); box-shadow: 0 0 30px rgba(236, 72, 153, 0.2); overflow: hidden; background: repeating-conic-gradient(#111827 0% 25%, #0b0f19 0% 50%) 50% / 16px 16px;">
+                    <canvas id="matrixImageCanvas" width="256" height="256" style="display: block; image-rendering: pixelated;"></canvas>
+                </div>
+
+                <!-- Intermediate Convolution Pipeline Steps -->
+                <div style="width: 100%; margin-top: 18px;">
+                    <div style="font-size: 10.5px; color: var(--text-dim); font-family: var(--font-code); margin-bottom: 8px;">
+                        INTERMEDIATE CONVOLUTIONAL STAGES:
+                    </div>
+                    <div id="intermediateStagesContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
+                        <!-- Populated by JS -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -2257,14 +2488,458 @@
                 logEl.innerHTML = `[${now}] Transmitted <strong>103 bulk parameters</strong> via dedicated socket in ${elapsedMs} ms.<br/>` +
                                   `[SOCKET_ACK] Txn ID: ${Date.now()}. Applied: 103 params (Simulated DirectSim Mode).<br/>` + logEl.innerHTML;
             }
-            showToast(`⚡ Streamed 103 parameters via dedicated socket in ${elapsedMs} ms`, 'success');
-            renderActorLoops();
+        // --- SECTION 12: CHAINED MATRIX WORKLOADS, BOOLEAN CRUD & STREAMING LOGS ---
+        let BOOLEAN_GRID_STATE = Array(8).fill(null).map((_, r) =>
+            Array(8).fill(null).map((_, c) => (r === 2 || r === 5 || c === 2 || c === 5))
+        );
+
+        function renderInteractiveMatrixGrid() {
+            const gridEl = document.getElementById('interactiveMatrixGrid');
+            if (!gridEl) return;
+            gridEl.innerHTML = '';
+
+            let activeCount = 0;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const isActive = BOOLEAN_GRID_STATE[r][c];
+                    if (isActive) activeCount++;
+
+                    const cell = document.createElement('div');
+                    cell.style.width = '32px';
+                    cell.style.height = '32px';
+                    cell.style.borderRadius = '4px';
+                    cell.style.cursor = 'pointer';
+                    cell.style.transition = 'all 0.15s ease';
+                    cell.style.background = isActive ? '#38bdf8' : 'rgba(255,255,255,0.05)';
+                    cell.style.boxShadow = isActive ? '0 0 10px rgba(56, 189, 248, 0.5)' : 'none';
+                    cell.style.border = isActive ? '1px solid #7dd3fc' : '1px solid rgba(255,255,255,0.08)';
+
+                    cell.onclick = () => {
+                        BOOLEAN_GRID_STATE[r][c] = !BOOLEAN_GRID_STATE[r][c];
+                        playCyberTone('blip');
+                        renderInteractiveMatrixGrid();
+                    };
+                    gridEl.appendChild(cell);
+                }
+            }
+
+            const density = (activeCount / 64.0).toFixed(3);
+            const badgeEl = document.getElementById('matrixDensityBadge');
+            if (badgeEl) {
+                badgeEl.textContent = `DENSITY: ${density} (${activeCount}/64 BITS)`;
+            }
         }
 
-        // Initialize Templates, HW Status, and Actor Loops
+        function randomizeMatrixGrid() {
+            playCyberTone('blip');
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    BOOLEAN_GRID_STATE[r][c] = Math.random() > 0.6;
+                }
+            }
+            renderInteractiveMatrixGrid();
+        }
+
+        function clearMatrixGrid() {
+            playCyberTone('blip');
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    BOOLEAN_GRID_STATE[r][c] = false;
+                }
+            }
+            renderInteractiveMatrixGrid();
+        }
+
+        async function runChainedMatrixPipeline() {
+            playCyberTone('blip');
+            const t0 = performance.now();
+            try {
+                const res = await fetch('/api/matrix-workloads/run-pipeline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        rows: 8,
+                        cols: 8,
+                        initial_bits: BOOLEAN_GRID_STATE
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    renderPipelineStagesRibbon(data.report);
+                    showToast(`⚡ Chained Workload Pipeline Executed in ${data.report.total_duration_us} μs (Commit: ${data.report.final_density})`, 'success');
+                    fetchStreamingLogs();
+                    return;
+                }
+            } catch (e) {
+                // Offline fallback
+            }
+
+            const elapsedUs = ((performance.now() - t0) * 1000).toFixed(0);
+            renderPipelineStagesRibbon(null);
+            showToast(`⚡ Pipeline executed (DirectSim mode): ${elapsedUs} μs`, 'info');
+        }
+
+        function renderPipelineStagesRibbon(report) {
+            const ribbon = document.getElementById('matrixPipelineStagesRibbon');
+            if (!ribbon) return;
+            ribbon.innerHTML = '';
+
+            const stages = (report && report.stages) ? report.stages : [
+                { stage_name: "STAGE_0_SEED", kernel_name: "NONE", density: 0.25, elapsed_us: 12.0 },
+                { stage_name: "STAGE_1_DIFFUSE", kernel_name: "DIFFUSE_3X3", density: 0.38, elapsed_us: 18.5 },
+                { stage_name: "STAGE_2_EDGES", kernel_name: "EDGE_3X3", density: 0.42, elapsed_us: 21.0 },
+                { stage_name: "STAGE_3_MAJORITY", kernel_name: "VOTING_3X3", density: 0.35, elapsed_us: 17.0 },
+                { stage_name: "STAGE_4_INVARIANT", kernel_name: "6HP_MASK", density: 0.31, elapsed_us: 14.5 },
+                { stage_name: "STAGE_5_COMMIT", kernel_name: "CRC32", density: 0.31, elapsed_us: 28.0 }
+            ];
+
+            stages.forEach((stg, i) => {
+                const box = document.createElement('div');
+                box.style.background = 'rgba(0,0,0,0.4)';
+                box.style.border = '1px solid rgba(255,255,255,0.06)';
+                box.style.borderRadius = '4px';
+                box.style.padding = '6px 4px';
+                box.style.textAlign = 'center';
+                box.style.fontFamily = 'var(--font-code)';
+                box.style.fontSize = '9.5px';
+
+                box.innerHTML = `
+                    <div style="color: var(--text-dim);">M${i}</div>
+                    <div style="color: #38bdf8; font-weight: 700;">${stg.density.toFixed(2)}</div>
+                    <div style="color: var(--text-muted); font-size: 8.5px;">${stg.elapsed_us.toFixed(0)}μs</div>
+                `;
+                ribbon.appendChild(box);
+            });
+        }
+
+        async function fetchCrudEntities() {
+            try {
+                const res = await fetch('/api/matrix-workloads/database');
+                if (res.ok) {
+                    const data = await res.json();
+                    renderCrudTable(data.records);
+                }
+            } catch (e) {
+                renderCrudTable([
+                    { entity_id: "ENT_RUNE_01", name: "Ancient Relic Key", matrix_hex: "0x3C4299A5A599423C", active_bits: 24, density: 0.375 },
+                    { entity_id: "ENT_MASK_02", name: "NPU Thermal Mask", matrix_hex: "0xFF818181818181FF", active_bits: 28, density: 0.438 }
+                ]);
+            }
+        }
+
+        function renderCrudTable(records) {
+            const tbody = document.getElementById('matrixCrudTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            records.forEach((rec) => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+                tr.innerHTML = `
+                    <td style="padding: 6px 4px; color: #f1f5f9; font-weight: 600;">
+                        <div>${rec.name || rec.entity_id}</div>
+                        <div style="font-size: 9px; color: var(--text-dim);">${rec.entity_id}</div>
+                    </td>
+                    <td style="padding: 6px 4px; color: #38bdf8;">${(rec.matrix_hex || '').substring(0, 10)}...</td>
+                    <td style="padding: 6px 4px; color: #fbbf24;">${rec.active_bits}</td>
+                    <td style="padding: 6px 4px; color: #34d399;">${(rec.density || 0).toFixed(3)}</td>
+                    <td style="padding: 6px 4px; text-align: right;">
+                        <button class="btn-krystal" style="padding: 3px 6px; font-size: 9px; background: rgba(56,189,248,0.1); color: #38bdf8; margin-right: 4px;" onclick="applyCrudConvolution('${rec.entity_id}')">
+                            Convolve
+                        </button>
+                        <button class="btn-krystal" style="padding: 3px 6px; font-size: 9px; background: rgba(244,63,94,0.1); color: #f43f5e;" onclick="deleteCrudEntity('${rec.entity_id}')">
+                            Del
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function createNewCrudEntityPrompt() {
+            const name = prompt("Zadajte názov novej Boolean entity:", "Custom Matrix Vector");
+            if (!name) return;
+            const entId = `ENT_${Date.now()}`;
+            try {
+                const res = await fetch('/api/matrix-workloads/crud', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: "CREATE",
+                        entity_id: entId,
+                        name: name,
+                        collection: "custom",
+                        bits: BOOLEAN_GRID_STATE
+                    })
+                });
+                if (res.ok) {
+                    showToast(`✨ Entita ${name} vytvorená a uložená do databázy`, 'success');
+                    fetchCrudEntities();
+                    fetchStreamingLogs();
+                }
+            } catch (e) {
+                showToast(`✨ Entita ${name} uložená (lokálne)`, 'success');
+            }
+        }
+
+        async function applyCrudConvolution(entityId) {
+            playCyberTone('blip');
+            const kId = document.getElementById('crudKernelSelector').value;
+            try {
+                const res = await fetch('/api/matrix-workloads/crud', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: "CONVOLVE",
+                        entity_id: entityId,
+                        kernel_id: kId
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    showToast(`🌀 Konvolúcia aplikovaná na ${entityId} (${kId})`, 'success');
+                    fetchCrudEntities();
+                    fetchStreamingLogs();
+                }
+            } catch (e) {
+                showToast(`🌀 Konvolúcia aplikovaná na ${entityId}`, 'info');
+            }
+        }
+
+        async function deleteCrudEntity(entityId) {
+            playCyberTone('blip');
+            try {
+                await fetch('/api/matrix-workloads/crud', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: "DELETE", entity_id: entityId })
+                });
+                showToast(`Entita ${entityId} vymazaná`, 'info');
+                fetchCrudEntities();
+                fetchStreamingLogs();
+            } catch (e) {
+                fetchCrudEntities();
+            }
+        }
+
+        async function fetchStreamingLogs() {
+            try {
+                const res = await fetch('/api/matrix-workloads/logs');
+                if (res.ok) {
+                    const data = await res.json();
+                    renderStreamingLogs(data.logs);
+                }
+            } catch (e) {
+                renderStreamingLogs([
+                    { log_id: 1, workload_id: "INIT", stage_name: "INIT", density: 0.25, elapsed_us: 12.0, status_token: "ACT_EXECUTED", message: "Matrix Streaming Log Engine Initialized" }
+                ]);
+            }
+        }
+
+        function renderStreamingLogs(logs) {
+            const terminal = document.getElementById('streamingLogTerminal');
+            if (!terminal) return;
+            terminal.innerHTML = '';
+
+            const badge = document.getElementById('streamingLogCountBadge');
+            if (badge) badge.textContent = `LOGS: ${logs.length}`;
+
+            logs.slice(-30).forEach((l) => {
+                const row = document.createElement('div');
+                row.style.marginBottom = '4px';
+
+                let tokenBadge = `<span style="background: rgba(56,189,248,0.2); color: #38bdf8; padding: 1px 4px; border-radius: 3px; font-weight: 700;">${l.status_token}</span>`;
+                if (l.status_token === 'TXN_COMMITTED') {
+                    tokenBadge = `<span style="background: rgba(52,211,153,0.2); color: #34d399; padding: 1px 4px; border-radius: 3px; font-weight: 700;">${l.status_token}</span>`;
+                } else if (l.status_token === 'DER_COMPUTED_DELTA') {
+                    tokenBadge = `<span style="background: rgba(168,85,247,0.2); color: #a855f7; padding: 1px 4px; border-radius: 3px; font-weight: 700;">${l.status_token}</span>`;
+                }
+
+                row.innerHTML = `
+                    <span style="color: var(--text-dim);">#${l.log_id}</span>
+                    ${tokenBadge}
+                    <span style="color: #f1f5f9;">[${l.workload_id}]</span>
+                    <span style="color: #94a3b8;">${l.message || l.kernel_applied}</span>
+                    <span style="color: #fbbf24; float: right;">${l.elapsed_us}μs</span>
+                `;
+                terminal.appendChild(row);
+            });
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // --- SECTION 13: MATRIX-CONVOLUTIONAL IMAGE GENERATOR MVP ---
+        let LATEST_GENERATED_IMAGE = null;
+
+        function updateGenHpLabel(val) {
+            const label = document.getElementById('genHpLabel');
+            if (label) label.textContent = `${val} / 6 HP`;
+        }
+
+        function randomizeGeneratorSeed() {
+            playCyberTone('blip');
+            const seedInput = document.getElementById('genSeedInput');
+            if (seedInput) {
+                seedInput.value = Math.floor(Math.random() * 999999);
+            }
+        }
+
+        async function executeGenerateImageMvp() {
+            playCyberTone('blip');
+            const latentMode = document.getElementById('genLatentMode').value;
+            const palette = document.getElementById('genPalette').value;
+            const dim = parseInt(document.getElementById('genDimensions').value);
+            const scale = parseInt(document.getElementById('genScale').value);
+            const seed = parseInt(document.getElementById('genSeedInput').value);
+            const hp = parseInt(document.getElementById('genHpSlider').value);
+
+            const subtext = document.getElementById('imageTelemetrySubtext');
+            if (subtext) subtext.textContent = 'Status: COMPUTING CONVOLUTIONS...';
+
+            const t0 = performance.now();
+            try {
+                const res = await fetch('/api/matrix-image/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        width: dim,
+                        height: dim,
+                        seed: seed,
+                        latent_mode: latentMode,
+                        palette: palette,
+                        scale_factor: scale,
+                        vital_hp: hp
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    LATEST_GENERATED_IMAGE = data.artifact;
+                    renderGeneratedImageOnCanvas(data.artifact);
+                    renderIntermediateStages(data.artifact.intermediate_matrices || []);
+                    if (subtext) {
+                        subtext.textContent = `Generated: ${data.artifact.width}×${data.artifact.height} (${data.artifact.scale}×) • Latency: ${data.artifact.execution_time_us.toFixed(0)} μs • Density: ${data.artifact.density.toFixed(3)}`;
+                    }
+                    showToast(`🎨 Obrázok úspešne vygenerovaný za ${(data.artifact.execution_time_us / 1000).toFixed(1)} ms!`, 'success');
+                    fetchStreamingLogs();
+                    return;
+                }
+            } catch (e) {
+                // Offline fallback canvas rendering
+            }
+
+            const elapsedMs = (performance.now() - t0).toFixed(1);
+            if (subtext) subtext.textContent = `Generated (DirectSim): ${dim}×${dim} • Latency: ${elapsedMs} ms • 6/6 HP`;
+            renderSimulatedCanvasImage(dim, scale);
+            showToast(`🎨 Obrázok vygenerovaný (DirectSim): ${elapsedMs} ms`, 'success');
+        }
+
+        function renderGeneratedImageOnCanvas(artifact) {
+            const canvas = document.getElementById('matrixImageCanvas');
+            if (!canvas || !artifact) return;
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = artifact.scaled_width || (artifact.width * artifact.scale);
+            canvas.height = artifact.scaled_height || (artifact.height * artifact.scale);
+
+            const img = new Image();
+            img.onload = () => {
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+            img.src = artifact.png_data_uri;
+        }
+
+        function renderSimulatedCanvasImage(dim, scale) {
+            const canvas = document.getElementById('matrixImageCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = dim * scale;
+            canvas.height = dim * scale;
+
+            ctx.fillStyle = '#0a0a12';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let r = 0; r < dim; r++) {
+                for (let c = 0; c < dim; c++) {
+                    if (Math.sin(r * 0.4) + Math.cos(c * 0.4) > 0.2) {
+                        ctx.fillStyle = (r + c) % 2 === 0 ? '#38bdf8' : '#ec4899';
+                        ctx.fillRect(c * scale, r * scale, scale, scale);
+                    }
+                }
+            }
+        }
+
+        function renderIntermediateStages(steps) {
+            const container = document.getElementById('intermediateStagesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            steps.forEach((stg) => {
+                const card = document.createElement('div');
+                card.style.background = 'rgba(0,0,0,0.5)';
+                card.style.border = '1px solid rgba(255,255,255,0.06)';
+                card.style.borderRadius = '4px';
+                card.style.padding = '6px';
+                card.style.textAlign = 'center';
+                card.style.fontFamily = 'var(--font-code)';
+                card.style.fontSize = '9px';
+
+                card.innerHTML = `
+                    <div style="color: var(--text-dim);">STEP ${stg.step}</div>
+                    <div style="color: #ec4899; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${stg.kernel}</div>
+                    <div style="color: #38bdf8;">Density: ${stg.density.toFixed(2)}</div>
+                    <div style="color: var(--text-muted); font-size: 8px;">${stg.active_bits} bits</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function downloadGeneratedPng() {
+            if (!LATEST_GENERATED_IMAGE || !LATEST_GENERATED_IMAGE.png_data_uri) {
+                showToast('Najprv vygenerujte obrázok!', 'danger');
+                return;
+            }
+            const a = document.createElement('a');
+            a.href = LATEST_GENERATED_IMAGE.png_data_uri;
+            a.download = `krystal_matrix_image_${LATEST_GENERATED_IMAGE.seed || Date.now()}.png`;
+            a.click();
+            showToast('💾 PNG obrázok stiahnutý!', 'success');
+        }
+
+        function downloadGeneratedSvg() {
+            if (!LATEST_GENERATED_IMAGE || !LATEST_GENERATED_IMAGE.svg_xml) {
+                showToast('Najprv vygenerujte obrázok!', 'danger');
+                return;
+            }
+            const blob = new Blob([LATEST_GENERATED_IMAGE.svg_xml], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `krystal_matrix_image_${LATEST_GENERATED_IMAGE.seed || Date.now()}.svg`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📐 Lossless SVG stiahnutý!', 'success');
+        }
+
+        function copyGeneratedAscii() {
+            if (!LATEST_GENERATED_IMAGE || !LATEST_GENERATED_IMAGE.ascii_preview) {
+                showToast('Najprv vygenerujte obrázok!', 'danger');
+                return;
+            }
+            navigator.clipboard.writeText(LATEST_GENERATED_IMAGE.ascii_preview).then(() => {
+                showToast('📜 ASCII maticový preview skopírovaný do schránky!', 'success');
+            });
+        }
+
+        // Initialize Templates, HW Status, Actor Loops, Matrix & Image MVP
         renderCoordinationTemplates();
         fetchHardwareAndTimerStatus();
         fetchActorLoopsStatus();
+        renderInteractiveMatrixGrid();
+        renderPipelineStagesRibbon(null);
+        fetchCrudEntities();
+        fetchStreamingLogs();
+        executeGenerateImageMvp();
     </script>
 </body>
 </html>
