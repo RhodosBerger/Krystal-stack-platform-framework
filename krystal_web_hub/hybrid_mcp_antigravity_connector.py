@@ -471,6 +471,47 @@ class HybridMcpAntigravityConnector:
                         }
                     }
                 }
+            },
+            # 11. Krystal RAG-Conditioned LLM Training & Benchmark Fabric
+            {
+                "name": "krystal-llm-train-epoch",
+                "description": (
+                    "Trénuje / adaptuje neurónovú sieť Krystal-SLM podmienenú aktívnou konfiguráciou RAG modelu "
+                    "(retrieval mode, top-k chunks, embedding dimenzia, latencia) s elastickým LoRA a multi-task stratovou funkciou."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "samples_count": {
+                            "type": "integer",
+                            "description": "Počet trénovacích vzoriek pre syntézu a tréning (predvolené 60)."
+                        },
+                        "learning_rate": {
+                            "type": "number",
+                            "description": "Rýchlosť učenia pre AdamW / SGD gradientný krok (predvolené 0.005)."
+                        },
+                        "epoch": {
+                            "type": "integer",
+                            "description": "Číslo aktuálnej epochy."
+                        }
+                    }
+                }
+            },
+            {
+                "name": "krystal-llm-rag-benchmark",
+                "description": (
+                    "Vyhodnocuje a porovnáva výkon natrénovaného LLM modelu naprieč 4 kanonickými konfiguráciami RAG "
+                    "(Hybrid k=4, Dense k=2, BM25 k=2, Degraded Empty k=0) s 95% intervalmi spoľahlivosti (bootstrapping)."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "test_samples_count": {
+                            "type": "integer",
+                            "description": "Počet testovacích vzoriek (predvolené 20)."
+                        }
+                    }
+                }
             }
         ]
 
@@ -651,7 +692,34 @@ class HybridMcpAntigravityConnector:
                 snap = arguments.get("snapshot")
                 return GLOBAL_KARAF_FABRIC.execute_fabric_cycle(snap)
 
-            # 10. Fallback to Krystal MCP Core Tools
+            # 10. RAG-Conditioned LLM Training & Benchmark Fabric
+            elif name == "krystal-llm-train-epoch":
+                from krystal_kernel.krystal_rag_llm_trainer import (
+                    GLOBAL_RAG_LLM_TRAINER,
+                    KrystalTrainingDatasetBuilder
+                )
+                cnt = int(arguments.get("samples_count", 60))
+                ep = int(arguments.get("epoch", 1))
+                lr = float(arguments.get("learning_rate", 0.005))
+                corpus = KrystalTrainingDatasetBuilder.generate_corpus(num_samples=cnt)
+                tr_set, val_set, _ = KrystalTrainingDatasetBuilder.chronological_split(corpus)
+                GLOBAL_RAG_LLM_TRAINER.lr = lr
+                return GLOBAL_RAG_LLM_TRAINER.train_epoch(tr_set, val_set, epoch=ep)
+
+            elif name == "krystal-llm-rag-benchmark":
+                from krystal_kernel.krystal_rag_llm_trainer import (
+                    GLOBAL_RAG_LLM_TRAINER,
+                    KrystalTrainingDatasetBuilder,
+                    LlmRagPerformanceBenchmark
+                )
+                test_cnt = int(arguments.get("test_samples_count", 20))
+                corpus = KrystalTrainingDatasetBuilder.generate_corpus(num_samples=max(40, test_cnt * 2))
+                _, _, test_set = KrystalTrainingDatasetBuilder.chronological_split(corpus)
+                return LlmRagPerformanceBenchmark.evaluate_model_across_rag_configurations(
+                    GLOBAL_RAG_LLM_TRAINER.model, test_set[:test_cnt]
+                )
+
+            # 11. Fallback to Krystal MCP Core Tools
             elif name in self.krystal_mcp.tool_registry:
                 return self.krystal_mcp.dispatch_call(name, arguments)
 

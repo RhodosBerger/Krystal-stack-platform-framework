@@ -1200,6 +1200,21 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json(res)
             return
 
+        # ── API: RAG-Conditioned LLM Training & Benchmark Fabric ──
+        elif norm_path == "/api/llm/rag/benchmark":
+            from krystal_kernel.krystal_rag_llm_trainer import (
+                GLOBAL_RAG_LLM_TRAINER,
+                KrystalTrainingDatasetBuilder,
+                LlmRagPerformanceBenchmark
+            )
+            corpus = KrystalTrainingDatasetBuilder.generate_corpus(num_samples=40)
+            _, _, test_set = KrystalTrainingDatasetBuilder.chronological_split(corpus)
+            res = LlmRagPerformanceBenchmark.evaluate_model_across_rag_configurations(
+                GLOBAL_RAG_LLM_TRAINER.model, test_set
+            )
+            self.send_json(res)
+            return
+
         # ── API: Active System Processes for Prioritization ───────
         elif norm_path in ("/api/cortex/processes", "/api/processes"):
             from krystal_kernel.cortex_compiler import GLOBAL_CORTEX_COMPILER
@@ -3909,6 +3924,21 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             from krystal_kernel.karaf_engine import GLOBAL_KARAF_FABRIC
             snap = data.get("snapshot", data)
             res = GLOBAL_KARAF_FABRIC.execute_fabric_cycle(snap if isinstance(snap, dict) and snap else None)
+            self.send_json(res, status=200)
+            return
+
+        elif self.path == "/api/llm/train/epoch":
+            from krystal_kernel.krystal_rag_llm_trainer import (
+                GLOBAL_RAG_LLM_TRAINER,
+                KrystalTrainingDatasetBuilder
+            )
+            cnt = int(data.get("samples_count", 60))
+            ep = int(data.get("epoch", 1))
+            lr = float(data.get("learning_rate", 0.005))
+            corpus = KrystalTrainingDatasetBuilder.generate_corpus(num_samples=cnt)
+            tr_set, val_set, _ = KrystalTrainingDatasetBuilder.chronological_split(corpus)
+            GLOBAL_RAG_LLM_TRAINER.lr = lr
+            res = GLOBAL_RAG_LLM_TRAINER.train_epoch(tr_set, val_set, epoch=ep)
             self.send_json(res, status=200)
             return
 
