@@ -315,6 +315,13 @@ class PredictiveDependencyNode:
     lease_ttl_ns: int = 5_000_000_000
     state_version: int = 1
     last_updated_ns: int = field(default_factory=time.time_ns)
+    value: float = 0.0
+    domain_id: Optional[str] = None
+    confidence: float = 1.0
+    valid_from_ns: int = field(default_factory=time.time_ns)
+    interval: Tuple[float, float] = (0.0, 1.0)
+    vector_clock: Dict[str, int] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class PredictiveDependencyGraph:
@@ -351,6 +358,21 @@ class PredictiveDependencyGraph:
                         queue.append(tgt)
         return invalidated
 
+    def fetch_dependencies(
+        self,
+        node_id: str,
+        direction: str = "both",
+        max_depth: int = 16,
+    ):
+        """
+        Fetches upstream and/or downstream causal dependencies into a DependencyBundle.
+        """
+        from krystal_kernel.verification.predictive_dependency_pipeline import (
+            PredictiveDependencyPipeline,
+        )
+        pipeline = PredictiveDependencyPipeline(graph=self)
+        return pipeline.fetch_dependencies(node_id=node_id, direction=direction, max_depth=max_depth)
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "node_count": len(self.nodes),
@@ -358,3 +380,4 @@ class PredictiveDependencyGraph:
             "nodes": {nid: {"subsystem": n.subsystem, "kind": n.epistemic_kind} for nid, n in self.nodes.items()},
             "edges": [{"source": s, "target": t, "kind": k.value} for s, t, k in self.edges],
         }
+

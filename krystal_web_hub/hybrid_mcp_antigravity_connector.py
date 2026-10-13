@@ -569,6 +569,63 @@ class HybridMcpAntigravityConnector:
                     },
                     "required": ["action"]
                 }
+            },
+            # 13. Predictive Dependency Pipeline & Latent Manifold
+            {
+                "name": "krystal-dependency-pipeline",
+                "description": (
+                    "Prediktívna pipeline závislostí: fetch, synchronizácia, prekrývanie, "
+                    "dopĺňanie, aritmetické operácie (add, subtract, multiply, divide) "
+                    "a výpočet cez latentnú premennú x (Kvadratická variabilná varieta)."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "type": "string",
+                            "enum": [
+                                "fetch",
+                                "sync",
+                                "overlap",
+                                "complement",
+                                "add",
+                                "subtract",
+                                "multiply",
+                                "divide",
+                                "calculate_via_x",
+                                "full_pipeline"
+                            ],
+                            "description": "Akcia pipeline."
+                        },
+                        "node_id": {
+                            "type": "string",
+                            "description": "Koreňový identifikátor uzla pre fetch (predvolené: 'hw_thermal')."
+                        },
+                        "direction": {
+                            "type": "string",
+                            "enum": ["upstream", "downstream", "both"],
+                            "description": "Smer prehľadávania závislostí (predvolené: 'both')."
+                        },
+                        "target_domain": {
+                            "type": "string",
+                            "description": "Cieľová doména pre calculate_via_x (predvolené: 'vital_hp')."
+                        },
+                        "delta_x": {
+                            "type": "number",
+                            "description": "Posun v latentnom priestore x pre shift (predvolené: 0.0)."
+                        },
+                        "latent_operation": {
+                            "type": "string",
+                            "enum": ["identity", "shift", "complement", "scale", "harmonic"],
+                            "description": "Transformácia v latentnom priestore x (predvolené: 'identity')."
+                        },
+                        "operand_value": {
+                            "type": "number",
+                            "description": "Skalárny operand pre aritmetické operácie (+, -, *, /)."
+                        }
+                    },
+                    "required": ["action"]
+                }
             }
         ]
 
@@ -859,12 +916,150 @@ class HybridMcpAntigravityConnector:
                         "vital_hp": VITAL_MAX_HP
                     }
 
-            # 13. Fallback to Krystal MCP Core Tools
+            # 13. Predictive Dependency Pipeline & Latent Manifold
+            elif name == "krystal-dependency-pipeline":
+                from krystal_kernel.verification.epistemic_taxonomies import (
+                    PredictiveDependencyGraph,
+                    PredictiveDependencyNode,
+                    DependencyEdgeKind,
+                )
+                from krystal_kernel.verification.predictive_dependency_pipeline import (
+                    PredictiveDependencyPipeline,
+                )
+
+                action = arguments.get("action", "full_pipeline")
+                root_id = arguments.get("node_id", "hw_thermal")
+                direction = arguments.get("direction", "both")
+                target_domain = arguments.get("target_domain", "vital_hp")
+                delta_x = float(arguments.get("delta_x", 0.0))
+                latent_op = arguments.get("latent_operation", "identity")
+                operand_val = float(arguments.get("operand_value", 1.0))
+
+                # Build a standard epistemic dependency graph if not provided
+                graph = PredictiveDependencyGraph()
+                graph.add_node(PredictiveDependencyNode("hw_thermal", "HARDWARE_SENSOR", "MEASURED", value=45.0, domain_id="memory_latency_ns"))
+                graph.add_node(PredictiveDependencyNode("thermal_forecast", "BACKEND_KERNEL", "PREDICTED", value=52.0, domain_id="memory_latency_ns"))
+                graph.add_node(PredictiveDependencyNode("ui_thermal_hud", "FRONTEND_UI", "VIEW_MODEL", value=5.5, domain_id="vital_hp"))
+                graph.add_node(PredictiveDependencyNode("vram_arbiter", "BACKEND_KERNEL", "DERIVED", value=1024.0, domain_id="vram_allocation_mb"))
+
+                graph.add_edge("hw_thermal", "thermal_forecast", DependencyEdgeKind.PREDICTS)
+                graph.add_edge("thermal_forecast", "ui_thermal_hud", DependencyEdgeKind.INVALIDATES)
+                graph.add_edge("hw_thermal", "vram_arbiter", DependencyEdgeKind.PREDICTS)
+
+                pipeline = PredictiveDependencyPipeline(graph=graph)
+
+                if action == "fetch":
+                    bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)
+                    return {"status": "OK", "action": action, "bundle": bundle.to_dict(), "vital_hp": VITAL_MAX_HP}
+
+                elif action == "sync":
+                    bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)
+                    report = pipeline.synchronize(bundle)
+                    return {
+                        "status": "OK",
+                        "action": action,
+                        "is_synchronized": report.is_synchronized,
+                        "expired_nodes": report.expired_nodes,
+                        "active_nodes": report.active_nodes,
+                        "max_drift_ns": report.max_drift_ns,
+                        "observed_max_drift_ns": report.observed_max_drift_ns,
+                        "vector_clock_consensus": report.vector_clock_consensus,
+                        "vital_hp": VITAL_MAX_HP,
+                    }
+
+                elif action == "overlap":
+                    b_a = pipeline.fetch_dependencies(node_id="hw_thermal", direction="downstream")
+                    b_b = pipeline.fetch_dependencies(node_id="thermal_forecast", direction="both")
+                    report = pipeline.overlap(b_a, b_b)
+                    return {
+                        "status": "OK",
+                        "action": action,
+                        "jaccard_similarity": report.jaccard_similarity,
+                        "common_nodes": report.common_nodes,
+                        "unique_a": report.unique_a_nodes,
+                        "unique_b": report.unique_b_nodes,
+                        "cosine_overlap": report.cosine_value_similarity,
+                        "temporal_overlap_ratios": report.temporal_overlap_ratios,
+                        "vital_hp": VITAL_MAX_HP,
+                    }
+
+                elif action == "complement":
+                    bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)
+                    universe = {"hw_thermal", "thermal_forecast", "ui_thermal_hud", "vram_arbiter", "gpu_clock_sentinel"}
+                    report = pipeline.complement(bundle, universe_ids=universe)
+                    return {
+                        "status": "OK",
+                        "action": action,
+                        "missing_nodes": report.missing_nodes,
+                        "algebraic_complement_x": report.algebraic_complement_x,
+                        "algebraic_complement_values": report.algebraic_complement_values,
+                        "completed_nodes": list(report.completed_bundle.nodes.keys()),
+                        "vital_hp": VITAL_MAX_HP,
+                    }
+
+                elif action in ("add", "subtract", "multiply", "divide"):
+                    bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)
+                    if action == "add":
+                        res_bundle = pipeline.add(bundle, operand_val)
+                        return {"status": "OK", "action": action, "operand": operand_val, "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP}
+                    elif action == "subtract":
+                        res_bundle, res_l2 = pipeline.subtract(bundle, operand_val)
+                        return {"status": "OK", "action": action, "operand": operand_val, "residual_l2": res_l2, "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP}
+                    elif action == "multiply":
+                        res_bundle = pipeline.multiply(bundle, operand_val)
+                        return {"status": "OK", "action": action, "operand": operand_val, "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP}
+                    elif action == "divide":
+                        res_bundle = pipeline.divide(bundle, operand_val)
+                        return {"status": "OK", "action": action, "operand": operand_val, "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP}
+
+                elif action == "calculate_via_x":
+                    bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)
+                    calc_res = pipeline.calculate_via_x(
+                        bundle,
+                        target_domain=target_domain,
+                        delta_x=delta_x,
+                        latent_operation=latent_op,
+                    )
+                    return {"status": "OK", "action": action, "calculation": calc_res, "vital_hp": VITAL_MAX_HP}
+
+                else:  # full_pipeline
+                    bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)
+                    sync_rep = pipeline.synchronize(bundle)
+                    comp_rep = pipeline.complement(bundle)
+                    added = pipeline.add(bundle, 2.5)
+                    subtracted, l2 = pipeline.subtract(bundle, 1.0)
+                    multiplied = pipeline.multiply(bundle, 1.2)
+                    divided = pipeline.divide(bundle, 2.0)
+                    calc_res = pipeline.calculate_via_x(
+                        bundle,
+                        target_domain=target_domain,
+                        delta_x=delta_x,
+                        latent_operation=latent_op,
+                    )
+                    return {
+                        "status": "OK",
+                        "action": "full_pipeline",
+                        "fetch": bundle.to_dict(),
+                        "sync": {"is_sync": sync_rep.is_synchronized, "active_count": len(sync_rep.active_nodes)},
+                        "complement": {"missing_count": len(comp_rep.missing_nodes), "algebraic_x": comp_rep.algebraic_complement_x},
+                        "arithmetic": {
+                            "add_sample": added.values,
+                            "subtract_sample": subtracted.values,
+                            "subtract_l2": l2,
+                            "multiply_sample": multiplied.values,
+                            "divide_sample": divided.values,
+                        },
+                        "calculation_via_x": calc_res,
+                        "vital_max_hp_rule": VITAL_MAX_HP,
+                    }
+
+            # 14. Fallback to Krystal MCP Core Tools
             elif name in self.krystal_mcp.tool_registry:
                 return self.krystal_mcp.dispatch_call(name, arguments)
 
             else:
                 return {"error": f"Tool '{name}' is not registered in {self.SERVER_NAME}."}
+
 
         finally:
             dt_ms = (time.time() - t0) * 1000.0

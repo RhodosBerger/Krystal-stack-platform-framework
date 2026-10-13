@@ -145,7 +145,8 @@ class TestHybridMcpAntigravityConnector(unittest.TestCase):
         self.assertIn("krystal-llm-rag-benchmark", tool_names)
         self.assertIn("antigravity-animate-text", tool_names)
         self.assertIn("krystal-get-parametric-render-set", tool_names)
-        self.assertEqual(len(tools), 20)
+        self.assertIn("krystal-dependency-pipeline", tool_names)
+        self.assertEqual(len(tools), 21)
 
         for t in tools:
             self.assertIn("inputSchema", t)
@@ -320,7 +321,59 @@ class TestHybridMcpAntigravityConnector(unittest.TestCase):
         self.assertIn("prompt_block", content_prompt)
         self.assertIn("VITAL_MAX_HP == 6", content_prompt["prompt_block"])
 
+    def test_14_dependency_pipeline_mcp_tool(self):
+        """Tests the unified predictive dependency pipeline tool via JSON-RPC."""
+        # 1. Full pipeline execution
+        req = {
+            "jsonrpc": "2.0",
+            "id": 112,
+            "method": "tools/call",
+            "params": {
+                "name": "krystal-dependency-pipeline",
+                "arguments": {
+                    "action": "full_pipeline",
+                    "node_id": "hw_thermal",
+                    "direction": "both",
+                    "target_domain": "vital_hp",
+                    "delta_x": 0.1,
+                    "latent_operation": "shift"
+                }
+            }
+        }
+        res = self.connector.handle_jsonrpc_request(req)
+        self.assertNotIn("error", res)
+        content = json.loads(res["result"]["content"][0]["text"])
+        self.assertEqual(content["status"], "OK")
+        self.assertEqual(content["vital_max_hp_rule"], 6)
+        self.assertTrue(content["sync"]["is_sync"])
+        self.assertIn("add_sample", content["arithmetic"])
+        self.assertIn("calculation_via_x", content)
+        self.assertEqual(content["calculation_via_x"]["target_domain"], "vital_hp")
+        self.assertTrue(content["calculation_via_x"]["constitutional_compliance"])
+
+        # 2. Arithmetic divide action
+        req_div = {
+            "jsonrpc": "2.0",
+            "id": 113,
+            "method": "tools/call",
+            "params": {
+                "name": "krystal-dependency-pipeline",
+                "arguments": {
+                    "action": "divide",
+                    "node_id": "hw_thermal",
+                    "operand_value": 2.0
+                }
+            }
+        }
+        res_div = self.connector.handle_jsonrpc_request(req_div)
+        content_div = json.loads(res_div["result"]["content"][0]["text"])
+        self.assertEqual(content_div["status"], "OK")
+        self.assertEqual(content_div["action"], "divide")
+        self.assertIn("hw_thermal", content_div["result_values"])
+        self.assertEqual(content_div["vital_hp"], 6)
+
 
 if __name__ == "__main__":
     unittest.main()
+
 

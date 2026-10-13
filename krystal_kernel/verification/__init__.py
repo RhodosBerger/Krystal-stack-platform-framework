@@ -140,6 +140,12 @@ __all__ = [
     "PredictiveDependencyGraph",
     "PredictiveDependencyNode",
     "DependencyEdgeKind",
+    # Predictive Dependency Pipeline & Arithmetic Manifold
+    "PredictiveDependencyPipeline",
+    "DependencyBundle",
+    "SyncReport",
+    "OverlapReport",
+    "ComplementReport",
 ]
 
 from krystal_kernel.verification.state_version import StateVersion
@@ -194,3 +200,11 @@ from krystal_kernel.verification.epistemic_taxonomies import (
     PredictiveDependencyNode,
     DependencyEdgeKind,
 )
+from krystal_kernel.verification.predictive_dependency_pipeline import (
+    PredictiveDependencyPipeline,
+    DependencyBundle,
+    SyncReport,
+    OverlapReport,
+    ComplementReport,
+)
+
