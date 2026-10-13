@@ -801,6 +801,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "small_model_core_rag_studio.html", "text/html")
             return
+        elif norm_path in (
+            "/paradox-registry", "/epistemic-paradoxes", "/paradox-studio",
+            "/epistemic_paradox_registry_studio.html"
+        ):
+            self.serve_file(STATIC_DIR / "epistemic_paradox_registry_studio.html", "text/html")
+            return
         elif norm_path in ("/cloud-backoffice", "/backoffice", "/cloud_backoffice_studio.html", "/evidence"):
             self.serve_file(STATIC_DIR / "cloud_backoffice_studio.html", "text/html")
             return
@@ -979,6 +985,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "samples": GLOBAL_TOPOLOGY_COMPARATOR.sample_profile(sample_count=36),
                 "vital_max_hp": 6
             })
+            return
+
+        # ── API: Epistemic Paradox Registry & Falsification ────────
+        elif norm_path in ("/api/paradoxes", "/api/paradoxes/status"):
+            from krystal_kernel.epistemic_paradox_registry import GLOBAL_PARADOX_REGISTRY
+            self.send_json(GLOBAL_PARADOX_REGISTRY.sample_system_paradox_telemetry())
             return
 
         # ── API: Processor Integrity & Context-Switch Telemetry ────
@@ -3770,6 +3782,21 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "status": "OK",
                 "comparison": comp.generate_analytical_comparison(),
                 "samples": comp.sample_profile(sample_count=int(data.get("samples_count", 36))),
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Epistemic Paradox Registry & Falsification ────────
+        elif self.path in ("/api/paradoxes/probe", "/api/paradox/probe"):
+            from krystal_kernel.epistemic_paradox_registry import GLOBAL_PARADOX_REGISTRY
+            pid = data.get("paradox_id", "PARADOX-01")
+            sim_val = data.get("simulated_metric_value")
+            if sim_val is not None:
+                sim_val = float(sim_val)
+            probe_res = GLOBAL_PARADOX_REGISTRY.probe_paradox(paradox_id=pid, simulated_metric_value=sim_val)
+            self.send_json({
+                "status": "OK",
+                "probe": probe_res,
                 "vital_max_hp": 6
             })
             return

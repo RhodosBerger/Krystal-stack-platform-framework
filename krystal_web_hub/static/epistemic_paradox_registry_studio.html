@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPISTEMIC PARADOX REGISTRY // SYSTEMIC FALSIFICATION FRAMEWORK</title>
+    <meta name="description" content="Explicitný Paradox Registry a falsifikačný radar pre 10 fundamentálnych systémových paradoxov Krystal Stacku (PARADOX-01 až PARADOX-10).">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #030611;
+            --bg-card: rgba(12, 18, 36, 0.88);
+            --bg-panel: rgba(8, 13, 26, 0.96);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+
+            --amber-paradox: #f59e0b;
+            --amber-glow: rgba(245, 158, 11, 0.35);
+            --rose-danger: #f43f5e;
+            --cyan-accent: #38bdf8;
+            --emerald-stable: #10b981;
+            --purple-epistemic: #a855f7;
+            --gold-bright: #fbbf24;
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --blur: blur(18px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(245, 158, 11, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 90% 85%, rgba(168, 85, 247, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.03) 0%, transparent 55%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+        }
+
+        /* ── HEADER ──────────────────────────────────────────────────────── */
+        header.studio-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 36px;
+            background: rgba(6, 10, 22, 0.94);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(168, 85, 247, 0.3));
+            border: 1px solid var(--amber-paradox);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 0 16px var(--amber-glow);
+        }
+
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            background: linear-gradient(90deg, #ffffff, var(--amber-paradox), var(--purple-epistemic));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-sub {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.8px;
+        }
+
+        .nav-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .vital-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(244, 63, 94, 0.12);
+            border: 1px solid rgba(244, 63, 94, 0.35);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fecdd3;
+        }
+
+        .vital-hearts {
+            color: var(--rose-danger);
+            letter-spacing: 2px;
+        }
+
+        .hub-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-family: 'Fira Code', monospace;
+            border: 1px solid var(--border-subtle);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .hub-link:hover {
+            color: #fff;
+            border-color: var(--amber-paradox);
+            box-shadow: 0 0 10px var(--amber-glow);
+        }
+
+        /* ── LAYOUT ──────────────────────────────────────────────────────── */
+        main.studio-content {
+            flex: 1;
+            padding: 26px 36px 40px;
+            max-width: 1720px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* ── HERO BANNER ─────────────────────────────────────────────────── */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.09) 0%, rgba(168, 85, 247, 0.07) 50%, rgba(56, 189, 248, 0.05) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: var(--blur);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(to bottom, var(--amber-paradox), var(--purple-epistemic));
+        }
+
+        .hero-text h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 24px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            color: #ffffff;
+        }
+
+        .hero-text p {
+            color: var(--text-muted);
+            font-size: 14px;
+            max-width: 1050px;
+            line-height: 1.55;
+        }
+
+        .meta-paradox-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: var(--radius-sm);
+            padding: 12px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 320px;
+        }
+
+        .meta-paradox-title {
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--amber-paradox);
+        }
+
+        .meta-paradox-formula {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* ── PARADOX GRID ────────────────────────────────────────────────── */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--amber-paradox);
+            box-shadow: 0 0 10px var(--amber-paradox);
+        }
+
+        .paradox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .paradox-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .paradox-card:hover {
+            border-color: var(--amber-paradox);
+            box-shadow: 0 8px 26px rgba(245, 158, 11, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .paradox-card.alert-active {
+            border-color: var(--rose-danger);
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.25);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .paradox-id-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--amber-paradox);
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+
+        .category-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .alert-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .badge-latent {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-mitigating {
+            background: rgba(244, 63, 94, 0.18);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            animation: pulse-alert 1.5s infinite alternate;
+        }
+
+        @keyframes pulse-alert {
+            0% { box-shadow: 0 0 4px rgba(244, 63, 94, 0.2); }
+            100% { box-shadow: 0 0 12px rgba(244, 63, 94, 0.5); }
+        }
+
+        .paradox-title {
+            font-family: 'Cinzel', serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .formal-formula-box {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--cyan-accent);
+            word-break: break-all;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .detail-label {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .detail-text {
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .mitigation-box {
+            background: rgba(168, 85, 247, 0.07);
+            border-left: 3px solid var(--purple-epistemic);
+            padding: 10px 14px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mitigation-label {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: var(--purple-epistemic);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .mitigation-text {
+            font-size: 12px;
+            color: #f1f5f9;
+            line-height: 1.4;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 12px;
+        }
+
+        .btn-probe {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            color: #fef3c7;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-probe:hover {
+            background: rgba(245, 158, 11, 0.25);
+            border-color: var(--amber-paradox);
+            color: #fff;
+        }
+
+        .probe-status {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        /* ── FOOTER ──────────────────────────────────────────────────────── */
+        footer.studio-footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 18px 36px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-dim);
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            background: rgba(6, 10, 22, 0.94);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── NAV ──────────────────────────────────────────────────────── -->
+    <header class="studio-nav">
+        <a href="/" class="brand-container">
+            <div class="brand-icon">⚖️</div>
+            <div>
+                <div class="brand-title">KRYSTAL-STACK // EPISTEMIC PARADOX REGISTRY</div>
+                <div class="brand-sub">10 ARCHITECTURAL PARADOXES // FALSIFICATION WATCHDOG</div>
+            </div>
+        </a>
+        <div class="nav-meta">
+            <div class="vital-badge">
+                <span>VITAL INVARIANT:</span>
+                <span class="vital-hearts">♥♥♥♥♥♥</span>
+                <span>(MAX HP 6)</span>
+            </div>
+            <a href="/" class="hub-link">← NÁVRAT DO HUB-U</a>
+        </div>
+    </header>
+
+    <!-- ── MAIN ─────────────────────────────────────────────────────── -->
+    <main class="studio-content">
+
+        <!-- ── HERO ─────────────────────────────────────────────────── -->
+        <section class="hero-banner">
+            <div class="hero-text">
+                <h1>Explicitný Paradox Registry & Systémový Falsifikačný Rámec</h1>
+                <p>
+                    Skutočne autonómny epistemický runtime netestuje len externé hypotézy, ale <strong>nepretržite sonduje,
+                    falsifikuje a tlmí vnútorné paradoxy</strong> vznikajúce z vlastných riadiacich mechanizmov,
+                    generovania dôkazov a bezpečnostných brán. Tu je kodifikovaných 10 základných paradoxov platformy Krystal Stack.
+                </p>
+            </div>
+            <div class="meta-paradox-box">
+                <div class="meta-paradox-title">HLAVNÝ META-PARADOX:</div>
+                <div class="meta-paradox-formula">More Knowledge ⇏ More Action</div>
+                <div style="font-size: 11px; color: var(--text-dim); line-height: 1.3;">
+                    Čím viac systém vie o svojej neistote, tým opatrnejšie koná, čím stráca prísun novej evidencie.
+                </div>
+            </div>
+        </section>
+
+        <!-- ── PARADOX REGISTRY SECTION ─────────────────────────────── -->
+        <section>
+            <div class="section-header" style="margin-bottom: 16px;">
+                <h2 class="section-title">Katalóg 10 Systémových Paradoxov (PARADOX-01 až PARADOX-10)</h2>
+                <div style="font-family: 'Fira Code', monospace; font-size: 12px; color: var(--text-dim);">
+                    Stav: <span id="alertsCount" style="color: var(--emerald-stable); font-weight: 700;">0 AKTÍVNYCH NARUŠENÍ</span>
+                </div>
+            </div>
+
+            <div class="paradox-grid" id="paradoxGrid">
+                <!-- Dynamically populated or rendered -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ── FOOTER ───────────────────────────────────────────────────── -->
+    <footer class="studio-footer">
+        <div>KRYSTAL-STACK PLATFORM // EPISTEMIC PARADOX REGISTRY & FALSIFICATION WATCHDOG</div>
+        <div>VITAL PLATFORM INVARIANT: VITAL_MAX_HP == 6 // HARD ONTOLOGICAL BOUNDARIES</div>
+    </footer>
+
+    <!-- ── LOGIC SCRIPT ─────────────────────────────────────────────── -->
+    <script>
+        async function fetchParadoxes() {
+            try {
+                const res = await fetch('/api/paradoxes');
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.paradoxes) {
+                    renderParadoxes(data.paradoxes);
+                    document.getElementById("alertsCount").textContent = 
+                        `${data.active_alerts_count} AKTÍVNYCH NARUŠENÍ`;
+                    document.getElementById("alertsCount").style.color = 
+                        data.active_alerts_count > 0 ? "var(--rose-danger)" : "var(--emerald-stable)";
+                }
+            } catch (err) {
+                console.error("Chyba pri načítaní paradoxov:", err);
+            }
+        }
+
+        function renderParadoxes(paradoxes) {
+            const grid = document.getElementById("paradoxGrid");
+            grid.innerHTML = "";
+
+            paradoxes.forEach(p => {
+                const card = document.createElement("div");
+                card.className = "paradox-card " + (p.alert_level !== "LATENT_STABLE" ? "alert-active" : "");
+                card.id = `card_${p.paradox_id}`;
+
+                card.innerHTML = `
+                    <div class="card-top">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="paradox-id-badge">${p.paradox_id}</span>
+                            <span class="category-badge">${p.category}</span>
+                        </div>
+                        <span class="alert-badge ${p.alert_level === 'LATENT_STABLE' ? 'badge-latent' : 'badge-mitigating'}" id="badge_${p.paradox_id}">
+                            ${p.alert_level}
+                        </span>
+                    </div>
+
+                    <div>
+                        <div class="paradox-title">${p.name}</div>
+                    </div>
+
+                    <div class="formal-formula-box">
+                        ${p.formal_expression}
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Trigger:</span>
+                            <span class="detail-text">${p.trigger}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Failure Mode:</span>
+                            <span class="detail-text">${p.failure_mode}</span>
+                        </div>
+                        <div class="detail-item" style="grid-column: span 2;">
+                            <span class="detail-label">Observable Signature:</span>
+                            <span class="detail-text">${p.observable_signature}</span>
+                        </div>
+                    </div>
+
+                    <div class="mitigation-box">
+                        <span class="mitigation-label">Mitigation Strategy:</span>
+                        <span class="mitigation-text">${p.mitigation_strategy}</span>
+                        <span class="detail-label" style="margin-top: 4px;">Residual Risk:</span>
+                        <span class="detail-text" style="font-size: 11px;">${p.residual_risk}</span>
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn-probe" onclick="probeParadox('${p.paradox_id}')">
+                            <span>🔬</span> <span>Spustiť Falsifikačný Probe</span>
+                        </button>
+                        <span class="probe-status" id="probeStatus_${p.paradox_id}">
+                            Sondované: ${p.times_probed}x
+                        </span>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        async function probeParadox(paradoxId) {
+            const statusSpan = document.getElementById(`probeStatus_${paradoxId}`);
+            statusSpan.textContent = "Sondovanie...";
+
+            try {
+                const res = await fetch('/api/paradoxes/probe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paradox_id: paradoxId })
+                });
+                const data = await res.json();
+                if (data.success && data.probe) {
+                    const probe = data.probe;
+                    statusSpan.textContent = `Namerané: ${probe.probed_metric}=${probe.observed_value} (Limit: ${probe.threshold})`;
+                    const badge = document.getElementById(`badge_${paradoxId}`);
+                    badge.textContent = probe.alert_level;
+                    badge.className = "alert-badge " + (probe.alert_level === 'LATENT_STABLE' ? 'badge-latent' : 'badge-mitigating');
+                }
+            } catch (err) {
+                console.error("Chyba pri probe:", err);
+                statusSpan.textContent = "Chyba sondy";
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            fetchParadoxes();
+            setInterval(fetchParadoxes, 5000);
+        });
+    </script>
+</body>
+</html>

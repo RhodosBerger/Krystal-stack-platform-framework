@@ -842,4 +842,47 @@ Instead, the **principle of the small model** is twofold:
   python -m unittest tests/test_small_model_core_rag.py
   ```
 
+---
+
+## 21. Epistemic Paradox Registry & Systemic Falsification Framework (PARADOX-01 to PARADOX-10)
+
+### 21.1 The Meta-Paradox and Systems Architecture Principles
+A self-aware epistemic runtime does not merely test external hypotheses; it continuously probes, falsifies, and mitigates the internal paradoxes arising from its own control-plane, proof verification, and safety boundaries.
+
+$$\text{More knowledge} \Rightarrow \text{More awareness of uncertainty} \Rightarrow \text{Less action} \quad (\text{More knowledge} \not\Rightarrow \text{More action})$$
+
+### 21.2 The 10 Canonical Paradoxes
+
+| ID | Name | Formal Trigger / Expression | Failure Mode | Mitigation Strategy |
+|---|---|---|---|---|
+| **PARADOX-01** | Safety–Exploration Paradox | $\uparrow \text{uncertainty awareness} \Rightarrow \uparrow \text{veto} \Rightarrow \downarrow \text{exploration} \Rightarrow \uparrow \text{persistent uncertainty}$ | Epistemic paralysis in novel state regions | Shadow Execution Plane with decoupled risk-free telemetry collection |
+| **PARADOX-02** | Evidence Expiry Loop | $\text{Evidence} \rightarrow \text{Verify} \rightarrow \text{Evidence expires} \rightarrow \text{Reobserve} \rightarrow \dots$ | Verification livelock delaying candidate action past TTL | Pre-verified hierarchical tokens & epochal evidence leasing |
+| **PARADOX-03** | StateVersion Livelock | $\text{CurrentVersion} = \text{SourceVersion} \land \uparrow f_{\text{telemetry}} \Rightarrow \text{lifetime} < \Delta t$ | Heisenberg control-plane abort livelock (> 60% abort rate) | Epistemic version leases & subsystem-scoped version domains |
+| **PARADOX-04** | Veto Learning Blindspot | $\text{Veto} \Rightarrow \text{Safety} \land \text{Missing counterfactual ground truth}$ | Model closed in a self-reinforcing circle of biases | Counterfactual digital twin sandbox runs for all emitted vetoes |
+| **PARADOX-05** | Selection Bias from Gates | $P(\text{data} \mid \text{survived gates}) \neq P(\text{data})$ | False confidence in model calibration outside gated zone | Dual data stream training retaining raw `UNGATED_RAW` telemetry |
+| **PARADOX-06** | Normalization Semantic Loss | $\uparrow \text{universality} \Rightarrow \uparrow \text{semantic degradation of native state}$ | Loss of hypervisor-specific flags (NUMA, APIC, pinning) | Dual-Aspect State Pattern (`canonical_state` + `adapter_native_state`) |
+| **PARADOX-07** | Zero-Copy Ownership Paradox | $\downarrow \text{copies} \Rightarrow \downarrow \text{latency} \land \uparrow \text{aliasing} \Rightarrow \uparrow \text{correctness risk}$ | Data races, aliasing bugs, and dangling memory in C ABI | Strict linear lifetimes, pinned ring buffers & IOMMU boundaries |
+| **PARADOX-08** | Proof Cost Dominance | $\text{Cost}(\text{proof}) > \text{Cost}(\text{action})$ | Proof generation overhead collapses system throughput | Amortized batch proofs & tiering (light tokens for micro actions) |
+| **PARADOX-09** | Invariant–Evidence Collapse | $\text{Invariant} \neq \text{Evidence} \land (\text{Evidence} \rightsquigarrow \text{Mutable Invariant})$ | ML model "unlearns" safety rules in pursuit of throughput | Strict ontological compile-time separation: Norms are immutable types |
+| **PARADOX-10** | Observability–Stability Paradox | $\uparrow \text{Sensing resolution} \Rightarrow \uparrow \text{Perceived jitter} \Rightarrow \downarrow \text{Stability}$ | Over-reacting to microscopic noise destabilizes control loop | Multi-scale factographic filtering (micro noise absorbed by meso equilibrium) |
+
+### 21.3 Universal Invariant Guard
+$$\text{Invariant} \neq \text{Evidence} \quad \implies \quad \text{assert } \text{VITAL\_MAX\_HP} == 6$$
+
+### 21.4 Interactive Web Studio & REST Endpoints
+* **Web Studio**: `krystal_web_hub/static/epistemic_paradox_registry_studio.html` (served at `/paradox-registry`, `/epistemic-paradoxes`, `/paradox-studio`).
+  - Real-time catalog of all 10 paradoxes with failure modes, formal formulas, observable signatures, and mitigation mechanisms.
+  - Interactive "Spustiť Falsifikačný Probe" button evaluating simulated thresholds and updating status badges (`LATENT_STABLE`, `ACTIVE_MITIGATING`).
+  - Active alert counter and meta-paradox status monitor.
+* **REST Endpoints**:
+  - `GET  /api/paradoxes` — Returns all 10 paradoxes with failure modes, signatures, and alert levels.
+  - `GET  /api/paradoxes/status` — Returns active system alert counts and meta-paradox status.
+  - `POST /api/paradoxes/probe` — Runs a targeted falsification probe against a specified paradox.
+* **Verification**:
+  ```powershell
+  python krystal_kernel/epistemic_paradox_registry.py
+  python -m unittest tests/test_epistemic_paradox_registry.py
+  ```
+
+
 

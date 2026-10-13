@@ -246,6 +246,13 @@ from krystal_kernel.radius_derivative_vs_cosine_topology import (
     CosineTopologyParameters,
     RadiusDerivativeVsCosineTopologyComparator
 )
+from krystal_kernel.epistemic_paradox_registry import (
+    GLOBAL_PARADOX_REGISTRY,
+    EpistemicParadoxRegistry,
+    EpistemicParadoxRecord,
+    ParadoxCategory,
+    ParadoxAlertLevel
+)
 from krystal_web_hub.economic_engine.polymorphic_shape_blender_platform import (
     GLOBAL_SHAPE_PLATFORM,
     LanguageMode,
@@ -1232,6 +1239,9 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/slm-rag-studio', '/core-rag', '/small-model-ui', '/knowledge-copilot', '/small_model_core_rag_studio.html'):
             self._serve_file(os.path.join(STATIC_DIR, "small_model_core_rag_studio.html"), "text/html")
             return
+        if path in ('/paradox-registry', '/epistemic-paradoxes', '/paradox-studio', '/epistemic_paradox_registry_studio.html'):
+            self._serve_file(os.path.join(STATIC_DIR, "epistemic_paradox_registry_studio.html"), "text/html")
+            return
         if path in ('/shape-studio', '/shape-platform', '/blender-library', '/polymorphic-shapes'):
             self._serve_file(os.path.join(STATIC_DIR, "polymorphic_shape_studio.html"), "text/html")
             return
@@ -2020,6 +2030,11 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "samples": GLOBAL_TOPOLOGY_COMPARATOR.sample_profile(sample_count=36),
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
+            return
+
+        # ── EPISTEMIC PARADOX REGISTRY & FALSIFICATION FRAMEWORK (GET) ─────
+        if path in ('/api/paradoxes', '/api/paradoxes/status'):
+            self._send_json(GLOBAL_PARADOX_REGISTRY.sample_system_paradox_telemetry())
             return
 
         # ── PROCEDURAL LAND BENCHMARK & CI/CD THROUGHPUT (GET) ──────────────
@@ -3636,6 +3651,20 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "success": True,
                 "comparison": comp.generate_analytical_comparison(),
                 "samples": comp.sample_profile(sample_count=int(req_data.get("samples_count", 36))),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── EPISTEMIC PARADOX REGISTRY & FALSIFICATION FRAMEWORK (POST) ────
+        if path in ('/api/paradoxes/probe', '/api/paradox/probe'):
+            pid = req_data.get("paradox_id", "PARADOX-01")
+            sim_val = req_data.get("simulated_metric_value")
+            if sim_val is not None:
+                sim_val = float(sim_val)
+            probe_res = GLOBAL_PARADOX_REGISTRY.probe_paradox(paradox_id=pid, simulated_metric_value=sim_val)
+            self._send_json({
+                "success": True,
+                "probe": probe_res,
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return
