@@ -26,11 +26,17 @@ namespace krystal::epistemic {
 constexpr uint32_t VITAL_MAX_HP = 6;
 
 enum class ValidityState {
-    FRESH,
+    UNKNOWN,
+    OBSERVED,
+    DERIVED,
+    PREDICTED,
+    CALIBRATED,
+    VALIDATED,
     STALE,
     EXPIRED,
     CONTRADICTORY,
-    UNKNOWN
+    QUARANTINED,
+    FRESH
 };
 
 enum class EvidenceKind {
@@ -56,6 +62,7 @@ struct EpistemicValueCpp {
     std::string provenance;
     EvidenceKind evidence_kind{EvidenceKind::HARDWARE_MEASURED};
     double uncertainty{0.02};
+    double confidence{1.0};
     uint64_t valid_from_ns{0};
     uint64_t valid_to_ns{0};
     std::string domain;
@@ -63,6 +70,8 @@ struct EpistemicValueCpp {
     std::string source_adapter{"CppHardwareProbe"};
     std::string clock_domain_id{"host_clock_0"};
     double calibration_error{0.01};
+    std::string policy_version{""};
+    std::string causal_parent{""};
 
     ValidityState get_validity_state(uint64_t now_ns) const {
         if (now_ns < valid_from_ns) return ValidityState::UNKNOWN;

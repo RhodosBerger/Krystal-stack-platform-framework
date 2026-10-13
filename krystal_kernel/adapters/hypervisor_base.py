@@ -52,6 +52,10 @@ class IHypervisorAdapter(ABC):
         """Internal audit tracking for zero-mutation enforcement."""
         self._mutation_count += 1
 
+    def get_mutation_count(self) -> int:
+        """Returns the number of recorded mutation attempts."""
+        return self._mutation_count
+
     def assert_zero_mutation(self):
         """Verifies that no mutation or write operations were executed."""
         if self._mutation_count > 0:

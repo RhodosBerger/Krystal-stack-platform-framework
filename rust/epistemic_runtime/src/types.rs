@@ -5,11 +5,17 @@ pub const VITAL_MAX_HP: u32 = 6;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ValidityState {
-    Fresh,
+    Unknown,
+    Observed,
+    Derived,
+    Predicted,
+    Calibrated,
+    Validated,
     Stale,
     Expired,
     Contradictory,
-    Unknown,
+    Quarantined,
+    Fresh, // Backward-compatible alias
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -62,6 +68,8 @@ pub struct EpistemicValue<T> {
     pub provenance: String,
     pub evidence_kind: EvidenceKind,
     pub uncertainty: f64,
+    #[serde(default = "default_confidence")]
+    pub confidence: f64,
     pub valid_from_ns: u64,
     pub valid_to_ns: u64,
     pub domain: String,
@@ -71,6 +79,12 @@ pub struct EpistemicValue<T> {
     pub clock_domain_id: String,
     #[serde(default)]
     pub calibration_error: f64,
+    pub policy_version: Option<String>,
+    pub causal_parent: Option<String>,
+}
+
+fn default_confidence() -> f64 {
+    1.0
 }
 
 impl<T> EpistemicValue<T> {

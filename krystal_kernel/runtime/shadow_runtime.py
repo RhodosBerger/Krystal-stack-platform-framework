@@ -40,6 +40,8 @@ from krystal_kernel.verification.authority_gate import (
     EvidenceGate,
     DualAuthorityGate
 )
+from krystal_kernel.verification.state_space_pruner import StateSpacePruner, PruningReport
+from krystal_kernel.verification.causal_event_log import CausalEventLog, CausalEventClass, CausalEvent
 from krystal_kernel.adapters.hypervisor_base import IHypervisorAdapter
 from krystal_kernel.adapters.kvm_qemu_adapter import KvmQemuAdapter
 from krystal_kernel.runtime.prediction_error_ledger import (
@@ -60,12 +62,16 @@ class ShadowRuntime:
         adapter: Optional[IHypervisorAdapter] = None,
         authority_gate: Optional[DualAuthorityGate] = None,
         error_ledger: Optional[PredictionErrorLedger] = None,
-        risk_registry: Optional[ContextualRiskRegistry] = None
+        risk_registry: Optional[ContextualRiskRegistry] = None,
+        state_space_pruner: Optional[StateSpacePruner] = None,
+        causal_event_log: Optional[CausalEventLog] = None
     ):
         self.adapter = adapter or KvmQemuAdapter()
         self.authority_gate = authority_gate or DualAuthorityGate()
         self.error_ledger = error_ledger or PredictionErrorLedger()
         self.risk_registry = risk_registry or ContextualRiskRegistry()
+        self.state_space_pruner = state_space_pruner or StateSpacePruner()
+        self.causal_event_log = causal_event_log or CausalEventLog()
         self.audit_log: List[AuthorityProofBundle] = []
         self.evidence_buffer: List[ResourceEvidenceEnvelope] = []
         self.state_version = StateVersion(major=1, minor=0, sequence=1, wall_timestamp_utc=time.time())
@@ -105,11 +111,27 @@ class ShadowRuntime:
         if len(self.evidence_buffer) > 20:
             self.evidence_buffer.pop(0)
 
+        ev_obs = self.causal_event_log.emit(
+            event_class=CausalEventClass.OBSERVATION,
+            state_version=self.state_version,
+            payload={"envelope_id": envelope.envelope_id, "guest_id": guest_id},
+            clock_domain=envelope.clock_domain_id,
+            now_ns=eval_time_ns
+        )
+
         # 2. PREDICT (Counterfactual Hypothesis)
         expected_delta = ExpectedDelta(
             metric_deltas={"cpu_usage_pct": -4.5, "temperature_celsius": -1.2},
             confidence=0.91,
             validity_window_ns=int(3.0 * 1e9)
+        )
+        ev_pred = self.causal_event_log.emit(
+            event_class=CausalEventClass.PREDICTION,
+            state_version=self.state_version,
+            causal_parent=ev_obs.event_id,
+            payload=expected_delta.to_dict(),
+            clock_domain=envelope.clock_domain_id,
+            now_ns=eval_time_ns
         )
 
         # 3. GENERATE CandidateAction
@@ -126,19 +148,54 @@ class ShadowRuntime:
             evidence_refs=[e.envelope_id for e in self.evidence_buffer],
             reversibility=ReversibilityClass.COMPENSABLE
         )
+        ev_cand = self.causal_event_log.emit(
+            event_class=CausalEventClass.CANDIDATE,
+            state_version=self.state_version,
+            causal_parent=ev_pred.event_id,
+            payload={"action_id": action_id, "action_type": proposed_action_type},
+            clock_domain=envelope.clock_domain_id,
+            now_ns=eval_time_ns
+        )
 
-        # 4. SafetyGate & EvidenceGate Evaluation via DualAuthorityGate
+        # 4. FORMAL STATE-SPACE PRUNER (Feature Family N: A_possible -> A_committable)
+        prune_report = self.state_space_pruner.prune(
+            candidates=[candidate],
+            envelope=envelope,
+            now_ns=eval_time_ns,
+            safety_gate=self.authority_gate.safety_gate,
+            evidence_gate=self.authority_gate.evidence_gate,
+            risk_registry=self.risk_registry
+        )
+        ev_prune = self.causal_event_log.emit(
+            event_class=CausalEventClass.PRUNING,
+            state_version=self.state_version,
+            causal_parent=ev_cand.event_id,
+            payload=prune_report.to_dict(),
+            clock_domain=envelope.clock_domain_id,
+            now_ns=eval_time_ns
+        )
+
+        # 5. SafetyGate & EvidenceGate Evaluation via DualAuthorityGate
         proof_bundle = self.authority_gate.arbitrate(
             candidate=candidate,
             current_state_version=self.state_version,
             supporting_envelopes=list(self.evidence_buffer),
             now_ns=eval_time_ns
         )
+        ev_auth = self.causal_event_log.emit(
+            event_class=CausalEventClass.AUTHORITY_VERDICT,
+            state_version=self.state_version,
+            causal_parent=ev_prune.event_id,
+            payload={"verdict_type": proof_bundle.verdict.value, "candidate_id": action_id},
+            policy_version=proof_bundle.policy_version.policy_id,
+            clock_domain=envelope.clock_domain_id,
+            now_ns=eval_time_ns
+        )
 
-        # 5. LOG ProofBundle directly into audit ledger
+        # 6. LOG ProofBundle directly into audit ledger
         self.audit_log.append(proof_bundle)
 
-        # 6. SHADOW ACTUATION (ZERO OS MUTATION)
+        # 7. SHADOW ACTUATION (ZERO OS MUTATION)
         # Verify adapter remains completely unmutated
         self.adapter.assert_zero_mutation()
 
@@ -162,7 +219,16 @@ class ShadowRuntime:
             shadow_status = "QUARANTINED_CONTRADICTORY"
             self.risk_registry.record_quarantine(envelope.envelope_id, "CONTRADICTORY_SENSORS", proof_bundle.evidence_proof.contradictions)
 
-        # 7. OBSERVE FUTURE STATE & COMPARE EXPECTED VS ACTUAL
+        self.causal_event_log.emit(
+            event_class=CausalEventClass.SHADOW_RESULT,
+            state_version=self.state_version,
+            causal_parent=ev_auth.event_id,
+            payload={"shadow_status": shadow_status, "verdict": proof_bundle.verdict.value},
+            clock_domain=envelope.clock_domain_id,
+            now_ns=eval_time_ns
+        )
+
+        # 8. OBSERVE FUTURE STATE & COMPARE EXPECTED VS ACTUAL
         # In shadow mode, simulate or sample future envelope
         future_raw = mock_future_observed_data or {
             "cgroup_cpu_usage_usec": 410000,
@@ -183,11 +249,19 @@ class ShadowRuntime:
             "temperature_celsius": -1.3
         }
 
-        # 8. UPDATE CALIBRATION ERROR IN LEDGER
+        # 9. UPDATE CALIBRATION ERROR IN LEDGER
         error_record = self.error_ledger.record_comparison(
             action_id=action_id,
             expected=expected_delta,
             actual_delta=actual_delta,
+            now_ns=eval_time_ns
+        )
+        self.causal_event_log.emit(
+            event_class=CausalEventClass.CALIBRATION_UPDATE,
+            state_version=self.state_version,
+            causal_parent=ev_auth.event_id,
+            payload={"action_id": action_id, "running_calibration_error": self.error_ledger.running_calibration_error},
+            clock_domain=envelope.clock_domain_id,
             now_ns=eval_time_ns
         )
 
@@ -199,6 +273,7 @@ class ShadowRuntime:
             "shadow_status": shadow_status,
             "verdict": proof_bundle.verdict.value,
             "proof_bundle": proof_bundle.to_dict(),
+            "pruning_report": prune_report.to_dict(),
             "prediction_error_record": error_record.to_dict(),
             "running_calibration_error": round(self.error_ledger.running_calibration_error, 4),
             "zero_host_mutation_verified": True
