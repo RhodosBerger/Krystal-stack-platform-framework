@@ -1,7 +1,7 @@
 {
   "certificate_title": "KRYSTAL-STACK MIDNIGHT STABLE BUILD CERTIFICATE",
-  "run_id": "MIDNIGHT-D52EC20B",
-  "timestamp": 1791882817.469086,
+  "run_id": "MIDNIGHT-1AB598C4",
+  "timestamp": 1791884017.644088,
   "release_candidate": "v2.0-midnight-stable",
   "target_setup": {
     "setup_type": "SETUP_A_WINDOWS_IRIS_XE_BAREMETAL",
@@ -22,7 +22,7 @@
     "exhibit_1": {
       "exhibit_name": "Exhibit 1: 8-Phase Causal LLM Execution Plane",
       "status": "PASS",
-      "trace_id": "TRACE-LLM-1A87F1BF",
+      "trace_id": "TRACE-LLM-115EA6F8",
       "phases_completed": 8,
       "ttft_ms": 22.14,
       "inter_token_latency_ms": 5.0,
@@ -140,7 +140,7 @@
       "status": "PASS",
       "nodes_traversed": 16,
       "strategy_selected": "PlannerStrategyKind.PARETO_OPTIMAL_NPU",
-      "cycle_latency_us": 248.6,
+      "cycle_latency_us": 244.1,
       "vital_hp": 6
     },
     "exhibit_8": {
@@ -150,7 +150,7 @@
       "extension_branches_count": 8,
       "version_vector": "<S:4 | P:POL-2.0-CANONICAL | E:a68c472c>",
       "authority_verdict": "AUTH_COMMIT_APPROVED",
-      "cycle_duration_us": 135.8,
+      "cycle_duration_us": 135.3,
       "vital_hp": 6
     },
     "exhibit_9": {
@@ -160,7 +160,7 @@
       "profile": "NPU_ULTRA_QUALITY_12BIT",
       "total_frames_generated": 15,
       "intermediate_frames": 12,
-      "throughput_fps": 948.4006803194213,
+      "throughput_fps": 931.474524171764,
       "psnr_db": 25.43,
       "ssim_score": 0.9545,
       "color_entropy_bits": 5.523,
@@ -192,8 +192,8 @@
         "JA"
       ],
       "operational_tiers_count": 5,
-      "report_sk_elapsed_us": 26.7,
-      "report_ja_elapsed_us": 12.1,
+      "report_sk_elapsed_us": 27.2,
+      "report_ja_elapsed_us": 12.8,
       "cascaded_levels_l0": [
         "LEVEL_0_HARDWARE_SILICON",
         "LEVEL_1_COMPUTE_PIPELINE",

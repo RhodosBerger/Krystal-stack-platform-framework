@@ -978,6 +978,25 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Multi-Model Cascade Runtime Fabric ─────────────────
+        elif norm_path in ("/api/model-cascade/catalog", "/api/cascade/catalog"):
+            from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+            self.send_json({
+                "status": "OK",
+                "nodes": GLOBAL_MODEL_CASCADE_RUNTIME.list_nodes(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif norm_path in ("/api/model-cascade/telemetry", "/api/cascade/telemetry"):
+            from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+            self.send_json({
+                "status": "OK",
+                "telemetry": GLOBAL_MODEL_CASCADE_RUNTIME.get_telemetry(),
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Radius Derivative vs Cosine Topology Engine ───────
         elif norm_path in ("/api/topology/radius-vs-cosine", "/api/procedural/topology/status"):
             from krystal_kernel.radius_derivative_vs_cosine_topology import GLOBAL_TOPOLOGY_COMPARATOR
@@ -3732,6 +3751,53 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             from krystal_web_hub.cloud_backoffice_service import GLOBAL_CLOUD_BACKOFFICE_SERVICE
             cert_dict = GLOBAL_CLOUD_BACKOFFICE_SERVICE.run_live_validation(data)
             self.send_json(cert_dict)
+            return
+
+        # ── API: Multi-Model Cascade Planning & Execution ────────────
+        elif self.path in ("/api/model-cascade/plan", "/api/cascade/plan"):
+            from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+            prompt = data.get("prompt", "")
+            objective = data.get("objective", "BALANCED")
+            max_lat = float(data.get("max_latency_ms", 200.0))
+            max_mem = float(data.get("max_memory_mb", 4096.0))
+            req_grounding = bool(data.get("require_grounding", True))
+            strategy = data.get("strategy")
+            plan = GLOBAL_MODEL_CASCADE_RUNTIME.plan(
+                prompt=prompt,
+                objective=objective,
+                max_latency_ms=max_lat,
+                max_memory_mb=max_mem,
+                require_grounding=req_grounding,
+                strategy=strategy
+            )
+            self.send_json({
+                "status": "OK",
+                "plan": plan.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/model-cascade/execute", "/api/cascade/execute"):
+            from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+            prompt = data.get("prompt", "")
+            objective = data.get("objective", "BALANCED")
+            max_lat = float(data.get("max_latency_ms", 200.0))
+            max_mem = float(data.get("max_memory_mb", 4096.0))
+            req_grounding = bool(data.get("require_grounding", True))
+            strategy = data.get("strategy")
+            result = GLOBAL_MODEL_CASCADE_RUNTIME.execute(
+                prompt=prompt,
+                objective=objective,
+                max_latency_ms=max_lat,
+                max_memory_mb=max_mem,
+                require_grounding=req_grounding,
+                strategy=strategy
+            )
+            self.send_json({
+                "status": "OK",
+                "trace": result,
+                "vital_max_hp": 6
+            })
             return
 
         # ── API: CrystalSec 3.0 Placement Evaluation ───────────────

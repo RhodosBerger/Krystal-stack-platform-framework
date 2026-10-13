@@ -342,6 +342,30 @@ from .multilevel_state_rerendering_and_multilingual_taxonomies import (  # noqa:
     GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE
 )
 
+from .cascade import (  # noqa: F401
+    ModelNode,
+    ModelNodeSpec,
+    IntentClassifierNode,
+    CoreRagNode,
+    ReasoningNode,
+    CodingSpecialistNode,
+    VerificationNode,
+    FinalSynthesisNode,
+    ModelRouter,
+    NodeRouteCandidate,
+    RoutingObjectiveWeights,
+    ROUTING_PROFILES,
+    CascadeEdge,
+    CascadePlan,
+    CascadePlanner,
+    CascadeMerger,
+    CascadeExecutor,
+    CascadeNodeResult,
+    CascadeExecutionTrace,
+    ModelCascadeRuntime,
+    GLOBAL_MODEL_CASCADE_RUNTIME
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -436,5 +460,10 @@ __all__ = [
     "SystemStateLevelTaxon", "LanguageLocaleTaxon", "LinguisticRegisterTaxon",
     "SemanticIntentTaxon", "MULTILINGUAL_LEXICON", "MultiLevelSystemState",
     "MultiLevelReRenderReport", "MultilingualIntentClassifier",
-    "MultiLevelStateReRenderingEngine", "GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE"
+    "MultiLevelStateReRenderingEngine", "GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE",
+    "ModelNode", "ModelNodeSpec", "IntentClassifierNode", "CoreRagNode",
+    "ReasoningNode", "CodingSpecialistNode", "VerificationNode", "FinalSynthesisNode",
+    "ModelRouter", "NodeRouteCandidate", "RoutingObjectiveWeights", "ROUTING_PROFILES",
+    "CascadeEdge", "CascadePlan", "CascadePlanner", "CascadeMerger", "CascadeExecutor",
+    "CascadeNodeResult", "CascadeExecutionTrace", "ModelCascadeRuntime", "GLOBAL_MODEL_CASCADE_RUNTIME"
 ]
