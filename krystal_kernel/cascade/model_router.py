@@ -5,21 +5,20 @@ KRYSTAL-STACK: EPISTEMIC MODEL ROUTER & MULTI-OBJECTIVE RANKING
 ==============================================================================
 Module: krystal_kernel/cascade/model_router.py
 Description:
-    Epistemic model routing engine that dynamically filters and ranks candidate
-    model nodes using the multi-objective scoring formula:
+    Epistemic model routing engine that dynamically classifies intent, ranks
+    candidate model nodes, selects optimal nodes, and synthesizes fallback paths
+    using the calibrated multi-objective scoring formula:
 
-        RouteScore_i = w1 * C_i + w2 * E_i - w3 * L_i - w4 * M_i - w5 * R_i
+        RouteScore_i =
+            w1 * capability_match
+          + w2 * evidence_score
+          + w3 * calibration_score
+          - w4 * latency_cost
+          - w5 * memory_cost
+          - w6 * failure_risk
 
-    where:
-        C_i = capability match [0.0 .. 1.0]
-        E_i = evidence / confidence estimate [0.0 .. 1.0]
-        L_i = normalized latency expectation [0.0 .. 1.0]
-        M_i = normalized memory footprint [0.0 .. 1.0]
-        R_i = historical regret / error risk [0.0 .. 1.0]
-
-    Routing Pipeline:
-        Intent -> Candidate Nodes -> Capability Filter -> Evidence Filter
-               -> Resource Filter -> Route Ranking -> Cascade Plan Selection
+    Supports dynamic policy calibration, per-node historical regret updates,
+    and specialist routing across code, reasoning, retrieval, and verification.
 
 Constitutional Invariant:
     assert VITAL_MAX_HP == 6
@@ -36,17 +35,45 @@ from krystal_kernel.cascade.model_node import ModelNode, ModelNodeSpec
 
 @dataclass
 class RoutingObjectiveWeights:
-    """Weight vector [w1, w2, w3, w4, w5] for multi-objective route scoring."""
+    """Weight vector [w1..w6] for multi-objective route scoring."""
     name: str
-    w_capability: float    # w1
-    w_evidence: float      # w2
-    w_latency: float       # w3
-    w_memory: float        # w4
-    w_regret: float        # w5
+    w1_capability: float = 0.25   # capability_match
+    w2_evidence: float = 0.25     # evidence_score
+    w3_calibration: float = 0.15  # calibration_score
+    w4_latency: float = 0.15      # latency_cost
+    w5_memory: float = 0.10       # memory_cost
+    w6_failure_risk: float = 0.10 # failure_risk
+    # Backwards-compatible aliases
+    w_capability: float = 0.25
+    w_evidence: float = 0.25
+    w_calibration: float = 0.15
+    w_latency: float = 0.15
+    w_memory: float = 0.10
+    w_regret: float = 0.10
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self):
         assert self.vital_max_hp == 6, f"Invariant violation: vital_max_hp must be 6, got {self.vital_max_hp}"
+        if self.w_capability != 0.25 and self.w1_capability == 0.25:
+            self.w1_capability = self.w_capability
+        elif self.w1_capability != 0.25 and self.w_capability == 0.25:
+            self.w_capability = self.w1_capability
+        if self.w_evidence != 0.25 and self.w2_evidence == 0.25:
+            self.w2_evidence = self.w_evidence
+        elif self.w2_evidence != 0.25 and self.w_evidence == 0.25:
+            self.w_evidence = self.w2_evidence
+        if self.w_latency != 0.15 and self.w4_latency == 0.15:
+            self.w4_latency = self.w_latency
+        elif self.w4_latency != 0.15 and self.w_latency == 0.15:
+            self.w_latency = self.w4_latency
+        if self.w_memory != 0.10 and self.w5_memory == 0.10:
+            self.w5_memory = self.w_memory
+        elif self.w5_memory != 0.10 and self.w_memory == 0.10:
+            self.w_memory = self.w5_memory
+        if self.w_regret != 0.10 and self.w6_failure_risk == 0.10:
+            self.w6_failure_risk = self.w_regret
+        elif self.w6_failure_risk != 0.10 and self.w_regret == 0.10:
+            self.w_regret = self.w6_failure_risk
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -56,43 +83,143 @@ class RoutingObjectiveWeights:
 ROUTING_PROFILES: Dict[str, RoutingObjectiveWeights] = {
     "ACCURACY": RoutingObjectiveWeights(
         name="ACCURACY",
-        w_capability=0.35,
-        w_evidence=0.40,
-        w_latency=0.10,
-        w_memory=0.05,
-        w_regret=0.10
+        w1_capability=0.30,
+        w2_evidence=0.35,
+        w3_calibration=0.15,
+        w4_latency=0.08,
+        w5_memory=0.04,
+        w6_failure_risk=0.08,
+        w_capability=0.30,
+        w_evidence=0.35,
+        w_latency=0.08,
+        w_memory=0.04,
+        w_regret=0.08
+    ),
+    "MAX_ACCURACY": RoutingObjectiveWeights(
+        name="MAX_ACCURACY",
+        w1_capability=0.30,
+        w2_evidence=0.35,
+        w3_calibration=0.15,
+        w4_latency=0.08,
+        w5_memory=0.04,
+        w6_failure_risk=0.08,
+        w_capability=0.30,
+        w_evidence=0.35,
+        w_latency=0.08,
+        w_memory=0.04,
+        w_regret=0.08
     ),
     "LATENCY": RoutingObjectiveWeights(
         name="LATENCY",
-        w_capability=0.25,
-        w_evidence=0.15,
+        w1_capability=0.20,
+        w2_evidence=0.10,
+        w3_calibration=0.10,
+        w4_latency=0.45,
+        w5_memory=0.05,
+        w6_failure_risk=0.10,
+        w_capability=0.20,
+        w_evidence=0.10,
         w_latency=0.45,
-        w_memory=0.10,
-        w_regret=0.05
+        w_memory=0.05,
+        w_regret=0.10
+    ),
+    "MIN_LATENCY": RoutingObjectiveWeights(
+        name="MIN_LATENCY",
+        w1_capability=0.20,
+        w2_evidence=0.10,
+        w3_calibration=0.10,
+        w4_latency=0.45,
+        w5_memory=0.05,
+        w6_failure_risk=0.10,
+        w_capability=0.20,
+        w_evidence=0.10,
+        w_latency=0.45,
+        w_memory=0.05,
+        w_regret=0.10
     ),
     "MEMORY": RoutingObjectiveWeights(
         name="MEMORY",
+        w1_capability=0.20,
+        w2_evidence=0.10,
+        w3_calibration=0.10,
+        w4_latency=0.10,
+        w5_memory=0.40,
+        w6_failure_risk=0.10,
         w_capability=0.20,
-        w_evidence=0.15,
+        w_evidence=0.10,
         w_latency=0.10,
-        w_memory=0.45,
+        w_memory=0.40,
+        w_regret=0.10
+    ),
+    "MIN_MEMORY": RoutingObjectiveWeights(
+        name="MIN_MEMORY",
+        w1_capability=0.20,
+        w2_evidence=0.10,
+        w3_calibration=0.10,
+        w4_latency=0.10,
+        w5_memory=0.40,
+        w6_failure_risk=0.10,
+        w_capability=0.20,
+        w_evidence=0.10,
+        w_latency=0.10,
+        w_memory=0.40,
+        w_regret=0.10
+    ),
+    "MAX_GROUNDING": RoutingObjectiveWeights(
+        name="MAX_GROUNDING",
+        w1_capability=0.20,
+        w2_evidence=0.45,
+        w3_calibration=0.15,
+        w4_latency=0.05,
+        w5_memory=0.05,
+        w6_failure_risk=0.10,
+        w_capability=0.20,
+        w_evidence=0.45,
+        w_latency=0.05,
+        w_memory=0.05,
         w_regret=0.10
     ),
     "BALANCED": RoutingObjectiveWeights(
         name="BALANCED",
+        w1_capability=0.25,
+        w2_evidence=0.25,
+        w3_calibration=0.10,
+        w4_latency=0.15,
+        w5_memory=0.15,
+        w6_failure_risk=0.10,
         w_capability=0.25,
         w_evidence=0.25,
-        w_latency=0.20,
+        w_latency=0.15,
         w_memory=0.15,
-        w_regret=0.15
+        w_regret=0.10
+    ),
+    "EXPERIMENTAL": RoutingObjectiveWeights(
+        name="EXPERIMENTAL",
+        w1_capability=0.20,
+        w2_evidence=0.20,
+        w3_calibration=0.20,
+        w4_latency=0.15,
+        w5_memory=0.15,
+        w6_failure_risk=0.10,
+        w_capability=0.20,
+        w_evidence=0.20,
+        w_latency=0.15,
+        w_memory=0.15,
+        w_regret=0.10
     ),
     "VERIFICATION_CRITICAL": RoutingObjectiveWeights(
         name="VERIFICATION_CRITICAL",
-        w_capability=0.30,
-        w_evidence=0.45,
+        w1_capability=0.25,
+        w2_evidence=0.35,
+        w3_calibration=0.20,
+        w4_latency=0.05,
+        w5_memory=0.05,
+        w6_failure_risk=0.10,
+        w_capability=0.25,
+        w_evidence=0.35,
         w_latency=0.05,
         w_memory=0.05,
-        w_regret=0.15
+        w_regret=0.10
     )
 }
 
@@ -102,12 +229,13 @@ class NodeRouteCandidate:
     """Scored model candidate evaluated by ModelRouter."""
     node_id: str
     spec: ModelNodeSpec
-    capability_score: float   # C_i
-    evidence_score: float     # E_i
-    latency_score: float      # L_i (normalized cost)
-    memory_score: float       # M_i (normalized cost)
-    regret_score: float       # R_i (normalized risk)
+    capability_score: float   # w1 * capability_match
+    evidence_score: float     # w2 * evidence_score
+    latency_score: float      # w4 * latency_cost
+    memory_score: float       # w5 * memory_cost
+    regret_score: float       # w6 * failure_risk
     route_score: float        # Final weighted score
+    calibration_score: float = 0.90 # w3 * calibration_score
     is_eligible: bool = True
     disqualification_reason: Optional[str] = None
     vital_max_hp: int = VITAL_MAX_HP
@@ -122,6 +250,7 @@ class NodeRouteCandidate:
             "backend": self.spec.backend,
             "capability_score": round(self.capability_score, 4),
             "evidence_score": round(self.evidence_score, 4),
+            "calibration_score": round(self.calibration_score, 4),
             "latency_score": round(self.latency_score, 4),
             "memory_score": round(self.memory_score, 4),
             "regret_score": round(self.regret_score, 4),
@@ -152,7 +281,7 @@ class ModelRouter:
 
         if any(w in lower for w in ["kód", "code", "python", "script", "def ", "class ", "rust", "function", "gcode", "shader"]):
             intent = "CODE_GENERATION"
-            required_caps.update(["code_generation"])
+            required_caps.update(["code_generation", "code_synthesis"])
         elif any(w in lower for w in ["over", "audit", "invariant", "verifikuj", "paradox", "safe", "kontrola"]):
             intent = "EPISTEMIC_VERIFICATION"
             required_caps.update(["safety_gate", "invariant_assertion"])
@@ -166,7 +295,6 @@ class ModelRouter:
             intent = "CORE_KNOWLEDGE_RAG"
             required_caps.update(["rag_retrieval", "core_knowledge"])
 
-        # Determine if grounding is explicitly requested or implied
         requires_grounding = intent in ["CORE_KNOWLEDGE_RAG", "EPISTEMIC_VERIFICATION", "DEEP_REASONING"]
 
         return {
@@ -187,7 +315,7 @@ class ModelRouter:
     ) -> NodeRouteCandidate:
         """
         Applies epistemic multi-objective scoring formula:
-        RouteScore_i = w1*C_i + w2*E_i - w3*L_i - w4*M_i - w5*R_i
+        RouteScore_i = w1*C_i + w2*E_i + w3*Cal_i - w4*L_i - w5*M_i - w6*R_i
         """
         weights = ROUTING_PROFILES.get(objective, ROUTING_PROFILES["BALANCED"])
         spec = node.spec
@@ -199,7 +327,6 @@ class ModelRouter:
             intersection = spec.capabilities.intersection(required_caps)
             c_score = len(intersection) / float(len(required_caps))
 
-        # Role alignment bonus
         role_alignment_map = {
             "CODE_GENERATION": "CODER",
             "EPISTEMIC_VERIFICATION": "VERIFIER",
@@ -211,7 +338,6 @@ class ModelRouter:
             c_score = min(1.0, c_score + 0.3)
 
         # 2. Evidence / Confidence Estimate (E_i in [0, 1])
-        # Higher confidence for dedicated verifiers and retrieval-grounded nodes
         base_confidence = 0.85
         if spec.role in ["VERIFIER", "RETRIEVER"]:
             base_confidence = 0.95
@@ -221,25 +347,28 @@ class ModelRouter:
             base_confidence = 0.94
         e_score = base_confidence
 
-        # 3. Normalized Latency Expectation (L_i in [0, 1])
-        cost_est = node.estimate_cost({"prompt": "benchmark"})
-        est_lat = cost_est.get("estimated_latency_ms", 15.0)
+        # 3. Calibration Score (Cal_i in [0, 1])
+        cal_score = 0.90 if spec.role in ["VERIFIER", "RETRIEVER"] else 0.82
+
+        # 4. Normalized Latency Cost (L_i in [0, 1])
+        est_lat = node.estimate_latency({"prompt": "benchmark"})
         l_score = min(1.0, est_lat / max(1.0, max_latency_ms))
 
-        # 4. Normalized Memory Cost (M_i in [0, 1])
+        # 5. Normalized Memory Cost (M_i in [0, 1])
         est_mem = spec.memory_budget_mb
         m_score = min(1.0, est_mem / max(1.0, max_memory_mb))
 
-        # 5. Historical Regret / Risk (R_i in [0, 1])
+        # 6. Historical Regret / Risk (R_i in [0, 1])
         r_score = self.node_regret_history.get(spec.node_id, 0.05)
 
-        # Compute RouteScore_i = w1*C_i + w2*E_i - w3*L_i - w4*M_i - w5*R_i
+        # RouteScore_i = w1*C_i + w2*E_i + w3*Cal_i - w4*L_i - w5*M_i - w6*R_i
         route_score = (
-            weights.w_capability * c_score +
-            weights.w_evidence * e_score -
-            weights.w_latency * l_score -
-            weights.w_memory * m_score -
-            weights.w_regret * r_score
+            weights.w1_capability * c_score +
+            weights.w2_evidence * e_score +
+            weights.w3_calibration * cal_score -
+            weights.w4_latency * l_score -
+            weights.w5_memory * m_score -
+            weights.w6_failure_risk * r_score
         )
 
         # Check disqualification filters
@@ -257,6 +386,7 @@ class ModelRouter:
             spec=spec,
             capability_score=c_score,
             evidence_score=e_score,
+            calibration_score=cal_score,
             latency_score=l_score,
             memory_score=m_score,
             regret_score=r_score,
@@ -292,42 +422,92 @@ class ModelRouter:
             )
             candidates.append(c)
 
-        # Sort descending by route score
         candidates.sort(key=lambda x: (x.is_eligible, x.route_score), reverse=True)
         return candidates
 
     def select_node(
         self,
-        candidates: List[NodeRouteCandidate],
-        preferred_role: Optional[str] = None
-    ) -> Optional[NodeRouteCandidate]:
+        candidates: List[Any],
+        preferred_role: Optional[Any] = None
+    ) -> Optional[Any]:
         """Selects the best eligible candidate node, strictly filtered by role if preferred_role is specified."""
-        if preferred_role:
-            for c in candidates:
-                if c.is_eligible and c.spec.role == preferred_role:
-                    return c
-            return None
+        target_role = None
+        if isinstance(preferred_role, str):
+            target_role = preferred_role
+        elif isinstance(preferred_role, dict):
+            intent_val = preferred_role.get("intent", "")
+            intent_map = {
+                "CODE_GENERATION": "CODER",
+                "CORE_KNOWLEDGE_RAG": "RETRIEVER",
+                "KNOWLEDGE_RETRIEVAL": "RETRIEVER",
+                "DEEP_REASONING": "REASONER",
+                "REASONING": "REASONER",
+                "VERIFICATION": "VERIFIER",
+                "FINAL_SYNTHESIS": "SYNTHESIZER"
+            }
+            target_role = intent_map.get(intent_val)
 
-        # If no role preference, take top eligible
+        if target_role:
+            for c in candidates:
+                role = c.spec.role if hasattr(c, "spec") else getattr(c, "role", "")
+                eligible = getattr(c, "is_eligible", True)
+                if eligible and role == target_role:
+                    return c
+
         for c in candidates:
-            if c.is_eligible:
+            if getattr(c, "is_eligible", True):
                 return c
         return candidates[0] if candidates else None
 
     def select_fallback(
         self,
         failed_node_id: str,
-        candidates: List[NodeRouteCandidate]
-    ) -> Optional[NodeRouteCandidate]:
+        candidates: List[Any]
+    ) -> Optional[Any]:
         """
         Selects a secondary/fallback node if the primary node times out or fails.
         Penalizes failed node regret.
         """
-        # Update regret history for failed node
         current_regret = self.node_regret_history.get(failed_node_id, 0.0)
         self.node_regret_history[failed_node_id] = min(1.0, current_regret + 0.25)
 
         for c in candidates:
-            if c.node_id != failed_node_id and c.is_eligible:
+            n_id = getattr(c, "node_id", None) or (c.spec.node_id if hasattr(c, "spec") else "")
+            eligible = getattr(c, "is_eligible", True)
+            if n_id != failed_node_id and eligible:
                 return c
         return None
+
+    def select_specialist(
+        self,
+        domain: str,
+        candidates: Optional[List[Any]] = None
+    ) -> Optional[Any]:
+        """
+        Selects the most suitable specialist node for a domain ('code', 'reasoning', 'rag', 'verifier', 'tool').
+        """
+        domain_role_map = {
+            "code": "CODER",
+            "coding": "CODER",
+            "code_generation": "CODER",
+            "reasoning": "REASONER",
+            "deep_reasoning": "REASONER",
+            "logic": "REASONER",
+            "rag": "RETRIEVER",
+            "retrieval": "RETRIEVER",
+            "core_knowledge_rag": "RETRIEVER",
+            "knowledge_retrieval": "RETRIEVER",
+            "verifier": "VERIFIER",
+            "verification": "VERIFIER",
+            "tool": "TOOL",
+            "classifier": "CLASSIFIER",
+            "synthesis": "SYNTHESIZER"
+        }
+        target_role = domain_role_map.get(domain.lower(), "REASONER")
+        cand_list = candidates or []
+        for c in cand_list:
+            role = c.spec.role if hasattr(c, "spec") else getattr(c, "role", "")
+            eligible = getattr(c, "is_eligible", True)
+            if eligible and role == target_role:
+                return c
+        return cand_list[0] if cand_list else None

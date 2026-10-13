@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krystal Stack — Model Cascade Studio & Execution Fabric</title>
+  <meta name="description" content="Krystal Stack Local AI Model Cascade Studio: Multi-model orchestration, RAG grounding, epistemic verification, and closed-loop telemetry.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-surface: #0e121b;
+      --bg-surface-elevated: #161c28;
+      --bg-surface-hover: #1e2637;
+      --border-subtle: #242e42;
+      --border-accent: #3a4d70;
+      
+      --accent-cyan: #00f0ff;
+      --accent-cyan-glow: rgba(0, 240, 255, 0.25);
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --font-ui: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --vital-hp-color: #10b981;
+      --glass-bg: rgba(14, 18, 27, 0.75);
+      --glass-blur: blur(12px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP HEADER */
+    header.studio-header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-badge {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .header-metrics {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+    }
+
+    .metric-pill {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-pill span.val {
+      color: var(--accent-cyan);
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease-in-out;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
+      color: #000;
+      border-color: rgba(0, 240, 255, 0.4);
+      box-shadow: 0 0 15px var(--accent-cyan-glow);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-accent);
+    }
+
+    .btn-warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-warning:hover {
+      background: rgba(245, 158, 11, 0.25);
+    }
+
+    /* 4-PANE STUDIO LAYOUT */
+    .studio-workbench {
+      display: grid;
+      grid-template-columns: 320px 1fr 380px;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* PANE 1: LEFT - MODEL LIBRARY */
+    .pane-models {
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .pane-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.15);
+    }
+
+    .models-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .model-card {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .model-card:hover {
+      border-color: var(--border-accent);
+      background: var(--bg-surface-hover);
+    }
+
+    .model-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .model-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .model-node-id {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .badge-status {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .status-loaded {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .status-unloaded {
+      background: rgba(100, 116, 139, 0.2);
+      color: var(--text-dim);
+      border: 1px solid rgba(100, 116, 139, 0.4);
+    }
+
+    .model-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 8px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .meta-item {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .meta-val {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .model-capabilities {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .cap-tag {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .model-card-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .btn-sm {
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      flex: 1;
+      justify-content: center;
+    }
+
+    /* PANE 2 & 3: CENTER COLUMN (GRAPH TOP + CHAT BOTTOM) */
+    .center-column {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      background: #080b12;
+    }
+
+    /* CENTER TOP: CASCADE GRAPH CANVAS */
+    .graph-viewport {
+      height: 48%;
+      border-bottom: 1px solid var(--border-subtle);
+      position: relative;
+      background: 
+        radial-gradient(circle at 50% 50%, rgba(20, 28, 45, 0.5) 0%, transparent 80%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 24px 24px, 24px 24px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .graph-toolbar {
+      padding: 8px 16px;
+      background: rgba(14, 18, 27, 0.85);
+      backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .preset-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .select-input {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      outline: none;
+    }
+
+    .select-input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .graph-canvas-container {
+      flex: 1;
+      position: relative;
+      overflow: auto;
+    }
+
+    svg.graph-svg {
+      width: 100%;
+      height: 100%;
+      min-width: 700px;
+      min-height: 250px;
+    }
+
+    /* GRAPH NODES & EDGES */
+    .graph-edge {
+      stroke: var(--border-accent);
+      stroke-width: 2;
+      stroke-dasharray: 4;
+      animation: edgeFlow 30s linear infinite;
+    }
+
+    .graph-edge.active {
+      stroke: var(--accent-cyan);
+      stroke-width: 3;
+      stroke-dasharray: 6 3;
+      filter: drop-shadow(0 0 6px var(--accent-cyan));
+    }
+
+    .graph-edge.fallback {
+      stroke: var(--accent-amber);
+      stroke-dasharray: 3 3;
+    }
+
+    @keyframes edgeFlow {
+      from { stroke-dashoffset: 500; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* CENTER BOTTOM: CHAT & PROMPT WORKBENCH */
+    .chat-workbench {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-dark);
+    }
+
+    .chat-history {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chat-msg {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 90%;
+    }
+
+    .chat-msg.user {
+      align-self: flex-end;
+    }
+
+    .chat-msg.assistant {
+      align-self: flex-start;
+      width: 100%;
+    }
+
+    .msg-bubble {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .chat-msg.user .msg-bubble {
+      background: linear-gradient(135deg, #1e3a8a, #0284c7);
+      color: #fff;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+
+    .chat-msg.assistant .msg-bubble {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+    }
+
+    .msg-header {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .tag-verdict {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .verdict-approved {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .verdict-shadow {
+      background: rgba(139, 92, 246, 0.2);
+      color: var(--accent-purple);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+    }
+
+    .verdict-veto {
+      background: rgba(244, 63, 94, 0.2);
+      color: var(--accent-rose);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+    }
+
+    .prompt-composer {
+      padding: 12px 16px;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .composer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .composer-options {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .shadow-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-purple);
+    }
+
+    .composer-input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-textarea {
+      flex: 1;
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: var(--font-ui);
+      font-size: 0.88rem;
+      resize: none;
+      height: 48px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .input-textarea:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    /* PANE 4: RIGHT - EXECUTION INSPECTOR */
+    .pane-inspector {
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .inspector-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .inspector-card {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-label {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent-cyan);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .trace-node-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      border-left: 3px solid var(--accent-cyan);
+    }
+
+    .trace-node-row.active {
+      border-left-color: var(--accent-emerald);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+    }
+
+    .trace-node-row.fail {
+      border-left-color: var(--accent-rose);
+    }
+
+    .event-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      max-height: 180px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.3);
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    .event-line {
+      display: flex;
+      gap: 8px;
+      color: var(--text-muted);
+    }
+
+    .event-type {
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    .citations-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.75rem;
+    }
+
+    .citation-item {
+      background: rgba(0,0,0,0.2);
+      padding: 6px 8px;
+      border-radius: 4px;
+      border-left: 2px solid var(--accent-purple);
+      font-family: var(--font-mono);
+      color: #c4b5fd;
+    }
+
+    /* MODAL FOR BENCHMARK RESULTS */
+    .benchmark-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.2);
+      border-radius: 12px;
+      padding: 24px;
+      width: 90%;
+      max-width: 680px;
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .benchmark-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      display: none;
+    }
+
+    /* SCROLLBAR STYLING */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-accent);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-cyan);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. TOP HEADER -->
+  <header class="studio-header">
+    <div class="brand-group">
+      <div class="brand-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span>KRYSTAL CASCADE STUDIO</span>
+      </div>
+      <span class="brand-badge">VITAL_MAX_HP == 6</span>
+      <span class="brand-badge" id="hud-runtime-state">RUNTIME: READY</span>
+    </div>
+
+    <div class="header-metrics">
+      <div class="metric-pill">
+        <span>EXECUTIONS:</span>
+        <span class="val" id="metric-executions">0</span>
+      </div>
+      <div class="metric-pill">
+        <span>AVG LAT:</span>
+        <span class="val" id="metric-avg-lat">0.0ms</span>
+      </div>
+      <div class="metric-pill">
+        <span>CONFIDENCE:</span>
+        <span class="val" id="metric-avg-conf">1.00</span>
+      </div>
+      <div class="metric-pill">
+        <span>HYPOTHESES:</span>
+        <span class="val" id="metric-hypotheses">0</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" id="btn-open-benchmark">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+        Run Benchmark
+      </button>
+      <a href="/" class="btn btn-secondary">Hub Home</a>
+    </div>
+  </header>
+
+  <!-- 2. MAIN 4-PANE WORKBENCH -->
+  <main class="studio-workbench">
+
+    <!-- PANE 1: LEFT - MODEL LIBRARY -->
+    <section class="pane-models" id="pane-model-library">
+      <div class="pane-title">
+        <span>Model Library</span>
+        <span id="models-count-badge" class="badge-status status-loaded">6 Nodes</span>
+      </div>
+      <div class="models-list" id="models-container">
+        <!-- Dynamically populated via loadModelCatalog() -->
+        <div style="padding: 20px; text-align: center; color: var(--text-dim);">Loading nodes...</div>
+      </div>
+    </section>
+
+    <!-- PANE 2 & 3: CENTER COLUMN -->
+    <section class="center-column">
+
+      <!-- PANE 2: GRAPH VIEWPORT -->
+      <div class="graph-viewport" id="pane-cascade-graph">
+        <div class="graph-toolbar">
+          <div class="preset-group">
+            <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">Cascade Preset:</span>
+            <select class="select-input" id="select-preset">
+              <option value="RAG_GROUNDED">RAG_GROUNDED (Canonical Slice)</option>
+              <option value="FAST_LOCAL">FAST_LOCAL (Min Latency)</option>
+              <option value="CODE_VERIFY">CODE_VERIFY (Dual-Gate Gatekeeper)</option>
+              <option value="MULTI_MODEL_VOTE">MULTI_MODEL_VOTE (Consensus Voting)</option>
+              <option value="LOW_MEMORY">LOW_MEMORY (Quantized Budget)</option>
+              <option value="DEEP_REASONING">DEEP_REASONING (Epistemic Chain)</option>
+              <option value="TOOL_EXECUTION">TOOL_EXECUTION (Controlled Actuation)</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-sm" id="btn-rebuild-plan">Preview Plan</button>
+            <button class="btn btn-secondary btn-sm" id="btn-perturb-matrix">Perturb ΔM</button>
+          </div>
+        </div>
+
+        <div class="graph-canvas-container">
+          <svg class="graph-svg" id="graph-svg-canvas">
+            <defs>
+              <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill="#3a4d70" />
+              </marker>
+              <marker id="arrowhead-active" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill="#00f0ff" />
+              </marker>
+            </defs>
+            <g id="svg-edges-group"></g>
+            <g id="svg-nodes-group"></g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- PANE 3: CHAT / PROMPT WORKBENCH -->
+      <div class="chat-workbench" id="pane-chat-prompt">
+        <div class="chat-history" id="chat-messages">
+          <div class="chat-msg assistant">
+            <div class="msg-header">
+              <span>CASCADE FABRIC</span>
+              <span class="tag-verdict verdict-approved">AUTH_SYSTEM_BOOT</span>
+              <span>EP_INVARIANT_LOCKED</span>
+            </div>
+            <div class="msg-bubble">
+              Vitajte v <strong>Krystal Stack Cascade Studio</strong>.
+              Tento systém poskytuje deterministické multi-modelové orchestrácie s groundingom z <code>SmallModelCoreRagEngine</code>,
+              Dual-Gate verifikáciou a epistemickými autoritami. Žiadny model nemá priamy zápis do OS alebo cgroups.
+            </div>
+          </div>
+        </div>
+
+        <div class="prompt-composer">
+          <div class="composer-controls">
+            <div class="composer-options">
+              <label style="display: flex; align-items: center; gap: 6px;">
+                <span>Objective:</span>
+                <select class="select-input" id="select-objective">
+                  <option value="BALANCED">BALANCED</option>
+                  <option value="MIN_LATENCY">MIN_LATENCY</option>
+                  <option value="MAX_ACCURACY">MAX_ACCURACY</option>
+                  <option value="MIN_MEMORY">MIN_MEMORY</option>
+                  <option value="MAX_GROUNDING">MAX_GROUNDING</option>
+                  <option value="EXPERIMENTAL">EXPERIMENTAL</option>
+                </select>
+              </label>
+
+              <label class="shadow-toggle">
+                <input type="checkbox" id="chk-shadow-mode" checked>
+                <span>🛡️ SHADOW EXECUTION</span>
+              </label>
+            </div>
+            <span id="prompt-status-msg" style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim);">Ready for workload</span>
+          </div>
+
+          <div class="composer-input-row">
+            <textarea class="input-textarea" id="txt-prompt" placeholder="Zadajte úlohu alebo otázku (napr. Overenie invariantu VITAL_MAX_HP == 6 a syntax pamäte)..."></textarea>
+            <button class="btn btn-primary" id="btn-execute-cascade">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Execute
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- PANE 4: RIGHT - EXECUTION INSPECTOR -->
+    <section class="pane-inspector" id="pane-execution-inspector">
+      <div class="pane-title">
+        <span>Execution Inspector</span>
+        <span class="badge-status status-loaded" id="inspector-status-badge">IDLE</span>
+      </div>
+
+      <div class="inspector-body">
+        <!-- Verdict Card -->
+        <div class="inspector-card">
+          <div class="card-label">
+            <span>Dual-Gate Authority</span>
+            <span id="inspector-verdict-tag" class="tag-verdict verdict-approved">NONE</span>
+          </div>
+          <div style="font-size: 0.78rem; font-family: var(--font-mono); display: flex; flex-direction: column; gap: 4px;">
+            <div class="meta-item"><span>Request ID:</span><span id="inspect-req-id" class="meta-val">—</span></div>
+            <div class="meta-item"><span>Plan ID:</span><span id="inspect-plan-id" class="meta-val">—</span></div>
+            <div class="meta-item"><span>Confidence:</span><span id="inspect-conf" class="meta-val">—</span></div>
+            <div class="meta-item"><span>Total Latency:</span><span id="inspect-lat" class="meta-val">—</span></div>
+            <div class="meta-item"><span>Total Tokens:</span><span id="inspect-tok" class="meta-val">—</span></div>
+          </div>
+        </div>
+
+        <!-- Node Execution Breakdown -->
+        <div class="inspector-card">
+          <div class="card-label">
+            <span>Node Execution Chain</span>
+            <span id="inspect-nodes-count">0 nodes</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;" id="inspect-nodes-list">
+            <div style="font-size: 0.72rem; color: var(--text-dim); text-align: center; padding: 10px;">
+              Spustite kaskádu pre zobrazenie jednotlivých uzlov.
+            </div>
+          </div>
+        </div>
+
+        <!-- RAG Grounding & Citations -->
+        <div class="inspector-card">
+          <div class="card-label">
+            <span>Grounding Evidence Citations</span>
+            <span id="inspect-citations-count">0 citations</span>
+          </div>
+          <div class="citations-list" id="inspect-citations-list">
+            <div style="font-size: 0.72rem; color: var(--text-dim); text-align: center; padding: 10px;">
+              Žiadne citácie.
+            </div>
+          </div>
+        </div>
+
+        <!-- Event Stream Log -->
+        <div class="inspector-card">
+          <div class="card-label">
+            <span>Forensic Event Trace</span>
+            <span id="inspect-events-count">0 events</span>
+          </div>
+          <div class="event-stream" id="inspect-event-stream">
+            <div class="event-line"><span class="event-type">TRACE_READY</span><span>Waiting for cascade events</span></div>
+          </div>
+        </div>
+
+        <!-- Closed-Loop Feedback & Regret -->
+        <div class="inspector-card">
+          <div class="card-label">
+            <span>Closed-Loop Telemetry & Regret</span>
+            <span class="badge-status status-loaded">CYBERNETIC</span>
+          </div>
+          <div style="font-size: 0.72rem; font-family: var(--font-mono); display: flex; flex-direction: column; gap: 4px;">
+            <div class="meta-item"><span>Error Latency:</span><span id="regret-err-lat" class="meta-val">0.00ms</span></div>
+            <div class="meta-item"><span>Error Memory:</span><span id="regret-err-mem" class="meta-val">0.00MB</span></div>
+            <div class="meta-item"><span>Regret Score:</span><span id="regret-score" class="meta-val" style="color: var(--accent-emerald);">0.0000</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BENCHMARK MODAL -->
+  <div class="benchmark-overlay" id="bm-overlay"></div>
+  <div class="benchmark-modal" id="bm-modal">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
+      <h2 style="font-size: 1.1rem; color: var(--accent-cyan);">Cascade Statistical Benchmark Engine</h2>
+      <button class="btn btn-secondary btn-sm" id="btn-close-benchmark">Close</button>
+    </div>
+    
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <input type="text" class="select-input" id="txt-benchmark-prompt" style="flex: 1;" value="Vysvetli mechanizmus invariantu VITAL_MAX_HP == 6" placeholder="Benchmark prompt...">
+      <button class="btn btn-primary btn-sm" id="btn-run-benchmark-now">Execute Test</button>
+    </div>
+
+    <div id="benchmark-results-container" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 16px; font-family: var(--font-mono); font-size: 0.8rem; max-height: 350px; overflow-y: auto;">
+      Kliknite na 'Execute Test' pre porovnanie Single Model Baseline vs Multi-Model Cascade (p50, p95, p99, TTFT, grounding).
+    </div>
+  </div>
+
+  <script>
+    // Global Studio State
+    const state = {
+      nodes: [],
+      currentPlan: null,
+      lastTrace: null,
+      selectedPreset: "RAG_GROUNDED"
+    };
+
+    // Canonical Preset Node Layouts for Visual Graph
+    const PRESET_GRAPH_LAYOUTS = {
+      "RAG_GROUNDED": [
+        { id: "node-classifier-slm", name: "IntentClassifier", x: 60, y: 120, role: "PERCEPTION" },
+        { id: "node-core-rag", name: "CoreRagNode", x: 220, y: 120, role: "GROUNDING" },
+        { id: "node-deep-reasoner", name: "ReasoningNode", x: 380, y: 80, role: "REASONER" },
+        { id: "node-code-specialist", name: "CodingSpecialist", x: 380, y: 160, role: "CODE_MODEL" },
+        { id: "node-epistemic-verifier", name: "VerificationNode", x: 540, y: 120, role: "VERIFIER" },
+        { id: "node-final-synthesizer", name: "FinalSynthesis", x: 680, y: 120, role: "SYNTHESIS" }
+      ],
+      "FAST_LOCAL": [
+        { id: "node-classifier-slm", name: "IntentClassifier", x: 80, y: 120, role: "PERCEPTION" },
+        { id: "node-deep-reasoner", name: "ReasoningNode", x: 350, y: 120, role: "REASONER" },
+        { id: "node-final-synthesizer", name: "FinalSynthesis", x: 620, y: 120, role: "SYNTHESIS" }
+      ],
+      "CODE_VERIFY": [
+        { id: "node-classifier-slm", name: "IntentClassifier", x: 80, y: 120, role: "PERCEPTION" },
+        { id: "node-code-specialist", name: "CodingSpecialist", x: 260, y: 120, role: "CODE_MODEL" },
+        { id: "node-epistemic-verifier", name: "VerificationNode", x: 450, y: 120, role: "VERIFIER" },
+        { id: "node-final-synthesizer", name: "FinalSynthesis", x: 640, y: 120, role: "SYNTHESIS" }
+      ]
+    };
+
+    // Initialize UI
+    window.addEventListener("DOMContentLoaded", async () => {
+      await loadModelCatalog();
+      await refreshTelemetry();
+      renderGraphPreset("RAG_GROUNDED");
+      setupEventHandlers();
+    });
+
+    async function loadModelCatalog() {
+      try {
+        const resp = await fetch("/api/cascade/catalog");
+        const data = await resp.json();
+        if (data.status === "OK") {
+          state.nodes = data.nodes;
+          renderModelLibrary(data.nodes);
+        }
+      } catch (err) {
+        console.error("Failed to load catalog:", err);
+      }
+    }
+
+    async function refreshTelemetry() {
+      try {
+        const resp = await fetch("/api/cascade/telemetry");
+        const data = await resp.json();
+        if (data.status === "OK") {
+          const t = data.telemetry;
+          document.getElementById("metric-executions").textContent = t.total_executions || 0;
+          document.getElementById("metric-avg-lat").textContent = `${t.average_latency_ms || 0}ms`;
+          document.getElementById("metric-avg-conf").textContent = (t.average_confidence || 1).toFixed(2);
+          document.getElementById("metric-hypotheses").textContent = t.active_hypotheses_count || 0;
+        }
+      } catch (err) {
+        console.error("Telemetry refresh failed:", err);
+      }
+    }
+
+    function renderModelLibrary(nodes) {
+      const container = document.getElementById("models-container");
+      container.innerHTML = "";
+      document.getElementById("models-count-badge").textContent = `${nodes.length} Nodes`;
+
+      nodes.forEach(n => {
+        const card = document.createElement("div");
+        card.className = "model-card";
+        const isLoaded = n.health && n.health.status === "HEALTHY";
+        
+        card.innerHTML = `
+          <div class="model-card-header">
+            <div class="model-name">
+              <span>${n.model_id}</span>
+              <span class="model-node-id">${n.node_id}</span>
+            </div>
+            <span class="badge-status ${isLoaded ? 'status-loaded' : 'status-unloaded'}">
+              ${isLoaded ? 'LOADED' : 'UNLOADED'}
+            </span>
+          </div>
+
+          <div class="model-meta-grid">
+            <div class="meta-item"><span>Role:</span><span class="meta-val">${n.role}</span></div>
+            <div class="meta-item"><span>Backend:</span><span class="meta-val">${n.backend}</span></div>
+            <div class="meta-item"><span>Quant:</span><span class="meta-val">${n.quantization || 'UNKNOWN'}</span></div>
+            <div class="meta-item"><span>Context:</span><span class="meta-val">${n.context_limit ? n.context_limit + ' tok' : 'UNKNOWN'}</span></div>
+            <div class="meta-item"><span>RAM:</span><span class="meta-val">${n.memory_budget ? n.memory_budget + 'MB' : 'UNKNOWN'}</span></div>
+            <div class="meta-item"><span>Lat/Tok:</span><span class="meta-val">${n.health ? n.health.latency_ms + 'ms' : 'UNKNOWN'}</span></div>
+          </div>
+
+          <div class="model-capabilities">
+            ${(n.capabilities || []).map(c => `<span class="cap-tag">${c}</span>`).join('')}
+          </div>
+
+          <div class="model-card-actions">
+            <button class="btn btn-secondary btn-sm" onclick="warmupModelNode('${n.node_id}')">Warmup</button>
+            <button class="btn ${isLoaded ? 'btn-secondary' : 'btn-primary'} btn-sm" onclick="toggleModelLoad('${n.node_id}', ${!isLoaded})">
+              ${isLoaded ? 'Unload' : 'Load'}
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function toggleModelLoad(nodeId, load) {
+      const endpoint = load ? "/api/cascade/model/load" : "/api/cascade/model/unload";
+      try {
+        const resp = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ node_id: nodeId })
+        });
+        await loadModelCatalog();
+      } catch (e) {
+        alert("Action failed: " + e);
+      }
+    }
+
+    async function warmupModelNode(nodeId) {
+      try {
+        const resp = await fetch("/api/cascade/model/warmup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ node_id: nodeId })
+        });
+        const d = await resp.json();
+        alert(`Node ${nodeId} warm: ${d.detail.warmup_latency_ms}ms`);
+        await loadModelCatalog();
+      } catch (e) {
+        alert("Warmup error: " + e);
+      }
+    }
+
+    function renderGraphPreset(presetName) {
+      state.selectedPreset = presetName;
+      const layout = PRESET_GRAPH_LAYOUTS[presetName] || PRESET_GRAPH_LAYOUTS["RAG_GROUNDED"];
+      const svgNodes = document.getElementById("svg-nodes-group");
+      const svgEdges = document.getElementById("svg-edges-group");
+      svgNodes.innerHTML = "";
+      svgEdges.innerHTML = "";
+
+      // Draw Edges
+      for (let i = 0; i < layout.length - 1; i++) {
+        const curr = layout[i];
+        const next = layout[i + 1];
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const dx = (next.x - curr.x) / 2;
+        const d = `M ${curr.x + 60} ${curr.y} C ${curr.x + 60 + dx} ${curr.y}, ${next.x - 60 - dx} ${next.y}, ${next.x - 60} ${next.y}`;
+        path.setAttribute("d", d);
+        path.setAttribute("class", "graph-edge");
+        path.setAttribute("id", `edge-${curr.id}-${next.id}`);
+        path.setAttribute("marker-end", "url(#arrowhead)");
+        svgEdges.appendChild(path);
+      }
+
+      // Draw Nodes
+      layout.forEach(n => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("transform", `translate(${n.x}, ${n.y})`);
+        g.setAttribute("id", `svg-node-${n.id}`);
+        g.style.cursor = "pointer";
+
+        g.innerHTML = `
+          <rect x="-55" y="-24" width="110" height="48" rx="8" 
+                fill="#161c28" stroke="#3a4d70" stroke-width="1.5" class="node-rect" />
+          <text x="0" y="-4" fill="#f1f5f9" font-family="'Outfit', sans-serif" font-size="11" font-weight="600" text-anchor="middle">
+            ${n.name}
+          </text>
+          <text x="0" y="12" fill="#00f0ff" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="500" text-anchor="middle">
+            ${n.role}
+          </text>
+        `;
+        svgNodes.appendChild(g);
+      });
+    }
+
+    function setupEventHandlers() {
+      document.getElementById("select-preset").addEventListener("change", (e) => {
+        renderGraphPreset(e.target.value);
+      });
+
+      document.getElementById("btn-execute-cascade").addEventListener("click", executeCascadePrompt);
+      document.getElementById("txt-prompt").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+          executeCascadePrompt();
+        }
+      });
+
+      // Benchmark Modal
+      const modal = document.getElementById("bm-modal");
+      const overlay = document.getElementById("bm-overlay");
+      document.getElementById("btn-open-benchmark").addEventListener("click", () => {
+        modal.style.display = "flex";
+        overlay.style.display = "block";
+      });
+      document.getElementById("btn-close-benchmark").addEventListener("click", () => {
+        modal.style.display = "none";
+        overlay.style.display = "none";
+      });
+      overlay.addEventListener("click", () => {
+        modal.style.display = "none";
+        overlay.style.display = "none";
+      });
+      document.getElementById("btn-run-benchmark-now").addEventListener("click", runBenchmarkTest);
+
+      document.getElementById("btn-perturb-matrix").addEventListener("click", async () => {
+        const resp = await fetch("/api/cascade/perturb", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ delta_rule: "OFFLOAD_REASONER_TO_NPU" })
+        });
+        const d = await resp.json();
+        alert(`Matrix perturbed: ${d.matrix.matrix_id}`);
+      });
+    }
+
+    async function executeCascadePrompt() {
+      const promptTxt = document.getElementById("txt-prompt").value.trim();
+      if (!promptTxt) return;
+
+      const objective = document.getElementById("select-objective").value;
+      const isShadow = document.getElementById("chk-shadow-mode").checked;
+      const preset = document.getElementById("select-preset").value;
+
+      // Append User message to chat
+      appendUserMessage(promptTxt);
+      document.getElementById("txt-prompt").value = "";
+      document.getElementById("prompt-status-msg").textContent = "Executing cascade...";
+      document.getElementById("hud-runtime-state").textContent = "STATE: CASCADE_ACTIVE";
+
+      // Visually animate edges
+      document.querySelectorAll(".graph-edge").forEach(el => el.classList.add("active"));
+
+      try {
+        const resp = await fetch("/api/cascade/execute", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: promptTxt,
+            objective: objective,
+            strategy: preset,
+            is_shadow: isShadow
+          })
+        });
+
+        const data = await resp.json();
+        if (data.status === "OK") {
+          const res = data.result;
+          state.lastTrace = res;
+          appendAssistantResponse(res);
+          updateInspector(res);
+          await refreshTelemetry();
+        } else {
+          alert("Execution error: " + data.message);
+        }
+      } catch (err) {
+        alert("Network error: " + err);
+      } finally {
+        document.querySelectorAll(".graph-edge").forEach(el => el.classList.remove("active"));
+        document.getElementById("prompt-status-msg").textContent = "Ready";
+        document.getElementById("hud-runtime-state").textContent = "RUNTIME: READY";
+      }
+    }
+
+    function appendUserMessage(text) {
+      const chat = document.getElementById("chat-messages");
+      const msg = document.createElement("div");
+      msg.className = "chat-msg user";
+      msg.innerHTML = `
+        <div class="msg-header">
+          <span>USER</span>
+          <span>${new Date().toLocaleTimeString()}</span>
+        </div>
+        <div class="msg-bubble">${escapeHtml(text)}</div>
+      `;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function appendAssistantResponse(res) {
+      const chat = document.getElementById("chat-messages");
+      const msg = document.createElement("div");
+      msg.className = "chat-msg assistant";
+      const isShadow = res.shadow_mode || res.authority_status === "WOULD_COMMIT";
+      const verdictClass = isShadow ? "verdict-shadow" : (res.authority_status.includes("APPROVED") ? "verdict-approved" : "verdict-veto");
+
+      msg.innerHTML = `
+        <div class="msg-header">
+          <span>CASCADE ENGINE</span>
+          <span class="tag-verdict ${verdictClass}">${res.authority_status}</span>
+          <span>${res.total_latency_ms}ms</span>
+          <span>${res.total_tokens} tok</span>
+          <span>Conf: ${(res.final_confidence * 100).toFixed(0)}%</span>
+        </div>
+        <div class="msg-bubble">
+          ${formatMarkdown(res.final_output)}
+        </div>
+      `;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function updateInspector(res) {
+      document.getElementById("inspector-status-badge").textContent = res.shadow_mode ? "SHADOW" : "COMPLETE";
+      document.getElementById("inspect-req-id").textContent = res.request_id || "—";
+      document.getElementById("inspect-plan-id").textContent = res.plan_id || "—";
+      document.getElementById("inspect-conf").textContent = (res.final_confidence || 1).toFixed(4);
+      document.getElementById("inspect-lat").textContent = `${res.total_latency_ms}ms`;
+      document.getElementById("inspect-tok").textContent = `${res.total_tokens} (${res.total_input_tokens || 0} in / ${res.total_output_tokens || 0} out)`;
+      
+      const tag = document.getElementById("inspector-verdict-tag");
+      tag.textContent = res.authority_status;
+      tag.className = "tag-verdict " + (res.authority_status.includes("APPROVED") ? "verdict-approved" : (res.authority_status.includes("WOULD") ? "verdict-shadow" : "verdict-veto"));
+
+      // Nodes list
+      const nodesContainer = document.getElementById("inspect-nodes-list");
+      nodesContainer.innerHTML = "";
+      const nodeResults = res.node_results || [];
+      document.getElementById("inspect-nodes-count").textContent = `${nodeResults.length} nodes`;
+
+      nodeResults.forEach(nr => {
+        const row = document.createElement("div");
+        row.className = `trace-node-row ${nr.status === 'SUCCESS' ? 'active' : 'fail'}`;
+        row.innerHTML = `
+          <span>${nr.node_id}</span>
+          <span style="color: var(--accent-cyan);">${nr.latency_ms}ms</span>
+          <span style="color: var(--text-dim);">${nr.output_tokens || 0} tok</span>
+        `;
+        nodesContainer.appendChild(row);
+      });
+
+      // Citations
+      const citationsContainer = document.getElementById("inspect-citations-list");
+      citationsContainer.innerHTML = "";
+      const citations = res.evidence_citations || res.evidence_summary || [];
+      document.getElementById("inspect-citations-count").textContent = `${citations.length} citations`;
+      if (citations.length === 0) {
+        citationsContainer.innerHTML = `<div style="font-size: 0.72rem; color: var(--text-dim); padding: 8px;">Žiadne citácie.</div>`;
+      } else {
+        citations.forEach(c => {
+          const item = document.createElement("div");
+          item.className = "citation-item";
+          item.textContent = c;
+          citationsContainer.appendChild(item);
+        });
+      }
+
+      // Event stream
+      const stream = document.getElementById("inspect-event-stream");
+      stream.innerHTML = "";
+      const events = res.trace_events || [];
+      document.getElementById("inspect-events-count").textContent = `${events.length} events`;
+      events.forEach(e => {
+        const el = document.createElement("div");
+        el.className = "event-line";
+        el.innerHTML = `
+          <span class="event-type">${e.event_type}</span>
+          <span style="color: var(--text-dim);">${e.node_id || ''}</span>
+          <span>${e.latency_ms ? e.latency_ms + 'ms' : ''}</span>
+        `;
+        stream.appendChild(el);
+      });
+      stream.scrollTop = stream.scrollHeight;
+
+      // Closed-loop metrics
+      if (res.closed_loop_feedback) {
+        const fb = res.closed_loop_feedback;
+        document.getElementById("regret-err-lat").textContent = `${fb.error_latency_ms}ms`;
+        document.getElementById("regret-err-mem").textContent = `${fb.error_memory_mb}MB`;
+        document.getElementById("regret-score").textContent = fb.regret_score.toFixed(4);
+      }
+    }
+
+    async function runBenchmarkTest() {
+      const container = document.getElementById("benchmark-results-container");
+      container.innerHTML = "Spúšťam štatistický benchmark (5 iterácií Single Model vs Multi-Model Cascade)...";
+      const prompt = document.getElementById("txt-benchmark-prompt").value;
+
+      try {
+        const resp = await fetch("/api/cascade/benchmark", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: prompt, iterations: 3 })
+        });
+        const d = await resp.json();
+        if (d.status === "OK") {
+          const bm = d.benchmark;
+          container.innerHTML = `
+            <div style="color: var(--accent-cyan); font-weight: 700; margin-bottom: 8px;">BENCHMARK REPORT [ID: ${bm.benchmark_id}]</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 6px;">
+                <div style="color: #93c5fd; font-weight: 600;">SINGLE MODEL BASELINE</div>
+                <div>Model: ${bm.single_model_baseline.model_id}</div>
+                <div>p50 Latency: <strong style="color: var(--accent-cyan);">${bm.single_model_baseline.p50_latency_ms}ms</strong></div>
+                <div>p95 Latency: ${bm.single_model_baseline.p95_latency_ms}ms</div>
+                <div>Pass Rate: ${(bm.single_model_baseline.verification_pass_rate * 100).toFixed(0)}%</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 6px; border: 1px solid rgba(0, 240, 255, 0.3);">
+                <div style="color: var(--accent-emerald); font-weight: 600;">MULTI-MODEL CASCADE</div>
+                <div>Nodes: ${bm.multi_model_cascade.nodes_count} active</div>
+                <div>TTFT: <strong style="color: var(--accent-emerald);">${bm.multi_model_cascade.ttft_ms}ms</strong></div>
+                <div>p50 Latency: <strong>${bm.multi_model_cascade.p50_latency_ms}ms</strong></div>
+                <div>Grounding Score: ${bm.multi_model_cascade.grounding_evidence_avg} refs/query</div>
+                <div>Verification Pass: ${(bm.multi_model_cascade.verification_pass_rate * 100).toFixed(0)}%</div>
+              </div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 6px;">
+              <strong>Záver:</strong> ${bm.conclusion}
+            </div>
+          `;
+        } else {
+          container.textContent = "Chyba: " + d.message;
+        }
+      } catch (e) {
+        container.textContent = "Chyba siete: " + e;
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatMarkdown(text) {
+      if (!text) return "";
+      let html = escapeHtml(text);
+      // Bold
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      // Code blocks
+      html = html.replace(/```([\s\S]*?)```/g, '<pre style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; overflow-x: auto; margin: 6px 0;"><code>$1</code></pre>');
+      // Inline code
+      html = html.replace(/`([^`]+)`/g, '<code style="background: rgba(255,255,255,0.1); padding: 1px 4px; border-radius: 3px; font-family: monospace;">$1</code>');
+      // Newlines to br
+      html = html.replace(/\n/g, '<br>');
+      return html;
+    }
+  </script>
+</body>
+</html>

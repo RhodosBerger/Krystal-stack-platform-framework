@@ -14,8 +14,14 @@ Constitutional Invariant:
 """
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
-from krystal_kernel.cascade.cascade_trace import CascadeNodeResult, CascadeExecutionTrace
+from krystal_kernel.cascade.cascade_trace import (
+    CascadeNodeResult,
+    CascadeExecutionTrace,
+    CascadeTraceEvent,
+    CascadeFinalResult
+)
 from krystal_kernel.cascade.model_node import (
+    NodeExecutionClass,
     ModelNode,
     ModelNodeSpec,
     IntentClassifierNode,
@@ -23,7 +29,10 @@ from krystal_kernel.cascade.model_node import (
     ReasoningNode,
     CodingSpecialistNode,
     VerificationNode,
-    FinalSynthesisNode
+    FinalSynthesisNode,
+    EmbeddingModelNode,
+    ToolNode,
+    CustomExtensionNode
 )
 from krystal_kernel.cascade.model_router import (
     ModelRouter,
@@ -33,12 +42,24 @@ from krystal_kernel.cascade.model_router import (
 )
 from krystal_kernel.cascade.cascade_planner import CascadeEdge, CascadePlan, CascadePlanner
 from krystal_kernel.cascade.cascade_executor import CascadeMerger, CascadeExecutor
+from krystal_kernel.cascade.closed_loop_adapter import (
+    ThreadTopology,
+    ModelExecutionMatrix,
+    ModelExecutionMatrixElement,
+    RuntimeHypothesis,
+    HypothesisState,
+    ClosedLoopCascadeFeedback,
+    CascadeBenchmarkEngine
+)
 from krystal_kernel.cascade.cascade_runtime import ModelCascadeRuntime, GLOBAL_MODEL_CASCADE_RUNTIME
 
 __all__ = [
     "VITAL_MAX_HP",
     "CascadeNodeResult",
     "CascadeExecutionTrace",
+    "CascadeTraceEvent",
+    "CascadeFinalResult",
+    "NodeExecutionClass",
     "ModelNode",
     "ModelNodeSpec",
     "IntentClassifierNode",
@@ -47,6 +68,9 @@ __all__ = [
     "CodingSpecialistNode",
     "VerificationNode",
     "FinalSynthesisNode",
+    "EmbeddingModelNode",
+    "ToolNode",
+    "CustomExtensionNode",
     "ModelRouter",
     "NodeRouteCandidate",
     "RoutingObjectiveWeights",
@@ -56,6 +80,13 @@ __all__ = [
     "CascadePlanner",
     "CascadeMerger",
     "CascadeExecutor",
+    "ThreadTopology",
+    "ModelExecutionMatrix",
+    "ModelExecutionMatrixElement",
+    "RuntimeHypothesis",
+    "HypothesisState",
+    "ClosedLoopCascadeFeedback",
+    "CascadeBenchmarkEngine",
     "ModelCascadeRuntime",
     "GLOBAL_MODEL_CASCADE_RUNTIME",
 ]

@@ -5,10 +5,10 @@ KRYSTAL-STACK: CASCADE PLANNER & EXECUTION GRAPH COMPILER
 ==============================================================================
 Module: krystal_kernel/cascade/cascade_planner.py
 Description:
-    Compiles, validates, estimates, and optimizes multi-model execution graphs (plans).
-    Connects specialized ModelNodes (IntentClassifier, CoreRag, Reasoner,
-    Coder, Verifier, Synthesizer) via conditional directed edges with
-    timeout and fallback specifications.
+    Compiles, validates, estimates, optimizes, and generates fallback paths
+    for multi-model execution graphs (CascadePlans). Connects specialized
+    ModelNodes via conditional directed CascadeEdges with transform,
+    evidence requirement, timeout, and fallback specifications.
 
 Constitutional Invariant:
     assert VITAL_MAX_HP == 6
@@ -30,28 +30,43 @@ class CascadeEdge:
     source: str
     target: str
     condition: str = "ON_SUCCESS"   # ALWAYS, ON_SUCCESS, ON_FAILURE, REQUIRES_EVIDENCE, IF_CODE
-    timeout_ms: float = 120.0
-    fallback: Optional[str] = None
+    transform: Optional[str] = None # e.g. "EXTRACT_CODE", "SYNTHESIZE_QUERY", "IDENTITY"
     evidence_requirement: Optional[str] = None
+    timeout: float = 120.0
+    timeout_ms: float = 120.0       # Alias for backwards compatibility
+    fallback: Optional[str] = None
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self):
         assert self.vital_max_hp == 6, f"Invariant violation: vital_max_hp must be 6, got {self.vital_max_hp}"
+        if self.timeout != 120.0 and self.timeout_ms == 120.0:
+            self.timeout_ms = self.timeout
+        elif self.timeout_ms != 120.0 and self.timeout == 120.0:
+            self.timeout = self.timeout_ms
 
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        d = asdict(self)
+        d["timeout"] = self.timeout_ms
+        d["timeout_ms"] = self.timeout_ms
+        return d
 
 
 @dataclass
 class CascadePlan:
     """Canonical multi-model execution plan graph."""
     plan_id: str
-    nodes: List[ModelNodeSpec]
-    edges: List[CascadeEdge]
-    strategy: str                   # CASCADE_SEQUENTIAL, CASCADE_PARALLEL, CASCADE_VOTE, CASCADE_VERIFY, etc.
-    estimated_latency_ms: float = 0.0
-    estimated_memory_mb: float = 0.0
-    objective: str = "BALANCED"
+    source_state_version: int = 1
+    nodes: List[ModelNodeSpec] = field(default_factory=list)
+    edges: List[CascadeEdge] = field(default_factory=list)
+    execution_mode: str = "CASCADE_SEQUENTIAL"   # CASCADE_SEQUENTIAL, CASCADE_PARALLEL, CASCADE_VOTE, CASCADE_VERIFY, CASCADE_FALLBACK, etc.
+    strategy: str = "CASCADE_SEQUENTIAL"         # Alias
+    expected_latency_ms: float = 0.0
+    estimated_latency_ms: float = 0.0            # Alias
+    expected_memory_mb: float = 0.0
+    estimated_memory_mb: float = 0.0             # Alias
+    objective: str = "BALANCED"                  # MIN_LATENCY, MAX_ACCURACY, MIN_MEMORY, MAX_GROUNDING, BALANCED, EXPERIMENTAL
+    evidence_requirements: List[str] = field(default_factory=list)
+    fallback_policy: Dict[str, Any] = field(default_factory=dict)
     require_grounding: bool = True
     vital_max_hp: int = VITAL_MAX_HP
 
@@ -59,15 +74,33 @@ class CascadePlan:
         assert self.vital_max_hp == 6, f"Invariant violation: vital_max_hp must be 6, got {self.vital_max_hp}"
         if not self.plan_id:
             self.plan_id = f"PLAN_{uuid.uuid4().hex[:10].upper()}"
+        if self.strategy != "CASCADE_SEQUENTIAL" and self.execution_mode == "CASCADE_SEQUENTIAL":
+            self.execution_mode = self.strategy
+        elif self.execution_mode != "CASCADE_SEQUENTIAL" and self.strategy == "CASCADE_SEQUENTIAL":
+            self.strategy = self.execution_mode
+        if self.expected_latency_ms == 0.0 and self.estimated_latency_ms > 0.0:
+            self.expected_latency_ms = self.estimated_latency_ms
+        elif self.estimated_latency_ms == 0.0 and self.expected_latency_ms > 0.0:
+            self.estimated_latency_ms = self.expected_latency_ms
+        if self.expected_memory_mb == 0.0 and self.estimated_memory_mb > 0.0:
+            self.expected_memory_mb = self.estimated_memory_mb
+        elif self.estimated_memory_mb == 0.0 and self.expected_memory_mb > 0.0:
+            self.estimated_memory_mb = self.expected_memory_mb
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "plan_id": self.plan_id,
-            "strategy": self.strategy,
+            "source_state_version": self.source_state_version,
+            "execution_mode": self.execution_mode or self.strategy,
+            "strategy": self.strategy or self.execution_mode,
             "objective": self.objective,
             "require_grounding": self.require_grounding,
-            "estimated_latency_ms": round(self.estimated_latency_ms, 2),
-            "estimated_memory_mb": round(self.estimated_memory_mb, 2),
+            "expected_latency_ms": round(self.expected_latency_ms or self.estimated_latency_ms, 2),
+            "estimated_latency_ms": round(self.estimated_latency_ms or self.expected_latency_ms, 2),
+            "expected_memory_mb": round(self.expected_memory_mb or self.estimated_memory_mb, 2),
+            "estimated_memory_mb": round(self.estimated_memory_mb or self.expected_memory_mb, 2),
+            "evidence_requirements": self.evidence_requirements,
+            "fallback_policy": self.fallback_policy,
             "nodes": [n.to_dict() for n in self.nodes],
             "edges": [e.to_dict() for e in self.edges],
             "vital_max_hp": self.vital_max_hp
@@ -94,7 +127,7 @@ class CascadePlanner:
         """
         prompt = request.get("prompt", "")
         objective = request.get("objective", "BALANCED")
-        strategy_override = request.get("strategy")
+        strategy_override = request.get("strategy") or request.get("execution_mode")
         max_lat = float(request.get("max_latency_ms", 200.0))
         max_mem = float(request.get("max_memory_mb", 4096.0))
         require_grounding = bool(request.get("require_grounding", True))
@@ -112,14 +145,13 @@ class CascadePlanner:
             max_latency_ms=max_lat,
             max_memory_mb=max_mem
         )
-        ranked_dict = {c.node_id: c for c in ranked}
 
         # 3. Determine Strategy
         if strategy_override:
             strategy = strategy_override
         elif intent == "CODE_GENERATION":
             strategy = "CASCADE_SPECIALIST_ROUTE"
-        elif intent == "EPISTEMIC_VERIFICATION":
+        elif intent == "VERIFICATION":
             strategy = "CASCADE_VERIFY"
         elif intent == "DEEP_REASONING":
             strategy = "CASCADE_RAG_GROUNDED"
@@ -146,7 +178,6 @@ class CascadePlanner:
         fallback_id = fallback_c.node_id if fallback_c else None
 
         if strategy == "CASCADE_PARALLEL":
-            # IntentClassifier -> (Retriever || Reasoner) -> Merger/Synthesizer
             if classifier_c:
                 plan_nodes.append(classifier_c.spec)
             if retriever_c:
@@ -157,36 +188,34 @@ class CascadePlanner:
                 plan_nodes.append(synthesizer_c.spec)
 
             if classifier_c and retriever_c:
-                plan_edges.append(CascadeEdge(source=classifier_c.node_id, target=retriever_c.node_id, condition="ALWAYS", timeout_ms=80.0))
+                plan_edges.append(CascadeEdge(source=classifier_c.node_id, target=retriever_c.node_id, condition="ALWAYS", timeout=80.0))
             if classifier_c and reasoner_c:
-                plan_edges.append(CascadeEdge(source=classifier_c.node_id, target=reasoner_c.node_id, condition="ALWAYS", timeout_ms=100.0))
+                plan_edges.append(CascadeEdge(source=classifier_c.node_id, target=reasoner_c.node_id, condition="ALWAYS", timeout=100.0))
             if retriever_c and synthesizer_c:
-                plan_edges.append(CascadeEdge(source=retriever_c.node_id, target=synthesizer_c.node_id, condition="ON_SUCCESS", timeout_ms=60.0))
+                plan_edges.append(CascadeEdge(source=retriever_c.node_id, target=synthesizer_c.node_id, condition="ON_SUCCESS", timeout=60.0))
             if reasoner_c and synthesizer_c:
-                plan_edges.append(CascadeEdge(source=reasoner_c.node_id, target=synthesizer_c.node_id, condition="ON_SUCCESS", timeout_ms=60.0))
+                plan_edges.append(CascadeEdge(source=reasoner_c.node_id, target=synthesizer_c.node_id, condition="ON_SUCCESS", timeout=60.0))
 
         elif strategy == "CASCADE_VOTE":
-            # Broadcast to multiple reasoners/coders and vote
             if classifier_c:
                 plan_nodes.append(classifier_c.spec)
             for c in ranked:
                 if c.spec.role in ["REASONER", "CODER"] and c.is_eligible:
                     plan_nodes.append(c.spec)
                     if classifier_c:
-                        plan_edges.append(CascadeEdge(source=classifier_c.node_id, target=c.node_id, condition="ALWAYS", timeout_ms=100.0))
+                        plan_edges.append(CascadeEdge(source=classifier_c.node_id, target=c.node_id, condition="ALWAYS", timeout=100.0))
             if verifier_c:
                 plan_nodes.append(verifier_c.spec)
             if synthesizer_c:
                 plan_nodes.append(synthesizer_c.spec)
 
         elif strategy == "CASCADE_SPECIALIST_ROUTE":
-            # Classifier -> (CoreRag if grounding) -> CodingSpecialist (with fallback to Reasoner) -> Verifier -> Synthesizer
             if classifier_c:
                 plan_nodes.append(classifier_c.spec)
             if require_grounding and retriever_c:
                 plan_nodes.append(retriever_c.spec)
                 if classifier_c:
-                    plan_edges.append(CascadeEdge(source=classifier_c.node_id, target=retriever_c.node_id, condition="ON_SUCCESS", timeout_ms=80.0))
+                    plan_edges.append(CascadeEdge(source=classifier_c.node_id, target=retriever_c.node_id, condition="ON_SUCCESS", timeout=80.0))
             
             specialist = coder_c if coder_c else reasoner_c
             if specialist:
@@ -197,15 +226,15 @@ class CascadePlanner:
                         source=prev_node,
                         target=specialist.node_id,
                         condition="ON_SUCCESS",
-                        timeout_ms=120.0,
+                        timeout=120.0,
                         fallback=fallback_id
                     ))
             if verifier_c and specialist:
                 plan_nodes.append(verifier_c.spec)
-                plan_edges.append(CascadeEdge(source=specialist.node_id, target=verifier_c.node_id, condition="ON_SUCCESS", timeout_ms=50.0))
+                plan_edges.append(CascadeEdge(source=specialist.node_id, target=verifier_c.node_id, condition="ON_SUCCESS", timeout=50.0))
             if synthesizer_c and verifier_c:
                 plan_nodes.append(synthesizer_c.spec)
-                plan_edges.append(CascadeEdge(source=verifier_c.node_id, target=synthesizer_c.node_id, condition="ON_SUCCESS", timeout_ms=50.0))
+                plan_edges.append(CascadeEdge(source=verifier_c.node_id, target=synthesizer_c.node_id, condition="ON_SUCCESS", timeout=50.0))
 
         else:
             # Default Canonical Krystal Cascade:
@@ -229,32 +258,38 @@ class CascadePlanner:
                     source=node_ids[i],
                     target=node_ids[i + 1],
                     condition="ON_SUCCESS",
-                    timeout_ms=90.0,
+                    timeout=90.0,
                     fallback=fb
                 ))
 
         plan = CascadePlan(
             plan_id="",
+            source_state_version=int(request.get("source_state_version", 1)),
             nodes=plan_nodes,
             edges=plan_edges,
+            execution_mode=strategy,
             strategy=strategy,
             objective=objective,
             require_grounding=require_grounding,
+            evidence_requirements=["DualGateAuthority://SafetyGate", "Invariant://VITAL_MAX_HP==6"],
+            fallback_policy={"primary_fallback": fallback_id, "max_retry_hops": 2},
             vital_max_hp=VITAL_MAX_HP
         )
 
-        plan.estimated_latency_ms = self.estimate_latency(plan, available_nodes)
-        plan.estimated_memory_mb = self.estimate_memory(plan, available_nodes)
+        plan.expected_latency_ms = self.estimate_latency(plan, available_nodes)
+        plan.estimated_latency_ms = plan.expected_latency_ms
+        plan.expected_memory_mb = self.estimate_memory(plan, available_nodes)
+        plan.estimated_memory_mb = plan.expected_memory_mb
 
         # Optimize if budget tight and strategy was not explicitly requested
-        if not strategy_override and (plan.estimated_latency_ms > max_lat or plan.estimated_memory_mb > max_mem):
+        if not strategy_override and (plan.expected_latency_ms > max_lat or plan.expected_memory_mb > max_mem):
             plan = self.optimize_plan(plan, available_nodes, max_lat, max_mem)
 
         return plan
 
     def validate_plan(self, plan: CascadePlan) -> Tuple[bool, List[str]]:
         """
-        Validates graph structure, absence of orphan edges, and invariant assertion.
+        Validates graph structure, absence of orphan edges, cycle freedom, and invariant assertion.
         """
         assert plan.vital_max_hp == 6, "Invariant VITAL_MAX_HP == 6 must hold"
         errors: List[str] = []
@@ -269,53 +304,92 @@ class CascadePlanner:
             if edge.fallback and edge.fallback not in node_ids:
                 errors.append(f"Edge fallback '{edge.fallback}' not defined in plan nodes")
 
+        # Cycle detection in execution graph
+        adj: Dict[str, List[str]] = {nid: [] for nid in node_ids}
+        for edge in plan.edges:
+            if edge.source in adj:
+                adj[edge.source].append(edge.target)
+
+        visited: Dict[str, int] = {nid: 0 for nid in node_ids}  # 0=unvisited, 1=visiting, 2=visited
+        has_cycle = False
+
+        def dfs(u: str) -> bool:
+            visited[u] = 1
+            for v in adj.get(u, []):
+                if v not in visited:
+                    continue
+                if visited[v] == 1:
+                    return True
+                elif visited[v] == 0:
+                    if dfs(v):
+                        return True
+            visited[u] = 2
+            return False
+
+        for nid in node_ids:
+            if visited[nid] == 0:
+                if dfs(nid):
+                    has_cycle = True
+                    break
+
+        if has_cycle:
+            errors.append("Cycle detected in cascade execution graph; DAG invariant violated")
+
         return (len(errors) == 0, errors)
 
-    def estimate_latency(self, plan: CascadePlan, available_nodes: Dict[str, ModelNode]) -> float:
+    def estimate_latency(self, plan: CascadePlan, available_nodes: Optional[Dict[str, ModelNode]] = None) -> float:
         """Estimates end-to-end latency according to plan strategy."""
+        nodes_dict = available_nodes or {}
         total = 0.0
-        if plan.strategy == "CASCADE_PARALLEL":
-            # Max of parallel branch + sequential stages
+        if plan.execution_mode == "CASCADE_PARALLEL" or plan.strategy == "CASCADE_PARALLEL":
             latencies = []
             for n in plan.nodes:
-                node_obj = available_nodes.get(n.node_id)
-                cost = node_obj.estimate_cost({}) if node_obj else {"estimated_latency_ms": 15.0}
-                latencies.append(cost["estimated_latency_ms"])
+                node_obj = nodes_dict.get(n.node_id)
+                lat = node_obj.estimate_latency({}) if node_obj else 15.0
+                latencies.append(lat)
             total = sum(latencies[:1]) + max(latencies[1:-1] if len(latencies) > 2 else [0.0]) + sum(latencies[-1:])
         else:
             for n in plan.nodes:
-                node_obj = available_nodes.get(n.node_id)
-                cost = node_obj.estimate_cost({}) if node_obj else {"estimated_latency_ms": 15.0}
-                total += cost["estimated_latency_ms"]
+                node_obj = nodes_dict.get(n.node_id)
+                lat = node_obj.estimate_latency({}) if node_obj else 15.0
+                total += lat
         return round(total, 2)
 
-    def estimate_memory(self, plan: CascadePlan, available_nodes: Dict[str, ModelNode]) -> float:
+    def estimate_memory(self, plan: CascadePlan, available_nodes: Optional[Dict[str, ModelNode]] = None) -> float:
         """Estimates peak concurrent memory utilization."""
-        if plan.strategy == "CASCADE_PARALLEL":
-            # Concurrent nodes sum up
+        if plan.execution_mode == "CASCADE_PARALLEL" or plan.strategy == "CASCADE_PARALLEL":
             return round(sum(n.memory_budget_mb for n in plan.nodes), 2)
         else:
-            # Sequential pipeline: max of single node footprint plus buffer
             max_single = max((n.memory_budget_mb for n in plan.nodes), default=256.0)
             return round(max_single * 1.15, 2)
+
+    def estimate_cost(self, plan: CascadePlan, available_nodes: Optional[Dict[str, ModelNode]] = None) -> Dict[str, float]:
+        """Provides holistic resource cost, latency, and memory projections."""
+        lat = self.estimate_latency(plan, available_nodes)
+        mem = self.estimate_memory(plan, available_nodes)
+        return {
+            "estimated_latency_ms": lat,
+            "estimated_memory_mb": mem,
+            "estimated_tokens": sum(n.context_limit // 16 for n in plan.nodes),
+            "estimated_cost": round(len(plan.nodes) * 0.0002, 5),
+            "estimated_cost_usd": round(len(plan.nodes) * 0.0002, 5)
+        }
 
     def optimize_plan(
         self,
         plan: CascadePlan,
-        available_nodes: Dict[str, ModelNode],
-        max_lat: float,
-        max_mem: float
+        available_nodes: Optional[Dict[str, ModelNode]] = None,
+        max_lat: float = 200.0,
+        max_mem: float = 4096.0
     ) -> CascadePlan:
         """
         Applies graph pruning and node shedding to satisfy tight resource limits.
         """
-        # If latency is tight, skip secondary reasoning or unneeded intermediate nodes
+        nodes_dict = available_nodes or {}
         optimized_nodes = [n for n in plan.nodes]
-        if plan.estimated_latency_ms > max_lat and len(optimized_nodes) > 3:
-            # Drop heavy reasoning node if simple RAG retrieval is sufficient
+        if (plan.expected_latency_ms or plan.estimated_latency_ms) > max_lat and len(optimized_nodes) > 3:
             optimized_nodes = [n for n in optimized_nodes if n.role != "REASONER"]
 
-        # Rebuild edges
         opt_ids = [n.node_id for n in optimized_nodes]
         opt_edges: List[CascadeEdge] = []
         for i in range(len(opt_ids) - 1):
@@ -323,18 +397,67 @@ class CascadePlanner:
                 source=opt_ids[i],
                 target=opt_ids[i + 1],
                 condition="ON_SUCCESS",
-                timeout_ms=min(80.0, max_lat / max(1, len(opt_ids)))
+                timeout=min(80.0, max_lat / max(1, len(opt_ids)))
             ))
 
         new_plan = CascadePlan(
             plan_id=plan.plan_id + "_OPT",
+            source_state_version=plan.source_state_version + 1,
             nodes=optimized_nodes,
             edges=opt_edges,
+            execution_mode="CASCADE_SEQUENTIAL",
             strategy="CASCADE_SEQUENTIAL",
             objective=plan.objective,
             require_grounding=plan.require_grounding,
+            evidence_requirements=plan.evidence_requirements,
+            fallback_policy=plan.fallback_policy,
             vital_max_hp=VITAL_MAX_HP
         )
-        new_plan.estimated_latency_ms = self.estimate_latency(new_plan, available_nodes)
-        new_plan.estimated_memory_mb = self.estimate_memory(new_plan, available_nodes)
+        new_plan.expected_latency_ms = self.estimate_latency(new_plan, nodes_dict)
+        new_plan.estimated_latency_ms = new_plan.expected_latency_ms
+        new_plan.expected_memory_mb = self.estimate_memory(new_plan, nodes_dict)
+        new_plan.estimated_memory_mb = new_plan.expected_memory_mb
         return new_plan
+
+    def generate_fallback_path(
+        self,
+        plan: CascadePlan,
+        failed_node_id: str,
+        available_nodes: Optional[Dict[str, ModelNode]] = None
+    ) -> CascadePlan:
+        """
+        Synthesizes a resilient detour plan bypassing a failed or timed-out node.
+        """
+        detour_nodes = [n for n in plan.nodes if n.node_id != failed_node_id]
+        if not detour_nodes:
+            # If all were removed, keep at least one verifier or classifier
+            detour_nodes = [plan.nodes[0]]
+
+        detour_ids = [n.node_id for n in detour_nodes]
+        detour_edges: List[CascadeEdge] = []
+        for i in range(len(detour_ids) - 1):
+            detour_edges.append(CascadeEdge(
+                source=detour_ids[i],
+                target=detour_ids[i + 1],
+                condition="ALWAYS",
+                timeout=60.0
+            ))
+
+        fallback_plan = CascadePlan(
+            plan_id=f"{plan.plan_id}_FALLBACK",
+            source_state_version=plan.source_state_version + 1,
+            nodes=detour_nodes,
+            edges=detour_edges,
+            execution_mode="CASCADE_FALLBACK",
+            strategy="CASCADE_FALLBACK",
+            objective=plan.objective,
+            require_grounding=plan.require_grounding,
+            evidence_requirements=plan.evidence_requirements,
+            fallback_policy={"failed_node_id": failed_node_id, "detour_applied": True},
+            vital_max_hp=VITAL_MAX_HP
+        )
+        fallback_plan.expected_latency_ms = self.estimate_latency(fallback_plan, available_nodes)
+        fallback_plan.estimated_latency_ms = fallback_plan.expected_latency_ms
+        fallback_plan.expected_memory_mb = self.estimate_memory(fallback_plan, available_nodes)
+        fallback_plan.estimated_memory_mb = fallback_plan.expected_memory_mb
+        return fallback_plan

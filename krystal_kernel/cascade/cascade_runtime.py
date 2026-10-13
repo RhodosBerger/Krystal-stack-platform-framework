@@ -46,12 +46,20 @@ from krystal_kernel.cascade.model_node import (
 from krystal_kernel.cascade.model_router import ModelRouter, NodeRouteCandidate, ROUTING_PROFILES
 from krystal_kernel.cascade.cascade_planner import CascadeEdge, CascadePlan, CascadePlanner
 from krystal_kernel.cascade.cascade_executor import CascadeExecutor, CascadeMerger
+from krystal_kernel.cascade.closed_loop_adapter import (
+    ThreadTopology,
+    ModelExecutionMatrix,
+    ClosedLoopCascadeFeedback,
+    CascadeBenchmarkEngine,
+    RuntimeHypothesis,
+    HypothesisState
+)
 
 
 class ModelCascadeRuntime:
     """
     Central orchestration fabric managing node catalogs, epistemic routing,
-    graph compilation, and execution across 8 cascade modes.
+    graph compilation, closed-loop cybernetic feedback, and execution across 8 cascade modes.
     """
 
     def __init__(self):
@@ -61,6 +69,8 @@ class ModelCascadeRuntime:
         self.nodes: Dict[str, ModelNode] = {}
         self.executor = CascadeExecutor(self.nodes)
         self.trace_history: List[CascadeExecutionTrace] = []
+        self.closed_loop = ClosedLoopCascadeFeedback()
+        self.benchmark_engine = CascadeBenchmarkEngine(self)
 
         # Bootstrap default production node catalog
         self._register_default_nodes()
@@ -105,6 +115,37 @@ class ModelCascadeRuntime:
             catalog.append(spec_d)
         return catalog
 
+    def load_node(self, node_id: str) -> Dict[str, Any]:
+        """Explicitly loads a model node into working memory."""
+        node = self.get_node(node_id)
+        if not node:
+            return {"status": "ERROR", "error": f"Node {node_id} not found"}
+        ok = node.load()
+        return {"status": "SUCCESS" if ok else "ERROR", "node_id": node_id, "loaded": node.loaded}
+
+    def unload_node(self, node_id: str) -> Dict[str, Any]:
+        """Unloads a model node from working memory."""
+        node = self.get_node(node_id)
+        if not node:
+            return {"status": "ERROR", "error": f"Node {node_id} not found"}
+        ok = node.unload()
+        return {"status": "SUCCESS" if ok else "ERROR", "node_id": node_id, "loaded": node.loaded}
+
+    def warmup_node(self, node_id: str) -> Dict[str, Any]:
+        """Executes a calibration warmup inference on the specified node."""
+        node = self.get_node(node_id)
+        if not node:
+            return {"status": "ERROR", "error": f"Node {node_id} not found"}
+        t0 = time.perf_counter_ns()
+        res = node.infer({"prompt": "warmup_probe_ping"})
+        lat_ms = (time.perf_counter_ns() - t0) / 1_000_000.0
+        return {
+            "status": "SUCCESS",
+            "node_id": node_id,
+            "warmup_latency_ms": round(lat_ms, 2),
+            "output_tokens": res.output_tokens
+        }
+
     def plan(
         self,
         prompt: str,
@@ -139,12 +180,14 @@ class ModelCascadeRuntime:
         require_grounding: bool = True,
         strategy: Optional[str] = None,
         plan: Optional[CascadePlan] = None,
+        is_shadow: bool = False,
         **kwargs
     ) -> Dict[str, Any]:
         """
         Primary execution entry point.
         Compiles plan (if not provided), executes across registered nodes,
-        enforces Dual-Gate invariants, and returns complete forensic trace.
+        enforces Dual-Gate invariants, feeds closed-loop regret back to router,
+        and returns complete forensic trace.
         """
         assert VITAL_MAX_HP == 6, "Invariant VITAL_MAX_HP == 6 must hold"
 
@@ -155,6 +198,7 @@ class ModelCascadeRuntime:
             "max_memory_mb": max_memory_mb,
             "require_grounding": require_grounding,
             "strategy": strategy,
+            "is_shadow": is_shadow,
             **kwargs
         }
 
@@ -171,12 +215,42 @@ class ModelCascadeRuntime:
         # 2. Execute plan
         trace = self.executor.execute(exec_plan, request)
 
-        # 3. Store trace in ledger (ring buffer of last 100 traces)
+        # 3. Closed-loop feedback cycle: OBSERVE -> COMPARE -> LEARN -> REPLAN
+        feedback_summary = self.closed_loop.process_cycle(exec_plan, trace, self.router)
+
+        # 4. Store trace in ledger (ring buffer of last 100 traces)
         self.trace_history.append(trace)
         if len(self.trace_history) > 100:
             self.trace_history.pop(0)
 
-        return trace.to_dict()
+        result_dict = trace.to_dict()
+        result_dict["closed_loop_feedback"] = feedback_summary
+        return result_dict
+
+    def benchmark(
+        self,
+        prompt: str = "Vysvetli mechanizmus invariantu VITAL_MAX_HP == 6",
+        iterations: int = 5
+    ) -> Dict[str, Any]:
+        """Runs comparative statistical benchmark: single model vs multi-model cascade."""
+        return self.benchmark_engine.run_comparative_benchmark(prompt=prompt, iterations=iterations)
+
+    def get_topology(self) -> Dict[str, Any]:
+        """Returns thread and worker allocation topology."""
+        return self.closed_loop.topology.to_dict()
+
+    def get_execution_matrix(self) -> Dict[str, Any]:
+        """Returns current model execution matrix M."""
+        return self.closed_loop.execution_matrix.to_dict()
+
+    def perturb_execution_matrix(self, delta_rule: str) -> Dict[str, Any]:
+        """Applies a perturbation ΔM to explore alternate execution layouts."""
+        self.closed_loop.execution_matrix = self.closed_loop.execution_matrix.perturb(delta_rule)
+        return self.closed_loop.execution_matrix.to_dict()
+
+    def get_hypotheses(self) -> List[Dict[str, Any]]:
+        """Returns empirical hypothesis ledger with validation statuses."""
+        return [h.to_dict() for h in self.closed_loop.hypotheses.values()]
 
     def get_telemetry(self) -> Dict[str, Any]:
         """Aggregates execution metrics across all traces and nodes."""
@@ -200,6 +274,8 @@ class ModelCascadeRuntime:
                 "CASCADE_RAG_GROUNDED",
                 "CASCADE_TOOL_EXECUTION"
             ],
+            "active_hypotheses_count": len(self.closed_loop.hypotheses),
+            "thread_topology": self.closed_loop.topology.to_dict(),
             "vital_max_hp": VITAL_MAX_HP
         }
 

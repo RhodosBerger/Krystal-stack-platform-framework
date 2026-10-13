@@ -132,11 +132,12 @@ class TestModelCascadeRuntime(unittest.TestCase):
         top = ranked[0]
         self.assertTrue(top.is_eligible)
         self.assertTrue(hasattr(top, "route_score"))
-        # Verify formula: RouteScore_i = w1*C_i + w2*E_i - w3*L_i - w4*M_i - w5*R_i
+        # Verify formula: RouteScore_i = w1*C_i + w2*E_i + w3*Cal_i - w4*L_i - w5*M_i - w6*R_i
         w = ROUTING_PROFILES["ACCURACY"]
         expected_score = (
             w.w_capability * top.capability_score +
-            w.w_evidence * top.evidence_score -
+            w.w_evidence * top.evidence_score +
+            w.w_calibration * top.calibration_score -
             w.w_latency * top.latency_score -
             w.w_memory * top.memory_score -
             w.w_regret * top.regret_score

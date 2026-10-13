@@ -802,6 +802,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.serve_file(STATIC_DIR / "small_model_core_rag_studio.html", "text/html")
             return
         elif norm_path in (
+            "/cascade", "/cascade-studio", "/model-studio", "/cascade_model_studio.html",
+            "/model-cascade", "/cascade-workbench", "/lm-studio"
+        ):
+            self.serve_file(STATIC_DIR / "cascade_model_studio.html", "text/html")
+            return
+        elif norm_path in (
             "/paradox-registry", "/epistemic-paradoxes", "/paradox-studio",
             "/epistemic_paradox_registry_studio.html"
         ):
@@ -979,7 +985,7 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             return
 
         # ── API: Multi-Model Cascade Runtime Fabric ─────────────────
-        elif norm_path in ("/api/model-cascade/catalog", "/api/cascade/catalog"):
+        elif norm_path in ("/api/model-cascade/catalog", "/api/cascade/catalog", "/api/cascade/models"):
             from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
             self.send_json({
                 "status": "OK",
@@ -993,6 +999,33 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "OK",
                 "telemetry": GLOBAL_MODEL_CASCADE_RUNTIME.get_telemetry(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif norm_path in ("/api/cascade/hypotheses", "/api/model-cascade/hypotheses"):
+            from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+            self.send_json({
+                "status": "OK",
+                "hypotheses": GLOBAL_MODEL_CASCADE_RUNTIME.get_hypotheses(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif norm_path in ("/api/cascade/topology", "/api/model-cascade/topology"):
+            from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+            self.send_json({
+                "status": "OK",
+                "topology": GLOBAL_MODEL_CASCADE_RUNTIME.get_topology(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif norm_path in ("/api/cascade/execution-matrix", "/api/model-cascade/execution-matrix"):
+            from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+            self.send_json({
+                "status": "OK",
+                "execution_matrix": GLOBAL_MODEL_CASCADE_RUNTIME.get_execution_matrix(),
                 "vital_max_hp": 6
             })
             return
@@ -7274,6 +7307,98 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 })
             except Exception as e:
                 self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+
+        # ── API: Multi-Model Cascade Runtime Fabric (POST) ─────────
+        elif self.path in ("/api/cascade/plan", "/api/model-cascade/plan"):
+            try:
+                from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+                prompt = data.get("prompt", "")
+                objective = data.get("objective", "BALANCED")
+                strategy = data.get("strategy")
+                plan = GLOBAL_MODEL_CASCADE_RUNTIME.plan(
+                    prompt=prompt,
+                    objective=objective,
+                    strategy=strategy,
+                    max_latency_ms=float(data.get("max_latency_ms", 200.0)),
+                    max_memory_mb=float(data.get("max_memory_mb", 4096.0)),
+                    require_grounding=bool(data.get("require_grounding", True))
+                )
+                self.send_json({"status": "OK", "plan": plan.to_dict(), "vital_max_hp": 6})
+            except Exception as e:
+                self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+            return
+
+        elif self.path in ("/api/cascade/execute", "/api/model-cascade/execute"):
+            try:
+                from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+                prompt = data.get("prompt", "")
+                objective = data.get("objective", "BALANCED")
+                strategy = data.get("strategy")
+                is_shadow = bool(data.get("is_shadow", False))
+                result = GLOBAL_MODEL_CASCADE_RUNTIME.execute(
+                    prompt=prompt,
+                    objective=objective,
+                    strategy=strategy,
+                    is_shadow=is_shadow,
+                    max_latency_ms=float(data.get("max_latency_ms", 200.0)),
+                    max_memory_mb=float(data.get("max_memory_mb", 4096.0)),
+                    require_grounding=bool(data.get("require_grounding", True))
+                )
+                self.send_json({"status": "OK", "result": result, "vital_max_hp": 6})
+            except Exception as e:
+                self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+            return
+
+        elif self.path in ("/api/cascade/benchmark", "/api/model-cascade/benchmark"):
+            try:
+                from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+                prompt = data.get("prompt", "Vysvetli mechanizmus invariantu VITAL_MAX_HP == 6")
+                iterations = int(data.get("iterations", 3))
+                report = GLOBAL_MODEL_CASCADE_RUNTIME.benchmark(prompt=prompt, iterations=iterations)
+                self.send_json({"status": "OK", "benchmark": report, "vital_max_hp": 6})
+            except Exception as e:
+                self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+            return
+
+        elif self.path in ("/api/cascade/model/load", "/api/model-cascade/node/load"):
+            try:
+                from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+                node_id = data.get("node_id", "")
+                res = GLOBAL_MODEL_CASCADE_RUNTIME.load_node(node_id)
+                self.send_json({"status": "OK", "action": "load", "node_id": node_id, "detail": res, "vital_max_hp": 6})
+            except Exception as e:
+                self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+            return
+
+        elif self.path in ("/api/cascade/model/unload", "/api/model-cascade/node/unload"):
+            try:
+                from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+                node_id = data.get("node_id", "")
+                res = GLOBAL_MODEL_CASCADE_RUNTIME.unload_node(node_id)
+                self.send_json({"status": "OK", "action": "unload", "node_id": node_id, "detail": res, "vital_max_hp": 6})
+            except Exception as e:
+                self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+            return
+
+        elif self.path in ("/api/cascade/model/warmup", "/api/model-cascade/node/warmup"):
+            try:
+                from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+                node_id = data.get("node_id", "")
+                res = GLOBAL_MODEL_CASCADE_RUNTIME.warmup_node(node_id)
+                self.send_json({"status": "OK", "action": "warmup", "node_id": node_id, "detail": res, "vital_max_hp": 6})
+            except Exception as e:
+                self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+            return
+
+        elif self.path in ("/api/cascade/perturb", "/api/model-cascade/perturb"):
+            try:
+                from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+                delta_rule = data.get("delta_rule", "OFFLOAD_REASONER_TO_NPU")
+                matrix = GLOBAL_MODEL_CASCADE_RUNTIME.perturb_execution_matrix(delta_rule)
+                self.send_json({"status": "OK", "matrix": matrix, "vital_max_hp": 6})
+            except Exception as e:
+                self.send_json({"status": "ERROR", "message": str(e)}, status=400)
+            return
 
         else:
             if self.path.startswith("/api/") and self.proxy_to_engine_core("POST", body=body.encode("utf-8") if isinstance(body, str) else body):

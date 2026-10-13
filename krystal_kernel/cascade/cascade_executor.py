@@ -32,7 +32,12 @@ from dataclasses import dataclass
 from typing import Dict, Any, List, Optional, Set, Tuple
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
-from krystal_kernel.cascade.cascade_trace import CascadeNodeResult, CascadeExecutionTrace
+from krystal_kernel.cascade.cascade_trace import (
+    CascadeNodeResult,
+    CascadeExecutionTrace,
+    CascadeTraceEvent,
+    CascadeFinalResult,
+)
 from krystal_kernel.cascade.model_node import ModelNode, ModelNodeSpec
 from krystal_kernel.cascade.cascade_planner import CascadePlan, CascadeEdge
 
@@ -45,6 +50,7 @@ class CascadeMerger:
 
     def __init__(self):
         assert VITAL_MAX_HP == 6, "Invariant VITAL_MAX_HP == 6 must hold"
+        self.vital_max_hp = VITAL_MAX_HP
 
     def merge_outputs(self, results: List[CascadeNodeResult]) -> str:
         """Combines multiple node outputs into a coherent synthesized representation."""
@@ -66,8 +72,8 @@ class CascadeMerger:
         if len(successful) < 2:
             return contradictions
 
-        pos_terms = ["úspešn", "success", "approved", "stabiln", "platn", "valid", "bezpečn"]
-        neg_terms = ["zlyha", "fail", "veto", "nestabiln", "neplatn", "invalid", "chyb", "nebezpečn"]
+        pos_terms = ["úspešn", "success", "approved", "stabiln", "platn", "valid", "bezpečn", "is 6", "rovný 6", "je 6"]
+        neg_terms = ["zlyha", "fail", "veto", "nestabiln", "neplatn", "invalid", "chyb", "nebezpečn", "not 6", "nie 6", "strictly 10"]
 
         for i in range(len(successful)):
             for j in range(i + 1, len(successful)):
@@ -79,9 +85,13 @@ class CascadeMerger:
                 t2_neg = any(w in t2 for w in neg_terms)
                 if (t1_pos and t2_neg) or (t1_neg and t2_pos):
                     contradictions.append(
-                        f"Polarity conflict between {successful[i].node_id} and {successful[j].node_id}"
+                        f"Polarity conflict (EPI_CONTRADICTORY) between {successful[i].node_id} and {successful[j].node_id}"
                     )
         return contradictions
+
+    def has_contradictions(self, results: List[CascadeNodeResult]) -> Tuple[bool, List[str]]:
+        c = self.detect_contradictions(results)
+        return (len(c) > 0, c)
 
     def calculate_confidence(self, results: List[CascadeNodeResult]) -> float:
         """Calculates harmonic / weighted mean confidence across results."""
@@ -149,13 +159,35 @@ class CascadeExecutor:
         node_results: List[CascadeNodeResult],
         final_output: str,
         total_latency_ms: float,
-        verdict: str = "AUTH_COMMIT_APPROVED"
+        verdict: str = "AUTH_COMMIT_APPROVED",
+        trace_events: Optional[List[CascadeTraceEvent]] = None,
+        shadow_mode: bool = False
     ) -> CascadeExecutionTrace:
         """Constructs and validates the final CascadeExecutionTrace."""
         assert VITAL_MAX_HP == 6, "Invariant violation"
         total_in_tok = sum(nr.input_tokens for nr in node_results)
         total_out_tok = sum(nr.output_tokens for nr in node_results)
-        peak_mem = max((nr.memory_mb for nr in node_results), default=0.0)
+        peak_mem = max((getattr(nr, "memory_used", 0.0) or nr.memory_mb for nr in node_results), default=0.0)
+
+        # Contradiction detection across node outputs
+        contradictions = self.merger.detect_contradictions(node_results)
+        if contradictions:
+            verdict = "EPI_CONTRADICTORY"
+            for nr in node_results:
+                if nr.status == "SUCCESS":
+                    nr.epistemic_verdict = "EPI_CONTRADICTORY"
+
+        # Authority boundary check: verify no node attempted unauthorized host mutation
+        for nr in node_results:
+            out_lower = nr.output.lower()
+            if any(mut in out_lower for mut in ["write_cgroups", "qmp_write", "modify_invariants", "commit_transaction", "rm -rf"]):
+                verdict = "AUTH_VETOED"
+                nr.status = "VETOED"
+                nr.epistemic_verdict = "SAFE_BREACH"
+
+        # Shadow execution tagging
+        if shadow_mode:
+            verdict = "WOULD_COMMIT" if "APPROVED" in verdict else f"WOULD_VETO: {verdict}"
 
         # Aggregate evidence citations
         citations: List[str] = []
@@ -165,6 +197,106 @@ class CascadeExecutor:
                     citations.append(ref)
 
         confidence = self.merger.calculate_confidence(node_results)
+
+        # Generate full lifecycle trace events if not provided
+        events = trace_events or []
+        if not events:
+            req_id = f"REQ_{uuid.uuid4().hex[:10].upper()}"
+            # 1. Route decision
+            events.append(CascadeTraceEvent(
+                event_id=f"EVT_{uuid.uuid4().hex[:8].upper()}",
+                request_id=req_id,
+                node_id="router",
+                timestamp=time.time(),
+                state_version=getattr(plan, "source_state_version", 1),
+                parent_event=None,
+                latency=1.2,
+                memory=16.0,
+                token_count=len(prompt.split()),
+                status="SUCCESS",
+                event_type="ROUTE_DECISION",
+                details={"strategy": plan.strategy, "objective": plan.objective, "shadow_mode": shadow_mode}
+            ))
+            # 2. Per-node lifecycle events
+            parent_id = events[0].event_id
+            for nr in node_results:
+                node_type = "MODEL_INFERENCE"
+                if "rag" in nr.node_id or "retriever" in nr.node_id:
+                    node_type = "RETRIEVAL"
+                elif "verifier" in nr.node_id:
+                    node_type = "VERIFY"
+                elif "tool" in nr.node_id:
+                    node_type = "TOOL_CALL"
+                elif "synth" in nr.node_id:
+                    node_type = "FINAL_SYNTHESIS"
+
+                # NODE_START
+                start_evt = CascadeTraceEvent(
+                    event_id=f"EVT_{uuid.uuid4().hex[:8].upper()}",
+                    request_id=req_id,
+                    node_id=nr.node_id,
+                    timestamp=time.time(),
+                    state_version=getattr(plan, "source_state_version", 1),
+                    parent_event=parent_id,
+                    latency=0.1,
+                    memory=nr.memory_mb * 0.2,
+                    token_count=nr.input_tokens,
+                    status="STARTED",
+                    event_type="NODE_START",
+                    details={"role": node_type}
+                )
+                events.append(start_evt)
+
+                # Specific operation event
+                op_evt = CascadeTraceEvent(
+                    event_id=f"EVT_{uuid.uuid4().hex[:8].upper()}",
+                    request_id=req_id,
+                    node_id=nr.node_id,
+                    timestamp=time.time(),
+                    state_version=getattr(plan, "source_state_version", 1),
+                    parent_event=start_evt.event_id,
+                    latency=nr.latency_ms,
+                    memory=nr.memory_mb,
+                    token_count=nr.output_tokens,
+                    status=nr.status,
+                    event_type=node_type,
+                    details={"epistemic_verdict": nr.epistemic_verdict, "confidence": nr.confidence}
+                )
+                events.append(op_evt)
+
+                # NODE_END
+                end_evt = CascadeTraceEvent(
+                    event_id=f"EVT_{uuid.uuid4().hex[:8].upper()}",
+                    request_id=req_id,
+                    node_id=nr.node_id,
+                    timestamp=time.time(),
+                    state_version=getattr(plan, "source_state_version", 1),
+                    parent_event=op_evt.event_id,
+                    latency=nr.latency_ms,
+                    memory=nr.memory_mb,
+                    token_count=nr.output_tokens,
+                    status=nr.status,
+                    event_type="NODE_END",
+                    details={"evidence_count": len(nr.evidence_refs)}
+                )
+                events.append(end_evt)
+                parent_id = end_evt.event_id
+
+            # FINAL_SYNTHESIS event
+            events.append(CascadeTraceEvent(
+                event_id=f"EVT_{uuid.uuid4().hex[:8].upper()}",
+                request_id=req_id,
+                node_id="synthesizer",
+                timestamp=time.time(),
+                state_version=getattr(plan, "source_state_version", 1),
+                parent_event=parent_id,
+                latency=total_latency_ms,
+                memory=peak_mem,
+                token_count=total_out_tok,
+                status="SUCCESS",
+                event_type="FINAL_SYNTHESIS",
+                details={"verdict": verdict, "confidence": confidence, "citations": len(citations)}
+            ))
 
         return CascadeExecutionTrace(
             trace_id=f"TRC_{uuid.uuid4().hex[:10].upper()}",
@@ -181,6 +313,12 @@ class CascadeExecutor:
             final_confidence=round(confidence, 4),
             dual_gate_verdict=verdict,
             evidence_citations=citations,
+            authority_status=verdict,
+            evidence_summary=citations,
+            total_memory_peak=peak_mem,
+            total_tokens=total_in_tok + total_out_tok,
+            trace_events=events,
+            shadow_mode=shadow_mode,
             vital_max_hp=VITAL_MAX_HP
         )
 
@@ -234,7 +372,11 @@ class CascadeExecutor:
 
         final_output = node_results[-1].output if node_results else ""
         total_lat = (time.perf_counter_ns() - t0) / 1_000_000.0
-        return self._build_trace(plan, prompt, node_results, final_output, total_lat, verdict=verifier_verdict)
+        return self._build_trace(
+            plan, prompt, node_results, final_output, total_lat,
+            verdict=verifier_verdict,
+            shadow_mode=bool(request.get("is_shadow", False))
+        )
 
     # --------------------------------------------------------------------------
     # 2. CASCADE_PARALLEL
@@ -297,7 +439,10 @@ class CascadeExecutor:
             final_output = merged_body
 
         total_lat = (time.perf_counter_ns() - t0) / 1_000_000.0
-        return self._build_trace(plan, prompt, node_results, final_output, total_lat)
+        return self._build_trace(
+            plan, prompt, node_results, final_output, total_lat,
+            shadow_mode=bool(request.get("is_shadow", False))
+        )
 
     # --------------------------------------------------------------------------
     # 3. CASCADE_VOTE
@@ -335,7 +480,10 @@ class CascadeExecutor:
             final_output = authoritative.output
 
         total_lat = (time.perf_counter_ns() - t0) / 1_000_000.0
-        return self._build_trace(plan, prompt, node_results, final_output, total_lat)
+        return self._build_trace(
+            plan, prompt, node_results, final_output, total_lat,
+            shadow_mode=bool(request.get("is_shadow", False))
+        )
 
     # --------------------------------------------------------------------------
     # 4. CASCADE_VERIFY
@@ -375,7 +523,11 @@ class CascadeExecutor:
             final_output = f"{p_res.output}\n\n[DualGate Verdict: {verdict}]"
 
         total_lat = (time.perf_counter_ns() - t0) / 1_000_000.0
-        return self._build_trace(plan, prompt, node_results, final_output, total_lat, verdict=verdict)
+        return self._build_trace(
+            plan, prompt, node_results, final_output, total_lat,
+            verdict=verdict,
+            shadow_mode=bool(request.get("is_shadow", False))
+        )
 
     # --------------------------------------------------------------------------
     # 5. CASCADE_FALLBACK
@@ -426,7 +578,10 @@ class CascadeExecutor:
             final_output = active_output
 
         total_lat = (time.perf_counter_ns() - t0) / 1_000_000.0
-        return self._build_trace(plan, prompt, node_results, final_output, total_lat)
+        return self._build_trace(
+            plan, prompt, node_results, final_output, total_lat,
+            shadow_mode=bool(request.get("is_shadow", False))
+        )
 
     # --------------------------------------------------------------------------
     # 6. CASCADE_SPECIALIST_ROUTE
@@ -496,7 +651,11 @@ class CascadeExecutor:
             final_output = grounded_output
 
         total_lat = (time.perf_counter_ns() - t0) / 1_000_000.0
-        return self._build_trace(plan, prompt, node_results, final_output, total_lat, verdict=verdict)
+        return self._build_trace(
+            plan, prompt, node_results, final_output, total_lat,
+            verdict=verdict,
+            shadow_mode=bool(request.get("is_shadow", False))
+        )
 
     # --------------------------------------------------------------------------
     # 8. CASCADE_TOOL_EXECUTION
@@ -532,4 +691,7 @@ class CascadeExecutor:
             final_output = tool_result.output
 
         total_lat = (time.perf_counter_ns() - t0) / 1_000_000.0
-        return self._build_trace(plan, prompt, node_results, final_output, total_lat)
+        return self._build_trace(
+            plan, prompt, node_results, final_output, total_lat,
+            shadow_mode=bool(request.get("is_shadow", False))
+        )
