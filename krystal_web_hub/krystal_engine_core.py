@@ -155,6 +155,10 @@ from krystal_kernel.protix_ml_models import (
     ProtixMLStructureEngine,
     ProtixModelConfig
 )
+from krystal_kernel.tectonic_matrix_adaptability_engine import (
+    GLOBAL_TECTONIC_ADAPTABILITY_ENGINE,
+    TectonicMatrixAdaptabilityEngine
+)
 from krystal_kernel.openai_llm_connector import (
     GLOBAL_OPENAI_CONNECTOR,
     OpenAILLMConnector,
@@ -1775,6 +1779,22 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_PROTIX_ML_ENGINE.evaluate_model_suite(test_count=120))
             return
 
+        # ── TECTONIC MATRIX ADAPTABILITY & COUNTERFACTUAL SPECULATION (GET) 
+        if path == '/api/tectonic/matrix/status':
+            metrics = GLOBAL_TECTONIC_ADAPTABILITY_ENGINE.live_matrix.compute_metrics()
+            self._send_json({
+                "success": True,
+                "matrix_dimensions": [
+                    GLOBAL_TECTONIC_ADAPTABILITY_ENGINE.live_matrix.width,
+                    GLOBAL_TECTONIC_ADAPTABILITY_ENGINE.live_matrix.height
+                ],
+                "cell_count": len(GLOBAL_TECTONIC_ADAPTABILITY_ENGINE.live_matrix.cells),
+                "metrics": metrics,
+                "rules": list(GLOBAL_TECTONIC_ADAPTABILITY_ENGINE.default_rules.keys()),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
         # ── UNIVERSAL OPENAI LLM CONNECTOR ENDPOINTS (GET) ──────────────────
         if path == '/api/llm/status':
             self._send_json(GLOBAL_OPENAI_CONNECTOR.get_status())
@@ -2827,6 +2847,21 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path == '/api/ml/protix/evaluate':
             t_count = int(req_data.get("test_count", 120))
             self._send_json(GLOBAL_PROTIX_ML_ENGINE.evaluate_model_suite(test_count=t_count))
+            return
+
+        # ── TECTONIC MATRIX ADAPTABILITY & COUNTERFACTUAL SPECULATION (POST)
+        if path == '/api/tectonic/speculate':
+            plan = GLOBAL_TECTONIC_ADAPTABILITY_ENGINE.speculate()
+            self._send_json({
+                "success": True,
+                "speculation_plan": plan.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/tectonic/adapt':
+            res = GLOBAL_TECTONIC_ADAPTABILITY_ENGINE.adapt()
+            self._send_json(res)
             return
 
         # ── UNIVERSAL OPENAI LLM CONNECTOR POST ENDPOINTS ──────────────────

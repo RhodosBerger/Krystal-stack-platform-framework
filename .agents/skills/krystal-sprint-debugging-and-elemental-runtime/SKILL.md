@@ -248,3 +248,46 @@ Architektonický **"Stred"** rieši rozpor medzi rigidnými synchrónnymi HTTP e
 python -m unittest tests/test_network_task_arbiter.py
 ```
 
+---
+
+## 9. Tectonic Matrix Adaptability & Counterfactual Speculation Engine
+
+The **Tectonic Matrix Adaptability Engine** governs the physical, elemental, and tactical terrain matrix ($\mathbf{M}_{\text{tectonic}}$) using the speculative decision grammar:
+`IF -> WHAT-IF -> WHAT-IF -> THAN-IF -> ELSE-IF -> IF-GUARD`.
+
+### 9.1 Mathematical & Structural Formulation
+* **Tectonic Matrix Tensor ($\mathbf{M}_{\text{tectonic}}$)**: 64 cells ($8 \times 8$ local grid) modeling:
+  - Elevation $z \in [0.0, 50.0]$
+  - Shear stress $\tau \in [0.0, 1.0]$ (rift activation at $\tau > 0.80$)
+  - Temperature $T \in [20.0, 100.0]^\circ\text{C}$
+  - Elemental polarities $[c, t, d, f, a]$ (Crystal, Toxic, Druid, Fire, Aether)
+  - Invariant entity vital HP ($HP \le 6$).
+* **Copy-on-Write (CoW) Shadow Forks**:
+  - Creates speculative copies of the matrix in $<25\text{ }\mu\text{s}$ without mutating the live state.
+
+### 9.2 Counterfactual Grammar Semantics
+1. **`IF <condition> THEN <action>`**: Baseline deterministic action (e.g. `mean_stress > 0.40 -> BASELINE_SLUDGE_QUENCH`).
+2. **`WHAT_IF <shock_1> THEN <projection_1>`**: 1st-order hypothetical shock simulation (e.g. `THERMAL_SURGE == +18.0`).
+3. **`WHAT_IF <shock_2> THEN <projection_2>`**: 2nd-order cascading counterfactual simulation with adaptive countermeasure.
+4. **`THAN_IF <criterion, delta> THEN <preferred_action>`**:
+   Comparative multi-objective arbitration:
+   $$\Delta \text{Stability} = \text{Stability}(\mathbf{M}_{\text{speculative}}) - \text{Stability}(\mathbf{M}_{\text{baseline}})$$
+   If $\Delta \text{Stability} \ge 0.04$, the speculative branch overrides the baseline.
+5. **`ELSE_IF <condition> THEN <action>`**: Deterministic fallback branches (e.g. `mean_temp_c > 65.0 -> EMERGENCY_COOLING_SLAG`).
+6. **`IF_GUARD`**: Universal invariant assertion enforcing `VITAL_MAX_HP == 6`, $T \le 75^\circ\text{C}$, $I \le 10\text{ A}$.
+
+### 9.3 Operational Commands & REST Endpoints
+* **CLI Engine**:
+  ```powershell
+  python krystal_kernel/tectonic_matrix_adaptability_engine.py
+  ```
+* **Unit Tests**:
+  ```powershell
+  python -m unittest tests/test_tectonic_matrix_adaptability.py
+  ```
+* **Mission Control REST Endpoints**:
+  - `GET  /api/tectonic/matrix/status` — Live matrix dimensions, stress, stability, and rule set.
+  - `POST /api/tectonic/speculate` — Runs counterfactual speculation and returns trace.
+  - `POST /api/tectonic/adapt` — Commits optimal adaptive action to live matrix.
+
+
