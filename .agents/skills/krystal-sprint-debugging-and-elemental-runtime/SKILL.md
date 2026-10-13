@@ -1008,3 +1008,38 @@ An `EpistemicList[T]` enforces structural, algebraic, and memory invariants:
   ```powershell
   python -m unittest tests/test_epistemic_taxonomies.py
   ```
+
+---
+
+## 24. Autonomous Paradox Healer & Epistemic Immune System
+
+### 24.1 Closed-Loop Self-Healing Architecture
+Rather than passively recording paradoxes, the `AutonomousParadoxHealer` (`krystal_kernel/verification/autonomous_paradox_healer.py`) acts as an active closed-loop immune system. It continuously monitors systemic metrics, detects threshold breaches, and autonomously fires targeted remediation routines to restore `LATENT_STABLE` states.
+
+### 24.2 The Five Closed-Loop Remediation Circuits
+1. **`SHADOW_EXPLORATION_DECOUPLING` (PARADOX-01, PARADOX-04, PARADOX-11)**:
+   - When veto ratio exceeds threshold, engages `ShadowRuntime` to run asynchronous counterfactual twin simulations of vetoed actions.
+   - Updates `PredictionErrorLedger` to calibrate perceived risk down to empirical bounds, breaking epistemic solipsism.
+2. **`ADAPTIVE_PROOF_AMORTIZATION` (PARADOX-02, PARADOX-08, PARADOX-12)**:
+   - When proof generation duration threatens evidence lease expiry, downgrades reversible actions (`REVERSIBLE_SWITCH`) to lightweight pre-verified lemma tokens (`PROVABLE_LEMMA`).
+   - Extends nanosecond epoch lease duration (`lease_ttl_ns *= 2.5`) with clock skew compensation, preventing evidence expiry livelocks.
+3. **`HYSTERETIC_VERSION_ZONING` (PARADOX-03, PARADOX-10, PARADOX-13)**:
+   - When optimistic lock aborts exceed 10%, de-monolithizes `StateVersion` into isolated domain sub-versions (thermal, power, memory).
+   - Activates multi-scale factographic band filter (3-sigma micro-noise absorption), extinguishing Heisenberg telemetry abort storms.
+4. **`CONSTITUTIONAL_INVARIANT_LOCK` (PARADOX-05, PARADOX-09, PARADOX-14)**:
+   - Strictly asserts `assert VITAL_MAX_HP == 6` across all state transformations.
+   - Instantly quarantines rogue learning weights attempting authority boundary mutations, and reverts state to the latest verified SHA-256 Merkle root checkpoint.
+5. **`DUAL_ASPECT_MEMORY_SENTINEL` (PARADOX-06, PARADOX-07, PARADOX-15)**:
+   - Enforces 64-byte SIMD cacheline alignment (`CACHE_LINE_64B_CHUNK`) across C-ABI pointers.
+   - Reconciles `canonical_state` with `adapter_native_state` without attribute loss, verifying memory ownership lifetimes via Rust borrow-checker sentinels.
+
+### 24.3 REST Endpoints & Web Hub Integration
+* `POST /api/paradoxes/auto-heal` — Executes targeted heal (if `paradox_id` provided) or full-cycle autonomous healing across all 10 paradoxes.
+* `GET  /api/paradoxes/healer-status` — Returns diagnostic telemetry, engaged circuits, and audit history.
+* **Interactive Studio**: `krystal_web_hub/static/epistemic_paradox_registry_studio.html` equipped with `[⚡ SPUSTIŤ AUTONÓMNE UZDRAVENIE SYSTÉMU]` and individual `[🩹 Uzdraviť]` card actions.
+* **Verification**:
+  ```powershell
+  python krystal_kernel/verification/autonomous_paradox_healer.py
+  python -m unittest tests/test_autonomous_paradox_healer.py
+  ```
+

@@ -430,6 +430,46 @@
             color: var(--text-dim);
         }
 
+        .btn-auto-heal {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(56, 189, 248, 0.2));
+            border: 1px solid var(--emerald-stable);
+            color: #d1fae5;
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 8px 18px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-auto-heal:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.4), rgba(56, 189, 248, 0.35));
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-heal-card {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: #a7f3d0;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-heal-card:hover {
+            background: rgba(16, 185, 129, 0.25);
+            color: #fff;
+        }
+
         /* ── FOOTER ──────────────────────────────────────────────────────── */
         footer.studio-footer {
             border-top: 1px solid var(--border-subtle);
@@ -489,10 +529,15 @@
 
         <!-- ── PARADOX REGISTRY SECTION ─────────────────────────────── -->
         <section>
-            <div class="section-header" style="margin-bottom: 16px;">
+            <div class="section-header" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                 <h2 class="section-title">Katalóg 10 Systémových Paradoxov (PARADOX-01 až PARADOX-10)</h2>
-                <div style="font-family: 'Fira Code', monospace; font-size: 12px; color: var(--text-dim);">
-                    Stav: <span id="alertsCount" style="color: var(--emerald-stable); font-weight: 700;">0 AKTÍVNYCH NARUŠENÍ</span>
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div style="font-family: 'Fira Code', monospace; font-size: 12px; color: var(--text-dim);">
+                        Stav: <span id="alertsCount" style="color: var(--emerald-stable); font-weight: 700;">0 AKTÍVNYCH NARUŠENÍ</span>
+                    </div>
+                    <button class="btn-auto-heal" id="autoHealBtn" onclick="runAutoHeal()">
+                        ⚡ SPUSTIŤ AUTONÓMNE UZDRAVENIE SYSTÉMU
+                    </button>
                 </div>
             </div>
 
@@ -579,9 +624,14 @@
                     </div>
 
                     <div class="card-actions">
-                        <button class="btn-probe" onclick="probeParadox('${p.paradox_id}')">
-                            <span>🔬</span> <span>Spustiť Falsifikačný Probe</span>
-                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-probe" onclick="probeParadox('${p.paradox_id}')">
+                                <span>🔬</span> <span>Probe</span>
+                            </button>
+                            <button class="btn-heal-card" onclick="healSingleParadox('${p.paradox_id}')">
+                                <span>🩹</span> <span>Uzdraviť</span>
+                            </button>
+                        </div>
                         <span class="probe-status" id="probeStatus_${p.paradox_id}">
                             Sondované: ${p.times_probed}x
                         </span>
@@ -609,10 +659,74 @@
                     const badge = document.getElementById(`badge_${paradoxId}`);
                     badge.textContent = probe.alert_level;
                     badge.className = "alert-badge " + (probe.alert_level === 'LATENT_STABLE' ? 'badge-latent' : 'badge-mitigating');
+                    const card = document.getElementById(`card_${paradoxId}`);
+                    if (probe.alert_level !== 'LATENT_STABLE') {
+                        card.classList.add('alert-active');
+                    } else {
+                        card.classList.remove('alert-active');
+                    }
                 }
             } catch (err) {
                 console.error("Chyba pri probe:", err);
                 statusSpan.textContent = "Chyba sondy";
+            }
+        }
+
+        async function healSingleParadox(paradoxId) {
+            const statusSpan = document.getElementById(`probeStatus_${paradoxId}`);
+            statusSpan.textContent = "Aktivujem mitigáciu...";
+
+            try {
+                const res = await fetch('/api/paradoxes/auto-heal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paradox_id: paradoxId })
+                });
+                const data = await res.json();
+                if (data.success && data.report) {
+                    const rep = data.report;
+                    statusSpan.textContent = `Uzdravené [${rep.circuit}]`;
+                    const badge = document.getElementById(`badge_${paradoxId}`);
+                    badge.textContent = rep.new_alert_level;
+                    badge.className = "alert-badge badge-latent";
+                    const card = document.getElementById(`card_${paradoxId}`);
+                    card.classList.remove('alert-active');
+                    fetchParadoxes();
+                }
+            } catch (err) {
+                console.error("Chyba pri auto-heale:", err);
+                statusSpan.textContent = "Chyba uzdravenia";
+            }
+        }
+
+        async function runAutoHeal() {
+            const btn = document.getElementById('autoHealBtn');
+            const origText = btn.innerHTML;
+            btn.innerHTML = "⏳ UZDRAVUJEM SYSTÉM...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/paradoxes/auto-heal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (data.success && data.cycle) {
+                    btn.innerHTML = `✅ UZDRAVENÉ (${data.cycle.healed_count} SUBSYSTÉMOV)`;
+                    setTimeout(() => {
+                        btn.innerHTML = origText;
+                        btn.disabled = false;
+                    }, 3000);
+                    fetchParadoxes();
+                }
+            } catch (err) {
+                console.error("Chyba pri cykle uzdravenia:", err);
+                btn.innerHTML = "❌ CHYBA UZDRAVENIA";
+                setTimeout(() => {
+                    btn.innerHTML = origText;
+                    btn.disabled = false;
+                }, 2000);
             }
         }
 

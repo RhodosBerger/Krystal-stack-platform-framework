@@ -253,6 +253,12 @@ from krystal_kernel.epistemic_paradox_registry import (
     ParadoxCategory,
     ParadoxAlertLevel
 )
+from krystal_kernel.verification.autonomous_paradox_healer import (
+    GLOBAL_PARADOX_HEALER,
+    AutonomousParadoxHealer,
+    RemediationCircuit,
+    RemediationActionReport
+)
 from krystal_web_hub.economic_engine.polymorphic_shape_blender_platform import (
     GLOBAL_SHAPE_PLATFORM,
     LanguageMode,
@@ -2040,6 +2046,10 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_PARADOX_REGISTRY.sample_system_paradox_telemetry())
             return
 
+        if path in ('/api/paradoxes/healer-status', '/api/paradox/healer-status'):
+            self._send_json(GLOBAL_PARADOX_HEALER.get_telemetry())
+            return
+
         # ── PROCEDURAL LAND BENCHMARK & CI/CD THROUGHPUT (GET) ──────────────
         if path == '/api/procedural-benchmark/status':
             self._send_json(GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE.get_status())
@@ -3670,6 +3680,26 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "probe": probe_res,
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
+            return
+
+        if path in ('/api/paradoxes/auto-heal', '/api/paradox/auto-heal', '/api/paradoxes/heal'):
+            pid = req_data.get("paradox_id")
+            if pid:
+                heal_report = GLOBAL_PARADOX_HEALER.heal_paradox(pid)
+                self._send_json({
+                    "success": True,
+                    "mode": "TARGETED_HEAL",
+                    "report": heal_report.to_dict(),
+                    "vital_max_hp_rule": VITAL_MAX_HP
+                })
+            else:
+                cycle_res = GLOBAL_PARADOX_HEALER.run_healing_cycle()
+                self._send_json({
+                    "success": True,
+                    "mode": "FULL_CYCLE_HEAL",
+                    "cycle": cycle_res,
+                    "vital_max_hp_rule": VITAL_MAX_HP
+                })
             return
 
         # ── UNIVERSAL OPENAI LLM CONNECTOR POST ENDPOINTS ──────────────────

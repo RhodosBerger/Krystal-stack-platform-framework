@@ -998,6 +998,10 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             from krystal_kernel.epistemic_paradox_registry import GLOBAL_PARADOX_REGISTRY
             self.send_json(GLOBAL_PARADOX_REGISTRY.sample_system_paradox_telemetry())
             return
+        elif norm_path in ("/api/paradoxes/healer-status", "/api/paradox/healer-status"):
+            from krystal_kernel.verification.autonomous_paradox_healer import GLOBAL_PARADOX_HEALER
+            self.send_json(GLOBAL_PARADOX_HEALER.get_telemetry())
+            return
 
         # ── API: Processor Integrity & Context-Switch Telemetry ────
         elif norm_path in ("/api/kernel/integrity", "/api/processor/integrity", "/api/kernel_telemetry"):
@@ -3805,6 +3809,26 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "probe": probe_res,
                 "vital_max_hp": 6
             })
+            return
+        elif self.path in ("/api/paradoxes/auto-heal", "/api/paradox/auto-heal", "/api/paradoxes/heal"):
+            from krystal_kernel.verification.autonomous_paradox_healer import GLOBAL_PARADOX_HEALER
+            pid = data.get("paradox_id")
+            if pid:
+                heal_report = GLOBAL_PARADOX_HEALER.heal_paradox(pid)
+                self.send_json({
+                    "status": "OK",
+                    "mode": "TARGETED_HEAL",
+                    "report": heal_report.to_dict(),
+                    "vital_max_hp": 6
+                })
+            else:
+                cycle_res = GLOBAL_PARADOX_HEALER.run_healing_cycle()
+                self.send_json({
+                    "status": "OK",
+                    "mode": "FULL_CYCLE_HEAL",
+                    "cycle": cycle_res,
+                    "vital_max_hp": 6
+                })
             return
 
         # ── API: CrystalSec 2.0 LLM Execution Plane & Copilot ───────
