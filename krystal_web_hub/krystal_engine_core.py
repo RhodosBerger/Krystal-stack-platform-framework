@@ -227,6 +227,14 @@ from krystal_kernel.opencl_opengl_noise_cosine_decoder import (
     OpenCLDeviceTier,
     AlternativeRulesetConfig
 )
+from krystal_kernel.strand_npu_action_puzzle_engine import (
+    GLOBAL_STRAND_NPU_ENGINE,
+    NpuPuzzleDecoderAndInterpreter,
+    AlternativeAssignmentScheduler,
+    LifeActionCellState,
+    PuzzleActionType,
+    ProcessorStrandStatus
+)
 from krystal_web_hub.economic_engine.polymorphic_shape_blender_platform import (
     GLOBAL_SHAPE_PLATFORM,
     LanguageMode,
@@ -1207,6 +1215,9 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/opencl-opengl-studio', '/gpu-decoder', '/noise-cosine-studio', '/coise-decoder', '/opencl_opengl_noise_cosine_studio.html'):
             self._serve_file(os.path.join(STATIC_DIR, "opencl_opengl_noise_cosine_studio.html"), "text/html")
             return
+        if path in ('/strand-puzzle-studio', '/action-puzzle', '/npu-interpreter', '/life-puzzle', '/strand_npu_action_puzzle_studio.html'):
+            self._serve_file(os.path.join(STATIC_DIR, "strand_npu_action_puzzle_studio.html"), "text/html")
+            return
         if path in ('/shape-studio', '/shape-platform', '/blender-library', '/polymorphic-shapes'):
             self._serve_file(os.path.join(STATIC_DIR, "polymorphic_shape_studio.html"), "text/html")
             return
@@ -1954,6 +1965,19 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json({
                 "success": True,
                 "ruleset": GLOBAL_OPENCL_OPENGL_DECODER.get_ruleset_summary(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── STRAND PROCESSORS & NPU ACTION PUZZLE ENGINE (GET) ─────────────
+        if path in ('/api/puzzle/status', '/api/strand-puzzle/status'):
+            self._send_json(GLOBAL_STRAND_NPU_ENGINE.get_status())
+            return
+
+        if path in ('/api/puzzle/strands', '/api/strand-puzzle/strands'):
+            self._send_json({
+                "success": True,
+                "processors": {pid: p.to_dict() for pid, p in GLOBAL_STRAND_NPU_ENGINE.processors.items()},
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return
@@ -3486,6 +3510,46 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "decoder_mode": mode.value,
                 "opencl_c_kernel": cl_code,
                 "opengl_glsl_compute_shader": gl_code,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── STRAND PROCESSORS & NPU ACTION PUZZLE ENGINE (POST) ────────────
+        if path in ('/api/puzzle/solve-npu', '/api/strand-puzzle/solve-npu'):
+            puz_id = req_data.get("puzzle_id")
+            puzzle = GLOBAL_STRAND_NPU_ENGINE.active_puzzles.get(puz_id)
+            if not puzzle:
+                puzzle = list(GLOBAL_STRAND_NPU_ENGINE.active_puzzles.values())[0]
+            step_res = GLOBAL_STRAND_NPU_ENGINE.interpreter.interpret_and_solve_step(puzzle)
+            self._send_json({
+                "success": True,
+                "step_result": step_res,
+                "puzzle": puzzle.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path in ('/api/puzzle/alternative-assign', '/api/strand-puzzle/alternative-assign'):
+            strand_id = req_data.get("strand_id", "strand_page_0")
+            reason_str = req_data.get("reason", "STALLED_PAGE_FAULT")
+            reason = ProcessorStrandStatus[reason_str] if reason_str in ProcessorStrandStatus.__members__ else ProcessorStrandStatus.STALLED_PAGE_FAULT
+            rec = GLOBAL_STRAND_NPU_ENGINE.trigger_strand_stall_and_reassign(strand_id=strand_id, reason=reason)
+            self._send_json({
+                "success": True,
+                "assignment_record": rec.to_dict(),
+                "processor": GLOBAL_STRAND_NPU_ENGINE.processors[strand_id].to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path in ('/api/puzzle/decode', '/api/strand-puzzle/decode'):
+            raw_hex = req_data.get("raw_hex", "0102040501020405")
+            puz_id = req_data.get("puzzle_id", f"puz_custom_{int(time.time())}")
+            new_puz = GLOBAL_STRAND_NPU_ENGINE.interpreter.decode_bytecode_to_puzzle(raw_hex, puz_id)
+            GLOBAL_STRAND_NPU_ENGINE.active_puzzles[new_puz.puzzle_id] = new_puz
+            self._send_json({
+                "success": True,
+                "puzzle": new_puz.to_dict(),
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return

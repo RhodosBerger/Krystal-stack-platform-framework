@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRAND PROCESSORS // NPU LIFE ACTION PUZZLE INTERPRETER & ALTERNATIVE ASSIGNMENT</title>
+    <meta name="description" content="Stránkové/strandové procesory, NPU neurónový dekodér a interpretor bunkových akčných hlavolamov (Life Action Puzzles) s alternatívnym priradením (1500x speedup) pre Krystal-Stack.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #030712;
+            --bg-card: rgba(15, 23, 42, 0.82);
+            --bg-panel: rgba(10, 16, 31, 0.94);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(56, 189, 248, 0.4);
+
+            --npu-cyan: #38bdf8;
+            --npu-glow: rgba(56, 189, 248, 0.35);
+            --purple-strand: #a855f7;
+            --purple-glow: rgba(168, 85, 247, 0.35);
+            --amber-action: #f59e0b;
+            --emerald-catalyst: #10b981;
+            --rose-danger: #f43f5e;
+            --gold-bright: #fbbf24;
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --blur: blur(18px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03) 0%, transparent 55%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+        }
+
+        /* ── HEADER ──────────────────────────────────────────────────────── */
+        header.studio-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 36px;
+            background: rgba(8, 14, 28, 0.94);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(168, 85, 247, 0.25));
+            border: 1px solid var(--npu-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 0 16px var(--npu-glow);
+        }
+
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            background: linear-gradient(90deg, #ffffff, var(--npu-cyan), var(--purple-strand));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-sub {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.8px;
+        }
+
+        .nav-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .vital-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(244, 63, 94, 0.12);
+            border: 1px solid rgba(244, 63, 94, 0.35);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fecdd3;
+        }
+
+        .vital-hearts {
+            color: var(--rose-danger);
+            letter-spacing: 2px;
+        }
+
+        .hub-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-family: 'Fira Code', monospace;
+            border: 1px solid var(--border-subtle);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .hub-link:hover {
+            color: #fff;
+            border-color: var(--npu-cyan);
+            box-shadow: 0 0 10px var(--npu-glow);
+        }
+
+        /* ── LAYOUT ──────────────────────────────────────────────────────── */
+        main.studio-content {
+            flex: 1;
+            padding: 28px 36px 40px;
+            max-width: 1700px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+        }
+
+        /* ── HERO BANNER ─────────────────────────────────────────────────── */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.09) 0%, rgba(168, 85, 247, 0.07) 50%, rgba(16, 185, 129, 0.05) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: var(--blur);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(to bottom, var(--npu-cyan), var(--purple-strand));
+        }
+
+        .hero-text h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 24px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            color: #ffffff;
+        }
+
+        .hero-text p {
+            color: var(--text-muted);
+            font-size: 14px;
+            max-width: 950px;
+            line-height: 1.5;
+        }
+
+        .hero-badges {
+            display: flex;
+            gap: 12px;
+        }
+
+        .hero-tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-subtle);
+            color: var(--npu-cyan);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ── STRAND PROCESSORS TOPOGRAPHY HUD ───────────────────────────── */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: #fff;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--npu-cyan);
+            box-shadow: 0 0 10px var(--npu-cyan);
+        }
+
+        .strands-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .strand-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            backdrop-filter: var(--blur);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .strand-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--npu-cyan);
+            box-shadow: 0 8px 24px rgba(56, 189, 248, 0.15);
+        }
+
+        .strand-card.stalled {
+            border-color: var(--rose-danger);
+            box-shadow: 0 0 18px rgba(244, 63, 94, 0.25);
+        }
+
+        .strand-card.diverted {
+            border-color: var(--emerald-catalyst);
+            box-shadow: 0 0 18px rgba(16, 185, 129, 0.25);
+        }
+
+        .strand-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .strand-id-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--npu-cyan);
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .strand-status-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .status-optimal {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-stalled {
+            background: rgba(244, 63, 94, 0.18);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            animation: pulse-border 1.5s infinite alternate;
+        }
+
+        .status-diverted {
+            background: rgba(168, 85, 247, 0.18);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 5px rgba(244, 63, 94, 0.2); }
+            100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.6); }
+        }
+
+        .strand-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .strand-range {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .strand-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .metric-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .metric-label {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .metric-val {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .strand-action-btn {
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: #fecdd3;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .strand-action-btn:hover {
+            background: rgba(244, 63, 94, 0.25);
+            border-color: var(--rose-danger);
+            color: #fff;
+        }
+
+        /* ── MAIN WORKSPACE: PUZZLE CANVAS + CONTROLS ───────────────────── */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+        }
+
+        .panel-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            backdrop-filter: var(--blur);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 14px;
+        }
+
+        .panel-box-title {
+            font-family: 'Cinzel', serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .puzzle-viewport {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .puzzle-canvas-wrapper {
+            position: relative;
+            background: #020617;
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.15);
+        }
+
+        #puzzleGridCanvas {
+            display: block;
+            border-radius: 8px;
+            background: #050b18;
+            cursor: pointer;
+        }
+
+        .puzzle-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .dot-dead { background: #1e293b; border: 1px solid #334155; }
+        .dot-alive { background: #38bdf8; box-shadow: 0 0 6px #38bdf8; }
+        .dot-excited { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+        .dot-locked { background: #a855f7; box-shadow: 0 0 6px #a855f7; }
+        .dot-catalyst { background: #10b981; box-shadow: 0 0 6px #10b981; }
+        .dot-barrier { background: #f43f5e; box-shadow: 0 0 6px #f43f5e; }
+
+        /* ── PUZZLE GAUGES & HUD ────────────────────────────────────────── */
+        .energy-gauge-card {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .energy-header {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+        }
+
+        .energy-bar-track {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .energy-bar-fill {
+            height: 100%;
+            width: 40%;
+            background: linear-gradient(90deg, var(--npu-cyan), var(--emerald-catalyst), var(--amber-action));
+            border-radius: 6px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px var(--emerald-catalyst);
+        }
+
+        .puzzle-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            width: 100%;
+        }
+
+        .puzzle-stat-box {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-subtle);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-lbl {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .stat-val {
+            font-family: 'Fira Code', monospace;
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* ── CONTROLS PANEL ─────────────────────────────────────────────── */
+        .controls-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .action-button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-primary-npu {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(16, 185, 129, 0.25));
+            border: 1px solid var(--npu-cyan);
+            color: #fff;
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(56, 189, 248, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary-npu:hover {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.4), rgba(16, 185, 129, 0.4));
+            box-shadow: 0 6px 24px rgba(56, 189, 248, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger-assign {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(168, 85, 247, 0.2));
+            border: 1px solid var(--rose-danger);
+            color: #fecdd3;
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 13px 20px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-danger-assign:hover {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.35), rgba(168, 85, 247, 0.35));
+            color: #fff;
+            box-shadow: 0 4px 18px rgba(244, 63, 94, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* ── SPEEDUP BENCHMARK COMPARATOR WIDGET ────────────────────────── */
+        .speedup-comparator {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comp-title {
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--npu-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .comp-ratio {
+            font-family: 'Fira Code', monospace;
+            font-size: 15px;
+            color: var(--gold-bright);
+            font-weight: 700;
+        }
+
+        .comp-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .comp-labels {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .comp-bar-nvme {
+            width: 100%;
+            height: 8px;
+            background: rgba(244, 63, 94, 0.3);
+            border-radius: 4px;
+            border: 1px solid var(--rose-danger);
+            position: relative;
+        }
+
+        .comp-bar-npu {
+            width: 100%;
+            height: 8px;
+            background: rgba(56, 189, 248, 0.1);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comp-bar-npu-fill {
+            width: 0.067%; /* 0.08 us / 120 us */
+            min-width: 4px;
+            height: 100%;
+            background: var(--npu-cyan);
+            box-shadow: 0 0 8px var(--npu-cyan);
+        }
+
+        /* ── BYTECODE DECODER INPUT ─────────────────────────────────────── */
+        .hex-decode-box {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .hex-input-label {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .hex-input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .hex-input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: #38bdf8;
+            outline: none;
+        }
+
+        .hex-input:focus {
+            border-color: var(--npu-cyan);
+            box-shadow: 0 0 10px var(--npu-glow);
+        }
+
+        .btn-decode {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid var(--npu-cyan);
+            color: #fff;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-decode:hover {
+            background: rgba(56, 189, 248, 0.3);
+        }
+
+        /* ── ASSIGNMENT FEED & TELEMETRY ────────────────────────────────── */
+        .telemetry-feed-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            backdrop-filter: var(--blur);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .feed-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .feed-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .feed-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .feed-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--npu-cyan);
+            border-radius: 4px;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+        }
+
+        .feed-item.stalled {
+            border-left-color: var(--rose-danger);
+            background: rgba(244, 63, 94, 0.05);
+        }
+
+        .feed-item.speedup {
+            border-left-color: var(--gold-bright);
+            background: rgba(251, 191, 36, 0.05);
+        }
+
+        .feed-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .feed-tag {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .feed-details {
+            color: var(--text-dim);
+            font-size: 10px;
+        }
+
+        .feed-badge {
+            font-weight: 700;
+            color: var(--gold-bright);
+            background: rgba(251, 191, 36, 0.12);
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        /* ── FOOTER ──────────────────────────────────────────────────────── */
+        footer.studio-footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 18px 36px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-dim);
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            background: rgba(5, 8, 15, 0.94);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── NAV ──────────────────────────────────────────────────────── -->
+    <header class="studio-nav">
+        <a href="/" class="brand-container">
+            <div class="brand-icon">🧬</div>
+            <div>
+                <div class="brand-title">KRYSTAL-STACK // STRAND & NPU ACTION PUZZLE</div>
+                <div class="brand-sub">HETEROGENEOUS WORK-STEALING // 0x0000 - 0x7FFF TOPOGRAPHY</div>
+            </div>
+        </a>
+        <div class="nav-meta">
+            <div class="vital-badge">
+                <span>VITAL INVARIANT:</span>
+                <span class="vital-hearts">♥♥♥♥♥♥</span>
+                <span>(MAX HP 6)</span>
+            </div>
+            <a href="/" class="hub-link">← NÁVRAT DO HUB-U</a>
+        </div>
+    </header>
+
+    <!-- ── MAIN ─────────────────────────────────────────────────────── -->
+    <main class="studio-content">
+
+        <!-- ── HERO ─────────────────────────────────────────────────── -->
+        <section class="hero-banner">
+            <div class="hero-text">
+                <h1>Stránkové / Strandové Procesory & NPU Dekodér Akčných Hlavolamov</h1>
+                <p>
+                    Architektúra 4 hexadecimálnych pamäťových strandov s out-of-band NPU neurónovým dekodérom
+                    pre akčné bunkové automaty (Life Action Puzzles). Pri výskyte L3 cache miss alebo page fault stallu
+                    engine aktivuje <strong>Alternatívne Priradenie (Alternative Assignment)</strong> a presmeruje
+                    úlohu do hot-pinned RAM ring buffera s dosiahnutým <strong>1500× zrýchlením</strong> (80 ns vs 120 µs).
+                </p>
+            </div>
+            <div class="hero-badges">
+                <div class="hero-tag">⚡ NPU INFERENCE: ~75 µs</div>
+                <div class="hero-tag">🚀 ACCEL RATIO: 1500×</div>
+                <div class="hero-tag">🔒 VITAL HP: 6</div>
+            </div>
+        </section>
+
+        <!-- ── 4 STRAND PROCESSORS TOPOGRAPHY ───────────────────────── -->
+        <section>
+            <div class="section-header">
+                <h2 class="section-title">Hexadecimálna Topografia Strandových Procesorov (0x0000 - 0x7FFF)</h2>
+                <div style="font-family: 'Fira Code', monospace; font-size: 12px; color: var(--text-dim);">
+                    Zbernica: 4 Nezávislé Page Partície // Heterogénne Work-Stealing
+                </div>
+            </div>
+            <div class="strands-grid" id="strandsGrid">
+                <!-- Dynamically populated or default fallback -->
+                <div class="strand-card" id="strandCard_0">
+                    <div class="strand-card-header">
+                        <span class="strand-id-badge">STRAND 0 // 0x0000-0x1FFF</span>
+                        <span class="strand-status-badge status-optimal" id="statusBadge_0">ACTIVE_OPTIMAL</span>
+                    </div>
+                    <div>
+                        <div class="strand-title">Strand Processor Alpha</div>
+                        <div class="strand-range">Low Heap Virtual Page Partition</div>
+                    </div>
+                    <div class="strand-metrics">
+                        <div class="metric-cell">
+                            <span class="metric-label">Queue</span>
+                            <span class="metric-val" id="queueVal_0">1</span>
+                        </div>
+                        <div class="metric-cell">
+                            <span class="metric-label">Stalls</span>
+                            <span class="metric-val" id="stallsVal_0">0</span>
+                        </div>
+                        <div class="metric-cell">
+                            <span class="metric-label">Reassign</span>
+                            <span class="metric-val" id="reassignVal_0">0</span>
+                        </div>
+                    </div>
+                    <button class="strand-action-btn" onclick="triggerStall('strand_page_0', 'STALLED_PAGE_FAULT')">
+                        ⚠️ Simulovať Page Fault Stall
+                    </button>
+                </div>
+
+                <div class="strand-card" id="strandCard_1">
+                    <div class="strand-card-header">
+                        <span class="strand-id-badge">STRAND 1 // 0x2000-0x3FFF</span>
+                        <span class="strand-status-badge status-optimal" id="statusBadge_1">ACTIVE_OPTIMAL</span>
+                    </div>
+                    <div>
+                        <div class="strand-title">Strand Processor Beta</div>
+                        <div class="strand-range">Code & Execution Stack Partition</div>
+                    </div>
+                    <div class="strand-metrics">
+                        <div class="metric-cell">
+                            <span class="metric-label">Queue</span>
+                            <span class="metric-val" id="queueVal_1">1</span>
+                        </div>
+                        <div class="metric-cell">
+                            <span class="metric-label">Stalls</span>
+                            <span class="metric-val" id="stallsVal_1">0</span>
+                        </div>
+                        <div class="metric-cell">
+                            <span class="metric-label">Reassign</span>
+                            <span class="metric-val" id="reassignVal_1">0</span>
+                        </div>
+                    </div>
+                    <button class="strand-action-btn" onclick="triggerStall('strand_page_1', 'CACHE_MISS_L3')">
+                        ⚠️ Simulovať L3 Cache Miss
+                    </button>
+                </div>
+
+                <div class="strand-card" id="strandCard_2">
+                    <div class="strand-card-header">
+                        <span class="strand-id-badge">STRAND 2 // 0x4000-0x5FFF</span>
+                        <span class="strand-status-badge status-optimal" id="statusBadge_2">ACTIVE_OPTIMAL</span>
+                    </div>
+                    <div>
+                        <div class="strand-title">Strand Processor Gamma</div>
+                        <div class="strand-range">NPU Shared Memory Ring Buffer</div>
+                    </div>
+                    <div class="strand-metrics">
+                        <div class="metric-cell">
+                            <span class="metric-label">Queue</span>
+                            <span class="metric-val" id="queueVal_2">0</span>
+                        </div>
+                        <div class="metric-cell">
+                            <span class="metric-label">Stalls</span>
+                            <span class="metric-val" id="stallsVal_2">0</span>
+                        </div>
+                        <div class="metric-cell">
+                            <span class="metric-label">Reassign</span>
+                            <span class="metric-val" id="reassignVal_2">0</span>
+                        </div>
+                    </div>
+                    <button class="strand-action-btn" onclick="triggerStall('strand_page_2', 'STALLED_PAGE_FAULT')">
+                        ⚠️ Simulovať Page Fault Stall
+                    </button>
+                </div>
+
+                <div class="strand-card" id="strandCard_3">
+                    <div class="strand-card-header">
+                        <span class="strand-id-badge">STRAND 3 // 0x6000-0x7FFF</span>
+                        <span class="strand-status-badge status-optimal" id="statusBadge_3">ACTIVE_OPTIMAL</span>
+                    </div>
+                    <div>
+                        <div class="strand-title">Strand Processor Delta</div>
+                        <div class="strand-range">Hot Register & Epistemic Vector Stack</div>
+                    </div>
+                    <div class="strand-metrics">
+                        <div class="metric-cell">
+                            <span class="metric-label">Queue</span>
+                            <span class="metric-val" id="queueVal_3">0</span>
+                        </div>
+                        <div class="metric-cell">
+                            <span class="metric-label">Stalls</span>
+                            <span class="metric-val" id="stallsVal_3">0</span>
+                        </div>
+                        <div class="metric-cell">
+                            <span class="metric-label">Reassign</span>
+                            <span class="metric-val" id="reassignVal_3">0</span>
+                        </div>
+                    </div>
+                    <button class="strand-action-btn" onclick="triggerStall('strand_page_3', 'CACHE_MISS_L3')">
+                        ⚠️ Simulovať L3 Cache Miss
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── WORKSPACE: PUZZLE CANVAS + CONTROLS ───────────────────── -->
+        <div class="workspace-grid">
+
+            <!-- LEFT: 8x8 CELLULAR PUZZLE CANVAS & GAUGES -->
+            <div class="panel-box">
+                <div class="panel-box-header">
+                    <div class="panel-box-title">
+                        <span>🧩 Bunkový Rebus (Life Action Puzzle) 8×8</span>
+                    </div>
+                    <span id="activePuzzleTitle" style="font-family: 'Fira Code', monospace; font-size: 12px; color: var(--npu-cyan);">
+                        PUZ_GLIDER_01
+                    </span>
+                </div>
+
+                <div class="puzzle-viewport">
+                    <div class="puzzle-canvas-wrapper">
+                        <canvas id="puzzleGridCanvas" width="400" height="400"></canvas>
+                    </div>
+
+                    <div class="puzzle-legend">
+                        <div class="legend-item"><div class="legend-dot dot-dead"></div> 0: Mŕtva</div>
+                        <div class="legend-item"><div class="legend-dot dot-alive"></div> 1: Živá</div>
+                        <div class="legend-item"><div class="legend-dot dot-excited"></div> 2: Akčná Excitácia</div>
+                        <div class="legend-item"><div class="legend-dot dot-locked"></div> 3: Zamknutá</div>
+                        <div class="legend-item"><div class="legend-dot dot-catalyst"></div> 4: Katalyzátor</div>
+                        <div class="legend-item"><div class="legend-dot dot-barrier"></div> 5: Bariéra</div>
+                    </div>
+                </div>
+
+                <!-- Live Energy Gauge -->
+                <div class="energy-gauge-card">
+                    <div class="energy-header">
+                        <span style="color: var(--text-muted);">Metabolická Energia Hlavolamu:</span>
+                        <span id="energyText" style="color: #fff; font-weight: 700;">12.0 / 28.0 J</span>
+                    </div>
+                    <div class="energy-bar-track">
+                        <div class="energy-bar-fill" id="energyBarFill"></div>
+                    </div>
+                </div>
+
+                <!-- Puzzle Stats Row -->
+                <div class="puzzle-stats-row">
+                    <div class="puzzle-stat-box">
+                        <span class="stat-lbl">Priradený Strand</span>
+                        <span class="stat-val" id="puzzleStrandVal" style="color: var(--npu-cyan);">strand_page_0</span>
+                    </div>
+                    <div class="puzzle-stat-box">
+                        <span class="stat-lbl">Urobené Kroky</span>
+                        <span class="stat-val" id="puzzleStepsVal">0</span>
+                    </div>
+                    <div class="puzzle-stat-box">
+                        <span class="stat-lbl">NPU Latencia</span>
+                        <span class="stat-val" id="npuLatencyVal" style="color: var(--emerald-catalyst);">~75.0 µs</span>
+                    </div>
+                    <div class="puzzle-stat-box">
+                        <span class="stat-lbl">Stav Vyriešenia</span>
+                        <span class="stat-val" id="puzzleSolvedVal" style="color: var(--amber-action);">Rieši sa...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: NPU INTERPRETER & ALTERNATIVE ASSIGNMENT CONTROLS -->
+            <div class="controls-column">
+                <div class="panel-box">
+                    <div class="panel-box-header">
+                        <div class="panel-box-title">
+                            <span>🧠 NPU Neurónový Interpretor & Riadenie</span>
+                        </div>
+                        <span style="font-family: 'Fira Code', monospace; font-size: 11px; color: var(--emerald-catalyst);">
+                            OUT-OF-BAND ENGINE
+                        </span>
+                    </div>
+
+                    <div class="action-button-group">
+                        <button class="btn-primary-npu" onclick="executeNpuStep()">
+                            <span>⚡ Vyhodnotiť Krok NPU Interpretora (~75 µs)</span>
+                        </button>
+                        <button class="btn-danger-assign" onclick="triggerAlternativeAssignmentNow()">
+                            <span>🔀 Nútené Alternatívne Priradenie (1500× Speedup)</span>
+                        </button>
+                    </div>
+
+                    <!-- Speedup Comparator Widget -->
+                    <div class="speedup-comparator">
+                        <div class="comp-title">
+                            <span>POROVNANIE LATENCIE: REACTIVE STALL VS NPU PRE-STAGED</span>
+                            <span class="comp-ratio" id="compRatioText">1500× RÝCHLEJŠIE</span>
+                        </div>
+                        <div class="comp-row">
+                            <div class="comp-labels">
+                                <span>Reaktívny Cold Swap (NVMe Stall): 120.0 µs</span>
+                                <span style="color: var(--rose-danger);">500,000 starved cyklov</span>
+                            </div>
+                            <div class="comp-bar-nvme"></div>
+                        </div>
+                        <div class="comp-row">
+                            <div class="comp-labels">
+                                <span>Alternatívne Priradenie (Pinned RAM Ring): 0.08 µs</span>
+                                <span style="color: var(--npu-cyan);">80 ns Zero-Stall Hit</span>
+                            </div>
+                            <div class="comp-bar-npu">
+                                <div class="comp-bar-npu-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bytecode Decoder Input Box -->
+                    <div class="hex-decode-box">
+                        <div class="hex-input-label">Dekódovať 0x7FFF Hexadecimálny Bytecode do Hlavolamu:</div>
+                        <div class="hex-input-row">
+                            <input type="text" class="hex-input" id="hexBytecodeInput" value="0x0102040501020405" placeholder="0x01020405...">
+                            <button class="btn-decode" onclick="decodeCustomBytecode()">Dekódovať</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ASSIGNMENT TELEMETRY FEED -->
+                <div class="telemetry-feed-card">
+                    <div class="panel-box-header" style="border: none; padding: 0;">
+                        <div class="panel-box-title" style="font-size: 15px;">
+                            <span>📡 Telemetrický Denník Alternatívnych Priradení</span>
+                        </div>
+                        <button class="hub-link" style="padding: 3px 8px; font-size: 10px;" onclick="fetchTelemetry()">
+                            OBNOVIŤ
+                        </button>
+                    </div>
+                    <div class="feed-container" id="telemetryFeed">
+                        <div class="feed-item speedup">
+                            <div class="feed-left">
+                                <span class="feed-tag">Systém inicializovaný</span>
+                                <span class="feed-details">Strand Page procesory pripravené na 0x0000-0x7FFF</span>
+                            </div>
+                            <span class="feed-badge">READY</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ── FOOTER ───────────────────────────────────────────────────── -->
+    <footer class="studio-footer">
+        <div>KRYSTAL-STACK PLATFORM FRAMEWORK // STRAND PROCESSORS & NPU LIFE ACTION PUZZLE ENGINE</div>
+        <div>VITAL INVARIANT: VITAL_MAX_HP == 6 // ALL MEMORY BOUNDS DETERMINISTICALLY ENFORCED</div>
+    </footer>
+
+    <!-- ── LOGIC SCRIPT ─────────────────────────────────────────────── -->
+    <script>
+        const GRID_SIZE = 8;
+        const CELL_SIZE = 50;
+        let currentGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+        let activePuzzleId = "puz_glider_01";
+        let activePuzzleData = null;
+
+        const canvas = document.getElementById("puzzleGridCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Color Palette for Cell States
+        const STATE_COLORS = {
+            0: "#091122", // DEAD
+            1: "#38bdf8", // ALIVE (Cyan)
+            2: "#f59e0b", // EXCITED_ACTION (Amber)
+            3: "#a855f7", // STRAND_LOCKED (Purple)
+            4: "#10b981", // ENERGY_CATALYST (Emerald)
+            5: "#f43f5e"  // BARRIER_GATE (Rose)
+        };
+
+        const STATE_GLOWS = {
+            0: null,
+            1: "rgba(56, 189, 248, 0.4)",
+            2: "rgba(245, 158, 11, 0.5)",
+            3: "rgba(168, 85, 247, 0.4)",
+            4: "rgba(16, 185, 129, 0.5)",
+            5: "rgba(244, 63, 94, 0.4)"
+        };
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const state = currentGrid[r][c] || 0;
+                    const x = c * CELL_SIZE;
+                    const y = r * CELL_SIZE;
+
+                    // Background cell
+                    ctx.fillStyle = STATE_COLORS[state] || STATE_COLORS[0];
+                    ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+
+                    // Glow if active
+                    if (state > 0 && STATE_GLOWS[state]) {
+                        ctx.shadowColor = STATE_GLOWS[state];
+                        ctx.shadowBlur = 10;
+                        ctx.strokeStyle = STATE_COLORS[state];
+                        ctx.lineWidth = 1.5;
+                        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+                        ctx.shadowBlur = 0; // reset
+                    } else {
+                        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+                    }
+
+                    // Optional inner icon or marker
+                    if (state === 4) {
+                        ctx.fillStyle = "#ffffff";
+                        ctx.font = "12px monospace";
+                        ctx.fillText("⚡", x + CELL_SIZE/2 - 6, y + CELL_SIZE/2 + 5);
+                    } else if (state === 5) {
+                        ctx.fillStyle = "#ffffff";
+                        ctx.font = "12px monospace";
+                        ctx.fillText("⛔", x + CELL_SIZE/2 - 6, y + CELL_SIZE/2 + 5);
+                    }
+                }
+            }
+        }
+
+        // Toggle cell state on click
+        canvas.addEventListener("click", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            const c = Math.floor(x / CELL_SIZE);
+            const r = Math.floor(y / CELL_SIZE);
+
+            if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) {
+                currentGrid[r][c] = (currentGrid[r][c] + 1) % 6;
+                drawGrid();
+            }
+        });
+
+        // Fetch engine status
+        async function fetchEngineStatus() {
+            try {
+                const res = await fetch('/api/puzzle/status');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // Update Strand cards
+                if (data.processors) {
+                    for (let i = 0; i < 4; i++) {
+                        const pid = `strand_page_${i}`;
+                        const proc = data.processors[pid];
+                        if (proc) {
+                            const badge = document.getElementById(`statusBadge_${i}`);
+                            const card = document.getElementById(`strandCard_${i}`);
+                            badge.textContent = proc.status;
+                            badge.className = "strand-status-badge " + (
+                                proc.status === "ACTIVE_OPTIMAL" ? "status-optimal" :
+                                proc.status === "DIVERTED_TO_NPU" ? "status-diverted" : "status-stalled"
+                            );
+
+                            card.className = "strand-card " + (
+                                proc.status === "STALLED_PAGE_FAULT" || proc.status === "CACHE_MISS_L3" ? "stalled" :
+                                proc.status === "DIVERTED_TO_NPU" ? "diverted" : ""
+                            );
+
+                            document.getElementById(`queueVal_${i}`).textContent = proc.queue_depth;
+                            document.getElementById(`stallsVal_${i}`).textContent = proc.stalls_encountered;
+                            document.getElementById(`reassignVal_${i}`).textContent = proc.reassignments_count;
+                        }
+                    }
+                }
+
+                // Update active puzzle
+                if (data.puzzles && data.puzzles.length > 0) {
+                    const puz = data.puzzles.find(p => p.puzzle_id === activePuzzleId) || data.puzzles[0];
+                    activePuzzleId = puz.puzzle_id;
+                    activePuzzleData = puz;
+                    currentGrid = puz.grid;
+                    drawGrid();
+
+                    document.getElementById("activePuzzleTitle").textContent = puz.title.toUpperCase();
+                    document.getElementById("energyText").textContent = `${puz.energy_level.toFixed(1)} / ${puz.target_energy.toFixed(1)} J`;
+                    const pct = Math.min(100, Math.max(0, (puz.energy_level / puz.target_energy) * 100));
+                    document.getElementById("energyBarFill").style.width = `${pct}%`;
+
+                    document.getElementById("puzzleStrandVal").textContent = puz.assigned_strand_id;
+                    document.getElementById("puzzleStepsVal").textContent = puz.steps_taken;
+                    document.getElementById("puzzleSolvedVal").textContent = puz.is_solved ? "VYRIEŠENÝ! 🌟" : "Rieši sa...";
+                    document.getElementById("puzzleSolvedVal").style.color = puz.is_solved ? "var(--emerald-catalyst)" : "var(--amber-action)";
+                }
+
+                // Update telemetry feed
+                if (data.recent_reassignments && data.recent_reassignments.length > 0) {
+                    renderTelemetry(data.recent_reassignments);
+                }
+            } catch (err) {
+                console.error("Chyba pri načítaní stavu hlavolamu:", err);
+            }
+        }
+
+        function renderTelemetry(reassignments) {
+            const feed = document.getElementById("telemetryFeed");
+            feed.innerHTML = "";
+            reassignments.slice(-6).reverse().forEach(rec => {
+                const item = document.createElement("div");
+                item.className = "feed-item speedup";
+                item.innerHTML = `
+                    <div class="feed-left">
+                        <span class="feed-tag">Priradenie: ${rec.assignment_id} (${rec.source_strand_id} → ${rec.target_execution_body})</span>
+                        <span class="feed-details">Dôvod: ${rec.trigger_reason} // Pre-staged: ${rec.pre_staged_latency_us} µs vs NVMe: ${rec.cold_swap_latency_us} µs</span>
+                    </div>
+                    <span class="feed-badge">${rec.effective_speedup_ratio}× SPEEDUP</span>
+                `;
+                feed.appendChild(item);
+            });
+        }
+
+        async function fetchTelemetry() {
+            await fetchEngineStatus();
+        }
+
+        // Execute NPU step
+        async function executeNpuStep() {
+            try {
+                const res = await fetch('/api/puzzle/solve-npu', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ puzzle_id: activePuzzleId })
+                });
+                const data = await res.json();
+                if (data.success && data.puzzle) {
+                    activePuzzleData = data.puzzle;
+                    currentGrid = data.puzzle.grid;
+                    drawGrid();
+
+                    document.getElementById("energyText").textContent = `${data.puzzle.energy_level.toFixed(1)} / ${data.puzzle.target_energy.toFixed(1)} J`;
+                    const pct = Math.min(100, Math.max(0, (data.puzzle.energy_level / data.puzzle.target_energy) * 100));
+                    document.getElementById("energyBarFill").style.width = `${pct}%`;
+
+                    document.getElementById("puzzleStepsVal").textContent = data.puzzle.steps_taken;
+                    document.getElementById("npuLatencyVal").textContent = `${data.step_result.npu_inference_latency_us.toFixed(1)} µs`;
+                    document.getElementById("puzzleSolvedVal").textContent = data.puzzle.is_solved ? "VYRIEŠENÝ! 🌟" : data.step_result.chosen_action;
+                    document.getElementById("puzzleSolvedVal").style.color = data.puzzle.is_solved ? "var(--emerald-catalyst)" : "var(--amber-action)";
+
+                    // Add log item
+                    const feed = document.getElementById("telemetryFeed");
+                    const item = document.createElement("div");
+                    item.className = "feed-item";
+                    item.innerHTML = `
+                        <div class="feed-left">
+                            <span class="feed-tag">NPU Krok: ${data.step_result.chosen_action}</span>
+                            <span class="feed-details">Energia: +${data.step_result.energy_delta} J // Latencia: ${data.step_result.npu_inference_latency_us} µs</span>
+                        </div>
+                        <span class="feed-badge" style="color: var(--npu-cyan); border-color: var(--npu-cyan); background: rgba(56,189,248,0.1);">NPU EVAL</span>
+                    `;
+                    feed.insertBefore(item, feed.firstChild);
+                }
+            } catch (err) {
+                console.error("Chyba pri kroku NPU:", err);
+            }
+        }
+
+        // Trigger stall on specific strand
+        async function triggerStall(strandId, reason) {
+            try {
+                const res = await fetch('/api/puzzle/alternative-assign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ strand_id: strandId, reason: reason })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await fetchEngineStatus();
+                }
+            } catch (err) {
+                console.error("Chyba pri vyvolaní stallu:", err);
+            }
+        }
+
+        // Trigger alternative assignment now on active strand
+        async function triggerAlternativeAssignmentNow() {
+            const currentStrand = (activePuzzleData && activePuzzleData.assigned_strand_id.startsWith("strand_page")) ?
+                                    activePuzzleData.assigned_strand_id : "strand_page_0";
+            await triggerStall(currentStrand, "STALLED_PAGE_FAULT");
+        }
+
+        // Decode custom bytecode
+        async function decodeCustomBytecode() {
+            const rawHex = document.getElementById("hexBytecodeInput").value.trim();
+            if (!rawHex) return;
+
+            try {
+                const res = await fetch('/api/puzzle/decode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ raw_hex: rawHex, puzzle_id: `puz_custom_${Date.now()}` })
+                });
+                const data = await res.json();
+                if (data.success && data.puzzle) {
+                    activePuzzleId = data.puzzle.puzzle_id;
+                    activePuzzleData = data.puzzle;
+                    currentGrid = data.puzzle.grid;
+                    drawGrid();
+                    await fetchEngineStatus();
+                }
+            } catch (err) {
+                console.error("Chyba pri dekódovaní bytecode:", err);
+            }
+        }
+
+        // Initial setup
+        window.addEventListener("DOMContentLoaded", () => {
+            // Draw initial placeholder grid
+            currentGrid[1][2] = 1;
+            currentGrid[2][3] = 1;
+            currentGrid[3][1] = 1;
+            currentGrid[3][2] = 2;
+            currentGrid[3][3] = 4;
+            drawGrid();
+
+            fetchEngineStatus();
+            // Polling interval for live HUD updates
+            setInterval(fetchEngineStatus, 4000);
+        });
+    </script>
+</body>
+</html>
