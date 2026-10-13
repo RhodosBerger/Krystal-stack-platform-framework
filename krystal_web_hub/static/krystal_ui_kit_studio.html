@@ -268,6 +268,7 @@
                     <a href="#matrix-workloads" class="nav-link" style="color: #38bdf8;">💠 Matrix CRUD & Logs</a>
                     <a href="#matrix-image-mvp" class="nav-link" style="color: #ec4899;">🖼 Matrix Image MVP</a>
                     <a href="#closed-loop-fabric" class="nav-link" style="color: #a855f7;">🔄 Closed-Loop Fabric</a>
+                    <a href="#runtime-core-extensions" class="nav-link" style="color: #06b6d4;">🧬 Runtime Core &amp; Extensions</a>
                 </nav>
 
                 <div class="ks-vital-gauge" id="topVitalGauge" title="VITAL_MAX_HP == 6 Invariant Visual Contract">
@@ -1245,6 +1246,106 @@
                         No critical divergence. Models calibrated within bounds.
                     </div>
                 </div>
+            </div>
+        <!-- SECTION 15: KRYSTAL RUNTIME CORE & RUNTIME EXTENSIONS MATRIX -->
+        <div class="section-title-wrap" id="runtime-core-extensions">
+            <h2 class="text-display-md" style="color: #06b6d4;">15 // Krystal Runtime Core &amp; Runtime Extensions Matrix</h2>
+            <span class="section-tag">Epistemic Type System • Immutable &lt;S_v, P_v, E_v&gt; Triple • SafetyGate + EvidenceGate • 8 Extension Branches</span>
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px; margin-bottom: 40px;">
+            <!-- Header Controls & Status -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+                <div>
+                    <span class="token-name" style="color: #06b6d4; font-size: 14px;">UNIFIED RUNTIME CORE &amp; EXTENSION FABRIC</span>
+                    <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">
+                        Constitutional architecture binding Epistemic Types, Vector Clock Versioning, Dual-Gate Governance, and 8 pluggable runtime extension modules.
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button class="btn-krystal btn-primary-npu" style="padding: 8px 16px; font-size: 11px; font-weight: 700; background: linear-gradient(135deg, #06b6d4, #3b82f6); border: none; box-shadow: 0 0 15px rgba(6,182,212,0.3);" onclick="executeCoreWorkload()">
+                        ⚡ Spustiť cez Runtime Core
+                    </button>
+                    <button class="btn-krystal btn-secondary-subtle" style="padding: 8px 14px; font-size: 11px; border: 1px solid #10b981; color: #10b981;" onclick="runCoreExperiment()">
+                        🧪 A/B Experimentálny Modul
+                    </button>
+                </div>
+            </div>
+
+            <!-- Versioning Triple & Dual-Gate Ribbon -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <!-- Versioning Triple Card -->
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #38bdf8; font-family: var(--font-code);">VERSIONING TRIPLE &lang;S_v, P_v, E_v&rang;</span>
+                        <span class="ks-badge badge-optimal" id="coreVersionBadge">S: 1</span>
+                    </div>
+                    <div id="coreVectorString" style="font-size: 13px; font-weight: 700; color: #f1f5f9; font-family: var(--font-code); margin: 6px 0;">
+                        &lang;S:1 | P:POL-2.0-CANONICAL | E:00000000&rang;
+                    </div>
+                    <div id="coreMerkleHash" style="font-size: 10px; color: var(--text-dim); font-family: var(--font-code); word-break: break-all;">
+                        Merkle Root: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                    </div>
+                </div>
+
+                <!-- Dual-Gate Live Authority Card -->
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #10b981; font-family: var(--font-code);">DUAL-GATE GOVERNANCE ENGINE</span>
+                        <span class="ks-badge badge-optimal" id="coreAuthorityBadge">AUTH_COMMIT_APPROVED</span>
+                    </div>
+                    <div style="display: flex; gap: 12px; font-size: 11px; font-family: var(--font-code); margin-top: 6px;">
+                        <div>SafetyGate: <span id="coreSafetyText" style="color: #10b981; font-weight: 700;">SAFE_PASS</span></div>
+                        <div>EvidenceGate: <span id="coreEvidenceText" style="color: #38bdf8; font-weight: 700;">EVIDENCED</span></div>
+                        <div>Invariant: <span style="color: #ec4899; font-weight: 700;">6/6 HP</span></div>
+                    </div>
+                    <div id="coreVerdictMsg" style="font-size: 10px; color: var(--text-dim); margin-top: 6px; font-family: var(--font-code);">
+                        Both SafetyGate and EvidenceGate cleared for real-time actuation.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architectural Hierarchy Display (Exact User Specification) -->
+            <div style="background: #030712; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 24px;">
+                <div style="font-size: 12px; font-weight: 700; color: #06b6d4; font-family: var(--font-code); margin-bottom: 12px;">
+                    🏛 KRYSTAL RUNTIME CORE &amp; RUNTIME EXTENSIONS HIERARCHY
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-family: var(--font-code); font-size: 11px;">
+                    <!-- Core Column -->
+                    <div style="border-right: 1px solid rgba(255,255,255,0.06); padding-right: 14px;">
+                        <div style="font-weight: 700; color: #38bdf8; margin-bottom: 8px;">Krystal Runtime Core</div>
+                        <ul style="list-style: none; padding-left: 12px; line-height: 1.8; color: var(--text-muted); margin: 0;">
+                            <li>├─ <span style="color: #f1f5f9;">Epistemic Type System</span> <span style="color: var(--text-dim); font-size: 10px;">(EpistemicValue[T], meet ∧, join ∨)</span></li>
+                            <li>├─ <span style="color: #f1f5f9;">State / Policy / Evidence Versioning</span> <span style="color: var(--text-dim); font-size: 10px;">(&lang;S_v, P_v, E_v&rang; Vector Clock)</span></li>
+                            <li>├─ <span style="color: #f1f5f9;">SafetyGate + EvidenceGate</span> <span style="color: var(--text-dim); font-size: 10px;">(f(S, E) ➔ AuthorityState)</span></li>
+                            <li>├─ <span style="color: #f1f5f9;">PlannerSelector</span> <span style="color: var(--text-dim); font-size: 10px;">(Hypothesis-driven adaptive planning)</span></li>
+                            <li>├─ <span style="color: #f1f5f9;">Worker / Thread / Layer Runtime</span> <span style="color: var(--text-dim); font-size: 10px;">(WorkerMatrix, ThreadRouter, LayerGraph)</span></li>
+                            <li>└─ <span style="color: #f1f5f9;">Hypothesis Ledger</span> <span style="color: var(--text-dim); font-size: 10px;">(Bayesian update &amp; feedback loop)</span></li>
+                        </ul>
+                    </div>
+
+                    <!-- Extensions Column -->
+                    <div>
+                        <div style="font-weight: 700; color: #a855f7; margin-bottom: 8px;">Runtime Extensions</div>
+                        <ul style="list-style: none; padding-left: 12px; line-height: 1.8; color: var(--text-muted); margin: 0;">
+                            <li>├─ <span style="color: #f1f5f9;">Predictor Plugin:</span> <span id="slotPredictor" class="ks-badge" style="background: rgba(56,189,248,0.15); color: #38bdf8;">PRED_PARETO_NPU</span></li>
+                            <li>├─ <span style="color: #f1f5f9;">Planner Plugin:</span> <span id="slotPlanner" class="ks-badge" style="background: rgba(168,85,247,0.15); color: #a855f7;">PLANNER_PARETO_NPU</span></li>
+                            <li>├─ <span style="color: #f1f5f9;">Worker Strategy Plugin:</span> <span id="slotWorker" class="ks-badge" style="background: rgba(251,191,36,0.15); color: #fbbf24;">STRATEGY_THREADED_PARALLEL</span></li>
+                            <li>├─ <span style="color: #f1f5f9;">Telemetry Probe Plugin:</span> <span id="slotProbe" class="ks-badge" style="background: rgba(52,211,153,0.15); color: #34d399;">PROBE_QPC_NANOSECOND</span></li>
+                            <li>├─ <span style="color: #f1f5f9;">Policy Plugin:</span> <span id="slotPolicy" class="ks-badge" style="background: rgba(236,72,153,0.15); color: #ec4899;">POLICY_MAX_HP_6</span></li>
+                            <li>├─ <span style="color: #f1f5f9;">Hardware Adapter Plugin:</span> <span id="slotHardware" class="ks-badge" style="background: rgba(6,182,212,0.15); color: #06b6d4;">HW_INTEL_IRIS_XE</span></li>
+                            <li>├─ <span style="color: #f1f5f9;">Hypervisor Adapter Plugin:</span> <span id="slotHypervisor" class="ks-badge" style="background: rgba(139,92,246,0.15); color: #8b5cf6;">HYP_SOVEREIGN_ARCH</span></li>
+                            <li>└─ <span style="color: #f1f5f9;">Experiment Module:</span> <span id="slotExperiment" class="ks-badge badge-optimal">EXP_CANONICAL_AB</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Execution Results Log Terminal -->
+            <div style="background: #030712; border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm); padding: 14px; font-family: var(--font-code); font-size: 11px; max-height: 180px; overflow-y: auto;" id="coreExecutionConsole">
+                <span style="color: #06b6d4;">[INIT]</span> Krystal Runtime Core initialized with 6 core subsystems and 8 active extension plugins.
+                <br><span style="color: #10b981;">[GOVERNANCE]</span> Dual-Gate evaluator active: Invariant assert VITAL_MAX_HP == 6 strictly enforced.
+                <br><span style="color: #38bdf8;">[VERSION]</span> Genesis snapshot recorded: &lang;S:1 | P:POL-2.0-CANONICAL | E:00000000&rang;.
             </div>
         </div>
 
@@ -3129,7 +3230,140 @@
             }
         }
 
-        // Initialize Templates, HW Status, Actor Loops, Matrix & Image MVP
+        // ══════════════════════════════════════════════════════════════════════
+        // ── 15: KRYSTAL RUNTIME CORE & EXTENSIONS CONTROLLERS ────────────────
+        // ══════════════════════════════════════════════════════════════════════
+        async function fetchCoreRuntimeStatus() {
+            try {
+                const res = await fetch('/api/runtime/core/tree');
+                const data = await res.json();
+                if (data.status === 'OK' && data.tree) {
+                    const t = data.tree;
+                    const ver = t.core_subsystems && t.core_subsystems["State / Policy / Evidence Versioning"];
+                    if (ver && ver.current_version) {
+                        const cv = ver.current_version;
+                        const vBadge = document.getElementById('coreVersionBadge');
+                        if (vBadge) vBadge.textContent = `S: ${cv.state_version}`;
+                        const vStr = document.getElementById('coreVectorString');
+                        if (vStr) vStr.textContent = cv.vector_string;
+                        const mHash = document.getElementById('coreMerkleHash');
+                        if (mHash) mHash.textContent = `Merkle Root: ${cv.fingerprint.slice(0, 32)}...`;
+                    }
+
+                    // Update active extension slots
+                    const ext = t.runtime_extensions || {};
+                    const slotMap = {
+                        "PREDICTOR": "slotPredictor",
+                        "PLANNER": "slotPlanner",
+                        "WORKER_STRATEGY": "slotWorker",
+                        "TELEMETRY_PROBE": "slotProbe",
+                        "POLICY": "slotPolicy",
+                        "HARDWARE_ADAPTER": "slotHardware",
+                        "HYPERVISOR_ADAPTER": "slotHypervisor",
+                        "EXPERIMENT_MODULE": "slotExperiment"
+                    };
+                    for (const [cat, elId] of Object.entries(slotMap)) {
+                        const el = document.getElementById(elId);
+                        if (el && ext[cat] && ext[cat].active_plugin_id) {
+                            el.textContent = ext[cat].active_plugin_id;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("fetchCoreRuntimeStatus error:", e);
+            }
+        }
+
+        async function executeCoreWorkload() {
+            showToast('⚡ Spúšťam workload cez Krystal Runtime Core...', 'info');
+            playCyberTone('blip');
+            try {
+                const res = await fetch('/api/runtime/core/execute-workload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        workload_id: `WL_STUDIO_${Date.now()}`,
+                        category: "COMPUTE_BOUND_CONVOLUTION",
+                        target_deadline_us: 45000.0,
+                        thermal_celsius: 52.0,
+                        power_watts: 18.5,
+                        observer_overhead_pct: 1.6
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'OK' && data.report) {
+                    const r = data.report;
+                    // Update Versioning
+                    const vBadge = document.getElementById('coreVersionBadge');
+                    if (vBadge) vBadge.textContent = `S: ${r.version.state_version}`;
+                    const vStr = document.getElementById('coreVectorString');
+                    if (vStr) vStr.textContent = r.version.vector_string;
+
+                    // Update Authority & Dual-Gate
+                    const authBadge = document.getElementById('coreAuthorityBadge');
+                    if (authBadge) {
+                        const auth = r.dual_gate_verdict.authority_state;
+                        authBadge.textContent = auth;
+                        authBadge.className = auth === 'AUTH_COMMIT_APPROVED' ? 'ks-badge badge-optimal' : 'ks-badge badge-warning';
+                    }
+
+                    const safeEl = document.getElementById('coreSafetyText');
+                    if (safeEl) safeEl.textContent = r.dual_gate_verdict.safety ? r.dual_gate_verdict.safety.safety_code : 'SAFE_PASS';
+                    const evEl = document.getElementById('coreEvidenceText');
+                    if (evEl) evEl.textContent = r.dual_gate_verdict.evidence ? r.dual_gate_verdict.evidence.epistemic_state : 'EVIDENCED';
+                    const msgEl = document.getElementById('coreVerdictMsg');
+                    if (msgEl) msgEl.textContent = r.dual_gate_verdict.verdict_message;
+
+                    // Console output
+                    const consoleEl = document.getElementById('coreExecutionConsole');
+                    if (consoleEl) {
+                        const line = `<br><span style="color: #10b981;">[EXEC OK]</span> ${r.execution_id}: Cycle ${r.cycle_duration_us}μs | Strategy: ${r.worker_strategy_used} | Plan: ${r.planner_used} | Invariant: ${r.vital_max_hp}/6 HP`;
+                        consoleEl.innerHTML += line;
+                        consoleEl.scrollTop = consoleEl.scrollHeight;
+                    }
+
+                    showToast(`✅ Workload dokončený za ${r.cycle_duration_us} μs (Verdikt: ${r.dual_gate_verdict.authority_state})`, 'success');
+                    playCyberTone('confirm');
+                } else {
+                    showToast('Chyba pri spúšťaní workloadu cez Core', 'danger');
+                }
+            } catch (e) {
+                console.error("executeCoreWorkload error:", e);
+                showToast(`Chyba runtime core: ${e.message}`, 'danger');
+            }
+        }
+
+        async function runCoreExperiment() {
+            showToast('🧪 Spúšťam A/B experimentálny modul...', 'info');
+            playCyberTone('blip');
+            try {
+                const res = await fetch('/api/runtime/core/run-experiment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ trials: 6, experiment_id: `EXP_${Date.now()}` })
+                });
+                const data = await res.json();
+                if (data.status === 'OK' && data.result) {
+                    const r = data.result;
+                    const consoleEl = document.getElementById('coreExecutionConsole');
+                    if (consoleEl) {
+                        const statusColor = r.hypothesis_corroborated ? '#10b981' : '#f59e0b';
+                        const line = `<br><span style="color: ${statusColor};">[EXP TRIAL]</span> ${r.experiment_id}: ${r.trials_run} trials | Base: ${r.mean_baseline_latency.toFixed(1)}μs | Perturbed: ${r.mean_perturbed_latency.toFixed(1)}μs | Div: ${(r.divergence_score*100).toFixed(2)}% | Corroborated: ${r.hypothesis_corroborated}`;
+                        consoleEl.innerHTML += line;
+                        consoleEl.scrollTop = consoleEl.scrollHeight;
+                    }
+                    showToast(`🧪 Experiment dokončený (Divergencia: ${(r.divergence_score*100).toFixed(2)}%)`, 'success');
+                    playCyberTone('confirm');
+                } else {
+                    showToast('Chyba experimentálneho modulu', 'danger');
+                }
+            } catch (e) {
+                console.error("runCoreExperiment error:", e);
+                showToast(`Chyba experimentu: ${e.message}`, 'danger');
+            }
+        }
+
+        // Initialize Templates, HW Status, Actor Loops, Matrix, Image MVP & Runtime Core
         renderCoordinationTemplates();
         fetchHardwareAndTimerStatus();
         fetchActorLoopsStatus();
@@ -3139,6 +3373,7 @@
         fetchStreamingLogs();
         executeGenerateImageMvp();
         fetchClosedLoopStatus();
+        fetchCoreRuntimeStatus();
     </script>
 </body>
 </html>

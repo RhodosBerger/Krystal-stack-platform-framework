@@ -620,8 +620,19 @@ class EmpiricalHypothesis:
     falsification_count: int = 0
     status: str = "EPI_CORROBORATED"
 
+    @property
+    def rule_id(self) -> str:
+        return self.trigger_rule
+
+    @property
+    def confidence(self) -> float:
+        return self.confidence_score
+
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        d = asdict(self)
+        d["rule_id"] = self.rule_id
+        d["confidence"] = self.confidence
+        return d
 
 
 class HypothesisGenerator:
@@ -668,6 +679,12 @@ class HypothesisLedger:
     def has_corroborated_rule(self, trigger_rule: str, min_confidence: float = 0.70) -> bool:
         hyp = self.active_hypotheses.get(trigger_rule)
         return hyp is not None and hyp.confidence_score >= min_confidence
+
+    def get_active_corroborated_rules(self, min_confidence: float = 0.70) -> List[str]:
+        return [
+            rule for rule, h in self.active_hypotheses.items()
+            if h.confidence_score >= min_confidence
+        ]
 
     def get_all_hypotheses(self) -> List[Dict[str, Any]]:
         return [h.to_dict() for h in self.active_hypotheses.values()]

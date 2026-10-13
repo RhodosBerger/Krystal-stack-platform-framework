@@ -2541,6 +2541,37 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Krystal Runtime Core & Extensions ─────────────────────────
+        elif path in ("/api/runtime/core/tree", "/api/runtime/core/status"):
+            from krystal_kernel.runtime import GLOBAL_KRYSTAL_RUNTIME_CORE
+            tree = GLOBAL_KRYSTAL_RUNTIME_CORE.get_runtime_architecture_tree()
+            self.send_json({
+                "status": "OK",
+                "tree": tree,
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/runtime/core/extensions", "/api/runtime/extensions"):
+            from krystal_kernel.runtime import GLOBAL_RUNTIME_EXTENSION_REGISTRY
+            self.send_json({
+                "status": "OK",
+                "extensions": GLOBAL_RUNTIME_EXTENSION_REGISTRY.get_extension_tree_summary(),
+                "all_plugins": GLOBAL_RUNTIME_EXTENSION_REGISTRY.list_plugins(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/runtime/core/version", "/api/runtime/version"):
+            from krystal_kernel.runtime import GLOBAL_VERSIONING_ENGINE
+            self.send_json({
+                "status": "OK",
+                "version": GLOBAL_VERSIONING_ENGINE.current_version.to_dict(),
+                "snapshots": GLOBAL_VERSIONING_ENGINE.get_snapshot_history(limit=10),
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Status ────────────────────────────────────────────
         elif path == "/api/status":
             with state.lock:
@@ -4177,6 +4208,95 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "OK",
                 "report": rep.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Krystal Runtime Core & Extensions ─────────────────────────
+        elif self.path in ("/api/runtime/core/execute-workload", "/api/runtime/workload/execute"):
+            from krystal_kernel.runtime import GLOBAL_KRYSTAL_RUNTIME_CORE
+            w_id = data.get("workload_id", f"WL_CORE_{int(time.time() * 1000)}")
+            category = data.get("category", "COMPUTE_BOUND_CONVOLUTION")
+            deadline = float(data.get("target_deadline_us", 50000.0))
+            thermal = float(data.get("thermal_celsius", 52.0))
+            power = float(data.get("power_watts", 18.0))
+            overhead = float(data.get("observer_overhead_pct", 1.8))
+            input_bits = data.get("input_bits")
+
+            report = GLOBAL_KRYSTAL_RUNTIME_CORE.execute_workload(
+                workload_id=w_id,
+                workload_category=category,
+                input_bits=input_bits,
+                target_deadline_us=deadline,
+                thermal_celsius=thermal,
+                power_watts=power,
+                observer_overhead_pct=overhead
+            )
+            self.send_json({
+                "status": "OK",
+                "report": report.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/runtime/core/run-experiment", "/api/runtime/experiment"):
+            from krystal_kernel.runtime import GLOBAL_KRYSTAL_RUNTIME_CORE
+            trials = int(data.get("trials", 5))
+            exp_id = data.get("experiment_id", f"EXP_{int(time.time() * 1000)}")
+            res = GLOBAL_KRYSTAL_RUNTIME_CORE.run_experiment({
+                "trials": trials,
+                "experiment_id": exp_id
+            })
+            self.send_json({
+                "status": "OK",
+                "result": res.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/runtime/core/set-active-extension", "/api/runtime/extensions/select"):
+            from krystal_kernel.runtime import GLOBAL_RUNTIME_EXTENSION_REGISTRY, ExtensionCategory
+            cat_str = data.get("category", "")
+            plugin_id = data.get("plugin_id", "")
+            if cat_str in ExtensionCategory.__members__:
+                ok = GLOBAL_RUNTIME_EXTENSION_REGISTRY.set_active_plugin(ExtensionCategory[cat_str], plugin_id)
+                self.send_json({
+                    "status": "OK" if ok else "ERROR",
+                    "category": cat_str,
+                    "active_plugin_id": plugin_id,
+                    "vital_max_hp": 6
+                })
+            else:
+                self.send_json({"status": "ERROR", "message": f"Invalid category: {cat_str}"}, status_code=400)
+            return
+
+        elif self.path in ("/api/runtime/core/evaluate-dual-gate", "/api/runtime/dual-gate"):
+            from krystal_kernel.runtime import GLOBAL_DUAL_GATE_EVALUATOR, EpistemicValue
+            from krystal_kernel.verification.semantic_protocol import EpistemicState
+            belief = float(data.get("belief_degree", 0.90))
+            vital_hp = int(data.get("vital_hp", 6))
+            thermal = float(data.get("thermal_celsius", 50.0))
+            power = float(data.get("power_watts", 18.0))
+            overhead = float(data.get("observer_overhead_pct", 1.5))
+            state_str = data.get("epistemic_state", "EPI_OBSERVED")
+            epi_state = EpistemicState[state_str] if state_str in EpistemicState.__members__ else EpistemicState.EPI_OBSERVED
+
+            ep_val = EpistemicValue(
+                value="INTERACTIVE_PROBE",
+                epistemic_state=epi_state,
+                belief_degree=belief,
+                source_probe="WebStudioDualGateTester"
+            )
+            verdict = GLOBAL_DUAL_GATE_EVALUATOR.evaluate(
+                epistemic_val=ep_val,
+                vital_hp=vital_hp,
+                thermal_celsius=thermal,
+                power_watts=power,
+                observer_overhead_pct=overhead
+            )
+            self.send_json({
+                "status": "OK",
+                "verdict": verdict.to_dict(),
                 "vital_max_hp": 6
             })
             return

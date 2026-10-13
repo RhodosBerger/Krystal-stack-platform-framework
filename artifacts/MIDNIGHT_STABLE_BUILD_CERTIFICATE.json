@@ -1,7 +1,7 @@
 {
   "certificate_title": "KRYSTAL-STACK MIDNIGHT STABLE BUILD CERTIFICATE",
-  "run_id": "MIDNIGHT-1B769EBB",
-  "timestamp": 1791880265.5676584,
+  "run_id": "MIDNIGHT-EDEBAE90",
+  "timestamp": 1791880876.506639,
   "release_candidate": "v2.0-midnight-stable",
   "target_setup": {
     "setup_type": "SETUP_A_WINDOWS_IRIS_XE_BAREMETAL",
@@ -22,7 +22,7 @@
     "exhibit_1": {
       "exhibit_name": "Exhibit 1: 8-Phase Causal LLM Execution Plane",
       "status": "PASS",
-      "trace_id": "TRACE-LLM-103A0942",
+      "trace_id": "TRACE-LLM-6B4F75FE",
       "phases_completed": 8,
       "ttft_ms": 22.14,
       "inter_token_latency_ms": 5.0,
@@ -140,7 +140,17 @@
       "status": "PASS",
       "nodes_traversed": 16,
       "strategy_selected": "PlannerStrategyKind.PARETO_OPTIMAL_NPU",
-      "cycle_latency_us": 279.4,
+      "cycle_latency_us": 271.4,
+      "vital_hp": 6
+    },
+    "exhibit_8": {
+      "exhibit_name": "Exhibit 8: Krystal Runtime Core & 8-Branch Runtime Extensions Architecture",
+      "status": "PASS",
+      "core_subsystems_count": 6,
+      "extension_branches_count": 8,
+      "version_vector": "<S:4 | P:POL-2.0-CANONICAL | E:a68c472c>",
+      "authority_verdict": "AUTH_COMMIT_APPROVED",
+      "cycle_duration_us": 143.5,
       "vital_hp": 6
     }
   },

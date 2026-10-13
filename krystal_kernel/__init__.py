@@ -273,6 +273,29 @@ from .closed_loop_workload_fabric import (  # noqa: F401
     GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC
 )
 
+from .runtime import (  # noqa: F401
+    EpistemicValue,
+    EpistemicTruthLattice,
+    LatticeCertaintyLevel,
+    ConfidenceInterval,
+    StatePolicyEvidenceVersion,
+    StatePolicyEvidenceVersioningEngine,
+    GLOBAL_VERSIONING_ENGINE,
+    SafetyGateResult,
+    EvidenceGateResult,
+    DualGateVerdict,
+    SafetyGate,
+    EvidenceGate,
+    DualGateEvaluator,
+    GLOBAL_DUAL_GATE_EVALUATOR,
+    ExtensionCategory,
+    RuntimeExtensionRegistry,
+    GLOBAL_RUNTIME_EXTENSION_REGISTRY,
+    CoreExecutionReport,
+    KrystalRuntimeCore,
+    GLOBAL_KRYSTAL_RUNTIME_CORE
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -347,5 +370,11 @@ __all__ = [
     "SafetyEvidenceGates", "MatrixPerturbation", "WorkerMatrix", "ThreadRouter",
     "LayerGraph", "WorkerRuntime", "DiscrepancyReport", "ExpectedVsActualComparator",
     "EmpiricalHypothesis", "HypothesisGenerator", "HypothesisLedger",
-    "ClosedLoopExecutionReport", "ClosedLoopWorkloadFabric", "GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC"
+    "ClosedLoopExecutionReport", "ClosedLoopWorkloadFabric", "GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC",
+    "EpistemicValue", "EpistemicTruthLattice", "LatticeCertaintyLevel", "ConfidenceInterval",
+    "StatePolicyEvidenceVersion", "StatePolicyEvidenceVersioningEngine", "GLOBAL_VERSIONING_ENGINE",
+    "SafetyGateResult", "EvidenceGateResult", "DualGateVerdict", "SafetyGate", "EvidenceGate",
+    "DualGateEvaluator", "GLOBAL_DUAL_GATE_EVALUATOR", "ExtensionCategory", "RuntimeExtensionRegistry",
+    "GLOBAL_RUNTIME_EXTENSION_REGISTRY", "CoreExecutionReport", "KrystalRuntimeCore",
+    "GLOBAL_KRYSTAL_RUNTIME_CORE"
 ]

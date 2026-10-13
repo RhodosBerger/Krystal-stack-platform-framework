@@ -324,6 +324,22 @@ class MidnightDemonstrator:
             "vital_hp": VITAL_MAX_HP
         }
 
+    def run_exhibit_8_runtime_core_and_extensions(self) -> Dict[str, Any]:
+        """Exhibit 8: Krystal Runtime Core & 8-Branch Runtime Extensions Architecture."""
+        from krystal_kernel.runtime import GLOBAL_KRYSTAL_RUNTIME_CORE
+        tree = GLOBAL_KRYSTAL_RUNTIME_CORE.get_runtime_architecture_tree()
+        rep = GLOBAL_KRYSTAL_RUNTIME_CORE.execute_workload("DEMO_EXHIBIT_8", "COMPUTE_BOUND_CONVOLUTION")
+        return {
+            "exhibit_name": "Exhibit 8: Krystal Runtime Core & 8-Branch Runtime Extensions Architecture",
+            "status": "PASS" if rep.dual_gate_verdict.get("can_actuate") else "FAIL",
+            "core_subsystems_count": len(tree.get("core_subsystems", {})),
+            "extension_branches_count": len(tree.get("runtime_extensions", {})),
+            "version_vector": rep.version.get("vector_string", ""),
+            "authority_verdict": rep.dual_gate_verdict.get("authority_state", ""),
+            "cycle_duration_us": rep.cycle_duration_us,
+            "vital_hp": VITAL_MAX_HP
+        }
+
     def run_full_suite(self) -> Dict[str, Any]:
         """Executes all exhibits, builds certificate, and writes JSON artifact."""
         print("\n" + "=" * 76)
@@ -378,6 +394,12 @@ class MidnightDemonstrator:
         ex7 = self.run_exhibit_7_closed_loop_fabric()
         self.exhibits_results["exhibit_7"] = ex7
         print(f"[OK] (Nodes: {ex7['nodes_traversed']}, Cycle: {ex7['cycle_latency_us']}μs)")
+
+        # 8. Exhibit 8
+        print("  >> Executing Exhibit 8 (Runtime Core & 8-Branch Extensions)...", end=" ")
+        ex8 = self.run_exhibit_8_runtime_core_and_extensions()
+        self.exhibits_results["exhibit_8"] = ex8
+        print(f"[OK] (Core: {ex8['core_subsystems_count']}, Extensions: {ex8['extension_branches_count']}, Verdict: {ex8['authority_verdict']})")
 
         print("-" * 76)
         all_passed = all(e.get("status") == "PASS" for e in self.exhibits_results.values())
