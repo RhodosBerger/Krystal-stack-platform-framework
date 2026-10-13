@@ -693,3 +693,52 @@ Generates standalone Python scripts executable directly inside Blender’s scrip
   python krystal_kernel/polygraphic_dtp_generator.py
   python -m unittest tests/test_polygraphic_dtp_generator.py
   ```
+
+---
+
+## 18. OpenCL & OpenGL Alternative Ruleset for Advanced GPU Noise/Cosine Decoder
+
+### 18.1 Architectural Mandate & Alternative Acceleration
+When Vulkan, DirectX 12, or proprietary CUDA stacks are absent, uninitialized, or restricted on heterogeneous hardware (e.g. Intel Iris Xe iGPUs, legacy AMD Radeon, embedded Mali/Adreno, or headless server nodes), Krystal Stack activates the **OpenCL 3.0 & OpenGL 4.6 Core / Compute Alternative Acceleration Ruleset**.
+* **Target Domains**: Real-time decompression of procedural noise fields (FBM, Simplex, Worley) and 2D Inverse Discrete Cosine Transforms (IDCT) for procedural terrain, textures, and spatial macro-surfaces.
+
+### 18.2 The 5 Core Acceleration Rules
+1. **Rule 1 (Backend Arbitration & Fallback)**:
+   - Dynamic selection between OpenCL 3.0 command queues, OpenGL 4.6 GLSL 460 Compute Shaders, and zero-cost SIMD CPU emulator fallback when hardware drivers are absent.
+2. **Rule 2 (Work-Group Coalescing & Bank-Conflict Elimination)**:
+   - Enforces $16 \times 16 = 256$ work-items matching warp/wavefront sizes ($32/64$).
+   - Local memory transpose for $8 \times 8$ IDCT blocks employs padded shared structures (`__local float block[8][9]`) to eliminate bank conflicts.
+3. **Rule 3 (Zero-Copy GL/CL Interop)**:
+   - Binds OpenCL buffers directly to OpenGL Shader Storage Buffer Objects (SSBOs) via `cl_khr_gl_sharing`, bypassing PCIe host-device copy overhead.
+4. **Rule 4 (Cosine Smoothing & Multi-Octave Noise Decoding)**:
+   - Cosine Hermite interpolation across all noise and spatial transitions:
+     $$S(t) = \frac{1 - \cos(\pi t)}{2}$$
+   - IDCT 2D decomposition:
+     $$f(x, y) = \frac{1}{4} \sum_{u=0}^7 \sum_{v=0}^7 C(u) C(v) F(u, v) \cos\left(\frac{(2x+1)u\pi}{16}\right) \cos\left(\frac{(2y+1)v\pi}{16}\right)$$
+5. **Rule 5 (Universal Platform Invariant Guard)**:
+   - Guaranteed enforcement of **`VITAL_MAX_HP == 6`** across all decoded tensor results, workgroup allocations, and API responses.
+
+### 18.3 OpenCL 3.0 C Kernel & OpenGL GLSL 460 Compute Shaders
+* **OpenCL 3.0 NDRange C Kernel**:
+  - `cl_idct_2d_cosine_decoder`: Two-pass 2D IDCT with `CLK_LOCAL_MEM_FENCE`.
+  - `cl_cosine_fbm_noise_decoder`: Multi-octave Fractal Brownian Motion with cosine smoothing and domain warping.
+* **OpenGL 4.6 GLSL 460 Compute Shader**:
+  - `layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;`
+  - SSBO binding 0 (Readonly Input Coefficients) and SSBO binding 1 (Writeonly Output Decoded Tensor).
+
+### 18.4 Interactive Web Studio & REST Endpoints
+* **Web Studio**: `krystal_web_hub/static/opencl_opengl_noise_cosine_studio.html` (served at `/opencl-opengl-studio`, `/gpu-decoder`, `/coise-decoder`).
+  - Real-time 2D Canvas heatmap visualizer rendering decoded tensors with an Emerald $\rightarrow$ Cyan $\rightarrow$ Amber cosine gradient.
+  - Interactive controls: Decoder mode dropdown, resolution ($64\times 64$, $128\times 128$, $256\times 256$), frequency slider, octaves slider.
+  - Dual kernel viewer with one-click copy for OpenCL 3.0 C code and OpenGL 4.6 GLSL 460 compute shader.
+  - Real-time latency ($\mu\text{s}$) and throughput (Msamples/sec) HUD.
+* **REST Endpoints**:
+  - `GET  /api/gpu-decoder/status` — Returns cached fields, engine health, and active ruleset.
+  - `GET  /api/gpu-decoder/ruleset` — Returns detailed contracts for all 5 acceleration rules.
+  - `POST /api/gpu-decoder/decode` — Executes GPU/SIMD field decoding with custom resolution, mode, frequency, and octaves.
+  - `POST /api/gpu-decoder/generate-kernels` — Generates compilable OpenCL C kernel and OpenGL GLSL 460 compute shader.
+* **Verification**:
+  ```powershell
+  python krystal_kernel/opencl_opengl_noise_cosine_decoder.py
+  python -m unittest tests/test_opencl_opengl_noise_cosine_decoder.py
+  ```

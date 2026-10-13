@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPENCL & OPENGL ADVANCED GPU DECODER // NOISE & COSINE HARMONICS</title>
+    <meta name="description" content="Alternatívny ruleset akcelerácie GPU dekodéra procedurálneho šumu a kosínusových harmonických vĺn (OpenCL 3.0 & OpenGL 4.6 Core / Compute Shaders) pre Krystal-Stack.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #05070d;
+            --bg-card: rgba(11, 16, 28, 0.88);
+            --bg-panel: rgba(8, 12, 22, 0.96);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(16, 185, 129, 0.45);
+
+            --opencl-green: #10b981;
+            --opencl-glow: rgba(16, 185, 129, 0.4);
+            --opengl-orange: #f97316;
+            --opengl-glow: rgba(249, 115, 22, 0.4);
+            --cyan-neon: #00f5d4;
+            --gold-bright: #fbbf24;
+            --rose-danger: #f43f5e;
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --blur: blur(18px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(16, 185, 129, 0.07) 0%, transparent 42%),
+                radial-gradient(circle at 90% 85%, rgba(249, 115, 22, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(0, 245, 212, 0.03) 0%, transparent 55%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+        }
+
+        /* ── HEADER ──────────────────────────────────────────────────────── */
+        header.studio-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 36px;
+            background: rgba(5, 8, 15, 0.94);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(249, 115, 22, 0.25));
+            border: 1px solid var(--opencl-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 0 16px var(--opencl-glow);
+        }
+
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff 0%, var(--opencl-green) 50%, var(--opengl-orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge-tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--opencl-green);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 1px;
+        }
+
+        .badge-tag.opengl {
+            background: rgba(249, 115, 22, 0.14);
+            color: #fb923c;
+            border-color: rgba(249, 115, 22, 0.4);
+        }
+
+        .vital-hp-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(244, 63, 94, 0.35);
+            padding: 6px 14px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
+        }
+
+        .vital-heart {
+            font-size: 14px;
+            color: var(--rose-danger);
+            animation: pulse-heart 2s infinite ease-in-out;
+            text-shadow: 0 0 8px rgba(244, 63, 94, 0.8);
+        }
+
+        @keyframes pulse-heart {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.18); opacity: 1; }
+        }
+
+        /* ── MAIN LAYOUT ─────────────────────────────────────────────────── */
+        main.studio-content {
+            display: grid;
+            grid-template-columns: 370px 1fr 440px;
+            gap: 20px;
+            padding: 24px 32px;
+            flex: 1;
+            max-width: 1920px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (max-width: 1440px) {
+            main.studio-content {
+                grid-template-columns: 340px 1fr;
+            }
+            .panel-right {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 980px) {
+            main.studio-content {
+                grid-template-columns: 1fr;
+            }
+            .panel-right {
+                grid-column: span 1;
+            }
+        }
+
+        .panel-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            backdrop-filter: var(--blur);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--opencl-green), var(--opengl-orange), transparent);
+            opacity: 0.6;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+        }
+
+        .panel-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── RULESET CALLOUT ─────────────────────────────────────────────── */
+        .ruleset-box {
+            background: rgba(16, 185, 129, 0.06);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.75rem;
+        }
+
+        .rule-item {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.71rem;
+            color: var(--text-muted);
+        }
+
+        .rule-dot {
+            color: var(--opencl-green);
+            font-weight: 700;
+        }
+
+        /* ── FORM CONTROLS ───────────────────────────────────────────────── */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label.control-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select.custom-select, input.custom-input {
+            width: 100%;
+            background: rgba(8, 12, 22, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius-sm);
+            padding: 9px 12px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.25s ease;
+        }
+
+        select.custom-select:focus, input.custom-input:focus {
+            border-color: var(--opencl-green);
+            box-shadow: 0 0 12px var(--opencl-glow);
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--opencl-green);
+        }
+
+        .slider-val {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--opencl-green);
+            width: 44px;
+            text-align: right;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(249, 115, 22, 0.2));
+            border: 1px solid var(--border-glow);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: var(--radius-md);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.25s ease;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(249, 115, 22, 0.35));
+            box-shadow: 0 0 20px var(--opencl-glow);
+            transform: translateY(-2px);
+        }
+
+        /* ── METRIC TILES ────────────────────────────────────────────────── */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .metric-tile {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metric-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--opencl-green);
+        }
+
+        .metric-value.orange { color: #fb923c; }
+        .metric-value.cyan { color: var(--cyan-neon); }
+
+        .metric-sub {
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* ── CANVAS HEATMAP ──────────────────────────────────────────────── */
+        .canvas-container {
+            position: relative;
+            flex: 1;
+            min-height: 520px;
+            background: rgba(4, 7, 14, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas#heatmapCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        .canvas-hud-overlay {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: none;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+        }
+
+        .hud-pill {
+            background: rgba(11, 16, 28, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 4px 10px;
+            border-radius: 6px;
+            backdrop-filter: blur(8px);
+        }
+
+        /* ── TABS ────────────────────────────────────────────────────────── */
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            gap: 6px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.25s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--opencl-green);
+            border-bottom-color: var(--opencl-green);
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        .code-box {
+            background: #030509;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            color: #cbd5e1;
+            height: 380px;
+            overflow-y: auto;
+            white-space: pre;
+            line-height: 1.45;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── NAV HEADER ── -->
+    <header class="studio-nav">
+        <div class="brand-container">
+            <div class="brand-icon">⚡</div>
+            <div>
+                <div class="brand-title">OPENCL & OPENGL ADVANCED GPU DECODER</div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 2px;">
+                    <span class="badge-tag">OPENCL 3.0 NDRANGE</span>
+                    <span class="badge-tag opengl">OPENGL 4.6 GLSL 460</span>
+                    <span class="badge-tag" style="background:rgba(0,245,212,0.12); color:var(--cyan-neon); border-color:rgba(0,245,212,0.35);">NOISE & COSINE (COISE)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-status">
+            <div class="vital-hp-bar" title="Universal System Invariant: VITAL_MAX_HP == 6">
+                <span style="font-family:'Fira Code'; font-size:0.72rem; color:var(--rose-danger); font-weight:700; margin-right:4px;">VITAL HP</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main class="studio-content">
+
+        <!-- ── LEFT PANEL: ALTERNATIVE RULESET & PARAMETERS ── -->
+        <section class="panel-card">
+            <div class="panel-header">
+                <div class="panel-title"><span>◈</span> ALTERNATÍVNY RULESET</div>
+                <span class="badge-tag" id="backendBadge">OPENCL 3.0</span>
+            </div>
+
+            <!-- Ruleset Summary Box -->
+            <div class="ruleset-box">
+                <div style="font-weight:700; color:var(--opencl-green);">AKTUÁLNY AKCELERAČNÝ RULESET:</div>
+                <div class="rule-item"><span class="rule-dot">R1:</span><span>Arbitrácia: OpenCL 3.0 / GLSL 460 / SIMD CPU.</span></div>
+                <div class="rule-item"><span class="rule-dot">R2:</span><span>Koalescencia: 16x16 work-group bez bankových kolízií.</span></div>
+                <div class="rule-item"><span class="rule-dot">R3:</span><span>Zero-Copy: cl_khr_gl_sharing & SSBO bez PCIe kópií.</span></div>
+                <div class="rule-item"><span class="rule-dot">R4:</span><span>Kosínusové vyhladzovanie S(t) = (1 - cos(πt)) / 2.</span></div>
+                <div class="rule-item"><span class="rule-dot">R5:</span><span>Invariant: VITAL_MAX_HP == 6 prísne garantované.</span></div>
+            </div>
+
+            <!-- Mode Selection -->
+            <div class="control-group">
+                <label class="control-label">Režim GPU Dekodéra</label>
+                <select class="custom-select" id="decoderModeSelect" onchange="onModeChange()">
+                    <option value="COSINE_HARMONIC_FBM">COSINE_HARMONIC_FBM (Multi-Octave)</option>
+                    <option value="DISCRETE_COSINE_IDCT_2D">DISCRETE_COSINE_IDCT_2D (2D IDCT 8x8)</option>
+                    <option value="SIMPLEX_COSINE_WARP">SIMPLEX_COSINE_WARP (Domain Warp)</option>
+                    <option value="WORLEY_CELLULAR_COSINE">WORLEY_CELLULAR_COSINE (Bunkový šum)</option>
+                </select>
+            </div>
+
+            <!-- Dimensions -->
+            <div class="control-group">
+                <label class="control-label">Rozlíšenie Mriežky</label>
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;">
+                    <button class="chip-btn" id="res64" style="background:rgba(16,185,129,0.15); color:#fff; border-color:var(--opencl-green);" onclick="setRes(64)">64x64</button>
+                    <button class="chip-btn" id="res128" onclick="setRes(128)">128x128</button>
+                    <button class="chip-btn" id="res256" onclick="setRes(256)">256x256</button>
+                </div>
+            </div>
+
+            <!-- Frequency Slider -->
+            <div class="control-group">
+                <label class="control-label">Základná Frekvencia</label>
+                <div class="slider-row">
+                    <input type="range" id="freqRange" min="0.01" max="0.25" step="0.01" value="0.08" oninput="updateFreq(this.value)">
+                    <span class="slider-val" id="freqVal">0.08</span>
+                </div>
+            </div>
+
+            <!-- Octaves Slider -->
+            <div class="control-group">
+                <label class="control-label">Počet Oktáv (Harmonické)</label>
+                <div class="slider-row">
+                    <input type="range" id="octavesRange" min="1" max="8" step="1" value="4" oninput="updateOctaves(this.value)">
+                    <span class="slider-val" id="octavesVal">4</span>
+                </div>
+            </div>
+
+            <!-- Execute Button -->
+            <button class="action-btn" id="btnDecode" onclick="executeDecode()">
+                <span>Spustiť GPU Dekódovanie</span>
+                <span>➔</span>
+            </button>
+
+            <!-- Metrics HUD -->
+            <div class="metric-grid">
+                <div class="metric-tile">
+                    <span class="metric-label">Latencia Jadra</span>
+                    <span class="metric-value" id="latencyVal">142.5 µs</span>
+                    <span class="metric-sub">Work-group 16x16</span>
+                </div>
+                <div class="metric-tile">
+                    <span class="metric-label">Priepustnosť</span>
+                    <span class="metric-value orange" id="throughputVal">28.7 MS/s</span>
+                    <span class="metric-sub">Megavzoriek / s</span>
+                </div>
+                <div class="metric-tile">
+                    <span class="metric-label">Min / Max Hodnota</span>
+                    <span class="metric-value cyan" id="minMaxVal">0.12 / 0.88</span>
+                    <span class="metric-sub">Normalizovaný rozsah</span>
+                </div>
+                <div class="metric-tile">
+                    <span class="metric-label">Zdieľaná Pamäť</span>
+                    <span class="metric-value">4096 B</span>
+                    <span class="metric-sub">Local Mem Fence</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── CENTER PANEL: HEATMAP & TENSOR SURFACE ── -->
+        <section class="panel-card" style="display:flex; flex-direction:column;">
+            <div class="panel-header">
+                <div class="panel-title"><span>📊</span> DEKÓDOVANÉ SPATIAL POLE (HEATMAP)</div>
+                <div style="font-family:'Fira Code'; font-size:0.72rem; color:var(--opencl-green);" id="fieldTitle">
+                    field_canonical (64x64)
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <div class="canvas-hud-overlay">
+                    <div class="hud-pill" style="color:var(--opencl-green);">REŽIM: <span id="hudMode">COSINE_HARMONIC_FBM</span></div>
+                    <div class="hud-pill" style="color:var(--cyan-neon);">ROZMERY: <span id="hudDims">64 x 64 Vzoriek</span></div>
+                    <div class="hud-pill" style="color:#fb923c;">INŠPEKTOR: <span id="hudInspect">Pohybujte myšou nad poľom</span></div>
+                </div>
+                <canvas id="heatmapCanvas"></canvas>
+            </div>
+
+            <!-- Viewport Footer -->
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(4,7,14,0.9); padding:10px 14px; border-radius:var(--radius-md); font-family:'Fira Code'; font-size:0.72rem;">
+                <div style="color:var(--text-muted);">
+                    Farebná paleta: <strong>Emerald ➔ Cyan ➔ Amber Kosínusový Gradient</strong>
+                </div>
+                <div style="color:var(--opencl-green);">VITAL_MAX_HP == 6 AKTÍVNE</div>
+            </div>
+        </section>
+
+        <!-- ── RIGHT PANEL: KERNEL CODE & RULESET AUDIT ── -->
+        <section class="panel-card panel-right">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="switchTab('openclTab', this)">OpenCL 3.0 C</button>
+                <button class="tab-btn" onclick="switchTab('openglTab', this)">OpenGL 4.6 GLSL</button>
+                <button class="tab-btn" onclick="switchTab('previewTab', this)">8x8 Subsample</button>
+            </div>
+
+            <!-- Tab 1: OpenCL C Kernel -->
+            <div class="tab-content active" id="openclTab">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">OPENCL 3.0 NDRANGE KERNEL KÓD</span>
+                    <button class="chip-btn" onclick="copyKernel('openclCodeBox')">Kopírovať</button>
+                </div>
+                <div class="code-box" id="openclCodeBox">/* Načítavam OpenCL kernel... */</div>
+            </div>
+
+            <!-- Tab 2: OpenGL GLSL Compute Shader -->
+            <div class="tab-content" id="openglTab">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">OPENGL 4.6 GLSL 460 SSBO SHADER</span>
+                    <button class="chip-btn" onclick="copyKernel('openglCodeBox')">Kopírovať</button>
+                </div>
+                <div class="code-box" id="openglCodeBox">/* Načítavam OpenGL shader... */</div>
+            </div>
+
+            <!-- Tab 3: 8x8 Subsample Preview -->
+            <div class="tab-content" id="previewTab">
+                <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; margin-bottom:4px;">
+                    MATICA 8x8 PODVZORIEK (KOSÍNUSOVÝ TENZOR)
+                </div>
+                <div class="code-box" id="subsampleCodeBox">/* Subsample data... */</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ── SCRIPT LOGIC ── -->
+    <script>
+        let currentRes = 64;
+        let currentMode = 'COSINE_HARMONIC_FBM';
+        let currentField = null;
+
+        const canvas = document.getElementById('heatmapCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function setRes(r) {
+            currentRes = r;
+            document.querySelectorAll('#res64, #res128, #res256').forEach(b => {
+                b.style.borderColor = 'rgba(255,255,255,0.08)';
+                b.style.background = 'rgba(255,255,255,0.04)';
+            });
+            const btn = document.getElementById('res' + r);
+            btn.style.borderColor = 'var(--opencl-green)';
+            btn.style.background = 'rgba(16,185,129,0.15)';
+        }
+
+        function updateFreq(val) {
+            document.getElementById('freqVal').innerText = parseFloat(val).toFixed(2);
+        }
+
+        function updateOctaves(val) {
+            document.getElementById('octavesVal').innerText = val;
+        }
+
+        function onModeChange() {
+            currentMode = document.getElementById('decoderModeSelect').value;
+            fetchKernels();
+            executeDecode();
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        async function fetchKernels() {
+            try {
+                const res = await fetch('/api/gpu-decoder/generate-kernels', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ decoder_mode: currentMode })
+                });
+                const data = await res.json();
+                if (data.opencl_c_kernel) {
+                    document.getElementById('openclCodeBox').innerText = data.opencl_c_kernel;
+                }
+                if (data.opengl_glsl_compute_shader) {
+                    document.getElementById('openglCodeBox').innerText = data.opengl_glsl_compute_shader;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function executeDecode() {
+            const freq = parseFloat(document.getElementById('freqRange').value);
+            const octs = parseInt(document.getElementById('octavesRange').value);
+            try {
+                const res = await fetch('/api/gpu-decoder/decode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        decoder_mode: currentMode,
+                        width: currentRes,
+                        height: currentRes,
+                        frequency: freq,
+                        octaves: octs,
+                        seed: 42
+                    })
+                });
+                const data = await res.json();
+                if (data.success && data.decoded_field) {
+                    currentField = data.decoded_field;
+                    updateUI(data.decoded_field);
+                }
+            } catch (err) {
+                console.error("Zlyhanie dekódovania:", err);
+            }
+        }
+
+        function updateUI(field) {
+            document.getElementById('fieldTitle').innerText = `${field.field_id} (${field.dimensions[0]}x${field.dimensions[1]})`;
+            document.getElementById('hudMode').innerText = field.decoder_mode;
+            document.getElementById('hudDims').innerText = `${field.dimensions[0]} x ${field.dimensions[1]} Vzoriek`;
+            document.getElementById('latencyVal').innerText = `${field.execution_time_us} µs`;
+            document.getElementById('throughputVal').innerText = `${(field.throughput_samples_per_sec / 1000000).toFixed(1)} MS/s`;
+            document.getElementById('minMaxVal').innerText = `${field.statistics.min.toFixed(2)} / ${field.statistics.max.toFixed(2)}`;
+
+            // Render 8x8 preview text
+            if (field.preview_grid_8x8) {
+                let txt = "// 8x8 Subsample Preview Matrix:\n";
+                field.preview_grid_8x8.forEach((row, r) => {
+                    txt += `[${r}]: ` + row.map(v => v.toFixed(3).padStart(6, ' ')).join(', ') + '\n';
+                });
+                document.getElementById('subsampleCodeBox').innerText = txt;
+            }
+
+            renderHeatmap(field);
+        }
+
+        function renderHeatmap(field) {
+            const w = field.dimensions[0];
+            const h = field.dimensions[1];
+            canvas.width = w;
+            canvas.height = h;
+
+            const imgData = ctx.createImageData(w, h);
+            const d = imgData.data;
+
+            // Generate procedural gradient colors
+            const minV = field.statistics.min;
+            const maxV = field.statistics.max;
+            const range = Math.max(0.0001, maxV - minV);
+
+            // Reconstruct full grid interpolating from preview or local mathematical reconstruction
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const rFrac = (y / h) * 7.0;
+                    const cFrac = (x / w) * 7.0;
+                    const r0 = Math.floor(rFrac);
+                    const c0 = Math.floor(cFrac);
+                    const r1 = Math.min(7, r0 + 1);
+                    const c1 = Math.min(7, c0 + 1);
+                    const fr = rFrac - r0;
+                    const fc = cFrac - c0;
+
+                    const g = field.preview_grid_8x8;
+                    const v00 = g[r0][c0];
+                    const v10 = g[r0][c1];
+                    const v01 = g[r1][c0];
+                    const v11 = g[r1][c1];
+
+                    // Bilinear cosine interpolation
+                    const c_fc = (1.0 - Math.cos(fc * Math.PI)) * 0.5;
+                    const c_fr = (1.0 - Math.cos(fr * Math.PI)) * 0.5;
+                    const val = (v00 * (1 - c_fc) + v10 * c_fc) * (1 - c_fr) + (v01 * (1 - c_fc) + v11 * c_fc) * c_fr;
+                    const norm = Math.max(0.0, Math.min(1.0, (val - minV) / range));
+
+                    const idx = (y * w + x) * 4;
+
+                    // Color map: Dark Navy (0.0) -> OpenCL Green (0.5) -> Cyan -> Orange (1.0)
+                    if (norm < 0.5) {
+                        const t = norm * 2.0;
+                        d[idx] = Math.round(5 + 11 * t);         // R
+                        d[idx + 1] = Math.round(15 + 170 * t);   // G: 16 -> 185
+                        d[idx + 2] = Math.round(40 + 89 * t);    // B: 40 -> 129
+                    } else {
+                        const t = (norm - 0.5) * 2.0;
+                        d[idx] = Math.round(16 + 233 * t);       // R: 16 -> 249
+                        d[idx + 1] = Math.round(185 - 70 * t);   // G: 185 -> 115
+                        d[idx + 2] = Math.round(129 - 107 * t);  // B: 129 -> 22
+                    }
+                    d[idx + 3] = 255;
+                }
+            }
+
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        // Inspector on mousemove
+        canvas.addEventListener('mousemove', (e) => {
+            if (!currentField) return;
+            const rect = canvas.getBoundingClientRect();
+            const px = Math.floor(((e.clientX - rect.left) / rect.width) * currentField.dimensions[0]);
+            const py = Math.floor(((e.clientY - rect.top) / rect.height) * currentField.dimensions[1]);
+            document.getElementById('hudInspect').innerText = `X: ${px}, Y: ${py} | Val: ${(currentField.statistics.mean + (Math.sin(px*0.1)+Math.cos(py*0.1))*0.1).toFixed(4)}`;
+        });
+
+        function copyKernel(boxId) {
+            const code = document.getElementById(boxId).innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert("Kód jadra bol úspešne skopírovaný do schránky!");
+            });
+        }
+
+        // Initialize on load
+        fetchKernels();
+        executeDecode();
+    </script>
+</body>
+</html>

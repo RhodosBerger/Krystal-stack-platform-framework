@@ -219,6 +219,14 @@ from krystal_kernel.polygraphic_dtp_generator import (
     PaperStandard,
     QuantizationPrecision
 )
+from krystal_kernel.opencl_opengl_noise_cosine_decoder import (
+    GLOBAL_OPENCL_OPENGL_DECODER,
+    OpenCLOpenGLNoiseCosineDecoderEngine,
+    AccelerationBackend,
+    NoiseDecoderMode,
+    OpenCLDeviceTier,
+    AlternativeRulesetConfig
+)
 from krystal_web_hub.economic_engine.polymorphic_shape_blender_platform import (
     GLOBAL_SHAPE_PLATFORM,
     LanguageMode,
@@ -1196,6 +1204,9 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/dtp-studio', '/polygraphic-dtp', '/dtp-generator', '/polygraphic_dtp_vulkan_studio.html', '/vulkan-dtp'):
             self._serve_file(os.path.join(STATIC_DIR, "polygraphic_dtp_vulkan_studio.html"), "text/html")
             return
+        if path in ('/opencl-opengl-studio', '/gpu-decoder', '/noise-cosine-studio', '/coise-decoder', '/opencl_opengl_noise_cosine_studio.html'):
+            self._serve_file(os.path.join(STATIC_DIR, "opencl_opengl_noise_cosine_studio.html"), "text/html")
+            return
         if path in ('/shape-studio', '/shape-platform', '/blender-library', '/polymorphic-shapes'):
             self._serve_file(os.path.join(STATIC_DIR, "polymorphic_shape_studio.html"), "text/html")
             return
@@ -1930,6 +1941,19 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json({
                 "success": True,
                 "scenes": [s.to_dict() for s in GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog.values()],
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── OPENCL & OPENGL ALTERNATIVE RULESET GPU NOISE/COSINE DECODER (GET)
+        if path in ('/api/gpu-decoder/status', '/api/opencl-opengl/status'):
+            self._send_json(GLOBAL_OPENCL_OPENGL_DECODER.get_status())
+            return
+
+        if path in ('/api/gpu-decoder/ruleset', '/api/opencl-opengl/ruleset'):
+            self._send_json({
+                "success": True,
+                "ruleset": GLOBAL_OPENCL_OPENGL_DECODER.get_ruleset_summary(),
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return
@@ -3423,6 +3447,45 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "success": True,
                 "scene_id": sc.scene_id,
                 "vulkan_pipeline_descriptor": vk_desc,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── OPENCL & OPENGL ALTERNATIVE RULESET GPU NOISE/COSINE DECODER (POST)
+        if path in ('/api/gpu-decoder/decode', '/api/opencl-opengl/decode'):
+            mode_str = req_data.get("decoder_mode", "COSINE_HARMONIC_FBM")
+            mode = NoiseDecoderMode[mode_str] if mode_str in NoiseDecoderMode.__members__ else NoiseDecoderMode.COSINE_HARMONIC_FBM
+            w = int(req_data.get("width", 64))
+            h = int(req_data.get("height", 64))
+            freq = float(req_data.get("frequency", 0.08))
+            octs = int(req_data.get("octaves", 4))
+            seed = int(req_data.get("seed", 42))
+            
+            res = GLOBAL_OPENCL_OPENGL_DECODER.decode_field(
+                decoder_mode=mode,
+                width=w,
+                height=h,
+                frequency=freq,
+                octaves=octs,
+                seed=seed
+            )
+            self._send_json({
+                "success": True,
+                "decoded_field": res.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path in ('/api/gpu-decoder/generate-kernels', '/api/opencl-opengl/generate-kernels'):
+            mode_str = req_data.get("decoder_mode", "COSINE_HARMONIC_FBM")
+            mode = NoiseDecoderMode[mode_str] if mode_str in NoiseDecoderMode.__members__ else NoiseDecoderMode.COSINE_HARMONIC_FBM
+            cl_code = GLOBAL_OPENCL_OPENGL_DECODER.generate_opencl_c_kernel(mode)
+            gl_code = GLOBAL_OPENCL_OPENGL_DECODER.generate_opengl_glsl_compute_shader(mode)
+            self._send_json({
+                "success": True,
+                "decoder_mode": mode.value,
+                "opencl_c_kernel": cl_code,
+                "opengl_glsl_compute_shader": gl_code,
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return

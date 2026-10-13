@@ -783,6 +783,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "polygraphic_dtp_vulkan_studio.html", "text/html")
             return
+        elif norm_path in (
+            "/opencl-opengl-studio", "/gpu-decoder", "/noise-cosine-studio",
+            "/coise-decoder", "/opencl_opengl_noise_cosine_studio.html"
+        ):
+            self.serve_file(STATIC_DIR / "opencl_opengl_noise_cosine_studio.html", "text/html")
+            return
         elif norm_path in ("/cloud-backoffice", "/backoffice", "/cloud_backoffice_studio.html", "/evidence"):
             self.serve_file(STATIC_DIR / "cloud_backoffice_studio.html", "text/html")
             return
@@ -899,6 +905,21 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "OK",
                 "scenes": [s.to_dict() for s in GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog.values()],
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: OpenCL & OpenGL Alternative Ruleset GPU Decoder ────
+        elif norm_path in ("/api/gpu-decoder/status", "/api/opencl-opengl/status"):
+            from krystal_kernel.opencl_opengl_noise_cosine_decoder import GLOBAL_OPENCL_OPENGL_DECODER
+            self.send_json(GLOBAL_OPENCL_OPENGL_DECODER.get_status())
+            return
+
+        elif norm_path in ("/api/gpu-decoder/ruleset", "/api/opencl-opengl/ruleset"):
+            from krystal_kernel.opencl_opengl_noise_cosine_decoder import GLOBAL_OPENCL_OPENGL_DECODER
+            self.send_json({
+                "status": "OK",
+                "ruleset": GLOBAL_OPENCL_OPENGL_DECODER.get_ruleset_summary(),
                 "vital_max_hp": 6
             })
             return
@@ -3541,6 +3562,52 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "status": "OK",
                 "scene_id": sc.scene_id,
                 "vulkan_pipeline_descriptor": vk_desc,
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: OpenCL & OpenGL Alternative Ruleset GPU Decoder ────
+        elif self.path in ("/api/gpu-decoder/decode", "/api/opencl-opengl/decode"):
+            from krystal_kernel.opencl_opengl_noise_cosine_decoder import (
+                GLOBAL_OPENCL_OPENGL_DECODER,
+                NoiseDecoderMode
+            )
+            mode_str = data.get("decoder_mode", "COSINE_HARMONIC_FBM")
+            mode = NoiseDecoderMode[mode_str] if mode_str in NoiseDecoderMode.__members__ else NoiseDecoderMode.COSINE_HARMONIC_FBM
+            w = int(data.get("width", 64))
+            h = int(data.get("height", 64))
+            freq = float(data.get("frequency", 0.08))
+            octs = int(data.get("octaves", 4))
+            seed = int(data.get("seed", 42))
+            res = GLOBAL_OPENCL_OPENGL_DECODER.decode_field(
+                decoder_mode=mode,
+                width=w,
+                height=h,
+                frequency=freq,
+                octaves=octs,
+                seed=seed
+            )
+            self.send_json({
+                "status": "OK",
+                "decoded_field": res.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/gpu-decoder/generate-kernels", "/api/opencl-opengl/generate-kernels"):
+            from krystal_kernel.opencl_opengl_noise_cosine_decoder import (
+                GLOBAL_OPENCL_OPENGL_DECODER,
+                NoiseDecoderMode
+            )
+            mode_str = data.get("decoder_mode", "COSINE_HARMONIC_FBM")
+            mode = NoiseDecoderMode[mode_str] if mode_str in NoiseDecoderMode.__members__ else NoiseDecoderMode.COSINE_HARMONIC_FBM
+            cl_code = GLOBAL_OPENCL_OPENGL_DECODER.generate_opencl_c_kernel(mode)
+            gl_code = GLOBAL_OPENCL_OPENGL_DECODER.generate_opengl_glsl_compute_shader(mode)
+            self.send_json({
+                "status": "OK",
+                "decoder_mode": mode.value,
+                "opencl_c_kernel": cl_code,
+                "opengl_glsl_compute_shader": gl_code,
                 "vital_max_hp": 6
             })
             return
