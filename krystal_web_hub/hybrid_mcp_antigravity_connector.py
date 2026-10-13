@@ -512,6 +512,63 @@ class HybridMcpAntigravityConnector:
                         }
                     }
                 }
+            },
+            # 11. Text Animation & Typographic Dynamics
+            {
+                "name": "antigravity-animate-text",
+                "description": (
+                    "Animátor textu a kinetická typografia: Renderuje dynamický animovaný text "
+                    "pomocou 5 kinetických módov (KINETIC_MATRIX, SINE_WAVE_FLOAT, GLITCH_CYBERPUNK, "
+                    "TYPEWRITER_DECRYPT, VOXEL_3D_EXTRUDE) s 5x7 bitmap fontom a non-destructive kompozíciou."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "text": {"type": "string", "description": "Textový reťazec na animáciu"},
+                        "mode": {
+                            "type": "string",
+                            "enum": ["KINETIC_MATRIX", "SINE_WAVE_FLOAT", "GLITCH_CYBERPUNK", "TYPEWRITER_DECRYPT", "VOXEL_3D_EXTRUDE"],
+                            "description": "Kinetický mód animácie textu"
+                        },
+                        "t": {"type": "number", "description": "Časový offset v sekundách (default: 0.0)"},
+                        "width": {"type": "integer", "description": "Šírka matice v znakoch (default: 80)"},
+                        "height": {"type": "integer", "description": "Výška matice v riadkoch (default: 24)"},
+                        "speed": {"type": "number", "description": "Rýchlosť animácie (default: 1.0)"}
+                    },
+                    "required": ["text"]
+                }
+            },
+            # 12. Parametric Render Set Catalog & AI Studio Specification
+            {
+                "name": "krystal-get-parametric-render-set",
+                "description": (
+                    "Katalóg Nového Parametrického Render Setu (NPRS v3.0) pre AI Studio: "
+                    "Poskytuje 10-blokové špecifikácie, harmonickú kosínusovú topológiu r(θ), "
+                    "radius derivát dr/dθ, metriku previsov xi(θ), dihedrálne skladanie Dn "
+                    "a Vulkan shader uniformy. Podporuje: 'list', 'get', 'manifest', 'ai_studio_prompt'."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "type": "string",
+                            "enum": ["list", "get", "manifest", "ai_studio_prompt"],
+                            "description": "Akcia (list = zoznam setov, get = detail setu, manifest = celý manifest, ai_studio_prompt = prompt blok pre AI Studio)."
+                        },
+                        "set_id": {
+                            "type": "string",
+                            "enum": [
+                                "SET_01_CRYSTAL_POLYHEDRA_D6_D12",
+                                "SET_02_KINETIC_TYPOGRAPHIC_HUD",
+                                "SET_03_SOVEREIGN_HEX_ARENA_19",
+                                "SET_04_OVERHANG_BIOME_CAVERN_8K",
+                                "SET_05_CYBERPUNK_NEON_METROPOLIS"
+                            ],
+                            "description": "ID renderovacieho setu (vyžadované pre 'get' a 'ai_studio_prompt')."
+                        }
+                    },
+                    "required": ["action"]
+                }
             }
         ]
 
@@ -719,7 +776,90 @@ class HybridMcpAntigravityConnector:
                     GLOBAL_RAG_LLM_TRAINER.model, test_set[:test_cnt]
                 )
 
-            # 11. Fallback to Krystal MCP Core Tools
+            # 11. Text Animation & Typographic Dynamics
+            elif name == "antigravity-animate-text":
+                from krystal_kernel.text_animation_engine import (
+                    GLOBAL_TEXT_ANIMATION_ENGINE,
+                    TextAnimationConfig,
+                    TextAnimationMode
+                )
+                text = str(arguments.get("text", "KRYSTAL STACK"))
+                mode_str = str(arguments.get("mode", "SINE_WAVE_FLOAT"))
+                try:
+                    anim_mode = TextAnimationMode(mode_str)
+                except Exception:
+                    anim_mode = TextAnimationMode.SINE_WAVE_FLOAT
+                t = float(arguments.get("t", 0.0))
+                w = int(arguments.get("width", 80))
+                h = int(arguments.get("height", 24))
+                speed = float(arguments.get("speed", 1.0))
+                cfg = TextAnimationConfig(text=text, mode=anim_mode, speed=speed)
+                rendered = GLOBAL_TEXT_ANIMATION_ENGINE.render_text_matrix(
+                    text=text, t=t, width=w, height=h, config=cfg
+                )
+                return {
+                    "status": "OK",
+                    "rendered_text": rendered,
+                    "text_raw": "\n".join(rendered),
+                    "mode": anim_mode.value,
+                    "frame_stats": {
+                        "width": w,
+                        "height": h,
+                        "t": t,
+                        "vital_hp": VITAL_MAX_HP
+                    }
+                }
+
+            # 12. Parametric Render Set Catalog
+            elif name == "krystal-get-parametric-render-set":
+                from krystal_kernel.parametric_render_set import (
+                    ParametricRenderCatalog,
+                    ParametricRenderSetId
+                )
+                action = arguments.get("action", "list")
+                if action == "manifest":
+                    return ParametricRenderCatalog.export_full_catalog_manifest()
+                elif action == "list":
+                    all_sets = ParametricRenderCatalog.get_all_sets()
+                    return {
+                        "status": "OK",
+                        "vital_hp": VITAL_MAX_HP,
+                        "sets": [
+                            {
+                                "set_id": s.set_id.value,
+                                "name": s.identity.name,
+                                "context_domain": s.identity.context_domain,
+                                "primary_shape": s.sdf_structure.primary_shape,
+                                "dihedral_folds": s.sdf_structure.dihedral_folds,
+                                "kinetic_mode": s.typography.kinetic_mode,
+                                "max_instances": s.identity.max_instances
+                            }
+                            for s in all_sets.values()
+                        ]
+                    }
+                elif action in ("get", "ai_studio_prompt"):
+                    set_id_str = arguments.get("set_id", "SET_01_CRYSTAL_POLYHEDRA_D6_D12")
+                    try:
+                        enum_id = ParametricRenderSetId(set_id_str)
+                    except ValueError:
+                        enum_id = ParametricRenderSetId.CRYSTAL_POLYHEDRA_D6_D12
+                    cfg = ParametricRenderCatalog.get_set(enum_id)
+                    if not cfg:
+                        return {"error": f"Render set '{set_id_str}' not found."}
+                    if action == "ai_studio_prompt":
+                        return {
+                            "status": "OK",
+                            "set_id": cfg.set_id.value,
+                            "prompt_block": cfg.format_ai_studio_prompt_block(),
+                            "vital_hp": VITAL_MAX_HP
+                        }
+                    return {
+                        "status": "OK",
+                        "render_set": cfg.to_dict(),
+                        "vital_hp": VITAL_MAX_HP
+                    }
+
+            # 13. Fallback to Krystal MCP Core Tools
             elif name in self.krystal_mcp.tool_registry:
                 return self.krystal_mcp.dispatch_call(name, arguments)
 

@@ -143,7 +143,9 @@ class TestHybridMcpAntigravityConnector(unittest.TestCase):
         self.assertIn("krystal-karaf-evaluate", tool_names)
         self.assertIn("krystal-llm-train-epoch", tool_names)
         self.assertIn("krystal-llm-rag-benchmark", tool_names)
-        self.assertEqual(len(tools), 18)
+        self.assertIn("antigravity-animate-text", tool_names)
+        self.assertIn("krystal-get-parametric-render-set", tool_names)
+        self.assertEqual(len(tools), 20)
 
         for t in tools:
             self.assertIn("inputSchema", t)
@@ -280,6 +282,43 @@ class TestHybridMcpAntigravityConnector(unittest.TestCase):
         finally:
             sys.stdin = old_stdin
             sys.stdout = old_stdout
+
+    def test_13_krystal_get_parametric_render_set(self):
+        """Tests krystal-get-parametric-render-set listing and AI Studio prompt export."""
+        req_list = {
+            "jsonrpc": "2.0",
+            "id": 110,
+            "method": "tools/call",
+            "params": {
+                "name": "krystal-get-parametric-render-set",
+                "arguments": {"action": "list"}
+            }
+        }
+        res_list = self.connector.handle_jsonrpc_request(req_list)
+        self.assertNotIn("error", res_list)
+        content_list = json.loads(res_list["result"]["content"][0]["text"])
+        self.assertEqual(content_list["status"], "OK")
+        self.assertEqual(len(content_list["sets"]), 5)
+        self.assertEqual(content_list["vital_hp"], 6)
+
+        # Test AI Studio prompt export
+        req_prompt = {
+            "jsonrpc": "2.0",
+            "id": 111,
+            "method": "tools/call",
+            "params": {
+                "name": "krystal-get-parametric-render-set",
+                "arguments": {
+                    "action": "ai_studio_prompt",
+                    "set_id": "SET_01_CRYSTAL_POLYHEDRA_D6_D12"
+                }
+            }
+        }
+        res_prompt = self.connector.handle_jsonrpc_request(req_prompt)
+        content_prompt = json.loads(res_prompt["result"]["content"][0]["text"])
+        self.assertEqual(content_prompt["status"], "OK")
+        self.assertIn("prompt_block", content_prompt)
+        self.assertIn("VITAL_MAX_HP == 6", content_prompt["prompt_block"])
 
 
 if __name__ == "__main__":

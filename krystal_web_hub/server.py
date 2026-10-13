@@ -254,6 +254,12 @@ loop Symmetry(iterations: 8, fold: 8) { transform: DISPLACE(amp: 0.12, freq: 2.2
         self.current_ascii = ""
         self.frame_id = 0
 
+        # Text Animation & Typographic Compositor State
+        self.text_overlay_enabled = False
+        self.text_overlay_string = "KRYSTAL"
+        self.text_overlay_mode = "SINE_WAVE_FLOAT"
+        self.text_overlay_speed = 1.0
+
         # Director Log Queue
         self.director_events = []
         # Verification & Closed-Loop Live Event Queue
@@ -596,6 +602,29 @@ def engine_worker_loop():
             else:
                 lines = ["CODE GENE COMPOSITOR INITIALIZING..."]
 
+        # ── Mode 11: Dedicated Text Animation & Typography ──────────
+        elif mode == "TEXT_ANIMATION":
+            from krystal_kernel.text_animation_engine import (
+                GLOBAL_TEXT_ANIMATION_ENGINE,
+                TextAnimationConfig,
+                TextAnimationMode
+            )
+            txt = getattr(state, "text_overlay_string", "KRYSTAL STACK")
+            t_mode_str = getattr(state, "text_overlay_mode", "SINE_WAVE_FLOAT")
+            try:
+                t_mode = TextAnimationMode(t_mode_str)
+            except Exception:
+                t_mode = TextAnimationMode.SINE_WAVE_FLOAT
+            cfg = TextAnimationConfig(
+                text=txt,
+                mode=t_mode,
+                speed=getattr(state, "text_overlay_speed", 1.0)
+            )
+            lines = GLOBAL_TEXT_ANIMATION_ENGINE.render_text_matrix(
+                text=txt, t=t, width=cols, height=rows, config=cfg
+            )
+            current_luma = [0.5 + 0.3 * math.sin(t * 2.0 + i * 0.1) for i in range(len(lines))]
+
         # ── Mode 9: Retro CRT Scanlines ────────────────────────────
         else: # RETRO_CRT
             for y in range(rows):
@@ -654,6 +683,24 @@ def engine_worker_loop():
                 state.budget = min(state.max_budget, state.budget + 0.5)
                 state.governor_state = "OPTIMAL"
                 state.thermal_penalty = max(0.0, state.thermal_penalty - 0.05)
+
+            # Non-destructive Text Animation Overlay (if enabled)
+            if getattr(state, "text_overlay_enabled", False) and getattr(state, "text_overlay_string", "") and mode != "TEXT_ANIMATION":
+                from krystal_kernel.text_animation_engine import (
+                    GLOBAL_TEXT_ANIMATION_ENGINE,
+                    TextAnimationMode
+                )
+                t_mode_str = getattr(state, "text_overlay_mode", "SINE_WAVE_FLOAT")
+                try:
+                    t_mode = TextAnimationMode(t_mode_str)
+                except Exception:
+                    t_mode = TextAnimationMode.SINE_WAVE_FLOAT
+                lines = GLOBAL_TEXT_ANIMATION_ENGINE.composite_text_overlay(
+                    background_lines=lines,
+                    text=state.text_overlay_string,
+                    t=t,
+                    mode=t_mode
+                )
 
             state.current_ascii = "\n".join(lines)
             state.frame_id += 1
@@ -3840,6 +3887,25 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                     time.sleep(0.033) # 30 FPS stream
             except (ConnectionResetError, BrokenPipeError):
                 pass
+        # ── API: Text Animation & Typographic Overlay Status ─────────
+        elif self._route_path() == "/api/text-animation/status":
+            self.send_json({
+                "status": "OK",
+                "text": getattr(state, "text_overlay_string", "KRYSTAL"),
+                "mode": getattr(state, "text_overlay_mode", "SINE_WAVE_FLOAT"),
+                "enabled": getattr(state, "text_overlay_enabled", False),
+                "speed": getattr(state, "text_overlay_speed", 1.0),
+                "vital_max_hp": 6,
+                "supported_modes": [
+                    "KINETIC_MATRIX",
+                    "SINE_WAVE_FLOAT",
+                    "GLITCH_CYBERPUNK",
+                    "TYPEWRITER_DECRYPT",
+                    "VOXEL_3D_EXTRUDE"
+                ]
+            })
+            return
+
         else:
             if self.path.startswith("/api/") and self.proxy_to_engine_core("GET"):
                 return
@@ -3940,6 +4006,31 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             GLOBAL_RAG_LLM_TRAINER.lr = lr
             res = GLOBAL_RAG_LLM_TRAINER.train_epoch(tr_set, val_set, epoch=ep)
             self.send_json(res, status=200)
+            return
+
+        # ── API: Text Animation & Typographic Overlay Config ─────────
+        elif self.path == "/api/text-animation/config":
+            with state.lock:
+                if "text" in data:
+                    state.text_overlay_string = str(data["text"])
+                if "mode" in data:
+                    state.text_overlay_mode = str(data["mode"])
+                if "enabled" in data:
+                    state.text_overlay_enabled = bool(data["enabled"])
+                if "speed" in data:
+                    state.text_overlay_speed = float(data["speed"])
+                if data.get("switch_render_mode"):
+                    state.mode = "TEXT_ANIMATION"
+            self.send_json({
+                "status": "OK",
+                "message": "Text animation configuration applied",
+                "text": state.text_overlay_string,
+                "mode": state.text_overlay_mode,
+                "enabled": state.text_overlay_enabled,
+                "speed": state.text_overlay_speed,
+                "engine_mode": state.mode,
+                "vital_max_hp": 6
+            })
             return
 
         # ── API: Control (Mode / Resolution / Threshold / Folds) ──
