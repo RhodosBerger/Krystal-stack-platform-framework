@@ -2572,6 +2572,60 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Geometric Procedural & NPU Multi-Frame Supersampling ───────
+        elif path in ("/api/geometric-supersampling/scenes", "/api/geometric/scenes"):
+            from krystal_kernel.geometric_procedural_supersampling_engine import ProceduralSceneKind
+            scenes_data = [
+                {
+                    "kind": s.value,
+                    "name": s.name.replace("_", " ").title(),
+                    "description": {
+                        "EPICENTER_CRYSTAL_SPIRE": "Dielectric crystal facets via polynomial smooth min SDF",
+                        "RIEMANNIAN_TERRAIN_FOLD": "Harmonic cosine topology sampled vs. radius derivatives dr/dθ",
+                        "CYBER_SPATIAL_ARENA": "Hexagonal Riemannian metric with cyan-magenta energy conduits",
+                        "CELLULAR_NEURAL_DENDRITE": "Morphological reaction-diffusion lattice with wave synthesis",
+                        "COSMOLOGICAL_SPIRAL": "Logarithmic spiral manifold with gravitational curvature",
+                        "WHIPPET_SURFACE_MANIFOLD": "Hyperbolic Whittaker space manifold with cosh/sinh potential"
+                    }.get(s.value, "Procedural manifold scene")
+                }
+                for s in ProceduralSceneKind
+            ]
+            self.send_json({
+                "status": "OK",
+                "scenes": scenes_data,
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/geometric-supersampling/profiles", "/api/geometric/profiles"):
+            from krystal_kernel.geometric_procedural_supersampling_engine import CANONICAL_NPU_PROFILES
+            profiles_data = [p.to_dict() for p in CANONICAL_NPU_PROFILES.values()]
+            self.send_json({
+                "status": "OK",
+                "profiles": profiles_data,
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/geometric-supersampling/latest", "/api/geometric/latest"):
+            from krystal_kernel.geometric_procedural_supersampling_engine import (
+                GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE,
+                ProceduralSceneKind
+            )
+            bundle = GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE.generate_scene_stream(
+                scene=ProceduralSceneKind.EPICENTER_CRYSTAL_SPIRE,
+                profile_id="NPU_BALANCED_10BIT",
+                width=32,
+                height=32,
+                keyframes=3
+            )
+            self.send_json({
+                "status": "OK",
+                "bundle": bundle.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Status ────────────────────────────────────────────
         elif path == "/api/status":
             with state.lock:
@@ -4297,6 +4351,57 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "OK",
                 "verdict": verdict.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Geometric Procedural & NPU Multi-Frame Supersampling ───────
+        elif self.path in ("/api/geometric-supersampling/generate-stream", "/api/geometric/generate-stream"):
+            from krystal_kernel.geometric_procedural_supersampling_engine import (
+                GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE,
+                ProceduralSceneKind
+            )
+            scene_str = data.get("scene", "EPICENTER_CRYSTAL_SPIRE")
+            scene_kind = ProceduralSceneKind[scene_str] if scene_str in ProceduralSceneKind.__members__ else ProceduralSceneKind.EPICENTER_CRYSTAL_SPIRE
+            profile_id = str(data.get("profile_id", "NPU_BALANCED_10BIT"))
+            width = max(16, min(128, int(data.get("width", 48))))
+            height = max(16, min(128, int(data.get("height", 48))))
+            keyframes = max(2, min(16, int(data.get("keyframes", 4))))
+            seed = int(data.get("seed", 42))
+
+            bundle = GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE.generate_scene_stream(
+                scene=scene_kind,
+                profile_id=profile_id,
+                width=width,
+                height=height,
+                keyframes=keyframes,
+                seed=seed
+            )
+            self.send_json({
+                "status": "OK",
+                "bundle": bundle.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/geometric-supersampling/evaluate-quality", "/api/geometric/evaluate-quality"):
+            from krystal_kernel.geometric_procedural_supersampling_engine import ImageQualityEvaluator
+            ss_pixels = data.get("supersampled_pixels", [])
+            base_pixels = data.get("baseline_pixels", None)
+            bit_depth_target = str(data.get("bit_depth_target", "EXTENDED_10BIT"))
+
+            if not ss_pixels or not isinstance(ss_pixels, list):
+                self.send_json({"status": "ERROR", "message": "supersampled_pixels must be non-empty 2D array"}, status_code=400)
+                return
+
+            report = ImageQualityEvaluator.evaluate(
+                supersampled_pixels=ss_pixels,
+                baseline_pixels=base_pixels,
+                bit_depth_target=bit_depth_target
+            )
+            self.send_json({
+                "status": "OK",
+                "report": report.to_dict(),
                 "vital_max_hp": 6
             })
             return

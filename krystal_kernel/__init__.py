@@ -296,6 +296,23 @@ from .runtime import (  # noqa: F401
     GLOBAL_KRYSTAL_RUNTIME_CORE
 )
 
+from .geometric_procedural_supersampling_engine import (  # noqa: F401
+    ProceduralSceneKind,
+    NpuReconstructionFilter,
+    ColorBitDepth,
+    NpuSupersamplingSoftwareProfile,
+    CANONICAL_NPU_PROFILES,
+    ProceduralFrame,
+    GeometricManifoldSynthesizer,
+    IntermediateFrameInterpolator,
+    NpuMultiFrameSupersampler,
+    ImageQualityEvaluationReport,
+    ImageQualityEvaluator,
+    SupersampledSceneBundle,
+    GeometricProceduralSupersamplingEngine,
+    GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -376,5 +393,10 @@ __all__ = [
     "SafetyGateResult", "EvidenceGateResult", "DualGateVerdict", "SafetyGate", "EvidenceGate",
     "DualGateEvaluator", "GLOBAL_DUAL_GATE_EVALUATOR", "ExtensionCategory", "RuntimeExtensionRegistry",
     "GLOBAL_RUNTIME_EXTENSION_REGISTRY", "CoreExecutionReport", "KrystalRuntimeCore",
-    "GLOBAL_KRYSTAL_RUNTIME_CORE"
+    "GLOBAL_KRYSTAL_RUNTIME_CORE",
+    "ProceduralSceneKind", "NpuReconstructionFilter", "ColorBitDepth",
+    "NpuSupersamplingSoftwareProfile", "CANONICAL_NPU_PROFILES", "ProceduralFrame",
+    "GeometricManifoldSynthesizer", "IntermediateFrameInterpolator", "NpuMultiFrameSupersampler",
+    "ImageQualityEvaluationReport", "ImageQualityEvaluator", "SupersampledSceneBundle",
+    "GeometricProceduralSupersamplingEngine", "GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE"
 ]

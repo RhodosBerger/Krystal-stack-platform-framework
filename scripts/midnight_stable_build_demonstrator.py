@@ -340,6 +340,44 @@ class MidnightDemonstrator:
             "vital_hp": VITAL_MAX_HP
         }
 
+    def run_exhibit_9_geometric_procedural_supersampling(self) -> Dict[str, Any]:
+        """Exhibit 9: Geometric Procedural & NPU Multi-Frame Supersampling Pipeline."""
+        from krystal_kernel.geometric_procedural_supersampling_engine import (
+            GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE,
+            ProceduralSceneKind
+        )
+        bundle = GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE.generate_scene_stream(
+            scene=ProceduralSceneKind.EPICENTER_CRYSTAL_SPIRE,
+            profile_id="NPU_ULTRA_QUALITY_12BIT",
+            width=32,
+            height=32,
+            keyframes=3,
+            seed=42
+        )
+        q = bundle.quality_evaluation
+        passed = (
+            bundle.vital_max_hp == 6 and
+            bundle.total_frames_generated > 3 and
+            bundle.generation_throughput_fps > 0 and
+            len(bundle.png_base64) > 0 and
+            q.get("passed_invariant_check", False)
+        )
+        return {
+            "exhibit_name": "Exhibit 9: Geometric Procedural & NPU Multi-Frame Supersampling Pipeline",
+            "status": "PASS" if passed else "FAIL",
+            "scene": bundle.scene_kind,
+            "profile": bundle.profile_used,
+            "total_frames_generated": bundle.total_frames_generated,
+            "intermediate_frames": bundle.intermediate_frame_count,
+            "throughput_fps": bundle.generation_throughput_fps,
+            "psnr_db": q.get("psnr_db"),
+            "ssim_score": q.get("ssim_score"),
+            "color_entropy_bits": q.get("color_entropy_bits"),
+            "laplacian_edge_energy": q.get("laplacian_edge_energy"),
+            "bit_depth_effective": q.get("bit_depth_effective"),
+            "vital_hp": VITAL_MAX_HP
+        }
+
     def run_full_suite(self) -> Dict[str, Any]:
         """Executes all exhibits, builds certificate, and writes JSON artifact."""
         print("\n" + "=" * 76)
@@ -400,6 +438,12 @@ class MidnightDemonstrator:
         ex8 = self.run_exhibit_8_runtime_core_and_extensions()
         self.exhibits_results["exhibit_8"] = ex8
         print(f"[OK] (Core: {ex8['core_subsystems_count']}, Extensions: {ex8['extension_branches_count']}, Verdict: {ex8['authority_verdict']})")
+
+        # 9. Exhibit 9
+        print("  >> Executing Exhibit 9 (Geometric Procedural & NPU Supersampling)...", end=" ")
+        ex9 = self.run_exhibit_9_geometric_procedural_supersampling()
+        self.exhibits_results["exhibit_9"] = ex9
+        print(f"[OK] (Frames: {ex9['total_frames_generated']}, FPS: {ex9['throughput_fps']}, PSNR: {ex9['psnr_db']}dB, Depth: {ex9['bit_depth_effective']})")
 
         print("-" * 76)
         all_passed = all(e.get("status") == "PASS" for e in self.exhibits_results.values())
