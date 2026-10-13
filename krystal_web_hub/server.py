@@ -966,6 +966,21 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Radius Derivative vs Cosine Topology Engine ───────
+        elif norm_path in ("/api/topology/radius-vs-cosine", "/api/procedural/topology/status"):
+            from krystal_kernel.radius_derivative_vs_cosine_topology import GLOBAL_TOPOLOGY_COMPARATOR
+            self.send_json(GLOBAL_TOPOLOGY_COMPARATOR.generate_analytical_comparison())
+            return
+
+        elif norm_path in ("/api/topology/radius-vs-cosine/samples", "/api/procedural/topology/samples"):
+            from krystal_kernel.radius_derivative_vs_cosine_topology import GLOBAL_TOPOLOGY_COMPARATOR
+            self.send_json({
+                "status": "OK",
+                "samples": GLOBAL_TOPOLOGY_COMPARATOR.sample_profile(sample_count=36),
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Processor Integrity & Context-Switch Telemetry ────
         elif norm_path in ("/api/kernel/integrity", "/api/processor/integrity", "/api/kernel_telemetry"):
             from krystal_kernel.processor_integrity_telemetry import GLOBAL_PROCESSOR_INTEGRITY_ENGINE
@@ -3737,6 +3752,24 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "status": "OK",
                 "query": q,
                 "hits": [{"chunk": c.to_dict(), "score": round(sc, 4)} for c, sc in hits],
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Radius Derivative vs Cosine Topology Engine ───────
+        elif self.path in ("/api/topology/radius-vs-cosine/evaluate", "/api/procedural/topology/evaluate"):
+            from krystal_kernel.radius_derivative_vs_cosine_topology import (
+                CosineTopologyParameters,
+                RadiusDerivativeVsCosineTopologyComparator
+            )
+            base_r = float(data.get("base_radius", 100.0))
+            lobes = int(data.get("lobes", 4))
+            topo = CosineTopologyParameters.create_canonical(base_r=base_r, lobes=lobes)
+            comp = RadiusDerivativeVsCosineTopologyComparator(topo)
+            self.send_json({
+                "status": "OK",
+                "comparison": comp.generate_analytical_comparison(),
+                "samples": comp.sample_profile(sample_count=int(data.get("samples_count", 36))),
                 "vital_max_hp": 6
             })
             return

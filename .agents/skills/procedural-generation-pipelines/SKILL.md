@@ -59,12 +59,26 @@ When adding a procedural domain (e.g., street networks, island realms, celestial
        return points
    ```
 
-3. **Janet DSL Mirror (`krystal_janet/<domain>_engine.janet`):**
+3. **Radius Derivát vs. Kosínusová Topológia Parametre:**
+   V procedurálnej syntéze geometrie sa rozlišuje medzi **globálnou kosínusovou topológiou** a **lokálnym radius derivátom**:
+   - **Kosínusová Topológia**: Globálna harmonická obálka tvaru v ortogonálnej báze:
+     $$r(\theta) = R_0 + \sum_{k=1}^K A_k \cos(k \omega \theta + \phi_k)$$
+     kde $R_0$ je nosný polomer, $A_k$ je amplitúda k-tej harmonickej zložky (tlmená Zlatým rezom $\Phi = 1.618$), $\omega$ je počet symetrických lalokov a $\phi_k$ je fázový posun.
+   - **Radius Derivát ($\frac{dr}{d\theta}$)**: Diferenciálny vektor zmeny riadiaci dotyčnice $\mathbf{T}$ a normály $\mathbf{N}$:
+     $$\frac{dr}{d\theta} = -\sum_{k=1}^K A_k (k \omega) \sin(k \omega \theta + \phi_k)$$
+   - **Fázová Ortogonalita**: Radius derivát je posunutý o $+90^\circ$ ($\frac{\pi}{2}$) oproti kosínusu. Na vrcholoch lalokov je $\frac{dr}{d\theta} = 0$, kým maximálna strmosť $|\frac{dr}{d\theta}|_{\max} = A \omega$ nastáva presne pri prechode stredným polomerom $R_0$.
+   - **Pomer Strmosti a Detekcia Previsov**:
+     $$\xi(\theta) = \frac{\left|\frac{dr}{d\theta}\right|}{r(\theta)}$$
+     - $\xi \le 1.0$: Hladký terén reprezentovateľný výškovou mapou (2.5D).
+     - $\xi > 1.0$: Geometrické podrezanie a jaskyne (overhangs), vyžadujúce plný 3D SDF raymarching.
+   - **Invariant**: Maximálna amplitúda je striktne viazaná na $\text{VITAL\_MAX\_HP} == 6$.
+
+4. **Janet DSL Mirror (`krystal_janet/<domain>_engine.janet`):**
    - Define constants: `(def VITAL-MAX-HP 6)`, `(def GOLDEN-RATIO 1.6180339887)`.
    - Provide immutable dictionary schemas for all entities.
    - Verify with: `python -m krystal_janet.janet_bridge`.
 
-4. **Java 21 Transpiler Parity:**
+5. **Java 21 Transpiler Parity:**
    - Map Python `@dataclass` directly to `public record DomainName(...)`.
    - Include compact constructor validation enforcing `vitalMaxHp <= VITAL_MAX_HP`:
      ```java
@@ -76,12 +90,12 @@ When adding a procedural domain (e.g., street networks, island realms, celestial
      }
      ```
 
-5. **Web Hub Integration & Port Safety:**
+6. **Web Hub Integration & Port Safety:**
    - Register endpoints in `krystal_web_hub/krystal_engine_core.py` under `/api/procedural/<domain>`.
    - Ensure the server is tested with timeout-guarded Python verification scripts (`timeout=5.0`).
    - Check port conflicts with `Get-NetTCPConnection -LocalPort <port>` before test launches.
 
-6. **Interactive Studio Design Standards:**
+7. **Interactive Studio Design Standards:**
    - Background: Dark noir charcoal (`#0f0f12` or `#18181b`).
    - Primary accents: Suave Pink Panther (`#ec4899`, `#f472b6`) or Cyber Neon (`#06b6d4`, `#10b981`).
    - HUD: Real-time telemetry displaying current seed, entity count, 6 Max HP bars (6 discrete heart/pip icons), and generation time in ms.

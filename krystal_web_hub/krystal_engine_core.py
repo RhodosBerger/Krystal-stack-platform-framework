@@ -241,6 +241,11 @@ from krystal_kernel.small_model_core_rag_engine import (
     CoreKnowledgeDomain,
     SmallModelSpec
 )
+from krystal_kernel.radius_derivative_vs_cosine_topology import (
+    GLOBAL_TOPOLOGY_COMPARATOR,
+    CosineTopologyParameters,
+    RadiusDerivativeVsCosineTopologyComparator
+)
 from krystal_web_hub.economic_engine.polymorphic_shape_blender_platform import (
     GLOBAL_SHAPE_PLATFORM,
     LanguageMode,
@@ -2004,6 +2009,19 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── RADIUS DERIVATIVE VS COSINE TOPOLOGY ENGINE (GET) ──────────────
+        if path in ('/api/topology/radius-vs-cosine', '/api/procedural/topology/status'):
+            self._send_json(GLOBAL_TOPOLOGY_COMPARATOR.generate_analytical_comparison())
+            return
+
+        if path in ('/api/topology/radius-vs-cosine/samples', '/api/procedural/topology/samples'):
+            self._send_json({
+                "success": True,
+                "samples": GLOBAL_TOPOLOGY_COMPARATOR.sample_profile(sample_count=36),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
         # ── PROCEDURAL LAND BENCHMARK & CI/CD THROUGHPUT (GET) ──────────────
         if path == '/api/procedural-benchmark/status':
             self._send_json(GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE.get_status())
@@ -3604,6 +3622,20 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "success": True,
                 "query": q,
                 "hits": [{"chunk": c.to_dict(), "score": round(sc, 4)} for c, sc in hits],
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── RADIUS DERIVATIVE VS COSINE TOPOLOGY ENGINE (POST) ─────────────
+        if path in ('/api/topology/radius-vs-cosine/evaluate', '/api/procedural/topology/evaluate'):
+            base_r = float(req_data.get("base_radius", 100.0))
+            lobes = int(req_data.get("lobes", 4))
+            topo = CosineTopologyParameters.create_canonical(base_r=base_r, lobes=lobes)
+            comp = RadiusDerivativeVsCosineTopologyComparator(topo)
+            self._send_json({
+                "success": True,
+                "comparison": comp.generate_analytical_comparison(),
+                "samples": comp.sample_profile(sample_count=int(req_data.get("samples_count", 36))),
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return
