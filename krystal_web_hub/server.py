@@ -860,6 +860,9 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "cascade_model_studio.html", "text/html")
             return
+        elif norm_path in ("/karaf", "/karaf-studio", "/karaf_studio.html", "/karaf-fabric"):
+            self.serve_file(STATIC_DIR / "karaf_studio.html", "text/html")
+            return
         elif norm_path in (
             "/paradox-registry", "/epistemic-paradoxes", "/paradox-studio",
             "/epistemic_paradox_registry_studio.html"
@@ -1081,6 +1084,18 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "execution_matrix": GLOBAL_MODEL_CASCADE_RUNTIME.get_execution_matrix(),
                 "vital_max_hp": 6
             })
+            return
+
+        # ── API: KARAF (Adaptive Runtime Algorithm Fabric) ─────────
+        elif norm_path in ("/api/karaf/status", "/api/karaf/telemetry"):
+            from krystal_kernel.karaf import GLOBAL_KARAF_PLANNER
+            rep = GLOBAL_KARAF_PLANNER.run_cycle()
+            self.send_json(rep.to_dict())
+            return
+
+        elif norm_path in ("/api/karaf/templates", "/api/karaf/templates/list"):
+            from krystal_kernel.karaf import GLOBAL_TEMPLATE_REGISTRY
+            self.send_json(GLOBAL_TEMPLATE_REGISTRY.list_templates())
             return
 
         # ── API: Linux Hardware Allocation Monitor & Categories ─────

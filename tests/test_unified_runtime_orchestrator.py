@@ -173,6 +173,70 @@ class TestUnifiedRuntimeOrchestrator(unittest.TestCase):
         self.assertIn("krystal-llm-train-epoch", tool_names)
         self.assertIn("krystal-llm-rag-benchmark", tool_names)
 
+    # ─── 5. KARAF DECLARATIVE TEMPLATES INTEGRATION ──────────────────────────
+
+    def test_10_karaf_templates_working_in_orchestration_cycle(self):
+        """
+        Verifies that resource_envelope.yaml, worker_elasticity.yaml, and cascade_placement.yaml
+        actively calculate and parameterize the Epistemic Meta-Orchestrator.
+        """
+        req = {
+            "request_id": "req-karaf-01",
+            "prompt": "Generuj optimalizovaný kaskádový inferenčný plán pre neurónovú syntézu",
+            "profile": "balanced_copilot"
+        }
+        res = self.runtime.orchestrate_full_cycle(req)
+        plan = res["step_2_plan"]
+
+        # Check KARAF Templates container
+        self.assertIn("karaf_templates", plan)
+        kt = plan["karaf_templates"]
+
+        # 1. resource_envelope.yaml
+        self.assertIn("resource_envelope", kt)
+        are = kt["resource_envelope"]
+        self.assertEqual(are["template"], "resource_envelope.yaml")
+        self.assertEqual(are["algorithm"], "ARE_SOLVER_V2")
+        self.assertGreaterEqual(are["optimal_workers"], 1)
+        self.assertGreaterEqual(are["optimal_pl1_watts"], 10.0)
+
+        # 2. worker_elasticity.yaml
+        self.assertIn("worker_elasticity", kt)
+        we = kt["worker_elasticity"]
+        self.assertEqual(we["template"], "worker_elasticity.yaml")
+        self.assertEqual(we["algorithm"], "WORKER_GRADIENT_V1")
+        self.assertIn(we["decision"], ["SCALE_UP", "KEEP_TOPOLOGY", "SHRINK_WORKERS"])
+        self.assertIn(we["elasticity_state"], ["ELASTIC_GROWTH", "SATURATION", "CONTENTION_AVOIDANCE"])
+
+        # 3. cascade_placement.yaml
+        self.assertIn("cascade_placement", kt)
+        cp = kt["cascade_placement"]
+        self.assertEqual(cp["template"], "cascade_placement.yaml")
+        self.assertEqual(cp["algorithm"], "CASCADE_PLACEMENT_V2")
+        # Constitutional mandate: verifier is ALWAYS CPU_SIMD for deterministic verification
+        self.assertEqual(cp["active_placements"]["verifier"], "CPU_SIMD")
+
+        # Worker Profile must be synthesized directly from the solvers
+        wp = plan["worker_profile"]
+        self.assertEqual(wp["worker_threads"], we["recommended_workers"])
+        self.assertEqual(wp["power_limit_pl1_watts"], are["optimal_pl1_watts"])
+        self.assertEqual(wp["elasticity_decision"], we["decision"])
+        self.assertEqual(wp["node_placements"]["verifier"], "CPU_SIMD")
+
+        # Invariant check
+        self.assertEqual(res["vital_max_hp"], 6)
+
+    def test_11_cascade_placement_deterministic_verifier_invariant(self):
+        """Verifies that across all hardware conditions, verifier is strictly CPU_SIMD and VITAL_MAX_HP == 6."""
+        for profile in ["low_latency_gaming", "balanced_copilot", "max_compute_npu", "offline_hermetic"]:
+            req = {"request_id": f"req-inv-{profile}", "prompt": "Test verifier", "profile": profile}
+            ctx = self.runtime.inspect_and_resolve(req)
+            plan = self.runtime.compose(req, context=ctx)
+            self.assertEqual(plan.worker_profile["node_placements"]["verifier"], "CPU_SIMD")
+            self.assertEqual(plan.karaf_templates["cascade_placement"]["active_placements"]["verifier"], "CPU_SIMD")
+            self.assertEqual(plan.vital_max_hp, 6)
+
 
 if __name__ == "__main__":
     unittest.main()
+

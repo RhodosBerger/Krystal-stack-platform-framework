@@ -63,6 +63,12 @@ from krystal_kernel.runtime.prediction_error_ledger import (
     PredictionErrorLedger,
     PredictionErrorRecord
 )
+from krystal_kernel.karaf_engine import (
+    AdaptiveResourceEnvelopeSolver,
+    WorkerElasticityGradient,
+    CascadeHardwarePlacementOptimizer,
+    CanonicalTemplateLoader
+)
 
 
 # ─── DATA CONTRACTS FOR THE 5-STEP LIFECYCLE ─────────────────────────────────
@@ -102,6 +108,7 @@ class ComposedExecutionPlan:
     # Expected Telemetry Baseline (Hypothesis Target)
     expected_telemetry: Dict[str, float]  # expected_latency_ms, expected_memory_mb, expected_thermal_delta_c, expected_token_rate
     rationale: str
+    karaf_templates: Dict[str, Any] = field(default_factory=dict)
     vital_max_hp: int = VITAL_MAX_HP
 
     def to_dict(self) -> Dict[str, Any]:
@@ -303,9 +310,47 @@ class EpistemicMetaOrchestrator:
         if cascade and "forced_model" in cascade:
             selected_model = cascade["forced_model"]
 
-        # 2. Backend Selection
+        # ─── EVALUATE KARAF DECLARATIVE TEMPLATES ─────────────────────────────
+        # 1. resource_envelope.yaml: R* = argmax U(R | H, W, S, E)
+        cpu_util_val = 25.0 if ctx.config_profile == "low_latency_gaming" else 45.0
+        mem_pressure_val = min(0.95, ctx.cognitive_strain.get("active_memory_load_pct", 35.0) / 100.0)
+        thermal_headroom = max(2.0, 95.0 - ctx.thermal_state.get("junction_temperature_celsius", 50.0))
+        gpu_load_pct = 75.0 if selected_model == "cascade_medium_qwen7b" else 15.0
+
+        envelope_sol = AdaptiveResourceEnvelopeSolver.solve_envelope(
+            cpu_util=cpu_util_val,
+            mem_pressure=mem_pressure_val,
+            gpu_load=gpu_load_pct,
+            thermal_headroom_c=thermal_headroom,
+            cascade_memory_mb=expected_mem,
+            evidence_fresh=True
+        )
+
+        # 2. worker_elasticity.yaml: Gw = Delta U / Delta w
+        elasticity_eval = WorkerElasticityGradient.evaluate_elasticity(
+            current_workers=envelope_sol["optimal_workers"],
+            p99_latency_ms=expected_latency,
+            llc_miss_rate=0.06 if entropy > 3.0 else 0.02,
+            context_switch_rate=95.0,
+            memory_bandwidth_util=mem_pressure_val
+        )
+
+        # 3. cascade_placement.yaml: Placement(Node_i) = argmin Cost(Node_i, B)
+        has_npu = bool(ctx.hardware.get("has_npu_directml"))
+        placement_opt = CascadeHardwarePlacementOptimizer.optimize_placement(
+            gpu_load_pct=gpu_load_pct,
+            uma_pressure=mem_pressure_val,
+            thermal_headroom_c=thermal_headroom,
+            npu_available=has_npu
+        )
+
+        # 2. Backend Selection - Synthesized with cascade_placement.yaml
         if selected_model == "frontier_cloud_deepseek_v3":
             selected_backend = "REMOTE_REST_SSE"
+        elif cascade and "active_node" in cascade and cascade["active_node"] in placement_opt["active_placements"]:
+            selected_backend = placement_opt["active_placements"][cascade["active_node"]]
+        elif selected_model == "cascade_medium_qwen7b":
+            selected_backend = placement_opt["active_placements"].get("reasoner", "OPENVINO_GPU_IRIS_XE")
         elif ctx.hardware.get("has_npu_directml") and ctx.config_profile in ["max_compute_npu", "balanced_copilot"]:
             selected_backend = "DIRECTML_NPU"
         elif ctx.hardware.get("has_openvino"):
@@ -313,12 +358,21 @@ class EpistemicMetaOrchestrator:
         else:
             selected_backend = "CPU_AVX_THREADED"
 
-        # 3. Worker Profile Selection
+        # 3. Worker Profile Selection - Synthesized with resource_envelope.yaml & worker_elasticity.yaml
+        rec_workers = elasticity_eval["recommended_workers"]
+        if selected_backend == "CPU_AVX_THREADED" and rec_workers < 2:
+            rec_workers = 2
+
         worker_profile = {
-            "worker_threads": 4 if selected_backend == "CPU_AVX_THREADED" else 1,
+            "worker_threads": rec_workers,
+            "gpu_streams": envelope_sol["optimal_gpu_streams"],
+            "power_limit_pl1_watts": envelope_sol["optimal_pl1_watts"],
+            "elasticity_decision": elasticity_eval["decision"],
+            "elasticity_state": elasticity_eval["elasticity_state"],
             "thread_affinity": "EFFICIENCY_CORES" if is_thermal_critical else "BALANCED_COMPUTE",
             "queue_policy": "FIFO_PRIORITY",
-            "memory_sandbox_mb": min(8192, int(expected_mem * 1.5))
+            "memory_sandbox_mb": min(8192, int(expected_mem * 1.5)),
+            "node_placements": placement_opt["active_placements"]
         }
 
         # 4. Runtime Profile Selection
@@ -342,9 +396,38 @@ class EpistemicMetaOrchestrator:
             "expected_token_rate": round(expected_rate, 1)
         }
 
+        karaf_templates = {
+            "resource_envelope": {
+                "template": "resource_envelope.yaml",
+                "algorithm": envelope_sol.get("algorithm", "ARE_SOLVER_V2"),
+                "optimal_workers": envelope_sol.get("optimal_workers"),
+                "optimal_gpu_streams": envelope_sol.get("optimal_gpu_streams"),
+                "optimal_pl1_watts": envelope_sol.get("optimal_pl1_watts"),
+                "achieved_utility": envelope_sol.get("achieved_utility"),
+            },
+            "worker_elasticity": {
+                "template": "worker_elasticity.yaml",
+                "algorithm": elasticity_eval.get("algorithm", "WORKER_GRADIENT_V1"),
+                "current_workers": elasticity_eval.get("current_workers"),
+                "recommended_workers": elasticity_eval.get("recommended_workers"),
+                "decision": elasticity_eval.get("decision"),
+                "elasticity_state": elasticity_eval.get("elasticity_state"),
+                "best_utility_gain": elasticity_eval.get("best_utility_gain"),
+            },
+            "cascade_placement": {
+                "template": "cascade_placement.yaml",
+                "algorithm": placement_opt.get("algorithm", "CASCADE_PLACEMENT_V2"),
+                "active_placements": placement_opt.get("active_placements"),
+                "displacements": placement_opt.get("displacements", []),
+            }
+        }
+
         rationale = (
             f"Orchestrated for entropy={entropy:.2f}, thermal={ctx.thermal_state.get('thermal_state')}, "
-            f"model={selected_model} on backend={selected_backend} with evidence={evidence_mode}."
+            f"model={selected_model} on backend={selected_backend} with evidence={evidence_mode}. "
+            f"KARAF Templates: [ARE_SOLVER_V2: {envelope_sol['optimal_workers']}w@{envelope_sol['optimal_pl1_watts']}W, "
+            f"WORKER_GRADIENT_V1: {elasticity_eval['decision']} ({elasticity_eval['recommended_workers']}w), "
+            f"CASCADE_PLACEMENT_V2: reasoner->{placement_opt['active_placements'].get('reasoner')}]"
         )
 
         return ComposedExecutionPlan(
@@ -359,6 +442,7 @@ class EpistemicMetaOrchestrator:
             evidence_mode=evidence_mode,
             expected_telemetry=expected_telemetry,
             rationale=rationale,
+            karaf_templates=karaf_templates,
             vital_max_hp=VITAL_MAX_HP
         )
 
