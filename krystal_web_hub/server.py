@@ -2428,6 +2428,18 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Autonomous Command Loop Actors & Bulk Parameter Sockets ──────
+        elif path in ("/api/actors/status", "/api/actors/telemetry"):
+            from krystal_kernel.automated_command_actors import GLOBAL_ACTOR_SYSTEM_COORDINATOR
+            if not GLOBAL_ACTOR_SYSTEM_COORDINATOR._is_active:
+                GLOBAL_ACTOR_SYSTEM_COORDINATOR.start_all_actors()
+            self.send_json({
+                "status": "OK",
+                "telemetry": GLOBAL_ACTOR_SYSTEM_COORDINATOR.get_full_telemetry(),
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Status ────────────────────────────────────────────
         elif path == "/api/status":
             with state.lock:
@@ -3921,6 +3933,23 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                     "report": report.to_dict(),
                     "vital_max_hp": 6
                 })
+            except Exception as e:
+                self.send_json({
+                    "status": "ERROR",
+                    "error": str(e),
+                    "vital_max_hp": 6
+                }, status=400)
+            return
+
+        elif self.path in ("/api/actors/bulk-params", "/api/actors/bulk_params"):
+            from krystal_kernel.automated_command_actors import GLOBAL_ACTOR_SYSTEM_COORDINATOR
+            actor_id = data.get("actor_id", "ACTOR_HW_REGULATOR")
+            params = data.get("parameters", {})
+            try:
+                if not GLOBAL_ACTOR_SYSTEM_COORDINATOR._is_active:
+                    GLOBAL_ACTOR_SYSTEM_COORDINATOR.start_all_actors()
+                res = GLOBAL_ACTOR_SYSTEM_COORDINATOR.dispatch_bulk_parameters(actor_id, params)
+                self.send_json(res)
             except Exception as e:
                 self.send_json({
                     "status": "ERROR",

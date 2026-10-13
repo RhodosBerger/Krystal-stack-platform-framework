@@ -1,7 +1,7 @@
 {
   "certificate_title": "KRYSTAL-STACK MIDNIGHT STABLE BUILD CERTIFICATE",
-  "run_id": "MIDNIGHT-31BF4631",
-  "timestamp": 1791878009.8446958,
+  "run_id": "MIDNIGHT-B1330823",
+  "timestamp": 1791878400.3390708,
   "release_candidate": "v2.0-midnight-stable",
   "target_setup": {
     "setup_type": "SETUP_A_WINDOWS_IRIS_XE_BAREMETAL",
@@ -22,7 +22,7 @@
     "exhibit_1": {
       "exhibit_name": "Exhibit 1: 8-Phase Causal LLM Execution Plane",
       "status": "PASS",
-      "trace_id": "TRACE-LLM-64824281",
+      "trace_id": "TRACE-LLM-638B0812",
       "phases_completed": 8,
       "ttft_ms": 22.14,
       "inter_token_latency_ms": 5.0,

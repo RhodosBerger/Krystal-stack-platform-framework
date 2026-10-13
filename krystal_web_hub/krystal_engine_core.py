@@ -2108,6 +2108,18 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── AUTONOMOUS COMMAND LOOP ACTORS & BULK PARAMETER SOCKETS (GET) ───
+        if path in ('/api/actors/status', '/api/actors/telemetry'):
+            from krystal_kernel.automated_command_actors import GLOBAL_ACTOR_SYSTEM_COORDINATOR
+            if not GLOBAL_ACTOR_SYSTEM_COORDINATOR._is_active:
+                GLOBAL_ACTOR_SYSTEM_COORDINATOR.start_all_actors()
+            self._send_json({
+                "status": "OK",
+                "telemetry": GLOBAL_ACTOR_SYSTEM_COORDINATOR.get_full_telemetry(),
+                "vital_max_hp": VITAL_MAX_HP
+            })
+            return
+
         # ── PROCEDURAL LAND BENCHMARK & CI/CD THROUGHPUT (GET) ──────────────
         if path == '/api/procedural-benchmark/status':
             self._send_json(GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE.get_status())
@@ -3793,6 +3805,23 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                     "report": report.to_dict(),
                     "vital_max_hp": VITAL_MAX_HP
                 })
+            except Exception as e:
+                self._send_json({
+                    "status": "ERROR",
+                    "error": str(e),
+                    "vital_max_hp": VITAL_MAX_HP
+                }, status=400)
+            return
+
+        if path in ('/api/actors/bulk-params', '/api/actors/bulk_params'):
+            from krystal_kernel.automated_command_actors import GLOBAL_ACTOR_SYSTEM_COORDINATOR
+            actor_id = req_data.get("actor_id", "ACTOR_HW_REGULATOR")
+            params = req_data.get("parameters", {})
+            try:
+                if not GLOBAL_ACTOR_SYSTEM_COORDINATOR._is_active:
+                    GLOBAL_ACTOR_SYSTEM_COORDINATOR.start_all_actors()
+                res = GLOBAL_ACTOR_SYSTEM_COORDINATOR.dispatch_bulk_parameters(actor_id, params)
+                self._send_json(res)
             except Exception as e:
                 self._send_json({
                     "status": "ERROR",

@@ -200,6 +200,20 @@ from .coordination_templates import (  # noqa: F401
     GLOBAL_COORDINATION_TEMPLATE_ENGINE
 )
 
+from .automated_command_actors import (  # noqa: F401
+    SocketCommandOpcode,
+    BulkParameterSocketPacket,
+    BulkParameterSocketServer,
+    send_bulk_parameters_via_client,
+    ActorLoopState,
+    BaseAutonomousCommandLoopActor,
+    HardwareRegulationLoopActor,
+    NpuBatchTuningLoopActor,
+    EpistemicGovernorLoopActor,
+    AutonomousActorSystemCoordinator,
+    GLOBAL_ACTOR_SYSTEM_COORDINATOR
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -254,5 +268,9 @@ __all__ = [
     "GLOBAL_HARDWARE_COORDINATOR", "TaskStageKind", "EstimationTask",
     "EstimationPlanReport", "EstimationTaskPlan", "build_canonical_estimation_dag",
     "CoordinationTemplateId", "CoordinationTemplate", "CoordinatedDispatchReport",
-    "CANONICAL_TEMPLATES", "CoordinationTemplateEngine", "GLOBAL_COORDINATION_TEMPLATE_ENGINE"
+    "CANONICAL_TEMPLATES", "CoordinationTemplateEngine", "GLOBAL_COORDINATION_TEMPLATE_ENGINE",
+    "SocketCommandOpcode", "BulkParameterSocketPacket", "BulkParameterSocketServer",
+    "send_bulk_parameters_via_client", "ActorLoopState", "BaseAutonomousCommandLoopActor",
+    "HardwareRegulationLoopActor", "NpuBatchTuningLoopActor", "EpistemicGovernorLoopActor",
+    "AutonomousActorSystemCoordinator", "GLOBAL_ACTOR_SYSTEM_COORDINATOR"
 ]
