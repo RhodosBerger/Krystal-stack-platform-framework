@@ -997,6 +997,26 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Linux Hardware Allocation Monitor & Categories ─────
+        elif norm_path in ("/api/hw-monitor/allocation", "/api/hardware/allocation"):
+            from krystal_kernel.linux_hw_monitor_utility import GLOBAL_LINUX_HW_MONITOR
+            snapshot = GLOBAL_LINUX_HW_MONITOR.sample_snapshot()
+            self.send_json({
+                "status": "OK",
+                "allocation": snapshot.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif norm_path in ("/api/hw-monitor/categories", "/api/hardware/categories"):
+            from krystal_kernel.linux_hw_monitor_utility import HardwareResourceCategory
+            self.send_json({
+                "status": "OK",
+                "categories": [c.value for c in HardwareResourceCategory],
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Radius Derivative vs Cosine Topology Engine ───────
         elif norm_path in ("/api/topology/radius-vs-cosine", "/api/procedural/topology/status"):
             from krystal_kernel.radius_derivative_vs_cosine_topology import GLOBAL_TOPOLOGY_COMPARATOR

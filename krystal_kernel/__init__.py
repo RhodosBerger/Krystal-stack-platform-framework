@@ -366,6 +366,21 @@ from .cascade import (  # noqa: F401
     GLOBAL_MODEL_CASCADE_RUNTIME
 )
 
+from .linux_hw_monitor_utility import (  # noqa: F401
+    HardwareResourceCategory,
+    HardwareAllocationSnapshot,
+    CpuSchedulerAllocation,
+    MemoryUmaAllocation,
+    GpuAcceleratorAllocation,
+    NpuCascadeAllocation,
+    PowerThermalAllocation,
+    StorageIoAllocation,
+    NetworkSocketsAllocation,
+    EpistemicInvariantsAllocation,
+    LinuxHwMonitorUtility,
+    GLOBAL_LINUX_HW_MONITOR
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -465,5 +480,9 @@ __all__ = [
     "ReasoningNode", "CodingSpecialistNode", "VerificationNode", "FinalSynthesisNode",
     "ModelRouter", "NodeRouteCandidate", "RoutingObjectiveWeights", "ROUTING_PROFILES",
     "CascadeEdge", "CascadePlan", "CascadePlanner", "CascadeMerger", "CascadeExecutor",
-    "CascadeNodeResult", "CascadeExecutionTrace", "ModelCascadeRuntime", "GLOBAL_MODEL_CASCADE_RUNTIME"
+    "CascadeNodeResult", "CascadeExecutionTrace", "ModelCascadeRuntime", "GLOBAL_MODEL_CASCADE_RUNTIME",
+    "HardwareResourceCategory", "HardwareAllocationSnapshot", "CpuSchedulerAllocation",
+    "MemoryUmaAllocation", "GpuAcceleratorAllocation", "NpuCascadeAllocation",
+    "PowerThermalAllocation", "StorageIoAllocation", "NetworkSocketsAllocation",
+    "EpistemicInvariantsAllocation", "LinuxHwMonitorUtility", "GLOBAL_LINUX_HW_MONITOR"
 ]
