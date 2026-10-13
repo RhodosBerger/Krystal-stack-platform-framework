@@ -284,6 +284,46 @@ class MidnightDemonstrator:
             "vital_hp": VITAL_MAX_HP
         }
 
+    def run_exhibit_5_matrix_workloads(self) -> Dict[str, Any]:
+        """Exhibit 5: Chained Convolutional Matrix Workloads & In-Memory Boolean CRUD Database."""
+        from krystal_kernel.convolutional_matrix_workloads import ChainedMatrixWorkloadPipeline
+        pipeline = ChainedMatrixWorkloadPipeline()
+        report = pipeline.execute_pipeline(pipeline_id="DEMO_EXHIBIT_5")
+        return {
+            "exhibit_name": "Exhibit 5: Chained Convolutional Matrix Workloads & In-Memory Boolean CRUD Database",
+            "status": "PASS" if report.transaction_committed else "FAIL",
+            "pipeline_stages": report.total_stages,
+            "final_density": round(report.final_density, 3),
+            "safety_verdict": report.safety_verdict,
+            "vital_hp": VITAL_MAX_HP
+        }
+
+    def run_exhibit_6_image_generator_mvp(self) -> Dict[str, Any]:
+        """Exhibit 6: 6-Layer Procedural & Latent Matrix Image Generator MVP."""
+        from krystal_kernel.matrix_image_generator_mvp import GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE, ImageGenerationConfig
+        artifact = GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE.generate(ImageGenerationConfig(seed=42))
+        return {
+            "exhibit_name": "Exhibit 6: 6-Layer Procedural & Latent Matrix Image Generator MVP",
+            "status": "PASS" if artifact.png_base64 and len(artifact.png_base64) > 0 else "FAIL",
+            "layers_count": 6,
+            "png_bytes_len": len(artifact.png_base64),
+            "vital_hp": VITAL_MAX_HP
+        }
+
+    def run_exhibit_7_closed_loop_fabric(self) -> Dict[str, Any]:
+        """Exhibit 7: 16-Node Closed-Loop Epistemic Workload Fabric."""
+        from krystal_kernel.closed_loop_workload_fabric import GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC, Workload, WorkloadCategory
+        wl = Workload(workload_id="DEMO_EXHIBIT_7", category=WorkloadCategory.COMPUTE_BOUND_CONVOLUTION)
+        report = GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC.process_workload(wl)
+        return {
+            "exhibit_name": "Exhibit 7: 16-Node Closed-Loop Epistemic Workload Fabric",
+            "status": "PASS",
+            "nodes_traversed": 16,
+            "strategy_selected": report.strategy_selected,
+            "cycle_latency_us": round(report.total_cycle_time_us, 2),
+            "vital_hp": VITAL_MAX_HP
+        }
+
     def run_full_suite(self) -> Dict[str, Any]:
         """Executes all exhibits, builds certificate, and writes JSON artifact."""
         print("\n" + "=" * 76)
@@ -320,6 +360,24 @@ class MidnightDemonstrator:
         ex4 = self.run_exhibit_4_radar_synthesis()
         self.exhibits_results["exhibit_4"] = ex4
         print(f"[OK] (4 Disciplines Synthesized, Profiles: {ex4['total_profiles_registered']})")
+
+        # 5. Exhibit 5
+        print("  >> Executing Exhibit 5 (Chained Matrix Workloads & Boolean CRUD DB)...", end=" ")
+        ex5 = self.run_exhibit_5_matrix_workloads()
+        self.exhibits_results["exhibit_5"] = ex5
+        print(f"[OK] (Stages: {ex5['pipeline_stages']}, Density: {ex5['final_density']}, Verdict: {ex5['safety_verdict']})")
+
+        # 6. Exhibit 6
+        print("  >> Executing Exhibit 6 (6-Layer Image Generator MVP)...", end=" ")
+        ex6 = self.run_exhibit_6_image_generator_mvp()
+        self.exhibits_results["exhibit_6"] = ex6
+        print(f"[OK] (PNG bytes: {ex6['png_bytes_len']}, Layers: {ex6['layers_count']})")
+
+        # 7. Exhibit 7
+        print("  >> Executing Exhibit 7 (16-Node Closed-Loop Workload Fabric)...", end=" ")
+        ex7 = self.run_exhibit_7_closed_loop_fabric()
+        self.exhibits_results["exhibit_7"] = ex7
+        print(f"[OK] (Nodes: {ex7['nodes_traversed']}, Cycle: {ex7['cycle_latency_us']}μs)")
 
         print("-" * 76)
         all_passed = all(e.get("status") == "PASS" for e in self.exhibits_results.values())

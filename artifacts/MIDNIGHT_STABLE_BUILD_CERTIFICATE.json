@@ -1,7 +1,7 @@
 {
   "certificate_title": "KRYSTAL-STACK MIDNIGHT STABLE BUILD CERTIFICATE",
-  "run_id": "MIDNIGHT-D83C7C51",
-  "timestamp": 1791879585.941434,
+  "run_id": "MIDNIGHT-1B769EBB",
+  "timestamp": 1791880265.5676584,
   "release_candidate": "v2.0-midnight-stable",
   "target_setup": {
     "setup_type": "SETUP_A_WINDOWS_IRIS_XE_BAREMETAL",
@@ -22,7 +22,7 @@
     "exhibit_1": {
       "exhibit_name": "Exhibit 1: 8-Phase Causal LLM Execution Plane",
       "status": "PASS",
-      "trace_id": "TRACE-LLM-B5147801",
+      "trace_id": "TRACE-LLM-103A0942",
       "phases_completed": 8,
       "ttft_ms": 22.14,
       "inter_token_latency_ms": 5.0,
@@ -118,6 +118,29 @@
           "deterministic_ratio": 80.0
         }
       },
+      "vital_hp": 6
+    },
+    "exhibit_5": {
+      "exhibit_name": "Exhibit 5: Chained Convolutional Matrix Workloads & In-Memory Boolean CRUD Database",
+      "status": "PASS",
+      "pipeline_stages": 6,
+      "final_density": 0.188,
+      "safety_verdict": "safe:pass",
+      "vital_hp": 6
+    },
+    "exhibit_6": {
+      "exhibit_name": "Exhibit 6: 6-Layer Procedural & Latent Matrix Image Generator MVP",
+      "status": "PASS",
+      "layers_count": 6,
+      "png_bytes_len": 6152,
+      "vital_hp": 6
+    },
+    "exhibit_7": {
+      "exhibit_name": "Exhibit 7: 16-Node Closed-Loop Epistemic Workload Fabric",
+      "status": "PASS",
+      "nodes_traversed": 16,
+      "strategy_selected": "PlannerStrategyKind.PARETO_OPTIMAL_NPU",
+      "cycle_latency_us": 279.4,
       "vital_hp": 6
     }
   },

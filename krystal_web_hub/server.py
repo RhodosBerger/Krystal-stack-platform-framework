@@ -2507,6 +2507,40 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Closed-Loop Epistemic Workload Fabric ────────────────────────
+        elif path in ("/api/closed-loop/status", "/api/closed-loop/telemetry"):
+            from krystal_kernel.closed_loop_workload_fabric import GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC
+            self.send_json({
+                "status": "OK",
+                "cycles_executed": GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC.cycle_count,
+                "active_hypotheses": GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC.hypothesis_ledger.get_all_hypotheses(),
+                "recent_prediction_errors": [
+                    r.to_dict() for r in GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC.prediction_error_ledger.records[-10:]
+                ],
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/closed-loop/hypotheses", "/api/closed-loop/hypothesis-ledger"):
+            from krystal_kernel.closed_loop_workload_fabric import GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC
+            self.send_json({
+                "status": "OK",
+                "hypotheses": GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC.hypothesis_ledger.get_all_hypotheses(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/closed-loop/prediction-errors", "/api/closed-loop/errors"):
+            from krystal_kernel.closed_loop_workload_fabric import GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC
+            self.send_json({
+                "status": "OK",
+                "records": [
+                    r.to_dict() for r in GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC.prediction_error_ledger.records
+                ],
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Status ────────────────────────────────────────────
         elif path == "/api/status":
             with state.lock:
@@ -4112,6 +4146,37 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "OK",
                 "artifact": artifact.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Closed-Loop Epistemic Workload Fabric ────────────────────────
+        elif self.path in ("/api/closed-loop/process-workload", "/api/closed-loop/execute"):
+            from krystal_kernel.closed_loop_workload_fabric import (
+                GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC,
+                Workload,
+                WorkloadCategory,
+                BooleanMatrix
+            )
+            cat_str = data.get("category", "COMPUTE_BOUND_CONVOLUTION")
+            cat = WorkloadCategory[cat_str] if cat_str in WorkloadCategory.__members__ else WorkloadCategory.COMPUTE_BOUND_CONVOLUTION
+            w_id = data.get("workload_id", f"WL_{int(time.time() * 1000)}")
+            deadline = float(data.get("target_deadline_us", 50000.0))
+            params = data.get("parameters", {})
+            in_bits = data.get("input_bits")
+            in_matrix = BooleanMatrix(rows=8, cols=8, initial_bits=in_bits) if in_bits else None
+
+            wl = Workload(
+                workload_id=w_id,
+                category=cat,
+                parameters=params,
+                input_matrix=in_matrix,
+                target_deadline_us=deadline
+            )
+            rep = GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC.process_workload(wl)
+            self.send_json({
+                "status": "OK",
+                "report": rep.to_dict(),
                 "vital_max_hp": 6
             })
             return

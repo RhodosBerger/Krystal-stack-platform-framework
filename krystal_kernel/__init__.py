@@ -245,6 +245,34 @@ from .matrix_image_generator_mvp import (  # noqa: F401
     GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE
 )
 
+from .closed_loop_workload_fabric import (  # noqa: F401
+    WorkloadCategory,
+    Workload,
+    WorkloadClassification,
+    WorkloadClassifier,
+    PlannerStrategyKind,
+    ExecutionPlan,
+    PlannerSelector,
+    Planner,
+    CompiledExperimentScript,
+    ExperimentScriptCompiler,
+    StateSpacePruner,
+    SafetyEvidenceGates,
+    MatrixPerturbation,
+    WorkerMatrix,
+    ThreadRouter,
+    LayerGraph,
+    WorkerRuntime,
+    DiscrepancyReport,
+    ExpectedVsActualComparator,
+    EmpiricalHypothesis,
+    HypothesisGenerator,
+    HypothesisLedger,
+    ClosedLoopExecutionReport,
+    ClosedLoopWorkloadFabric,
+    GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -312,5 +340,12 @@ __all__ = [
     "LatentSeedMode", "ImageColorPalette", "ImageGenerationConfig", "GeneratedImageArtifact",
     "LatentTopologyLayer", "ConvolutionalDiffusionLayer", "HarmonicColorTensorLayer",
     "EpistemicHudInlayLayer", "MatrixImageRasterExporter", "MatrixImageGeneratorEngine",
-    "GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE"
+    "GLOBAL_MATRIX_IMAGE_GENERATOR_ENGINE",
+    "WorkloadCategory", "Workload", "WorkloadClassification", "WorkloadClassifier",
+    "PlannerStrategyKind", "ExecutionPlan", "PlannerSelector", "Planner",
+    "CompiledExperimentScript", "ExperimentScriptCompiler", "StateSpacePruner",
+    "SafetyEvidenceGates", "MatrixPerturbation", "WorkerMatrix", "ThreadRouter",
+    "LayerGraph", "WorkerRuntime", "DiscrepancyReport", "ExpectedVsActualComparator",
+    "EmpiricalHypothesis", "HypothesisGenerator", "HypothesisLedger",
+    "ClosedLoopExecutionReport", "ClosedLoopWorkloadFabric", "GLOBAL_CLOSED_LOOP_WORKLOAD_FABRIC"
 ]

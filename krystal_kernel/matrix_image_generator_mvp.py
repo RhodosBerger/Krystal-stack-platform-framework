@@ -639,6 +639,9 @@ class MatrixImageGeneratorEngine:
         self._generation_count += 1
         return artifact
 
+    # Alias for generate_image
+    generate = generate_image
+
     def get_latest_artifact(self) -> Optional[GeneratedImageArtifact]:
         return self._last_generated_artifact
 

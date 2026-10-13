@@ -267,6 +267,7 @@
                     <a href="#utility-tweaker" class="nav-link" style="color: var(--emerald-stable);">⚡ Utility Tweaker</a>
                     <a href="#matrix-workloads" class="nav-link" style="color: #38bdf8;">💠 Matrix CRUD & Logs</a>
                     <a href="#matrix-image-mvp" class="nav-link" style="color: #ec4899;">🖼 Matrix Image MVP</a>
+                    <a href="#closed-loop-fabric" class="nav-link" style="color: #a855f7;">🔄 Closed-Loop Fabric</a>
                 </nav>
 
                 <div class="ks-vital-gauge" id="topVitalGauge" title="VITAL_MAX_HP == 6 Invariant Visual Contract">
@@ -1158,6 +1159,90 @@
                     </div>
                     <div id="intermediateStagesContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
                         <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 14: CLOSED-LOOP EPISTEMIC WORKLOAD FABRIC & ADAPTIVE RUNTIME -->
+        <div class="section-title-wrap" id="closed-loop-fabric">
+            <h2 class="text-display-md" style="color: #a855f7;">14 // Closed-Loop Epistemic Workload Fabric &amp; Adaptive Runtime</h2>
+            <span class="section-tag">16-Node Cybernetic Loop • Prediction Error Ledger • Hypothesis Feedback Cycle</span>
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px; margin-bottom: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <span class="token-name" style="color: #a855f7; font-size: 14px;">16-NODE CLOSED-LOOP ARCHITECTURE FABRIC</span>
+                    <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">
+                        Autonomous scientific cycle connecting Workload Classification, State Space Pruning, Perturbation, Prediction Error Ledger, and Hypothesis Feedback.
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="closedLoopCategorySelect" style="background: #030712; color: #f1f5f9; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px 10px; font-size: 11px; font-family: var(--font-code);">
+                        <option value="COMPUTE_BOUND_CONVOLUTION">COMPUTE_BOUND_CONVOLUTION</option>
+                        <option value="LATENT_IMAGE_SYNTHESIS">LATENT_IMAGE_SYNTHESIS</option>
+                        <option value="SPATIAL_CRUD_MUTATION">SPATIAL_CRUD_MUTATION</option>
+                        <option value="THERMAL_POWER_REGULATION">THERMAL_POWER_REGULATION</option>
+                    </select>
+                    <button class="btn-krystal btn-primary-npu" style="padding: 8px 16px; font-size: 11px; font-weight: 700; background: linear-gradient(135deg, #a855f7, #38bdf8); border: none; box-shadow: 0 0 15px rgba(168,85,247,0.3);" onclick="triggerClosedLoopCycle()">
+                        ⚡ Spustiť Uzavretý Cyklus (16 Uzlov)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visual Flowchart Ribbon -->
+            <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px; overflow-x: auto;">
+                <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-code); font-size: 10px; min-width: 900px; justify-content: space-between;">
+                    <span class="ks-badge badge-optimal" id="nodeWorkload">WORKLOAD</span> ➔
+                    <span class="ks-badge" id="nodeClassifier" style="background: rgba(56,189,248,0.2); color: #38bdf8;">Classifier</span> ➔
+                    <span class="ks-badge" id="nodePlannerSelector" style="background: rgba(168,85,247,0.2); color: #a855f7;">PlannerSelector</span> ➔
+                    <span class="ks-badge" id="nodePlanner" style="background: rgba(168,85,247,0.2); color: #a855f7;">Planner</span> ➔
+                    <span class="ks-badge" id="nodePlan" style="background: rgba(52,211,153,0.2); color: #34d399;">ExecutionPlan</span> ➔
+                    <span class="ks-badge" id="nodeCompiler">Compiler</span> ➔
+                    <span class="ks-badge" id="nodePruner">Pruner</span> ➔
+                    <span class="ks-badge badge-optimal" id="nodeSafety">Safety Gates</span> ➔
+                    <span class="ks-badge" id="nodePerturb">Perturbation</span> ➔
+                    <span class="ks-badge" id="nodeRuntime" style="background: rgba(251,191,36,0.2); color: #fbbf24;">WorkerRuntime</span> ➔
+                    <span class="ks-badge" id="nodeTelemetry">Telemetry</span> ➔
+                    <span class="ks-badge" id="nodeCompare">Expected vs Actual</span> ➔
+                    <span class="ks-badge badge-degraded" id="nodeErrorLedger">PredictionErrorLedger</span> ➔
+                    <span class="ks-badge" id="nodeHypoGen" style="background: rgba(236,72,153,0.2); color: #ec4899;">HypothesisGen</span> ➔
+                    <span class="ks-badge" id="nodeHypoLedger" style="background: rgba(236,72,153,0.2); color: #ec4899;">HypothesisLedger</span> ⤹
+                </div>
+                <div style="text-align: right; font-family: var(--font-code); font-size: 9.5px; color: #a855f7; margin-top: 6px;">
+                    └─── [ADAPTIVE SCIENTIFIC FEEDBACK] ➔ Updates PlannerSelector for subsequent workloads ───┘
+                </div>
+            </div>
+
+            <!-- Execution Results Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;">
+                <!-- Plan & Strategy -->
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+                    <div style="font-size: 10px; color: var(--text-dim); font-family: var(--font-code);">SELECTED STRATEGY</div>
+                    <div id="closedLoopStrategy" style="font-size: 13px; font-weight: 700; color: #38bdf8; margin: 4px 0;">PARETO_OPTIMAL_NPU</div>
+                    <div id="closedLoopPlanDetails" style="font-size: 10.5px; color: var(--text-muted); font-family: var(--font-code);">
+                        Stages: 4 • Threads: 4 • Budget: 24.0W
+                    </div>
+                </div>
+
+                <!-- Expected vs Actual -->
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+                    <div style="font-size: 10px; color: var(--text-dim); font-family: var(--font-code);">EXPECTED VS ACTUAL LATENCY</div>
+                    <div id="closedLoopLatencyCmp" style="font-size: 13px; font-weight: 700; color: #34d399; margin: 4px 0;">1200 μs ➔ 292 μs</div>
+                    <div id="closedLoopDeltaInfo" style="font-size: 10.5px; color: var(--text-muted); font-family: var(--font-code);">
+                        Delta: -75.6% • MSE: 0.824 • Invariant: 6/6 HP
+                    </div>
+                </div>
+
+                <!-- Active Hypotheses Ledger -->
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 10px; color: var(--text-dim); font-family: var(--font-code);">HYPOTHESIS LEDGER</span>
+                        <span id="closedLoopHypoCountBadge" class="ks-badge badge-optimal">0 HYPOTHESES</span>
+                    </div>
+                    <div id="closedLoopHypothesisText" style="font-size: 10.5px; color: #ec4899; margin-top: 6px; font-family: var(--font-code); line-height: 1.4;">
+                        No critical divergence. Models calibrated within bounds.
                     </div>
                 </div>
             </div>
@@ -2931,6 +3016,119 @@
             });
         }
 
+        async function triggerClosedLoopCycle() {
+            const select = document.getElementById('closedLoopCategorySelect');
+            const category = select ? select.value : 'COMPUTE_BOUND_CONVOLUTION';
+            showToast(`⚡ Spúšťam 16-uzlový uzavretý cyklus (${category})...`, 'info');
+            playCyberTone('blip');
+
+            // Reset node highlights
+            const nodes = [
+                'nodeWorkload', 'nodeClassifier', 'nodePlannerSelector', 'nodePlanner',
+                'nodePlan', 'nodeCompiler', 'nodePruner', 'nodeSafety',
+                'nodePerturb', 'nodeRuntime', 'nodeTelemetry', 'nodeCompare',
+                'nodeErrorLedger', 'nodeHypoGen', 'nodeHypoLedger'
+            ];
+            nodes.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.boxShadow = 'none';
+            });
+
+            try {
+                const res = await fetch('/api/closed-loop/process-workload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category: category,
+                        workload_id: `WL_${Date.now()}`,
+                        target_deadline_us: 50000.0,
+                        parameters: { priority: "HIGH", adaptive: true }
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'OK' && data.report) {
+                    const r = data.report;
+                    // Sequentially pulse nodes
+                    nodes.forEach((id, idx) => {
+                        setTimeout(() => {
+                            const el = document.getElementById(id);
+                            if (el) {
+                                el.style.boxShadow = '0 0 12px #a855f7';
+                                setTimeout(() => { if (el) el.style.boxShadow = 'none'; }, 600);
+                            }
+                        }, idx * 60);
+                    });
+
+                    // Update UI cards
+                    const stratEl = document.getElementById('closedLoopStrategy');
+                    if (stratEl) stratEl.textContent = r.strategy_selected || 'N/A';
+
+                    const planEl = document.getElementById('closedLoopPlanDetails');
+                    if (planEl) {
+                        const p = r.execution_plan || {};
+                        planEl.textContent = `Stages: ${p.stages ? p.stages.length : 0} • Threads: ${p.allocated_threads || 1} • Budget: ${p.power_budget_watts || 24.0}W`;
+                    }
+
+                    const latEl = document.getElementById('closedLoopLatencyCmp');
+                    if (latEl) {
+                        const exp = r.expected_latency_us ? Math.round(r.expected_latency_us) : 0;
+                        const act = r.actual_latency_us ? Math.round(r.actual_latency_us) : 0;
+                        latEl.textContent = `${exp} μs ➔ ${act} μs`;
+                    }
+
+                    const deltaEl = document.getElementById('closedLoopDeltaInfo');
+                    if (deltaEl) {
+                        const dr = r.discrepancy || {};
+                        const deltaPct = (dr.delta_pct || 0).toFixed(1);
+                        const mse = (dr.matrix_mse || 0).toFixed(4);
+                        deltaEl.textContent = `Delta: ${deltaPct}% • MSE: ${mse} • Invariant: ${data.vital_max_hp}/6 HP`;
+                    }
+
+                    const hypoBadge = document.getElementById('closedLoopHypoCountBadge');
+                    if (hypoBadge) {
+                        const c = r.hypotheses_in_ledger || 0;
+                        hypoBadge.textContent = `${c} HYPOTÉZ`;
+                        hypoBadge.className = c > 0 ? 'ks-badge badge-warning' : 'ks-badge badge-optimal';
+                    }
+
+                    const hypoText = document.getElementById('closedLoopHypothesisText');
+                    if (hypoText) {
+                        if (r.new_hypotheses_generated && r.new_hypotheses_generated.length > 0) {
+                            hypoText.innerHTML = r.new_hypotheses_generated.map(h => 
+                                `⚠️ <b>${h.rule_id}</b> (dôvera: ${(h.confidence * 100).toFixed(0)}%): ${h.observed_anomaly} ➔ <i>${h.suggested_adaptation}</i>`
+                            ).join('<br>');
+                        } else {
+                            hypoText.textContent = 'Žiadna kritická divergencia. Modely sú kalibrované v rámci invariantu.';
+                        }
+                    }
+
+                    showToast(`✅ Cyklus dokončený za ${Math.round(r.total_cycle_time_us)} μs (Stratégia: ${r.strategy_selected})`, 'success');
+                    playCyberTone('confirm');
+                } else {
+                    showToast('Chyba pri spracovaní uzavretého cyklu', 'danger');
+                }
+            } catch (e) {
+                console.error('Closed-loop error:', e);
+                showToast(`Chyba uzavretého cyklu: ${e.message}`, 'danger');
+            }
+        }
+
+        async function fetchClosedLoopStatus() {
+            try {
+                const res = await fetch('/api/closed-loop/status');
+                const data = await res.json();
+                if (data.status === 'OK') {
+                    const badge = document.getElementById('closedLoopHypoCountBadge');
+                    const hypList = data.active_hypotheses || [];
+                    if (badge) {
+                        badge.textContent = `${hypList.length} HYPOTÉZ`;
+                    }
+                }
+            } catch (e) {
+                // background silent fetch
+            }
+        }
+
         // Initialize Templates, HW Status, Actor Loops, Matrix & Image MVP
         renderCoordinationTemplates();
         fetchHardwareAndTimerStatus();
@@ -2940,6 +3138,7 @@
         fetchCrudEntities();
         fetchStreamingLogs();
         executeGenerateImageMvp();
+        fetchClosedLoopStatus();
     </script>
 </body>
 </html>
