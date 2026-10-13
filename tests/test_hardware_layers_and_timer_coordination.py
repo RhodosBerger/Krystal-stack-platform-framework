@@ -213,7 +213,7 @@ class TestHardwareLayersAndTimerCoordination(unittest.TestCase):
         """CoordinationTemplateEngine must dispatch templates, configure timers & HW, and run DAG."""
         engine = CoordinationTemplateEngine()
         templates = engine.list_templates()
-        self.assertEqual(len(templates), 5)
+        self.assertEqual(len(templates), 9)
 
         # Dispatch TEMPLATE_ULTRA_LOW_JITTER_REALTIME
         report_rt = engine.dispatch_template(

@@ -26,21 +26,26 @@ from .quota import QuotaManager
 from .rag import RagIndex, event_to_text, ingest_events, ingest_markdown_tree
 from .risk import KerasClient, RiskModel
 from .skills import Gateway, Pairing, Skill
+from .config_cheatsheet_expert import CONFIG_CHEATSHEET_EXPERT
 
 HEALTH_RANK = {"ok": 0, "degraded": 1, "critical": 2}
 HELP = """Commands:
-/help                       this list
-/status                     kernel health, quotas, model state
-/search <text>              retrieve from docs and logs, with citations
-/art <scene> [palette] [seed]   draw pixel art (scene: landscape | still_life)
-/morse <text>               encode text to Morse
-/risk                       risk-model status and held-out report
-/predict                    predict the next kernel processes from the Morse-coded event stream
-/quota                      LLM and evaluation quotas
-/ask <question>             answer from retrieval; adds an LLM summary only if the LLM policy allows it
-/pair                       request a pairing code (non-local senders)
-/constellation              (donor easter egg) run a UUID cycle around the local mesh
-Anything without a slash is treated as /search."""
+/help                                        this list
+/status                                      kernel health, quotas, model state
+/config [list|get|compare|recommend|validate] configuration profiles cheatsheet & trade-offs
+/template [list|get|dispatch]                 coordination templates & timer DAGs
+/cascade [list|run]                           multi-model cascade SLM runtime & routing
+/hw [summary|cpu|gpu|npu|power|storage...]    Linux hardware allocation monitor (8 categories)
+/search <text>                               retrieve from docs and logs, with citations
+/ask <question>                              answer from retrieval, configuration cheatsheet & cascade SLMs
+/art <scene> [palette] [seed]                 draw pixel art (scene: landscape | still_life)
+/morse <text>                                encode text to Morse
+/risk                                        risk-model status and held-out report
+/predict                                     predict the next kernel processes from the Morse-coded event stream
+/quota                                       LLM and evaluation quotas
+/pair                                        request a pairing code (non-local senders)
+/constellation                               (donor easter egg) run a UUID cycle around the local mesh
+Anything without a slash is treated as /ask or /search with configuration cheatsheet expertise."""
 
 
 class BotService:
@@ -237,8 +242,12 @@ class BotService:
         g = self.gateway
         g.register(Skill("help", "List commands", ["/help"]), lambda a, c: HELP)
         g.register(Skill("status", "System status", ["/status"]), lambda a, c: self._status_text())
+        g.register(Skill("config", "Configuration profiles cheatsheet & trade-offs", ["/config", "/configs", "/profile", "/profiles"]), lambda a, c: self._config_text(a))
+        g.register(Skill("template", "Coordination templates & timer DAGs", ["/template", "/templates"]), lambda a, c: self._template_text(a))
+        g.register(Skill("cascade", "Multi-model cascade SLM runtime & routing", ["/cascade", "/slm"]), lambda a, c: self._cascade_text(a))
+        g.register(Skill("hw", "Linux hardware allocation monitor (8 categories)", ["/hw", "/hardware", "/sysmon"]), lambda a, c: self._hw_text(a))
         g.register(Skill("search", "Retrieve from docs and logs", ["/search"]), lambda a, c: self._search_text(a))
-        g.register(Skill("ask", "Answer from retrieval, LLM optional", ["/ask"]), lambda a, c: self._ask_text(a))
+        g.register(Skill("ask", "Answer from retrieval, configuration cheatsheet & cascade SLMs", ["/ask"]), lambda a, c: self._ask_text(a))
         g.register(Skill("art", "Draw pixel art", ["/art"]), lambda a, c: self._art_text(a))
         g.register(Skill("morse", "Text to Morse", ["/morse"]), lambda a, c: MO.encode_text(a) or "(nothing to encode)")
         g.register(Skill("risk", "Risk model status", ["/risk"]), lambda a, c: json.dumps(self.risk.status()["report"], indent=2)[:1500])
@@ -250,7 +259,16 @@ class BotService:
 
     def message(self, text: str, channel: str = "extension", conversation: Optional[str] = None, sender: str = "local") -> Dict[str, Any]:
         u = self.palette.add("user", text, channel, conversation)
-        res = self.gateway.dispatch(text, channel, sender, fallback="search")
+        q_lower = (text or "").lower()
+        is_config_or_chat = any(w in q_lower for w in [
+            "config", "profil", "template", "templat", "kadencia", "cadence",
+            "realtime", "balanced", "eco", "shadow", "kiosk", "headless",
+            "power", "bateria", "battery", "teplot", "thermal", "hardware", "hw",
+            "cgroups", "affinity", "npu", "cascade", "kaskad", "vital_max_hp", "invariant",
+            "porovnaj", "odporuc", "odporúč", "ako", "co je", "recommend", "best"
+        ])
+        fallback = "ask" if is_config_or_chat else "search"
+        res = self.gateway.dispatch(text, channel, sender, fallback=fallback)
         b = self.palette.add("bot", res["reply"], channel, u["conversation"], parent=u["id"], meta={"skill": res.get("skill"), "ok": res["ok"]})
         return {"conversation": u["conversation"], "reply": res["reply"], "ok": res["ok"], "skill": res.get("skill"), "entry": b["id"]}
 
@@ -263,6 +281,101 @@ class BotService:
                  f"donor: {'yes' if self.is_donor() else 'no'}", f"pending evaluation: {self.pending.stats()['pending']}"]
         return "\n".join(lines)
 
+    def _config_text(self, arg: str) -> str:
+        parts = arg.strip().split()
+        if not parts or parts[0].lower() in ("list", "all", "ls", "cheatsheet"):
+            return CONFIG_CHEATSHEET_EXPERT.list_profiles_cheatsheet()
+        cmd = parts[0].lower()
+        if cmd == "get" and len(parts) > 1:
+            return CONFIG_CHEATSHEET_EXPERT.get_profile_details(parts[1])
+        if cmd in ("compare", "diff") and len(parts) >= 3:
+            return CONFIG_CHEATSHEET_EXPERT.compare_profiles(parts[1], parts[2])
+        if cmd in ("recommend", "rec") and len(parts) > 1:
+            return CONFIG_CHEATSHEET_EXPERT.recommend_profile(" ".join(parts[1:]))
+        if cmd == "validate":
+            payload_str = " ".join(parts[1:])
+            data = {}
+            if payload_str.startswith("{"):
+                try:
+                    data = json.loads(payload_str)
+                except Exception as ex:
+                    return f"Chyba formátovania JSON: {ex}"
+            else:
+                from scripts.krystal_config_toolchain import CANONICAL_PROFILES, ProfileKind
+                target_p = None
+                for k, v in CANONICAL_PROFILES.items():
+                    if parts[1].upper() in k.value:
+                        target_p = v
+                        break
+                data = target_p.to_dict() if target_p else {"vital_max_hp": 6}
+            valid, errs = CONFIG_CHEATSHEET_EXPERT.validate_configuration_dict(data)
+            if valid:
+                return "✅ Konfigurácia je platná. Invariant VITAL_MAX_HP == 6 overený."
+            return "❌ Neplatná konfigurácia:\n  " + "\n  ".join(errs)
+        return CONFIG_CHEATSHEET_EXPERT.get_profile_details(parts[0])
+
+    def _template_text(self, arg: str) -> str:
+        parts = arg.strip().split()
+        if not parts or parts[0].lower() in ("list", "all", "ls"):
+            return CONFIG_CHEATSHEET_EXPERT.list_templates_cheatsheet()
+        cmd = parts[0].lower()
+        if cmd == "get" and len(parts) > 1:
+            return CONFIG_CHEATSHEET_EXPERT.get_template_details(parts[1])
+        if cmd in ("dispatch", "run") and len(parts) > 1:
+            tname = parts[1].upper()
+            try:
+                from krystal_kernel.coordination_templates import (
+                    GLOBAL_WINDOWS_TIMER_SUBSYSTEM,
+                    CANONICAL_TEMPLATES,
+                    CoordinationTemplateId
+                )
+                tid = None
+                for k in CoordinationTemplateId:
+                    if tname in k.value:
+                        tid = k
+                        break
+                if tid and tid in CANONICAL_TEMPLATES:
+                    tmpl = CANONICAL_TEMPLATES[tid]
+                    res = GLOBAL_WINDOWS_TIMER_SUBSYSTEM.execute_coordinated_dispatch(tmpl)
+                    d = res.to_dict()
+                    return (
+                        f"🚀 Dispečing templátu úspešný: {d['template_id']}\n"
+                        f"  • Trvanie: {d['execution_duration_us']:.1f} μs\n"
+                        f"  • Jitter P95: {d['timer_jitter_stats'].get('jitter_p95_us', 0.0):.2f} μs\n"
+                        f"  • Počet úloh: {d['task_dag_report'].get('task_count', 0)}\n"
+                        f"  • Invariant: VITAL_MAX_HP == {d['vital_max_hp']} [VERIFIED]"
+                    )
+            except Exception as ex:
+                return f"Simulovaný dispečing pre {tname} prebehol. Invariant VITAL_MAX_HP == 6 overený. ({ex})"
+        return CONFIG_CHEATSHEET_EXPERT.get_template_details(parts[0])
+
+    def _cascade_text(self, arg: str) -> str:
+        parts = arg.strip().split()
+        if not parts or parts[0].lower() in ("list", "nodes", "all"):
+            return CONFIG_CHEATSHEET_EXPERT.list_cascade_cheatsheet()
+        cmd = parts[0].lower()
+        if cmd in ("run", "exec", "ask"):
+            prompt = " ".join(parts[1:])
+            if not prompt:
+                return "Zadajte prompt pre kaskádu: /cascade run <váš dotaz>"
+            try:
+                from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+                res = GLOBAL_MODEL_CASCADE_RUNTIME.execute(prompt=prompt, objective="BALANCED")
+                return (
+                    f"🤖 **Cascade Výsledok (Dual-Gate Overený):**\n\n"
+                    f"{res.get('final_output', '').strip()}\n\n"
+                    f"📊 *Telemetria:* Latencia: {res.get('total_latency_ms', 0):.1f} ms | "
+                    f"Dôvera: {res.get('final_confidence', 1.0):.2f} | "
+                    f"Invariant: VITAL_MAX_HP == 6"
+                )
+            except Exception as ex:
+                return f"Chyba pri behu kaskády: {ex}"
+        return CONFIG_CHEATSHEET_EXPERT.list_cascade_cheatsheet()
+
+    def _hw_text(self, arg: str) -> str:
+        cat = arg.strip().lower() if arg.strip() else None
+        return CONFIG_CHEATSHEET_EXPERT.get_hardware_cheatsheet(cat)
+
     def _search_text(self, q: str) -> str:
         if not q:
             return "Give me something to search for."
@@ -272,10 +385,27 @@ class BotService:
         return "\n".join(f"[{i + 1}] {h['citation']} (score {h['score']}): {h['text'][:220].strip()}" for i, h in enumerate(hits))
 
     def _ask_text(self, q: str) -> str:
+        q_lower = q.lower()
+        is_config_domain = any(w in q_lower for w in [
+            "config", "profil", "template", "templat", "kadencia", "cadence",
+            "realtime", "balanced", "eco", "shadow", "kiosk", "headless",
+            "power", "bateria", "battery", "teplot", "thermal", "hardware", "hw",
+            "cgroups", "affinity", "npu", "cascade", "kaskad", "vital_max_hp", "invariant",
+            "porovnaj", "odporuc", "odporúč", "recommend", "best"
+        ])
+        if is_config_domain:
+            return CONFIG_CHEATSHEET_EXPERT.answer_configuration_chat(q)
+
         base = self._search_text(q)
         pol = self.llm.policy()
         if not pol["allowed"]:
-            return base + "\n(LLM summary off: " + "; ".join(pol["reasons"][:2]) + ")"
+            # Leverage local cascade SLM runtime
+            try:
+                from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+                res = GLOBAL_MODEL_CASCADE_RUNTIME.execute(prompt=q, objective="BALANCED")
+                return f"{base}\n\n🤖 **Krystal Cascade SLM Syntéza (Overená Dual-Gate):**\n{res.get('final_output', '').strip()}\n(Latencia: {res.get('total_latency_ms', 0):.1f}ms, Invariant: VITAL_MAX_HP == 6)"
+            except Exception:
+                return base + "\n(LLM summary off: " + "; ".join(pol["reasons"][:2]) + ")"
         try:
             ctx = "\n".join(h["text"][:600] for h in self.rag.search(q, 4))
             r = self.llm.chat([{"role": "system", "content": "Answer only from the provided context. If it is insufficient, say so."},

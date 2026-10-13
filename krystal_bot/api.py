@@ -21,6 +21,7 @@ from . import morse as MO
 from .bytecode import BytecodeError, Program
 from .llm_gateway import GatewayDenied
 from .service import BotService
+from .config_cheatsheet_expert import CONFIG_CHEATSHEET_EXPERT
 
 Response = Tuple[int, Dict[str, str], bytes]
 MAX_BODY = 256 * 1024
@@ -111,6 +112,29 @@ def _get(svc: BotService, sub: str, q: Dict[str, str]) -> Response:
         return _j(200, {"status": "OK", "active": svc.is_donor(), "alias": (svc.donor or {}).get("sub"), "issuer_keys_configured": len(svc.pubkeys)})
     if sub == "/palettes":
         return _j(200, {"status": "OK", "palettes": [{"id": p, "donor_only": p in CP.DONOR_PALETTES} for p in CP.PALETTE_IDS]})
+    if sub == "/configs":
+        return _j(200, {"status": "OK", "profiles": CONFIG_CHEATSHEET_EXPERT.trade_offs, "vital_max_hp": 6})
+    if sub == "/templates":
+        try:
+            from krystal_kernel.coordination_templates import CANONICAL_TEMPLATES
+            tmpls = [t.to_dict() for t in CANONICAL_TEMPLATES.values()]
+        except Exception:
+            tmpls = []
+        return _j(200, {"status": "OK", "templates": tmpls, "vital_max_hp": 6})
+    if sub == "/cascade":
+        try:
+            from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+            telem = GLOBAL_MODEL_CASCADE_RUNTIME.get_telemetry()
+        except Exception:
+            telem = {}
+        return _j(200, {"status": "OK", "telemetry": telem, "vital_max_hp": 6})
+    if sub == "/hw":
+        try:
+            from krystal_kernel.linux_hw_monitor_utility import GLOBAL_LINUX_HW_MONITOR
+            snap = GLOBAL_LINUX_HW_MONITOR.sample_snapshot().to_dict()
+        except Exception:
+            snap = {}
+        return _j(200, {"status": "OK", "snapshot": snap, "vital_max_hp": 6})
     return _e(404, f"unknown route {sub}", "not_found")
 
 
@@ -179,4 +203,36 @@ def _post(svc: BotService, sub: str, d: Dict[str, Any], headers: Dict[str, str])
         else:
             return _e(400, "kind must be math|binary_log|janet", "invalid_kind")
         return _j(200, {"status": "OK", "markdown": r["markdown"], "facts": r["facts"], "model": r["model"], "usage": r.get("usage")})
+    if sub == "/config/recommend":
+        query = str(d.get("query", ""))
+        return _j(200, {"status": "OK", "recommendation": CONFIG_CHEATSHEET_EXPERT.recommend_profile(query), "vital_max_hp": 6})
+    if sub == "/config/validate":
+        cfg = d.get("config", {})
+        valid, errs = CONFIG_CHEATSHEET_EXPERT.validate_configuration_dict(cfg)
+        return _j(200 if valid else 400, {"status": "OK" if valid else "INVALID", "valid": valid, "errors": errs, "vital_max_hp": 6})
+    if sub == "/template/dispatch":
+        tname = str(d.get("template_id", "")).upper()
+        try:
+            from krystal_kernel.coordination_templates import GLOBAL_WINDOWS_TIMER_SUBSYSTEM, CANONICAL_TEMPLATES, CoordinationTemplateId
+            tid = None
+            for k in CoordinationTemplateId:
+                if tname in k.value:
+                    tid = k
+                    break
+            if tid and tid in CANONICAL_TEMPLATES:
+                res = GLOBAL_WINDOWS_TIMER_SUBSYSTEM.execute_coordinated_dispatch(CANONICAL_TEMPLATES[tid])
+                return _j(200, {"status": "OK", "report": res.to_dict(), "vital_max_hp": 6})
+        except Exception as ex:
+            return _j(200, {"status": "SIMULATED", "message": f"Simulated dispatch for {tname}: {ex}", "vital_max_hp": 6})
+        return _e(404, f"unknown template {tname}", "template_not_found")
+    if sub == "/cascade/run":
+        prompt = str(d.get("prompt", ""))
+        objective = str(d.get("objective", "BALANCED"))
+        strategy = d.get("strategy")
+        try:
+            from krystal_kernel.cascade import GLOBAL_MODEL_CASCADE_RUNTIME
+            res = GLOBAL_MODEL_CASCADE_RUNTIME.execute(prompt=prompt, objective=objective, strategy=strategy)
+            return _j(200, {"status": "OK", "trace": res, "vital_max_hp": 6})
+        except Exception as ex:
+            return _e(500, f"cascade error: {ex}", "cascade_failed")
     return _e(404, f"unknown route {sub}", "not_found")
