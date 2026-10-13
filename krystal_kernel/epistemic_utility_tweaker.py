@@ -64,8 +64,22 @@ from krystal_kernel.verification.semantic_protocol import (
     PredictionState,
     PolicyState,
     ActuationState,
+    HardwareState,
     evaluate_dual_gate,
     to_wire_token
+)
+from krystal_kernel.windows_timer_subsystem import (
+    WindowsTimerSubsystem,
+    GLOBAL_WINDOWS_TIMER_SUBSYSTEM
+)
+from krystal_kernel.hardware_layers import (
+    HardwareSubsystemCoordinator,
+    GLOBAL_HARDWARE_COORDINATOR
+)
+from krystal_kernel.coordination_templates import (
+    CoordinationTemplateId,
+    CoordinationTemplateEngine,
+    GLOBAL_COORDINATION_TEMPLATE_ENGINE
 )
 
 # OpenVINO Runtime import with graceful fallback
@@ -213,6 +227,8 @@ class KrystalEpistemicUtilityTweaker:
         self.active_plan_id: TweakerPlanId = TweakerPlanId.PLAN_SUSTAINED_EFFICIENCY
         self.last_scanned_levels: Optional[ScannedSystemLevels] = None
         self.plan_history: List[Dict[str, Any]] = []
+        self.hw_coordinator = GLOBAL_HARDWARE_COORDINATOR
+        self.template_engine = GLOBAL_COORDINATION_TEMPLATE_ENGINE
 
     def scan_system_levels(self) -> ScannedSystemLevels:
         """
@@ -416,6 +432,16 @@ class KrystalEpistemicUtilityTweaker:
                 dispatched_actions.append("TERMIX_COPROCESSOR: Micro-op NPU_INVARIANT_HP_GUARD verified (HP <= 6).")
 
         self.active_plan_id = plan_id
+        # Also mutate hardware layers through unified coordinator
+        if target_plan.authority_verdict != to_wire_token(AuthorityState.AUTH_SHADOW_ONLY):
+            hw_prof_res = self.hw_coordinator.apply_hardware_profile(
+                priority_class=target_plan.process_priority,
+                pl1_watts=target_plan.target_pl1_watts,
+                npu_streams=target_plan.openvino_streams
+            )
+            for act in hw_prof_res["dispatched_actions"]:
+                dispatched_actions.append(f"HW_COORDINATOR: {act}")
+
         report = {
             "success": True,
             "applied_plan": target_plan.to_dict(),
@@ -426,6 +452,18 @@ class KrystalEpistemicUtilityTweaker:
         }
         self.plan_history.append(report)
         return report
+
+    def execute_coordination_cycle(
+        self,
+        template_id: CoordinationTemplateId,
+        cadence_ticks: int = 3
+    ) -> Dict[str, Any]:
+        """
+        Executes a complete coordination cycle via the CoordinationTemplateEngine,
+        pacing Windows API timers, setting hardware layers, and executing the estimation DAG.
+        """
+        report = self.template_engine.dispatch_template(template_id, cadence_ticks=cadence_ticks)
+        return report.to_dict()
 
 
 # Global Singleton for Web Hub and Kernel

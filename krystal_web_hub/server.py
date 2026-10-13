@@ -2393,6 +2393,41 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Hardware Layers, Coordination Templates & Windows Timers ──────
+        elif path in ("/api/hw/status", "/api/hardware/status"):
+            from krystal_kernel.hardware_layers import GLOBAL_HARDWARE_COORDINATOR
+            from krystal_kernel.windows_timer_subsystem import GLOBAL_WINDOWS_TIMER_SUBSYSTEM
+            hw_status = GLOBAL_HARDWARE_COORDINATOR.get_full_status()
+            timer_status = GLOBAL_WINDOWS_TIMER_SUBSYSTEM.get_telemetry()
+            self.send_json({
+                "status": "OK",
+                "hardware": hw_status,
+                "timer": timer_status,
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/hw/templates", "/api/hardware/templates"):
+            from krystal_kernel.coordination_templates import GLOBAL_COORDINATION_TEMPLATE_ENGINE
+            templates = GLOBAL_COORDINATION_TEMPLATE_ENGINE.list_templates()
+            self.send_json({
+                "status": "OK",
+                "templates": templates,
+                "active_template_id": GLOBAL_COORDINATION_TEMPLATE_ENGINE.active_template_id.value,
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/hw/timer-telemetry", "/api/hw/timer_telemetry"):
+            from krystal_kernel.windows_timer_subsystem import GLOBAL_WINDOWS_TIMER_SUBSYSTEM
+            report = GLOBAL_WINDOWS_TIMER_SUBSYSTEM.benchmark_jitter(target_ms=1.0, count=5)
+            self.send_json({
+                "status": "OK",
+                "telemetry": report.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Status ────────────────────────────────────────────
         elif path == "/api/status":
             with state.lock:
@@ -3864,6 +3899,31 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.send_json({
                     "success": False,
+                    "error": str(e),
+                    "vital_max_hp": 6
+                }, status=400)
+            return
+
+        elif self.path in ("/api/hw/dispatch-template", "/api/hw/dispatch_template"):
+            from krystal_kernel.coordination_templates import (
+                GLOBAL_COORDINATION_TEMPLATE_ENGINE,
+                CoordinationTemplateId
+            )
+            template_id_str = data.get("template_id", "TEMPLATE_BALANCED_ADAPTIVE_CADENCE")
+            cadence_ticks = int(data.get("cadence_ticks", 3))
+            try:
+                template_id = CoordinationTemplateId(template_id_str)
+                report = GLOBAL_COORDINATION_TEMPLATE_ENGINE.dispatch_template(
+                    template_id, cadence_ticks=cadence_ticks
+                )
+                self.send_json({
+                    "status": "OK",
+                    "report": report.to_dict(),
+                    "vital_max_hp": 6
+                })
+            except Exception as e:
+                self.send_json({
+                    "status": "ERROR",
                     "error": str(e),
                     "vital_max_hp": 6
                 }, status=400)

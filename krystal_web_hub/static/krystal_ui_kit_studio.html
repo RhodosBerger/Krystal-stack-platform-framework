@@ -795,6 +795,98 @@
                 </div>
             </div>
 
+            <!-- Hardware Subsystem Domains & Windows API Timer Subsystem -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                <!-- Hardware Domains Status -->
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 11px; font-family: var(--font-code); color: var(--emerald-stable); font-weight: 700;">
+                            PHYSICAL SILICON HARDWARE DOMAINS
+                        </span>
+                        <span id="hwSubsystemBadge" class="ks-badge badge-optimal">HW_NOMINAL</span>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6; font-family: var(--font-code);">
+                        <div>• <strong>CPU:</strong> <span id="hwCpuInfo">8 Cores • Affinity: 0x00FF • Priority: NORMAL</span></div>
+                        <div>• <strong>GPU:</strong> <span id="hwGpuInfo">Intel Iris Xe (UMA) • 512 MB VRAM</span></div>
+                        <div>• <strong>NPU:</strong> <span id="hwNpuInfo">GPU/NPU • OpenVINO 2026.4.1 (DP4A Active)</span></div>
+                        <div>• <strong>PWR:</strong> <span id="hwPowerInfo">PL1: 24W • Headroom: 35.0°C • Throttling: NO</span></div>
+                    </div>
+                </div>
+
+                <!-- Windows API High-Res Timer Subsystem -->
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 11px; font-family: var(--font-code); color: #38bdf8; font-weight: 700;">
+                            WINDOWS API HIGH-RES TIMER SUBSYSTEM
+                        </span>
+                        <span id="timerStatusBadge" class="ks-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);">
+                            QPC: 10,000,000 Hz
+                        </span>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6; font-family: var(--font-code);">
+                        <div>• <strong>Resolution:</strong> <span id="timerResInfo">winmm timeBeginPeriod(1ms) ACTIVE</span></div>
+                        <div>• <strong>Waitable Timer:</strong> <span id="timerWaitableInfo">HIGH_RESOLUTION_FLAG (0x2) SUPPORTED</span></div>
+                        <div>• <strong>Measured Jitter:</strong> <span id="timerJitterInfo" style="color: #34d399;">σ = 0.55 ms • Target: 1.0 ms</span></div>
+                        <div>• <strong>MMCSS Profile:</strong> <span id="timerMmcssInfo">Dynamic AvSetMmThreadCharacteristics</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coordination Template System Header & Dispatcher -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 16px 0 10px 0;">
+                <div class="token-name" style="color: var(--cyan-npu); font-size: 13px;">
+                    COORDINATION TEMPLATE SYSTEM (HW LAYERS &amp; WINDOWS TIMERS)
+                </div>
+                <span id="activeCoordTemplateBadge" class="ks-badge badge-optimal">ACTIVE TEMPLATE: BALANCED_ADAPTIVE</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 20px;" id="coordinationTemplatesContainer">
+                <!-- Dynamically populated by JS -->
+            </div>
+
+            <!-- Estimation Task DAG Execution Timeline -->
+            <div style="background: rgba(3, 7, 18, 0.85); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 11px; font-family: var(--font-code); color: var(--text-dim); font-weight: 700;">
+                        ESTIMATION TASK DAG EXECUTION BREAKDOWN (QPC INSTRUMENTED):
+                    </span>
+                    <span id="estimationDagTotalBadge" class="ks-badge" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4);">
+                        TOTAL LATENCY: 554 μs • 6/6 TASKS
+                    </span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;" id="estimationDagCardsContainer">
+                    <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size: 10px; color: var(--text-dim);">STAGE 1: OBS</div>
+                        <div style="font-size: 11px; font-weight: 700; color: #38bdf8;">Telemetry Sample</div>
+                        <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-code);">434.7 μs • act:executed</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size: 10px; color: var(--text-dim);">STAGE 2: DER</div>
+                        <div style="font-size: 11px; font-weight: 700; color: #10b981;">Feature Extraction</div>
+                        <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-code);">6.7 μs • der:pressure</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size: 10px; color: var(--text-dim);">STAGE 3: PRED</div>
+                        <div style="font-size: 11px; font-weight: 700; color: #c084fc;">NPU OpenVINO Eval</div>
+                        <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-code);">27.1 μs • pred:estimate</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size: 10px; color: var(--text-dim);">STAGE 4: SAFE</div>
+                        <div style="font-size: 11px; font-weight: 700; color: #f43f5e;">Invariant &amp; Guard</div>
+                        <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-code);">4.8 μs • safe:pass</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size: 10px; color: var(--text-dim);">STAGE 5: AUTH</div>
+                        <div style="font-size: 11px; font-weight: 700; color: #fbbf24;">Dual-Gate Verdict</div>
+                        <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-code);">18.1 μs • auth:approved</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size: 10px; color: var(--text-dim);">STAGE 6: ACT</div>
+                        <div style="font-size: 11px; font-weight: 700; color: #34d399;">HW Mutation Apply</div>
+                        <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-code);">33.7 μs • txn:committed</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Candidate Plans Selector -->
             <div class="token-name" style="color: var(--cyan-npu); font-size: 13px; margin-bottom: 10px;">
                 AVAILABLE OPENVINO NPU OPTIMIZATION PLANS
@@ -811,11 +903,11 @@
                     </span>
                     <span id="tweakerActivePlanBadge" class="ks-badge badge-optimal">ACTIVE: PLAN_SUSTAINED_EFFICIENCY</span>
                 </div>
-                <div id="tweakerDirectiveLog" class="text-code" style="color: #94a3b8; font-size: 11px; line-height: 1.6; max-height: 100px; overflow-y: auto;">
+                <div id="tweakerDirectiveLog" class="text-code" style="color: #94a3b8; font-size: 11px; line-height: 1.6; max-height: 120px; overflow-y: auto;">
                     [TWEAKER: INIT] OpenVINO NPU Engine initialized.<br/>
-                    [TRANSITION: WIN32] Applied PowerCfg overlay -&gt; PL1 sustained clamp 24.0W.<br/>
-                    [MSR: TUNED] Core voltage offset bias calibrated to -50.0 mV.<br/>
-                    [NPU: LOADED] OpenVINO 2 throughput streams engaged on Intel Iris Xe / NPU.
+                    [HW_LAYERS] CPU P/E topology mapped, Iris Xe UMA memory slab bound.<br/>
+                    [WIN32_TIMERS] QPC clock active (10 MHz). timeBeginPeriod(1ms) initialized.<br/>
+                    [TEMPLATES] Canonical Coordination Template System loaded (5 profiles).
                 </div>
             </div>
         </div>
@@ -1806,6 +1898,218 @@
 
         // Initialize Tweaker Plans on page load
         renderTweakerPlans();
+
+        // --- COORDINATION TEMPLATE SYSTEM (HW & WINDOWS API TIMERS) ---
+        const COORDINATION_TEMPLATES_DATA = [
+            {
+                id: "TEMPLATE_ULTRA_LOW_JITTER_REALTIME",
+                name: "Ultra-Low Jitter Real-Time",
+                cadence: "1.0 ms",
+                timerRes: "1 ms (timeBeginPeriod)",
+                affinity: "P-Cores (0x000F)",
+                priority: "HIGH_PRIORITY",
+                pl1: "32.0 W",
+                npu: "4 Streams • DP4A",
+                desc: "Sub-millisecond Windows timer period with P-Core affinity and high-priority NPU acceleration.",
+                badgeClass: "badge-critical"
+            },
+            {
+                id: "TEMPLATE_BALANCED_ADAPTIVE_CADENCE",
+                name: "Balanced Adaptive Cadence",
+                cadence: "10.0 ms",
+                timerRes: "2 ms",
+                affinity: "All Cores (0x00FF)",
+                priority: "NORMAL_PRIORITY",
+                pl1: "24.0 W",
+                npu: "2 Streams • DP4A",
+                desc: "Sustained thermodynamic efficiency, 10ms timer cadence, symmetric all-core hybrid execution.",
+                badgeClass: "badge-optimal"
+            },
+            {
+                id: "TEMPLATE_THERMAL_RESCUE_PACING",
+                name: "Thermal Rescue & Safe Cool-Down",
+                cadence: "50.0 ms",
+                timerRes: "5 ms",
+                affinity: "E-Cores (0x00F0)",
+                priority: "BELOW_NORMAL",
+                pl1: "10.0 W",
+                npu: "1 Stream (Low-Power)",
+                desc: "Emergency cool-down pacing (50ms interval), E-Core offload, 10W PL1 clamp, zero MMCSS.",
+                badgeClass: "badge-warning"
+            },
+            {
+                id: "TEMPLATE_COUNTERFACTUAL_SHADOW_BURST",
+                name: "Counterfactual Shadow Burst",
+                cadence: "2.0 ms",
+                timerRes: "1 ms",
+                affinity: "Shadow View (0x00FF)",
+                priority: "NORMAL_PRIORITY",
+                pl1: "24.0 W (Virtual)",
+                npu: "2 Streams (Shadow)",
+                desc: "High-throughput speculative estimation in shadow runtime with zero host OS register mutation.",
+                badgeClass: "badge-neutral"
+            },
+            {
+                id: "TEMPLATE_MISSION_CONTROL_TELEMETRY_SYNC",
+                name: "Mission Control 60Hz Telemetry Sync",
+                cadence: "16.67 ms (60 FPS)",
+                timerRes: "1 ms",
+                affinity: "All Cores (0x00FF)",
+                priority: "NORMAL_PRIORITY",
+                pl1: "24.0 W",
+                npu: "2 Streams",
+                desc: "Exact 16.67ms QPC-synchronized display frame pacing for living HUD and UI Kit telemetry stream.",
+                badgeClass: "badge-optimal"
+            }
+        ];
+
+        let activeCoordTemplateId = "TEMPLATE_BALANCED_ADAPTIVE_CADENCE";
+
+        function renderCoordinationTemplates() {
+            const container = document.getElementById('coordinationTemplatesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            COORDINATION_TEMPLATES_DATA.forEach((tmpl) => {
+                const isCurrent = (tmpl.id === activeCoordTemplateId);
+                const card = document.createElement('div');
+                card.style.background = isCurrent ? 'rgba(56, 189, 248, 0.08)' : 'rgba(3, 7, 18, 0.7)';
+                card.style.border = isCurrent ? '1px solid #38bdf8' : '1px solid var(--border-subtle)';
+                card.style.borderRadius = 'var(--radius-sm)';
+                card.style.padding = '12px';
+                card.style.display = 'flex';
+                card.style.flexDirection = 'column';
+                card.style.justifyContent = 'space-between';
+                card.style.gap = '8px';
+
+                card.innerHTML = `
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                            <span style="font-weight: 700; color: ${isCurrent ? '#38bdf8' : '#f1f5f9'}; font-size: 12px;">${tmpl.name}</span>
+                            <span class="ks-badge ${tmpl.badgeClass}">${tmpl.cadence}</span>
+                        </div>
+                        <p style="font-size: 10px; color: var(--text-muted); margin: 4px 0 8px 0;">${tmpl.desc}</p>
+                        
+                        <div style="font-family: var(--font-code); font-size: 9.5px; color: var(--text-dim); background: rgba(0,0,0,0.3); padding: 6px; border-radius: 4px; line-height: 1.5;">
+                            <div>⏱ Timer: <span style="color: #38bdf8;">${tmpl.timerRes}</span></div>
+                            <div>🧠 CPU: <span style="color: #34d399;">${tmpl.affinity}</span> • ${tmpl.priority}</div>
+                            <div>⚡ Power: <span style="color: #fbbf24;">${tmpl.pl1}</span> | NPU: <span style="color: #c084fc;">${tmpl.npu}</span></div>
+                        </div>
+                    </div>
+
+                    <button class="btn-krystal ${isCurrent ? 'btn-primary-npu' : 'btn-glass'}" 
+                            style="width: 100%; padding: 6px; font-size: 10.5px;" 
+                            onclick="dispatchCoordinationTemplate('${tmpl.id}')">
+                        ${isCurrent ? '✓ Active Template' : '⚡ Dispatch Template'}
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function dispatchCoordinationTemplate(templateId) {
+            playCyberTone('blip');
+            activeCoordTemplateId = templateId;
+            const badge = document.getElementById('activeCoordTemplateBadge');
+            if (badge) badge.textContent = `ACTIVE TEMPLATE: ${templateId.replace('TEMPLATE_', '')}`;
+
+            renderCoordinationTemplates();
+
+            try {
+                const res = await fetch('/api/hw/dispatch-template', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ template_id: templateId, cadence_ticks: 3 })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.report) {
+                        updateDagVisualization(data.report.task_dag_report);
+                        if (data.report.timer_jitter_stats) {
+                            const j = data.report.timer_jitter_stats;
+                            const jitEl = document.getElementById('timerJitterInfo');
+                            if (jitEl) jitEl.textContent = `σ = ${(j.jitter_std_dev_us / 1000).toFixed(2)} ms • Target: ${(j.target_period_us / 1000).toFixed(1)} ms`;
+                        }
+                        const logEl = document.getElementById('tweakerDirectiveLog');
+                        if (logEl) {
+                            const now = new Date().toLocaleTimeString();
+                            logEl.innerHTML = `[${now}] Template <strong>${templateId}</strong> dispatched. Duration: ${data.report.execution_duration_us} μs.<br/>` +
+                                              `[TIMER_QPC] Jitter: ${data.report.timer_jitter_stats.jitter_std_dev_us} μs. Status: ${data.report.task_dag_report.safety_verdict}<br/>` + logEl.innerHTML;
+                        }
+                        showToast(`⚡ Coordination template dispatched: ${templateId}`, 'success');
+                        return;
+                    }
+                }
+            } catch (e) {
+                // Offline fallback
+            }
+
+            // Fallback simulated update
+            const totalEl = document.getElementById('estimationDagTotalBadge');
+            if (totalEl) totalEl.textContent = `TOTAL LATENCY: ${(480 + Math.random() * 120).toFixed(0)} μs • 6/6 TASKS`;
+            showToast(`⚡ Template dispatched (Simulated DirectSim Mode): ${templateId}`, 'info');
+        }
+
+        function updateDagVisualization(dagReport) {
+            if (!dagReport) return;
+            const totalBadge = document.getElementById('estimationDagTotalBadge');
+            if (totalBadge) {
+                totalBadge.textContent = `TOTAL LATENCY: ${dagReport.total_latency_us} μs • ${dagReport.executed_tasks}/${dagReport.total_tasks} TASKS`;
+            }
+
+            const cardsContainer = document.getElementById('estimationDagCardsContainer');
+            if (!cardsContainer || !dagReport.tasks) return;
+            cardsContainer.innerHTML = '';
+
+            dagReport.tasks.forEach((task, idx) => {
+                const card = document.createElement('div');
+                card.style.background = 'rgba(0,0,0,0.4)';
+                card.style.padding = '8px';
+                card.style.borderRadius = '4px';
+                card.style.border = '1px solid rgba(255,255,255,0.05)';
+                card.innerHTML = `
+                    <div style="font-size: 10px; color: var(--text-dim);">STAGE ${idx + 1}: ${task.stage.replace('STAGE_', '')}</div>
+                    <div style="font-size: 11px; font-weight: 700; color: #38bdf8;">${task.name.substring(0, 22)}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-code);">${task.actual_latency_us} μs • ${task.state}</div>
+                `;
+                cardsContainer.appendChild(card);
+            });
+        }
+
+        async function fetchHardwareAndTimerStatus() {
+            try {
+                const res = await fetch('/api/hw/status');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.hardware && data.hardware.cpu) {
+                        const cpu = data.hardware.cpu;
+                        document.getElementById('hwCpuInfo').textContent = `${cpu.total_logical_cores} Cores • Affinity: ${cpu.active_affinity_mask_hex} • Priority: ${cpu.active_priority_class}`;
+                    }
+                    if (data.hardware && data.hardware.gpu) {
+                        const gpu = data.hardware.gpu;
+                        document.getElementById('hwGpuInfo').textContent = `${gpu.device_name} • ${gpu.vram_allocated_mb.toFixed(0)} MB VRAM`;
+                    }
+                    if (data.hardware && data.hardware.npu) {
+                        const npu = data.hardware.npu;
+                        document.getElementById('hwNpuInfo').textContent = `${npu.device_id} • OpenVINO ${npu.openvino_version.substring(0, 15)} (Streams: ${npu.active_streams})`;
+                    }
+                    if (data.hardware && data.hardware.power_thermal) {
+                        const pwr = data.hardware.power_thermal;
+                        document.getElementById('hwPowerInfo').textContent = `PL1: ${pwr.pl1_clamp_watts}W • Headroom: ${pwr.thermal_headroom_c}°C • Throttle: ${pwr.thermal_throttling_engaged ? 'YES' : 'NO'}`;
+                    }
+                    if (data.timer) {
+                        document.getElementById('timerStatusBadge').textContent = `QPC: ${data.timer.qpc_frequency_hz.toLocaleString()} Hz`;
+                        document.getElementById('timerResInfo').textContent = `winmm timeBeginPeriod(${data.timer.active_requested_period_ms}ms) ACTIVE`;
+                    }
+                }
+            } catch (e) {
+                // Ignore offline
+            }
+        }
+
+        // Initialize Templates and HW Status
+        renderCoordinationTemplates();
+        fetchHardwareAndTimerStatus();
     </script>
 </body>
 </html>

@@ -158,6 +158,48 @@ from .epistemic_utility_tweaker import (  # noqa: F401
     GLOBAL_UTILITY_TWEAKER
 )
 
+from .windows_timer_subsystem import (  # noqa: F401
+    WindowsQpcClock,
+    WindowsSchedulerResolution,
+    WindowsMmcssCoordinator,
+    WindowsHighResolutionWaitableTimer,
+    TimerJitterTelemetryAnalyzer,
+    WindowsTimerSubsystem,
+    TimerJitterReport,
+    GLOBAL_WINDOWS_TIMER_SUBSYSTEM
+)
+
+from .hardware_layers import (  # noqa: F401
+    HardwareDomainKind,
+    CpuDomainStatus,
+    GpuDomainStatus,
+    NpuDomainStatus,
+    ThermalPowerDomainStatus,
+    CpuHardwareLayer,
+    GpuHardwareLayer,
+    NpuHardwareLayer,
+    ThermalPowerHardwareLayer,
+    HardwareSubsystemCoordinator,
+    GLOBAL_HARDWARE_COORDINATOR
+)
+
+from .estimation_task_planner import (  # noqa: F401
+    TaskStageKind,
+    EstimationTask,
+    EstimationPlanReport,
+    EstimationTaskPlan,
+    build_canonical_estimation_dag
+)
+
+from .coordination_templates import (  # noqa: F401
+    CoordinationTemplateId,
+    CoordinationTemplate,
+    CoordinatedDispatchReport,
+    CANONICAL_TEMPLATES,
+    CoordinationTemplateEngine,
+    GLOBAL_COORDINATION_TEMPLATE_ENGINE
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -200,5 +242,17 @@ __all__ = [
     "PsychologicalCopingMechanism", "CopingPriorityDescriptor",
     "SiliconDieUnlockReport", "SiliconDieUnlocker",
     "SemanticSynonymCompilationOptimizer", "CortexProcessorWhispererMcpBridge",
-    "GLOBAL_COPING_CORTEX_MCP_BRIDGE"
+    "GLOBAL_COPING_CORTEX_MCP_BRIDGE",
+    "TweakerPlanId", "ScannedSystemLevels", "CandidateExecutionPlan",
+    "NpuOpenVinoPlanEvaluator", "KrystalEpistemicUtilityTweaker", "GLOBAL_UTILITY_TWEAKER",
+    "WindowsQpcClock", "WindowsSchedulerResolution", "WindowsMmcssCoordinator",
+    "WindowsHighResolutionWaitableTimer", "TimerJitterTelemetryAnalyzer",
+    "WindowsTimerSubsystem", "TimerJitterReport", "GLOBAL_WINDOWS_TIMER_SUBSYSTEM",
+    "HardwareDomainKind", "CpuDomainStatus", "GpuDomainStatus", "NpuDomainStatus",
+    "ThermalPowerDomainStatus", "CpuHardwareLayer", "GpuHardwareLayer",
+    "NpuHardwareLayer", "ThermalPowerHardwareLayer", "HardwareSubsystemCoordinator",
+    "GLOBAL_HARDWARE_COORDINATOR", "TaskStageKind", "EstimationTask",
+    "EstimationPlanReport", "EstimationTaskPlan", "build_canonical_estimation_dag",
+    "CoordinationTemplateId", "CoordinationTemplate", "CoordinatedDispatchReport",
+    "CANONICAL_TEMPLATES", "CoordinationTemplateEngine", "GLOBAL_COORDINATION_TEMPLATE_ENGINE"
 ]
