@@ -301,10 +301,15 @@ def create_vital_hearts_list(active_hp: int) -> EpistemicList[EpistemicBoolean]:
 # ==============================================================================
 
 class DependencyEdgeKind(str, Enum):
-    PREDICTS = "PREDICTS"          # Backend prediction forecasts downstream state
-    INVALIDATES = "INVALIDATES"    # Mutation or lease expiry forces cache invalidation
-    SUBSCRIBES = "SUBSCRIBES"      # Frontend view component observes backend signal
-    GROUNDS = "GROUNDS"            # Hardware sensor provides empirical ground truth
+    PREDICTS = "PREDICTS"                    # Backend prediction forecasts downstream state
+    INVALIDATES = "INVALIDATES"              # Mutation or lease expiry forces cache invalidation
+    SUBSCRIBES = "SUBSCRIBES"                # Frontend view component observes backend signal
+    GROUNDS = "GROUNDS"                      # Hardware sensor provides empirical ground truth
+    EPISTEMIC_CAUSAL = "EPISTEMIC_CAUSAL"    # Causal dependency across epistemic states
+    CAUSES = "EPISTEMIC_CAUSAL"              # Alias for epistemic causal coupling
+    CORRELATIONAL = "CORRELATIONAL"          # Correlational coupling between variables
+    TEMPORAL = "TEMPORAL"                    # Temporal sequence or delay dependency
+    STRUCTURAL = "STRUCTURAL"                # Structural or hierarchy relationship
 
 
 @dataclass
@@ -333,13 +338,57 @@ class PredictiveDependencyGraph:
         self.nodes: Dict[str, PredictiveDependencyNode] = {}
         self.edges: List[Tuple[str, str, DependencyEdgeKind]] = []
 
-    def add_node(self, node: PredictiveDependencyNode) -> None:
+    def add_node(
+        self,
+        node_or_id: Union[PredictiveDependencyNode, str] = "",
+        subsystem: str = "BACKEND_KERNEL",
+        epistemic_kind: str = "MEASURED",
+        lease_ttl_ns: int = 5_000_000_000,
+        value: float = 0.0,
+        domain: Optional[str] = None,
+        confidence: float = 1.0,
+        interval: Tuple[float, float] = (0.0, 1.0),
+        clock: Optional[Dict[str, int]] = None,
+        **kwargs: Any,
+    ) -> PredictiveDependencyNode:
+        if isinstance(node_or_id, PredictiveDependencyNode):
+            node = node_or_id
+        else:
+            nid = kwargs.get("node_id", node_or_id)
+            domain_id = domain or kwargs.get("domain_id")
+            vector_clock = clock if clock is not None else kwargs.get("vector_clock", {})
+            node = PredictiveDependencyNode(
+                node_id=str(nid),
+                subsystem=subsystem,
+                epistemic_kind=epistemic_kind,
+                lease_ttl_ns=lease_ttl_ns,
+                value=float(value),
+                domain_id=domain_id,
+                confidence=float(confidence),
+                interval=interval,
+                vector_clock=vector_clock,
+                metadata=kwargs.get("metadata", {}),
+            )
         self.nodes[node.node_id] = node
+        return node
 
-    def add_edge(self, source_id: str, target_id: str, kind: DependencyEdgeKind) -> None:
+    def add_edge(
+        self,
+        source_id: str,
+        target_id: str,
+        kind: Union[DependencyEdgeKind, str] = DependencyEdgeKind.PREDICTS,
+        weight: float = 1.0,
+    ) -> None:
         if source_id not in self.nodes or target_id not in self.nodes:
             raise KeyError(f"Both nodes must exist before creating edge: {source_id} -> {target_id}")
-        self.edges.append((source_id, target_id, kind))
+        if isinstance(kind, str):
+            try:
+                edge_kind = DependencyEdgeKind(kind)
+            except ValueError:
+                edge_kind = DependencyEdgeKind.PREDICTS
+        else:
+            edge_kind = kind
+        self.edges.append((source_id, target_id, edge_kind))
 
     def get_invalidation_set(self, mutated_node_id: str) -> Set[str]:
         """

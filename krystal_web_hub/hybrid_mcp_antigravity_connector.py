@@ -951,29 +951,37 @@ class HybridMcpAntigravityConnector:
                 )
 
                 action = arguments.get("action", "full_pipeline")
-                root_id = arguments.get("node_id", "hw_thermal")
+                root_id = arguments.get("root_node_id", arguments.get("node_id", "hw_thermal"))
                 direction = arguments.get("direction", "both")
                 target_domain = arguments.get("target_domain", "vital_hp")
                 delta_x = float(arguments.get("delta_x", 0.0))
                 latent_op = arguments.get("latent_operation", "identity")
-                operand_val = float(arguments.get("operand_value", 1.0))
+                operand_val = float(arguments.get("scalar_factor", arguments.get("operand_value", 1.0)))
 
-                # Build a standard epistemic dependency graph if not provided
-                graph = PredictiveDependencyGraph()
-                graph.add_node(PredictiveDependencyNode("hw_thermal", "HARDWARE_SENSOR", "MEASURED", value=45.0, domain_id="memory_latency_ns"))
-                graph.add_node(PredictiveDependencyNode("thermal_forecast", "BACKEND_KERNEL", "PREDICTED", value=52.0, domain_id="memory_latency_ns"))
-                graph.add_node(PredictiveDependencyNode("ui_thermal_hud", "FRONTEND_UI", "VIEW_MODEL", value=5.5, domain_id="vital_hp"))
-                graph.add_node(PredictiveDependencyNode("vram_arbiter", "BACKEND_KERNEL", "DERIVED", value=1024.0, domain_id="vram_allocation_mb"))
+                # Build or reuse epistemic dependency graph
+                if "graph" in arguments and isinstance(arguments["graph"], PredictiveDependencyGraph):
+                    graph = arguments["graph"]
+                else:
+                    graph = PredictiveDependencyGraph()
+                    graph.add_node(PredictiveDependencyNode("hw_thermal", "HARDWARE_SENSOR", "MEASURED", value=45.0, domain_id="memory_latency_ns"))
+                    graph.add_node(PredictiveDependencyNode("thermal_forecast", "BACKEND_KERNEL", "PREDICTED", value=52.0, domain_id="memory_latency_ns"))
+                    graph.add_node(PredictiveDependencyNode("ui_thermal_hud", "FRONTEND_UI", "VIEW_MODEL", value=5.5, domain_id="vital_hp"))
+                    graph.add_node(PredictiveDependencyNode("vram_arbiter", "BACKEND_KERNEL", "DERIVED", value=1024.0, domain_id="vram_allocation_mb"))
+                    graph.add_node(PredictiveDependencyNode("compute_scheduler", "BACKEND_KERNEL", "MEASURED", value=65.0, domain_id="memory_latency_ns"))
 
-                graph.add_edge("hw_thermal", "thermal_forecast", DependencyEdgeKind.PREDICTS)
-                graph.add_edge("thermal_forecast", "ui_thermal_hud", DependencyEdgeKind.INVALIDATES)
-                graph.add_edge("hw_thermal", "vram_arbiter", DependencyEdgeKind.PREDICTS)
+                    graph.add_edge("hw_thermal", "thermal_forecast", DependencyEdgeKind.PREDICTS)
+                    graph.add_edge("thermal_forecast", "ui_thermal_hud", DependencyEdgeKind.INVALIDATES)
+                    graph.add_edge("hw_thermal", "vram_arbiter", DependencyEdgeKind.PREDICTS)
+                    graph.add_edge("compute_scheduler", "thermal_forecast", DependencyEdgeKind.EPISTEMIC_CAUSAL)
+
+                    if root_id not in graph.nodes:
+                        graph.add_node(PredictiveDependencyNode(root_id, "BACKEND_KERNEL", "MEASURED", value=50.0, domain_id="memory_latency_ns"))
 
                 pipeline = PredictiveDependencyPipeline(graph=graph)
 
                 if action == "fetch":
                     bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)
-                    return {"status": "OK", "action": action, "bundle": bundle.to_dict(), "vital_hp": VITAL_MAX_HP}
+                    return {"status": "OK", "action": action, "bundle": bundle.to_dict(), "vital_hp": VITAL_MAX_HP, "vital_max_hp": VITAL_MAX_HP}
 
                 elif action == "sync":
                     bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)
@@ -988,6 +996,7 @@ class HybridMcpAntigravityConnector:
                         "observed_max_drift_ns": report.observed_max_drift_ns,
                         "vector_clock_consensus": report.vector_clock_consensus,
                         "vital_hp": VITAL_MAX_HP,
+                        "vital_max_hp": VITAL_MAX_HP,
                     }
 
                 elif action == "overlap":
@@ -1004,6 +1013,7 @@ class HybridMcpAntigravityConnector:
                         "cosine_overlap": report.cosine_value_similarity,
                         "temporal_overlap_ratios": report.temporal_overlap_ratios,
                         "vital_hp": VITAL_MAX_HP,
+                        "vital_max_hp": VITAL_MAX_HP,
                     }
 
                 elif action == "complement":
@@ -1018,22 +1028,23 @@ class HybridMcpAntigravityConnector:
                         "algebraic_complement_values": report.algebraic_complement_values,
                         "completed_nodes": list(report.completed_bundle.nodes.keys()),
                         "vital_hp": VITAL_MAX_HP,
+                        "vital_max_hp": VITAL_MAX_HP,
                     }
 
                 elif action in ("add", "subtract", "multiply", "divide"):
                     bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)
                     if action == "add":
                         res_bundle = pipeline.add(bundle, operand_val)
-                        return {"status": "OK", "action": action, "operand": operand_val, "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP}
+                        return {"status": "OK", "action": action, "operand": operand_val, "bundle": res_bundle.to_dict(), "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP, "vital_max_hp": VITAL_MAX_HP}
                     elif action == "subtract":
                         res_bundle, res_l2 = pipeline.subtract(bundle, operand_val)
-                        return {"status": "OK", "action": action, "operand": operand_val, "residual_l2": res_l2, "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP}
+                        return {"status": "OK", "action": action, "operand": operand_val, "residual_l2": res_l2, "bundle": res_bundle.to_dict(), "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP, "vital_max_hp": VITAL_MAX_HP}
                     elif action == "multiply":
                         res_bundle = pipeline.multiply(bundle, operand_val)
-                        return {"status": "OK", "action": action, "operand": operand_val, "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP}
+                        return {"status": "OK", "action": action, "operand": operand_val, "bundle": res_bundle.to_dict(), "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP, "vital_max_hp": VITAL_MAX_HP}
                     elif action == "divide":
                         res_bundle = pipeline.divide(bundle, operand_val)
-                        return {"status": "OK", "action": action, "operand": operand_val, "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP}
+                        return {"status": "OK", "action": action, "operand": operand_val, "bundle": res_bundle.to_dict(), "result_values": res_bundle.values, "vital_hp": VITAL_MAX_HP, "vital_max_hp": VITAL_MAX_HP}
 
                 elif action == "calculate_via_x":
                     bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)
@@ -1043,7 +1054,7 @@ class HybridMcpAntigravityConnector:
                         delta_x=delta_x,
                         latent_operation=latent_op,
                     )
-                    return {"status": "OK", "action": action, "calculation": calc_res, "vital_hp": VITAL_MAX_HP}
+                    return {"status": "OK", "action": action, "transformation": calc_res, "calculation": calc_res, "vital_hp": VITAL_MAX_HP, "vital_max_hp": VITAL_MAX_HP}
 
                 else:  # full_pipeline
                     bundle = pipeline.fetch_dependencies(node_id=root_id, direction=direction)

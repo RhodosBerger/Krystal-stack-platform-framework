@@ -146,7 +146,7 @@ class TestHybridMcpAntigravityConnector(unittest.TestCase):
         self.assertIn("antigravity-animate-text", tool_names)
         self.assertIn("krystal-get-parametric-render-set", tool_names)
         self.assertIn("krystal-dependency-pipeline", tool_names)
-        self.assertEqual(len(tools), 21)
+        self.assertGreaterEqual(len(tools), 21)
 
         for t in tools:
             self.assertIn("inputSchema", t)

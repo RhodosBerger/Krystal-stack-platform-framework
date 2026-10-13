@@ -74,6 +74,12 @@ class DependencyBundle:
     confidences: Dict[str, float] = field(default_factory=dict)
     timestamp_ns: int = field(default_factory=time.time_ns)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    vital_max_hp: int = VITAL_MAX_HP
+    residual_l2: float = 0.0
+
+    def __iter__(self):
+        yield self
+        yield getattr(self, "residual_l2", 0.0)
 
     def __post_init__(self):
         # Constitutional Invariant Verification
@@ -141,6 +147,8 @@ class DependencyBundle:
             confidences=dict(self.confidences),
             timestamp_ns=self.timestamp_ns,
             metadata=dict(self.metadata),
+            vital_max_hp=self.vital_max_hp,
+            residual_l2=self.residual_l2,
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -156,6 +164,7 @@ class DependencyBundle:
             "vector_clocks": self.vector_clocks,
             "timestamp_ns": self.timestamp_ns,
             "vital_max_hp_rule": VITAL_MAX_HP,
+            "vital_max_hp": self.vital_max_hp,
         }
 
 
@@ -188,6 +197,18 @@ class OverlapReport:
     overlapping_bundle: DependencyBundle
     vital_max_hp: int = VITAL_MAX_HP
 
+    @property
+    def jaccard_index(self) -> float:
+        return self.jaccard_similarity
+
+    @property
+    def intersection_node_ids(self) -> List[str]:
+        return self.common_nodes
+
+    @property
+    def cosine_similarity(self) -> float:
+        return self.cosine_value_similarity
+
 
 @dataclass
 class ComplementReport:
@@ -199,6 +220,21 @@ class ComplementReport:
     algebraic_complement_values: Dict[str, float]
     completed_bundle: DependencyBundle
     vital_max_hp: int = VITAL_MAX_HP
+
+    @property
+    def missing_dependencies(self) -> List[str]:
+        return self.missing_nodes
+
+    @property
+    def algebraic_complements(self) -> Dict[str, Dict[str, float]]:
+        return {
+            nid: {
+                "complement_latent_x": self.algebraic_complement_x.get(nid, 0.0),
+                "complement_value": self.algebraic_complement_values.get(nid, 0.0),
+            }
+            for nid in self.algebraic_complement_x
+        }
+
 
 
 # ==============================================================================
@@ -225,21 +261,53 @@ class PredictiveDependencyPipeline:
 
     def fetch_dependencies(
         self,
-        node_id: str,
+        *args: Any,
+        node_id: Optional[str] = None,
         direction: str = "both",
         max_depth: int = 16,
+        **kwargs: Any,
     ) -> DependencyBundle:
         """
         Traverses the causal dependency graph from node_id to fetch all upstream,
         downstream, or bidirectional dependencies up to max_depth.
-        Returns a sorted DependencyBundle with full topology.
+        Supports both positional and keyword invocation styles:
+          fetch_dependencies(node_id, direction="both", max_depth=16)
+          fetch_dependencies(graph, node_id, direction="both", max_depth=16)
+          fetch_dependencies(node_id="node_id", direction="both")
         """
-        if node_id not in self.graph.nodes:
-            raise KeyError(f"Root node '{node_id}' not found in dependency graph.")
+        active_graph = self.graph
+        target_node = node_id
 
-        visited_nodes: Set[str] = {node_id}
+        if len(args) == 1:
+            if hasattr(args[0], "nodes") and hasattr(args[0], "edges"):
+                active_graph = args[0]
+            else:
+                target_node = str(args[0])
+        elif len(args) >= 2:
+            if hasattr(args[0], "nodes") and hasattr(args[0], "edges"):
+                active_graph = args[0]
+                target_node = str(args[1])
+                if len(args) >= 3 and "direction" not in kwargs:
+                    direction = str(args[2])
+                if len(args) >= 4 and "max_depth" not in kwargs:
+                    max_depth = int(args[3])
+            else:
+                target_node = str(args[0])
+                if "direction" not in kwargs:
+                    direction = str(args[1])
+                if len(args) >= 3 and "max_depth" not in kwargs:
+                    max_depth = int(args[2])
+
+        if target_node is None:
+            target_node = kwargs.get("root_node_id", kwargs.get("node_id", ""))
+
+        target_node = str(target_node)
+        if target_node not in active_graph.nodes:
+            raise KeyError(f"Root node '{target_node}' not found in dependency graph.")
+
+        visited_nodes: Set[str] = {target_node}
         collected_edges: List[Tuple[str, str, DependencyEdgeKind]] = []
-        frontier = [node_id]
+        frontier = [target_node]
         depth = 0
 
         norm_dir = direction.lower().strip()
@@ -248,7 +316,7 @@ class PredictiveDependencyPipeline:
             depth += 1
 
             for curr in frontier:
-                for src, tgt, kind in self.graph.edges:
+                for src, tgt, kind in active_graph.edges:
                     # Upstream: target is curr -> source is parent/cause
                     if norm_dir in ("upstream", "both") and tgt == curr:
                         if (src, tgt, kind) not in collected_edges:
@@ -268,7 +336,7 @@ class PredictiveDependencyPipeline:
             frontier = list(next_frontier)
 
         # Build node dictionary
-        nodes_dict = {nid: self.graph.nodes[nid] for nid in visited_nodes if nid in self.graph.nodes}
+        nodes_dict = {nid: active_graph.nodes[nid] for nid in visited_nodes if nid in active_graph.nodes}
 
         # Compute topological execution order (Kahn's Algorithm on subgraph)
         in_degree: Dict[str, int] = {nid: 0 for nid in visited_nodes}
@@ -309,7 +377,7 @@ class PredictiveDependencyPipeline:
             confidences[nid] = float(getattr(n, "confidence", 1.0))
 
         return DependencyBundle(
-            root_node_id=node_id,
+            root_node_id=target_node,
             nodes=nodes_dict,
             edges=collected_edges,
             topological_order=topo_order,
@@ -320,6 +388,7 @@ class PredictiveDependencyPipeline:
             confidences=confidences,
             timestamp_ns=time.time_ns(),
             metadata={"direction": direction, "depth_reached": depth},
+            vital_max_hp=VITAL_MAX_HP,
         )
 
     # ─── 2. SYNCHRONIZE ───────────────────────────────────────────────────────
@@ -497,8 +566,10 @@ class PredictiveDependencyPipeline:
         self,
         bundle: DependencyBundle,
         universe_ids: Optional[Set[str]] = None,
+        universe_node_ids: Optional[Set[str]] = None,
         default_value: float = 0.0,
         default_domain: str = "memory_latency_ns",
+        **kwargs: Any,
     ) -> ComplementReport:
         """
         Computes both algebraic complement (1.0 - x) and set-theoretic complement:
@@ -507,6 +578,13 @@ class PredictiveDependencyPipeline:
         - Set complement: Identifies missing dependencies from universe_ids, creating
           padded / completed nodes to ensure domain completeness.
         """
+        if universe_ids is None and universe_node_ids is not None:
+            universe_ids = universe_node_ids
+        if universe_ids is None and "universe_node_ids" in kwargs:
+            universe_ids = kwargs["universe_node_ids"]
+        if universe_ids is None and "universe_ids" in kwargs:
+            universe_ids = kwargs["universe_ids"]
+
         completed = bundle.clone()
 
         # 1. Algebraic Complement via Latent Manifold x
@@ -522,8 +600,12 @@ class PredictiveDependencyPipeline:
                 x_comp = round(max(0.0, min(1.0, 1.0 - x)), 5)
                 val_comp = dom.evaluate(x_comp)
             else:
-                x_comp = round(max(0.0, min(1.0, 1.0 - (val / 100.0))), 5)
-                val_comp = round(100.0 * x_comp, 4)
+                interv = bundle.intervals.get(nid, (0.0, 1.0))
+                span = interv[1] - interv[0]
+                norm_x = (val - interv[0]) / (span if span != 0 else 1.0)
+                norm_x = max(0.0, min(1.0, norm_x))
+                x_comp = round(1.0 - norm_x, 5)
+                val_comp = round(interv[0] + span * x_comp, 4)
 
             alg_comp_x[nid] = x_comp
             alg_comp_vals[nid] = val_comp
@@ -601,10 +683,10 @@ class PredictiveDependencyPipeline:
         self,
         bundle_a: DependencyBundle,
         operand: Union[DependencyBundle, float, Dict[str, float]],
-    ) -> Tuple[DependencyBundle, float]:
+    ) -> DependencyBundle:
         """
         Element-wise subtraction: C_i = A_i - B_i or scalar offset C_i = A_i - k.
-        Returns (result_bundle, residual_L2_norm).
+        Returns a DependencyBundle with .residual_l2 set, which unpacks as (bundle, residual_l2).
         """
         res = bundle_a.clone()
         diff_sq = 0.0
@@ -632,7 +714,8 @@ class PredictiveDependencyPipeline:
                     )
 
         l2_residual = round(math.sqrt(diff_sq), 6)
-        return res, l2_residual
+        res.residual_l2 = l2_residual
+        return res
 
     def multiply(
         self,
@@ -794,3 +877,19 @@ class PredictiveDependencyPipeline:
             "vital_max_hp_rule": VITAL_MAX_HP,
             "constitutional_compliance": True,
         }
+
+
+# Global Singleton for pipeline operations
+GLOBAL_DEPENDENCY_PIPELINE = PredictiveDependencyPipeline()
+
+__all__ = [
+    "PredictiveDependencyPipeline",
+    "DependencyBundle",
+    "SyncReport",
+    "OverlapReport",
+    "ComplementReport",
+    "GLOBAL_DEPENDENCY_PIPELINE",
+    "EPSILON",
+    "INV_GOLDEN_RATIO",
+]
+

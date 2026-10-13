@@ -206,5 +206,7 @@ from krystal_kernel.verification.predictive_dependency_pipeline import (
     SyncReport,
     OverlapReport,
     ComplementReport,
+    GLOBAL_DEPENDENCY_PIPELINE,
 )
+
 

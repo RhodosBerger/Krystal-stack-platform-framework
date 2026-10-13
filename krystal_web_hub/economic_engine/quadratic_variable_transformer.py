@@ -219,7 +219,77 @@ class QuadraticVariableTransformer:
                 x_range=(0.0, 1.0),
                 prefer_positive_root=True,
                 description="Informačná entropia stavu vlákien a pamäťových blokov."
-            )
+            ),
+            "thermal_celsius": QuadraticDomain(
+                domain_id="thermal_celsius",
+                name="Teplota Procesora a Čipu (SoC/Package)",
+                unit="°C",
+                category="thermodynamics",
+                a=25.0,
+                b=35.0,
+                c=30.0,
+                v_min=25.0,
+                v_max=105.0,
+                x_range=(0.0, 1.0),
+                prefer_positive_root=True,
+                description="Teplota kremíkového jadra; zrýchľuje pri saturácii chladenia."
+            ),
+            "cpu_load_pct": QuadraticDomain(
+                domain_id="cpu_load_pct",
+                name="Vyťaženie CPU Výpočtových Jadier",
+                unit="%",
+                category="hardware",
+                a=30.0,
+                b=70.0,
+                c=0.0,
+                v_min=0.0,
+                v_max=100.0,
+                x_range=(0.0, 1.0),
+                prefer_positive_root=True,
+                description="Celkové percentuálne vyťaženie procesorových vlákien."
+            ),
+            "gpu_power_watts": QuadraticDomain(
+                domain_id="gpu_power_watts",
+                name="Príkon Grafického Adaptéra",
+                unit="W",
+                category="hardware",
+                a=15.0,
+                b=20.0,
+                c=5.0,
+                v_min=5.0,
+                v_max=45.0,
+                x_range=(0.0, 1.0),
+                prefer_positive_root=True,
+                description="Okamžitý príkon GPU v balíku SoC."
+            ),
+            "uma_pressure": QuadraticDomain(
+                domain_id="uma_pressure",
+                name="Tlak Zdieľanej Pamäte (UMA Memory Contention)",
+                unit="ratio",
+                category="hardware",
+                a=0.4,
+                b=0.6,
+                c=0.0,
+                v_min=0.0,
+                v_max=1.0,
+                x_range=(0.0, 1.0),
+                prefer_positive_root=True,
+                description="Normalizovaný tlak a súperenie o zbernicu zdieľanej pamäte UMA."
+            ),
+            "swap_util_pct": QuadraticDomain(
+                domain_id="swap_util_pct",
+                name="Využitie Odkladacieho Priestoru Swap",
+                unit="%",
+                category="hardware",
+                a=40.0,
+                b=60.0,
+                c=0.0,
+                v_min=0.0,
+                v_max=100.0,
+                x_range=(0.0, 1.0),
+                prefer_positive_root=True,
+                description="Percentuálne zaplnenie odkladacieho priestoru swap."
+            ),
         }
 
     def get_domains(self) -> Dict[str, Any]:
