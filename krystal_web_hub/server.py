@@ -771,6 +771,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "polymorphic_telemetry_benchmark_studio.html", "text/html")
             return
+        elif norm_path in (
+            "/factographic-learning", "/learning-studio", "/factographic_network_learning_studio.html",
+            "/factographic-network", "/multi-scale-learning"
+        ):
+            self.serve_file(STATIC_DIR / "factographic_network_learning_studio.html", "text/html")
+            return
         elif norm_path in ("/cloud-backoffice", "/backoffice", "/cloud_backoffice_studio.html", "/evidence"):
             self.serve_file(STATIC_DIR / "cloud_backoffice_studio.html", "text/html")
             return
@@ -859,6 +865,21 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         elif norm_path in ("/api/benchmark/polymorphic-telemetry/status", "/api/benchmark/polymorphic-telemetry"):
             from krystal_kernel.polymorphic_telemetry_benchmark_engine import GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE
             self.send_json(GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.get_engine_status())
+            return
+
+        # ── API: Factographic Source Network & Multi-Scale Learning Engine ─
+        elif norm_path in ("/api/learning/factographic-network/status", "/api/factographic/status"):
+            from krystal_kernel.factographic_network_learning_engine import GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE
+            self.send_json(GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.get_status())
+            return
+
+        elif norm_path in ("/api/learning/factographic-network/pyramid", "/api/factographic/pyramid"):
+            from krystal_kernel.factographic_network_learning_engine import GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE
+            self.send_json({
+                "status": "OK",
+                "pyramid": GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.pyramid.to_dict(),
+                "vital_max_hp": 6
+            })
             return
 
         # ── API: Processor Integrity & Context-Switch Telemetry ────
@@ -3409,6 +3430,39 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "OK",
                 "telemetry": telem.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Factographic Source Network & Multi-Scale Learning Engine ─
+        elif self.path in ("/api/learning/factographic-network/calibrate", "/api/factographic/calibrate"):
+            from krystal_kernel.factographic_network_learning_engine import GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE
+            divergence = bool(data.get("divergence_injection", False))
+            rec = GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.calibrate(mock_divergence_injection=divergence)
+            self.send_json({
+                "status": "OK",
+                "calibration_record": rec.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/learning/factographic-network/update-node", "/api/factographic/update-node"):
+            import time
+            from krystal_kernel.factographic_network_learning_engine import GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE
+            node_id = data.get("node_id", "")
+            val = data.get("measured_value")
+            conf = data.get("confidence")
+            if node_id in GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.network.nodes:
+                node = GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.network.nodes[node_id]
+                if val is not None:
+                    node.measured_value = float(val)
+                if conf is not None:
+                    node.confidence = max(0.0, min(1.0, float(conf)))
+                node.timestamp = time.time()
+            rep = GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.network.evaluate_consensus()
+            self.send_json({
+                "status": "OK",
+                "consensus_report": rep.to_dict(),
                 "vital_max_hp": 6
             })
             return

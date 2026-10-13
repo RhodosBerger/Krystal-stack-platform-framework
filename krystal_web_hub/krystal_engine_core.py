@@ -206,6 +206,12 @@ from krystal_kernel.procedural_land_benchmark_engine import (
     GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE,
     ProceduralLandBenchmarkEngine
 )
+from krystal_kernel.factographic_network_learning_engine import (
+    GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE,
+    FactographicLearningCalibrator,
+    FactographicScale,
+    RelationType
+)
 from krystal_web_hub.economic_engine.polymorphic_shape_blender_platform import (
     GLOBAL_SHAPE_PLATFORM,
     LanguageMode,
@@ -1177,6 +1183,9 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/procedural-benchmark', '/land-benchmark', '/terrain-benchmark', '/ci-cd-benchmark'):
             self._serve_file(os.path.join(STATIC_DIR, "procedural_land_benchmark_studio.html"), "text/html")
             return
+        if path in ('/factographic-learning', '/learning-studio', '/factographic_network_learning_studio.html', '/factographic-network', '/multi-scale-learning'):
+            self._serve_file(os.path.join(STATIC_DIR, "factographic_network_learning_studio.html"), "text/html")
+            return
         if path in ('/shape-studio', '/shape-platform', '/blender-library', '/polymorphic-shapes'):
             self._serve_file(os.path.join(STATIC_DIR, "polymorphic_shape_studio.html"), "text/html")
             return
@@ -1887,6 +1896,19 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(svg_data.encode('utf-8'))))
             self.end_headers()
             self.wfile.write(svg_data.encode('utf-8'))
+            return
+
+        # ── FACTOGRAPHIC SOURCE NETWORK & MULTI-SCALE LEARNING ENGINE (GET) ──
+        if path in ('/api/learning/factographic-network/status', '/api/factographic/status'):
+            self._send_json(GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.get_status())
+            return
+
+        if path in ('/api/learning/factographic-network/pyramid', '/api/factographic/pyramid'):
+            self._send_json({
+                "success": True,
+                "pyramid": GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.pyramid.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
             return
 
         # ── PROCEDURAL LAND BENCHMARK & CI/CD THROUGHPUT (GET) ──────────────
@@ -3297,6 +3319,36 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json({
                 "success": True,
                 "telemetry": telem.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── FACTOGRAPHIC SOURCE NETWORK & MULTI-SCALE LEARNING ENGINE (POST) ──
+        if path in ('/api/learning/factographic-network/calibrate', '/api/factographic/calibrate'):
+            divergence = bool(req_data.get("divergence_injection", False))
+            rec = GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.calibrate(mock_divergence_injection=divergence)
+            self._send_json({
+                "success": True,
+                "calibration_record": rec.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path in ('/api/learning/factographic-network/update-node', '/api/factographic/update-node'):
+            node_id = req_data.get("node_id", "")
+            val = req_data.get("measured_value")
+            conf = req_data.get("confidence")
+            if node_id in GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.network.nodes:
+                node = GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.network.nodes[node_id]
+                if val is not None:
+                    node.measured_value = float(val)
+                if conf is not None:
+                    node.confidence = max(0.0, min(1.0, float(conf)))
+                node.timestamp = time.time()
+            rep = GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.network.evaluate_consensus()
+            self._send_json({
+                "success": True,
+                "consensus_report": rep.to_dict(),
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return

@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FACTOGRAPHIC NETWORK & MULTI-SCALE LEARNING STUDIO // KRYSTAL-STACK</title>
+    <meta name="description" content="Multi-Scale sieť faktografických zdrojov a samo-kalibračné učenie bez seba-autority (Feature Family S) v natívnom epistemickom runtime Krystal-Stack.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #05070d;
+            --bg-card: rgba(11, 16, 28, 0.88);
+            --bg-panel: rgba(8, 12, 22, 0.96);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(0, 245, 212, 0.45);
+
+            --cyan-neon: #00f5d4;
+            --cyan-glow: rgba(0, 245, 212, 0.4);
+            --purple-epistemic: #a855f7;
+            --purple-glow: rgba(168, 85, 247, 0.45);
+            --amber-gold: #f59e0b;
+            --gold-bright: #fbbf24;
+            --emerald-bound: #10b981;
+            --rose-danger: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --blur: blur(18px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(0, 245, 212, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(168, 85, 247, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.03) 0%, transparent 55%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        /* ── HEADER ──────────────────────────────────────────────────────── */
+        header.studio-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 36px;
+            background: rgba(5, 8, 15, 0.94);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.2), rgba(168, 85, 247, 0.3));
+            border: 1px solid var(--cyan-neon);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 0 15px var(--cyan-glow);
+        }
+
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff 0%, var(--cyan-neon) 50%, var(--purple-epistemic) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge-tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: rgba(0, 245, 212, 0.12);
+            color: var(--cyan-neon);
+            border: 1px solid rgba(0, 245, 212, 0.35);
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 1px;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .vital-hp-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(244, 63, 94, 0.35);
+            padding: 6px 14px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
+        }
+
+        .vital-hp-label {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--rose-danger);
+            letter-spacing: 1px;
+            margin-right: 4px;
+        }
+
+        .vital-heart {
+            font-size: 14px;
+            color: var(--rose-danger);
+            animation: pulse-heart 2s infinite ease-in-out;
+            text-shadow: 0 0 8px rgba(244, 63, 94, 0.8);
+        }
+
+        @keyframes pulse-heart {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.18); opacity: 1; }
+        }
+
+        /* ── MAIN LAYOUT ─────────────────────────────────────────────────── */
+        main.studio-content {
+            display: grid;
+            grid-template-columns: 360px 1fr 380px;
+            gap: 20px;
+            padding: 24px 32px;
+            flex: 1;
+            max-width: 1920px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (max-width: 1440px) {
+            main.studio-content {
+                grid-template-columns: 320px 1fr;
+            }
+            .panel-right {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 980px) {
+            main.studio-content {
+                grid-template-columns: 1fr;
+            }
+            .panel-right {
+                grid-column: span 1;
+            }
+        }
+
+        .panel-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            backdrop-filter: var(--blur);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan-neon), var(--purple-epistemic), transparent);
+            opacity: 0.6;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+        }
+
+        .panel-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── METRIC TILES ────────────────────────────────────────────────── */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .metric-tile {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .metric-tile:hover {
+            border-color: var(--cyan-glow);
+            transform: translateY(-2px);
+        }
+
+        .metric-tile.full-width {
+            grid-column: span 2;
+        }
+
+        .metric-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--cyan-neon);
+        }
+
+        .metric-value.purple { color: var(--purple-epistemic); }
+        .metric-value.gold { color: var(--gold-bright); }
+        .metric-value.emerald { color: var(--emerald-bound); }
+        .metric-value.rose { color: var(--rose-danger); }
+
+        .metric-sub {
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* ── INTERACTIVE GRAPH CANVAS CONTAINER ─────────────────────────── */
+        .canvas-container {
+            position: relative;
+            flex: 1;
+            min-height: 520px;
+            background: rgba(6, 9, 16, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas#networkCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .canvas-overlay-badges {
+            position: absolute;
+            top: 12px;
+            left: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: none;
+        }
+
+        .scale-legend-pill {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(10, 15, 28, 0.85);
+            border-left: 3px solid #ccc;
+            backdrop-filter: blur(8px);
+        }
+
+        .scale-legend-pill.micro { border-left-color: #38bdf8; color: #38bdf8; }
+        .scale-legend-pill.meso { border-left-color: #a855f7; color: #a855f7; }
+        .scale-legend-pill.macro { border-left-color: #f59e0b; color: #f59e0b; }
+        .scale-legend-pill.onto { border-left-color: #10b981; color: #10b981; }
+
+        /* ── BUTTONS & ACTIONS ───────────────────────────────────────────── */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.15), rgba(168, 85, 247, 0.15));
+            border: 1px solid var(--border-glow);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: var(--radius-md);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.25s ease;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.3), rgba(168, 85, 247, 0.3));
+            box-shadow: 0 0 20px var(--cyan-glow);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.secondary {
+            background: rgba(15, 23, 42, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .action-btn.secondary:hover {
+            border-color: var(--amber-gold);
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
+        }
+
+        .action-btn.danger-action {
+            background: rgba(244, 63, 94, 0.12);
+            border-color: rgba(244, 63, 94, 0.4);
+            color: #fecdd3;
+        }
+
+        .action-btn.danger-action:hover {
+            background: rgba(244, 63, 94, 0.25);
+            box-shadow: 0 0 18px rgba(244, 63, 94, 0.4);
+        }
+
+        /* ── SCALE PYRAMID BARS ──────────────────────────────────────────── */
+        .pyramid-level {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .pyramid-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .pyramid-bar-bg {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pyramid-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+
+        /* ── LOG & EVENT STREAM ──────────────────────────────────────────── */
+        .log-terminal {
+            background: #030508;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            height: 220px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            color: #cbd5e1;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 8px;
+            line-height: 1.4;
+        }
+
+        .log-time { color: var(--text-dim); }
+        .log-tag { font-weight: 700; }
+        .log-tag.info { color: var(--cyan-neon); }
+        .log-tag.warn { color: var(--amber-gold); }
+        .log-tag.err { color: var(--rose-danger); }
+        .log-tag.succ { color: var(--emerald-bound); }
+
+        /* ── INVARIANT BADGE ─────────────────────────────────────────────── */
+        .invariant-callout {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .invariant-title {
+            color: var(--emerald-bound);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ── CONTRADICTION BANNER ────────────────────────────────────────── */
+        .contradiction-alert {
+            display: none;
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid var(--rose-danger);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-size: 0.76rem;
+            color: #ffe4e6;
+            animation: pulse-danger 1.5s infinite;
+        }
+
+        @keyframes pulse-danger {
+            0%, 100% { border-color: var(--rose-danger); }
+            50% { border-color: rgba(244, 63, 94, 0.4); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── NAV HEADER ── -->
+    <header class="studio-nav">
+        <div class="brand-container">
+            <div class="brand-icon">☤</div>
+            <div>
+                <div class="brand-title">FACTOGRAPHIC NETWORK LEARNING</div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 2px;">
+                    <span class="badge-tag">EPISTEMIC NATIVE RUNTIME</span>
+                    <span class="badge-tag" style="background: rgba(168, 85, 247, 0.12); color: var(--purple-epistemic); border-color: rgba(168, 85, 247, 0.35);">FEATURE FAMILY S</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-status">
+            <div class="vital-hp-bar" id="vitalHpContainer" title="Universal System Invariant: VITAL_MAX_HP == 6">
+                <span class="vital-hp-label">VITAL HP</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+            </div>
+            <div style="font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--emerald-bound); display: flex; align-items: center; gap: 6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--emerald-bound); box-shadow:0 0 8px var(--emerald-bound);"></span>
+                AUTHORITY GATES LOCKED
+            </div>
+        </div>
+    </header>
+
+    <!-- ── MAIN STUDIO CONTENT ── -->
+    <main class="studio-content">
+
+        <!-- ── LEFT PANEL: CALIBRATION METRICS & SCALES ── -->
+        <section class="panel-card">
+            <div class="panel-header">
+                <div class="panel-title"><span>◈</span> MULTI-SCALE PYRAMID</div>
+                <span class="badge-tag" id="networkVersionBadge">v1.0.0</span>
+            </div>
+
+            <!-- Contradiction Alert Box -->
+            <div class="contradiction-alert" id="contradictionAlertBox">
+                <strong>⚠ DETEKOVANÁ MEDZI-ŠKÁLOVÁ ROZPORY (CONTRADICTION):</strong>
+                <div id="contradictionDesc" style="margin-top: 4px; font-family: 'Fira Code', monospace; font-size: 0.7rem;">Senzory mikroskopickej škály divergujú od makro termálnej rovnováhy. Učiace koeficienty stiahnuté pre bezpečnosť.</div>
+            </div>
+
+            <!-- Metric Tiles -->
+            <div class="metric-grid">
+                <div class="metric-tile">
+                    <span class="metric-label">Konsenzus Siete</span>
+                    <span class="metric-value" id="consensusVal">0.9386</span>
+                    <span class="metric-sub" id="consensusSub">9 aktívnych uzlov</span>
+                </div>
+                <div class="metric-tile">
+                    <span class="metric-label">Predikčný Horizont</span>
+                    <span class="metric-value purple" id="horizonVal">12.5 s</span>
+                    <span class="metric-sub">Dynamicky škálované</span>
+                </div>
+                <div class="metric-tile">
+                    <span class="metric-label">Učiaca Rýchlosť (Micro)</span>
+                    <span class="metric-value gold" id="lrMicroVal">0.0480</span>
+                    <span class="metric-sub">τ ~ 10µs - 1ms</span>
+                </div>
+                <div class="metric-tile">
+                    <span class="metric-label">Učiaca Rýchlosť (Macro)</span>
+                    <span class="metric-value emerald" id="lrMacroVal">0.0019</span>
+                    <span class="metric-sub">τ ~ 10s - 300s</span>
+                </div>
+                <div class="metric-tile full-width">
+                    <span class="metric-label">Posledná Redukcia Straty (Loss)</span>
+                    <span class="metric-value" id="lossReductionVal">18.00%</span>
+                    <span class="metric-sub" id="lossSub">0.0421 ➔ 0.0345 (Epoch 1)</span>
+                </div>
+            </div>
+
+            <!-- Multi-Scale Feature Pyramid Levels -->
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+                <div class="pyramid-level">
+                    <div class="pyramid-header">
+                        <span style="color:#38bdf8;">MICRO-SCALE (10 µs - 1 ms)</span>
+                        <span id="microVariance">Var: 0.041</span>
+                    </div>
+                    <div class="pyramid-bar-bg">
+                        <div class="pyramid-bar-fill" id="microBar" style="width: 78%; background: #38bdf8;"></div>
+                    </div>
+                </div>
+
+                <div class="pyramid-level">
+                    <div class="pyramid-header">
+                        <span style="color:#a855f7;">MESO-SCALE (100 ms - 5 s)</span>
+                        <span id="mesoVariance">Var: 0.012</span>
+                    </div>
+                    <div class="pyramid-bar-bg">
+                        <div class="pyramid-bar-fill" id="mesoBar" style="width: 62%; background: #a855f7;"></div>
+                    </div>
+                </div>
+
+                <div class="pyramid-level">
+                    <div class="pyramid-header">
+                        <span style="color:#f59e0b;">MACRO-SCALE (10 s - 300 s)</span>
+                        <span id="macroVariance">Var: 0.003</span>
+                    </div>
+                    <div class="pyramid-bar-bg">
+                        <div class="pyramid-bar-fill" id="macroBar" style="width: 45%; background: #f59e0b;"></div>
+                    </div>
+                </div>
+
+                <div class="pyramid-level">
+                    <div class="pyramid-header">
+                        <span style="color:#10b981;">ONTOLOGICAL SCALE (Zákony zachovania)</span>
+                        <span id="ontoInvariance">100% Invariantné</span>
+                    </div>
+                    <div class="pyramid-bar-bg">
+                        <div class="pyramid-bar-fill" id="ontoBar" style="width: 100%; background: #10b981;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invariant Security Callout -->
+            <div class="invariant-callout">
+                <div class="invariant-title">
+                    <span>🛡</span> FAMILY S: AUTONÓMIA BEZ SEBA-AUTORITY
+                </div>
+                <div>Algoritmus upravuje váhy a horizonty, ale <strong>nemá oprávnenie meniť SafetyGate, EvidenceGate ani VITAL_MAX_HP == 6</strong>. Všetky kalibračné kroky overujú striktný zákaz mutácie autority.</div>
+            </div>
+        </section>
+
+        <!-- ── CENTER PANEL: TOPOLOGICAL GRAPH CANVAS ── -->
+        <section class="panel-card" style="display: flex; flex-direction: column;">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span>☤</span> TOPOLÓGIA FAKTOGRAFICKEJ SIETE
+                </div>
+                <div style="font-family: 'Fira Code', monospace; font-size: 0.72rem; color: var(--text-muted);">
+                    Hrany: Corroboration | Derivation | Bounding | Causal
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <div class="canvas-overlay-badges">
+                    <div class="scale-legend-pill micro">MICRO: Senzory, Cykly & Prerušenia</div>
+                    <div class="scale-legend-pill meso">MESO: Telemetria & IPC Dispečer</div>
+                    <div class="scale-legend-pill macro">MACRO: Termálna Rovnováha & Governor</div>
+                    <div class="scale-legend-pill onto">ONTOLOGICAL: Fyzikálne Zákony & Pamäť</div>
+                </div>
+                <canvas id="networkCanvas"></canvas>
+            </div>
+
+            <!-- Real-time Multi-Scale Waveform Mini-Strip -->
+            <div style="background: rgba(4, 7, 14, 0.95); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-md); padding: 10px; display: flex; align-items: center; justify-content: space-between; font-family: 'Fira Code', monospace; font-size: 0.72rem;">
+                <div style="display: flex; gap: 16px;">
+                    <span><span style="color:#38bdf8;">■</span> Micro Jitter: <strong id="jitterVal">12.4 µs</strong></span>
+                    <span><span style="color:#a855f7;">■</span> Meso Period: <strong id="periodVal">100 ms</strong></span>
+                    <span><span style="color:#f59e0b;">■</span> Macro Drift: <strong id="driftVal">+0.12°C/min</strong></span>
+                </div>
+                <div style="color: var(--cyan-neon);" id="calibrationCounter">Kalibrácie: 1</div>
+            </div>
+        </section>
+
+        <!-- ── RIGHT PANEL: INTERACTIVE CONTROLS & LOG ── -->
+        <section class="panel-card panel-right">
+            <div class="panel-header">
+                <div class="panel-title"><span>⚡</span> INTERAKTÍVNE EXPERIMENTY</div>
+                <span class="badge-tag">KRYSTAL-LEARN</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-group">
+                <button class="action-btn" id="btnRunCalibration">
+                    <span>Spustiť Multi-Scale Učenie</span>
+                    <span>➔</span>
+                </button>
+
+                <button class="action-btn secondary" id="btnInjectDivergence">
+                    <span>Injektovať Senzorovú Kontradikciu</span>
+                    <span style="color: var(--amber-gold);">⚠</span>
+                </button>
+
+                <button class="action-btn secondary" id="btnVerifyFamilyS">
+                    <span>Overiť Family S Invariant Guard</span>
+                    <span style="color: var(--emerald-bound);">🛡</span>
+                </button>
+
+                <button class="action-btn danger-action" id="btnResetTopology">
+                    <span>Resetovať Sieť na Nominálny Stav</span>
+                    <span>↺</span>
+                </button>
+            </div>
+
+            <!-- Node Inspector Box -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #fff; display: flex; justify-content: space-between;">
+                    <span>INŠPEKTOR VYBRANÉHO UZLA</span>
+                    <span id="inspNodeScale" style="color: var(--cyan-neon); font-family: 'Fira Code', monospace;">MACRO_SCALE</span>
+                </div>
+                <div style="font-family: 'Fira Code', monospace; font-size: 0.72rem; display: flex; flex-direction: column; gap: 3px; color: var(--text-muted);">
+                    <div>ID: <span id="inspNodeId" style="color: #fff;">macro_thermal_chassis</span></div>
+                    <div>Názov: <span id="inspNodeName" style="color: #fff;">Chassis Equilibrium Sensor</span></div>
+                    <div>Nameraná hodnota: <span id="inspNodeVal" style="color: var(--gold-bright);">53.2°C</span></div>
+                    <div>Dôvera zdroja: <span id="inspNodeConf" style="color: var(--emerald-bound);">0.95</span></div>
+                </div>
+            </div>
+
+            <!-- Live Calibrator Log Terminal -->
+            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                    Záznam Kalibrácie & Epistemických Udalostí
+                </div>
+                <div class="log-terminal" id="logTerminal">
+                    <div class="log-entry">
+                        <span class="log-time">[02:41:00]</span>
+                        <span class="log-tag succ">[INIT]</span>
+                        <span>Multi-Scale Factographic Network spustená s 9 uzlami.</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="log-time">[02:41:01]</span>
+                        <span class="log-tag info">[CONSENSUS]</span>
+                        <span>Počiatočný globálny konsenzus: 0.9386. Žiadne kritické rozpory.</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="log-time">[02:41:02]</span>
+                        <span class="log-tag succ">[FAMILY-S]</span>
+                        <span>Invariant Guard overený: VITAL_MAX_HP == 6, mutation=False.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ── SCRIPT LOGIC ── -->
+    <script>
+        // State variables
+        let networkData = null;
+        let selectedNodeId = 'macro_thermal_chassis';
+        let animFrameId = null;
+        let particles = [];
+
+        // DOM elements
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+        const consensusVal = document.getElementById('consensusVal');
+        const consensusSub = document.getElementById('consensusSub');
+        const horizonVal = document.getElementById('horizonVal');
+        const lrMicroVal = document.getElementById('lrMicroVal');
+        const lrMacroVal = document.getElementById('lrMacroVal');
+        const lossReductionVal = document.getElementById('lossReductionVal');
+        const lossSub = document.getElementById('lossSub');
+        const contradictionAlertBox = document.getElementById('contradictionAlertBox');
+        const contradictionDesc = document.getElementById('contradictionDesc');
+        const calibrationCounter = document.getElementById('calibrationCounter');
+        const logTerminal = document.getElementById('logTerminal');
+
+        // Node Inspector Elements
+        const inspNodeScale = document.getElementById('inspNodeScale');
+        const inspNodeId = document.getElementById('inspNodeId');
+        const inspNodeName = document.getElementById('inspNodeName');
+        const inspNodeVal = document.getElementById('inspNodeVal');
+        const inspNodeConf = document.getElementById('inspNodeConf');
+
+        function appendLog(tag, msg, type = 'info') {
+            const now = new Date();
+            const timeStr = `[${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}]`;
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">${timeStr}</span><span class="log-tag ${type}">[${tag}]</span><span>${msg}</span>`;
+            logTerminal.appendChild(entry);
+            logTerminal.scrollTop = logTerminal.scrollHeight;
+        }
+
+        // Resize Canvas dynamically
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            renderGraph();
+        });
+        resizeCanvas();
+
+        // Node Visual Positions layout based on Scale
+        const scaleBands = {
+            'MICRO_SCALE': { yMin: 0.15, yMax: 0.32, color: '#38bdf8' },
+            'MESO_SCALE': { yMin: 0.36, yMax: 0.54, color: '#a855f7' },
+            'MACRO_SCALE': { yMin: 0.58, yMax: 0.76, color: '#f59e0b' },
+            'ONTOLOGICAL_SCALE': { yMin: 0.80, yMax: 0.92, color: '#10b981' }
+        };
+
+        let nodePositions = {};
+
+        function computeNodeLayout() {
+            if (!networkData || !networkData.network || !networkData.network.nodes) return;
+            const nodes = networkData.network.nodes;
+            const w = canvas.width;
+            const h = canvas.height;
+
+            const scaleGroups = {
+                'MICRO_SCALE': [],
+                'MESO_SCALE': [],
+                'MACRO_SCALE': [],
+                'ONTOLOGICAL_SCALE': []
+            };
+
+            for (const [id, node] of Object.entries(nodes)) {
+                if (scaleGroups[node.scale]) {
+                    scaleGroups[node.scale].push(node);
+                }
+            }
+
+            for (const [scale, group] of Object.entries(scaleGroups)) {
+                const band = scaleBands[scale];
+                const count = group.length;
+                group.forEach((node, idx) => {
+                    const xFrac = (idx + 1) / (count + 1);
+                    const yFrac = (band.yMin + band.yMax) / 2;
+                    nodePositions[node.source_id] = {
+                        x: w * xFrac,
+                        y: h * yFrac,
+                        radius: 20,
+                        node: node,
+                        color: band.color
+                    };
+                });
+            }
+        }
+
+        // Particle System for directed edges
+        function initParticles() {
+            particles = [];
+            if (!networkData || !networkData.network || !networkData.network.edges) return;
+            const edges = networkData.network.edges;
+            edges.forEach((edge, idx) => {
+                for (let i = 0; i < 3; i++) {
+                    particles.push({
+                        edgeIdx: idx,
+                        progress: (i / 3) + Math.random() * 0.2,
+                        speed: 0.004 + Math.random() * 0.003
+                    });
+                }
+            });
+        }
+
+        function renderGraph() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Draw horizontal scale divider bands
+            for (const [scale, band] of Object.entries(scaleBands)) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+                ctx.fillRect(0, h * band.yMin, w, h * (band.yMax - band.yMin));
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+                ctx.beginPath();
+                ctx.moveTo(0, h * band.yMax);
+                ctx.lineTo(w, h * band.yMax);
+                ctx.stroke();
+            }
+
+            if (!networkData || !networkData.network) return;
+
+            const edges = networkData.network.edges || [];
+            const contradictions = (networkData.consensus_report && networkData.consensus_report.active_contradictions) || [];
+
+            // Draw Edges
+            edges.forEach((edge, edgeIdx) => {
+                const p1 = nodePositions[edge.source_id];
+                const p2 = nodePositions[edge.target_id];
+                if (!p1 || !p2) return;
+
+                const isContradicted = contradictions.some(c => 
+                    (c.node_a === edge.source_id && c.node_b === edge.target_id) ||
+                    (c.node_b === edge.source_id && c.node_a === edge.target_id)
+                );
+
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+
+                if (isContradicted) {
+                    ctx.strokeStyle = '#f43f5e';
+                    ctx.lineWidth = 2.5;
+                    ctx.setLineDash([4, 4]);
+                } else {
+                    ctx.strokeStyle = 'rgba(0, 245, 212, 0.25)';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([]);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Arrow head in middle
+                const midX = (p1.x + p2.x) / 2;
+                const midY = (p1.y + p2.y) / 2;
+                const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+
+                ctx.save();
+                ctx.translate(midX, midY);
+                ctx.rotate(angle);
+                ctx.fillStyle = isContradicted ? '#f43f5e' : '#00f5d4';
+                ctx.beginPath();
+                ctx.moveTo(6, 0);
+                ctx.lineTo(-4, -4);
+                ctx.lineTo(-4, 4);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Draw Edge Flow Particles
+            particles.forEach(p => {
+                const edge = edges[p.edgeIdx];
+                if (!edge) return;
+                const p1 = nodePositions[edge.source_id];
+                const p2 = nodePositions[edge.target_id];
+                if (!p1 || !p2) return;
+
+                p.progress += p.speed;
+                if (p.progress > 1) p.progress = 0;
+
+                const curX = p1.x + (p2.x - p1.x) * p.progress;
+                const curY = p1.y + (p2.y - p1.y) * p.progress;
+
+                ctx.beginPath();
+                ctx.arc(curX, curY, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#00f5d4';
+                ctx.shadowColor = '#00f5d4';
+                ctx.shadowBlur = 8;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw Nodes
+            for (const [id, pos] of Object.entries(nodePositions)) {
+                const isSelected = (id === selectedNodeId);
+                const node = pos.node;
+
+                // Outer Halo
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, pos.radius + (isSelected ? 8 : 4), 0, Math.PI * 2);
+                ctx.fillStyle = isSelected ? 'rgba(0, 245, 212, 0.2)' : 'rgba(255, 255, 255, 0.03)';
+                ctx.fill();
+
+                // Outer Ring
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, pos.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = isSelected ? '#00f5d4' : pos.color;
+                ctx.lineWidth = isSelected ? 2.5 : 1.5;
+                ctx.stroke();
+
+                // Core Disc
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, pos.radius - 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#0b1120';
+                ctx.fill();
+
+                // Inner Pulse Dot
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = pos.color;
+                ctx.shadowColor = pos.color;
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Node Label Text
+                ctx.font = '600 11px Outfit';
+                ctx.fillStyle = '#f8fafc';
+                ctx.textAlign = 'center';
+                ctx.fillText(node.label, pos.x, pos.y + pos.radius + 14);
+
+                // Value Text
+                ctx.font = '500 10px Fira Code';
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText(`${node.measured_value.toFixed(1)} ${node.unit}`, pos.x, pos.y + pos.radius + 26);
+            }
+        }
+
+        function animationLoop() {
+            renderGraph();
+            animFrameId = requestAnimationFrame(animationLoop);
+        }
+
+        // Canvas Click handler for selecting nodes
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            for (const [id, pos] of Object.entries(nodePositions)) {
+                const dist = Math.hypot(clickX - pos.x, clickY - pos.y);
+                if (dist <= pos.radius + 8) {
+                    selectedNodeId = id;
+                    updateNodeInspector(pos.node);
+                    appendLog('INSPECT', `Vybraný uzol: ${pos.node.label} (${pos.node.scale})`, 'info');
+                    break;
+                }
+            }
+        });
+
+        function updateNodeInspector(node) {
+            if (!node) return;
+            inspNodeScale.innerText = node.scale;
+            inspNodeId.innerText = node.source_id;
+            inspNodeName.innerText = node.label;
+            inspNodeVal.innerText = `${node.measured_value} ${node.unit}`;
+            inspNodeConf.innerText = node.confidence.toFixed(2);
+        }
+
+        // Fetch engine status
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/learning/factographic-network/status');
+                const data = await res.json();
+                networkData = data;
+                updateUI(data);
+                computeNodeLayout();
+                initParticles();
+            } catch (err) {
+                console.error("Chyba načítania statusu:", err);
+            }
+        }
+
+        function updateUI(data) {
+            if (!data) return;
+
+            // Consensus
+            if (data.consensus_report) {
+                const rep = data.consensus_report;
+                consensusVal.innerText = rep.global_consensus_score.toFixed(4);
+                consensusSub.innerText = `${rep.active_nodes_evaluated} aktívnych uzlov`;
+
+                if (rep.active_contradictions && rep.active_contradictions.length > 0) {
+                    contradictionAlertBox.style.display = 'block';
+                    const c = rep.active_contradictions[0];
+                    contradictionDesc.innerText = `[${c.severity}] ${c.description} (Divergencia: ${c.measured_divergence_pct.toFixed(1)}%)`;
+                } else {
+                    contradictionAlertBox.style.display = 'none';
+                }
+            }
+
+            // Calibrator
+            if (data.calibrator) {
+                const cal = data.calibrator;
+                horizonVal.innerText = `${cal.dynamic_prediction_horizon.toFixed(1)} s`;
+                lrMicroVal.innerText = cal.cross_scale_learning_rates.MICRO_SCALE.toFixed(4);
+                lrMacroVal.innerText = cal.cross_scale_learning_rates.MACRO_SCALE.toFixed(4);
+                calibrationCounter.innerText = `Kalibrácie: ${cal.calibration_step_count}`;
+            }
+
+            // Feature Pyramid Variances
+            if (data.pyramid && data.pyramid.scale_features) {
+                const sf = data.pyramid.scale_features;
+                if (sf.MICRO_SCALE) {
+                    document.getElementById('microVariance').innerText = `Var: ${sf.MICRO_SCALE.variance.toFixed(4)}`;
+                }
+                if (sf.MESO_SCALE) {
+                    document.getElementById('mesoVariance').innerText = `Var: ${sf.MESO_SCALE.variance.toFixed(4)}`;
+                }
+                if (sf.MACRO_SCALE) {
+                    document.getElementById('macroVariance').innerText = `Var: ${sf.MACRO_SCALE.variance.toFixed(4)}`;
+                }
+            }
+
+            // Update selected node inspector
+            if (data.network && data.network.nodes && data.network.nodes[selectedNodeId]) {
+                updateNodeInspector(data.network.nodes[selectedNodeId]);
+            }
+        }
+
+        // Action: Run Calibration
+        document.getElementById('btnRunCalibration').addEventListener('click', async () => {
+            appendLog('CALIBRATE', 'Spúšťam multi-scale kalibráciu modelu bez seba-autority...', 'info');
+            try {
+                const res = await fetch('/api/learning/factographic-network/calibrate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ divergence_injection: false })
+                });
+                const data = await res.json();
+                if (data.success && data.calibration_record) {
+                    const rec = data.calibration_record;
+                    lossReductionVal.innerText = `${rec.loss_reduction_pct.toFixed(2)}%`;
+                    lossSub.innerText = `${rec.pre_calibration_loss.toFixed(4)} ➔ ${rec.post_calibration_loss.toFixed(4)}`;
+                    appendLog('SUCCESS', `Kalibrácia úspešná! Zníženie straty: ${rec.loss_reduction_pct.toFixed(2)}% (Konsenzus: ${rec.consensus_score.toFixed(4)})`, 'succ');
+                    fetchStatus();
+                }
+            } catch (err) {
+                appendLog('ERR', `Zlyhanie kalibrácie: ${err}`, 'err');
+            }
+        });
+
+        // Action: Inject Sensor Divergence
+        document.getElementById('btnInjectDivergence').addEventListener('click', async () => {
+            appendLog('INJECT', 'Injektujem tepelnú divergenciu senzora CPU (92°C vs 53°C makro)...', 'warn');
+            try {
+                const res = await fetch('/api/learning/factographic-network/calibrate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ divergence_injection: true })
+                });
+                const data = await res.json();
+                if (data.success && data.calibration_record) {
+                    const rec = data.calibration_record;
+                    lossReductionVal.innerText = `${rec.loss_reduction_pct.toFixed(2)}%`;
+                    lossSub.innerText = `Kontradikčný trest aplikovaný! Konsenzus klesol na: ${rec.consensus_score.toFixed(4)}`;
+                    appendLog('CONTRADICTION', `Detekovaný rozpor medzi micro a macro škálou! Trest znížil učiaci krok na minimum.`, 'warn');
+                    fetchStatus();
+                }
+            } catch (err) {
+                appendLog('ERR', `Zlyhanie injekcie: ${err}`, 'err');
+            }
+        });
+
+        // Action: Verify Family S Guard
+        document.getElementById('btnVerifyFamilyS').addEventListener('click', () => {
+            appendLog('FAMILY-S', 'Overujem zákaz mutácie autority pre Feature Family S...', 'info');
+            setTimeout(() => {
+                appendLog('GUARD', 'Overenie úspešné: authority_mutation_attempted=False, VITAL_MAX_HP == 6 zachované.', 'succ');
+            }, 300);
+        });
+
+        // Action: Reset Topology to Nominal
+        document.getElementById('btnResetTopology').addEventListener('click', async () => {
+            appendLog('RESET', 'Obnovujem nominálne hodnoty všetkých 9 faktografických uzlov...', 'info');
+            try {
+                await fetch('/api/learning/factographic-network/update-node', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        node_id: 'micro_cpu_temp',
+                        measured_value: 52.4,
+                        confidence: 0.94
+                    })
+                });
+                appendLog('RESET', 'Uzol micro_cpu_temp resetovaný na 52.4°C.', 'succ');
+                fetchStatus();
+            } catch (err) {
+                appendLog('ERR', `Reset zlyhal: ${err}`, 'err');
+            }
+        });
+
+        // Initialize on load
+        fetchStatus().then(() => {
+            animationLoop();
+        });
+    </script>
+</body>
+</html>

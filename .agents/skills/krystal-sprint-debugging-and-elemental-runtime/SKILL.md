@@ -553,6 +553,71 @@ Computes exact centroid $\mathbf{C} = \frac{1}{N}\sum \mathbf{v}_i$ and bounding
   python -m unittest tests/test_polymorphic_telemetry_benchmark.py
   ```
 
+---
 
+## 16. Factographic Source Network & Multi-Scale Epistemic Learning Engine (Feature Family S)
 
+### 16.1 Architectural Mandate & Principle
+When models and cognitive agents inside the Krystal Stack runtime learn or self-calibrate, they must ground their updates in a **Multi-Scale Factographic Source Network**. Unconstrained learning risks hallucinations, catastrophic drift, or self-elevation of permissions.
+* **Core Philosophy**: "Calibrate freely within empirical bounds, but never grant self-authority."
+* **Feature Family S (Self-Calibration Without Self-Authority)**: Models dynamically update cross-scale learning rates ($\alpha_\mu, \alpha_{\text{meso}}, \alpha_{\text{macro}}$), internal weight vectors, and prediction horizons ($H_p$), but are mathematically and architecturally prohibited from mutating authority gates (`SafetyGate`, `EvidenceGate`) or violating universal invariants (`VITAL_MAX_HP == 6`).
+
+### 16.2 4 Canonical Temporal & Topological Scales
+The factographic graph classifies every empirical source into one of four strictly ordered temporal/spatial scales:
+1. **`MICRO_SCALE`** ($\tau \sim 10\,\mu\text{s} - 1\,\text{ms}$):
+   - Fast hardware sensors, CPU cycle counters, IRQ jitter, high-frequency core voltage ($V_{\text{core}}$), junction temperature ($T_j$).
+   - High variance, sensitive to immediate transient spikes.
+2. **`MESO_SCALE`** ($\tau \sim 100\,\text{ms} - 5\,\text{s}$):
+   - Telemetry aggregators, IPC queue latency, task throughput, frame pacing, cache eviction rates.
+   - Filters micro-noise into stabilized operational signals.
+3. **`MACRO_SCALE`** ($\tau \sim 10\,\text{s} - 300\,\text{s}$):
+   - Thermal equilibrium, governor frequency curves, continuous world stream pacing, memory leak accumulation.
+   - Long-range predictive trend anchoring.
+4. **`ONTOLOGICAL_SCALE`** (Conservation Laws & Axioms):
+   - Physical conservation laws (Joule's law $E = P \cdot t$, Shannon-Hartley channel limits, memory bounds, $VITAL\_MAX\_HP == 6$).
+   - Immutable truth anchoring against which all lower scales are bounded.
+
+### 16.3 Directed Factographic Graph Consensus & Contradiction Detection
+The empirical network is modeled as a directed multi-relation graph $G = (V, E)$:
+* **Nodes ($V$)**:
+  $$v_i = \langle \text{id}, \text{scale}, \text{label}, \text{unit}, \text{value}, \text{confidence}, \text{timestamp} \rangle$$
+* **Edges ($E$)**:
+  - `CORROBORATION`: Two sources independently measure the same physical reality; divergence penalized.
+  - `DERIVATION`: Target is an analytical derivative or transformation of source.
+  - `BOUNDING`: Ontological or macro law establishing hard upper/lower envelopes on micro/meso values.
+  - `CAUSAL`: Directed influence relationship with propagation delay.
+* **Consensus Score ($C_G$)**:
+  $$C_G = \max\left(0, \frac{1}{|V|}\sum_{v \in V} c(v) \cdot \left[1 - \sum_{k} p_k\right]\right)$$
+  Where $p_k$ is the penalty for active contradictions between corroborated nodes exceeding `divergence_tolerance_pct` (default: 12.0%).
+* **Contradiction Penalty**: If high-frequency micro sensors contradict macro equilibrium beyond tolerance (e.g. CPU core reading 92°C while chassis macro sensor is 53°C), an active contradiction alert is flagged with severity `CRITICAL` or `WARNING`, immediately pulling down the global consensus score and forcing learning rates down to protect stability.
+
+### 16.4 Feature Family S: Self-Calibration Algorithm
+The calibrator (`FactographicLearningCalibrator`) performs multi-scale gradient descent:
+1. **Dynamic Prediction Horizon**:
+   $$H_p = H_{\text{base}} \cdot C_G \cdot \left(1 + \frac{1}{1 + \sigma^2_{\mu}}\right)$$
+2. **Scale-Specific Learning Rate Modulation**:
+   $$\alpha_s = \alpha_{s,0} \cdot \left(0.3 + 0.7 \cdot C_G\right) \cdot \frac{1}{1 + 5 \cdot \mathbf{1}_{\text{contradiction}}}$$
+3. **Invariant Assertion**:
+   $$\text{assert } \text{authority\_mutation\_attempted} == \text{False}$$
+   $$\text{assert } \text{VITAL\_MAX\_HP} == 6$$
+
+### 16.5 Interactive Web Studio & REST Endpoints
+* **Web Studio**: `krystal_web_hub/static/factographic_network_learning_studio.html` (served at `/factographic-learning`, `/learning-studio`).
+  - Interactive HTML5 Canvas rendering of the 4 scale bands with glowing nodes, directed edges, and animated particle signals.
+  - Live Contradiction Alert Box displaying detected cross-scale divergences.
+  - Interactive experiments:
+    - *Spustiť Multi-Scale Učenie*: Runs empirical calibration and displays percentage loss reduction.
+    - *Injektovať Senzorovú Kontradikciu*: Injects 92°C thermal divergence, drops consensus, and triggers safe learning rate penalty.
+    - *Overiť Family S Invariant Guard*: Confirms authority gates remain locked and `VITAL_MAX_HP == 6` is protected.
+    - *Inšpektor Vybraného Uzla*: Click any node in the graph to inspect its scale, confidence, unit, and live value.
+* **REST Endpoints**:
+  - `GET  /api/learning/factographic-network/status` — Returns full network graph, consensus score, active contradictions, and calibrator parameters.
+  - `GET  /api/learning/factographic-network/pyramid` — Returns 4-scale multi-scale feature pyramid with variances and coupling strengths.
+  - `POST /api/learning/factographic-network/calibrate` — Runs self-calibration step (supports `divergence_injection: bool`).
+  - `POST /api/learning/factographic-network/update-node` — Dynamically injects or updates node values and recomputes consensus.
+* **Verification**:
+  ```powershell
+  python krystal_kernel/factographic_network_learning_engine.py
+  python -m unittest tests/test_factographic_network_learning.py
+  ```
 
