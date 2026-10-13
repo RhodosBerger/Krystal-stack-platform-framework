@@ -431,6 +431,28 @@ class HybridMcpAntigravityConnector:
                     },
                     "required": ["domain", "payload"]
                 }
+            },
+            # 9. Unified Epistemic Meta-Orchestrator
+            {
+                "name": "krystal-unified-orchestrate",
+                "description": (
+                    "Zjednotený Epistemický Meta-Orchestrátor: Vykonáva uzavretý cyklus (inspect -> compose -> execute_shadow -> compare -> update_hypotheses). "
+                    "Rozhoduje 5 dimenzií: model, backend, worker profil, runtime profil a dôkazový režim."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "request": {
+                            "type": "object",
+                            "description": "Pracovná požiadavka (workload request, prompt, profil)."
+                        },
+                        "cascade_plan": {
+                            "type": "object",
+                            "description": "Voliteľný kaskádový plán pre vynútenie modelového uzla."
+                        }
+                    },
+                    "required": ["request"]
+                }
             }
         ]
 
@@ -598,7 +620,14 @@ class HybridMcpAntigravityConnector:
                 payload = arguments.get("payload", {})
                 return GLOBAL_GRAM_AND_IMPEDANCE_ENGINE.evaluate_impedance(domain, payload)
 
-            # 8. Fallback to Krystal MCP Core Tools
+            # 8. Unified Epistemic Meta-Orchestrator
+            elif name == "krystal-unified-orchestrate":
+                from krystal_kernel.runtime.unified_orchestrator import GLOBAL_EPISTEMIC_META_ORCHESTRATOR
+                req = arguments.get("request", {})
+                cascade = arguments.get("cascade_plan")
+                return GLOBAL_EPISTEMIC_META_ORCHESTRATOR.orchestrate_full_cycle(req, cascade_plan=cascade)
+
+            # 9. Fallback to Krystal MCP Core Tools
             elif name in self.krystal_mcp.tool_registry:
                 return self.krystal_mcp.dispatch_call(name, arguments)
 

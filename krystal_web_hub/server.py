@@ -3881,6 +3881,14 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json(res, status=200 if "error" not in res else 400)
             return
 
+        elif self.path == "/api/runtime/orchestrate":
+            from krystal_kernel.runtime.unified_orchestrator import GLOBAL_EPISTEMIC_META_ORCHESTRATOR
+            req_data = data.get("request", data)
+            cascade_data = data.get("cascade_plan")
+            res = GLOBAL_EPISTEMIC_META_ORCHESTRATOR.orchestrate_full_cycle(req_data, cascade_plan=cascade_data)
+            self.send_json(res, status=200)
+            return
+
         # ── API: Control (Mode / Resolution / Threshold / Folds) ──
         elif self.path == "/api/control":
             with state.lock:

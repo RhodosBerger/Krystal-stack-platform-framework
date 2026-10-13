@@ -227,9 +227,10 @@ class TestGramAndImpedanceEngine(unittest.TestCase):
         """Verifies that all 14 tools are registered and enumerate properly."""
         tools = self.mcp_conn.mcp_tool_schemas
         tool_names = [t["name"] for t in tools]
-        self.assertEqual(len(tools), 14)
+        self.assertEqual(len(tools), 15)
         self.assertIn("krystal-read-grams", tool_names)
         self.assertIn("krystal-evaluate-impedance", tool_names)
+        self.assertIn("krystal-unified-orchestrate", tool_names)
 
 
 if __name__ == "__main__":

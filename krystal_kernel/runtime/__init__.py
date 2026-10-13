@@ -154,5 +154,25 @@ __all__ = [
     # Master Core
     "CoreExecutionReport",
     "KrystalRuntimeCore",
-    "GLOBAL_KRYSTAL_RUNTIME_CORE"
+    "GLOBAL_KRYSTAL_RUNTIME_CORE",
+
+    # Unified Epistemic Meta-Orchestrator
+    "RuntimeResolutionContext",
+    "ComposedExecutionPlan",
+    "ShadowExecutionArtifact",
+    "EpistemicComparisonReport",
+    "HypothesisUpdateRecord",
+    "EpistemicMetaOrchestrator",
+    "GLOBAL_EPISTEMIC_META_ORCHESTRATOR"
 ]
+
+from .unified_orchestrator import (
+    RuntimeResolutionContext,
+    ComposedExecutionPlan,
+    ShadowExecutionArtifact,
+    EpistemicComparisonReport,
+    HypothesisUpdateRecord,
+    EpistemicMetaOrchestrator,
+    GLOBAL_EPISTEMIC_META_ORCHESTRATOR
+)
+
