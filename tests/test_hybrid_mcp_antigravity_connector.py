@@ -140,7 +140,8 @@ class TestHybridMcpAntigravityConnector(unittest.TestCase):
         self.assertIn("krystal-read-grams", tool_names)
         self.assertIn("krystal-evaluate-impedance", tool_names)
         self.assertIn("krystal-unified-orchestrate", tool_names)
-        self.assertEqual(len(tools), 15)
+        self.assertIn("krystal-karaf-evaluate", tool_names)
+        self.assertEqual(len(tools), 16)
 
         for t in tools:
             self.assertIn("inputSchema", t)

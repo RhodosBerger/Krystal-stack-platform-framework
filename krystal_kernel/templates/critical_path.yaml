@@ -1,0 +1,66 @@
+algorithm_template:
+  identity:
+    id: cascade_critical_path
+    version: "1.1.0"
+    family: DAG_CRITICAL_PATH_V1
+    description: "Cascade Critical-Path Optimizer focusing acceleration strictly on bottleneck nodes on the critical latency path"
+
+  epistemic:
+    status: HYPOTHESIS
+    evidence_required:
+      - NPU_CASCADE
+      - CPU_SCHEDULER
+    vital_max_hp: 6
+
+  inputs:
+    - cascade_dag_nodes: OBS_DAG_TOPOLOGY
+    - node_latencies_ms: OBS_NODE_LATENCIES
+    - node_dependencies: OBS_DAG_EDGES
+    - fallback_probabilities: OBS_FALLBACK_RATES
+
+  derived_metrics:
+    - critical_path_nodes
+    - path_slack_margins_ms
+    - bottleneck_impact_ratio
+
+  objective:
+    maximize:
+      - end_to_end_speedup_per_watt
+    minimize:
+      - non_critical_optimization_waste
+      - tail_latency_variance
+
+  constraints:
+    - SAFE_PASS
+    - INV_NOMINAL
+    - optimize_only_if_on_critical_path: true
+
+  search_space:
+    rank_by:
+      - latency_contribution
+      - memory_pressure
+      - fallback_probability
+
+  prediction:
+    target_metric: end_to_end_latency_ms
+    estimator: LONGEST_PATH_TOPOLOGICAL_SORT
+
+  falsification:
+    experiments:
+      - artificial_critical_node_delay_injection
+      - parallel_branch_slack_expansion_test
+
+  execution:
+    mode: SHADOW
+
+  authority:
+    direct_actuation: false
+
+  telemetry:
+    emit:
+      - critical_path_sequence
+      - critical_path_latency_ms
+      - optimized_target_node
+
+  learning:
+    update_hypothesis_ledger: true

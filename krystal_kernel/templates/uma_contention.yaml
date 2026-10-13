@@ -1,0 +1,69 @@
+algorithm_template:
+  identity:
+    id: uma_contention
+    version: "1.2.0"
+    family: UMA_CONTENTION_PREDICTOR_V1
+    description: "UMA Contention Predictor calculating UMA_pressure = f(RAM_used, GPU_shared, dirty, swap, bandwidth) and stall risks"
+
+  epistemic:
+    status: HYPOTHESIS
+    evidence_required:
+      - MEMORY_UMA
+      - GPU_ACCELERATOR
+      - STORAGE_IO
+    vital_max_hp: 6
+
+  inputs:
+    - host_ram_used_mb: OBS_RAM_USED_MB
+    - gpu_uma_allocated_mb: OBS_GPU_UMA_ALLOC_MB
+    - dirty_pages_mb: OBS_DIRTY_PAGES_MB
+    - swap_activity_rate: OBS_SWAP_RATE
+    - memory_bandwidth_util_pct: OBS_MEM_BW_PCT
+
+  derived_metrics:
+    - DER_UMA_PRESSURE
+    - PRED_UMA_STALL_RISK
+    - cache_eviction_pressure
+
+  objective:
+    maximize:
+      - zero_copy_sharing_efficiency
+    minimize:
+      - memory_bus_stalls
+      - swap_in_transits
+
+  constraints:
+    - SAFE_PASS
+    - INV_NOMINAL
+    - swap_threshold_stall_risk: 0.75
+
+  search_space:
+    mitigation_actions:
+      - reduce_gpu_buffer_pool
+      - reduce_model_cache
+      - unload_idle_model
+      - shrink_worker_count
+
+  prediction:
+    target_metric: PRED_UMA_STALL_RISK
+    estimator: MULTIVARIATE_UMA_SATURATION
+
+  falsification:
+    experiments:
+      - high_resolution_framebuffer_uma_injection
+      - concurrent_cascade_weight_streaming_probe
+
+  execution:
+    mode: SHADOW
+
+  authority:
+    direct_actuation: false
+
+  telemetry:
+    emit:
+      - der_uma_pressure
+      - pred_uma_stall_risk
+      - active_mitigations
+
+  learning:
+    update_hypothesis_ledger: true

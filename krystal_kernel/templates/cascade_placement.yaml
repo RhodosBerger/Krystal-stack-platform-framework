@@ -1,0 +1,83 @@
+algorithm_template:
+  identity:
+    id: cascade_placement
+    version: "2.1.0"
+    family: CASCADE_PLACEMENT_V2
+    description: "Cascade Hardware Placement Optimizer calculating Placement(Node_i) = argmin_B Cost(Node_i, B)"
+
+  epistemic:
+    status: HYPOTHESIS
+    evidence_required:
+      - NPU_CASCADE
+      - GPU_ACCELERATOR
+      - MEMORY_UMA
+      - POWER_THERMAL
+    vital_max_hp: 6
+
+  inputs:
+    - gpu_load_pct: OBS_GPU_LOAD
+    - uma_pressure: DER_UMA_PRESSURE
+    - thermal_headroom_c: DER_THERMAL_HEADROOM
+    - npu_available: OBS_NPU_AVAIL
+
+  derived_metrics:
+    - node_execution_cost_vector
+    - migration_overhead_penalty
+
+  objective:
+    maximize:
+      - tokens_per_second
+      - memory_locality
+    minimize:
+      - pci_uma_transfer_latency
+      - cross_backend_swapping
+
+  constraints:
+    - SAFE_PASS
+    - INV_NOMINAL
+    - verifier_requires_deterministic_cpu: true
+
+  search_space:
+    nodes:
+      classifier:
+        prefer: [CPU_SIMD, ACCELERATOR]
+        objective: low_latency
+      rag:
+        prefer: [CPU_SIMD]
+        objective: memory_locality
+      reasoner:
+        prefer: [GPU_VULKAN, OPENVINO_GPU, DIRECTML_NPU]
+        objective: tokens_per_second
+      coder:
+        prefer: [OPENVINO_GPU, CPU_AVX]
+        objective: high_throughput
+      verifier:
+        prefer: [CPU_SIMD]
+        objective: strict_determinism
+      synthesizer:
+        prefer: [DIRECTML_NPU, GPU_VULKAN]
+        objective: latency_stability
+
+  prediction:
+    target_metric: end_to_end_cascade_latency
+    estimator: DYNAMIC_NODE_DISPATCH_TABLE
+
+  falsification:
+    experiments:
+      - forced_gpu_fallback_test
+      - uma_starvation_migration_trial
+
+  execution:
+    mode: SHADOW
+
+  authority:
+    direct_actuation: false
+
+  telemetry:
+    emit:
+      - active_node_placement
+      - migrations_triggered
+      - placement_cost_index
+
+  learning:
+    update_hypothesis_ledger: true

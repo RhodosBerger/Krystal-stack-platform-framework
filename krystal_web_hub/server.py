@@ -1184,6 +1184,22 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: KARAF Fabric (Templates & Live Cognition Telemetry) ─
+        elif norm_path == "/api/karaf/templates":
+            from krystal_kernel.karaf_engine import GLOBAL_KARAF_FABRIC
+            self.send_json({
+                "status": "KARAF_TEMPLATES_READY",
+                "templates_count": len(GLOBAL_KARAF_FABRIC.templates),
+                "templates": GLOBAL_KARAF_FABRIC.templates,
+                "vital_max_hp": 6
+            })
+            return
+        elif norm_path == "/api/karaf/telemetry":
+            from krystal_kernel.karaf_engine import GLOBAL_KARAF_FABRIC
+            res = GLOBAL_KARAF_FABRIC.execute_fabric_cycle()
+            self.send_json(res)
+            return
+
         # ── API: Active System Processes for Prioritization ───────
         elif norm_path in ("/api/cortex/processes", "/api/processes"):
             from krystal_kernel.cortex_compiler import GLOBAL_CORTEX_COMPILER
@@ -3886,6 +3902,13 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             req_data = data.get("request", data)
             cascade_data = data.get("cascade_plan")
             res = GLOBAL_EPISTEMIC_META_ORCHESTRATOR.orchestrate_full_cycle(req_data, cascade_plan=cascade_data)
+            self.send_json(res, status=200)
+            return
+
+        elif self.path == "/api/karaf/evaluate":
+            from krystal_kernel.karaf_engine import GLOBAL_KARAF_FABRIC
+            snap = data.get("snapshot", data)
+            res = GLOBAL_KARAF_FABRIC.execute_fabric_cycle(snap if isinstance(snap, dict) and snap else None)
             self.send_json(res, status=200)
             return
 

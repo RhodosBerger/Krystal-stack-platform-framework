@@ -1,0 +1,70 @@
+algorithm_template:
+  identity:
+    id: adaptive_resource_envelope
+    version: "2.0.0"
+    family: ARE_SOLVER_V2
+    description: "Adaptive Resource Envelope Solver calculating R* = argmax_R U(R | H, W, S, E)"
+
+  epistemic:
+    status: HYPOTHESIS
+    evidence_required:
+      - CPU_SCHEDULER
+      - MEMORY_UMA
+      - POWER_THERMAL
+    vital_max_hp: 6
+
+  inputs:
+    - cpu_utilization: OBS_CPU_UTIL
+    - memory_pressure: DER_MEMORY_PRESSURE
+    - gpu_load: OBS_GPU_LOAD
+    - thermal_headroom: DER_THERMAL_HEADROOM
+    - cascade_memory: OBS_CASCADE_MEMORY
+
+  derived_metrics:
+    - effective_thermal_slack
+    - memory_contention_index
+    - utility_score
+
+  objective:
+    maximize:
+      - throughput
+      - latency_stability
+    minimize:
+      - thermal_pressure
+      - memory_contention
+      - context_switches
+
+  constraints:
+    - SAFE_PASS
+    - INV_NOMINAL
+    - evidence_fresh == true
+
+  search_space:
+    worker_range: [1, 8]
+    gpu_stream_range: [1, 4]
+    power_pl1_watts: [12.0, 35.0]
+
+  prediction:
+    target_metric: utility_score
+    estimator: PARETO_ENVELOPE
+
+  falsification:
+    experiments:
+      - randomized_allocation_probe
+      - boundary_thermal_stress
+
+  execution:
+    mode: SHADOW
+
+  authority:
+    direct_actuation: false
+
+  telemetry:
+    emit:
+      - optimal_workers
+      - optimal_gpu_streams
+      - optimal_pl1_watts
+      - achieved_utility
+
+  learning:
+    update_hypothesis_ledger: true

@@ -167,8 +167,9 @@ class TestUnifiedRuntimeOrchestrator(unittest.TestCase):
         """Verifies that krystal-unified-orchestrate is exposed in tools/list (15 tools total)."""
         tools = self.mcp_conn.mcp_tool_schemas
         tool_names = [t["name"] for t in tools]
-        self.assertEqual(len(tools), 15)
+        self.assertEqual(len(tools), 16)
         self.assertIn("krystal-unified-orchestrate", tool_names)
+        self.assertIn("krystal-karaf-evaluate", tool_names)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,71 @@
+algorithm_template:
+  identity:
+    id: hypothesis_miner
+    version: "2.0.0"
+    family: HYPOTHESIS_MINER_V2
+    description: "Runtime Hypothesis Miner discovering autonomous empirical host hardware laws from recurring telemetry patterns"
+
+  epistemic:
+    status: HYPOTHESIS
+    evidence_required:
+      - CPU_SCHEDULER
+      - MEMORY_UMA
+      - GPU_ACCELERATOR
+      - POWER_THERMAL
+      - EPISTEMIC_INVARIANTS
+    vital_max_hp: 6
+
+  inputs:
+    - telemetry_history_buffer: OBS_HISTORICAL_SAMPLES
+    - discrepancy_reports: OBS_PREDICTION_ERRORS
+    - active_hypotheses: OBS_ACTIVE_HYPOTHESIS_LEDGER
+
+  derived_metrics:
+    - pattern_recurrence_frequency
+    - marginal_utility_inflections
+    - candidate_invariant_rules
+
+  objective:
+    maximize:
+      - self_discovered_runtime_laws
+      - predictive_accuracy_evolution
+    minimize:
+      - spurious_correlation_hypotheses
+      - overfitted_hardware_rules
+
+  constraints:
+    - SAFE_PASS
+    - INV_NOMINAL
+    - min_recurrence_count_to_mine: 3
+    - require_falsification_suite: true
+
+  search_space:
+    mined_patterns:
+      - worker_saturation_contention
+      - thermal_throttling_knee
+      - uma_swap_bandwidth_cliff
+      - critical_path_bottleneck_migration
+
+  prediction:
+    target_metric: rule_generalization_score
+    estimator: INDUCTIVE_LOGIC_SYNTHESIS
+
+  falsification:
+    experiments:
+      - randomized_counterfactual_trials: 100
+      - boundary_falsification_injection
+
+  execution:
+    mode: SHADOW
+
+  authority:
+    direct_actuation: false
+
+  telemetry:
+    emit:
+      - mined_hypotheses_count
+      - newly_promoted_rules
+      - falsification_verdicts
+
+  learning:
+    update_hypothesis_ledger: true

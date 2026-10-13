@@ -1,0 +1,65 @@
+algorithm_template:
+  identity:
+    id: worker_elasticity
+    version: "1.0.0"
+    family: WORKER_GRADIENT_V1
+    description: "Worker Elasticity Gradient evaluating Gw = Delta Utility / Delta Workers with noise floor rejection"
+
+  epistemic:
+    status: HYPOTHESIS
+    evidence_required:
+      - CPU_SCHEDULER
+      - MEMORY_UMA
+    vital_max_hp: 6
+
+  inputs:
+    - current_workers: OBS_WORKER_COUNT
+    - p99_latency: OBS_P99_LATENCY
+    - llc_misses: OBS_LLC_MISSES
+    - context_switches: OBS_CONTEXT_SWITCHES
+    - memory_bandwidth: OBS_MEM_BW
+
+  derived_metrics:
+    - marginal_utility_gradient
+    - contention_inflection_point
+
+  objective:
+    maximize:
+      - throughput_per_watt
+    minimize:
+      - worker_contention
+      - thread_oversubscription
+
+  constraints:
+    - SAFE_PASS
+    - INV_NOMINAL
+    - min_workers >= 1
+    - max_workers <= 16
+
+  search_space:
+    worker_delta: [-2, -1, 0, 1, 2]
+    noise_floor_threshold: 0.035
+
+  prediction:
+    target_metric: marginal_utility_gradient
+    estimator: NEIGHBORHOOD_SLOPE
+
+  falsification:
+    experiments:
+      - step_worker_variation_probe
+      - latency_p99_sensitivity_check
+
+  execution:
+    mode: SHADOW
+
+  authority:
+    direct_actuation: false
+
+  telemetry:
+    emit:
+      - elasticity_gradient_gw
+      - saturation_detected
+      - recommended_workers
+
+  learning:
+    update_hypothesis_ledger: true

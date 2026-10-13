@@ -1,0 +1,72 @@
+algorithm_template:
+  identity:
+    id: evidence_decay
+    version: "2.0.0"
+    family: EPISTEMIC_DECAY_V2
+    description: "Epistemic Confidence Decay modeling C(t) = C_0 * e^(-lambda * t) with domain-specific half-lives"
+
+  epistemic:
+    status: HYPOTHESIS
+    evidence_required:
+      - EPISTEMIC_INVARIANTS
+    vital_max_hp: 6
+
+  inputs:
+    - evidence_timestamps_ns: OBS_EVIDENCE_TIMESTAMPS
+    - observation_domain: OBS_DOMAIN_ID
+    - initial_confidence: OBS_INITIAL_CONFIDENCE
+
+  derived_metrics:
+    - lambda_decay_rate
+    - current_effective_confidence
+    - staleness_status
+
+  objective:
+    maximize:
+      - evidentiary_freshness_precision
+    minimize:
+      - stale_decision_hallucinations
+
+  constraints:
+    - SAFE_PASS
+    - INV_NOMINAL
+    - confidence_floor: 0.05
+
+  search_space:
+    domains:
+      CPU_LOAD:
+        half_life_ms: 100
+      GPU_LOAD:
+        half_life_ms: 100
+      THERMAL:
+        half_life_ms: 500
+      HARDWARE_TOPOLOGY:
+        half_life_ms: 3600000
+
+  prediction:
+    target_metric: current_effective_confidence
+    estimator: EXPONENTIAL_VOLATILITY_DECAY
+
+  falsification:
+    experiments:
+      - simulated_quiescence_staleness_test
+      - fast_burst_decay_rate_validation
+
+  execution:
+    mode: SHADOW
+
+  authority:
+    direct_actuation: false
+    on_expired:
+      status: TMP_EXPIRED
+      authority: AUTH_DEFERRED
+
+  telemetry:
+    emit:
+      - domain
+      - elapsed_ms
+      - effective_confidence
+      - status
+
+  learning:
+    update_hypothesis_ledger: true

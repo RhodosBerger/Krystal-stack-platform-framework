@@ -453,6 +453,24 @@ class HybridMcpAntigravityConnector:
                     },
                     "required": ["request"]
                 }
+            },
+            # 10. KARAF Fabric (Krystal Adaptive Runtime Algorithm Fabric)
+            {
+                "name": "krystal-karaf-evaluate",
+                "description": (
+                    "KARAF Fabric: Vyhodnocuje 9 adaptívnych algoritmických šablón na základe 8 hardvérových domén "
+                    "(ARE solver, worker elasticity gradient, cascade placement, thermal predictor, UMA contention, "
+                    "critical path, epistemic decay, interference correlation matrix a hypothesis miner)."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "snapshot": {
+                            "type": "object",
+                            "description": "Voliteľný hardvérový snapshot telemetrie (CPU, GPU, RAM, UMA, thermals, IO)."
+                        }
+                    }
+                }
             }
         ]
 
@@ -627,7 +645,13 @@ class HybridMcpAntigravityConnector:
                 cascade = arguments.get("cascade_plan")
                 return GLOBAL_EPISTEMIC_META_ORCHESTRATOR.orchestrate_full_cycle(req, cascade_plan=cascade)
 
-            # 9. Fallback to Krystal MCP Core Tools
+            # 9. KARAF Fabric Evaluation
+            elif name == "krystal-karaf-evaluate":
+                from krystal_kernel.karaf_engine import GLOBAL_KARAF_FABRIC
+                snap = arguments.get("snapshot")
+                return GLOBAL_KARAF_FABRIC.execute_fabric_cycle(snap)
+
+            # 10. Fallback to Krystal MCP Core Tools
             elif name in self.krystal_mcp.tool_registry:
                 return self.krystal_mcp.dispatch_call(name, arguments)
 

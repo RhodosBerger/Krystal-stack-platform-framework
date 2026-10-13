@@ -1,0 +1,64 @@
+algorithm_template:
+  identity:
+    id: interference_matrix
+    version: "1.0.0"
+    family: INTERFERENCE_MATRIX_V1
+    description: "Interference Correlation Matrix calculating I_{ij} = Corr(Resource_i, Resource_j) across 512 rolling samples"
+
+  epistemic:
+    status: HYPOTHESIS
+    evidence_required:
+      - CPU_SCHEDULER
+      - MEMORY_UMA
+      - GPU_ACCELERATOR
+      - NPU_CASCADE
+      - STORAGE_IO
+    vital_max_hp: 6
+
+  inputs:
+    - sliding_window_samples: 512
+    - dimensions: [CPU, RAM, GPU, NPU, IO]
+
+  derived_metrics:
+    - correlation_matrix
+    - lagged_cross_correlations
+    - resource_contention_hotspots
+
+  objective:
+    maximize:
+      - orthogonal_resource_utilization
+    minimize:
+      - hidden_resource_crosstalk
+      - co_scheduling_slowdowns
+
+  constraints:
+    - SAFE_PASS
+    - INV_NOMINAL
+    - min_window_samples_for_validity: 32
+
+  search_space:
+    correlation_threshold_for_alarm: 0.70
+
+  prediction:
+    target_metric: cross_resource_coupling_risk
+    estimator: PEARSON_SLIDING_COVARIANCE
+
+  falsification:
+    experiments:
+      - synthetic_io_memory_crosstalk_injection
+      - isolated_gpu_pure_burst_correlation_check
+
+  execution:
+    mode: SHADOW
+
+  authority:
+    direct_actuation: false
+
+  telemetry:
+    emit:
+      - interference_matrix_grid
+      - max_coupled_pair
+      - contention_score
+
+  learning:
+    update_hypothesis_ledger: true

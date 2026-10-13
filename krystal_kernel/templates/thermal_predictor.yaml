@@ -1,0 +1,67 @@
+algorithm_template:
+  identity:
+    id: predictive_thermal_governor
+    version: "1.5.0"
+    family: THERMAL_PREDICTOR_V1
+    description: "Thermal Predictive Governor forecasting T_{t+tau} = f(T_t, P_t, Load_t, Freq_t, History) over multi-scale horizons"
+
+  epistemic:
+    status: HYPOTHESIS
+    evidence_required:
+      - POWER_THERMAL
+      - CPU_SCHEDULER
+    vital_max_hp: 6
+
+  inputs:
+    - current_temp_c: OBS_TEMP_C
+    - current_power_w: OBS_POWER_W
+    - cpu_load: OBS_CPU_LOAD
+    - frequency_ghz: OBS_CPU_FREQ
+    - thermal_impedance_zth: DER_ZTH_SILICON
+
+  derived_metrics:
+    - predicted_temp_100ms
+    - predicted_temp_500ms
+    - predicted_temp_2000ms
+    - thermal_breach_probability
+
+  objective:
+    maximize:
+      - sustained_turbo_residence_time
+    minimize:
+      - reactive_throttling_events
+      - temperature_overshoot_variance
+
+  constraints:
+    - SAFE_PASS
+    - INV_NOMINAL
+    - max_temp_clamp_celsius: 95.0
+    - safety_gate_is_supreme: true
+
+  search_space:
+    horizons_ms: [100, 500, 2000]
+    threshold_margin_c: 4.5
+
+  prediction:
+    target_metric: thermal_risk_level
+    estimator: FOSTER_RC_THERMAL_PROJECTION
+
+  falsification:
+    experiments:
+      - step_power_spike_forecast
+      - transient_cooling_slope_validation
+
+  execution:
+    mode: SHADOW
+
+  authority:
+    direct_actuation: false
+
+  telemetry:
+    emit:
+      - predicted_temp_c
+      - thermal_risk_code
+      - mitigation_action
+
+  learning:
+    update_hypothesis_ledger: true
