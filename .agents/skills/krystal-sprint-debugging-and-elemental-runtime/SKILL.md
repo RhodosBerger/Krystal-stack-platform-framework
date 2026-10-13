@@ -413,3 +413,44 @@ Each node along the spiral carries structured sub-lists of knowledge capturing t
   - `POST /api/blender/spiral-tensor/generate-script` — Generates executable Blender 4.x Python script with drivers and materials.
   - `POST /api/blender/spiral-tensor/add-node` — Dynamically appends a new knowledge beacon to the spiral tensor.
 
+---
+
+## 13. Poslední Kmen: Fantasy Composition Architecture & Interactive Studio (`poslednikmen.cz`)
+
+The **Poslední Kmen Fantasy Composition Engine** bridges the official rules, lore, and tribal matrix of the card game [Poslední Kmen](https://www.poslednikmen.cz/) with Krystal Stack's procedural generation pipelines:
+
+### 13.1 Canonical Aspects & Tribal Matrix
+* **Official Lore & Geometry**:
+  - **129 total cards** (3 decks $\times$ 43 cards per tribe).
+  - **Modular Arena**: 9 interlocking puzzle pieces yielding a 19-hex combat perimeter.
+  - **Flag Tokens**: 15 tactical flags.
+  - **Hard Invariant**: **6 Životů (`VITAL_MAX_HP == 6`)**, 6 discrete range cards (1..6).
+* **Tribe Lineage**:
+  - **Krystalový Kmen** (*Severní štíty, Vládci mrazu*): Mráz (Freeze), Zpomalení (Slow), Meteory (Meteor Strike), Krystalický štít.
+  - **Jedovatý Kmen** (*Hnijící slatiny, Sluhové jedu*): Jed (DoT), Hadí pomocníci (Broodlings), Agrese (Rush), Kyselina (Caustic).
+  - **Druidský Kmen** (*Pradávný les, Strážci hvozdu*): Zvířata (Beasts), Mystické stromy (Groves), Synergie (Buffs), Trny (Thorns).
+  - **Expanded Bastions**: Sopečná Vyhňa (*Volcanic Pyroclastic*), Studna Duší (*Aetheric Void Singularity*).
+
+### 13.2 Interactive Web Studio (`/fantasy-studio`)
+Located at `krystal_web_hub/static/posledni_kmen_fantasy_studio.html` (served at `/fantasy-studio` and `/posledni-kmen-fantasy`):
+* **Live Particle Background**: Emulates the dark ambient embers and sparkling dust of `poslednikmen.cz`.
+* **Dynamic Tribe Tabs**: Instant switching across Crystal, Toxic, Druid, Volcanic, and Void archetypes.
+* **Vital 6-HP Heart/Pip Bar**: 6 discrete glowing pips with reactive damage state updates.
+* **Modular 19-Hex Arena Canvas**: Real-time 2D rendering of unit formations according to chosen doctrine (BALANCED, CONTROL_ICE, HYPER_AGGRO, BIO_SWARM, FORTRESS).
+* **Elemental Clash Simulator**: Instantaneous combat resolution with attack/defense calculations, counter-multipliers, and combat log.
+
+### 13.3 Operational Verification & REST Endpoints
+* **CLI Engine**:
+  ```powershell
+  python krystal_kernel/posledni_kmen_fantasy_composition_engine.py
+  ```
+* **Unit Tests**:
+  ```powershell
+  python -m unittest tests/test_posledni_kmen_fantasy_composition.py
+  ```
+* **Mission Control REST Endpoints**:
+  - `GET  /api/posledni-kmen/composition/catalog` — Official catalog, tribes, mechanics, and card templates.
+  - `POST /api/posledni-kmen/composition/generate` — Synthesizes fantasy composition for given tribe and playstyle doctrine.
+  - `POST /api/posledni-kmen/composition/simulate-clash` — Simulates tactical duel between two fantasy compositions.
+
+

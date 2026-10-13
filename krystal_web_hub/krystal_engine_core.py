@@ -175,6 +175,12 @@ from krystal_kernel.blender_spiral_tensor_driver_engine import (
     DomainPattern,
     KnowledgeSubItem
 )
+from krystal_kernel.posledni_kmen_fantasy_composition_engine import (
+    GLOBAL_FANTASY_COMPOSITION_ENGINE,
+    PosledniKmenFantasyCompositionEngine,
+    TribeId,
+    PlaystyleDoctrine
+)
 from krystal_kernel.openai_llm_connector import (
     GLOBAL_OPENAI_CONNECTOR,
     OpenAILLMConnector,
@@ -1826,6 +1832,11 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_SPIRAL_TENSOR_ENGINE.get_engine_status())
             return
 
+        # ── POSLEDNÍ KMEN: FANTASY COMPOSITIONS & ELEMENTAL ARCHITECTURE (GET)
+        if path == '/api/posledni-kmen/composition/catalog':
+            self._send_json(GLOBAL_FANTASY_COMPOSITION_ENGINE.get_catalog_summary())
+            return
+
         # ── UNIVERSAL OPENAI LLM CONNECTOR ENDPOINTS (GET) ──────────────────
         if path == '/api/llm/status':
             self._send_json(GLOBAL_OPENAI_CONNECTOR.get_status())
@@ -3028,6 +3039,86 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "success": True,
                 "node": new_node.to_dict(),
                 "status": GLOBAL_SPIRAL_TENSOR_ENGINE.get_engine_status(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── POSLEDNÍ KMEN: FANTASY COMPOSITIONS & ELEMENTAL ARCHITECTURE (POST)
+        if path == '/api/posledni-kmen/composition/generate':
+            tribe_raw = req_data.get("tribe", "crystal")
+            doctrine_raw = req_data.get("doctrine", "BALANCED")
+            try:
+                tribe_enum = TribeId(tribe_raw)
+            except ValueError:
+                tribe_enum = TribeId.CRYSTAL
+            try:
+                doctrine_enum = PlaystyleDoctrine(doctrine_raw)
+            except ValueError:
+                doctrine_enum = PlaystyleDoctrine.BALANCED
+            
+            deck_size = int(req_data.get("deck_size", 10))
+            seed_val = req_data.get("seed", None)
+            if seed_val is not None:
+                seed_val = int(seed_val)
+            
+            comp = GLOBAL_FANTASY_COMPOSITION_ENGINE.generate_fantasy_composition(
+                tribe_id=tribe_enum,
+                doctrine=doctrine_enum,
+                deck_size=deck_size,
+                seed=seed_val
+            )
+            self._send_json({
+                "success": True,
+                "composition": comp.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/posledni-kmen/composition/simulate-clash':
+            t_a = req_data.get("tribe_a", "crystal")
+            doc_a = req_data.get("doctrine_a", "CONTROL_ICE")
+            t_b = req_data.get("tribe_b", "toxic")
+            doc_b = req_data.get("doctrine_b", "HYPER_AGGRO")
+            rounds = int(req_data.get("rounds", 5))
+
+            try:
+                enum_a = TribeId(t_a)
+            except ValueError:
+                enum_a = TribeId.CRYSTAL
+            try:
+                enum_b = TribeId(t_b)
+            except ValueError:
+                enum_b = TribeId.TOXIC
+            try:
+                doc_enum_a = PlaystyleDoctrine(doc_a)
+            except ValueError:
+                doc_enum_a = PlaystyleDoctrine.CONTROL_ICE
+            try:
+                doc_enum_b = PlaystyleDoctrine(doc_b)
+            except ValueError:
+                doc_enum_b = PlaystyleDoctrine.HYPER_AGGRO
+
+            comp_a = GLOBAL_FANTASY_COMPOSITION_ENGINE.generate_fantasy_composition(
+                tribe_id=enum_a,
+                doctrine=doc_enum_a,
+                deck_size=max(rounds, 6)
+            )
+            comp_b = GLOBAL_FANTASY_COMPOSITION_ENGINE.generate_fantasy_composition(
+                tribe_id=enum_b,
+                doctrine=doc_enum_b,
+                deck_size=max(rounds, 6)
+            )
+
+            clash_res = GLOBAL_FANTASY_COMPOSITION_ENGINE.simulate_duel_clash(
+                comp_a=comp_a,
+                comp_b=comp_b,
+                rounds=rounds
+            )
+            self._send_json({
+                "success": True,
+                "clash": clash_res,
+                "combatant_a": comp_a.to_dict(),
+                "combatant_b": comp_b.to_dict(),
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return

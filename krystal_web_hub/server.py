@@ -752,6 +752,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "posledni_kmen_visual_studio.html", "text/html")
             return
+        elif norm_path in (
+            "/fantasy-studio", "/fantasy-compositions", "/posledni-kmen-fantasy",
+            "/posledni_kmen_fantasy_studio.html", "/fantasy", "/kmen-fantasy"
+        ):
+            self.serve_file(STATIC_DIR / "posledni_kmen_fantasy_studio.html", "text/html")
+            return
         elif norm_path in ("/cloud-backoffice", "/backoffice", "/cloud_backoffice_studio.html", "/evidence"):
             self.serve_file(STATIC_DIR / "cloud_backoffice_studio.html", "text/html")
             return

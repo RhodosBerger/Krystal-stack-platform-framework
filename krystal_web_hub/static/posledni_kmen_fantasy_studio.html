@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POSLEDNÍ KMEN // INTERAKTÍVNE FANTASY KOMPOZÍCIE & ELEMENTÁLNY MATRIX</title>
+    <meta name="description" content="Interaktívne fantasy kompozície, kmeňové balíčky a modulárna aréna pre strategickú hru Poslední Kmen (https://www.poslednikmen.cz/) s Krystal-Stack architektúrou.">
+    <meta name="keywords" content="poslední kmen, fantasy kompozície, krystal, toxic, druid, aréna, 6 hp, krystal-stack">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #06080d;
+            --bg-card: rgba(14, 20, 32, 0.82);
+            --bg-panel: rgba(10, 14, 24, 0.94);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(212, 175, 55, 0.4);
+            
+            --gold: #d4af37;
+            --gold-bright: #f5d77f;
+            --crystal-cyan: #66fcf1;
+            --crystal-glow: rgba(102, 252, 241, 0.45);
+            --toxic-green: #39ff14;
+            --toxic-glow: rgba(57, 255, 20, 0.45);
+            --druid-amber: #ff9100;
+            --druid-glow: rgba(255, 145, 0, 0.45);
+            --volcanic-red: #ff4500;
+            --volcanic-glow: rgba(255, 69, 0, 0.45);
+            --void-purple: #9d4edd;
+            --void-glow: rgba(157, 78, 221, 0.45);
+
+            --text-main: #f0f4f8;
+            --text-muted: #8c9ba5;
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --blur: blur(16px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(102, 252, 241, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(255, 145, 0, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(57, 255, 20, 0.04) 0%, transparent 55%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+        }
+
+        /* ── CANVAS PARTICLES ────────────────────────────────────────────── */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── NAVIGATION ─────────────────────────────────────────────────── */
+        header.pk-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 40px;
+            background: rgba(8, 11, 18, 0.90);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-badge {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .pk-emblem {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--gold), #7a5d1b);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            color: #000;
+            font-size: 0.95rem;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+            animation: pulse-emblem 3s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulse-emblem {
+            0% { transform: scale(1.0); box-shadow: 0 0 16px rgba(212, 175, 55, 0.4); }
+            100% { transform: scale(1.06); box-shadow: 0 0 28px rgba(212, 175, 55, 0.8); }
+        }
+
+        .brand-titles h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        .brand-titles small {
+            display: block;
+            font-size: 0.65rem;
+            letter-spacing: 3px;
+            color: var(--gold);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .badge-live-source {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            padding: 6px 14px;
+            background: rgba(212, 175, 55, 0.12);
+            border: 1px solid var(--border-glow);
+            border-radius: var(--radius-sm);
+            color: var(--gold-bright);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .badge-live-source:hover {
+            background: rgba(212, 175, 55, 0.25);
+            box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
+        }
+
+        .badge-live-source .dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            animation: blink-dot 1.5s infinite;
+        }
+
+        @keyframes blink-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* ── HERO BANNER ────────────────────────────────────────────────── */
+        .hero-banner {
+            text-align: center;
+            padding: 38px 20px 20px 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-banner .eyebrow {
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            color: var(--gold);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .hero-banner h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, #ffffff 40%, var(--gold-bright) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-banner p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 780px;
+            margin: 10px auto 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ── TRIBE TABS ─────────────────────────────────────────────────── */
+        .tribe-selector-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 24px auto 32px auto;
+            max-width: 1100px;
+            padding: 0 20px;
+            flex-wrap: wrap;
+            z-index: 10;
+            position: relative;
+        }
+
+        .tribe-tab {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 12px 22px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-main);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tribe-tab:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .tribe-tab.active {
+            border-color: var(--active-color, var(--gold));
+            box-shadow: 0 0 24px var(--active-glow, rgba(212, 175, 55, 0.4));
+            background: rgba(20, 28, 44, 0.95);
+        }
+
+        .tribe-tab .tribe-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+        }
+
+        .tribe-tab[data-tribe="crystal"] { --active-color: var(--crystal-cyan); --active-glow: var(--crystal-glow); }
+        .tribe-tab[data-tribe="crystal"] .tribe-icon { background: rgba(102, 252, 241, 0.2); color: var(--crystal-cyan); border: 1px solid var(--crystal-cyan); }
+
+        .tribe-tab[data-tribe="toxic"] { --active-color: var(--toxic-green); --active-glow: var(--toxic-glow); }
+        .tribe-tab[data-tribe="toxic"] .tribe-icon { background: rgba(57, 255, 20, 0.2); color: var(--toxic-green); border: 1px solid var(--toxic-green); }
+
+        .tribe-tab[data-tribe="druid"] { --active-color: var(--druid-amber); --active-glow: var(--druid-glow); }
+        .tribe-tab[data-tribe="druid"] .tribe-icon { background: rgba(255, 145, 0, 0.2); color: var(--druid-amber); border: 1px solid var(--druid-amber); }
+
+        .tribe-tab[data-tribe="volcanic"] { --active-color: var(--volcanic-red); --active-glow: var(--volcanic-glow); }
+        .tribe-tab[data-tribe="volcanic"] .tribe-icon { background: rgba(255, 69, 0, 0.2); color: var(--volcanic-red); border: 1px solid var(--volcanic-red); }
+
+        .tribe-tab[data-tribe="void"] { --active-color: var(--void-purple); --active-glow: var(--void-glow); }
+        .tribe-tab[data-tribe="void"] .tribe-icon { background: rgba(157, 78, 221, 0.2); color: var(--void-purple); border: 1px solid var(--void-purple); }
+
+        .tribe-tab-info strong {
+            display: block;
+            font-family: 'Cinzel', serif;
+            font-size: 0.92rem;
+            letter-spacing: 1px;
+        }
+
+        .tribe-tab-info small {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        /* ── MAIN STUDIO GRID ───────────────────────────────────────────── */
+        main.studio-layout {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px 60px 24px;
+            display: grid;
+            grid-template-columns: 360px 1fr 380px;
+            gap: 24px;
+            position: relative;
+            z-index: 10;
+            flex: 1;
+        }
+
+        @media (max-width: 1200px) {
+            main.studio-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── GLASS PANELS ───────────────────────────────────────────────── */
+        .glass-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            backdrop-filter: var(--blur);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 12px;
+        }
+
+        .panel-header h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.05rem;
+            letter-spacing: 1.5px;
+            color: var(--gold-bright);
+        }
+
+        .panel-tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* ── TRIBE HERO CARD ────────────────────────────────────────────── */
+        .hero-showcase {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.3) 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-showcase .hero-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .hero-showcase .hero-motto {
+            font-style: italic;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        /* ── VITAL 6 HP BAR ─────────────────────────────────────────────── */
+        .vital-hp-container {
+            margin: 12px 0;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .vital-hp-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-family: 'Fira Code', monospace;
+            margin-bottom: 6px;
+            color: var(--gold);
+        }
+
+        .vital-pips {
+            display: flex;
+            gap: 8px;
+        }
+
+        .hp-pip {
+            flex: 1;
+            height: 12px;
+            background: #ef4444;
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+            transition: all 0.3s;
+        }
+
+        .hp-pip.depleted {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
+
+        /* ── DOCTRINE SELECTOR ─────────────────────────────────────────── */
+        .form-group label {
+            font-size: 0.76rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        select.pk-select {
+            width: 100%;
+            background: rgba(10, 14, 24, 0.9);
+            color: #fff;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select.pk-select:focus {
+            border-color: var(--gold);
+        }
+
+        /* ── ACTION BUTTONS ─────────────────────────────────────────────── */
+        .btn-pk-primary {
+            background: linear-gradient(135deg, var(--gold) 0%, #a68222 100%);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 13px 20px;
+            font-family: 'Cinzel', serif;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            font-size: 0.88rem;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(212, 175, 55, 0.35);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-pk-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 26px rgba(212, 175, 55, 0.6);
+        }
+
+        .btn-pk-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            font-size: 0.82rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn-pk-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--gold);
+        }
+
+        /* ── CARDS CAROUSEL / GRID ──────────────────────────────────────── */
+        .cards-scroll-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 16px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .cards-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .cards-scroll-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .pk-card-item {
+            background: rgba(18, 24, 38, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+            position: relative;
+            transition: all 0.25s;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+        }
+
+        .pk-card-item:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: var(--gold);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-type-tag {
+            font-size: 0.65rem;
+            font-family: 'Fira Code', monospace;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            font-weight: 600;
+        }
+
+        .card-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 4px;
+        }
+
+        .card-desc {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            min-height: 38px;
+        }
+
+        .card-stats-row {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+        }
+
+        .stat-dmg { color: #f87171; }
+        .stat-def { color: #60a5fa; }
+        .stat-rng { color: #fbbf24; }
+
+        /* ── MODULAR ARENA 19-HEX CANVAS ────────────────────────────────── */
+        .arena-canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            background: rgba(6, 9, 15, 0.85);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #arenaCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .arena-hud {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* ── SYNERGY RADAR & TELEMETRY ──────────────────────────────────── */
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .metric-card {
+            background: rgba(0, 0, 0, 0.35);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .metric-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--gold-bright);
+            margin-top: 4px;
+        }
+
+        .metric-label {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ── DUEL COMBAT LOG ────────────────────────────────────────────── */
+        .combat-log-box {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            height: 180px;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            color: #d1d5db;
+        }
+
+        .log-round { color: var(--gold); font-weight: 600; margin-top: 6px; }
+        .log-hit { color: #f87171; }
+        .log-def { color: #60a5fa; }
+        .log-win { color: #34d399; font-weight: bold; }
+
+        /* ── FOOTER ─────────────────────────────────────────────────────── */
+        footer.pk-footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 24px 40px;
+            background: rgba(6, 8, 13, 0.95);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 10;
+        }
+
+        footer a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- HEADER NAVIGATION -->
+    <header class="pk-nav">
+        <a href="https://www.poslednikmen.cz/" target="_blank" class="brand-badge" id="navBrandLink">
+            <div class="pk-emblem">LT</div>
+            <div class="brand-titles">
+                <h1>POSLEDNÍ KMEN</h1>
+                <small>Krystal-Stack // Fantasy Compositions</small>
+            </div>
+        </a>
+
+        <div class="nav-actions">
+            <a href="https://www.poslednikmen.cz/" target="_blank" class="badge-live-source" id="btnLivePortal">
+                <span class="dot"></span>
+                <span>LIVE PORTÁL: poslednikmen.cz</span>
+            </a>
+            <button class="btn-pk-secondary" id="btnExportJson" style="width: auto; padding: 8px 16px;">
+                💾 EXPORT COMPOSITION
+            </button>
+        </div>
+    </header>
+
+    <!-- HERO INTRO -->
+    <div class="hero-banner">
+        <span class="eyebrow">ARCHITEKTÚRA FANTASY KOMPOZÍCIÍ · SEZÓNA I</span>
+        <h2>129 KARET · 3 KMENY · MODULÁRNA ARÉNA</h2>
+        <p>Interaktívny generátor a simulátor taktických kompozícií pre strategickú hru <strong>Poslední Kmen</strong>. Preskúmajte kmeňové archetypy, synergie kariet, modulárnu 9-dielikovú arénu a prísny invariant <strong>6 životov (VITAL_MAX_HP == 6)</strong>.</p>
+    </div>
+
+    <!-- TRIBE SELECTOR -->
+    <div class="tribe-selector-bar" id="tribeSelectorBar" role="tablist">
+        <button class="tribe-tab active" data-tribe="crystal" id="tabCrystal">
+            <div class="tribe-icon">❄</div>
+            <div class="tribe-tab-info">
+                <strong>KRYSTALOVÝ KMEN</strong>
+                <small>Severní štíty · Vládci mrazu</small>
+            </div>
+        </button>
+        <button class="tribe-tab" data-tribe="toxic" id="tabToxic">
+            <div class="tribe-icon">☣</div>
+            <div class="tribe-tab-info">
+                <strong>JEDOVATÝ KMEN</strong>
+                <small>Hnijící slatiny · Sluhové jedu</small>
+            </div>
+        </button>
+        <button class="tribe-tab" data-tribe="druid" id="tabDruid">
+            <div class="tribe-icon">🌿</div>
+            <div class="tribe-tab-info">
+                <strong>DRUIDSKÝ KMEN</strong>
+                <small>Pradávný les · Strážci hvozdu</small>
+            </div>
+        </button>
+        <button class="tribe-tab" data-tribe="volcanic" id="tabVolcanic">
+            <div class="tribe-icon">🌋</div>
+            <div class="tribe-tab-info">
+                <strong>SOPEČNÁ VYHŇA</strong>
+                <small>Čedičový kráter · Kováři plamene</small>
+            </div>
+        </button>
+        <button class="tribe-tab" data-tribe="void" id="tabVoid">
+            <div class="tribe-icon">🌌</div>
+            <div class="tribe-tab-info">
+                <strong>STUDNA DUŠÍ</strong>
+                <small>Aetherická propast · Páni prázdnoty</small>
+            </div>
+        </button>
+    </div>
+
+    <!-- MAIN STUDIO WORKSPACE -->
+    <main class="studio-layout">
+        <!-- LEFT PANEL: DOCTRINE & HERO SPEC -->
+        <section class="glass-panel" id="panelTribeHero">
+            <div class="panel-header">
+                <h3>KMEŇOVÝ ŠPECIFIKÁTOR</h3>
+                <span class="panel-tag" id="labelTribeTag">CRYSTAL // VITAL 6HP</span>
+            </div>
+
+            <div class="hero-showcase" id="heroShowcaseBox">
+                <div class="hero-name" id="heroNameText">KRYŠTÁLOVÝ HRDINA</div>
+                <span class="hero-motto" id="heroMottoText">"Chlad, který nikdy nepoleví."</span>
+
+                <div class="vital-hp-container">
+                    <div class="vital-hp-label">
+                        <span>ŽIVOTNÁ KAPACITA</span>
+                        <span id="hpCountLabel">6 / 6 HP</span>
+                    </div>
+                    <div class="vital-pips" id="vitalPipsContainer">
+                        <div class="hp-pip"></div>
+                        <div class="hp-pip"></div>
+                        <div class="hp-pip"></div>
+                        <div class="hp-pip"></div>
+                        <div class="hp-pip"></div>
+                        <div class="hp-pip"></div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 14px;">
+                    <label for="selectDoctrine">Bojová Doktrína / Playstyle</label>
+                    <select class="pk-select" id="selectDoctrine">
+                        <option value="BALANCED">Vyvážená Taktika (Balanced)</option>
+                        <option value="CONTROL_ICE">Kontrola Mrazu (Control Frost)</option>
+                        <option value="HYPER_AGGRO">Hyper-Agresia (Aggressive Rush)</option>
+                        <option value="BIO_SWARM">Biotický Roj (Swarm & Beasts)</option>
+                        <option value="FORTRESS">Obranná Citadela (Fortress Defense)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-top: 12px;">
+                    <label for="rangeDeckSize">Veľkosť Kompozície Ruky: <span id="deckSizeVal">8</span></label>
+                    <input type="range" id="rangeDeckSize" min="4" max="14" value="8" style="width: 100%; accent-color: var(--gold);">
+                </div>
+            </div>
+
+            <button class="btn-pk-primary" id="btnSynthesizeComposition">
+                ⚡ GENEROVAŤ KOMPOZÍCIU
+            </button>
+
+            <!-- TELEMETRY METRICS -->
+            <div class="telemetry-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Synergia Balíčka</div>
+                    <div class="metric-value" id="valSynergyScore">92.5%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Hrozba Útoku</div>
+                    <div class="metric-value" id="valThreatIndex">8.4</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Odolnosť Panciera</div>
+                    <div class="metric-value" id="valResilienceIndex">7.2</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Zlatý Pomer (Phi)</div>
+                    <div class="metric-value" id="valHarmonicRatio">1.168</div>
+                </div>
+            </div>
+
+            <!-- SIMULATE CLASH CONTROLS -->
+            <div style="border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+                <label style="font-size: 0.74rem; color: var(--gold); font-weight: 600; text-transform: uppercase;">
+                    Simulácia Súboja (Duel Clash)
+                </label>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <select class="pk-select" id="selectOpponentTribe" style="font-size: 0.8rem; padding: 6px 10px;">
+                        <option value="toxic">Vs Jedovatý Kmeň</option>
+                        <option value="druid">Vs Druidský Kmeň</option>
+                        <option value="crystal">Vs Krystalový Kmeň</option>
+                        <option value="volcanic">Vs Sopečná Vyhňa</option>
+                        <option value="void">Vs Studna Duší</option>
+                    </select>
+                    <button class="btn-pk-secondary" id="btnRunDuelSimulation" style="width: auto; padding: 6px 14px; white-space: nowrap;">
+                        ⚔️ SÚBOJ
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- CENTER PANEL: FANTASY CARDS DECK COMPOSITION -->
+        <section class="glass-panel" id="panelCardsDeck">
+            <div class="panel-header">
+                <h3>KARTY V KOMPOZÍCII (129 KARET OFICIÁLNA SADA)</h3>
+                <span class="panel-tag" id="labelCardCount">8 KARET V RUKE</span>
+            </div>
+
+            <div class="cards-scroll-container" id="cardsDeckContainer">
+                <!-- Procedural Cards rendered via JS -->
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: MODULAR 9-TILE HEX ARENA & COMBAT LOG -->
+        <section class="glass-panel" id="panelArenaLog">
+            <div class="panel-header">
+                <h3>MODULÁRNA ARÉNA (9 DÍLKŮ / 19 HEXŮ)</h3>
+                <span class="panel-tag">PBR HEX RUNTIME</span>
+            </div>
+
+            <div class="arena-canvas-wrapper">
+                <canvas id="arenaCanvas"></canvas>
+                <div class="arena-hud" id="arenaHudText">
+                    <div>ARÉNA: 9 DÍLKŮ // 19 BOJOVÝCH HEXŮ</div>
+                    <div>DOSAH ÚTOKU: 1..6 KARTY</div>
+                    <div>VLAJKY: 15 ŽETONOV</div>
+                </div>
+            </div>
+
+            <div class="panel-header" style="margin-top: 8px;">
+                <h3>TELEMETRIA SÚBOJA (COMBAT LOG)</h3>
+                <span class="panel-tag" id="duelStatusTag">STANDBY</span>
+            </div>
+
+            <div class="combat-log-box" id="combatLogBox">
+                <div class="log-round">== PRIPRAVENÝ NA ELEMENTÁRNY STRET ==</div>
+                <div>Vyberte doktrínu, vygenerujte kompozíciu a stlačte SÚBOJ pre simuláciu taktického duelu podľa pravidiel poslednikmen.cz.</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="pk-footer">
+        <p>POSLEDNÍ KMEN © 2026 Tomáš Janečka · Strategická karetní hra pro 2–3 hráče · Oficiálny portál: <a href="https://www.poslednikmen.cz/" target="_blank">poslednikmen.cz</a> · Integrované s Krystal-Stack Elemental Runtime (VITAL_MAX_HP == 6).</p>
+    </footer>
+
+    <!-- INTERACTIVE ENGINE JAVASCRIPT -->
+    <script>
+        // Universal Platform Invariants
+        const VITAL_MAX_HP = 6;
+        const TOTAL_CARDS_OFFICIAL = 129;
+        const MODULAR_ARENA_TILES = 9;
+
+        // Current UI State
+        let currentTribe = "crystal";
+        let currentDoctrine = "BALANCED";
+        let currentDeckSize = 8;
+        let currentComposition = null;
+        let catalogData = null;
+
+        // --- 1. PARTICLE BACKGROUND SIMULATION (POSLEDNIKMEN.CZ REPLICATION) ---
+        const pCanvas = document.getElementById("particleCanvas");
+        const pCtx = pCanvas.getContext("2d");
+        let particles = [];
+
+        function resizeParticleCanvas() {
+            pCanvas.width = window.innerWidth;
+            pCanvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resizeParticleCanvas);
+        resizeParticleCanvas();
+
+        class BackgroundParticle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * pCanvas.width;
+                this.y = Math.random() * pCanvas.height;
+                this.size = Math.random() * 2.2 + 0.6;
+                this.speedY = -(Math.random() * 0.6 + 0.2);
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.alpha = Math.random() * 0.6 + 0.2;
+                this.color = Math.random() > 0.6 ? "#d4af37" : (Math.random() > 0.5 ? "#66fcf1" : "#39ff14");
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y < 0) this.y = pCanvas.height;
+                if (this.x < 0) this.x = pCanvas.width;
+                if (this.x > pCanvas.width) this.x = 0;
+            }
+            draw() {
+                pCtx.save();
+                pCtx.globalAlpha = this.alpha;
+                pCtx.fillStyle = this.color;
+                pCtx.shadowBlur = 8;
+                pCtx.shadowColor = this.color;
+                pCtx.beginPath();
+                pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                pCtx.fill();
+                pCtx.restore();
+            }
+        }
+
+        for (let i = 0; i < 45; i++) particles.push(new BackgroundParticle());
+
+        function animateParticles() {
+            pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // --- 2. MODULAR 19-HEX ARENA 2D CANVAS RENDERER ---
+        const arenaCanvas = document.getElementById("arenaCanvas");
+        const aCtx = arenaCanvas.getContext("2d");
+
+        function resizeArenaCanvas() {
+            arenaCanvas.width = arenaCanvas.parentElement.clientWidth;
+            arenaCanvas.height = arenaCanvas.parentElement.clientHeight;
+            drawArena();
+        }
+        window.addEventListener("resize", resizeArenaCanvas);
+
+        // Axial hex coordinates for radius 2 grid (19 hexes total)
+        const hexGrid19 = [];
+        for (let q = -2; q <= 2; q++) {
+            const r1 = Math.max(-2, -q - 2);
+            const r2 = Math.min(2, -q + 2);
+            for (let r = r1; r <= r2; r++) {
+                hexGrid19.push({ q, r });
+            }
+        }
+
+        function hexToPixel(q, r, size, cx, cy) {
+            const x = size * (Math.sqrt(3) * q + Math.sqrt(3)/2 * r) + cx;
+            const y = size * (3/2 * r) + cy;
+            return { x, y };
+        }
+
+        function drawHexagon(ctx, x, y, size, strokeColor, fillColor) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = 2 * Math.PI / 6 * (i + 0.5);
+                const x_i = x + size * Math.cos(angle);
+                const y_i = y + size * Math.sin(angle);
+                if (i === 0) ctx.moveTo(x_i, y_i);
+                else ctx.lineTo(x_i, y_i);
+            }
+            ctx.closePath();
+            if (fillColor) {
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+            }
+            if (strokeColor) {
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        }
+
+        function drawArena() {
+            if (!arenaCanvas.width || !arenaCanvas.height) return;
+            aCtx.clearRect(0, 0, arenaCanvas.width, arenaCanvas.height);
+            const cx = arenaCanvas.width / 2;
+            const cy = arenaCanvas.height / 2;
+            const hexSize = Math.min(arenaCanvas.width, arenaCanvas.height) / 8.5;
+
+            // Draw 19 Hex Cells
+            hexGrid19.forEach(hex => {
+                const pos = hexToPixel(hex.q, hex.r, hexSize, cx, cy);
+                const isCenter = (hex.q === 0 && hex.r === 0);
+                const stroke = isCenter ? "rgba(212, 175, 55, 0.7)" : "rgba(255, 255, 255, 0.15)";
+                const fill = isCenter ? "rgba(212, 175, 55, 0.12)" : "rgba(20, 26, 40, 0.65)";
+                drawHexagon(aCtx, pos.x, pos.y, hexSize - 2, stroke, fill);
+            });
+
+            // Draw Formation Units if available
+            if (currentComposition && currentComposition.formation_hex_coords) {
+                currentComposition.formation_hex_coords.forEach((coord, idx) => {
+                    const pos = hexToPixel(coord[0], coord[1], hexSize, cx, cy);
+                    aCtx.save();
+                    aCtx.beginPath();
+                    aCtx.arc(pos.x, pos.y, hexSize * 0.4, 0, Math.PI * 2);
+                    aCtx.fillStyle = idx === 0 ? "rgba(212, 175, 55, 0.9)" : "rgba(102, 252, 241, 0.85)";
+                    aCtx.shadowBlur = 12;
+                    aCtx.shadowColor = idx === 0 ? "#d4af37" : "#66fcf1";
+                    aCtx.fill();
+                    aCtx.restore();
+                });
+            }
+        }
+
+        // --- 3. FETCH CATALOG & LOCAL COMPOSITION GENERATION ---
+        async function fetchCatalog() {
+            try {
+                const res = await fetch("/api/posledni-kmen/composition/catalog");
+                if (res.ok) {
+                    catalogData = await res.json();
+                    updateTribeMetadata();
+                }
+            } catch (err) {
+                console.warn("Using offline fallback catalog metadata:", err);
+            }
+        }
+
+        const fallbackTribes = {
+            crystal: {
+                name: "KRYŠTÁLOVÝ KMEŇ",
+                motto: "Chlad, který nikdy nepoleví.",
+                tag: "CRYSTAL // VITAL 6HP",
+                color: "#66fcf1"
+            },
+            toxic: {
+                name: "JEDOVATÝ KMEŇ",
+                motto: "Tlačí agresí, jedem a hadími pomocníky.",
+                tag: "TOXIC // VITAL 6HP",
+                color: "#39ff14"
+            },
+            druid: {
+                name: "DRUIDSKÝ KMEŇ",
+                motto: "Sází na synergie zvířat a mystické stromy.",
+                tag: "DRUID // VITAL 6HP",
+                color: "#ff9100"
+            },
+            volcanic: {
+                name: "SOPEČNÁ VYHŇA",
+                motto: "Oheň, který roztaví i nejtvrdší ocel.",
+                tag: "VOLCANIC // VITAL 6HP",
+                color: "#ff4500"
+            },
+            void: {
+                name: "STUDŇA DUŠÍ",
+                motto: "Ticho za horizontem událostí.",
+                tag: "VOID // VITAL 6HP",
+                color: "#9d4edd"
+            }
+        };
+
+        function updateTribeMetadata() {
+            const meta = fallbackTribes[currentTribe] || fallbackTribes.crystal;
+            document.getElementById("heroNameText").innerText = meta.name;
+            document.getElementById("heroMottoText").innerText = `"${meta.motto}"`;
+            document.getElementById("labelTribeTag").innerText = meta.tag;
+            document.getElementById("labelTribeTag").style.color = meta.color;
+        }
+
+        // --- 4. GENERATE FANTASY COMPOSITION ---
+        async function generateComposition() {
+            try {
+                const res = await fetch("/api/posledni-kmen/composition/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        tribe: currentTribe,
+                        doctrine: currentDoctrine,
+                        deck_size: currentDeckSize
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    currentComposition = data.composition;
+                    renderComposition();
+                    return;
+                }
+            } catch (err) {
+                console.warn("Backend API unavailable, synthesizing composition client-side:", err);
+            }
+
+            // Client-side synthesis fallback
+            synthesizeClientComposition();
+        }
+
+        function synthesizeClientComposition() {
+            const cards = [];
+            const types = ["ATTACK", "DEFENSE", "SPELL", "MOVEMENT"];
+            for (let i = 1; i <= currentDeckSize; i++) {
+                const type = types[i % types.length];
+                const dmg = type === "ATTACK" ? Math.min(VITAL_MAX_HP, Math.floor(Math.random() * 4) + 3) : 0;
+                const def = type === "DEFENSE" ? Math.min(VITAL_MAX_HP, Math.floor(Math.random() * 4) + 3) : (type === "SPELL" ? 2 : 1);
+                cards.push({
+                    card_id: `${currentTribe}_${i}`,
+                    name: `${currentTribe.toUpperCase()} #${i}`,
+                    card_type: type,
+                    damage: dmg,
+                    defense: def,
+                    range_hex: Math.min(6, Math.floor(Math.random() * 3) + 1),
+                    mana_cost: Math.floor(Math.random() * 3) + 1,
+                    description: `Taktická ${type.toLowerCase()} karta pre kmeň ${currentTribe}.`,
+                    aspect_tag: currentTribe === "crystal" ? "Mráz" : (currentTribe === "toxic" ? "Jed" : "Synergia")
+                });
+            }
+
+            currentComposition = {
+                composition_id: `comp_${Date.now()}`,
+                tribe: currentTribe,
+                doctrine: currentDoctrine,
+                cards: cards,
+                synergy_score: 91.5,
+                threat_index: 8.2,
+                resilience_index: 7.0,
+                elemental_harmonic_ratio: 1.17,
+                formation_hex_coords: [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]],
+                vital_max_hp: VITAL_MAX_HP
+            };
+            renderComposition();
+        }
+
+        function renderComposition() {
+            if (!currentComposition) return;
+
+            // Render Metrics
+            document.getElementById("valSynergyScore").innerText = `${currentComposition.synergy_score}%`;
+            document.getElementById("valThreatIndex").innerText = currentComposition.threat_index;
+            document.getElementById("valResilienceIndex").innerText = currentComposition.resilience_index;
+            document.getElementById("valHarmonicRatio").innerText = currentComposition.elemental_harmonic_ratio;
+            document.getElementById("labelCardCount").innerText = `${currentComposition.cards.length} KARET V RUKE`;
+
+            // Render Cards Deck
+            const container = document.getElementById("cardsDeckContainer");
+            container.innerHTML = "";
+
+            currentComposition.cards.forEach(card => {
+                const el = document.createElement("div");
+                el.className = "pk-card-item";
+                el.innerHTML = `
+                    <div>
+                        <div class="card-header-row">
+                            <span class="card-type-tag">${card.card_type}</span>
+                            <span style="font-size: 0.7rem; color: var(--gold);">⚡ ${card.mana_cost} MANA</span>
+                        </div>
+                        <div class="card-title">${card.name}</div>
+                        <div class="card-desc">${card.description}</div>
+                    </div>
+                    <div>
+                        <div class="card-stats-row">
+                            <span class="stat-dmg">⚔️ ${card.damage} DMG</span>
+                            <span class="stat-def">🛡️ ${card.defense} DEF</span>
+                            <span class="stat-rng">🎯 R:${card.range_hex}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+
+            // Re-render Arena
+            drawArena();
+        }
+
+        // --- 5. DUEL CLASH SIMULATION ---
+        async function runDuel() {
+            const oppTribe = document.getElementById("selectOpponentTribe").value;
+            const logBox = document.getElementById("combatLogBox");
+            logBox.innerHTML = `<div class="log-round">== ŠTART SÚBOJA: ${currentTribe.toUpperCase()} VS ${oppTribe.toUpperCase()} ==</div>`;
+            document.getElementById("duelStatusTag").innerText = "SIMULATING...";
+
+            try {
+                const res = await fetch("/api/posledni-kmen/composition/simulate-clash", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        tribe_a: currentTribe,
+                        doctrine_a: currentDoctrine,
+                        tribe_b: oppTribe,
+                        doctrine_b: "BALANCED",
+                        rounds: 5
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    renderCombatLog(data.clash);
+                    return;
+                }
+            } catch (err) {
+                console.warn("Using client-side duel simulation fallback:", err);
+            }
+
+            // Client-side fallback simulation
+            simulateClientDuel(oppTribe);
+        }
+
+        function simulateClientDuel(oppTribe) {
+            let hpA = VITAL_MAX_HP;
+            let hpB = VITAL_MAX_HP;
+            const logBox = document.getElementById("combatLogBox");
+
+            for (let r = 1; r <= 5; r++) {
+                if (hpA <= 0 || hpB <= 0) break;
+                const dmgA = Math.floor(Math.random() * 3) + 1;
+                const dmgB = Math.floor(Math.random() * 3) + 1;
+                hpB = Math.max(0, hpB - dmgA);
+                hpA = Math.max(0, hpA - dmgB);
+
+                const roundEl = document.createElement("div");
+                roundEl.innerHTML = `
+                    <div class="log-round">KOLO ${r}:</div>
+                    <div class="log-hit">${currentTribe.toUpperCase()} zasadil úder za ${dmgA} DMG! (Súper má ${hpB}/6 HP)</div>
+                    <div class="log-def">${oppTribe.toUpperCase()} kontruje za ${dmgB} DMG! (Vy máte ${hpA}/6 HP)</div>
+                `;
+                logBox.appendChild(roundEl);
+            }
+
+            const winEl = document.createElement("div");
+            winEl.className = "log-win";
+            winEl.innerText = hpA > hpB ? `🏆 VÍŤAZSTVO PRE ${currentTribe.toUpperCase()}!` : (hpB > hpA ? `💀 PORÁŽKA! VÍŤAZI ${oppTribe.toUpperCase()}` : "🤝 REMÍZA (PAT)!");
+            logBox.appendChild(winEl);
+            logBox.scrollTop = logBox.scrollHeight;
+            document.getElementById("duelStatusTag").innerText = "RESOLVED";
+
+            // Update Pips
+            updateVitalPips(hpA);
+        }
+
+        function renderCombatLog(clash) {
+            const logBox = document.getElementById("combatLogBox");
+            clash.combat_log.forEach(entry => {
+                const roundEl = document.createElement("div");
+                roundEl.innerHTML = `
+                    <div class="log-round">KOLO ${entry.round}:</div>
+                    <div class="log-hit">Útok: ${entry.player_a_action} -> -${entry.net_damage_dealt.to_b} HP (Súper: ${entry.remaining_hp.b}/6 HP)</div>
+                    <div class="log-def">Kontra: ${entry.player_b_action} -> -${entry.net_damage_dealt.to_a} HP (Hráč: ${entry.remaining_hp.a}/6 HP)</div>
+                `;
+                logBox.appendChild(roundEl);
+            });
+
+            const winEl = document.createElement("div");
+            winEl.className = "log-win";
+            winEl.innerText = `🏆 KONEČNÝ VÝSLEDOK: ${clash.winner}`;
+            logBox.appendChild(winEl);
+            logBox.scrollTop = logBox.scrollHeight;
+            document.getElementById("duelStatusTag").innerText = "RESOLVED";
+
+            updateVitalPips(clash.final_hp.player_a);
+        }
+
+        function updateVitalPips(remainingHp) {
+            const pips = document.querySelectorAll("#vitalPipsContainer .hp-pip");
+            pips.forEach((pip, idx) => {
+                if (idx < remainingHp) {
+                    pip.classList.remove("depleted");
+                } else {
+                    pip.classList.add("depleted");
+                }
+            });
+            document.getElementById("hpCountLabel").innerText = `${remainingHp} / 6 HP`;
+        }
+
+        // --- 6. EVENT LISTENERS ---
+        document.querySelectorAll(".tribe-tab").forEach(tab => {
+            tab.addEventListener("click", () => {
+                document.querySelectorAll(".tribe-tab").forEach(t => t.classList.remove("active"));
+                tab.classList.add("active");
+                currentTribe = tab.getAttribute("data-tribe");
+                updateTribeMetadata();
+                generateComposition();
+            });
+        });
+
+        document.getElementById("selectDoctrine").addEventListener("change", (e) => {
+            currentDoctrine = e.target.value;
+            generateComposition();
+        });
+
+        document.getElementById("rangeDeckSize").addEventListener("input", (e) => {
+            currentDeckSize = parseInt(e.target.value, 10);
+            document.getElementById("deckSizeVal").innerText = currentDeckSize;
+            generateComposition();
+        });
+
+        document.getElementById("btnSynthesizeComposition").addEventListener("click", generateComposition);
+        document.getElementById("btnRunDuelSimulation").addEventListener("click", runDuel);
+
+        document.getElementById("btnExportJson").addEventListener("click", () => {
+            if (!currentComposition) return;
+            const blob = new Blob([JSON.stringify(currentComposition, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `posledni_kmen_${currentTribe}_composition.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Initialize on load
+        window.addEventListener("DOMContentLoaded", () => {
+            fetchCatalog();
+            updateTribeMetadata();
+            resizeArenaCanvas();
+            generateComposition();
+        });
+    </script>
+</body>
+</html>
