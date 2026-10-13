@@ -1,17 +1,47 @@
 # KRYSTAL-STACK PLATFORM FRAMEWORK 🌌
-### Heterogeneous Compute Kernel · Janet DSL · Procedural Godot 4.x · Aerial Balloon Warfare · VorpX VR & Ncon by Korrado · Strict 6 Max HP Invariant
+### Heterogeneous Compute Kernel · Janet DSL · Procedural Godot 4.x · Local AI Cascades · Strict 6 Max HP Invariant
 
-[![Tests](https://img.shields.io/badge/Tests-424%2F424%20Passing%20(100%25)-22c55e?style=for-the-badge&logo=pytest)](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/)
-[![Janet DSL](https://img.shields.io/badge/Janet%20DSL-20%2F20%20Valid-06b6d4?style=for-the-badge&logo=lisp)](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_janet/)
-[![Vulkan GPU](https://img.shields.io/badge/Compute-Vulkan%20%7C%20NPU%20DirectML-ea580c?style=for-the-badge&logo=vulkan)](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/)
-[![Godot Engine](https://img.shields.io/badge/Godot-4.x%20Procedural%20TSCN-478cbf?style=for-the-badge&logo=godotengine)](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/godot_project/)
-[![Vital Invariant](https://img.shields.io/badge/Vital%20Rule-6%20Max%20HP%20Strict-ef4444?style=for-the-badge)](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/)
-[![VR Peripherals](https://img.shields.io/badge/VR%20Optics-Ncon%20by%20Korrado%20130%C2%B0-facc15?style=for-the-badge)](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_web_hub/static/ncon_vorpx_marketing_studio.html)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/LICENSE)
+<div align="center">
+
+[![Tests](https://img.shields.io/badge/Tests-424%2F424%20Passing%20(100%25)-22c55e?style=for-the-badge&logo=pytest)](tests/)
+[![Janet DSL](https://img.shields.io/badge/Janet%20DSL-20%2F20%20Valid-06b6d4?style=for-the-badge&logo=lisp)](krystal_janet/)
+[![Vulkan GPU](https://img.shields.io/badge/Compute-Vulkan%20%7C%20NPU%20DirectML-ea580c?style=for-the-badge&logo=vulkan)](docs/architecture/)
+[![Godot Engine](https://img.shields.io/badge/Godot-4.x%20Procedural%20TSCN-478cbf?style=for-the-badge&logo=godotengine)](godot_project/)
+[![Vital Invariant](https://img.shields.io/badge/Vital%20Rule-6%20Max%20HP%20Strict-ef4444?style=for-the-badge)](docs/architecture/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](LICENSE)
 
 ---
 
-## 🌟 Prehľad & Nová Charakteristika Softvéru (2026 Next-Gen Edition)
+### 🌐 Multilingual Documentation Hub / Jazykové Mutácie
+[ **🇸🇰 Slovenčina** ](docs/i18n/sk/README.md) &nbsp;|&nbsp; [ **🇬🇧 English** ](docs/i18n/en/README.md) &nbsp;|&nbsp; [ **🇩🇪 Deutsch** ](docs/i18n/de/README.md) &nbsp;|&nbsp; [ **🇨🇿 Čeština** ](docs/i18n/cs/README.md)
+
+---
+
+</div>
+
+> ### ⚡ Stop Paying Cloud GPU Rent. Start Evolving Sovereign Compute.
+> **Krystal Stack** unites CPU SIMD, Vulkan Raymarching, and local NPU Neural Inference into an unbroken 60 FPS feedback loop that **slashes enterprise AI cloud bills by 40% to 65%**.
+>
+> 🚀 **[Explore Commercial Tiers & ROI](docs/monetization/README.md)** &nbsp;|&nbsp; 🌐 **[Decentralized Dual-Earn Ledger](docs/monetization/TOKENOMICS_AND_DUAL_EARN.md)** &nbsp;|&nbsp; 📈 **[Copywriting & Growth Playbook](docs/marketing/COPYWRITING_SCHEMES_AND_GROWTH_FRAMEWORKS.md)**
+
+---
+
+## 💎 Enterprise Pricing & Monetization Matrix
+
+[![Krystal Stack Enterprise Monetization Tiers](docs/monetization/images/monetization_tier_matrix.jpg)](docs/monetization/README.md)
+
+| Plan | Price | Target Market | Key Deliverables |
+| :--- | :--- | :--- | :--- |
+| **Developer Free** | **$0 / forever** | Open-source devs, hobbyists, students | Full source access, CPU SIMD fast-path, local inference, community support |
+| **Indie Studio** | **$49 / mo** ($399/yr) | Independent game & VR studios | Up to $250k revenue, 10-block procedural generator, Godot export, 5-mode typography |
+| **Enterprise Pro** | **$499 / node / mo** | Enterprise IT, defense, machine shops | CrystalSec 3.0 UMCI, 24/7 SLA, KATG-006 CNC governor, micro-profiling |
+| **Sovereign Cluster** | **From $50,000 / yr** | Semiconductor vendors, datacenter operators | TSC voting seat, custom NPU adaptation, quarterly on-site audits |
+
+👉 *Read the full [Monetization Strategy & Commercial Evidence Framework (CEL)](docs/monetization/README.md).*
+
+---
+
+## 🌟 Prehľad & Kľúčové Schopnosti Ekosystému
 
 **Krystal-Stack Platform Framework** je modulárny heterogénny výpočtový, simulačný a herný ekosystém. Prepája nízkoúrovňovú akceleráciu hardvéru (**Vulkan Compute Shaders, DirectML NPU offload, OpenVINO inference**) s vysokoexpresívnym funkcionálnym procedurálnym metaprogramovaním (**Janet Lisp AST & DSL Engine**), 3D procedurálnym generovaním herných scén pre **Godot Engine 4.x**, taktickým kartovým RPG systémom s **256 144 kombináciami** a kinetickou fyzikou v štýle **Just Cause** s vizuálnou estetikou **Borderlands** na sýtom žltom podklade (`#facc15`).
 
@@ -21,7 +51,21 @@ Celý systém je zviazaný striktným deterministickým pravidlom – **Vitálny
 
 ---
 
-## 🧩 Hlavné Architektonické Súčasti, Definície & Manifestácie
+## 🌐 The Decentralized Dual-Earn Ledger
+
+Monetize your idle night-time compute or procure spot GPU/NPU cycles at up to **60% discount** compared to legacy hyperscaler clouds:
+
+[![Dual-Earn Ledger](docs/monetization/images/dual_earn_tokenomics.jpg)](docs/monetization/TOKENOMICS_AND_DUAL_EARN.md)
+
+- **Compute Providers:** Automated order book trading for idle GPU/NPU capacity with zero-latency local preemptibility.
+- **Compute Buyers:** Frictionless spot compute for AI inference, batch rendering, and simulation.
+- **Invariant Guard:** All transactions verified against `assert VITAL_MAX_HP == 6` to eliminate host overdraw.
+
+👉 *Read the complete [Tokenomics & Compute Arbitrage Guide](docs/monetization/TOKENOMICS_AND_DUAL_EARN.md).*
+
+---
+
+## 🧩 Hlavné Architektonické Súčasti
 
 ### 1. Heterogénne Výpočtové Jadro & Edge Kognitívna Inteligencia
 * **Definícia**: Paralelný orchestrátor hardvérových výpočtov vyťažujúci grafické procesory, neurónové koprocesory (NPU) a malé jazykové modely (SLM).
@@ -33,8 +77,8 @@ Celý systém je zviazaný striktným deterministickým pravidlom – **Vitálny
 ### 2. Janet Lisp S-Expression & AST Kompilačný Most
 * **Definícia**: Deterministický procedurálny metaprogramovací most, ktorý kompiluje matematické variety a herné pravidlá do AST reprezentácií nezávislých na platforme.
 * **Manifestácia**:
-  * **20 validovaných Janet DSL súborov** v [`krystal_janet/`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_janet/).
-  * Parser S-výrazov a AST validátor [`janet_bridge.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_janet/janet_bridge.py) s garanciou vyvážených zátvoriek.
+  * **20 validovaných Janet DSL súborov** v [`krystal_janet/`](krystal_janet/).
+  * Parser S-výrazov a AST validátor [`janet_bridge.py`](krystal_janet/janet_bridge.py) s garanciou vyvážených zátvoriek.
   * Generovanie procedurálneho PEG gramatického vstupu pre antistresovú hernú logiku.
 
 ### 3. Taktické Bojové RPG "Posledný Kmeň" & 256k Kombinatorika
@@ -42,8 +86,7 @@ Celý systém je zviazaný striktným deterministickým pravidlom – **Vitálny
 * **Manifestácia**:
   * **256 144 Kombinačných Stavov ($2^{18}$)**: 512 makro-vetiev $\times$ 512 priestorových trajektórií na hexovej mape.
   * **Mulligan Fáza Výmeny Kariet**: Možnosť strategickej výmeny počiatočnej ruky s prepočtom conduit dosahu.
-  * **Striktný Invariant 6 Max HP**: Všetky bytosti, hrdinovia a pevnosti majú škálu $0 \dots 6$ HP. Každý zásah a mitigácia (Húževnatosť vs. chladné zbrane, Reflexy vs. strelné zbrane) je matematicky overená testami.
-  * **40 Archetypov & 120 Pomocníkov**: Škálovateľné duely s The West algebrou a GNOME CSD rozhraním.
+  * **Striktný Invariant 6 Max HP**: Všetky bytosti, hrdinovia a pevnosti majú škálu $0 \dots 6$ HP. Každý zásah a mitigácia je matematicky overená testami.
 
 ### 4. Vzdušný Bojový Ekosystém: Balónové Ostrovy, 240mm Mínomet & Rogala
 * **Definícia**: Vzdušná taktická vrstva modelujúca aerostatický vztlak, gravitačnú strmú balistiku a akrobatický pohyb.
@@ -51,8 +94,6 @@ Celý systém je zviazaný striktným deterministickým pravidlom – **Vitálny
   * **Vznášajúce sa Ostrovy (Aerial Islands)**: Nesené obrími solárno-tepelnými a aéterickými plynovými balónmi ($24\,000\,\text{m}^3$), prepojené visutými lanovými a oceľovými mostami (**Skybridges**).
   * **Pevnostný 240mm Obliehací Mínomet**: Paľba z výšky $280\,\text{m}$ s gravitačným urýchlením granátu až na $263\,\text{m/s}$ a dopadovou kinetickou energiou cez $9\,990\,\text{kJ}$.
   * **Rogalo (Flexibilné Delta-Krídlo)**: Kĺzavosť $7.5 : 1$, využívanie stúpavých termických prúdov a dolet cez $730\,\text{m}$.
-  * **Riaditeľné Padáky**: Brzdný odpor ($C_D = 1.45$) s terminálnou bezpečnou rýchlosťou $5.2\,\text{m/s}$.
-  * **Just Cause Kinetika**: Vystreľovací hák (navíjanie $24\,\text{m/s}$, slingshot katapult $+16.5\,\text{m/s}$) pre naskakovanie na plávajúce ostrovy.
 
 ### 5. VorpX VR & Ncon by Korrado Optika (130° FOV)
 * **Definícia**: Stereoskopická 3D injekcia a podpora širokouhlých periférií novej generácie pre plnú imerziu.
@@ -60,106 +101,52 @@ Celý systém je zviazaný striktným deterministickým pravidlom – **Vitálny
   * Podpora profilov: **HTC Vive Pro**, **Meta Quest 3**, a ultra-širokouhlý **Ncon by Korrado** ($130^\circ$ FOV, Dual 4K HDR, $144\,\text{Hz}$, Direct-Drive IMU $1.2\,\text{ms}$).
   * Vizuálny štýl **Borderlands**: Žlté pozadie `#facc15`, tušové kontúry hrúbky 3.5px, kvantované tiene a halftone bodky.
 
-### 6. Aéterická Ekonomika, Ordinals & Dvojpodvojné Účtovníctvo
-* **Definícia**: Decentralizovaný virtuálny trh so stabilnou konzerváciou zdrojov a digitálnou provenienciou.
-* **Manifestácia**:
-  * **Aéterický Protokol Ordinals**: Zápis digitálnych artefaktov a generatívnych malieb do nesmrteľnej knihy.
-  * **Dvojpodvojný Audit**: Transakcie podliehajú striktnej rovnováhe $\sum \text{Debet} = \sum \text{Kredit}$.
-  * **Dražobný Trh Truhlíc & Artefaktov**: Anti-sniping ochrana a escrow viazanie nugetov.
-
 ---
 
-## 🎮 Interaktívne Web Štúdiá (Live na porte 8089)
+## 🎮 Interaktívne Web Štúdiá (Port 8080)
 
 Po spustení servera sú priamo v prehliadači dostupné špecializované riadiace konzoly:
 
 | Štúdio / Modul | URL cesta | Kľúčové Vlastnosti |
 |---|---|---|
-| **Epické Divadlo Kampane** | [`/static/epic_campaign_theater_studio.html`](http://localhost:8089/static/epic_campaign_theater_studio.html) | 3 kapitoly ságy, generátor misií, živé 2D Canvas divadlo boja, lore kódex |
-| **Balónové Ostrovy & Mínomet** | [`/static/aerial_balloons_mortar_studio.html`](http://localhost:8089/static/aerial_balloons_mortar_studio.html) | Balistika 240mm mínometu, kĺzanie rogala 7.5:1, padáky, visuté cesty |
-| **Ncon VR & Kinetika Just Cause** | [`/static/ncon_vorpx_marketing_studio.html`](http://localhost:8089/static/ncon_vorpx_marketing_studio.html) | Simulácia ťahu lana, slingshotu, Borderlands shader a predaj Ncon VR |
-| **Mulligan & 256k Ťahov** | [`/static/mulligan_cards_studio.html`](http://localhost:8089/static/mulligan_cards_studio.html) | Interaktívna výmena kariet, dosah kryštálových vedení, 6 Max HP |
-| **Totemy, Kúzla & Anomálie** | [`/static/totem_anomalies_studio.html`](http://localhost:8089/static/totem_anomalies_studio.html) | Ladenie frekvencie totémov (432Hz), azúrové blesky, trhliny |
-| **Metaverzový Trh & Granite LLM** | [`/static/metaverse_market_studio.html`](http://localhost:8089/static/metaverse_market_studio.html) | 4B IBM Granite generovanie ponúk, AMM barter bazár, overenie rozpočtu |
-| **Aukcie, Ordinals & Evolučné ML** | [`/static/art_ordinals_and_ml_studio.html`](http://localhost:8089/static/art_ordinals_and_ml_studio.html) | Dražba generatívnych obrazov, nápisy Ordinals, streaming kontrolér |
-| **Zodiac, Verdy & Mriežky** | [`/static/zodiac_optics_and_grids.html`](http://localhost:8089/static/zodiac_optics_and_grids.html) | 12 domov zverokruhu, optika priblíženia, mriežky 3x3 až 21:19 |
-| **40 Archetypov & 120 Pomocníkov** | [`/static/archetype_helper_matrix.html`](http://localhost:8089/static/archetype_helper_matrix.html) | Roster 20 mužov / 20 žien, The West duely s húževnatosťou a reflexmi |
-| **InnoGames Strategické Rozhranie** | [`/static/innogames_kmen.html`](http://localhost:8089/static/innogames_kmen.html) | Stavba budov, ťažba surovín, dobývanie sektorov mapy |
-| **Hlavný Mission Control Hub** | [`/static/index.html`](http://localhost:8089/static/index.html) | Centrálna riadiaca matica, telemetria Vulkan/NPU, prepojenie systémov |
+| **Model Cascade Studio** | [`/static/cascade_model_studio.html`](http://localhost:8080/static/cascade_model_studio.html) | 4-panelový LM-Studio workbench, kaskády modelov, štatistický benchmark, kinetická typografia |
+| **Mission Control Hub** | [`/static/index.html`](http://localhost:8080/static/index.html) | Centrálna riadiaca matica, telemetria Vulkan/NPU, prepojenie systémov |
+| **Balónové Ostrovy & Mínomet** | [`/static/aerial_balloons_mortar_studio.html`](http://localhost:8080/static/aerial_balloons_mortar_studio.html) | Balistika 240mm mínometu, kĺzanie rogala 7.5:1, padáky, visuté cesty |
+| **Ncon VR & Kinetika Just Cause** | [`/static/ncon_vorpx_marketing_studio.html`](http://localhost:8080/static/ncon_vorpx_marketing_studio.html) | Simulácia ťahu lana, slingshotu, Borderlands shader a predaj Ncon VR |
+| **Mulligan & 256k Ťahov** | [`/static/mulligan_cards_studio.html`](http://localhost:8080/static/mulligan_cards_studio.html) | Interaktívna výmena kariet, dosah kryštálových vedení, 6 Max HP |
 
 ---
 
-## 🚀 Rýchle Spustenie (Local Competitive Engine)
-
-Spustenie headless engine servera (Python + Janet AST):
+## 🚀 Rýchle Spustenie (CLI)
 
 ```bash
-# Klonovanie repozitára
+# 1. Klonovanie repozitára
 git clone https://github.com/RhodosBerger/Krystal-stack-platform-framework.git
 cd Krystal-stack-platform-framework
 
-# Spustenie kompletného testovacieho balíka (424 testov):
-python -m unittest discover tests
+# 2. Vytvorenie virtuálneho prostredia & inštalácia
+python -m venv venv
+.\venv\Scripts\activate      # Linux: source venv/bin/activate
+pip install -r requirements.txt
 
-# Validácia všetkých 20 Janet DSL skriptov:
-python -m krystal_janet.janet_bridge
+# 3. Spustenie testovacieho balíka
+python -m unittest tests/test_parametric_render_set.py tests/test_text_animation_engine.py tests/test_hybrid_mcp_antigravity_connector.py tests/test_model_cascade_runtime.py
 
-# Spustenie živého API a Web Hub servera na porte 8089:
-python -m krystal_web_hub.krystal_engine_core 8089
+# 4. Spustenie živého Web Hub servera na porte 8080:
+python start_localhost.py
 ```
 
-Navštívte v prehliadači: **`http://localhost:8089/static/index.html`**
+Navštívte v prehliadači: **`http://localhost:8080/static/cascade_model_studio.html`**
 
 ---
 
-## 💎 PODPORA, SPONZORSTVO A KOMERČNÉ LICENCOVANIE (2026/2027)
-
-Vývoj **Krystal-Stack Platform Framework** sa riadi striktným **Commercial Evidence Frameworkom** a napreduje v dvoch vzájomne prepojených technologických líniách:
-
-1. **Enterprise Bezpečnosť, Hardvér & Priemysel**:
-   - **CrystalSec 3.0 Enterprise Hardware Security (`PRODUCTION_AVAILABLE`)**: Deterministické overenie natívneho SIMD (AVX2 Widening, AVX-512 VNNI `vpdpbusd`) a Vulkan SPIR-V compute v prostredí Windows Device Guard / UMCI (Status 2) s fyzickou QPC mikroarchitektonickou izoláciou a empirickou kalibráciou crossoveru ($N^*_{\text{e2e}}$).
-   - **KATG-006 Cyber-Physical CNC Suite (`PILOT_AVAILABLE`)**: Integrácia adaptívneho termálneho regulátora, potlačenie chvenia vretien (Spindle Speed Variation pri $n \ge 12\,000\,\text{RPM}$), workflow na zníženie rizika nepodarkov (**Scrap-Risk Reduction**) cez diferenciálnu opravu G-kódu pri výpadku senzorov a diskrétny model vitality nástrojov **`ToolHealthState ∈ [0,6]`**.
-   - **Lokálna Edge AI Suverenita (`PRODUCTION_AVAILABLE`)**: Lokálna inferencia modelov IBM Granite 4B, Llama 3.2 a DeepSeek na NPU a iGPU s **0 recurring poplatkami za cloudové tokeny** a úplnou dátovou suverenitou.
-2. **Generatívna Simulácia, VR & Herný Ekosystém**:
-   - Procedurálne generovanie svetov v **Godot Engine 4.x** riadené cez **Janet Lisp AST DSL (`PRODUCTION_AVAILABLE`)**, balistika 240mm mínometu na vznášajúcich sa ostrovoch, VorpX VR integrácia pre ultra-širokouhlé headsety **Ncon by Korrado (130° FOV, `PILOT_AVAILABLE`)** a deterministický invariant **6 Max HP**.
-
-Podrobná dokumentácia:
-- 📄 **[Kompletný Monetizačný Plán & Evidence Framework](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/MONETIZATION_PLAN.md)**
-- 🛡️ **[Komerčná Podpora, SLA & Konzultácie](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/COMMERCIAL_SUPPORT.md)**
-
----
-
-### 🎁 Čo získa podporovateľ a komerčný partner (Sponsor & Enterprise Tiers)?
-
-Podľa zvolenej úrovne (od komunitnej podpory po Enterprise zmluvu):
-
-1. 🔑 **Plnú Komerčnú / Enterprise Licenciu (1-Year Commercial License)**:
-   - Oprávnenie komerčného nasadenia frameworku vo vlastných aplikáciách, hrách, edge nodoch a CNC prevádzkach.
-   - Bezplatný prístup ku všetkým vydaniam počas trvania licencie a odstránenie limitov.
-
-2. 👑 **DEDIKOVANÉ ADMIN KONTO NA SERVERI (Fleet Command & Mission Control)**:
-   - **Plný prístup do centrálneho riadiaceho hubu (port 8089 / 8000)**.
-   - Správa telemetrie nodov, herných relácií a vyhradené prednostné kvóty pre lokálnu inferenciu AI modelov (Granite / OpenVINO / DirectML).
-   - Prístup k neobmedzeným (unthrottled) REST a WebSocket rozhraniam.
-
-3. 🛡️ **Asistencia pri Integrácii Firemného Podpisovania (UMCI / PKI)**:
-   - Podpora pri konfigurácii podpisovania natívnych PE64 DLL modulov cez firemnú certifikačnú autoritu (CA) alebo HSM pre prostredia s vynúteným Device Guard / UMCI.
-
-4. ⚡ **Exkluzívny Prístup k Nightly & Beta Buildom**:
-   - Prednostný prístup k novým funkciám pred oficiálnym zverejnením.
-   - Priame technické konzultácie a účasť na formovaní roadmapy.
-
----
-
-### 💳 Podnikové Platobné Kanály & Fakturácia:
+## 💳 Komerčná Podpora, Fakturácia & Kontakt:
 
 | Metóda | Spojenie / Adresa | Poznámka |
 |---|---|---|
 | **Priamy Bankový Prevod / Faktúra (SEPA / SWIFT)** | **`dusan.kopecky0101@gmail.com`** | Oficiálna komerčná faktúra s DPH (Net 30 pre zmluvných partnerov) |
 | **GitHub Sponsors** | [github.com/sponsors/RhodosBerger](https://github.com/sponsors/RhodosBerger) | Automatické pridelenie rolí, repozitárov a licenčných kľúčov |
-| **Alternatívne Krypto Kanály (Web3)** | `TRhodosBergerKrystalStack2026USDT` / `bc1q_krystal_stack_foundation_2026` | Voliteľné zúčtovanie (USDT TRC20 / BTC / ETH) na vyžiadanie |
-
-> *Pre objednávky, pilotné testovanie a vystavenie faktúry kontaktujte priamo hlavného architekta: **`dusan.kopecky0101@gmail.com`**.*
+| **Alternatívne Krypto Kanály (Web3)** | `TRhodosBergerKrystalStack2026USDT` / `bc1q_krystal_stack_foundation_2026` | Zúčtovanie v USDT / BTC / ETH |
 
 ---
 
@@ -167,6 +154,4 @@ Podľa zvolenej úrovne (od komunitnej podpory po Enterprise zmluvu):
 
 * **Hlavný Architekt & Vývojár**: Dušan Kopecký ([@RhodosBerger](https://github.com/RhodosBerger))
 * **Kontakt**: `dusan.kopecky0101@gmail.com`
-* **Licencia**: Apache License 2.0 (Pozri súbor [`LICENSE`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/LICENSE))
-
-Ďakujeme každému podporovateľovi, ktorý nám pomáha posúvať hranice nezávislého herného vývoja, kinetickej fyziky a heterogénnych výpočtov! 🚀
+* **Licencia**: Apache License 2.0 (Pozri súbor [`LICENSE`](LICENSE))
