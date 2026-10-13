@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "krystal-antigravity-hybrid": {
+      "command": "python",
+      "args": ["-m", "krystal_web_hub.hybrid_mcp_antigravity_connector", "--stdio"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    },
+    "krystal-antigravity-sse": {
+      "serverUrl": "http://127.0.0.1:8080/api/mcp/sse"
+    }
+  }
+}

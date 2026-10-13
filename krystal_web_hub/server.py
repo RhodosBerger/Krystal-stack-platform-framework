@@ -1135,6 +1135,40 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Hybrid MCP Connector & Antigravity Telemetry ───────
+        elif norm_path == "/api/mcp/status":
+            from krystal_web_hub.hybrid_mcp_antigravity_connector import GLOBAL_HYBRID_MCP_CONNECTOR
+            status_data = GLOBAL_HYBRID_MCP_CONNECTOR.execute_tool("antigravity-bridge-status", {})
+            self.send_json(status_data)
+            return
+        elif norm_path == "/api/mcp/tools":
+            from krystal_web_hub.hybrid_mcp_antigravity_connector import GLOBAL_HYBRID_MCP_CONNECTOR
+            tools_list = GLOBAL_HYBRID_MCP_CONNECTOR.mcp_tool_schemas
+            self.send_json({
+                "tools": tools_list,
+                "protocolVersion": GLOBAL_HYBRID_MCP_CONNECTOR.PROTOCOL_VERSION,
+                "serverName": GLOBAL_HYBRID_MCP_CONNECTOR.SERVER_NAME,
+                "serverVersion": GLOBAL_HYBRID_MCP_CONNECTOR.SERVER_VERSION,
+                "vital_max_hp": 6
+            })
+            return
+        elif norm_path == "/api/mcp/sse":
+            from krystal_web_hub.hybrid_mcp_antigravity_connector import GLOBAL_HYBRID_MCP_CONNECTOR
+            GLOBAL_HYBRID_MCP_CONNECTOR.stats["sse_sessions"] += 1
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Connection", "keep-alive")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            session_id = f"mcp-session-{int(time.time()*1000)}"
+            endpoint_msg = f"event: endpoint\ndata: /api/mcp/messages?sessionId={session_id}\n\n"
+            self.wfile.write(endpoint_msg.encode("utf-8"))
+            ping_msg = f"event: ping\ndata: {json.dumps({'status': 'ONLINE', 'vital_max_hp': 6})}\n\n"
+            self.wfile.write(ping_msg.encode("utf-8"))
+            self.wfile.flush()
+            return
+
         # ── API: Active System Processes for Prioritization ───────
         elif norm_path in ("/api/cortex/processes", "/api/processes"):
             from krystal_kernel.cortex_compiler import GLOBAL_CORTEX_COMPILER
@@ -3781,8 +3815,42 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         except Exception:
             data = {}
 
+        # ── API: Hybrid MCP Connector & Antigravity Synchronization ──
+        if self.path.startswith("/api/mcp/messages") or self.path == "/api/mcp/rpc":
+            from krystal_web_hub.hybrid_mcp_antigravity_connector import GLOBAL_HYBRID_MCP_CONNECTOR
+            GLOBAL_HYBRID_MCP_CONNECTOR.stats["http_requests"] += 1
+            resp = GLOBAL_HYBRID_MCP_CONNECTOR.handle_jsonrpc_request(data)
+            if resp is not None:
+                self.send_json(resp)
+            else:
+                self.send_json({"jsonrpc": "2.0", "result": None}, status=202)
+            return
+
+        elif self.path == "/api/mcp/antigravity/sync":
+            from krystal_web_hub.hybrid_mcp_antigravity_connector import GLOBAL_HYBRID_MCP_CONNECTOR
+            GLOBAL_HYBRID_MCP_CONNECTOR.stats["http_requests"] += 1
+            client_state = data.get("client_state", data)
+            client_hash = data.get("client_hash")
+            res = GLOBAL_HYBRID_MCP_CONNECTOR.execute_tool("antigravity-sync-state", {
+                "client_state": client_state,
+                "client_hash": client_hash
+            })
+            status_code = 200 if res.get("status") == "SYNCHRONIZED" else 400
+            self.send_json(res, status=status_code)
+            return
+
+        elif self.path == "/api/mcp/call":
+            from krystal_web_hub.hybrid_mcp_antigravity_connector import GLOBAL_HYBRID_MCP_CONNECTOR
+            GLOBAL_HYBRID_MCP_CONNECTOR.stats["http_requests"] += 1
+            tool_name = data.get("name")
+            tool_args = data.get("arguments", {})
+            res = GLOBAL_HYBRID_MCP_CONNECTOR.execute_tool(tool_name, tool_args)
+            status_code = 400 if "error" in res else 200
+            self.send_json(res, status=status_code)
+            return
+
         # ── API: Control (Mode / Resolution / Threshold / Folds) ──
-        if self.path == "/api/control":
+        elif self.path == "/api/control":
             with state.lock:
                 if "mode" in data:
                     state.mode = data["mode"]
