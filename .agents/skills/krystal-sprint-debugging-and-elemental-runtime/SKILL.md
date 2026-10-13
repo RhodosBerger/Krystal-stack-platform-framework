@@ -369,3 +369,47 @@ $$\text{damage} \le \text{VITAL\_MAX\_HP} = 6, \quad \text{defense} \le \text{VI
   - `POST /api/pattern-orchestrator/move` — Places $X$ or $O$ at $(r, c)$ on the 3x3 matrix.
   - `POST /api/pattern-orchestrator/resolve-turn` — Evaluates classical lines or collapses Tic-Tac-Toe paradox into counter-elemental card induction.
   - `POST /api/pattern-orchestrator/reset` — Resets grid and starts fresh pattern spiral.
+
+---
+
+## 12. Blender Spiral Tensor Driver Engine: Cyclic Drivers & Knowledge Automations
+
+The **Blender Spiral Tensor Driver Engine** integrates mathematical logarithmic spiral tensors with Blender 4.x Python (`bpy`) animation Drivers to orchestrate procedural 3D text titles and beacon geometry driven by nested "cycles of cycles" (harmonic modulation):
+
+### 12.1 Logarithmic Spiral Tensor Formulation
+Nodes are arrayed along a 3D Golden Spiral parameterized by the Golden Ratio ($\phi \approx 1.6180339887$) and Golden Angle ($\theta_{\text{golden}} \approx 2.399963\text{ rad} \approx 137.51^\circ$):
+$$r_k = r_0 \cdot \phi^{k \cdot \text{rate}}, \quad \theta_k = k \cdot \theta_{\text{golden}}, \quad z_k = k \cdot \Delta z$$
+Tangents and orientation matrices align 3D text titles and beacon meshes along the curve trajectory.
+
+### 12.2 Nested "Cycles of Cycles" Animation Drivers
+Blender Drivers evaluate trigonometric scripted expressions directly inside the scene graph:
+* **Z-Axis Displacement Driver**:
+  $$z(\text{frame}) = z_0 + A_1 \cdot \sin\left(\frac{2\pi \cdot \text{frame}}{T_1} + \phi_0\right) + A_2 \cdot \cos\left(\frac{2\pi \cdot \text{frame}}{T_2}\right)$$
+  where $T_1$ is the macro orbital period (e.g. 120 frames / 5 sec) and $T_2$ is the micro harmonic modulating cycle (e.g. 24 frames / 1 sec).
+* **Yaw Rotation Driver**: Continuous orbital alignment modulated by cycle velocity.
+* **Emission Glow Driver**: Material BSDF emission strength pulsating with the micro harmonic cycle.
+
+### 12.3 Attached Knowledge Sub-lists (Synthesis of Conversation Patterns)
+Each node along the spiral carries structured sub-lists of knowledge capturing the platform architecture:
+1. **`PROTIX_ML`**: 6-feature neural sensor arrays, inference confidence clamping, sub-millisecond edge classification.
+2. **`OHMIC_PHYSICAL_LAW`**: $P = V^2 / R$, Joule dissipation $Q = P \cdot \Delta t$, 30% gas discount under active fan cooling.
+3. **`NETWORK_TASK_ARBITER`**: Intermediate endpoint midpoints, fair-queue scheduling, sub-10ms dispatch SLA.
+4. **`TECTONIC_MATRIX`**: Speculative IF-THEN-WHAT-IF rule DSL, hexagonal stress dissipation, matrix stability convergence.
+5. **`TERMIX_ACCOUNTANT`**: Double-entry multi-token solvency, hardware gas throttling, NPU micro-opcodes.
+6. **`FIBONACCI_ORCHESTRATOR`**: 3x3 Tic-Tac-Toe paradox resolution tensor, topological phase transitions, adaptive counter-polarity induction.
+
+### 12.4 Operational Verification & REST Endpoints
+* **CLI Engine**:
+  ```powershell
+  python krystal_kernel/blender_spiral_tensor_driver_engine.py
+  ```
+* **Unit Tests**:
+  ```powershell
+  python -m unittest tests/test_blender_spiral_tensor_driver_engine.py
+  ```
+* **Mission Control REST Endpoints**:
+  - `GET  /api/blender/spiral-tensor/status` — Status, spiral geometry, and attached knowledge nodes.
+  - `POST /api/blender/spiral-tensor/evaluate-frame` — Evaluates dynamic driver coordinates and emission state at any frame in pure Python.
+  - `POST /api/blender/spiral-tensor/generate-script` — Generates executable Blender 4.x Python script with drivers and materials.
+  - `POST /api/blender/spiral-tensor/add-node` — Dynamically appends a new knowledge beacon to the spiral tensor.
+

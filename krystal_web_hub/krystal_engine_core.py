@@ -169,6 +169,12 @@ from krystal_kernel.fibonacci_paradox_pattern_orchestrator import (
     GLOBAL_PATTERN_ORCHESTRATOR,
     FibonacciParadoxPatternOrchestrator
 )
+from krystal_kernel.blender_spiral_tensor_driver_engine import (
+    GLOBAL_SPIRAL_TENSOR_ENGINE,
+    BlenderSpiralTensorDriverEngine,
+    DomainPattern,
+    KnowledgeSubItem
+)
 from krystal_kernel.openai_llm_connector import (
     GLOBAL_OPENAI_CONNECTOR,
     OpenAILLMConnector,
@@ -1815,6 +1821,11 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_PATTERN_ORCHESTRATOR.get_orchestrator_status())
             return
 
+        # ── BLENDER SPIRAL TENSOR DRIVER ENGINE (GET) ──────────────────────
+        if path == '/api/blender/spiral-tensor/status':
+            self._send_json(GLOBAL_SPIRAL_TENSOR_ENGINE.get_engine_status())
+            return
+
         # ── UNIVERSAL OPENAI LLM CONNECTOR ENDPOINTS (GET) ──────────────────
         if path == '/api/llm/status':
             self._send_json(GLOBAL_OPENAI_CONNECTOR.get_status())
@@ -2959,6 +2970,64 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "success": True,
                 "reset_result": reset_res,
                 "status": GLOBAL_PATTERN_ORCHESTRATOR.get_orchestrator_status(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── BLENDER SPIRAL TENSOR DRIVER ENGINE POST ENDPOINTS ──────────────
+        if path == '/api/blender/spiral-tensor/evaluate-frame':
+            frame = int(req_data.get("frame", 0))
+            frame_state = GLOBAL_SPIRAL_TENSOR_ENGINE.evaluate_frame(frame)
+            self._send_json({
+                "success": True,
+                "frame_state": frame_state.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/blender/spiral-tensor/generate-script':
+            script_str = GLOBAL_SPIRAL_TENSOR_ENGINE.generate_blender_automation_script()
+            self._send_json({
+                "success": True,
+                "script": script_str,
+                "byte_length": len(script_str),
+                "line_count": len(script_str.splitlines()),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/blender/spiral-tensor/add-node':
+            title = req_data.get("title", "Custom Knowledge Beacon")
+            domain_raw = req_data.get("domain", "PROTIX_ML")
+            try:
+                domain_enum = DomainPattern(domain_raw)
+            except ValueError:
+                domain_enum = DomainPattern.PROTIX_ML
+            
+            p1 = int(req_data.get("primary_period", 120))
+            p2 = int(req_data.get("secondary_period", 24))
+            raw_sub = req_data.get("knowledge_sub_list", [])
+            sub_items = []
+            for idx, s in enumerate(raw_sub):
+                sub_items.append(KnowledgeSubItem(
+                    item_id=s.get("item_id", f"sub_{idx+1}"),
+                    topic=s.get("topic", "Topic"),
+                    description=s.get("description", "Description"),
+                    formula_or_axiom=s.get("formula_or_axiom", "Axiom"),
+                    vital_hp_weight=int(s.get("vital_hp_weight", 6))
+                ))
+            
+            new_node = GLOBAL_SPIRAL_TENSOR_ENGINE.add_custom_knowledge_node(
+                title=title,
+                domain=domain_enum,
+                knowledge_sub_list=sub_items,
+                primary_period=p1,
+                secondary_period=p2
+            )
+            self._send_json({
+                "success": True,
+                "node": new_node.to_dict(),
+                "status": GLOBAL_SPIRAL_TENSOR_ENGINE.get_engine_status(),
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return
