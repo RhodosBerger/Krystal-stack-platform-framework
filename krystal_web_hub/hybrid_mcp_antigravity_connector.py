@@ -380,6 +380,57 @@ class HybridMcpAntigravityConnector:
                         "context_data": {"type": "object"}
                     }
                 }
+            },
+            # 7. Čítačky Gramov (Gram Readers Suite)
+            {
+                "name": "krystal-read-grams",
+                "description": (
+                    "Čítačka gramov: Multi-modálna extrakcia a analýza gramov. "
+                    "Podporuje módy: 'ngram' (textová entrópia, perplexita), "
+                    "'gramian' (Gramova matica G=V^T V, objem rovnobežnostena det(G)), "
+                    "'spectrogram' (akustické spektrálne centroidy a formantové pásma) a "
+                    "'mass' (fyzikálna gramáž, materiálová hustota a ťažisko)."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "mode": {
+                            "type": "string",
+                            "enum": ["ngram", "gramian", "spectrogram", "mass"],
+                            "description": "Mód čítačky gramov."
+                        },
+                        "payload": {
+                            "type": "object",
+                            "description": "Dáta pre zvolený mód (napr. {'text': '...', 'n': 2} pre ngram, alebo {'vectors': [...]} pre gramian)."
+                        }
+                    },
+                    "required": ["mode", "payload"]
+                }
+            },
+            # 8. Hodnotič Impedancie (Impedance Evaluator)
+            {
+                "name": "krystal-evaluate-impedance",
+                "description": (
+                    "Hodnotič impedancie: Vyhodnocuje komplexné impedančné charakteristiky. "
+                    "Podporuje domény: 'electrical' (RLC Z=R+jX, admitancia, Q, VSWR, L-match), "
+                    "'thermal' (prechodová termálna impedancia Z_th(t) kremíka a vzostup teploty Tj), "
+                    "a 'cognitive' (architektonická impedancia Z_cog toku promptov v Kaskáde a strain index)."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "domain": {
+                            "type": "string",
+                            "enum": ["electrical", "thermal", "cognitive"],
+                            "description": "Doména impedancie na vyhodnotenie."
+                        },
+                        "payload": {
+                            "type": "object",
+                            "description": "Parametre obvodu, výkonu alebo promptu."
+                        }
+                    },
+                    "required": ["domain", "payload"]
+                }
             }
         ]
 
@@ -533,7 +584,21 @@ class HybridMcpAntigravityConnector:
                     "transports": ["stdio_jsonrpc_2.0", "http_rest", "http_sse"]
                 }
 
-            # 6. Fallback to Krystal MCP Core Tools
+            # 6. Čítačky Gramov (Gram Readers Suite)
+            elif name == "krystal-read-grams":
+                from krystal_kernel.gram_and_impedance_engine import GLOBAL_GRAM_AND_IMPEDANCE_ENGINE
+                mode = arguments.get("mode", "ngram")
+                payload = arguments.get("payload", {})
+                return GLOBAL_GRAM_AND_IMPEDANCE_ENGINE.read_grams(mode, payload)
+
+            # 7. Hodnotič Impedancie (Impedance Evaluator)
+            elif name == "krystal-evaluate-impedance":
+                from krystal_kernel.gram_and_impedance_engine import GLOBAL_GRAM_AND_IMPEDANCE_ENGINE
+                domain = arguments.get("domain", "electrical")
+                payload = arguments.get("payload", {})
+                return GLOBAL_GRAM_AND_IMPEDANCE_ENGINE.evaluate_impedance(domain, payload)
+
+            # 8. Fallback to Krystal MCP Core Tools
             elif name in self.krystal_mcp.tool_registry:
                 return self.krystal_mcp.dispatch_call(name, arguments)
 

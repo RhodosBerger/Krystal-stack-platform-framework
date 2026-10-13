@@ -1169,6 +1169,21 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.wfile.flush()
             return
 
+        # ── API: Gram Readers & Impedance Evaluator Telemetry ───────
+        elif norm_path == "/api/impedance/telemetry":
+            from krystal_kernel.gram_and_impedance_engine import GLOBAL_GRAM_AND_IMPEDANCE_ENGINE
+            therm = GLOBAL_GRAM_AND_IMPEDANCE_ENGINE.thermal_evaluator.evaluate_transient_thermal_impedance(1.0, 28.0)
+            cog = GLOBAL_GRAM_AND_IMPEDANCE_ENGINE.cognitive_evaluator.evaluate_cognitive_flow(2.5)
+            self.send_json({
+                "status": "TELEMETRY_READY",
+                "thermal_impedance": therm,
+                "cognitive_impedance": cog,
+                "supported_readers": ["ngram", "gramian", "spectrogram", "mass"],
+                "supported_evaluators": ["electrical", "thermal", "cognitive"],
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Active System Processes for Prioritization ───────
         elif norm_path in ("/api/cortex/processes", "/api/processes"):
             from krystal_kernel.cortex_compiler import GLOBAL_CORTEX_COMPILER
@@ -3847,6 +3862,23 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             res = GLOBAL_HYBRID_MCP_CONNECTOR.execute_tool(tool_name, tool_args)
             status_code = 400 if "error" in res else 200
             self.send_json(res, status=status_code)
+            return
+
+        # ── API: Gram Readers & Impedance Evaluator Endpoints ────────
+        elif self.path == "/api/grams/read":
+            from krystal_kernel.gram_and_impedance_engine import GLOBAL_GRAM_AND_IMPEDANCE_ENGINE
+            mode = data.get("mode", "ngram")
+            payload = data.get("payload", {})
+            res = GLOBAL_GRAM_AND_IMPEDANCE_ENGINE.read_grams(mode, payload)
+            self.send_json(res, status=200 if "error" not in res else 400)
+            return
+
+        elif self.path == "/api/impedance/evaluate":
+            from krystal_kernel.gram_and_impedance_engine import GLOBAL_GRAM_AND_IMPEDANCE_ENGINE
+            domain = data.get("domain", "electrical")
+            payload = data.get("payload", {})
+            res = GLOBAL_GRAM_AND_IMPEDANCE_ENGINE.evaluate_impedance(domain, payload)
+            self.send_json(res, status=200 if "error" not in res else 400)
             return
 
         # ── API: Control (Mode / Resolution / Threshold / Folds) ──
