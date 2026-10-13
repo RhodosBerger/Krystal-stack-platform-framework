@@ -944,6 +944,67 @@ $$\text{Visual Contract} \implies \text{Gauge}(\text{HP}) = \sum_{i=1}^{6} \math
 * **Stylesheet**:
   - Canonical location: `krystal_web_hub/static/krystal_ui_kit.css`
 
+---
 
+## 23. Next-Gen Bidirectional Predictive Dependency Engine & Epistemic Taxonomies (Boolean & List)
 
+### 23.1 The Prediction Gap & Primitive Semantic Blindspot
+Primitive types in standard runtimes introduce silent failure modes:
+1. **Unanchored Booleans**: A primitive `bool` erases epistemic provenance (hardware measurement vs model hallucination), nanosecond temporal validity windows, reversibility, and proof certificates.
+2. **Unconstrained Lists**: A primitive `list` allows arbitrary growth, breaking constitutional invariants like `VITAL_MAX_HP == 6`, missing cacheline alignments, and lacking Merkle tamper-evident audits.
+3. **Cross-Stack Desynchronization**: Frontends render optimistic UI mutations without hardware grounding, causing state divergence when backend safety gates emit `VETO`.
 
+### 23.2 Custom Taxonomies for Epistemic Booleans (`EpistemicBoolean`)
+An `EpistemicBoolean` carries four orthogonal taxonomic axes:
+* **Axis 1: Epistemic Modal Taxonomy (7-Valued Truth Lattice)**:
+  - `VERIFIED_TRUE`: Measured on physical silicon or proven by formal solver (uncertainty $< 0.05$).
+  - `COUNTERFACTUAL_TRUE`: Model-predicted speculative proposition awaiting post-audit.
+  - `FALSIFIED_FALSE`: Empirically refuted by contradiction or counter-example.
+  - `VETOED_FALSE`: Blocked by `DualAuthorityGate` due to safety/risk bounds.
+  - `INDETERMINATE_PENDING`: Proof in-flight; cannot participate in authority commit.
+  - `PARADOXICAL_CONTRADICTORY`: Contradiction detected across corroborated sensors.
+  - `QUARANTINED`: Stream frozen due to anomalous drift or hardware fault.
+* **Axis 2: Temporal & Lease Dynamics**:
+  - `MONOTONIC_LATCH`: Irreversible write-once latch (e.g. `has_breach_occurred`).
+  - `EPOCH_LEASED`: Nanosecond validity window $[t_{\text{valid}}, t_{\text{valid}} + \text{lease\_ttl\_ns}]$; automatically expires.
+  - `BISTABLE_HYSTERETIC`: Requires margin thresholds to transition, preventing boundary jitter.
+  - `SHADOW_HYPOTHETICAL`: Speculative simulation value strictly confined to shadow memory.
+* **Axis 3: Invariant & Authority Grounding**:
+  - `CONSTITUTIONAL_INVARIANT`: Inviolable system rule ($W = \infty$). Immutable compile-time assertion (e.g. `VITAL_MAX_HP == 6`).
+  - `PROVABLE_LEMMA`: Accompanied by cryptographic SHA-256 certificate and Z3 proof bundle.
+  - `BAYESIAN_STOCHASTIC`: Belief credence $P(\text{True}) \in [0.0, 1.0]$ with variance $\sigma^2$.
+* **Axis 4: Actuation & Mutation Scope**:
+  - `REVERSIBLE_SWITCH`: State mutation can be undone in $\mathcal{O}(1)$ without physical penalty.
+  - `IRREVERSIBLE_TRIGGER`: Physical hardware actuation; requires full authority proof bundle.
+  - `TELEMETRY_PROBE`: Pure observation probe with zero physical side-effects.
+
+### 23.3 Custom Taxonomies for Epistemic Lists (`EpistemicList[T]`)
+An `EpistemicList[T]` enforces structural, algebraic, and memory invariants:
+* **Axis 1: Algebraic & Ordering Semantics**:
+  - `STRICT_CAUSAL_SEQUENCE`: Monotonically ordered by Lamport / Vector clock timestamps ($e_i \prec e_{i+1}$).
+  - `TOPOLOGICAL_DAG_ORDER`: Directed acyclic graph order where prerequisites strictly precede dependent tasks.
+  - `COMMUTATIVE_BAG`: Order-independent multiset for parallel sensor aggregation ($A \cup B = B \cup A$).
+  - `CIRCULAR_RING_BUFFER`: Fixed-capacity FIFO where overflow evicts oldest element with zero allocation.
+* **Axis 2: Bounded Capacity & Hardware Invariants**:
+  - `VITAL_BOUNDED_LIST`: **Strictly bounded to $N \le 6$**. Directly enforces the platform invariant `VITAL_MAX_HP == 6`. Any insertion beyond 6 raises an `InvariantViolationError`.
+  - `CACHE_LINE_64B_CHUNK`: Fixed to 64-byte payload for single-cycle SIMD / AVX-512 vector alignment.
+  - `STRAND_PAGE_WORD_PACK`: Exactly 64 words (512 bits) mapped to NPU Strand page frames.
+  - `UNBOUNDED_EVIDENCE_STREAM`: Dynamically paged historical ledger backed by persistent storage.
+* **Axis 3: Integrity & Mutation Governance**:
+  - `APPEND_ONLY_MERKLE`: Updates rolling Merkle root hash $R_k = H(R_{k-1} \parallel H(e_k))$.
+  - `IDEMPOTENT_PRUNED_SET`: Candidate action pool deduplicated by state version and action signature.
+  - `FALSIFICATION_PRIORITY_QUEUE`: Sorted in descending order of hazard metric $H = \text{uncertainty} \times \text{criticality}$.
+* **Axis 4: Memory Topology & Zero-Copy Layout**:
+  - `PINNED_DMA_CONTIGUOUS`: Page-locked physical RAM for PCIe DMA without page faults.
+  - `ZERO_COPY_RING`: Shared-memory buffer between Rust bot and Python kernel via C-ABI pointers.
+  - `DUAL_ASPECT_MIRROR`: Shared memory region mirrored directly to WebGL/Canvas typed arrays (`Float32Array`).
+
+### 23.4 Bidirectional Predictive Dependency Engine & Invalidation Graph
+* **Predictive Invalidation Propagation**:
+  When a backend hardware sensor or forecast mutates, the dependency engine executes DAG traversal over `PREDICTS` and `INVALIDATES` edges to immediately flush downstream frontend view models and force re-leases before stale evidence is rendered.
+* **Living Canonical Factory**:
+  - `create_vital_hearts_list(active_hp: int) -> EpistemicList[EpistemicBoolean]`: Guarantees exactly 6 elements clamped $[0, 6]$ with rolling SHA-256 Merkle root.
+* **Verification**:
+  ```powershell
+  python -m unittest tests/test_epistemic_taxonomies.py
+  ```

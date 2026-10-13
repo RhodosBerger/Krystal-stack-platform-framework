@@ -125,6 +125,21 @@ __all__ = [
     "SafetyGate",
     "EvidenceGate",
     "DualAuthorityGate",
+    # Epistemic Taxonomies (Boolean, List, Predictive Graph)
+    "EpistemicBoolean",
+    "BooleanModalKind",
+    "BooleanTemporalKind",
+    "BooleanInvariantKind",
+    "BooleanActionKind",
+    "EpistemicList",
+    "ListAlgebraicKind",
+    "ListCapacityKind",
+    "ListIntegrityKind",
+    "ListMemoryKind",
+    "create_vital_hearts_list",
+    "PredictiveDependencyGraph",
+    "PredictiveDependencyNode",
+    "DependencyEdgeKind",
 ]
 
 from krystal_kernel.verification.state_version import StateVersion
@@ -162,4 +177,20 @@ from krystal_kernel.verification.authority_gate import (
     SafetyGate,
     EvidenceGate,
     DualAuthorityGate
+)
+from krystal_kernel.verification.epistemic_taxonomies import (
+    EpistemicBoolean,
+    BooleanModalKind,
+    BooleanTemporalKind,
+    BooleanInvariantKind,
+    BooleanActionKind,
+    EpistemicList,
+    ListAlgebraicKind,
+    ListCapacityKind,
+    ListIntegrityKind,
+    ListMemoryKind,
+    create_vital_hearts_list,
+    PredictiveDependencyGraph,
+    PredictiveDependencyNode,
+    DependencyEdgeKind,
 )
