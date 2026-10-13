@@ -290,4 +290,40 @@ The **Tectonic Matrix Adaptability Engine** governs the physical, elemental, and
   - `POST /api/tectonic/speculate` — Runs counterfactual speculation and returns trace.
   - `POST /api/tectonic/adapt` — Commits optimal adaptive action to live matrix.
 
+---
+
+## 10. TERMIX-MATRIX Subproject: Smart Contract Accountant & NPU Binary Coprocessor
+
+The **TERMIX-MATRIX** subproject implements thermodynamic accounting and hardware-accelerated binary coprocessor verification for smart contract settlement:
+
+### 10.1 NPU Binary Coprocessor Architecture (`NpuBinaryCoprocessor`)
+* Vectorized, low-power ($2.4\text{ W}$) execution plane operating in $<50\text{ }\mu\text{s}$.
+* **Micro-Opcodes**:
+  - `NPU_VERIFY_SOLVENCY`: Vector proof of positive balances across multi-token accounts.
+  - `NPU_THERMODYNAMIC_GAS`: Dynamic gas calculation from Ohmic Joules ($P = \frac{V^2}{R}$, $Q = P \cdot \Delta t$) and hardware temperature.
+    - Low temperature ($T \le 55^\circ\text{C}$ with 100% cooling fan) $\to$ **30% gas fee discount**.
+    - High heat ($T \ge 70^\circ\text{C}$) $\to$ **2.5x throttle penalty**.
+  - `NPU_BITWISE_MERKLE_PROOF`: 64-bit binary SHA256 receipt state digest.
+  - `NPU_TECTONIC_HEAT_BUDGET`: Balances tectonic heat dissipation flux into account units.
+  - `NPU_INVARIANT_HP_GUARD`: Hard invariant clamp enforcing `VITAL_MAX_HP == 6`.
+
+### 10.2 Smart Contract Accountant (`TermixSmartContractAccountant`)
+* **Double-Entry Ledger**: Tracks Mana, Aether Crystals, Amber Runes, and Thermodynamic Gas (`T-GAS`).
+* **Settlement Receipt**: Every transaction includes gas fee, temperature state, and Merkle cryptographic receipt proof.
+
+### 10.3 Operational Verification & REST Endpoints
+* **CLI Engine**:
+  ```powershell
+  python krystal_kernel/termix_smart_contract_accountant.py
+  ```
+* **Unit Tests**:
+  ```powershell
+  python -m unittest tests/test_termix_smart_contract_accountant.py
+  ```
+* **Mission Control REST Endpoints**:
+  - `GET  /api/termix/accountant/status` — Multi-token liquidity and NPU coprocessor telemetry.
+  - `POST /api/termix/accountant/transact` — Settles smart contract transaction with thermodynamic gas.
+  - `POST /api/termix/coprocessor/execute` — Direct execution of NPU micro-opcode.
+
+
 

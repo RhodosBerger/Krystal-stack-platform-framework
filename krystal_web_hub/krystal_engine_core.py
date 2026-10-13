@@ -159,6 +159,12 @@ from krystal_kernel.tectonic_matrix_adaptability_engine import (
     GLOBAL_TECTONIC_ADAPTABILITY_ENGINE,
     TectonicMatrixAdaptabilityEngine
 )
+from krystal_kernel.termix_smart_contract_accountant import (
+    GLOBAL_TERMIX_ACCOUNTANT,
+    TermixSmartContractAccountant,
+    SmartContractTransaction,
+    NpuMicroOpcode
+)
 from krystal_kernel.openai_llm_connector import (
     GLOBAL_OPENAI_CONNECTOR,
     OpenAILLMConnector,
@@ -1795,6 +1801,11 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── TERMIX-MATRIX: SMART CONTRACT ACCOUNTANT & NPU COPROCESSOR (GET) 
+        if path == '/api/termix/accountant/status':
+            self._send_json(GLOBAL_TERMIX_ACCOUNTANT.get_accountant_status())
+            return
+
         # ── UNIVERSAL OPENAI LLM CONNECTOR ENDPOINTS (GET) ──────────────────
         if path == '/api/llm/status':
             self._send_json(GLOBAL_OPENAI_CONNECTOR.get_status())
@@ -2862,6 +2873,50 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path == '/api/tectonic/adapt':
             res = GLOBAL_TECTONIC_ADAPTABILITY_ENGINE.adapt()
             self._send_json(res)
+            return
+
+        # ── TERMIX-MATRIX: SMART CONTRACT ACCOUNTANT & NPU COPROCESSOR (POST)
+        if path == '/api/termix/accountant/transact':
+            sender = req_data.get("sender_id", "PLAYER_ALPHA")
+            recipient = req_data.get("recipient_id", "OPPONENT_OMEGA")
+            mana = int(req_data.get("mana_amount", 10))
+            aether = int(req_data.get("aether_amount", 0))
+            amber = int(req_data.get("amber_amount", 0))
+            t_gas_budget = float(req_data.get("t_gas_budget", 50.0))
+            temp_c = float(req_data.get("hardware_temp_c", 52.1))
+            volt = float(req_data.get("voltage_v", 0.85))
+            ohms = float(req_data.get("resistance_ohms", 2.0))
+
+            tx = SmartContractTransaction(
+                tx_id=f"tx_{int(time.time()*1e6)}",
+                sender_id=sender,
+                recipient_id=recipient,
+                mana_amount=mana,
+                aether_amount=aether,
+                amber_amount=amber,
+                t_gas_budget=t_gas_budget
+            )
+            receipt = GLOBAL_TERMIX_ACCOUNTANT.settle_transaction(
+                tx, hardware_temp_c=temp_c, voltage_v=volt, resistance_ohms=ohms
+            )
+            self._send_json(receipt)
+            return
+
+        if path == '/api/termix/coprocessor/execute':
+            raw_op = req_data.get("opcode", "NPU_VERIFY_SOLVENCY")
+            try:
+                op_enum = NpuMicroOpcode(raw_op)
+            except ValueError:
+                op_enum = NpuMicroOpcode.NPU_VERIFY_SOLVENCY
+            vector = [float(v) for v in req_data.get("operand_vector", [10.0, 5.0, 1.0])]
+            ctx = req_data.get("context", {})
+            metrics = GLOBAL_TERMIX_ACCOUNTANT.coprocessor.execute_micro_op(op_enum, vector, ctx)
+            self._send_json({
+                "success": True,
+                "metrics": metrics.to_dict(),
+                "context": ctx,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
             return
 
         # ── UNIVERSAL OPENAI LLM CONNECTOR POST ENDPOINTS ──────────────────
