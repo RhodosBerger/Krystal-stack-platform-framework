@@ -626,6 +626,29 @@ class HybridMcpAntigravityConnector:
                     },
                     "required": ["action"]
                 }
+            },
+            {
+                "name": "krystal-blender-core-studio-import",
+                "description": "Bridges and imports Blender Modifier Core, 13 mimicry composite recipes, 9 game scenes, 3D OBJ meshes, and Blender 4.x Python scripts (bpy) directly into the Studio environment.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "type": "string",
+                            "enum": ["catalog", "import_recipe", "import_scene", "export_obj", "generate_bpy"],
+                            "description": "Operácia: 'catalog' (zoznam), 'import_recipe' (import receptu do štúdia), 'import_scene' (import scény), 'export_obj' (Wavefront OBJ), 'generate_bpy' (Blender 4.x Python)."
+                        },
+                        "recipe_id": {
+                            "type": "string",
+                            "description": "ID mimicry receptu (napr. 'CYBER_TURRET_MK4', 'MECH_WALKER_TITAN', 'ANCIENT_OBELISK_MONOLITH', 'CYBERPUNK_DATA_SPIRE', 'HISTORIC_TENEMENT_FACADE')."
+                        },
+                        "scene_id": {
+                            "type": "string",
+                            "description": "ID scény (napr. 'SCENE_CYBERPUNK_DISTRICT', 'SCENE_OLD_TOWN_PRAGUE_SQUARE')."
+                        }
+                    },
+                    "required": ["action"]
+                }
             }
         ]
 
@@ -1053,7 +1076,50 @@ class HybridMcpAntigravityConnector:
                         "vital_max_hp_rule": VITAL_MAX_HP,
                     }
 
-            # 14. Fallback to Krystal MCP Core Tools
+            # 14. Blender Core Studio Bridge & Asset Importer
+            elif name == "krystal-blender-core-studio-import":
+                from krystal_kernel.blender_core_studio_bridge import GLOBAL_BLENDER_CORE_STUDIO_BRIDGE
+                action = arguments.get("action", "catalog")
+                rid = arguments.get("recipe_id", "CYBER_TURRET_MK4")
+                sid = arguments.get("scene_id", "SCENE_CYBERPUNK_DISTRICT")
+
+                if action == "catalog":
+                    return {"status": "OK", "action": action, **GLOBAL_BLENDER_CORE_STUDIO_BRIDGE.get_catalog()}
+
+                elif action == "import_recipe":
+                    bundle = GLOBAL_BLENDER_CORE_STUDIO_BRIDGE.import_recipe_to_studio(rid)
+                    return {"status": "OK", "action": action, "bundle": bundle.to_dict()}
+
+                elif action == "import_scene":
+                    bundle = GLOBAL_BLENDER_CORE_STUDIO_BRIDGE.import_scene_to_studio(sid)
+                    return {"status": "OK", "action": action, "bundle": bundle.to_dict()}
+
+                elif action == "export_obj":
+                    bundle = GLOBAL_BLENDER_CORE_STUDIO_BRIDGE.import_recipe_to_studio(rid)
+                    return {
+                        "status": "OK",
+                        "action": action,
+                        "recipe_id": rid,
+                        "vertex_count": bundle.vertex_count,
+                        "face_count": bundle.face_count,
+                        "obj_data": bundle.obj_data,
+                        "vital_max_hp": VITAL_MAX_HP
+                    }
+
+                elif action == "generate_bpy":
+                    bundle = GLOBAL_BLENDER_CORE_STUDIO_BRIDGE.import_recipe_to_studio(rid)
+                    return {
+                        "status": "OK",
+                        "action": action,
+                        "recipe_id": rid,
+                        "blender_bpy_script": bundle.blender_bpy_script,
+                        "vital_max_hp": VITAL_MAX_HP
+                    }
+
+                else:
+                    return {"error": f"Unknown action '{action}' for {name}"}
+
+            # 15. Fallback to Krystal MCP Core Tools
             elif name in self.krystal_mcp.tool_registry:
                 return self.krystal_mcp.dispatch_call(name, arguments)
 

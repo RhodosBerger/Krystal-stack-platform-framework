@@ -849,6 +849,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.serve_file(STATIC_DIR / "small_model_core_rag_studio.html", "text/html")
             return
         elif norm_path in (
+            "/blender-core-studio", "/blender-studio", "/blender_core_studio.html",
+            "/blender-modifiers", "/blender-core", "/blender"
+        ):
+            self.serve_file(STATIC_DIR / "blender_core_studio.html", "text/html")
+            return
+        elif norm_path in (
             "/cascade", "/cascade-studio", "/model-studio", "/cascade_model_studio.html",
             "/model-cascade", "/cascade-workbench", "/lm-studio"
         ):
@@ -2697,6 +2703,56 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "artifact": artifact.to_dict(),
                 "vital_max_hp": 6
             })
+            return
+
+        # ── API: Blender Core Studio Bridge & Modifiers ────────────
+        elif norm_path in ("/api/blender-core/catalog", "/api/blender/catalog"):
+            from krystal_kernel.blender_core_studio_bridge import GLOBAL_BLENDER_CORE_STUDIO_BRIDGE
+            self.send_json(GLOBAL_BLENDER_CORE_STUDIO_BRIDGE.get_catalog())
+            return
+
+        elif norm_path in ("/api/blender-core/import-recipe", "/api/blender/import-recipe"):
+            from krystal_kernel.blender_core_studio_bridge import GLOBAL_BLENDER_CORE_STUDIO_BRIDGE
+            q = parse_qs(parsed.query)
+            rid = q.get("id", ["CYBER_TURRET_MK4"])[0]
+            try:
+                bundle = GLOBAL_BLENDER_CORE_STUDIO_BRIDGE.import_recipe_to_studio(rid)
+                self.send_json(bundle.to_dict())
+            except KeyError as e:
+                self.send_json({"error": str(e)}, status_code=404)
+            return
+
+        elif norm_path in ("/api/blender-core/import-scene", "/api/blender/import-scene"):
+            from krystal_kernel.blender_core_studio_bridge import GLOBAL_BLENDER_CORE_STUDIO_BRIDGE
+            q = parse_qs(parsed.query)
+            sid = q.get("id", ["SCENE_CYBERPUNK_DISTRICT"])[0]
+            try:
+                bundle = GLOBAL_BLENDER_CORE_STUDIO_BRIDGE.import_scene_to_studio(sid)
+                self.send_json(bundle.to_dict())
+            except KeyError as e:
+                self.send_json({"error": str(e)}, status_code=404)
+            return
+
+        elif norm_path in ("/api/blender-core/export-obj", "/api/blender/export-obj"):
+            from krystal_kernel.blender_core_studio_bridge import GLOBAL_BLENDER_CORE_STUDIO_BRIDGE
+            q = parse_qs(parsed.query)
+            rid = q.get("id", ["CYBER_TURRET_MK4"])[0]
+            try:
+                bundle = GLOBAL_BLENDER_CORE_STUDIO_BRIDGE.import_recipe_to_studio(rid)
+                self.send_text(bundle.obj_data, content_type="text/plain; charset=utf-8")
+            except KeyError as e:
+                self.send_json({"error": str(e)}, status_code=404)
+            return
+
+        elif norm_path in ("/api/blender-core/export-bpy", "/api/blender/export-bpy"):
+            from krystal_kernel.blender_core_studio_bridge import GLOBAL_BLENDER_CORE_STUDIO_BRIDGE
+            q = parse_qs(parsed.query)
+            rid = q.get("id", ["CYBER_TURRET_MK4"])[0]
+            try:
+                bundle = GLOBAL_BLENDER_CORE_STUDIO_BRIDGE.import_recipe_to_studio(rid)
+                self.send_text(bundle.blender_bpy_script, content_type="text/plain; charset=utf-8")
+            except KeyError as e:
+                self.send_json({"error": str(e)}, status_code=404)
             return
 
         elif path in ("/api/matrix-image/palettes", "/api/matrix-image/colors"):
