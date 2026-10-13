@@ -453,4 +453,53 @@ Located at `krystal_web_hub/static/posledni_kmen_fantasy_studio.html` (served at
   - `POST /api/posledni-kmen/composition/generate` — Synthesizes fantasy composition for given tribe and playstyle doctrine.
   - `POST /api/posledni-kmen/composition/simulate-clash` — Simulates tactical duel between two fantasy compositions.
 
+---
+
+## 14. Cycles & V-Ray Hybrid Reverse-Engineered Render Architecture & Studio
+
+The **Cycles & V-Ray Hybrid Render Engine** unifies Blender Cycles (unbiased Monte Carlo spectral path tracing) and Chaos V-Ray (biased/unbiased production hybrid ray tracing) through reverse-engineered mathematical parameter translation, shader bridging, and multi-disciplinary measurement ingestion:
+
+### 14.1 Reverse-Engineered Mathematical Equivalence
+* **Sampling Equivalence**:
+  $$\text{Samples}_{\text{Cycles}} = \text{Subdivs}_{\text{VRay}}^2 \iff \text{Subdivs}_{\text{VRay}} = \left\lfloor\sqrt{\text{Samples}_{\text{Cycles}}}\right\rceil$$
+  For example, $16\text{ Subdivs} \leftrightarrow 256\text{ Samples}$, $20\text{ Subdivs} \leftrightarrow 400\text{ Samples}$, $32\text{ Subdivs} \leftrightarrow 1024\text{ Samples}$.
+* **Adaptive Noise Threshold**:
+  $$\text{color\_threshold}_{\text{VRay}} = \text{adaptive\_threshold}_{\text{Cycles}} \in [0.001, 0.05]$$
+* **Ray Bounce Depth**:
+  $$\text{total\_max\_depth} = \text{max\_bounces}, \quad \text{reflection\_depth} = \text{glossy\_bounces}, \quad \text{refraction\_depth} = \text{transmission\_bounces}$$
+* **PBR Material Reciprocity (Principled BSDF $\longleftrightarrow$ VRayMtl)**:
+  $$\text{Glossiness}_{\text{VRay}} = 1.0 - \text{Roughness}_{\text{Cycles}} \iff \text{Roughness}_{\text{Cycles}} = 1.0 - \text{Glossiness}_{\text{VRay}}$$
+  Coupled with direct parity for IOR, Metallic/Metalness, Transmission, SSS, and Clearcoat.
+
+### 14.2 Multi-Disciplinary Hardware Measurement Integration
+Ingests real-time telemetry from `CYBER_PHYSICAL_CNC` and `HARDWARE_ALLOCATION`:
+* **Thermal Ohmic Joules ($P = V^2 / R$)**:
+  - $T \le 55^\circ\text{C}$ with active cooling $\to$ **30% gas fee discount**, $64\times 64$ render tile.
+  - $T > 75^\circ\text{C}$ $\to$ Dynamic downscaling to $32\times 32$ tile to eliminate GPU L2 cache misses.
+* **Platform Invariant**: Every shader and render health check enforces **`VITAL_MAX_HP == 6`**.
+
+### 14.3 Interactive Web Studio (`/cycles-vray`)
+Located at `krystal_web_hub/static/cycles_vray_hybrid_studio.html` (served at `/cycles-vray`, `/render-hybrid`):
+* **Dual Viewport Ray Simulator**: Live split-view HTML5 canvas demonstrating Cycles path tracing paths vs V-Ray DMC photon distribution.
+* **Bi-directional Reciprocal Sliders**: Interactive manipulation of Roughness $\leftrightarrow$ Glossiness and Samples $\leftrightarrow$ Subdivs with instant feedback.
+* **Elemental Material Presets**: Crystal Ice Prism ($n=1.31$), Caustic Slime, Basalt Magma, Cyber Gold, and Void Glass.
+* **Script Automation Exporter**: Instant generation of production-ready Blender Python (`bpy.context.scene.cycles`) and V-Ray Standalone (`SettingsDMC`, `VRayDenoiser`) scripts.
+
+### 14.4 Operational Verification & REST Endpoints
+* **CLI Engine**:
+  ```powershell
+  python krystal_kernel/cycles_vray_hybrid_render_engine.py
+  ```
+* **Unit Tests**:
+  ```powershell
+  python -m unittest tests/test_cycles_vray_hybrid_engine.py
+  ```
+* **Mission Control REST Endpoints**:
+  - `GET  /api/render/cycles-vray/status` — Returns active sampling, materials, and hardware telemetry.
+  - `POST /api/render/cycles-vray/convert-params` — Bi-directional conversion between Cycles and V-Ray parameters.
+  - `POST /api/render/cycles-vray/estimate-budget` — Estimates ray counts, memory footprint, and convergence time.
+  - `POST /api/render/cycles-vray/ingest-measurements` — Updates thermal, power, and L2 cache measurements.
+  - `POST /api/render/cycles-vray/generate-script` — Generates executable Blender Cycles and V-Ray scripts.
+
+
 

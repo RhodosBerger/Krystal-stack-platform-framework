@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYCLES & V-RAY // HYBRID REVERSE-ENGINEERED RENDER STUDIO</title>
+    <meta name="description" content="Reverzne inžinierované rozhranie pre zjednotenie ray tracing parametrov, PBR shaderov a hardvérových meraní medzi Blender Cycles a Chaos V-Ray v Krystal-Stack architektúre.">
+    <meta name="keywords" content="cycles, v-ray, hybrid render, ray tracing, pbr shader, roughness, glossiness, krystal-stack">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #05070b;
+            --bg-card: rgba(13, 18, 30, 0.82);
+            --bg-panel: rgba(9, 13, 22, 0.94);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(0, 245, 212, 0.35);
+            
+            --cycles-orange: #f77f00;
+            --cycles-glow: rgba(247, 127, 0, 0.45);
+            --vray-blue: #00b4d8;
+            --vray-glow: rgba(0, 180, 216, 0.45);
+            --neon-teal: #00f5d4;
+            --neon-teal-glow: rgba(0, 245, 212, 0.45);
+            --gold: #d4af37;
+            --gold-bright: #f5d77f;
+            --danger-red: #ef4444;
+
+            --text-main: #f0f4f8;
+            --text-muted: #8898aa;
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --blur: blur(16px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(247, 127, 0, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 90% 80%, rgba(0, 180, 216, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(0, 245, 212, 0.04) 0%, transparent 55%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+        }
+
+        /* ── HEADER ──────────────────────────────────────────────────────── */
+        header.studio-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 40px;
+            background: rgba(7, 10, 17, 0.92);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .engine-dual-badge {
+            display: flex;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .badge-cycles {
+            background: rgba(247, 127, 0, 0.2);
+            color: var(--cycles-orange);
+            padding: 6px 12px;
+            border-right: 1px solid var(--border-subtle);
+        }
+
+        .badge-vray {
+            background: rgba(0, 180, 216, 0.2);
+            color: var(--vray-blue);
+            padding: 6px 12px;
+        }
+
+        .brand-text h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        .brand-text small {
+            display: block;
+            font-size: 0.65rem;
+            letter-spacing: 2.5px;
+            color: var(--neon-teal);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .nav-metrics {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .chip-telem {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-subtle);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            color: var(--gold-bright);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* ── HERO BANNER ────────────────────────────────────────────────── */
+        .hero-banner {
+            text-align: center;
+            padding: 32px 20px 16px 20px;
+        }
+
+        .hero-banner .eyebrow {
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            color: var(--neon-teal);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .hero-banner h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.3rem;
+            font-weight: 900;
+            letter-spacing: 2.5px;
+            background: linear-gradient(135deg, #ffffff 30%, var(--neon-teal) 70%, var(--vray-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-banner p {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            max-width: 820px;
+            margin: 8px auto 0 auto;
+            line-height: 1.5;
+        }
+
+        /* ── MAIN LAYOUT GRID ───────────────────────────────────────────── */
+        main.studio-grid {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 24px 60px 24px;
+            display: grid;
+            grid-template-columns: 380px 1fr 380px;
+            gap: 24px;
+            flex: 1;
+        }
+
+        @media (max-width: 1200px) {
+            main.studio-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── GLASS PANELS ───────────────────────────────────────────────── */
+        .glass-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            backdrop-filter: var(--blur);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 12px;
+        }
+
+        .panel-header h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.05rem;
+            letter-spacing: 1.5px;
+            color: #fff;
+        }
+
+        .panel-tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            color: var(--neon-teal);
+            background: rgba(0, 245, 212, 0.08);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 245, 212, 0.2);
+        }
+
+        /* ── FORM ELEMENTS & SLIDERS ────────────────────────────────────── */
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .slider-header span.val {
+            color: var(--neon-teal);
+            font-weight: 600;
+        }
+
+        input[type="range"].pk-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            accent-color: var(--neon-teal);
+            cursor: pointer;
+        }
+
+        select.pk-select {
+            width: 100%;
+            background: rgba(10, 14, 24, 0.9);
+            color: #fff;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select.pk-select:focus {
+            border-color: var(--neon-teal);
+        }
+
+        /* ── EQUIVALENCE BADGE ──────────────────────────────────────────── */
+        .equivalence-box {
+            background: linear-gradient(135deg, rgba(247, 127, 0, 0.12) 0%, rgba(0, 180, 216, 0.12) 100%);
+            border: 1px solid var(--border-glow);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .equivalence-box strong {
+            color: var(--gold-bright);
+            font-size: 0.95rem;
+        }
+
+        /* ── DUAL VIEWPORT VISUALIZER (CANVAS) ──────────────────────────── */
+        .viewport-wrapper {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            background: rgba(4, 7, 12, 0.95);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #rayCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .viewport-split-label {
+            position: absolute;
+            top: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            padding: 4px 10px;
+            border-radius: 4px;
+            pointer-events: none;
+            backdrop-filter: var(--blur);
+        }
+
+        .split-left {
+            left: 14px;
+            background: rgba(247, 127, 0, 0.25);
+            color: var(--cycles-orange);
+            border: 1px solid var(--cycles-orange);
+        }
+
+        .split-right {
+            right: 14px;
+            background: rgba(0, 180, 216, 0.25);
+            color: var(--vray-blue);
+            border: 1px solid var(--vray-blue);
+        }
+
+        /* ── MULTI-DISCIPLINARY TELEMETRY ───────────────────────────────── */
+        .telem-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .telem-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+
+        .telem-val {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gold-bright);
+            margin-top: 4px;
+        }
+
+        .telem-lbl {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ── VITAL 6 HP PIP BAR ─────────────────────────────────────────── */
+        .vital-bar {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .vital-pip {
+            flex: 1;
+            height: 10px;
+            background: var(--danger-red);
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+        }
+
+        /* ── BUTTONS ────────────────────────────────────────────────────── */
+        .btn-pk-primary {
+            background: linear-gradient(135deg, var(--neon-teal) 0%, #009688 100%);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 12px 20px;
+            font-family: 'Cinzel', serif;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            font-size: 0.88rem;
+            cursor: pointer;
+            box-shadow: 0 4px 18px var(--neon-teal-glow);
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .btn-pk-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 26px var(--neon-teal-glow);
+        }
+
+        .btn-pk-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-pk-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--neon-teal);
+        }
+
+        /* ── CODE VIEWER ────────────────────────────────────────────────── */
+        .code-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.74rem;
+            color: #a5b4fc;
+            height: 240px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        /* ── FOOTER ─────────────────────────────────────────────────────── */
+        footer.studio-footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 24px 40px;
+            background: rgba(6, 8, 13, 0.95);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="studio-nav">
+        <a href="#" class="brand-container">
+            <div class="engine-dual-badge">
+                <span class="badge-cycles">CYCLES</span>
+                <span class="badge-vray">V-RAY</span>
+            </div>
+            <div class="brand-text">
+                <h1>HYBRID RENDER STUDIO</h1>
+                <small>Krystal-Stack // Reverse-Engineered Core</small>
+            </div>
+        </a>
+
+        <div class="nav-metrics">
+            <div class="chip-telem">
+                <span class="status-dot"></span>
+                <span>GPU L2: 3.84 MB // 52°C // 28.5W</span>
+            </div>
+            <div class="chip-telem" style="color: var(--gold);">
+                <span>VITAL: 6/6 HP</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+        <span class="eyebrow">REVERZNÉ INŽINIERSTVO ZJEDNOTENÝCH RAY TRACING PARAMETROV</span>
+        <h2>BLENDER CYCLES ⟷ CHAOS V-RAY HYBRID</h2>
+        <p>Prepojenie spektrálneho Monte Carlo path tracera s produkčným adaptívnym V-Ray DMC enginom. Automatická konverzia vzorkovania ($\text{Samples} = \text{Subdivs}^2$), PBR shaderov ($\text{Glossiness} = 1 - \text{Roughness}$) a začlenenie multi-disciplinárnych termodynamických meraní.</p>
+    </div>
+
+    <!-- MAIN GRID -->
+    <main class="studio-grid">
+        <!-- LEFT PANEL: SHADER REVERSE ENGINEERING -->
+        <section class="glass-panel" id="panelShaderConverter">
+            <div class="panel-header">
+                <h3>PBR SHADER CONVERTER</h3>
+                <span class="panel-tag">PRINCIPLED ⟷ VRAYMTL</span>
+            </div>
+
+            <div class="form-group">
+                <label style="font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase;">Elementárny Preset (Poslední Kmen)</label>
+                <select class="pk-select" id="selectMaterialPreset" style="margin-top: 6px;">
+                    <option value="crystal_ice_prism">Krystalový Led (Crystal Ice Prism - IOR 1.31)</option>
+                    <option value="toxic_caustic_slime">Toxický Sliz (Caustic Slime - SSS 0.60)</option>
+                    <option value="basalt_magma_forge">Čedičová Láva (Basalt Magma - Emit 5.0)</option>
+                    <option value="cyber_gold_aether">Kybernetické Zlato (Cyber Gold - Metal 1.0)</option>
+                    <option value="void_singularity_glass">Aetherické Sklo (Void Singularity - IOR 1.65)</option>
+                </select>
+            </div>
+
+            <!-- ROUGHNESS <-> GLOSSINESS RECIPROCAL SLIDER -->
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Cycles Roughness (R)</span>
+                    <span class="val" id="lblRoughness">0.25</span>
+                </div>
+                <input type="range" class="pk-slider" id="sliderRoughness" min="0" max="1" step="0.01" value="0.25">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>V-Ray Glossiness (G = 1 - R)</span>
+                    <span class="val" id="lblGlossiness" style="color: var(--vray-blue);">0.75</span>
+                </div>
+                <input type="range" class="pk-slider" id="sliderGlossiness" min="0" max="1" step="0.01" value="0.75">
+            </div>
+
+            <!-- METALLIC -->
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Metallic / Conductor</span>
+                    <span class="val" id="lblMetallic">0.00</span>
+                </div>
+                <input type="range" class="pk-slider" id="sliderMetallic" min="0" max="1" step="0.01" value="0.00">
+            </div>
+
+            <!-- IOR -->
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Index of Refraction (IOR)</span>
+                    <span class="val" id="lblIor">1.45</span>
+                </div>
+                <input type="range" class="pk-slider" id="sliderIor" min="1.0" max="3.0" step="0.01" value="1.45">
+            </div>
+
+            <!-- TRANSMISSION -->
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Transmission / Refraction Weight</span>
+                    <span class="val" id="lblTransmission">0.00</span>
+                </div>
+                <input type="range" class="pk-slider" id="sliderTransmission" min="0" max="1" step="0.01" value="0.00">
+            </div>
+
+            <div class="equivalence-box">
+                <div>VZOREC ZJEDNOTENIA:</div>
+                <strong>G = 1.0 - R &nbsp;|&nbsp; Samples = Subdivs²</strong>
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Bi-direkcionálna reciprocity bez straty presnosti.</div>
+            </div>
+        </section>
+
+        <!-- CENTER PANEL: SPLIT VIEWPORT & RAY PATH TRACER -->
+        <section class="glass-panel" id="panelDualViewport">
+            <div class="panel-header">
+                <h3>DUAL RENDER VIEWPORT SIMULATOR</h3>
+                <span class="panel-tag" id="lblViewportFps">60 FPS // GPU L2 CACHE OPTIMIZED</span>
+            </div>
+
+            <div class="viewport-wrapper">
+                <canvas id="rayCanvas"></canvas>
+                <div class="viewport-split-label split-left">CYCLES // UNBIASED PATH TRACER</div>
+                <div class="viewport-split-label split-right">V-RAY // PRODUCTION DMC HYBRID</div>
+            </div>
+
+            <!-- SAMPLING CONTROLS -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Cycles Samples</span>
+                        <span class="val" id="lblCyclesSamples">256</span>
+                    </div>
+                    <input type="range" class="pk-slider" id="sliderCyclesSamples" min="16" max="2048" step="16" value="256">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>V-Ray Subdivs (√Samples)</span>
+                        <span class="val" id="lblVraySubdivs" style="color: var(--vray-blue);">16</span>
+                    </div>
+                    <input type="range" class="pk-slider" id="sliderVraySubdivs" min="4" max="45" step="1" value="16">
+                </div>
+            </div>
+
+            <button class="btn-pk-primary" id="btnRecalculateBudget">
+                ⚡ PREPOČÍTAŤ HYBRIDNÝ RENDER ROZPOČET
+            </button>
+        </section>
+
+        <!-- RIGHT PANEL: MEASUREMENT TELEMETRY & SCRIPT GENERATOR -->
+        <section class="glass-panel" id="panelTelemetryScript">
+            <div class="panel-header">
+                <h3>HARDWARE TELEMETRIA MERANÍ</h3>
+                <span class="panel-tag">OHMIC JOULES & CACHE</span>
+            </div>
+
+            <div class="telem-grid">
+                <div class="telem-card">
+                    <div class="telem-lbl">GPU Teplota</div>
+                    <div class="telem-val" id="valGpuTemp">52.0 °C</div>
+                </div>
+                <div class="telem-card">
+                    <div class="telem-lbl">Ohmov Príkon</div>
+                    <div class="telem-val" id="valPowerWatts">28.5 W</div>
+                </div>
+                <div class="telem-card">
+                    <div class="telem-lbl">GPU L2 Cache</div>
+                    <div class="telem-val">3.84 MB</div>
+                </div>
+                <div class="telem-card">
+                    <div class="telem-lbl">Odhadovaný Čas</div>
+                    <div class="telem-val" id="valRenderTime">431.3 s</div>
+                </div>
+            </div>
+
+            <div style="background: rgba(0, 0, 0, 0.35); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                <div style="display: flex; justify-content: space-between; font-size: 0.74rem; font-family: 'Fira Code', monospace; color: var(--gold);">
+                    <span>HARDVÉROVÁ INTEGRITA SHADEROV</span>
+                    <span>VITAL 6/6 HP</span>
+                </div>
+                <div class="vital-bar">
+                    <div class="vital-pip"></div>
+                    <div class="vital-pip"></div>
+                    <div class="vital-pip"></div>
+                    <div class="vital-pip"></div>
+                    <div class="vital-pip"></div>
+                    <div class="vital-pip"></div>
+                </div>
+            </div>
+
+            <div class="panel-header" style="margin-top: 6px;">
+                <h3>GENERÁTOR SKRIPTOV</h3>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn-pk-secondary" id="tabScriptCycles" style="padding: 4px 8px; font-size: 0.7rem; width: auto;">Cycles (Python)</button>
+                    <button class="btn-pk-secondary" id="tabScriptVray" style="padding: 4px 8px; font-size: 0.7rem; width: auto;">V-Ray (vrscene)</button>
+                </div>
+            </div>
+
+            <div class="code-box" id="codeScriptDisplay"># Načítavam vygenerovaný skript...</div>
+            <button class="btn-pk-secondary" id="btnCopyScript">📋 KOPÍROVAŤ SKRIPT</button>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="studio-footer">
+        <p>Krystal-Stack Unified Ray Tracing Engine © 2026 · Reverse-Engineered Cycles & V-Ray Architecture · Invariant: VITAL_MAX_HP == 6 · Dual-Engine PBR Parity.</p>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT -->
+    <script>
+        const VITAL_MAX_HP = 6;
+        let activeCyclesScript = "";
+        let activeVrayScript = "";
+
+        // Elements
+        const sliderR = document.getElementById("sliderRoughness");
+        const sliderG = document.getElementById("sliderGlossiness");
+        const lblR = document.getElementById("lblRoughness");
+        const lblG = document.getElementById("lblGlossiness");
+
+        const sliderSamples = document.getElementById("sliderCyclesSamples");
+        const sliderSubdivs = document.getElementById("sliderVraySubdivs");
+        const lblSamples = document.getElementById("lblCyclesSamples");
+        const lblSubdivs = document.getElementById("lblVraySubdivs");
+
+        // 1. Reciprocal Sliders Roughness <-> Glossiness (G = 1 - R)
+        sliderR.addEventListener("input", (e) => {
+            const r = parseFloat(e.target.value);
+            const g = Math.max(0, Math.min(1, 1 - r));
+            sliderG.value = g.toFixed(2);
+            lblR.innerText = r.toFixed(2);
+            lblG.innerText = g.toFixed(2);
+        });
+
+        sliderG.addEventListener("input", (e) => {
+            const g = parseFloat(e.target.value);
+            const r = Math.max(0, Math.min(1, 1 - g));
+            sliderR.value = r.toFixed(2);
+            lblG.innerText = g.toFixed(2);
+            lblR.innerText = r.toFixed(2);
+        });
+
+        // 2. Samples <-> Subdivs (Samples = Subdivs^2)
+        sliderSamples.addEventListener("input", (e) => {
+            const smp = parseInt(e.target.value, 10);
+            const sub = Math.round(Math.sqrt(smp));
+            sliderSubdivs.value = sub;
+            lblSamples.innerText = smp;
+            lblSubdivs.innerText = sub;
+        });
+
+        sliderSubdivs.addEventListener("input", (e) => {
+            const sub = parseInt(e.target.value, 10);
+            const smp = sub * sub;
+            sliderSamples.value = smp;
+            lblSubdivs.innerText = sub;
+            lblSamples.innerText = smp;
+        });
+
+        // 3. Preset Selector
+        document.getElementById("selectMaterialPreset").addEventListener("change", (e) => {
+            const key = e.target.value;
+            if (key === "crystal_ice_prism") {
+                sliderR.value = 0.08;
+                sliderG.value = 0.92;
+                document.getElementById("sliderMetallic").value = 0.05;
+                document.getElementById("sliderIor").value = 1.31;
+                document.getElementById("sliderTransmission").value = 0.92;
+            } else if (key === "toxic_caustic_slime") {
+                sliderR.value = 0.05;
+                sliderG.value = 0.95;
+                document.getElementById("sliderMetallic").value = 0.0;
+                document.getElementById("sliderIor").value = 1.38;
+                document.getElementById("sliderTransmission").value = 0.75;
+            } else if (key === "basalt_magma_forge") {
+                sliderR.value = 0.75;
+                sliderG.value = 0.25;
+                document.getElementById("sliderMetallic").value = 0.20;
+                document.getElementById("sliderIor").value = 1.54;
+                document.getElementById("sliderTransmission").value = 0.0;
+            } else if (key === "cyber_gold_aether") {
+                sliderR.value = 0.15;
+                sliderG.value = 0.85;
+                document.getElementById("sliderMetallic").value = 1.0;
+                document.getElementById("sliderIor").value = 0.47;
+                document.getElementById("sliderTransmission").value = 0.0;
+            } else if (key === "void_singularity_glass") {
+                sliderR.value = 0.02;
+                sliderG.value = 0.98;
+                document.getElementById("sliderMetallic").value = 0.0;
+                document.getElementById("sliderIor").value = 1.65;
+                document.getElementById("sliderTransmission").value = 0.95;
+            }
+            lblR.innerText = parseFloat(sliderR.value).toFixed(2);
+            lblG.innerText = parseFloat(sliderG.value).toFixed(2);
+            document.getElementById("lblMetallic").innerText = parseFloat(document.getElementById("sliderMetallic").value).toFixed(2);
+            document.getElementById("lblIor").innerText = parseFloat(document.getElementById("sliderIor").value).toFixed(2);
+            document.getElementById("lblTransmission").innerText = parseFloat(document.getElementById("sliderTransmission").value).toFixed(2);
+        });
+
+        // 4. Ray Viewport Canvas
+        const rCanvas = document.getElementById("rayCanvas");
+        const rCtx = rCanvas.getContext("2d");
+
+        function resizeRayCanvas() {
+            rCanvas.width = rCanvas.parentElement.clientWidth;
+            rCanvas.height = rCanvas.parentElement.clientHeight;
+        }
+        window.addEventListener("resize", resizeRayCanvas);
+        resizeRayCanvas();
+
+        let timeOffset = 0;
+        function renderViewport() {
+            rCtx.clearRect(0, 0, rCanvas.width, rCanvas.height);
+            const w = rCanvas.width;
+            const h = rCanvas.height;
+            const midX = w / 2;
+
+            // Draw divider
+            rCtx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+            rCtx.lineWidth = 1;
+            rCtx.beginPath();
+            rCtx.moveTo(midX, 0);
+            rCtx.lineTo(midX, h);
+            rCtx.stroke();
+
+            timeOffset += 0.02;
+
+            // Left side: Cycles Ray Paths (warm orange rays)
+            const cyclesRays = 18;
+            for (let i = 0; i < cyclesRays; i++) {
+                const angle = (i / cyclesRays) * Math.PI + Math.sin(timeOffset) * 0.2;
+                const originX = midX * 0.5;
+                const originY = h * 0.85;
+                const endX = originX + Math.cos(angle) * 160;
+                const endY = originY - Math.sin(angle) * 220;
+
+                rCtx.save();
+                rCtx.strokeStyle = "rgba(247, 127, 0, 0.4)";
+                rCtx.lineWidth = 1.5;
+                rCtx.beginPath();
+                rCtx.moveTo(originX, originY);
+                rCtx.lineTo(endX, endY);
+                rCtx.stroke();
+
+                // Secondary bounce
+                rCtx.strokeStyle = "rgba(255, 183, 3, 0.3)";
+                rCtx.beginPath();
+                rCtx.moveTo(endX, endY);
+                rCtx.lineTo(endX + (i % 2 === 0 ? 50 : -40), endY - 60);
+                rCtx.stroke();
+                rCtx.restore();
+            }
+
+            // Right side: V-Ray DMC Sampling Grid / Photons (cyan rays)
+            const vrayRays = 18;
+            for (let i = 0; i < vrayRays; i++) {
+                const originX = midX + (midX * 0.5);
+                const originY = h * 0.85;
+                const angle = (i / vrayRays) * Math.PI - Math.sin(timeOffset) * 0.2;
+                const endX = originX + Math.cos(angle) * 160;
+                const endY = originY - Math.sin(angle) * 220;
+
+                rCtx.save();
+                rCtx.strokeStyle = "rgba(0, 180, 216, 0.45)";
+                rCtx.lineWidth = 1.5;
+                rCtx.beginPath();
+                rCtx.moveTo(originX, originY);
+                rCtx.lineTo(endX, endY);
+                rCtx.stroke();
+
+                // Light cache photon cluster
+                rCtx.fillStyle = "rgba(0, 245, 212, 0.6)";
+                rCtx.beginPath();
+                rCtx.arc(endX, endY, 3, 0, Math.PI * 2);
+                rCtx.fill();
+                rCtx.restore();
+            }
+
+            requestAnimationFrame(renderViewport);
+        }
+        renderViewport();
+
+        // 5. Backend API Fetch
+        async function fetchScripts() {
+            try {
+                const res = await fetch("/api/render/cycles-vray/generate-script", { method: "POST" });
+                if (res.ok) {
+                    const data = await res.json();
+                    activeCyclesScript = data.cycles_python_script;
+                    activeVrayScript = data.vray_config_script;
+                    document.getElementById("codeScriptDisplay").innerText = activeCyclesScript;
+                }
+            } catch (err) {
+                activeCyclesScript = "# Blender Cycles Python fallback\nimport bpy\nscene = bpy.context.scene\nscene.cycles.samples = 256\nscene.cycles.adaptive_threshold = 0.01";
+                activeVrayScript = "// V-Ray Standalone vrscene fallback\nSettingsDMC {\n  adaptive_threshold=0.01;\n}\nSettingsImageSampler {\n  dmc_max_subdivs=16;\n}";
+                document.getElementById("codeScriptDisplay").innerText = activeCyclesScript;
+            }
+        }
+
+        document.getElementById("tabScriptCycles").addEventListener("click", () => {
+            document.getElementById("codeScriptDisplay").innerText = activeCyclesScript;
+        });
+        document.getElementById("tabScriptVray").addEventListener("click", () => {
+            document.getElementById("codeScriptDisplay").innerText = activeVrayScript;
+        });
+
+        document.getElementById("btnCopyScript").addEventListener("click", () => {
+            const text = document.getElementById("codeScriptDisplay").innerText;
+            navigator.clipboard.writeText(text);
+            alert("Skript bol skopírovaný do schránky!");
+        });
+
+        document.getElementById("btnRecalculateBudget").addEventListener("click", async () => {
+            const smp = parseInt(sliderSamples.value, 10);
+            try {
+                const res = await fetch("/api/render/cycles-vray/estimate-budget", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ width: 1920, height: 1080, samples: smp })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById("valRenderTime").innerText = `${data.budget.estimated_render_time_sec} s`;
+                    alert(`Rozpočet: ${data.budget.total_primary_rays.toLocaleString()} primárnych lúčov. Odhadovaný čas: ${data.budget.estimated_render_time_sec} s.`);
+                }
+            } catch (err) {
+                console.warn(err);
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener("DOMContentLoaded", () => {
+            fetchScripts();
+        });
+    </script>
+</body>
+</html>

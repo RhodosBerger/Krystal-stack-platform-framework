@@ -181,6 +181,12 @@ from krystal_kernel.posledni_kmen_fantasy_composition_engine import (
     TribeId,
     PlaystyleDoctrine
 )
+from krystal_kernel.cycles_vray_hybrid_render_engine import (
+    GLOBAL_CYCLES_VRAY_ENGINE,
+    CyclesVRayHybridRenderEngine,
+    CyclesRenderParameters,
+    VRayRenderParameters
+)
 from krystal_kernel.openai_llm_connector import (
     GLOBAL_OPENAI_CONNECTOR,
     OpenAILLMConnector,
@@ -1837,6 +1843,11 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_FANTASY_COMPOSITION_ENGINE.get_catalog_summary())
             return
 
+        # ── CYCLES & V-RAY HYBRID REVERSE-ENGINEERED ENGINE (GET) ───────────
+        if path == '/api/render/cycles-vray/status':
+            self._send_json(GLOBAL_CYCLES_VRAY_ENGINE.get_engine_status())
+            return
+
         # ── UNIVERSAL OPENAI LLM CONNECTOR ENDPOINTS (GET) ──────────────────
         if path == '/api/llm/status':
             self._send_json(GLOBAL_OPENAI_CONNECTOR.get_status())
@@ -3119,6 +3130,92 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "clash": clash_res,
                 "combatant_a": comp_a.to_dict(),
                 "combatant_b": comp_b.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── CYCLES & V-RAY HYBRID REVERSE-ENGINEERED ENGINE (POST) ──────────
+        if path == '/api/render/cycles-vray/convert-params':
+            source_engine = req_data.get("source_engine", "CYCLES")
+            roughness_in = float(req_data.get("roughness", 0.25))
+            glossiness_in = float(req_data.get("glossiness", 0.75))
+
+            if source_engine.upper() == "CYCLES":
+                samples = int(req_data.get("samples", 256))
+                min_samples = int(req_data.get("min_samples", 32))
+                threshold = float(req_data.get("adaptive_threshold", 0.01))
+                c_params = CyclesRenderParameters(
+                    samples=samples,
+                    min_samples=min_samples,
+                    adaptive_threshold=threshold
+                )
+                converted_vray = CyclesVRayHybridRenderEngine.cycles_to_vray_sampling(c_params)
+                converted_gloss = CyclesVRayHybridRenderEngine.convert_roughness_to_glossiness(roughness_in)
+                self._send_json({
+                    "success": True,
+                    "source": "CYCLES",
+                    "cycles": c_params.to_dict(),
+                    "converted_vray": converted_vray.to_dict(),
+                    "roughness_in": roughness_in,
+                    "glossiness_out": converted_gloss,
+                    "vital_max_hp_rule": VITAL_MAX_HP
+                })
+                return
+            else:
+                max_subdivs = int(req_data.get("max_subdivs", 16))
+                min_subdivs = int(req_data.get("min_subdivs", 1))
+                threshold = float(req_data.get("color_threshold", 0.01))
+                v_params = VRayRenderParameters(
+                    min_subdivs=min_subdivs,
+                    max_subdivs=max_subdivs,
+                    color_threshold=threshold
+                )
+                converted_cycles = CyclesVRayHybridRenderEngine.vray_to_cycles_sampling(v_params)
+                converted_rough = CyclesVRayHybridRenderEngine.convert_glossiness_to_roughness(glossiness_in)
+                self._send_json({
+                    "success": True,
+                    "source": "VRAY",
+                    "vray": v_params.to_dict(),
+                    "converted_cycles": converted_cycles.to_dict(),
+                    "glossiness_in": glossiness_in,
+                    "roughness_out": converted_rough,
+                    "vital_max_hp_rule": VITAL_MAX_HP
+                })
+                return
+
+        if path == '/api/render/cycles-vray/estimate-budget':
+            width = int(req_data.get("width", 1920))
+            height = int(req_data.get("height", 1080))
+            samples = int(req_data.get("samples", 256))
+            p = CyclesRenderParameters(samples=samples)
+            budget = GLOBAL_CYCLES_VRAY_ENGINE.estimate_render_budget(width, height, p)
+            self._send_json({
+                "success": True,
+                "budget": budget,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/render/cycles-vray/ingest-measurements':
+            temp = float(req_data.get("gpu_temp", 52.0))
+            power = float(req_data.get("power_watts", 28.5))
+            l2 = float(req_data.get("l2_cache_mb", 3.84))
+            vram = float(req_data.get("vram_used_mb", 2048.0))
+            telem = GLOBAL_CYCLES_VRAY_ENGINE.ingest_hardware_measurements(temp, power, l2, vram)
+            self._send_json({
+                "success": True,
+                "telemetry": telem.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/render/cycles-vray/generate-script':
+            c_code = GLOBAL_CYCLES_VRAY_ENGINE.generate_blender_cycles_script()
+            v_code = GLOBAL_CYCLES_VRAY_ENGINE.generate_vray_automation_script()
+            self._send_json({
+                "success": True,
+                "cycles_python_script": c_code,
+                "vray_config_script": v_code,
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return
