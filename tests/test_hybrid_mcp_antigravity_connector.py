@@ -129,7 +129,7 @@ class TestHybridMcpAntigravityConnector(unittest.TestCase):
         self.assertIn("antigravity-export-vulkan-glsl", tool_names)
         self.assertIn("antigravity-bridge-status", tool_names)
 
-        # Krystal core
+        # Krystal core & extensions
         self.assertIn("krystal-get-instructions", tool_names)
         self.assertIn("krystal-discover-primitives", tool_names)
         self.assertIn("krystal-declarative-to-scene", tool_names)
@@ -137,6 +137,9 @@ class TestHybridMcpAntigravityConnector(unittest.TestCase):
         self.assertIn("krystal-bind-ledger-data", tool_names)
         self.assertIn("krystal-preview-scene", tool_names)
         self.assertIn("krystal-bridge-to-oxygen", tool_names)
+        self.assertIn("krystal-read-grams", tool_names)
+        self.assertIn("krystal-evaluate-impedance", tool_names)
+        self.assertEqual(len(tools), 14)
 
         for t in tools:
             self.assertIn("inputSchema", t)
