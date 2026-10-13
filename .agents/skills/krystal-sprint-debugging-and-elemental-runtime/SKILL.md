@@ -884,5 +884,66 @@ $$\text{Invariant} \neq \text{Evidence} \quad \implies \quad \text{assert } \tex
   python -m unittest tests/test_epistemic_paradox_registry.py
   ```
 
+---
+
+## 22. Krystal Next-Gen Epistemic UI Kit & Living Design System v2.0
+
+### 22.1 Canonical Design System Architecture & Tokens
+The Krystal Stack UI Kit (`krystal_web_hub/static/krystal_ui_kit.css`) establishes a unified, high-density glassmorphism design language across all operator consoles, telemetry hubs, and generative studios:
+* **Dark Void & Surface Tokens**:
+  - Void Root: `--bg-void: #030712` (deep cosmos void with subtle radial accents and 36px atmospheric grid).
+  - Glass Panels: `--bg-panel: rgba(10, 16, 31, 0.94)` with `backdrop-filter: blur(18px)` and subtle white border `rgba(255, 255, 255, 0.08)`.
+  - Elevated Cards: `--bg-card: rgba(15, 23, 42, 0.82)`.
+* **Chromatic Subsystem Palette & Alpha Glows**:
+  - NPU Subsystem Cyan: `--cyan-npu: #38bdf8` (`--cyan-glow: rgba(56, 189, 248, 0.35)`).
+  - Epistemic Purple: `--purple-epistemic: #a855f7` (`--purple-glow: rgba(168, 85, 247, 0.35)`).
+  - Stable Emerald: `--emerald-stable: #10b981` (`--emerald-glow: rgba(16, 185, 129, 0.35)`).
+  - Paradox Amber: `--amber-paradox: #f59e0b` (`--amber-glow: rgba(245, 158, 11, 0.35)`).
+  - Hazard / Veto Rose: `--rose-danger: #f43f5e` (`--rose-glow: rgba(244, 63, 94, 0.35)`).
+  - Bright Gold: `--gold-bright: #fbbf24` (`--gold-glow: rgba(251, 191, 36, 0.35)`).
+* **Typography Triad**:
+  - Display Headings: `'Cinzel', serif` (uppercase, letter-spacing 1.0–1.5px).
+  - Body & UI Controls: `'Outfit', sans-serif` (weights 300 to 700).
+  - Monospace Telemetry: `'Fira Code', monospace` (bytecodes, hex addresses, and formal formulas).
+
+### 22.2 Universal Invariant Visual Contract (`VITAL_MAX_HP == 6`)
+In strict adherence to the formal kernel contract, all player and kernel vitality HUDs must instantiate the 6-heart invariant gauge:
+$$\text{Visual Contract} \implies \text{Gauge}(\text{HP}) = \sum_{i=1}^{6} \mathbf{1}_{i \le \text{HP}} \cdot [\heartsuit] + \mathbf{1}_{i > \text{HP}} \cdot [\heartsuit_{\text{lost}}] \quad \text{where } \text{HP} \in [0, 6]$$
+* **Heart Pip States**:
+  - Nominal Active: `.ks-heart-pip.pulse` with dynamic CSS heartbeat keyframe animation (`1.2s infinite`).
+  - Depleted: `.ks-heart-pip.lost` with grayscale filter and 0.2 opacity.
+  - Critical Vital Warning: When $\text{HP} \le 2$, the outer gauge container triggers a persistent pulsing crimson hazard aura.
+
+### 22.3 Component Spectrum & Living Primitives
+* **Button Primitives (`btn-krystal`)**:
+  - `.btn-primary-npu`: Cyan-emerald gradient with cyan hover glow.
+  - `.btn-secondary-purple`: Epistemic purple-cyan gradient with purple glow.
+  - `.btn-danger-veto`: Rose-amber gradient for epistemic veto execution.
+  - `.btn-glass`: Low-opacity neutral glass with crisp light-edge hover.
+* **Telemetry Cards & Panels**:
+  - `.card-telemetry`: High-density metric display with dynamic status indicators and mini progress tracks.
+  - `.panel-krystal`: Multi-column container with 18px backdrop blur and atmospheric glow on hover.
+* **Status Badges**:
+  - `.badge-optimal`: Emerald nominal indicator.
+  - `.badge-stalled`: Rose divergence alert with active breathing animation (`badge-pulse-red`).
+  - `.badge-diverted`: Purple alternate-path indicator.
+  - `.badge-paradox`: Amber formal paradox warning.
+* **Form Controls**:
+  - `.ks-input`: Dark glass input with cyan focus ring and glow.
+  - `.ks-select`: Styled dropdown for execution engine selection.
+  - Dynamic range slider synchronizing live energy tensor fill tracks.
+* **Realtime Quantum Waveform (Oscilloscope)**:
+  - 60 FPS HTML5 Canvas evaluating dual harmonic oscillations ($r'(t)$ vs $\cos(\theta)$) with glowing cyan and purple traces.
+* **Interactive Toast & Clipboard Engine**:
+  - Instant one-click copy for design tokens and component snippets with auto-dismissing glass toast notifications (`.ks-toast`).
+
+### 22.4 Interactive Living Studio & Navigation Routes
+* **Web Studio**: `krystal_web_hub/static/krystal_ui_kit_studio.html`
+* **Static Routes**:
+  - Served at: `/ui-kit`, `/design-system`, `/krystal-ui-kit`, `/ui-system`, `/krystal_ui_kit_studio.html`
+* **Stylesheet**:
+  - Canonical location: `krystal_web_hub/static/krystal_ui_kit.css`
+
+
 
 

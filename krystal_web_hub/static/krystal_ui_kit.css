@@ -1,0 +1,411 @@
+/*
+==============================================================================
+KRYSTAL-STACK: NEXT-GENERATION EPISTEMIC UI KIT & DESIGN SYSTEM (v2.0)
+==============================================================================
+Stylesheet: krystal_web_hub/static/krystal_ui_kit.css
+Description:
+    Canonical design system tokens, glassmorphic layout primitives,
+    deterministic telemetry cards, animated micro-components, and the
+    universal VITAL_MAX_HP == 6 invariant visual contract.
+
+Typography:
+    - Display Headings: 'Cinzel', serif
+    - UI Body & Labels: 'Outfit', sans-serif
+    - Monospace & Code: 'Fira Code', monospace
+==============================================================================
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* ── Dark Void & Glassmorphic Surfaces ───────────────────────────────── */
+    --bg-void: #030712;
+    --bg-card: rgba(15, 23, 42, 0.82);
+    --bg-panel: rgba(10, 16, 31, 0.94);
+    --bg-elevated: rgba(30, 41, 59, 0.7);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(56, 189, 248, 0.4);
+
+    /* ── Subsystem Chromatic Palette & Glows ──────────────────────────────── */
+    --cyan-npu: #38bdf8;
+    --cyan-glow: rgba(56, 189, 248, 0.35);
+    
+    --purple-epistemic: #a855f7;
+    --purple-glow: rgba(168, 85, 247, 0.35);
+
+    --amber-paradox: #f59e0b;
+    --amber-glow: rgba(245, 158, 11, 0.35);
+
+    --emerald-stable: #10b981;
+    --emerald-glow: rgba(16, 185, 129, 0.35);
+
+    --rose-danger: #f43f5e;
+    --rose-glow: rgba(244, 63, 94, 0.35);
+
+    --gold-bright: #fbbf24;
+    --gold-glow: rgba(251, 191, 36, 0.35);
+
+    /* ── Neutral Text Hierarchy ──────────────────────────────────────────── */
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+
+    /* ── Geometry & Layout Tokens ────────────────────────────────────────── */
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-full: 9999px;
+
+    --blur-panel: blur(18px);
+    --blur-subtle: blur(8px);
+
+    /* ── Typography Roles ────────────────────────────────────────────────── */
+    --font-heading: 'Cinzel', serif;
+    --font-body: 'Outfit', sans-serif;
+    --font-code: 'Fira Code', monospace;
+}
+
+/* ── Base Reset & Atmospheric Grid ───────────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body.krystal-app {
+    background-color: var(--bg-void);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.55;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image: 
+        radial-gradient(circle at 10% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 85%, rgba(168, 85, 247, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03) 0%, transparent 55%),
+        linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+}
+
+/* ── Typography Utilities ────────────────────────────────────────────────── */
+.text-display-lg {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+}
+
+.text-display-md {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #ffffff;
+}
+
+.text-code {
+    font-family: var(--font-code);
+    font-size: 12px;
+}
+
+.gradient-text-npu {
+    background: linear-gradient(90deg, #ffffff, var(--cyan-npu), var(--purple-epistemic));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.gradient-text-gold {
+    background: linear-gradient(90deg, #ffffff, var(--gold-bright), var(--amber-paradox));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ── VITAL INVARIANT: VITAL_MAX_HP == 6 HUD COMPONENT ────────────────────── */
+.ks-vital-gauge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.35);
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-code);
+    font-size: 12px;
+    font-weight: 600;
+    color: #fecdd3;
+    user-select: none;
+}
+
+.ks-vital-hearts {
+    display: inline-flex;
+    gap: 4px;
+}
+
+.ks-heart-pip {
+    color: var(--rose-danger);
+    font-size: 14px;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    cursor: default;
+}
+
+.ks-heart-pip.lost {
+    color: rgba(255, 255, 255, 0.2);
+    filter: grayscale(100%);
+}
+
+.ks-heart-pip.pulse {
+    animation: heart-beat 1.2s infinite;
+}
+
+@keyframes heart-beat {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px var(--rose-danger)); }
+    50% { transform: scale(1.18); filter: drop-shadow(0 0 8px var(--rose-danger)); }
+}
+
+/* ── BUTTON PRIMITIVES ───────────────────────────────────────────────────── */
+.btn-krystal {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    outline: none;
+    border: 1px solid transparent;
+}
+
+.btn-primary-npu {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(16, 185, 129, 0.25));
+    border-color: var(--cyan-npu);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);
+}
+
+.btn-primary-npu:hover {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.4), rgba(16, 185, 129, 0.4));
+    box-shadow: 0 6px 22px rgba(56, 189, 248, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-secondary-purple {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(56, 189, 248, 0.2));
+    border-color: var(--purple-epistemic);
+    color: #f3e8ff;
+    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.2);
+}
+
+.btn-secondary-purple:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(56, 189, 248, 0.35));
+    box-shadow: 0 6px 22px rgba(168, 85, 247, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-danger-veto {
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(245, 158, 11, 0.15));
+    border-color: var(--rose-danger);
+    color: #fecdd3;
+    box-shadow: 0 4px 14px rgba(244, 63, 94, 0.2);
+}
+
+.btn-danger-veto:hover {
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.35), rgba(245, 158, 11, 0.25));
+    box-shadow: 0 6px 20px rgba(244, 63, 94, 0.35);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.btn-glass {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--border-subtle);
+    color: var(--text-muted);
+}
+
+.btn-glass:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* ── CARDS & GLASSMORPHIC PANELS ─────────────────────────────────────────── */
+.panel-krystal {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    backdrop-filter: var(--blur-panel);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: all 0.25s ease;
+}
+
+.panel-krystal:hover {
+    border-color: rgba(56, 189, 248, 0.3);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+.card-telemetry {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    backdrop-filter: var(--blur-panel);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.card-telemetry:hover {
+    border-color: var(--cyan-npu);
+    box-shadow: 0 6px 24px rgba(56, 189, 248, 0.15);
+}
+
+/* ── STATUS BADGES & TAGS ────────────────────────────────────────────────── */
+.ks-badge {
+    font-family: var(--font-code);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+}
+
+.badge-optimal {
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-stalled {
+    background: rgba(244, 63, 94, 0.18);
+    color: #fb7185;
+    border: 1px solid rgba(244, 63, 94, 0.4);
+    animation: badge-pulse-red 1.5s infinite alternate;
+}
+
+.badge-diverted {
+    background: rgba(168, 85, 247, 0.18);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.badge-paradox {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--gold-bright);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+@keyframes badge-pulse-red {
+    0% { box-shadow: 0 0 4px rgba(244, 63, 94, 0.2); }
+    100% { box-shadow: 0 0 12px rgba(244, 63, 94, 0.5); }
+}
+
+/* ── FORM CONTROLS ───────────────────────────────────────────────────────── */
+.ks-input {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: var(--font-code);
+    font-size: 13px;
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.ks-input:focus {
+    border-color: var(--cyan-npu);
+    box-shadow: 0 0 12px var(--cyan-glow);
+}
+
+.ks-select {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: var(--font-code);
+    font-size: 13px;
+    color: var(--text-main);
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.ks-select:focus {
+    border-color: var(--cyan-npu);
+}
+
+/* ── PROGRESS & ENERGY METERS ────────────────────────────────────────────── */
+.ks-meter-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    position: relative;
+}
+
+.ks-meter-fill-energy {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan-npu), var(--emerald-stable), var(--amber-paradox));
+    box-shadow: 0 0 10px var(--emerald-stable);
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+}
+
+.ks-meter-fill-hazard {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amber-paradox), var(--rose-danger));
+    box-shadow: 0 0 10px var(--rose-danger);
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+}
+
+/* ── INTERACTIVE TOAST NOTIFICATIONS ─────────────────────────────────────── */
+.ks-toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+}
+
+.ks-toast {
+    background: rgba(8, 14, 28, 0.95);
+    border-left: 3px solid var(--cyan-npu);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 12px 18px;
+    backdrop-filter: var(--blur-panel);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+    animation: toast-slide-in 0.25s ease-out;
+}
+
+@keyframes toast-slide-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}

@@ -1242,6 +1242,9 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/paradox-registry', '/epistemic-paradoxes', '/paradox-studio', '/epistemic_paradox_registry_studio.html'):
             self._serve_file(os.path.join(STATIC_DIR, "epistemic_paradox_registry_studio.html"), "text/html")
             return
+        if path in ('/ui-kit', '/design-system', '/krystal-ui-kit', '/ui-system', '/krystal_ui_kit_studio.html'):
+            self._serve_file(os.path.join(STATIC_DIR, "krystal_ui_kit_studio.html"), "text/html")
+            return
         if path in ('/shape-studio', '/shape-platform', '/blender-library', '/polymorphic-shapes'):
             self._serve_file(os.path.join(STATIC_DIR, "polymorphic_shape_studio.html"), "text/html")
             return

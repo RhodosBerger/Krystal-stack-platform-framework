@@ -807,6 +807,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "epistemic_paradox_registry_studio.html", "text/html")
             return
+        elif norm_path in (
+            "/ui-kit", "/design-system", "/krystal-ui-kit", "/ui-system",
+            "/krystal_ui_kit_studio.html"
+        ):
+            self.serve_file(STATIC_DIR / "krystal_ui_kit_studio.html", "text/html")
+            return
         elif norm_path in ("/cloud-backoffice", "/backoffice", "/cloud_backoffice_studio.html", "/evidence"):
             self.serve_file(STATIC_DIR / "cloud_backoffice_studio.html", "text/html")
             return

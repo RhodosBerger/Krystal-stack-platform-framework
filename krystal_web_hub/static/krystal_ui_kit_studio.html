@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krystal Stack | Epistemic UI Kit & Living Design System v2.0</title>
+    <link rel="stylesheet" href="/static/krystal_ui_kit.css">
+    <style>
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px 80px 24px;
+        }
+
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 36px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-glyph {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--cyan-npu), var(--purple-epistemic));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 900;
+            color: #030712;
+            box-shadow: 0 0 20px var(--cyan-glow);
+        }
+
+        .section-title-wrap {
+            margin: 48px 0 20px 0;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+            padding-bottom: 8px;
+        }
+
+        .section-tag {
+            font-family: var(--font-code);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .grid-tokens {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .token-swatch {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .token-swatch:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .swatch-color-box {
+            height: 52px;
+            border-radius: var(--radius-xs);
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .token-name {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .token-hex {
+            font-family: var(--font-code);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .token-var {
+            font-family: var(--font-code);
+            font-size: 10px;
+            color: var(--cyan-npu);
+            margin-top: 4px;
+            word-break: break-all;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .grid-3col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .grid-4col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .snippet-box {
+            background: rgba(3, 7, 18, 0.7);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xs);
+            padding: 12px;
+            font-family: var(--font-code);
+            font-size: 11px;
+            color: #cbd5e1;
+            position: relative;
+            margin-top: 12px;
+            overflow-x: auto;
+        }
+
+        .copy-snippet-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: var(--radius-xs);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-snippet-btn:hover {
+            background: var(--cyan-npu);
+            color: #030712;
+        }
+
+        .vital-interactive-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(244, 63, 94, 0.05);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .vital-ctrls {
+            display: flex;
+            gap: 10px;
+        }
+
+        canvas.oscilloscope-canvas {
+            width: 100%;
+            height: 120px;
+            background: rgba(3, 7, 18, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            display: block;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: var(--radius-xs);
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--cyan-npu);
+            background: rgba(56, 189, 248, 0.08);
+        }
+    </style>
+</head>
+<body class="krystal-app">
+    <div class="container">
+        <!-- HEADER BAR -->
+        <header class="header-bar">
+            <div class="brand-meta">
+                <div class="logo-glyph">K</div>
+                <div>
+                    <h1 class="text-display-md gradient-text-npu">KRYSTAL EPISTEMIC UI KIT</h1>
+                    <p style="color: var(--text-muted); font-size: 12px;">Living Design System v2.0 • Deterministic Micro-Components</p>
+                </div>
+            </div>
+
+            <!-- VITAL INVARIANT 6-HP GAUGE -->
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <nav class="nav-links">
+                    <a href="#tokens" class="nav-link">Tokens</a>
+                    <a href="#typography" class="nav-link">Typography</a>
+                    <a href="#vital-hp" class="nav-link">Vital HP 6</a>
+                    <a href="#buttons" class="nav-link">Buttons</a>
+                    <a href="#panels" class="nav-link">HUD Cards</a>
+                    <a href="#badges" class="nav-link">Badges</a>
+                    <a href="#forms" class="nav-link">Forms</a>
+                    <a href="#telemetry" class="nav-link">Telemetry</a>
+                </nav>
+
+                <div class="ks-vital-gauge" id="topVitalGauge" title="VITAL_MAX_HP == 6 Invariant Visual Contract">
+                    <span>VITAL INVARIANT:</span>
+                    <span class="ks-vital-hearts" id="headerHearts">
+                        <span class="ks-heart-pip pulse">♥</span>
+                        <span class="ks-heart-pip pulse">♥</span>
+                        <span class="ks-heart-pip pulse">♥</span>
+                        <span class="ks-heart-pip pulse">♥</span>
+                        <span class="ks-heart-pip pulse">♥</span>
+                        <span class="ks-heart-pip pulse">♥</span>
+                    </span>
+                    <span id="headerHpVal">6/6</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- SECTION 1: DESIGN TOKENS -->
+        <div class="section-title-wrap" id="tokens">
+            <h2 class="text-display-md">01 // Chromatic Subsystem Tokens</h2>
+            <span class="section-tag">CSS Custom Properties • Hex & Alpha Glows</span>
+        </div>
+
+        <div class="grid-tokens">
+            <div class="token-swatch" onclick="copyToken('--cyan-npu', '#38bdf8')">
+                <div class="swatch-color-box" style="background: #38bdf8; box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);"></div>
+                <div class="token-name">NPU Cyan</div>
+                <div class="token-hex">#38bdf8</div>
+                <div class="token-var">var(--cyan-npu)</div>
+            </div>
+
+            <div class="token-swatch" onclick="copyToken('--purple-epistemic', '#a855f7')">
+                <div class="swatch-color-box" style="background: #a855f7; box-shadow: 0 0 14px rgba(168, 85, 247, 0.4);"></div>
+                <div class="token-name">Epistemic Purple</div>
+                <div class="token-hex">#a855f7</div>
+                <div class="token-var">var(--purple-epistemic)</div>
+            </div>
+
+            <div class="token-swatch" onclick="copyToken('--emerald-stable', '#10b981')">
+                <div class="swatch-color-box" style="background: #10b981; box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);"></div>
+                <div class="token-name">Stable Emerald</div>
+                <div class="token-hex">#10b981</div>
+                <div class="token-var">var(--emerald-stable)</div>
+            </div>
+
+            <div class="token-swatch" onclick="copyToken('--amber-paradox', '#f59e0b')">
+                <div class="swatch-color-box" style="background: #f59e0b; box-shadow: 0 0 14px rgba(245, 158, 11, 0.4);"></div>
+                <div class="token-name">Paradox Amber</div>
+                <div class="token-hex">#f59e0b</div>
+                <div class="token-var">var(--amber-paradox)</div>
+            </div>
+
+            <div class="token-swatch" onclick="copyToken('--rose-danger', '#f43f5e')">
+                <div class="swatch-color-box" style="background: #f43f5e; box-shadow: 0 0 14px rgba(244, 63, 94, 0.4);"></div>
+                <div class="token-name">Hazard Rose</div>
+                <div class="token-hex">#f43f5e</div>
+                <div class="token-var">var(--rose-danger)</div>
+            </div>
+
+            <div class="token-swatch" onclick="copyToken('--gold-bright', '#fbbf24')">
+                <div class="swatch-color-box" style="background: #fbbf24; box-shadow: 0 0 14px rgba(251, 191, 36, 0.4);"></div>
+                <div class="token-name">Bright Gold</div>
+                <div class="token-hex">#fbbf24</div>
+                <div class="token-var">var(--gold-bright)</div>
+            </div>
+
+            <div class="token-swatch" onclick="copyToken('--bg-void', '#030712')">
+                <div class="swatch-color-box" style="background: #030712; border: 1px solid rgba(255,255,255,0.2);"></div>
+                <div class="token-name">Void Background</div>
+                <div class="token-hex">#030712</div>
+                <div class="token-var">var(--bg-void)</div>
+            </div>
+
+            <div class="token-swatch" onclick="copyToken('--bg-panel', 'rgba(10, 16, 31, 0.94)')">
+                <div class="swatch-color-box" style="background: rgba(10, 16, 31, 0.94); border: 1px solid rgba(255,255,255,0.2);"></div>
+                <div class="token-name">Glass Panel</div>
+                <div class="token-hex">rgba(10,16,31,0.94)</div>
+                <div class="token-var">var(--bg-panel)</div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: TYPOGRAPHY & GRADIENTS -->
+        <div class="section-title-wrap" id="typography">
+            <h2 class="text-display-md">02 // Typography Hierarchy & Gradients</h2>
+            <span class="section-tag">Cinzel • Outfit • Fira Code</span>
+        </div>
+
+        <div class="grid-2col">
+            <div class="panel-krystal">
+                <h3 class="text-display-lg">Display Heading (Cinzel 28px)</h3>
+                <h4 class="text-display-md">Section Heading (Cinzel 20px)</h4>
+                <p style="color: var(--text-main); font-size: 14px;">
+                    Body Typography: Outfit sans-serif. Designed for optimal readability across telemetry dashboards,
+                    epistemic log entries, and high-density operator consoles.
+                </p>
+                <p class="text-code" style="color: var(--cyan-npu);">
+                    Monospace // Fira Code: 0x7FFF8A4D -> RAG_EMBEDDING_VEC[512] OK (CRC: 0x992B)
+                </p>
+                <div class="snippet-box">
+                    <button class="copy-snippet-btn" onclick="copyText('class=\x22text-display-lg\x22')">Copy</button>
+                    &lt;h1 class="text-display-lg"&gt;Display Title&lt;/h1&gt;<br>
+                    &lt;p class="text-code"&gt;Monospace Telemetry&lt;/p&gt;
+                </div>
+            </div>
+
+            <div class="panel-krystal">
+                <h3 class="text-display-md gradient-text-npu">Gradient Text // NPU Subsystem</h3>
+                <h3 class="text-display-md gradient-text-gold">Gradient Text // Golden Paradox</h3>
+                <p style="color: var(--text-muted); font-size: 13px;">
+                    Linear gradient clips over heading elements provide luminous state emphasis for critical kernel signals.
+                </p>
+                <div class="snippet-box">
+                    <button class="copy-snippet-btn" onclick="copyText('class=\x22gradient-text-npu\x22')">Copy</button>
+                    &lt;h2 class="gradient-text-npu"&gt;Luminous Cyan-Purple&lt;/h2&gt;<br>
+                    &lt;h2 class="gradient-text-gold"&gt;Luminous Amber-Gold&lt;/h2&gt;
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: VITAL MAX HP 6 INVARIANT -->
+        <div class="section-title-wrap" id="vital-hp">
+            <h2 class="text-display-md">03 // Vital Invariant: VITAL_MAX_HP == 6 HUD</h2>
+            <span class="section-tag">Systemic Contract: Clamped [0, 6] Hearts</span>
+        </div>
+
+        <div class="vital-interactive-box">
+            <div>
+                <div style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">Interactive Vital Gauge Showcase</div>
+                <div style="color: var(--text-muted); font-size: 13px; max-width: 580px;">
+                    The <code>VITAL_MAX_HP == 6</code> contract guarantees deterministic damage and heal bounds across
+                    all Krystal Stack runtimes. Click buttons to test heart loss, regeneration, and critical pulse.
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+                <div class="ks-vital-gauge" id="interactiveVitalGauge">
+                    <span style="font-size: 11px;">KERNEL VITALITY:</span>
+                    <span class="ks-vital-hearts" id="interactiveHearts">
+                        <span class="ks-heart-pip pulse">♥</span>
+                        <span class="ks-heart-pip pulse">♥</span>
+                        <span class="ks-heart-pip pulse">♥</span>
+                        <span class="ks-heart-pip pulse">♥</span>
+                        <span class="ks-heart-pip pulse">♥</span>
+                        <span class="ks-heart-pip pulse">♥</span>
+                    </span>
+                    <span id="interactiveHpVal" style="font-weight: 700; color: #fff;">6/6</span>
+                </div>
+
+                <div class="vital-ctrls">
+                    <button class="btn-krystal btn-danger-veto" style="padding: 6px 12px; font-size: 11px;" onclick="adjustHp(-1)">-1 Damage</button>
+                    <button class="btn-krystal btn-primary-npu" style="padding: 6px 12px; font-size: 11px;" onclick="adjustHp(1)">+1 Heal</button>
+                    <button class="btn-krystal btn-glass" style="padding: 6px 12px; font-size: 11px;" onclick="resetHp()">Reset 6/6</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="snippet-box">
+            <button class="copy-snippet-btn" onclick="copySnippet('vitalSnippet')">Copy</button>
+            <pre id="vitalSnippet">&lt;div class="ks-vital-gauge"&gt;
+  &lt;span&gt;VITAL INVARIANT:&lt;/span&gt;
+  &lt;span class="ks-vital-hearts"&gt;
+    &lt;span class="ks-heart-pip pulse"&gt;♥&lt;/span&gt;
+    &lt;span class="ks-heart-pip pulse"&gt;♥&lt;/span&gt;
+    &lt;span class="ks-heart-pip pulse"&gt;♥&lt;/span&gt;
+    &lt;span class="ks-heart-pip pulse"&gt;♥&lt;/span&gt;
+    &lt;span class="ks-heart-pip pulse"&gt;♥&lt;/span&gt;
+    &lt;span class="ks-heart-pip pulse"&gt;♥&lt;/span&gt;
+  &lt;/span&gt;
+  &lt;span&gt;6/6&lt;/span&gt;
+&lt;/div&gt;</pre>
+        </div>
+
+        <!-- SECTION 4: BUTTON PRIMITIVES -->
+        <div class="section-title-wrap" id="buttons">
+            <h2 class="text-display-md">04 // Button Primitives & Interactive States</h2>
+            <span class="section-tag">Cinzel 13px • Glow Shadows • Tactile Hovers</span>
+        </div>
+
+        <div class="grid-4col">
+            <div class="card-telemetry" style="align-items: center; text-align: center;">
+                <button class="btn-krystal btn-primary-npu" onclick="showToast('Primary NPU Pipeline Engaged')">
+                    ⚡ Execute Action
+                </button>
+                <div class="token-name" style="margin-top: 8px;">Primary NPU</div>
+                <div class="token-var">.btn-primary-npu</div>
+            </div>
+
+            <div class="card-telemetry" style="align-items: center; text-align: center;">
+                <button class="btn-krystal btn-secondary-purple" onclick="showToast('Epistemic Verification Run')">
+                    🔍 Verify Proof
+                </button>
+                <div class="token-name" style="margin-top: 8px;">Epistemic Purple</div>
+                <div class="token-var">.btn-secondary-purple</div>
+            </div>
+
+            <div class="card-telemetry" style="align-items: center; text-align: center;">
+                <button class="btn-krystal btn-danger-veto" onclick="showToast('Epistemic Veto Triggered: Divergence Detected', 'danger')">
+                    🛑 Trigger Veto
+                </button>
+                <div class="token-name" style="margin-top: 8px;">Danger / Veto</div>
+                <div class="token-var">.btn-danger-veto</div>
+            </div>
+
+            <div class="card-telemetry" style="align-items: center; text-align: center;">
+                <button class="btn-krystal btn-glass" onclick="showToast('Inspecting Hex Telemetry')">
+                    ⚙ Settings / Glass
+                </button>
+                <div class="token-name" style="margin-top: 8px;">Subtle Glass</div>
+                <div class="token-var">.btn-glass</div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: HUD PANELS & TELEMETRY CARDS -->
+        <div class="section-title-wrap" id="panels">
+            <h2 class="text-display-md">05 // HUD Panels & Telemetry Cards</h2>
+            <span class="section-tag">Backdrop Blur 18px • Cyan Accent Hovers</span>
+        </div>
+
+        <div class="grid-3col">
+            <div class="card-telemetry">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="token-name">NPU Strand Decoder</span>
+                    <span class="ks-badge badge-optimal">Nominal</span>
+                </div>
+                <div style="font-size: 26px; font-weight: 800; font-family: var(--font-code); color: var(--cyan-npu);">
+                    99.84%
+                </div>
+                <div style="color: var(--text-muted); font-size: 12px;">Throughput: 142k pages/sec • Latency: 0.18ms</div>
+                <div class="ks-meter-track">
+                    <div class="ks-meter-fill-energy" style="width: 92%;"></div>
+                </div>
+            </div>
+
+            <div class="card-telemetry">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="token-name">Epistemic Divergence</span>
+                    <span class="ks-badge badge-diverted">Diverted</span>
+                </div>
+                <div style="font-size: 26px; font-weight: 800; font-family: var(--font-code); color: var(--purple-epistemic);">
+                    0.038
+                </div>
+                <div style="color: var(--text-muted); font-size: 12px;">Active Proof Bundles: 14 • Quorum Validated</div>
+                <div class="ks-meter-track">
+                    <div class="ks-meter-fill-energy" style="width: 38%; background: var(--purple-epistemic); box-shadow: 0 0 10px var(--purple-epistemic);"></div>
+                </div>
+            </div>
+
+            <div class="card-telemetry">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="token-name">Exploration Hazard</span>
+                    <span class="ks-badge badge-stalled">Stalled</span>
+                </div>
+                <div style="font-size: 26px; font-weight: 800; font-family: var(--font-code); color: var(--rose-danger);">
+                    CRIT 0.89
+                </div>
+                <div style="color: var(--text-muted); font-size: 12px;">Safety Paradox: Evidence expiration loop imminent</div>
+                <div class="ks-meter-track">
+                    <div class="ks-meter-fill-hazard" style="width: 89%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 6: BADGES -->
+        <div class="section-title-wrap" id="badges">
+            <h2 class="text-display-md">06 // Status Badges & Indicators</h2>
+            <span class="section-tag">Pill Badges • Glowing Micro-Animations</span>
+        </div>
+
+        <div class="panel-krystal" style="flex-direction: row; flex-wrap: wrap; gap: 14px; align-items: center;">
+            <span class="ks-badge badge-optimal">● Optimal // Nominal</span>
+            <span class="ks-badge badge-stalled">▲ Stalled // Divergence</span>
+            <span class="ks-badge badge-diverted">◆ Diverted // Alternate</span>
+            <span class="ks-badge badge-paradox">★ Paradox // Falsified</span>
+            <span class="ks-badge" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: var(--text-muted);">
+                ■ Neutral State
+            </span>
+        </div>
+
+        <!-- SECTION 7: FORM CONTROLS -->
+        <div class="section-title-wrap" id="forms">
+            <h2 class="text-display-md">07 // Form Controls & Dynamic Inputs</h2>
+            <span class="section-tag">Glass Inputs • Custom Selects • Sliders</span>
+        </div>
+
+        <div class="grid-2col">
+            <div class="panel-krystal">
+                <label style="font-size: 12px; color: var(--text-muted); font-weight: 600;">QUERY INPUT / SLM PROMPT</label>
+                <input type="text" class="ks-input" placeholder="Enter epistemic lemma or strand opcode..." value="PRUNER_VERIFY_TOPOLOGY_INV --radius 1.414">
+
+                <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 10px;">EXECUTION ENGINE</label>
+                <select class="ks-select">
+                    <option>Strand NPU Accelerated Interpreter (512-bit)</option>
+                    <option>Epistemic Proof Engine (Z3 Formal Solver)</option>
+                    <option>Polygraphic Vulkan DTP Renderer (2B SLM)</option>
+                    <option>OpenCL / OpenGL Cosine Topology Compute</option>
+                </select>
+
+                <div class="snippet-box">
+                    <button class="copy-snippet-btn" onclick="copyText('class=\x22ks-input\x22')">Copy</button>
+                    &lt;input type="text" class="ks-input" placeholder="..."&gt;<br>
+                    &lt;select class="ks-select"&gt;&lt;option&gt;...&lt;/option&gt;&lt;/select&gt;
+                </div>
+            </div>
+
+            <div class="panel-krystal">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 12px; color: var(--text-muted); font-weight: 600;">DYNAMIC ENERGY THRESHOLD</label>
+                    <span id="sliderVal" class="text-code" style="color: var(--cyan-npu); font-weight: 700;">75%</span>
+                </div>
+                <input type="range" min="0" max="100" value="75" style="width: 100%; accent-color: var(--cyan-npu); cursor: pointer;" oninput="updateSlider(this.value)">
+
+                <div style="margin-top: 14px;">
+                    <label style="font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; display: block;">ENERGY TENSOR DENSITY</label>
+                    <div class="ks-meter-track" style="height: 10px;">
+                        <div class="ks-meter-fill-energy" id="dynamicMeterFill" style="width: 75%;"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 14px; display: flex; gap: 10px;">
+                    <button class="btn-krystal btn-primary-npu" style="flex: 1;" onclick="showToast('Parameters Dispatched to Kernel')">Commit Changes</button>
+                    <button class="btn-krystal btn-glass" onclick="showToast('Parameters Restored')">Revert</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 8: TELEMETRY & OSCILLOSCOPE CANVAS -->
+        <div class="section-title-wrap" id="telemetry">
+            <h2 class="text-display-md">08 // Realtime Quantum Waveform & Oscilloscope</h2>
+            <span class="section-tag">60 FPS Hardware Canvas • Subsystem Harmonics</span>
+        </div>
+
+        <div class="panel-krystal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <div class="token-name" style="color: var(--cyan-npu);">HARMONIC TENSOR FREQUENCY (r'(t) vs cos(θ))</div>
+                <span class="text-code" style="color: var(--emerald-stable);">60.0 FPS • LOCK_SYNC</span>
+            </div>
+            <canvas id="waveformCanvas" class="oscilloscope-canvas"></canvas>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); font-family: var(--font-code);">
+                <span>[T-0: SAMPLING: 512 SAMPLES/CYCLE]</span>
+                <span>[FILTER: BESSEL-COSINE QUADRATURE]</span>
+                <span>[STATUS: CONVERGED]</span>
+            </div>
+        </div>
+
+        <footer style="margin-top: 60px; text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 24px; color: var(--text-dim); font-size: 12px;">
+            Krystal-Stack Platform Framework • Epistemic UI Kit & Living Design System v2.0 • Invariant VITAL_MAX_HP == 6
+        </footer>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="ks-toast-container" id="toastContainer"></div>
+
+    <script>
+        // --- VITAL INVARIANT HP MANAGEMENT (Clamped 0..6) ---
+        let currentHp = 6;
+        const MAX_HP = 6;
+
+        function renderHearts(containerId, count) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            for (let i = 0; i < MAX_HP; i++) {
+                const pip = document.createElement('span');
+                pip.className = 'ks-heart-pip';
+                pip.textContent = '♥';
+                if (i < count) {
+                    pip.classList.add('pulse');
+                } else {
+                    pip.classList.add('lost');
+                }
+                container.appendChild(pip);
+            }
+        }
+
+        function updateAllHpViews() {
+            renderHearts('headerHearts', currentHp);
+            renderHearts('interactiveHearts', currentHp);
+            document.getElementById('headerHpVal').textContent = `${currentHp}/${MAX_HP}`;
+            document.getElementById('interactiveHpVal').textContent = `${currentHp}/${MAX_HP}`;
+            
+            const badge = document.getElementById('topVitalGauge');
+            if (currentHp <= 2) {
+                badge.style.borderColor = 'var(--rose-danger)';
+                badge.style.boxShadow = '0 0 16px rgba(244, 63, 94, 0.4)';
+            } else {
+                badge.style.borderColor = 'rgba(244, 63, 94, 0.35)';
+                badge.style.boxShadow = 'none';
+            }
+        }
+
+        function adjustHp(delta) {
+            currentHp = Math.max(0, Math.min(MAX_HP, currentHp + delta));
+            updateAllHpViews();
+            if (delta < 0) {
+                showToast(`Vitality Damaged! Current: ${currentHp}/${MAX_HP}`, 'danger');
+            } else {
+                showToast(`Vitality Restored! Current: ${currentHp}/${MAX_HP}`, 'success');
+            }
+        }
+
+        function resetHp() {
+            currentHp = MAX_HP;
+            updateAllHpViews();
+            showToast(`Vital Invariant Reset to Nominal (${MAX_HP}/${MAX_HP})`);
+        }
+
+        // --- TOAST SYSTEM ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'ks-toast';
+
+            let icon = '⚡';
+            if (type === 'danger') {
+                icon = '🛑';
+                toast.style.borderLeftColor = 'var(--rose-danger)';
+            } else if (type === 'success') {
+                icon = '✨';
+                toast.style.borderLeftColor = 'var(--emerald-stable)';
+            }
+
+            toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function copyToken(varName, hex) {
+            const text = `${varName}: ${hex};`;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`Copied Token: ${text}`);
+            });
+        }
+
+        function copyText(str) {
+            navigator.clipboard.writeText(str).then(() => {
+                showToast(`Copied: ${str}`);
+            });
+        }
+
+        function copySnippet(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                navigator.clipboard.writeText(el.innerText).then(() => {
+                    showToast('Component HTML snippet copied to clipboard');
+                });
+            }
+        }
+
+        function updateSlider(val) {
+            document.getElementById('sliderVal').textContent = `${val}%`;
+            document.getElementById('dynamicMeterFill').style.width = `${val}%`;
+        }
+
+        // --- REALTIME OSCILLOSCOPE WAVEFORM ---
+        const canvas = document.getElementById('waveformCanvas');
+        const ctx = canvas.getContext('2d');
+        let phase = 0;
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth - 48;
+            canvas.height = 120;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawWaveform() {
+            ctx.fillStyle = 'rgba(3, 7, 18, 0.25)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const midY = canvas.height / 2;
+            const width = canvas.width;
+
+            // Draw center grid line
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, midY);
+            ctx.lineTo(width, midY);
+            ctx.stroke();
+
+            // Wave 1: NPU Cyan
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(56, 189, 248, 0.5)';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            for (let x = 0; x < width; x++) {
+                const angle = (x / width) * Math.PI * 6 + phase;
+                const y = midY + Math.sin(angle) * 32 * Math.cos(phase * 0.5);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Wave 2: Epistemic Purple
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 1.5;
+            ctx.shadowColor = 'rgba(168, 85, 247, 0.5)';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            for (let x = 0; x < width; x++) {
+                const angle = (x / width) * Math.PI * 4 - phase * 1.2;
+                const y = midY + Math.cos(angle) * 22;
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+            phase += 0.04;
+            requestAnimationFrame(drawWaveform);
+        }
+
+        drawWaveform();
+        updateAllHpViews();
+    </script>
+</body>
+</html>
