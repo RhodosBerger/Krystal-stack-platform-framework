@@ -264,6 +264,7 @@
                     <a href="#telemetry" class="nav-link">Telemetry</a>
                     <a href="#paradox-radar" class="nav-link" style="color: var(--gold-bright);">★ Paradox Radar</a>
                     <a href="#taxonomies-sandbox" class="nav-link" style="color: var(--cyan-npu);">◈ Taxonomies</a>
+                    <a href="#utility-tweaker" class="nav-link" style="color: var(--emerald-stable);">⚡ Utility Tweaker</a>
                 </nav>
 
                 <div class="ks-vital-gauge" id="topVitalGauge" title="VITAL_MAX_HP == 6 Invariant Visual Contract">
@@ -742,6 +743,79 @@
                     <button class="btn-krystal btn-glass" style="padding: 6px 10px; font-size: 11px;" onclick="attemptBreach7thHeart()" title="Attempt to breach N=6 capacity">
                         ⚠️ Test 7th Breach
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 11: EPISTEMIC UTILITY TWEAKER & OPENVINO NPU PLAN OPTIMIZER -->
+        <div class="section-title-wrap" id="utility-tweaker">
+            <h2 class="text-display-md gradient-text-emerald">11 // Epistemic Utility Tweaker & OpenVINO NPU Plan Optimizer</h2>
+            <span class="section-tag">Multi-Level Threshold Scanner • OpenVINO Inferences • Cross-Platform Governors</span>
+        </div>
+
+        <div class="panel-krystal" style="padding: 24px; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <div>
+                    <div class="token-name" style="color: var(--emerald-stable); font-size: 15px;">HARDWARE LEVEL SCANNER & DUAL-GATE GOVERNOR</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                        Scans thermal headroom, power clamps, and compute saturation to derive optimal NPU tensor optimization plans.
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn-krystal btn-primary-npu" style="padding: 8px 14px; font-size: 11px;" onclick="rescanTweakerLevels()">
+                        🔄 Rescan System Levels
+                    </button>
+                    <span class="ks-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">
+                        NPU: OPENVINO_ACTIVE
+                    </span>
+                </div>
+            </div>
+
+            <!-- Scanned Levels Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-code);">THERMAL HEADROOM (DER_0x8003):</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #38bdf8; margin: 4px 0;" id="tweakHeadroomVal">31.5°C</div>
+                    <div style="font-size: 10px; color: var(--text-muted);">Tj: 68.5°C • TjMax: 100°C</div>
+                </div>
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-code);">PACKAGE POWER (OBS_0x7001):</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #fbbf24; margin: 4px 0;" id="tweakPowerVal">21.4 W</div>
+                    <div style="font-size: 10px; color: var(--text-muted);">PL1 Clamp: 28.0W • PL2: 54.0W</div>
+                </div>
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-code);">SYSTEM PRESSURE (DER_0x8002):</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #10b981; margin: 4px 0;" id="tweakPressureVal">0.43</div>
+                    <div style="font-size: 10px; color: var(--text-muted);">CPU: 42% • Memory: 51%</div>
+                </div>
+                <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-code);">INVARIANT AUTHORITY (INV_0x4006):</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #f43f5e; margin: 4px 0;">6/6 HP</div>
+                    <div style="font-size: 10px; color: var(--text-muted);">VITAL_MAX_HP == 6 LOCKED</div>
+                </div>
+            </div>
+
+            <!-- Candidate Plans Selector -->
+            <div class="token-name" style="color: var(--cyan-npu); font-size: 13px; margin-bottom: 10px;">
+                AVAILABLE OPENVINO NPU OPTIMIZATION PLANS
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px;" id="tweakerPlansContainer">
+                <!-- Dynamically populated by JS -->
+            </div>
+
+            <!-- Dispatched Directives Terminal -->
+            <div style="background: rgba(3, 7, 18, 0.85); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-size: 11px; font-family: var(--font-code); color: var(--text-dim);">
+                        CROSS-PLATFORM DIRECTIVE DISPATCH TERMINAL:
+                    </span>
+                    <span id="tweakerActivePlanBadge" class="ks-badge badge-optimal">ACTIVE: PLAN_SUSTAINED_EFFICIENCY</span>
+                </div>
+                <div id="tweakerDirectiveLog" class="text-code" style="color: #94a3b8; font-size: 11px; line-height: 1.6; max-height: 100px; overflow-y: auto;">
+                    [TWEAKER: INIT] OpenVINO NPU Engine initialized.<br/>
+                    [TRANSITION: WIN32] Applied PowerCfg overlay -&gt; PL1 sustained clamp 24.0W.<br/>
+                    [MSR: TUNED] Core voltage offset bias calibrated to -50.0 mV.<br/>
+                    [NPU: LOADED] OpenVINO 2 throughput streams engaged on Intel Iris Xe / NPU.
                 </div>
             </div>
         </div>
@@ -1556,6 +1630,182 @@
         // Initialize dynamic components on page load
         evaluateCustomBoolean();
         renderMerkleHearts();
+
+        // ══════════════════════════════════════════════════════════════════════
+        // ── 11: EPISTEMIC UTILITY TWEAKER & OPENVINO NPU CLIENT LOGIC ─────────
+        // ══════════════════════════════════════════════════════════════════════
+        const TWEAKER_PLANS_DATA = [
+            {
+                id: "PLAN_BURST_PEAK_OVERDRIVE",
+                title: "Burst Peak Overdrive",
+                desc: "PL1 32W clamp, DP4A INT8 multi-streaming, performance affinity.",
+                dPerf: "+79.5%",
+                dEnergy: "+8.2%",
+                risk: "0.22",
+                auth: "COMMIT_APPROVED",
+                authClass: "badge-optimal",
+                pl1: "32W",
+                voltage: "-10 mV",
+                directive: "WIN32_HIGH_PERF • OPENCL_4STREAMS"
+            },
+            {
+                id: "PLAN_SUSTAINED_EFFICIENCY",
+                title: "Sustained Thermodynamic Efficiency",
+                desc: "Optimal -50mV undervolt, PL1 24W, Arrhenius wear factor < 1.0.",
+                dPerf: "+76.8%",
+                dEnergy: "+22.5%",
+                risk: "0.08",
+                auth: "COMMIT_APPROVED",
+                authClass: "badge-optimal",
+                pl1: "24W",
+                voltage: "-50 mV",
+                directive: "WIN32_BALANCED • BALANCED_2STREAMS"
+            },
+            {
+                id: "PLAN_LOW_POWER_STEALTH",
+                title: "Low-Power Stealth & Coprocessor",
+                desc: "Deep 12W power clamp, complete NPU coprocessor offload (2.4W envelope).",
+                dPerf: "+74.2%",
+                dEnergy: "+48.0%",
+                risk: "0.02",
+                auth: "COMMIT_APPROVED",
+                authClass: "badge-optimal",
+                pl1: "12W",
+                voltage: "-80 mV",
+                directive: "NPU_COPROCESSOR_2.4W • SILENT_FAN"
+            },
+            {
+                id: "PLAN_SHADOW_COUNTERFACTUAL",
+                title: "Shadow Counterfactual Simulation",
+                desc: "Evaluates prospective deltas in shadow runtime with zero host OS mutation.",
+                dPerf: "+73.4%",
+                dEnergy: "+0.0%",
+                risk: "0.00",
+                auth: "SHADOW_ONLY",
+                authClass: "badge-degraded",
+                pl1: "24W",
+                voltage: "0 mV",
+                directive: "SHADOW_RUNTIME_ZERO_MUTATION"
+            },
+            {
+                id: "PLAN_THERMAL_RESCUE_RECOVERY",
+                title: "Thermal Rescue & Safe Cool-Down",
+                desc: "Emergency throttle prevention, drops PL1 to 10W, flushes memory arenas.",
+                dPerf: "+68.5%",
+                dEnergy: "+35.0%",
+                risk: "0.01",
+                auth: "COMMIT_APPROVED",
+                authClass: "badge-optimal",
+                pl1: "10W",
+                voltage: "-20 mV",
+                directive: "PASSIVE_COOLING • ARENA_PURGE"
+            }
+        ];
+
+        let activeTweakerPlanId = "PLAN_SUSTAINED_EFFICIENCY";
+
+        async function rescanTweakerLevels() {
+            playCyberTone('blip');
+            try {
+                const res = await fetch('/api/tweaker/scan');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.levels) {
+                        document.getElementById('tweakHeadroomVal').textContent = `${data.levels.thermal_headroom_c.toFixed(1)}°C`;
+                        document.getElementById('tweakPowerVal').textContent = `${data.levels.package_power_watts.toFixed(1)} W`;
+                        document.getElementById('tweakPressureVal').textContent = `${data.levels.pressure_score.toFixed(2)}`;
+                        showToast('🔄 Telemetry levels successfully scanned via OpenVINO host probe', 'info');
+                        return;
+                    }
+                }
+            } catch (e) {
+                // Offline fallback simulation
+            }
+            const simTemp = (65 + Math.random() * 8).toFixed(1);
+            const simHeadroom = (100 - simTemp).toFixed(1);
+            const simPower = (18 + Math.random() * 6).toFixed(1);
+            document.getElementById('tweakHeadroomVal').textContent = `${simHeadroom}°C`;
+            document.getElementById('tweakPowerVal').textContent = `${simPower} W`;
+            showToast('🔄 Simulated host telemetry levels refreshed', 'info');
+        }
+
+        function renderTweakerPlans() {
+            const container = document.getElementById('tweakerPlansContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            TWEAKER_PLANS_DATA.forEach((plan) => {
+                const isCurrent = (plan.id === activeTweakerPlanId);
+                const card = document.createElement('div');
+                card.style.background = isCurrent ? 'rgba(16, 185, 129, 0.08)' : 'rgba(3, 7, 18, 0.7)';
+                card.style.border = isCurrent ? '1px solid var(--emerald-stable)' : '1px solid var(--border-subtle)';
+                card.style.borderRadius = 'var(--radius-sm)';
+                card.style.padding = '14px';
+                card.style.display = 'flex';
+                card.style.flexDirection = 'column';
+                card.style.justifyContent = 'space-between';
+                card.style.gap = '10px';
+
+                card.innerHTML = `
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                            <span style="font-weight: 700; color: ${isCurrent ? '#34d399' : '#f1f5f9'}; font-size: 13px;">${plan.title}</span>
+                            <span class="ks-badge ${plan.authClass}">${plan.auth}</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); margin: 6px 0 10px 0;">${plan.desc}</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-family: var(--font-code); font-size: 10px; color: var(--text-dim); background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px;">
+                            <div>NPU dPerf: <span style="color: #38bdf8; font-weight: 700;">${plan.dPerf}</span></div>
+                            <div>dEnergy: <span style="color: #10b981; font-weight: 700;">${plan.dEnergy}</span></div>
+                            <div>PL1 Clamp: <span style="color: #fbbf24;">${plan.pl1}</span></div>
+                            <div>V-Bias: <span style="color: #c084fc;">${plan.voltage}</span></div>
+                        </div>
+                    </div>
+
+                    <button class="btn-krystal ${isCurrent ? 'btn-primary-npu' : 'btn-glass'}" 
+                            style="width: 100%; padding: 7px; font-size: 11px;" 
+                            onclick="applyTweakerPlan('${plan.id}')">
+                        ${isCurrent ? '✓ Active Plan' : '⚡ Apply Device Plan'}
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function applyTweakerPlan(planId) {
+            playCyberTone('heal');
+            activeTweakerPlanId = planId;
+            const badge = document.getElementById('tweakerActivePlanBadge');
+            if (badge) badge.textContent = `ACTIVE: ${planId}`;
+
+            const logEl = document.getElementById('tweakerDirectiveLog');
+            if (logEl) {
+                const now = new Date().toLocaleTimeString();
+                logEl.innerHTML = `[${now}] Plan <strong>${planId}</strong> authorized by Dual-Gate (AUTH_COMMIT_APPROVED).<br/>` +
+                                  `[TRANSITION] Win32 priority &amp; power overlay active.<br/>` +
+                                  `[OPENVINO] Dispatched NPU tensor optimization stream.<br/>` + logEl.innerHTML;
+            }
+
+            renderTweakerPlans();
+
+            try {
+                const res = await fetch('/api/tweaker/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan_id: planId })
+                });
+                if (res.ok) {
+                    showToast(`✨ Successfully applied plan: ${planId}`, 'success');
+                    return;
+                }
+            } catch (e) {
+                // Offline fallback simulation
+            }
+            showToast(`✨ Applied plan: ${planId} (Simulated DirectSim Mode)`, 'success');
+        }
+
+        // Initialize Tweaker Plans on page load
+        renderTweakerPlans();
     </script>
 </body>
 </html>

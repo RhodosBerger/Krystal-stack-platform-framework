@@ -149,6 +149,15 @@ from .psychological_coping_cortex_mcp_bridge import (  # noqa: F401
     GLOBAL_COPING_CORTEX_MCP_BRIDGE
 )
 
+from .epistemic_utility_tweaker import (  # noqa: F401
+    TweakerPlanId,
+    ScannedSystemLevels,
+    CandidateExecutionPlan,
+    NpuOpenVinoPlanEvaluator,
+    KrystalEpistemicUtilityTweaker,
+    GLOBAL_UTILITY_TWEAKER
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",

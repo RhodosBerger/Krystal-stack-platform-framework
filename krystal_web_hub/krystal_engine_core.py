@@ -2050,6 +2050,29 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_PARADOX_HEALER.get_telemetry())
             return
 
+        # ── EPISTEMIC UTILITY TWEAKER & OPENVINO NPU (GET) ──────────────────
+        if path in ('/api/tweaker/scan', '/api/tweaker/telemetry'):
+            from krystal_kernel.epistemic_utility_tweaker import GLOBAL_UTILITY_TWEAKER
+            levels = GLOBAL_UTILITY_TWEAKER.scan_system_levels()
+            self._send_json({
+                "status": "OK",
+                "levels": levels.to_dict(),
+                "vital_max_hp": VITAL_MAX_HP
+            })
+            return
+
+        if path in ('/api/tweaker/plans', '/api/tweaker/candidate-plans'):
+            from krystal_kernel.epistemic_utility_tweaker import GLOBAL_UTILITY_TWEAKER
+            plans = GLOBAL_UTILITY_TWEAKER.generate_candidate_plans()
+            self._send_json({
+                "status": "OK",
+                "plans": [p.to_dict() for p in plans],
+                "active_plan_id": GLOBAL_UTILITY_TWEAKER.active_plan_id.value,
+                "npu_device": GLOBAL_UTILITY_TWEAKER.npu_evaluator.device,
+                "vital_max_hp": VITAL_MAX_HP
+            })
+            return
+
         # ── PROCEDURAL LAND BENCHMARK & CI/CD THROUGHPUT (GET) ──────────────
         if path == '/api/procedural-benchmark/status':
             self._send_json(GLOBAL_PROCEDURAL_LAND_BENCHMARK_ENGINE.get_status())
@@ -3700,6 +3723,22 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                     "cycle": cycle_res,
                     "vital_max_hp_rule": VITAL_MAX_HP
                 })
+            return
+
+        # ── EPISTEMIC UTILITY TWEAKER & OPENVINO NPU (POST) ──────────────────
+        if path in ('/api/tweaker/apply', '/api/tweaker/apply-plan'):
+            from krystal_kernel.epistemic_utility_tweaker import GLOBAL_UTILITY_TWEAKER, TweakerPlanId
+            plan_id_str = req_data.get("plan_id", "PLAN_SUSTAINED_EFFICIENCY")
+            try:
+                plan_id = TweakerPlanId(plan_id_str)
+                res = GLOBAL_UTILITY_TWEAKER.apply_device_plan(plan_id)
+                self._send_json(res)
+            except Exception as e:
+                self._send_json({
+                    "success": False,
+                    "error": str(e),
+                    "vital_max_hp_rule": VITAL_MAX_HP
+                }, status=400)
             return
 
         # ── UNIVERSAL OPENAI LLM CONNECTOR POST ENDPOINTS ──────────────────

@@ -2370,6 +2370,29 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
 
 
 
+        # ── API: Epistemic Utility Tweaker & NPU OpenVINO Engine ──────────────
+        elif path in ("/api/tweaker/scan", "/api/tweaker/telemetry"):
+            from krystal_kernel.epistemic_utility_tweaker import GLOBAL_UTILITY_TWEAKER
+            levels = GLOBAL_UTILITY_TWEAKER.scan_system_levels()
+            self.send_json({
+                "status": "OK",
+                "levels": levels.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/tweaker/plans", "/api/tweaker/candidate-plans"):
+            from krystal_kernel.epistemic_utility_tweaker import GLOBAL_UTILITY_TWEAKER
+            plans = GLOBAL_UTILITY_TWEAKER.generate_candidate_plans()
+            self.send_json({
+                "status": "OK",
+                "plans": [p.to_dict() for p in plans],
+                "active_plan_id": GLOBAL_UTILITY_TWEAKER.active_plan_id.value,
+                "npu_device": GLOBAL_UTILITY_TWEAKER.npu_evaluator.device,
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Status ────────────────────────────────────────────
         elif path == "/api/status":
             with state.lock:
@@ -3829,6 +3852,21 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                     "cycle": cycle_res,
                     "vital_max_hp": 6
                 })
+            return
+
+        elif self.path in ("/api/tweaker/apply", "/api/tweaker/apply-plan"):
+            from krystal_kernel.epistemic_utility_tweaker import GLOBAL_UTILITY_TWEAKER, TweakerPlanId
+            plan_id_str = data.get("plan_id", "PLAN_SUSTAINED_EFFICIENCY")
+            try:
+                plan_id = TweakerPlanId(plan_id_str)
+                res = GLOBAL_UTILITY_TWEAKER.apply_device_plan(plan_id)
+                self.send_json(res)
+            except Exception as e:
+                self.send_json({
+                    "success": False,
+                    "error": str(e),
+                    "vital_max_hp": 6
+                }, status=400)
             return
 
         # ── API: CrystalSec 2.0 LLM Execution Plane & Copilot ───────
