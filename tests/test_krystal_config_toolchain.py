@@ -99,6 +99,18 @@ class TestKrystalConfigToolchain(unittest.TestCase):
         self.assertEqual(len(rep["activation_steps"]), 9)
         self.assertEqual(rep["vital_max_hp"], 6)
 
+    def test_export_morse_beacon(self):
+        """Morse beacon must encode profile ID, cadence, and 6 HP invariant into wire format and tensor."""
+        prof = KrystalConfigToolchain.get_profile("REALTIME_LOW_LATENCY")
+        beacon = KrystalConfigToolchain.export_morse_beacon(prof)
+        self.assertIn("profile_id", beacon)
+        self.assertIn("morse_wire", beacon)
+        self.assertIn("tensor_vector", beacon)
+        self.assertEqual(beacon["vital_max_hp"], 6)
+        self.assertIn("HP6", beacon["raw_text"])
+        self.assertGreater(len(beacon["tensor_vector"]), 10)
+
 
 if __name__ == "__main__":
     unittest.main()
+

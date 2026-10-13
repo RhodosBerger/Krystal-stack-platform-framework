@@ -89,13 +89,48 @@ python scripts/krystal_config_toolchain.py [VOĽBY]
 | `-l`, `--list` | Vypíše prehľadný kompaktný zoznam všetkých kanonických profilov. |
 | `-p`, `--profile <ID>` | Zvolí profil (napr. `REALTIME_LOW_LATENCY`, `BALANCED`, `ECO`). |
 | `-i`, `--inspect` | Vykoná hĺbkovú inšpekciu CPU, limitov časovačov winmm a OpenVINO. |
-| `-e`, `--export <formát>`| Exportuje profil v zadanom formáte: `env`, `json`, alebo `card`. |
+| `-e`, `--export <formát>`| Exportuje profil v zadanom formáte: `env`, `json`, `card`, alebo `morse`. |
 | `--dry-run` | Spustí simuláciu 9-krokového aktivačného reťazca bez reálnych mutácií OS. |
 | `--validate-json <cesta>`| Overí platnosť vlastného JSON konfiguračného súboru voči invariantom. |
 
 ---
 
-## 5. Rýchla Diagnostika Latencie a Riešenie Problémov (Triage Playbook)
+## 5. Morseova Abeceda ako Telegrafický Wire Formát a Akustický Maják
+
+V Krystal Stacku plní Morseova abeceda ([`krystal_bot/morse.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_bot/morse.py)) štyri systémové úlohy:
+
+```
+[Krystal Bytecode / Telemetry Stream]
+                 │
+                 ▼  krystal_bot.morse.encode_text() / encode_program()
+[Morse Wire String: "-.- .-. -.-- ... - .- .-.."]
+                 │
+                 ▼  krystal_bot.morse.morse_to_tensor()
+[Fixed-Length Integer Tensor: [2, 1, 2, 3, 1, 2, ...]]  (DOT=1, DASH=2, LGAP=3, WGAP=4, PAD=0)
+                 │
+                 ▼
+[OpenVINO / NPU / ProcessPredictor / Akustický Beep Maják]
+```
+
+1. **Človekom čitateľný wire formát bez knižníc (Human-Legible Wire Format)**:
+   * Bezstratový prenos inštrukcií kreslenia a bytecode programov (`krystal_bot.bytecode.Program`) bez závislosti na JSON alebo binárnych deserializátoroch.
+2. **Celočíselný tenzorový vstup pre NPU / neurónové modely**:
+   * Prevod Morse reťazca na fixný vektor celých čísel cez `morse_to_tensor(m, length=2048)`:
+     $$\text{Tokeny}: \text{PAD}=0, \quad \text{DOT}=1, \quad \text{DASH}=2, \quad \text{LGAP}=3, \quad \text{WGAP}=4$$
+   * Tenzor je priamo konzumovateľný neurónovými sieťami v OpenVINO bez masívnych NLP tokenizerov.
+3. **Kódovanie udalostí jadra & štatistický n-gram `ProcessPredictor`**:
+   * Mapovanie udalostí jadra na symboly: `P` (proces OK), `T` (vlákno OK), `M` (zmeškaný deadline), `X` (chyba), `J` (back-pressure odmietnutie), `H` (self-heal), `C` (zmena zdravia), `B` (otvorený breaker).
+   * Štatistický n-gram model predikuje nasledujúce procesy jadra.
+4. **Hardvérový núdzový telemetrický maják (Emergency Beacon)**:
+   * Pri zlyhaní grafického subsystému alebo siete toolchain vygeneruje telegrafický maják:
+     ```bash
+     python scripts/krystal_config_toolchain.py --profile REALTIME_LOW_LATENCY --export morse
+     ```
+   * Výstup vysiela telemetriu a ústavný invariant `VITAL_MAX_HP == 6` v kompaktnom formáte vhodnom pre rádiové vysielanie, sériovú linku UART alebo PC-Speaker buzzer.
+
+---
+
+## 6. Rýchla Diagnostika Latencie a Riešenie Problémov (Triage Playbook)
 
 ```
                        [ZISTENÝ PROBLÉM LATENCIE]
@@ -127,7 +162,7 @@ a over MMCSS "Games"         ECO_THERMAL_PRESERVATION     v mriežke na 4 až 6
 
 ---
 
-## 6. Prehľad Súvisiacich Súborov v Repozitári
+## 7. Prehľad Súvisiacich Súborov v Repozitári
 
 * **CLI Nástroj Toolchainu:** [`scripts/krystal_config_toolchain.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/scripts/krystal_config_toolchain.py)
 * **Jednotkové Testy Toolchainu:** [`tests/test_krystal_config_toolchain.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_krystal_config_toolchain.py)

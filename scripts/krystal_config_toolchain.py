@@ -332,10 +332,34 @@ class KrystalConfigToolchain:
         )
 
     @classmethod
+    def export_morse_beacon(cls, profile: KrystalConfigurationProfile, tensor_len: int = 64) -> Dict[str, Any]:
+        """
+        Encodes profile telemetry, hardware limits, and the constitutional 6 HP
+        invariant into a standardized Morse wire beacon and integer tensor representation.
+        """
+        from krystal_bot import morse as MO
+
+        raw_beacon_text = f"KRYSTAL {profile.profile_id.value} CAD {int(profile.target_cadence_ms)}MS PL {int(profile.target_pl1_watts)}W ISA {profile.active_isa} HP{profile.vital_max_hp}"
+        morse_wire = MO.encode_text(raw_beacon_text)
+        safe_len = max(tensor_len, len(morse_wire.replace(" ", "")) * 2)
+        tensor = MO.morse_to_tensor(morse_wire, length=safe_len)
+
+        return {
+            "profile_id": profile.profile_id.value,
+            "raw_text": raw_beacon_text,
+            "morse_wire": morse_wire,
+            "tensor_len": len(tensor),
+            "tensor_vector": tensor[:64],
+            "vital_max_hp": profile.vital_max_hp
+        }
+
+    @classmethod
     def export_compact_card(cls, profile: KrystalConfigurationProfile) -> str:
         """Generates an ultra-compressed terminal ASCII card representing the profile."""
         hearts = "♥ " * profile.vital_max_hp
         ports_str = ",".join(str(p) for p in profile.actor_socket_ports) or "NONE"
+        from krystal_bot import morse as MO
+        short_morse = MO.encode_text(f"HP{profile.vital_max_hp} {profile.profile_id.value[:8]}")
         return (
             f"┌────────────────────────────────────────────────────────────────────────┐\n"
             f"│ KRYSTAL CONFIG: [{profile.profile_id.value:<28}]              │\n"
@@ -344,10 +368,12 @@ class KrystalConfigToolchain:
             f"│ Affinity: 0x{profile.cpu_affinity_mask:04X}    │ Priority: {profile.cpu_priority_class:<13} │ PL1: {profile.target_pl1_watts:4.1f}W ({profile.undervolt_mv:+.0f}mV)   │\n"
             f"│ ISA:      {profile.active_isa:<16} │ NPU: {profile.npu_streams} strm (DP4A={str(profile.npu_dp4a_mode):<5}) │ Sockets: {ports_str:<12} │\n"
             f"│ Language: [{profile.default_locale}] {profile.default_register:<16} │ Shadow Mode: {str(profile.shadow_only):<5} │ Dirty Depth: {profile.dirty_cascade_depth} Tiers │\n"
+            f"│ Morse:    {short_morse:<60} │\n"
             f"├────────────────────────────────────────────────────────────────────────┤\n"
             f"│ INVARIANT: {hearts.strip()} ({profile.vital_max_hp}/6 HP) ── VALIDATED STABLE                  │\n"
             f"└────────────────────────────────────────────────────────────────────────┘"
         )
+
 
     @classmethod
     def dry_run_activation(cls, profile: KrystalConfigurationProfile) -> Dict[str, Any]:
@@ -386,7 +412,7 @@ def main():
     parser.add_argument("-l", "--list", action="store_true", help="List all canonical profiles in compact table")
     parser.add_argument("-p", "--profile", type=str, default="BALANCED_DEVELOPMENT", help="Profile ID to inspect, dry-run, or export")
     parser.add_argument("-i", "--inspect", action="store_true", help="Inspect local host hardware and timer capabilities")
-    parser.add_argument("-e", "--export", choices=["json", "env", "card"], help="Export format for selected profile")
+    parser.add_argument("-e", "--export", choices=["json", "env", "card", "morse"], help="Export format for selected profile")
     parser.add_argument("--dry-run", action="store_true", help="Simulate profile activation steps without OS mutations")
     parser.add_argument("--validate-json", type=str, help="Validate custom JSON configuration file")
 
@@ -445,6 +471,18 @@ def main():
     elif args.export == "card":
         print("\n" + KrystalConfigToolchain.export_compact_card(profile) + "\n")
         return
+    elif args.export == "morse":
+        beacon = KrystalConfigToolchain.export_morse_beacon(profile)
+        print("\n" + "=" * 76)
+        print(f"  KRYSTAL STACK // TELEMETRIC MORSE BEACON [{beacon['profile_id']}]")
+        print("=" * 76)
+        print(f"  Raw Text:     {beacon['raw_text']}")
+        print(f"  Morse Wire:   {beacon['morse_wire']}")
+        print(f"  Tensor (64):  {beacon['tensor_vector']}")
+        print(f"  Invariant:    assert VITAL_MAX_HP == {beacon['vital_max_hp']} -> VALIDATED STABLE")
+        print("=" * 76 + "\n")
+        return
+
 
     # 6. Dry run
     if args.dry_run or not args.export:
