@@ -1666,10 +1666,227 @@
             </div>
         </div>
 
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <!-- ── 18. MULTI-LEVEL STATE RE-RENDERING & MULTILINGUAL TAXONOMIES ───── -->
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <div class="ks-card" style="margin-top: 32px; border-color: rgba(168, 85, 247, 0.4); background: radial-gradient(circle at top right, rgba(168, 85, 247, 0.06), transparent 70%), var(--surface-card);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">🌐</span>
+                        <h2 style="font-size: 18px; font-weight: 800; color: #f1f5f9; letter-spacing: -0.02em; margin: 0;">
+                            18. MULTI-LEVEL STATE RE-RENDERING &amp; MULTILINGUAL TAXONOMIES
+                        </h2>
+                        <span class="ks-badge badge-optimal" id="stateTierBadge">5 OPERATIONAL TIERS</span>
+                        <span class="ks-badge" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);">6 LOCALES (SK/CS/EN/DE/LA/JA)</span>
+                        <span class="ks-badge badge-optimal">INVARIANT 6 HP</span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 13px; margin: 6px 0 0 0;">
+                        Hierarchické kaskádové prekresľovanie stavov (L0 Fyzický &bull; L1 Pipeline &bull; L2 Epistemický &bull; L3 Sémantický &bull; L4 Zobrazovací) &bull; Multijazyčná taxonómia a lexikálny most &bull; Detekcia diakritiky &amp; abecedy &bull; Live ASCII HUD kompozitor
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button class="btn-krystal btn-primary-npu" onclick="triggerStateCascadeReRender()" id="btnTriggerStateCascade">
+                        ⚡ Spustiť Kaskádové Prekreslenie
+                    </button>
+                    <button class="btn-krystal btn-glass" onclick="fetchStateRerenderSnapshot()">
+                        🔄 Obnoviť Snapshot
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5-Level Operational Tier Cascade Ribbon -->
+            <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px;">
+                <div style="font-size: 11px; font-weight: 700; color: #c084fc; font-family: var(--font-code); margin-bottom: 10px;">
+                    🏛 5-ÚROVŇOVÁ HIERARCHIA STAVOV A KASKÁDOVÉ PREKRESĽOVANIE (STATE CASCADE MATRIX)
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; font-size: 11px; font-family: var(--font-code);">
+                    <div id="tierCardL0" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #38bdf8; font-weight: 700;">L0: SILICON / HW</span>
+                            <span class="ks-badge badge-optimal" id="tierStatusL0">CLEAN</span>
+                        </div>
+                        <div style="color: var(--text-dim); font-size: 10px; margin-top: 6px;" id="tierMetaL0">
+                            Tj: 52.0°C • 28.0W • AVX2 Active
+                        </div>
+                    </div>
+                    <div id="tierCardL1" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #34d399; font-weight: 700;">L1: PIPELINE / QPC</span>
+                            <span class="ks-badge badge-optimal" id="tierStatusL1">CLEAN</span>
+                        </div>
+                        <div style="color: var(--text-dim); font-size: 10px; margin-top: 6px;" id="tierMetaL1">
+                            Ring: 8 Qs • Workers: 8 • 4.2 GHz
+                        </div>
+                    </div>
+                    <div id="tierCardL2" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #fbbf24; font-weight: 700;">L2: EPISTEMIC AUTH</span>
+                            <span class="ks-badge badge-optimal" id="tierStatusL2">CLEAN</span>
+                        </div>
+                        <div style="color: var(--text-dim); font-size: 10px; margin-top: 6px;" id="tierMetaL2">
+                            Lattice: TRUE • DualGate: PASS
+                        </div>
+                    </div>
+                    <div id="tierCardL3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #ec4899; font-weight: 700;">L3: SEMANTIC / TX</span>
+                            <span class="ks-badge badge-optimal" id="tierStatusL3">CLEAN</span>
+                        </div>
+                        <div style="color: var(--text-dim); font-size: 10px; margin-top: 6px;" id="tierMetaL3">
+                            Locale: SK • Register: FORMAL
+                        </div>
+                    </div>
+                    <div id="tierCardL4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #c084fc; font-weight: 700;">L4: VIEWPORT / HUD</span>
+                            <span class="ks-badge badge-optimal" id="tierStatusL4">RENDERED</span>
+                        </div>
+                        <div style="color: var(--text-dim); font-size: 10px; margin-top: 6px;" id="tierMetaL4">
+                            Dirty: 0 tiles • 100% Cache Hit
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Parameters Ribbon -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px;">
+                <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                        INVALÍDOVAŤ OD ÚROVNE (CASCADE LEVEL):
+                    </label>
+                    <select id="stateInvalidateLevelSelector" class="ks-select" style="width: 100%; background: #030712; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px;">
+                        <option value="LEVEL_0_HARDWARE_SILICON">⚡ Level 0: Hardware Physical Silicon</option>
+                        <option value="LEVEL_1_COMPUTE_PIPELINE" selected>⚙️ Level 1: Compute Execution Pipeline</option>
+                        <option value="LEVEL_2_EPISTEMIC_AUTHORITY">⚖️ Level 2: Epistemic &amp; Authority State</option>
+                        <option value="LEVEL_3_SEMANTIC_LINGUISTIC">🗣 Level 3: Semantic Linguistic State</option>
+                        <option value="LEVEL_4_VISUAL_VIEWPORT">🖥 Level 4: Visual Viewport &amp; ASCII HUD</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                        CIEĽOVÝ JAZYKOVÝ LOKÁL (LOCALE):
+                    </label>
+                    <select id="stateLocaleSelector" class="ks-select" style="width: 100%; background: #030712; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px;">
+                        <option value="SK" selected>🇸🇰 Slovenčina (SK)</option>
+                        <option value="CS">🇨🇿 Čeština (CS)</option>
+                        <option value="EN">🇬🇧 English (EN)</option>
+                        <option value="DE">🇩🇪 Deutsch (DE)</option>
+                        <option value="LA">🏛 Latina (LA)</option>
+                        <option value="JA">🇯🇵 日本語 (JA)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                        LINGVISTICKÝ REGISTER:
+                    </label>
+                    <select id="stateRegisterSelector" class="ks-select" style="width: 100%; background: #030712; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px;">
+                        <option value="EPISTEMIC_FORMAL" selected>📜 EPISTEMIC_FORMAL (Axiomatický)</option>
+                        <option value="MILITARY_TACTICAL">🛡 MILITARY_TACTICAL (Bojový HUD)</option>
+                        <option value="CYBERNETIC_TELEMETRY">📟 CYBERNETIC_TELEMETRY (Telemetrický)</option>
+                        <option value="NATURAL_CONVERSATIONAL">💬 NATURAL_CONVERSATIONAL (Prirodzený)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                        TEPLOTA SILICONU TJ (°C):
+                    </label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="range" id="stateSiliconThermalSlider" min="35" max="95" value="54" style="flex: 1;" oninput="document.getElementById('stateSiliconThermalVal').textContent = this.value + '°C'" />
+                        <span id="stateSiliconThermalVal" style="font-family: var(--font-code); font-size: 12px; color: #10b981; font-weight: 700; min-width: 45px;">54°C</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Natural Language Prompt Intent Classifier Sandbox -->
+            <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #38bdf8; font-family: var(--font-code);">
+                        🧠 MULTIJAZYČNÝ KLASIFIKÁTOR ZÁMEROV &amp; DIALEKTICKÝ PARSER PROMPTOV
+                    </div>
+                    <div style="display: flex; gap: 6px; font-family: var(--font-code); font-size: 11px;">
+                        <span>Lokál: <b id="stateDetectedLocaleBadge" style="color: #38bdf8;">SK</b></span>
+                        <span>&bull; Zámer: <b id="stateDetectedIntentBadge" style="color: #c084fc;">TELEMETRY_INSPECT</b></span>
+                        <span>&bull; Úroveň: <b id="stateCascadedLevelBadge" style="color: #34d399;">L0 (SILICON)</b></span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="statePromptInput" class="ks-input" style="flex: 1; min-width: 280px; background: #030712; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 8px 12px; font-family: var(--font-code); font-size: 12px;" value="Over systémovú telemetriu a aktualizuj stav jadra" />
+                    <button class="btn-krystal btn-glass" onclick="classifyPromptAndReRender()" style="font-size: 12px;">
+                        🔍 Analyzovať &amp; Prekresliť Kaskádu
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px; font-size: 10.5px; font-family: var(--font-code); color: var(--text-dim); flex-wrap: wrap;">
+                    <span>Vyskúšajte:</span>
+                    <a href="javascript:void(0)" onclick="setTestPrompt('Překresli vizuální viewport a vyčisti dlaždice')" style="color: #38bdf8; text-decoration: underline;">CS: Překresli vizuální viewport</a> &bull;
+                    <a href="javascript:void(0)" onclick="setTestPrompt('Execute hardware actuation and spin worker rings')" style="color: #38bdf8; text-decoration: underline;">EN: Execute hardware actuation</a> &bull;
+                    <a href="javascript:void(0)" onclick="setTestPrompt('Prüfe Systemstatus und Telemetrie')" style="color: #38bdf8; text-decoration: underline;">DE: Prüfe Systemstatus</a> &bull;
+                    <a href="javascript:void(0)" onclick="setTestPrompt('Inspecta statum veritatis et epistemicae')" style="color: #38bdf8; text-decoration: underline;">LA: Inspecta statum veritatis</a> &bull;
+                    <a href="javascript:void(0)" onclick="setTestPrompt('システムの状態を再描画してください')" style="color: #38bdf8; text-decoration: underline;">JA: システムの状態を再描画</a>
+                </div>
+            </div>
+
+            <!-- Two-Column Display: Lexical Canonical Bridge + Rendered ASCII Viewport -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px;">
+                <!-- Left: Telemetry & Lexical Bridge Table -->
+                <div style="background: #030712; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #fbbf24; font-family: var(--font-code);">
+                            📖 KANONICKÝ MULTIJAZYČNÝ LEXIKON PRE LOKÁL: <span id="stateLexiconLocaleLabel" style="color: #38bdf8;">SK</span>
+                        </span>
+                        <span class="ks-badge badge-optimal" id="stateReportMetaBadge">Report #--</span>
+                    </div>
+
+                    <div style="margin-bottom: 14px; font-family: var(--font-code); font-size: 11px; line-height: 1.6; color: var(--text-dim);" id="stateCascadeMetricsBox">
+                        <div>⚡ Invalídovaná Úroveň: <b id="metricInvLevel" style="color: #f1f5f9;">--</b></div>
+                        <div>🔄 Zasiahnuté Úrovne: <b id="metricCascadedLevels" style="color: #38bdf8;">--</b></div>
+                        <div>🧹 Invalídované dlaždice: <b id="metricDirtyTiles" style="color: #fbbf24;">-- / 256 tiles</b></div>
+                        <div>⏱ Čas Prekreslenia: <b id="metricElapsedUs" style="color: #10b981;">-- μs</b></div>
+                        <div>🛡 Vital Max Invariant: <b id="metricVitalHp" style="color: #ec4899;">6 / 6 HP (STABLE)</b></div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; font-family: var(--font-code); font-size: 10.5px; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-muted);">
+                                <th style="padding: 6px 8px;">SYSTÉMOVÝ AXIÓM</th>
+                                <th style="padding: 6px 8px;">LOKALIZOVANÝ REŤAZEC</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stateLexiconTableBody">
+                            <tr>
+                                <td colspan="2" style="padding: 12px; text-align: center; color: var(--text-dim);">
+                                    Načítavam lexikálny most...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right: ASCII HUD Viewport Re-Render Preview -->
+                <div style="background: #020617; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-sm); padding: 14px; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 8px; margin-bottom: 10px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #38bdf8; font-family: var(--font-code);">
+                            🖥 LIVE VIEWPORT: LEVEL 4 RENDERED ASCII HUD CARD
+                        </span>
+                        <span class="ks-badge badge-optimal">60 FPS SYNCHRONOUS</span>
+                    </div>
+                    <pre id="stateRerenderAsciiHud" style="margin: 0; padding: 12px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 10.5px; line-height: 1.35; color: #38bdf8; overflow-x: auto; flex: 1; min-height: 220px; white-space: pre;">
+Načítavam ASCII HUD kartu...
+                    </pre>
+                </div>
+            </div>
+        </div>
+
         <footer style="margin-top: 60px; text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 24px; color: var(--text-dim); font-size: 12px;">
             Krystal-Stack Platform Framework • Epistemic UI Kit & Living Design System v2.0 • Invariant VITAL_MAX_HP == 6
         </footer>
     </div>
+
 
     <!-- TOAST CONTAINER -->
     <div class="ks-toast-container" id="toastContainer"></div>
@@ -3936,9 +4153,242 @@
             } catch (e) {
                 console.error("recommendOptimalIsaLive error:", e);
             }
+        // ══════════════════════════════════════════════════════════════════════
+        // ── 18: MULTI-LEVEL STATE RE-RENDERING & MULTILINGUAL CONTROLLERS ────
+        // ══════════════════════════════════════════════════════════════════════
+        function setTestPrompt(text) {
+            const input = document.getElementById('statePromptInput');
+            if (input) input.value = text;
+            classifyPromptAndReRender();
         }
 
-        // Initialize Templates, HW Status, Actor Loops, Matrix, Image MVP, Runtime Core & ISA Profiler
+        async function fetchStateRerenderSnapshot() {
+            try {
+                const res = await fetch('/api/state-rerender/snapshot');
+                const data = await res.json();
+                if (data.status === 'OK' && data.state) {
+                    const s = data.state;
+                    // Update Tier metadata
+                    const hw = s.level_0_hardware || {};
+                    const t0 = document.getElementById('tierMetaL0');
+                    if (t0) t0.textContent = `Tj: ${hw.current_tj_celsius}°C • ${hw.active_power_watts}W • ${hw.msr_energy_profile}`;
+
+                    const pip = s.level_1_pipeline || {};
+                    const t1 = document.getElementById('tierMetaL1');
+                    if (t1) t1.textContent = `Ring: ${pip.ring_queue_depth} Qs • Workers: ${pip.active_workers} • ${pip.qpc_clock_ghz} GHz`;
+
+                    const ep = s.level_2_epistemic || {};
+                    const t2 = document.getElementById('tierMetaL2');
+                    if (t2) t2.textContent = `Lattice: ${ep.truth_lattice_state} • DualGate: ${ep.dual_gate_verdict}`;
+
+                    const sem = s.level_3_semantic || {};
+                    const t3 = document.getElementById('tierMetaL3');
+                    if (t3) t3.textContent = `Locale: ${sem.active_locale} • Register: ${sem.lexical_register}`;
+
+                    const vp = s.level_4_viewport || {};
+                    const t4 = document.getElementById('tierMetaL4');
+                    if (t4) t4.textContent = `Dirty: ${vp.dirty_tiles_count} tiles • ${vp.scanline_count} scanlines`;
+
+                    // Also fetch lexicon for current locale
+                    const loc = sem.active_locale || 'SK';
+                    fetchAndRenderLexicon(loc);
+                }
+            } catch (e) {
+                console.error("fetchStateRerenderSnapshot error:", e);
+            }
+        }
+
+        async function fetchAndRenderLexicon(locale) {
+            try {
+                const res = await fetch(`/api/state-rerender/lexicon?locale=${locale}`);
+                const data = await res.json();
+                if (data.status === 'OK' && data.lexicon) {
+                    renderLexiconTable(locale, data.lexicon);
+                }
+            } catch (e) {
+                console.error("fetchAndRenderLexicon error:", e);
+            }
+        }
+
+        function renderLexiconTable(locale, lexicon) {
+            const tbody = document.getElementById('stateLexiconTableBody');
+            const lbl = document.getElementById('stateLexiconLocaleLabel');
+            if (lbl) lbl.textContent = locale;
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            for (const [axiom, val] of Object.entries(lexicon)) {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+                tr.innerHTML = `
+                    <td style="padding: 6px 8px; color: #94a3b8; font-weight: 600;">${axiom}</td>
+                    <td style="padding: 6px 8px; color: #38bdf8; font-weight: 700;">${val}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        async function triggerStateCascadeReRender() {
+            const lvlSel = document.getElementById('stateInvalidateLevelSelector');
+            const locSel = document.getElementById('stateLocaleSelector');
+            const regSel = document.getElementById('stateRegisterSelector');
+            const thermSlider = document.getElementById('stateSiliconThermalSlider');
+            const btn = document.getElementById('btnTriggerStateCascade');
+
+            const invalidatedLevel = lvlSel ? lvlSel.value : 'LEVEL_1_COMPUTE_PIPELINE';
+            const targetLocale = locSel ? locSel.value : 'SK';
+            const targetRegister = regSel ? regSel.value : 'EPISTEMIC_FORMAL';
+            const thermal = thermSlider ? parseFloat(thermSlider.value) : 54.0;
+
+            showToast(`🔄 Spúšťam kaskádové prekreslenie od ${invalidatedLevel} (${targetLocale})...`, 'info');
+            playCyberTone('blip');
+            if (btn) btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/state-rerender/cascade', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        invalidated_level: invalidatedLevel,
+                        target_locale: targetLocale,
+                        target_register: targetRegister,
+                        reason: 'Studio UI interactive trigger',
+                        hardware_delta: { current_tj_celsius: thermal }
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'OK' && data.report) {
+                    renderStateRerenderReport(data.report);
+                    showToast(`✅ Prekreslenie dokončené: ${data.report.dirty_tiles_invalidation_count} dlaždíc za ${data.report.elapsed_us} μs`, 'success');
+                    playCyberTone('confirm');
+                } else {
+                    showToast('Chyba pri kaskádovom prekresľovaní', 'danger');
+                }
+            } catch (e) {
+                console.error("triggerStateCascadeReRender error:", e);
+                showToast(`Chyba: ${e.message}`, 'danger');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function classifyPromptAndReRender() {
+            const input = document.getElementById('statePromptInput');
+            const regSel = document.getElementById('stateRegisterSelector');
+            const prompt = input ? input.value : 'Over systémovú telemetriu a aktualizuj stav jadra';
+            const targetRegister = regSel ? regSel.value : 'EPISTEMIC_FORMAL';
+
+            showToast(`🧠 Analyzujem prompt & klasifikujem zámer...`, 'info');
+            playCyberTone('blip');
+
+            try {
+                const res = await fetch('/api/state-rerender/classify-prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        target_register: targetRegister,
+                        trigger_rerender: true
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'OK') {
+                    // Update Badges
+                    const locBadge = document.getElementById('stateDetectedLocaleBadge');
+                    if (locBadge) locBadge.textContent = data.detected_locale;
+
+                    const intBadge = document.getElementById('stateDetectedIntentBadge');
+                    if (intBadge) intBadge.textContent = data.detected_intent;
+
+                    const lvlBadge = document.getElementById('stateCascadedLevelBadge');
+                    if (lvlBadge) lvlBadge.textContent = data.invalidated_level.replace('LEVEL_', 'L');
+
+                    // Synchronize selectors
+                    const locSel = document.getElementById('stateLocaleSelector');
+                    if (locSel) locSel.value = data.detected_locale;
+                    const lvlSel = document.getElementById('stateInvalidateLevelSelector');
+                    if (lvlSel) lvlSel.value = data.invalidated_level;
+
+                    if (data.report) {
+                        renderStateRerenderReport(data.report);
+                    }
+                    showToast(`✅ Zámer: ${data.detected_intent} (${data.detected_locale}) ➔ Prekreslené!`, 'success');
+                    playCyberTone('confirm');
+                } else {
+                    showToast('Chyba pri klasifikácii promptu', 'danger');
+                }
+            } catch (e) {
+                console.error("classifyPromptAndReRender error:", e);
+                showToast(`Chyba klasifikácie: ${e.message}`, 'danger');
+            }
+        }
+
+        function renderStateRerenderReport(report) {
+            if (!report) return;
+
+            // Update Metrics
+            const rId = document.getElementById('stateReportMetaBadge');
+            if (rId) rId.textContent = report.report_id;
+
+            const invEl = document.getElementById('metricInvLevel');
+            if (invEl) invEl.textContent = report.invalidated_level;
+
+            const casEl = document.getElementById('metricCascadedLevels');
+            if (casEl) casEl.textContent = (report.cascaded_levels || []).join(' ➔ ');
+
+            const dirtyEl = document.getElementById('metricDirtyTiles');
+            if (dirtyEl) dirtyEl.textContent = `${report.dirty_tiles_invalidation_count} / 256 tiles`;
+
+            const elUs = document.getElementById('metricElapsedUs');
+            if (elUs) elUs.textContent = `${report.elapsed_us} μs`;
+
+            const hpEl = document.getElementById('metricVitalHp');
+            if (hpEl) hpEl.textContent = `${report.vital_max_hp} / 6 HP (CONSTITUTIONAL PASS)`;
+
+            // Update ASCII HUD Viewport
+            const hudEl = document.getElementById('stateRerenderAsciiHud');
+            if (hudEl && report.rendered_ascii_hud) {
+                hudEl.textContent = report.rendered_ascii_hud;
+            }
+
+            // Update Tier Badges status based on cascaded levels
+            const cascaded = new Set(report.cascaded_levels || []);
+            const allTiers = [
+                'LEVEL_0_HARDWARE_SILICON',
+                'LEVEL_1_COMPUTE_PIPELINE',
+                'LEVEL_2_EPISTEMIC_AUTHORITY',
+                'LEVEL_3_SEMANTIC_LINGUISTIC',
+                'LEVEL_4_VISUAL_VIEWPORT'
+            ];
+            const tierBadgeIds = {
+                'LEVEL_0_HARDWARE_SILICON': 'tierStatusL0',
+                'LEVEL_1_COMPUTE_PIPELINE': 'tierStatusL1',
+                'LEVEL_2_EPISTEMIC_AUTHORITY': 'tierStatusL2',
+                'LEVEL_3_SEMANTIC_LINGUISTIC': 'tierStatusL3',
+                'LEVEL_4_VISUAL_VIEWPORT': 'tierStatusL4'
+            };
+
+            allTiers.forEach(t => {
+                const bId = tierBadgeIds[t];
+                const b = document.getElementById(bId);
+                if (b) {
+                    if (cascaded.has(t)) {
+                        b.textContent = t === 'LEVEL_4_VISUAL_VIEWPORT' ? 'RE-RENDERED' : 'DIRTY CASCADE';
+                        b.className = 'ks-badge badge-warning';
+                    } else {
+                        b.textContent = 'CACHED / CLEAN';
+                        b.className = 'ks-badge badge-optimal';
+                    }
+                }
+            });
+
+            // Refresh lexicon table for report locale
+            if (report.target_locale) {
+                fetchAndRenderLexicon(report.target_locale);
+            }
+        }
+
+        // Initialize Templates, HW Status, Actor Loops, Matrix, Image MVP, Runtime Core, ISA Profiler & Multilevel Rerender
         renderCoordinationTemplates();
         fetchHardwareAndTimerStatus();
         fetchActorLoopsStatus();
@@ -3951,6 +4401,9 @@
         fetchCoreRuntimeStatus();
         generateGeometricSupersampledStream();
         runCrossIsaProfiling();
+        fetchStateRerenderSnapshot();
+        triggerStateCascadeReRender();
     </script>
 </body>
 </html>
+

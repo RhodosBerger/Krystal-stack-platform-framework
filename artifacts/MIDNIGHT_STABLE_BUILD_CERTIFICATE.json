@@ -1,7 +1,7 @@
 {
   "certificate_title": "KRYSTAL-STACK MIDNIGHT STABLE BUILD CERTIFICATE",
-  "run_id": "MIDNIGHT-62FB9D13",
-  "timestamp": 1791882203.4584067,
+  "run_id": "MIDNIGHT-D52EC20B",
+  "timestamp": 1791882817.469086,
   "release_candidate": "v2.0-midnight-stable",
   "target_setup": {
     "setup_type": "SETUP_A_WINDOWS_IRIS_XE_BAREMETAL",
@@ -22,7 +22,7 @@
     "exhibit_1": {
       "exhibit_name": "Exhibit 1: 8-Phase Causal LLM Execution Plane",
       "status": "PASS",
-      "trace_id": "TRACE-LLM-4207CF39",
+      "trace_id": "TRACE-LLM-1A87F1BF",
       "phases_completed": 8,
       "ttft_ms": 22.14,
       "inter_token_latency_ms": 5.0,
@@ -140,7 +140,7 @@
       "status": "PASS",
       "nodes_traversed": 16,
       "strategy_selected": "PlannerStrategyKind.PARETO_OPTIMAL_NPU",
-      "cycle_latency_us": 251.1,
+      "cycle_latency_us": 248.6,
       "vital_hp": 6
     },
     "exhibit_8": {
@@ -150,7 +150,7 @@
       "extension_branches_count": 8,
       "version_vector": "<S:4 | P:POL-2.0-CANONICAL | E:a68c472c>",
       "authority_verdict": "AUTH_COMMIT_APPROVED",
-      "cycle_duration_us": 136.6,
+      "cycle_duration_us": 135.8,
       "vital_hp": 6
     },
     "exhibit_9": {
@@ -160,7 +160,7 @@
       "profile": "NPU_ULTRA_QUALITY_12BIT",
       "total_frames_generated": 15,
       "intermediate_frames": 12,
-      "throughput_fps": 856.9861511037982,
+      "throughput_fps": 948.4006803194213,
       "psnr_db": 25.43,
       "ssim_score": 0.9545,
       "color_entropy_bits": 5.523,
@@ -178,6 +178,37 @@
       "projected_speedup": 85.98857142857143,
       "projected_latency_us": 3484.1041998936735,
       "energy_rating": "HIGH_POWER_COMPUTE_C",
+      "vital_hp": 6
+    },
+    "exhibit_11": {
+      "exhibit_name": "Exhibit 11: Multi-Level State Re-Rendering & Multilingual Taxonomies Engine",
+      "status": "PASS",
+      "locales_supported": [
+        "SK",
+        "CS",
+        "EN",
+        "DE",
+        "LA",
+        "JA"
+      ],
+      "operational_tiers_count": 5,
+      "report_sk_elapsed_us": 26.7,
+      "report_ja_elapsed_us": 12.1,
+      "cascaded_levels_l0": [
+        "LEVEL_0_HARDWARE_SILICON",
+        "LEVEL_1_COMPUTE_PIPELINE",
+        "LEVEL_2_EPISTEMIC_AUTHORITY",
+        "LEVEL_3_SEMANTIC_LINGUISTIC",
+        "LEVEL_4_VISUAL_COMPOSITOR"
+      ],
+      "cascaded_levels_l1": [
+        "LEVEL_1_COMPUTE_PIPELINE",
+        "LEVEL_2_EPISTEMIC_AUTHORITY",
+        "LEVEL_3_SEMANTIC_LINGUISTIC",
+        "LEVEL_4_VISUAL_COMPOSITOR"
+      ],
+      "dirty_tiles_l0": 256,
+      "dirty_tiles_l1": 64,
       "vital_hp": 6
     }
   },

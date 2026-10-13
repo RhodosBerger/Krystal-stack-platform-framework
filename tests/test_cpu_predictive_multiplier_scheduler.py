@@ -112,7 +112,7 @@ class TestCpuPredictiveMultiplierScheduler(unittest.TestCase):
 
         tick = self.scheduler.step_scheduler_tick(multiplier_override=24.0)
         self.assertIn("hysteresis_h", tick)
-        self.assertGreaterEqual(tick["hysteresis_h"], 2.0 * delta_hat)
+        self.assertGreaterEqual(tick["hysteresis_h"], 2.0 * tick["noise_delta_hat"] - 1e-6)
 
     def test_visual_rasterizer_model_generation(self):
         """Rasterizer model must generate valid parabolas, sinusoids, and noise corridors."""

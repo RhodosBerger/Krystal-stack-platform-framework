@@ -2671,6 +2671,50 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Multi-Level State Re-Rendering & Multilingual Taxonomies ───
+        elif path in ("/api/state-rerender/snapshot", "/api/state/snapshot"):
+            from krystal_kernel.multilevel_state_rerendering_and_multilingual_taxonomies import (
+                GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE
+            )
+            self.send_json({
+                "status": "OK",
+                "snapshot": GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE.current_state.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/state-rerender/taxonomies", "/api/state/taxonomies"):
+            from krystal_kernel.multilevel_state_rerendering_and_multilingual_taxonomies import (
+                SystemStateLevelTaxon,
+                LanguageLocaleTaxon,
+                LinguisticRegisterTaxon,
+                SemanticIntentTaxon
+            )
+            self.send_json({
+                "status": "OK",
+                "taxonomies": {
+                    "state_levels": [lvl.value for lvl in SystemStateLevelTaxon],
+                    "locales": [loc.value for loc in LanguageLocaleTaxon],
+                    "registers": [reg.value for reg in LinguisticRegisterTaxon],
+                    "semantic_intents": [intent.value for intent in SemanticIntentTaxon]
+                },
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/state-rerender/lexicon", "/api/state/lexicon"):
+            from krystal_kernel.multilevel_state_rerendering_and_multilingual_taxonomies import MULTILINGUAL_LEXICON
+            serialized_lex = {
+                key: {loc.value: val for loc, val in trans_map.items()}
+                for key, trans_map in MULTILINGUAL_LEXICON.items()
+            }
+            self.send_json({
+                "status": "OK",
+                "lexicon": serialized_lex,
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Status ────────────────────────────────────────────
         elif path == "/api/status":
             with state.lock:
@@ -4504,8 +4548,102 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "vital_max_hp": 6
             })
             return
+        # ── API: Multi-Level State Re-Rendering & Multilingual Taxonomies ───
+        elif self.path == "/api/state-rerender/cascade":
+            from krystal_kernel.multilevel_state_rerendering_and_multilingual_taxonomies import (
+                GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE,
+                SystemStateLevelTaxon,
+                LanguageLocaleTaxon,
+                LinguisticRegisterTaxon,
+            )
+            lvl_str = str(data.get("invalidated_level", "LEVEL_1_COMPUTE_PIPELINE"))
+            invalidated_lvl = (
+                SystemStateLevelTaxon[lvl_str]
+                if lvl_str in SystemStateLevelTaxon.__members__
+                else SystemStateLevelTaxon.LEVEL_1_COMPUTE_PIPELINE
+            )
+            loc_str = data.get("target_locale")
+            target_locale = (
+                LanguageLocaleTaxon[loc_str]
+                if loc_str and loc_str in LanguageLocaleTaxon.__members__
+                else None
+            )
+            reg_str = data.get("target_register")
+            target_reg = (
+                LinguisticRegisterTaxon[reg_str]
+                if reg_str and reg_str in LinguisticRegisterTaxon.__members__
+                else None
+            )
+            reason = str(data.get("reason", "API-triggered state cascade"))
+            hardware_delta = data.get("hardware_delta")
+            if hardware_delta and isinstance(hardware_delta, dict):
+                cur_hw = dict(GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE.state.level_0_hardware)
+                cur_hw.update(hardware_delta)
+                GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE.state.level_0_hardware = cur_hw
 
-        # ── API: CrystalSec 2.0 LLM Execution Plane & Copilot ───────
+            report = GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE.trigger_hierarchical_rerender(
+                invalidated_level=invalidated_lvl,
+                target_locale=target_locale,
+                target_register=target_reg,
+                reason=reason,
+            )
+            self.send_json({
+                "status": "OK",
+                "report": report.to_dict(),
+                "vital_max_hp": 6,
+            })
+            return
+
+        elif self.path == "/api/state-rerender/classify-prompt":
+            from krystal_kernel.multilevel_state_rerendering_and_multilingual_taxonomies import (
+                GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE,
+                MultilingualIntentClassifier,
+                LinguisticRegisterTaxon,
+                SystemStateLevelTaxon,
+            )
+            prompt = str(data.get("prompt", "Skontroluj telemetriu a stav jadra"))
+            detected_locale = MultilingualIntentClassifier.detect_locale(prompt)
+            detected_intent = MultilingualIntentClassifier.classify_intent(prompt)
+
+            reg_str = data.get("target_register")
+            target_reg = (
+                LinguisticRegisterTaxon[reg_str]
+                if reg_str and reg_str in LinguisticRegisterTaxon.__members__
+                else None
+            )
+
+            # Determine appropriate level to invalidate based on intent
+            if detected_intent.value == "COMMAND_ACTUATE":
+                inv_lvl = SystemStateLevelTaxon.LEVEL_1_COMPUTE_PIPELINE
+            elif detected_intent.value == "GOVERNANCE_AUDIT":
+                inv_lvl = SystemStateLevelTaxon.LEVEL_2_EPISTEMIC_AUTHORITY
+            elif detected_intent.value == "TELEMETRY_INSPECT":
+                inv_lvl = SystemStateLevelTaxon.LEVEL_0_HARDWARE_SILICON
+            else:
+                inv_lvl = SystemStateLevelTaxon.LEVEL_3_SEMANTIC_LINGUISTIC
+
+            trigger_rerender = bool(data.get("trigger_rerender", True))
+            report = None
+            if trigger_rerender:
+                report = GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE.trigger_hierarchical_rerender(
+                    invalidated_level=inv_lvl,
+                    target_locale=detected_locale,
+                    target_register=target_reg,
+                    reason=f"Classified intent {detected_intent.value} from prompt",
+                )
+
+            self.send_json({
+                "status": "OK",
+                "prompt": prompt,
+                "detected_locale": detected_locale.value,
+                "detected_intent": detected_intent.value,
+                "invalidated_level": inv_lvl.value,
+                "report": report.to_dict() if report else None,
+                "vital_max_hp": 6,
+            })
+            return
+
+
         elif self.path in ("/api/crystalsec/execution-plane/trace", "/api/crystalsec/trace"):
             from krystal_kernel.crystalsec_llm_execution_plane import GLOBAL_LLM_EXECUTION_PLANE, ControlledVariables
             prompt_str = str(data.get("prompt", "M03 S12000 G01 X100.0 Y50.0 F1200"))

@@ -407,6 +407,58 @@ class MidnightDemonstrator:
             "vital_hp": VITAL_MAX_HP
         }
 
+    def run_exhibit_11_multilevel_state_rerendering(self) -> Dict[str, Any]:
+        """Exhibit 11: Multi-Level State Re-Rendering & Multilingual Taxonomies Engine."""
+        from krystal_kernel.multilevel_state_rerendering_and_multilingual_taxonomies import (
+            GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE,
+            SystemStateLevelTaxon,
+            LanguageLocaleTaxon,
+            LinguisticRegisterTaxon,
+            MultilingualIntentClassifier,
+            MULTILINGUAL_LEXICON
+        )
+        # Test cascade from Level 1 across locales
+        report_sk = GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE.trigger_hierarchical_rerender(
+            invalidated_level=SystemStateLevelTaxon.LEVEL_1_COMPUTE_PIPELINE,
+            target_locale=LanguageLocaleTaxon.SK,
+            target_register=LinguisticRegisterTaxon.EPISTEMIC_FORMAL,
+            reason="Midnight demonstrator cascade verification SK"
+        )
+        report_ja = GLOBAL_MULTILEVEL_STATE_RERENDERING_ENGINE.trigger_hierarchical_rerender(
+            invalidated_level=SystemStateLevelTaxon.LEVEL_0_HARDWARE_SILICON,
+            target_locale=LanguageLocaleTaxon.JA,
+            target_register=LinguisticRegisterTaxon.MILITARY_TACTICAL,
+            reason="Midnight demonstrator cascade verification JA"
+        )
+        # Test intent detection and locale classification
+        detected_cs = MultilingualIntentClassifier.detect_locale("Překresli stav na úrovni pipeline")
+        detected_de = MultilingualIntentClassifier.detect_locale("Prüfe Hardwarestatus und Telemetrie")
+
+        passed = (
+            report_sk.vital_max_hp == 6 and
+            report_ja.vital_max_hp == 6 and
+            report_sk.dirty_tiles_invalidation_count > 0 and
+            report_ja.dirty_tiles_invalidation_count == 256 and
+            len(report_sk.cascaded_levels) == 4 and
+            len(report_ja.cascaded_levels) == 5 and
+            detected_cs == LanguageLocaleTaxon.CS and
+            detected_de == LanguageLocaleTaxon.DE and
+            len(MULTILINGUAL_LEXICON) == 6
+        )
+        return {
+            "exhibit_name": "Exhibit 11: Multi-Level State Re-Rendering & Multilingual Taxonomies Engine",
+            "status": "PASS" if passed else "FAIL",
+            "locales_supported": [l.value for l in LanguageLocaleTaxon],
+            "operational_tiers_count": len(SystemStateLevelTaxon),
+            "report_sk_elapsed_us": report_sk.elapsed_us,
+            "report_ja_elapsed_us": report_ja.elapsed_us,
+            "cascaded_levels_l0": report_ja.cascaded_levels,
+            "cascaded_levels_l1": report_sk.cascaded_levels,
+            "dirty_tiles_l0": report_ja.dirty_tiles_invalidation_count,
+            "dirty_tiles_l1": report_sk.dirty_tiles_invalidation_count,
+            "vital_hp": VITAL_MAX_HP
+        }
+
     def run_full_suite(self) -> Dict[str, Any]:
         """Executes all exhibits, builds certificate, and writes JSON artifact."""
         print("\n" + "=" * 76)
@@ -479,6 +531,13 @@ class MidnightDemonstrator:
         ex10 = self.run_exhibit_10_multi_isa_performance_taxonomies()
         self.exhibits_results["exhibit_10"] = ex10
         print(f"[OK] (ISAs: {ex10['total_isas_profiled']}, Top: {ex10['top_performer_isa']} @ {ex10['top_sustained_gflops']} GFLOPS, Rec: {ex10['recommended_isa']})")
+
+        # 11. Exhibit 11
+        print("  >> Executing Exhibit 11 (Multi-Level State Re-Rendering & Multilingual Taxonomies)...", end=" ")
+        ex11 = self.run_exhibit_11_multilevel_state_rerendering()
+        self.exhibits_results["exhibit_11"] = ex11
+        print(f"[OK] (Tiers: {ex11['operational_tiers_count']}, Locales: {len(ex11['locales_supported'])}, Dirty L0: {ex11['dirty_tiles_l0']} tiles, SK: {ex11['report_sk_elapsed_us']}μs)")
+
 
         print("-" * 76)
         all_passed = all(e.get("status") == "PASS" for e in self.exhibits_results.values())
