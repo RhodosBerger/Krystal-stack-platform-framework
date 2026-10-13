@@ -25,8 +25,10 @@ pub mod grid_injector;
 pub mod fallback;
 pub mod unified_core;
 pub mod cinematic_bridge;
+pub mod epistemic_abi;
 
 pub use types::*;
+pub use epistemic_abi::*;
 pub use config::Config;
 pub use events::{Event, EventBus};
 pub use trust::{TrustEngine, TrustedDecision};

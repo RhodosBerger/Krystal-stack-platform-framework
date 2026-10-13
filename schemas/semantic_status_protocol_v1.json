@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Krystal-Stack Semantic Status Protocol v1.0",
+  "description": "Canonical 16-bit status code allocation matrix, orthogonal namespace taxonomy, and cross-language ABI specification.",
+  "version": "1.0.0",
+  "architecture_constants": {
+    "VITAL_MAX_HP": 6,
+    "NIBBLE_FAMILY_SHIFT": 12,
+    "NIBBLE_FAMILY_MASK": 61440,
+    "NIBBLE_SUBKIND_SHIFT": 8,
+    "NIBBLE_SUBKIND_MASK": 3840,
+    "BYTE_VALUE_MASK": 255
+  },
+  "families": {
+    "SYS": { "nibble": "0x0", "name": "System & Null Base", "prefix": "SYS_" },
+    "EPI": { "nibble": "0x1", "name": "Epistemic Truth & Lattice", "prefix": "EPI_" },
+    "TMP": { "nibble": "0x2", "name": "Temporal Lease & Freshness", "prefix": "TMP_" },
+    "AUTH": { "nibble": "0x3", "name": "Authority & Commit Gates", "prefix": "AUTH_" },
+    "INV": { "nibble": "0x4", "name": "Constitutional Invariants & Safety", "prefix": "INV_" },
+    "ACT": { "nibble": "0x5", "name": "Actuation & Hardware Mutation", "prefix": "ACT_" },
+    "TXN": { "nibble": "0x6", "name": "Transactional Lifecycle", "prefix": "TXN_" },
+    "OBS": { "nibble": "0x7", "name": "Physical Sensor Observation", "prefix": "OBS_" },
+    "DER": { "nibble": "0x8", "name": "Mathematically Derived Telemetry", "prefix": "DER_" },
+    "PRED": { "nibble": "0x9", "name": "Probabilistic Model Predictions", "prefix": "PRED_" },
+    "MEM": { "nibble": "0xA", "name": "Memory Fabric & Lifetimes", "prefix": "MEM_" },
+    "HW": { "nibble": "0xB", "name": "Physical Silicon Hardware State", "prefix": "HW_" },
+    "PDX": { "nibble": "0xC", "name": "Paradoxical Resonances", "prefix": "PDX_" },
+    "MRK": { "nibble": "0xD", "name": "Merkle Hash & DAG Integrity", "prefix": "MRK_" },
+    "POL": { "nibble": "0xE", "name": "Dynamic Policies & Vendor Hooks", "prefix": "POL_" },
+    "RESERVED_FUTURE": { "nibble": "0xF", "name": "Strictly Reserved Future Horizon", "prefix": "RES_" }
+  }
+}
