@@ -764,6 +764,13 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "cycles_vray_hybrid_studio.html", "text/html")
             return
+        elif norm_path in (
+            "/polymorphic-benchmark", "/polymorphic-telemetry", "/telemetry-benchmark",
+            "/polymorphic_telemetry_benchmark_studio.html", "/accelerated-benchmark",
+            "/polymorphic-benchmark-studio", "/shape-benchmark"
+        ):
+            self.serve_file(STATIC_DIR / "polymorphic_telemetry_benchmark_studio.html", "text/html")
+            return
         elif norm_path in ("/cloud-backoffice", "/backoffice", "/cloud_backoffice_studio.html", "/evidence"):
             self.serve_file(STATIC_DIR / "cloud_backoffice_studio.html", "text/html")
             return
@@ -846,6 +853,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         # ── API: Health ────────────────────────────────────────────
         elif norm_path in ("/api/health", "/health"):
             self.send_json({"status": "HEALTHY", "uptime_sec": time.time()})
+            return
+
+        # ── API: Polymorphic Shape & Accelerated Telemetry Benchmark ─
+        elif norm_path in ("/api/benchmark/polymorphic-telemetry/status", "/api/benchmark/polymorphic-telemetry"):
+            from krystal_kernel.polymorphic_telemetry_benchmark_engine import GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE
+            self.send_json(GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.get_engine_status())
             return
 
         # ── API: Processor Integrity & Context-Switch Telemetry ────
@@ -3326,6 +3339,78 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 current_telemetry=data.get("telemetry", {})
             )
             self.send_json({"status": "OK", "proposal": proposal.to_dict()})
+            return
+
+        # ── API: Polymorphic Shape & Accelerated Telemetry Benchmark ─
+        elif self.path in ("/api/benchmark/polymorphic-telemetry/run", "/api/benchmark/run"):
+            from krystal_kernel.polymorphic_telemetry_benchmark_engine import GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE, AccelerationTier
+            tier_str = data.get("acceleration_tier", "INTERNAL_KRYSTAL_STACK_SUITE")
+            try:
+                tier = AccelerationTier[tier_str]
+            except Exception:
+                tier = AccelerationTier.INTERNAL_KRYSTAL_STACK_SUITE
+            density = float(data.get("density_multiplier", 1.0))
+            iterations = int(data.get("iterations", 3))
+            
+            voltage = data.get("core_voltage_v")
+            resistance = data.get("circuit_resistance_ohms")
+            temp = data.get("junction_temp_celsius")
+            l2 = data.get("l2_cache_limit_mb")
+            if any(v is not None for v in [voltage, resistance, temp, l2]):
+                GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.ingest_hardware_telemetry(
+                    core_voltage_v=float(voltage) if voltage is not None else 1.15,
+                    circuit_resistance_ohms=float(resistance) if resistance is not None else 0.045,
+                    junction_temp_celsius=float(temp) if temp is not None else 52.4,
+                    l2_cache_limit_mb=float(l2) if l2 is not None else 4.0
+                )
+            
+            report = GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.run_comprehensive_benchmark(
+                acceleration_tier=tier,
+                density_multiplier=density,
+                iterations=iterations
+            )
+            self.send_json({
+                "status": "OK",
+                "benchmark_report": report.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/benchmark/polymorphic-telemetry/shape-mesh", "/api/benchmark/shape-mesh"):
+            from krystal_kernel.polymorphic_telemetry_benchmark_engine import GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE
+            archetype = data.get("archetype", "TACTICAL_OBELISK")
+            density = float(data.get("density_multiplier", 1.0))
+            verts = GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.generate_archetype_mesh(archetype, density)
+            octant_dist, centroid, r_max = GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.compute_octant_distribution(verts)
+            self.send_json({
+                "status": "OK",
+                "archetype": archetype,
+                "vertex_count": len(verts),
+                "vertices": verts[:600],
+                "octant_distribution": octant_dist.to_dict(),
+                "centroid": centroid,
+                "bounding_radius": r_max,
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/benchmark/polymorphic-telemetry/telemetry", "/api/benchmark/telemetry"):
+            from krystal_kernel.polymorphic_telemetry_benchmark_engine import GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE
+            voltage = float(data.get("core_voltage_v", 1.15))
+            resistance = float(data.get("circuit_resistance_ohms", 0.045))
+            temp = float(data.get("junction_temp_celsius", 52.4))
+            l2 = float(data.get("l2_cache_limit_mb", 4.0))
+            telem = GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.ingest_hardware_telemetry(
+                core_voltage_v=voltage,
+                circuit_resistance_ohms=resistance,
+                junction_temp_celsius=temp,
+                l2_cache_limit_mb=l2
+            )
+            self.send_json({
+                "status": "OK",
+                "telemetry": telem.to_dict(),
+                "vital_max_hp": 6
+            })
             return
 
         # ── API: CrystalSec 2.0 LLM Execution Plane & Copilot ───────

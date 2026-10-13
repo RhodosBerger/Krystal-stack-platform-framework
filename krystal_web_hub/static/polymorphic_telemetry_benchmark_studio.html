@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POLYMORPHIC TELEMETRY BENCHMARK STUDIO // KRYSTAL-STACK ACCELERATION</title>
+    <meta name="description" content="Akcelerovaný benchmark polymorphic 3D archetypov a telemetrie napájaný interným Krystal-Stack softvérovým balíkom: NPU Binary Coprocessor, Tectonic Matrix a Fibonacci Spiral Tensor.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #06080e;
+            --bg-card: rgba(13, 19, 32, 0.85);
+            --bg-panel: rgba(8, 12, 20, 0.95);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(0, 245, 212, 0.4);
+            
+            --teal-neon: #00f5d4;
+            --teal-glow: rgba(0, 245, 212, 0.4);
+            --gold-bright: #ffd166;
+            --gold-glow: rgba(255, 209, 102, 0.4);
+            --purple-accel: #8b5cf6;
+            --purple-glow: rgba(139, 92, 246, 0.45);
+            --danger-red: #ef4444;
+            --success-green: #10b981;
+
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 22px;
+            --blur: blur(16px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(0, 245, 212, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(139, 92, 246, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(255, 209, 102, 0.04) 0%, transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        /* ── HEADER ──────────────────────────────────────────────────────── */
+        header.studio-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 40px;
+            background: rgba(6, 9, 15, 0.94);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff 0%, var(--teal-neon) 50%, var(--purple-accel) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .engine-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(0, 245, 212, 0.12);
+            color: var(--teal-neon);
+            border: 1px solid rgba(0, 245, 212, 0.35);
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 1px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .hp-vital-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: #fca5a5;
+        }
+
+        .hp-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .hp-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger-red);
+            box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
+        }
+
+        .btn-run-bench {
+            background: linear-gradient(135deg, var(--teal-neon) 0%, #00b4d8 100%);
+            color: #06080e;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.88rem;
+            padding: 9px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(0, 245, 212, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-run-bench:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(0, 245, 212, 0.5);
+        }
+
+        /* ── HERO BANNER ─────────────────────────────────────────────────── */
+        .hero-banner {
+            padding: 30px 40px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .hero-content h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.1rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .hero-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 720px;
+            line-height: 1.5;
+        }
+
+        .stats-strip {
+            display: flex;
+            gap: 16px;
+        }
+
+        .stat-chip {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
+            min-width: 140px;
+            backdrop-filter: var(--blur);
+        }
+
+        .stat-chip-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .stat-chip-val {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--teal-neon);
+        }
+
+        /* ── MAIN STUDIO GRID ────────────────────────────────────────────── */
+        .studio-layout {
+            padding: 24px 40px 60px;
+            display: grid;
+            grid-template-columns: 460px 1fr 380px;
+            gap: 24px;
+            flex: 1;
+        }
+
+        @media (max-width: 1400px) {
+            .studio-layout { grid-template-columns: 420px 1fr; }
+            .telemetry-column { grid-column: span 2; }
+        }
+
+        @media (max-width: 1024px) {
+            .studio-layout { grid-template-columns: 1fr; }
+            .telemetry-column { grid-column: span 1; }
+        }
+
+        /* ── PANELS ──────────────────────────────────────────────────────── */
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            backdrop-filter: var(--blur);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            position: relative;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 12px;
+        }
+
+        .panel-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* ── ARCHETYPES SELECTOR ─────────────────────────────────────────── */
+        .archetype-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .archetype-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .archetype-card:hover {
+            border-color: var(--teal-neon);
+            background: rgba(0, 245, 212, 0.04);
+            transform: translateY(-2px);
+        }
+
+        .archetype-card.active {
+            border-color: var(--teal-neon);
+            background: rgba(0, 245, 212, 0.08);
+            box-shadow: 0 0 16px rgba(0, 245, 212, 0.25);
+        }
+
+        .archetype-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .archetype-desc {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .archetype-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            color: var(--gold-bright);
+            margin-top: 6px;
+            display: block;
+        }
+
+        /* ── ACCELERATION TIERS CONTROL ──────────────────────────────────── */
+        .tier-select-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tier-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tier-option:hover {
+            border-color: var(--purple-accel);
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .tier-option.selected {
+            border-color: var(--purple-accel);
+            background: rgba(139, 92, 246, 0.12);
+            box-shadow: 0 0 14px rgba(139, 92, 246, 0.25);
+        }
+
+        .tier-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tier-name {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .tier-sub {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .tier-factor {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--gold-bright);
+        }
+
+        /* ── 3D CANVAS VIEWPORT ──────────────────────────────────────────── */
+        .viewport-container {
+            position: relative;
+            width: 100%;
+            height: 480px;
+            background: radial-gradient(circle at center, #0a1122 0%, #03060c 85%);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+        }
+
+        #viewportCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: grab;
+        }
+
+        #viewportCanvas:active {
+            cursor: grabbing;
+        }
+
+        .viewport-overlay {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .viewport-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            color: var(--teal-neon);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(6, 10, 18, 0.75);
+            padding: 4px 8px;
+            border-radius: 4px;
+            backdrop-filter: blur(4px);
+        }
+
+        .viewport-hud {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            background: rgba(6, 10, 18, 0.75);
+            padding: 4px 8px;
+            border-radius: 4px;
+            backdrop-filter: blur(4px);
+        }
+
+        .viewport-controls-hint {
+            position: absolute;
+            bottom: 12px;
+            right: 14px;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            background: rgba(6, 10, 18, 0.75);
+            padding: 4px 8px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        /* ── 8-OCTANT SPATIAL DISTRIBUTION ──────────────────────────────── */
+        .octant-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .octant-bars {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .octant-cell {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .octant-label {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .octant-progress-track {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .octant-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--teal-neon), var(--purple-accel));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* ── BENCHMARK RESULTS TABLE ─────────────────────────────────────── */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            margin-top: 8px;
+        }
+
+        .results-table th {
+            text-align: left;
+            padding: 8px 10px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-subtle);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+
+        .results-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .results-table tr:hover td {
+            background: rgba(0, 245, 212, 0.03);
+        }
+
+        .grade-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            display: inline-block;
+        }
+
+        .grade-s { background: rgba(0, 245, 212, 0.2); color: var(--teal-neon); border: 1px solid var(--teal-neon); }
+        .grade-a { background: rgba(16, 185, 129, 0.2); color: var(--success-green); border: 1px solid var(--success-green); }
+        .grade-b { background: rgba(255, 209, 102, 0.2); color: var(--gold-bright); border: 1px solid var(--gold-bright); }
+        .grade-c { background: rgba(239, 68, 68, 0.2); color: var(--danger-red); border: 1px solid var(--danger-red); }
+
+        /* ── TELEMETRY COLUMN ────────────────────────────────────────────── */
+        .telemetry-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .telem-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .telem-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .telem-val {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--teal-neon);
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .slider-control {
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            cursor: pointer;
+            accent-color: var(--teal-neon);
+        }
+
+        .fan-discount-banner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.72rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #6ee7b7;
+        }
+
+        .fan-discount-banner.inactive {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .footer-note {
+            padding: 20px 40px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-subtle);
+            font-family: 'Fira Code', monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── NAVIGATION ──────────────────────────────────────────────── -->
+    <header class="studio-nav">
+        <a href="/" class="brand-container">
+            <span class="brand-title">KRYSTAL BENCHMARK</span>
+            <span class="engine-badge">POLYMORPHIC &amp; TELEMETRY ACCEL</span>
+        </a>
+        <div class="header-actions">
+            <div class="hp-vital-bar">
+                <span>VITAL HP</span>
+                <div class="hp-dots">
+                    <div class="hp-dot"></div>
+                    <div class="hp-dot"></div>
+                    <div class="hp-dot"></div>
+                    <div class="hp-dot"></div>
+                    <div class="hp-dot"></div>
+                    <div class="hp-dot"></div>
+                </div>
+                <span>6/6</span>
+            </div>
+            <button class="btn-run-bench" id="btnRunBenchmark" onclick="runBenchmark()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                RUN ACCELERATED BENCHMARK
+            </button>
+        </div>
+    </header>
+
+    <!-- ── HERO BANNER ─────────────────────────────────────────────── -->
+    <div class="hero-banner">
+        <div class="hero-content">
+            <h1>POLYMORPHIC SHAPE &amp; TELEMETRY BENCHMARK</h1>
+            <p>
+                Vysoko-priepustné vyhodnotenie 6 kanonických 3D archetypov akcelerované proprietárnymi riešeniami:
+                <strong>NPU Binary Coprocessor Vector Micro-Ops</strong>, <strong>Tectonic Matrix Speculative Cache</strong> a <strong>Fibonacci Spiral Tensor Indexing</strong> s integrovanou Ohmovou telemetriou.
+            </p>
+        </div>
+        <div class="stats-strip">
+            <div class="stat-chip">
+                <div class="stat-chip-label">Speedup Factor</div>
+                <div class="stat-chip-val" id="statSpeedup">4.65x</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-chip-label">Throughput (verts/s)</div>
+                <div class="stat-chip-val" id="statThroughput">40.7M</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-chip-label">Overall Grade</div>
+                <div class="stat-chip-val" id="statGrade">GRADE_S</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MAIN STUDIO LAYOUT ──────────────────────────────────────── -->
+    <main class="studio-layout">
+
+        <!-- ── COLUMN 1: ARCHETYPES & ACCELERATION TIERS ─────────────── -->
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">Shape Archetypes</div>
+                    <div class="panel-subtitle">6 CANONICAL 3D STRUCTURES</div>
+                </div>
+            </div>
+
+            <div class="archetype-grid" id="archetypeGrid">
+                <div class="archetype-card active" data-archetype="TACTICAL_OBELISK" onclick="selectArchetype('TACTICAL_OBELISK')">
+                    <div class="archetype-name">Tactical Obelisk</div>
+                    <div class="archetype-desc">Quad pyramid with vertical stepped plinths and sharp silhouette.</div>
+                    <span class="archetype-badge">612 Verts · 8 Octants</span>
+                </div>
+                <div class="archetype-card" data-archetype="CITADEL_SPIRE" onclick="selectArchetype('CITADEL_SPIRE')">
+                    <div class="archetype-name">Citadel Spire</div>
+                    <div class="archetype-desc">High-altitude needle spire surrounded by dual floating rings.</div>
+                    <span class="archetype-badge">756 Verts · 8 Octants</span>
+                </div>
+                <div class="archetype-card" data-archetype="BIOPHILIC_ORGANIC" onclick="selectArchetype('BIOPHILIC_ORGANIC')">
+                    <div class="archetype-name">Biophilic Organic</div>
+                    <div class="archetype-desc">Smooth toroid manifold with Fibonacci parametric undulations.</div>
+                    <span class="archetype-badge">864 Verts · 8 Octants</span>
+                </div>
+                <div class="archetype-card" data-archetype="KINETIC_MECHANISM" onclick="selectArchetype('KINETIC_MECHANISM')">
+                    <div class="archetype-name">Kinetic Mechanism</div>
+                    <div class="archetype-desc">Planetary gear teeth, helical rotor vanes, and central hub.</div>
+                    <span class="archetype-badge">920 Verts · 8 Octants</span>
+                </div>
+                <div class="archetype-card" data-archetype="ETHEREAL_CRYSTAL" onclick="selectArchetype('ETHEREAL_CRYSTAL')">
+                    <div class="archetype-name">Ethereal Crystal</div>
+                    <div class="archetype-desc">Bipyramidal core with 8 orbital floating shard facets.</div>
+                    <span class="archetype-badge">588 Verts · 8 Octants</span>
+                </div>
+                <div class="archetype-card" data-archetype="TACTICAL_DRONE" onclick="selectArchetype('TACTICAL_DRONE')">
+                    <div class="archetype-name">Tactical Drone</div>
+                    <div class="archetype-desc">Aerodynamic fuselage, swept delta wings, and thruster bells.</div>
+                    <span class="archetype-badge">684 Verts · 8 Octants</span>
+                </div>
+            </div>
+
+            <div class="panel-header" style="margin-top: 10px;">
+                <div>
+                    <div class="panel-title">Acceleration Tier</div>
+                    <div class="panel-subtitle">INTERNAL RUNTIME PIPELINE</div>
+                </div>
+            </div>
+
+            <div class="tier-select-container">
+                <div class="tier-option selected" data-tier="INTERNAL_KRYSTAL_STACK_SUITE" onclick="selectTier('INTERNAL_KRYSTAL_STACK_SUITE')">
+                    <div class="tier-info">
+                        <span class="tier-name">Krystal-Stack Suite (Full)</span>
+                        <span class="tier-sub">NPU + Tectonic Speculative + Fibonacci</span>
+                    </div>
+                    <span class="tier-factor">4.65x Max</span>
+                </div>
+                <div class="tier-option" data-tier="NPU_BINARY_COPROCESSOR_VECTOR" onclick="selectTier('NPU_BINARY_COPROCESSOR_VECTOR')">
+                    <div class="tier-info">
+                        <span class="tier-name">NPU Binary Coprocessor</span>
+                        <span class="tier-sub">Direct 64-bit vector micro-ops</span>
+                    </div>
+                    <span class="tier-factor">2.80x</span>
+                </div>
+                <div class="tier-option" data-tier="TECTONIC_MATRIX_SPECULATIVE_CACHE" onclick="selectTier('TECTONIC_MATRIX_SPECULATIVE_CACHE')">
+                    <div class="tier-info">
+                        <span class="tier-name">Tectonic Matrix Cache</span>
+                        <span class="tier-sub">Speculative octant branch pruning</span>
+                    </div>
+                    <span class="tier-factor">2.10x</span>
+                </div>
+                <div class="tier-option" data-tier="FIBONACCI_SPIRAL_TENSOR_INDEX" onclick="selectTier('FIBONACCI_SPIRAL_TENSOR_INDEX')">
+                    <div class="tier-info">
+                        <span class="tier-name">Fibonacci Spiral Tensor</span>
+                        <span class="tier-sub">Golden-angle harmonic indexing</span>
+                    </div>
+                    <span class="tier-factor">1.80x</span>
+                </div>
+                <div class="tier-option" data-tier="STANDARD_SCALAR_BASELINE" onclick="selectTier('STANDARD_SCALAR_BASELINE')">
+                    <div class="tier-info">
+                        <span class="tier-name">Standard Scalar Baseline</span>
+                        <span class="tier-sub">Unoptimized sequential CPU loops</span>
+                    </div>
+                    <span class="tier-factor">1.00x Base</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── COLUMN 2: 3D VIEWPORT & OCTANT RADAR ──────────────────── -->
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">Interactive 3D Polymorphic Projection</div>
+                    <div class="panel-subtitle" id="viewportSubTitle">TACTICAL_OBELISK · 612 VERTICES</div>
+                </div>
+                <button class="btn-run-bench" style="padding: 5px 12px; font-size: 0.75rem;" onclick="resetCamera()">RESET CAMERA</button>
+            </div>
+
+            <div class="viewport-container">
+                <canvas id="viewportCanvas"></canvas>
+                <div class="viewport-overlay">
+                    <span class="viewport-title" id="overlayArchetype">TACTICAL OBELISK</span>
+                    <span class="viewport-hud" id="overlayCentroid">Centroid: (0.00, 0.00, 0.00)</span>
+                    <span class="viewport-hud" id="overlayRadius">Bounding R: 28.40</span>
+                </div>
+                <div class="viewport-controls-hint">Drag: Rotate 3D · Scroll: Zoom</div>
+            </div>
+
+            <div class="octant-section">
+                <div class="panel-header" style="padding-bottom: 6px;">
+                    <div>
+                        <div class="panel-title" style="font-size: 0.95rem;">8-Octant Spatial Partitioning</div>
+                        <div class="panel-subtitle">BITWISE OCTANT INDEXING [0..7]</div>
+                    </div>
+                </div>
+                <div class="octant-bars" id="octantBars">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Benchmark Breakdown Table -->
+            <div class="panel-header" style="margin-top: 10px; padding-bottom: 6px;">
+                <div>
+                    <div class="panel-title" style="font-size: 0.95rem;">Benchmark Archetype Matrix</div>
+                    <div class="panel-subtitle">SCALAR BASELINE VS. ACCELERATED RUNTIME</div>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Archetype</th>
+                            <th>Vertices</th>
+                            <th>Baseline</th>
+                            <th>Accel</th>
+                            <th>Speedup</th>
+                            <th>Throughput</th>
+                            <th>Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── COLUMN 3: HARDWARE TELEMETRY & OHMIC CONTROLS ─────────── -->
+        <div class="panel telemetry-column">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">Ohmic Telemetry</div>
+                    <div class="panel-subtitle">PHYSICAL LAW $P = V^2 / R$</div>
+                </div>
+            </div>
+
+            <div class="telemetry-card">
+                <div class="telem-row">
+                    <span class="telem-label">Core Voltage ($V$):</span>
+                    <span class="telem-val" id="valVoltage">1.15 V</span>
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header"><span>0.80 V</span><span>1.40 V</span></div>
+                    <input type="range" class="slider-control" id="sliderVoltage" min="0.80" max="1.40" step="0.01" value="1.15" oninput="updateTelemetry()">
+                </div>
+
+                <div class="telem-row">
+                    <span class="telem-label">Circuit Resistance ($R$):</span>
+                    <span class="telem-val" id="valResistance">0.045 Ω</span>
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header"><span>0.020 Ω</span><span>0.100 Ω</span></div>
+                    <input type="range" class="slider-control" id="sliderResistance" min="0.020" max="0.100" step="0.001" value="0.045" oninput="updateTelemetry()">
+                </div>
+
+                <div class="telem-row">
+                    <span class="telem-label">Junction Temperature ($T$):</span>
+                    <span class="telem-val" id="valTemp">52.4 °C</span>
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header"><span>35.0 °C</span><span>85.0 °C</span></div>
+                    <input type="range" class="slider-control" id="sliderTemp" min="35.0" max="85.0" step="0.5" value="52.4" oninput="updateTelemetry()">
+                </div>
+
+                <div class="telem-row">
+                    <span class="telem-label">L2 Cache Limit:</span>
+                    <span class="telem-val" id="valL2">4.00 MB</span>
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header"><span>1.0 MB</span><span>8.0 MB</span></div>
+                    <input type="range" class="slider-control" id="sliderL2" min="1.0" max="8.0" step="0.25" value="4.0" oninput="updateTelemetry()">
+                </div>
+            </div>
+
+            <div class="panel-header" style="margin-top: 10px;">
+                <div>
+                    <div class="panel-title">Computed Physics State</div>
+                    <div class="panel-subtitle">THERMODYNAMIC BUDGET</div>
+                </div>
+            </div>
+
+            <div class="telemetry-card">
+                <div class="telem-row">
+                    <span class="telem-label">Calculated Power ($P$):</span>
+                    <span class="telem-val" id="valPower">29.39 W</span>
+                </div>
+                <div class="telem-row">
+                    <span class="telem-label">Thermal Energy:</span>
+                    <span class="telem-val" id="valEnergy">0.147 J / pass</span>
+                </div>
+                <div class="telem-row">
+                    <span class="telem-label">L2 Cache Budget:</span>
+                    <span class="telem-val" id="valL2Budget">1.82 MB (45.5%)</span>
+                </div>
+                
+                <div class="fan-discount-banner" id="fanDiscountBanner">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V15a1 1 0 0 0-2 0v1.93A8 8 0 0 1 4.07 13H6a1 1 0 0 0 0-2H4.07A8 8 0 0 1 11 4.07V6a1 1 0 0 0 2 0V4.07A8 8 0 0 1 19.93 11H18a1 1 0 0 0 0 2h1.93A8 8 0 0 1 13 16.93z"/>
+                    </svg>
+                    <span>30% Active Fan Cooling Discount (Temp &le; 55.0°C)</span>
+                </div>
+            </div>
+
+            <button class="btn-run-bench" style="margin-top: 10px; width: 100%; justify-content: center; background: rgba(139, 92, 246, 0.2); border: 1px solid var(--purple-accel); color: #c4b5fd;" onclick="runStressTest()">
+                RUN 10x STRESS ITERATIONS
+            </button>
+        </div>
+
+    </main>
+
+    <!-- ── FOOTER ──────────────────────────────────────────────────── -->
+    <footer class="footer-note">
+        KRYSTAL-STACK PLATFORM FRAMEWORK // POLYMORPHIC TELEMETRY BENCHMARK ENGINE v2.0 // VITAL_MAX_HP == 6 INVARIANT ENFORCED
+    </footer>
+
+    <!-- ── SCRIPT LOGIC & 3D WIREFRAME RENDERER ───────────────────── -->
+    <script>
+        // State
+        let activeArchetype = "TACTICAL_OBELISK";
+        let activeTier = "INTERNAL_KRYSTAL_STACK_SUITE";
+        let currentVertices = [];
+        let currentCentroid = [0, 0, 0];
+        let currentRadius = 25.0;
+        let currentOctants = { octants: {}, total_points: 0 };
+        let rotX = 0.4;
+        let rotY = 0.6;
+        let zoom = 1.0;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        const canvas = document.getElementById('viewportCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            render3D();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Mouse Drag to rotate 3D mesh
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - lastMouseX;
+            const dy = e.clientY - lastMouseY;
+            rotY += dx * 0.01;
+            rotX += dy * 0.01;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            render3D();
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            zoom *= (e.deltaY > 0 ? 0.92 : 1.08);
+            zoom = Math.max(0.3, Math.min(zoom, 4.0));
+            render3D();
+        });
+
+        function resetCamera() {
+            rotX = 0.4;
+            rotY = 0.6;
+            zoom = 1.0;
+            render3D();
+        }
+
+        // Render 3D Points & Wireframe
+        function render3D() {
+            const w = canvas.parentElement.clientWidth;
+            const h = canvas.parentElement.clientHeight;
+            ctx.clearRect(0, 0, w, h);
+
+            if (!currentVertices || currentVertices.length === 0) return;
+
+            const cx = w / 2;
+            const cy = h / 2;
+            const scale = (Math.min(w, h) * 0.35 / (currentRadius || 25.0)) * zoom;
+
+            const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+            const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+
+            // Project vertices
+            const projected = currentVertices.map(v => {
+                // translate by centroid
+                let x = v[0] - currentCentroid[0];
+                let y = v[1] - currentCentroid[1];
+                let z = v[2] - currentCentroid[2];
+
+                // Y-axis rotation
+                let x1 = x * cosY + z * sinY;
+                let z1 = -x * sinY + z * cosY;
+
+                // X-axis rotation
+                let y2 = y * cosX - z1 * sinX;
+                let z2 = y * sinX + z1 * cosX;
+
+                return {
+                    x: cx + x1 * scale,
+                    y: cy - y2 * scale,
+                    z: z2,
+                    origZ: v[2]
+                };
+            });
+
+            // Draw Octant axes
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+            ctx.beginPath();
+            ctx.moveTo(cx - 140, cy); ctx.lineTo(cx + 140, cy);
+            ctx.moveTo(cx, cy - 140); ctx.lineTo(cx, cy + 140);
+            ctx.stroke();
+
+            // Connect nearest neighbor points with subtle lines
+            ctx.strokeStyle = "rgba(0, 245, 212, 0.14)";
+            ctx.lineWidth = 0.8;
+            for (let i = 0; i < projected.length; i += 3) {
+                if (i + 1 < projected.length) {
+                    ctx.beginPath();
+                    ctx.moveTo(projected[i].x, projected[i].y);
+                    ctx.lineTo(projected[i+1].x, projected[i+1].y);
+                    ctx.stroke();
+                }
+            }
+
+            // Draw Vertices
+            for (let p of projected) {
+                const depthAlpha = Math.max(0.2, Math.min(1.0, (p.z + 40) / 80));
+                ctx.fillStyle = `rgba(0, 245, 212, ${depthAlpha * 0.85})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2.2 * Math.max(0.6, depthAlpha), 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw Centroid
+            ctx.fillStyle = "#ffd166";
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "rgba(255, 209, 102, 0.5)";
+            ctx.stroke();
+        }
+
+        // Fetch Mesh from API
+        async function fetchArchetypeMesh(archetype) {
+            try {
+                const res = await fetch('/api/benchmark/polymorphic-telemetry/shape-mesh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ archetype: archetype, density_multiplier: 1.0 })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    currentVertices = data.vertices || [];
+                    currentCentroid = data.centroid || [0, 0, 0];
+                    currentRadius = data.bounding_radius || 25.0;
+                    currentOctants = data.octant_distribution || { octants: {} };
+
+                    document.getElementById('overlayArchetype').innerText = archetype.replace(/_/g, ' ');
+                    document.getElementById('viewportSubTitle').innerText = `${archetype} · ${data.vertex_count} VERTICES`;
+                    document.getElementById('overlayCentroid').innerText = `Centroid: (${currentCentroid[0].toFixed(2)}, ${currentCentroid[1].toFixed(2)}, ${currentCentroid[2].toFixed(2)})`;
+                    document.getElementById('overlayRadius').innerText = `Bounding R: ${currentRadius.toFixed(2)}`;
+
+                    renderOctantBars(currentOctants);
+                    render3D();
+                }
+            } catch (err) {
+                console.error("Failed to load mesh:", err);
+            }
+        }
+
+        function renderOctantBars(dist) {
+            const container = document.getElementById('octantBars');
+            container.innerHTML = '';
+            const octs = dist.octants || {};
+            const total = dist.total_points || 1;
+
+            for (let i = 0; i < 8; i++) {
+                const count = octs[i] || 0;
+                const pct = ((count / total) * 100).toFixed(1);
+                const cell = document.createElement('div');
+                cell.className = 'octant-cell';
+                cell.innerHTML = `
+                    <div class="octant-label">
+                        <span>Octant ${i}</span>
+                        <span>${pct}%</span>
+                    </div>
+                    <div class="octant-progress-track">
+                        <div class="octant-progress-fill" style="width: ${pct}%"></div>
+                    </div>
+                `;
+                container.appendChild(cell);
+            }
+        }
+
+        // Selection Handlers
+        function selectArchetype(arch) {
+            activeArchetype = arch;
+            document.querySelectorAll('.archetype-card').forEach(el => {
+                el.classList.toggle('active', el.dataset.archetype === arch);
+            });
+            fetchArchetypeMesh(arch);
+        }
+
+        function selectTier(tier) {
+            activeTier = tier;
+            document.querySelectorAll('.tier-option').forEach(el => {
+                el.classList.toggle('selected', el.dataset.tier === tier);
+            });
+        }
+
+        // Telemetry Sliders
+        function updateTelemetry() {
+            const v = parseFloat(document.getElementById('sliderVoltage').value);
+            const r = parseFloat(document.getElementById('sliderResistance').value);
+            const t = parseFloat(document.getElementById('sliderTemp').value);
+            const l2 = parseFloat(document.getElementById('sliderL2').value);
+
+            document.getElementById('valVoltage').innerText = `${v.toFixed(2)} V`;
+            document.getElementById('valResistance').innerText = `${r.toFixed(3)} Ω`;
+            document.getElementById('valTemp').innerText = `${t.toFixed(1)} °C`;
+            document.getElementById('valL2').innerText = `${l2.toFixed(2)} MB`;
+
+            // P = V^2 / R
+            let power = (v * v) / r;
+            if (t <= 55.0) {
+                power *= 0.70; // 30% fan discount
+                document.getElementById('fanDiscountBanner').classList.remove('inactive');
+            } else {
+                document.getElementById('fanDiscountBanner').classList.add('inactive');
+            }
+
+            document.getElementById('valPower').innerText = `${power.toFixed(2)} W`;
+            document.getElementById('valEnergy').innerText = `${(power * 0.005).toFixed(4)} J / pass`;
+            document.getElementById('valL2Budget').innerText = `${(l2 * 0.45).toFixed(2)} MB (45.0%)`;
+        }
+
+        // Benchmark Run
+        async function runBenchmark(iterations = 3) {
+            const btn = document.getElementById('btnRunBenchmark');
+            btn.disabled = true;
+            btn.innerText = "BENCHMARKING...";
+
+            const v = parseFloat(document.getElementById('sliderVoltage').value);
+            const r = parseFloat(document.getElementById('sliderResistance').value);
+            const t = parseFloat(document.getElementById('sliderTemp').value);
+            const l2 = parseFloat(document.getElementById('sliderL2').value);
+
+            try {
+                const res = await fetch('/api/benchmark/polymorphic-telemetry/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        acceleration_tier: activeTier,
+                        density_multiplier: 1.0,
+                        iterations: iterations,
+                        core_voltage_v: v,
+                        circuit_resistance_ohms: r,
+                        junction_temp_celsius: t,
+                        l2_cache_limit_mb: l2
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const report = data.benchmark_report;
+                    if (report) {
+                        document.getElementById('statSpeedup').innerText = `${report.average_speedup_factor.toFixed(2)}x`;
+                        document.getElementById('statThroughput').innerText = `${(report.aggregate_throughput_verts_per_sec / 1e6).toFixed(1)}M`;
+                        document.getElementById('statGrade').innerText = report.overall_grade.replace('GRADE_', '');
+
+                        renderResultsTable(report.metrics);
+                    }
+                }
+            } catch (err) {
+                console.error("Benchmark execution failed:", err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> RUN ACCELERATED BENCHMARK`;
+            }
+        }
+
+        function runStressTest() {
+            runBenchmark(10);
+        }
+
+        function renderResultsTable(metrics) {
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = '';
+            if (!metrics) return;
+
+            metrics.forEach(m => {
+                const tr = document.createElement('tr');
+                const gradeClass = m.grade.toLowerCase().replace('_', '-');
+                tr.innerHTML = `
+                    <td><strong>${m.archetype}</strong></td>
+                    <td>${m.vertex_count}</td>
+                    <td>${m.baseline_scalar_ms.toFixed(3)} ms</td>
+                    <td style="color: var(--teal-neon); font-weight: 700;">${m.accelerated_ms.toFixed(3)} ms</td>
+                    <td style="color: var(--gold-bright); font-weight: 700;">${m.speedup_factor.toFixed(2)}x</td>
+                    <td>${(m.throughput_verts_per_sec / 1e6).toFixed(1)}M/s</td>
+                    <td><span class="grade-badge ${gradeClass}">${m.grade.replace('GRADE_', '')}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Init
+        window.addEventListener('DOMContentLoaded', () => {
+            resizeCanvas();
+            updateTelemetry();
+            fetchArchetypeMesh('TACTICAL_OBELISK');
+            runBenchmark();
+        });
+    </script>
+</body>
+</html>

@@ -187,6 +187,12 @@ from krystal_kernel.cycles_vray_hybrid_render_engine import (
     CyclesRenderParameters,
     VRayRenderParameters
 )
+from krystal_kernel.polymorphic_telemetry_benchmark_engine import (
+    GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE,
+    PolymorphicTelemetryBenchmarkEngine,
+    AccelerationTier,
+    BenchmarkGrade
+)
 from krystal_kernel.openai_llm_connector import (
     GLOBAL_OPENAI_CONNECTOR,
     OpenAILLMConnector,
@@ -1848,6 +1854,11 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_CYCLES_VRAY_ENGINE.get_engine_status())
             return
 
+        # ── POLYMORPHIC SHAPE & ACCELERATED TELEMETRY BENCHMARK ENGINE (GET)
+        if path == '/api/benchmark/polymorphic-telemetry/status':
+            self._send_json(GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.get_engine_status())
+            return
+
         # ── UNIVERSAL OPENAI LLM CONNECTOR ENDPOINTS (GET) ──────────────────
         if path == '/api/llm/status':
             self._send_json(GLOBAL_OPENAI_CONNECTOR.get_status())
@@ -3216,6 +3227,76 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "success": True,
                 "cycles_python_script": c_code,
                 "vray_config_script": v_code,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── POLYMORPHIC SHAPE & ACCELERATED TELEMETRY BENCHMARK ENGINE (POST)
+        if path == '/api/benchmark/polymorphic-telemetry/run':
+            tier_str = req_data.get("acceleration_tier", "INTERNAL_KRYSTAL_STACK_SUITE")
+            try:
+                tier = AccelerationTier[tier_str]
+            except Exception:
+                tier = AccelerationTier.INTERNAL_KRYSTAL_STACK_SUITE
+            density = float(req_data.get("density_multiplier", 1.0))
+            iterations = int(req_data.get("iterations", 3))
+            
+            # Optional custom telemetry overrides
+            voltage = req_data.get("core_voltage_v")
+            resistance = req_data.get("circuit_resistance_ohms")
+            temp = req_data.get("junction_temp_celsius")
+            l2 = req_data.get("l2_cache_limit_mb")
+            if any(v is not None for v in [voltage, resistance, temp, l2]):
+                GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.ingest_hardware_telemetry(
+                    core_voltage_v=float(voltage) if voltage is not None else 1.15,
+                    circuit_resistance_ohms=float(resistance) if resistance is not None else 0.045,
+                    junction_temp_celsius=float(temp) if temp is not None else 52.4,
+                    l2_cache_limit_mb=float(l2) if l2 is not None else 4.0
+                )
+            
+            report = GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.run_comprehensive_benchmark(
+                acceleration_tier=tier,
+                density_multiplier=density,
+                iterations=iterations
+            )
+            self._send_json({
+                "success": True,
+                "benchmark_report": report.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/benchmark/polymorphic-telemetry/shape-mesh':
+            archetype = req_data.get("archetype", "TACTICAL_OBELISK")
+            density = float(req_data.get("density_multiplier", 1.0))
+            verts = GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.generate_archetype_mesh(archetype, density)
+            octant_dist, centroid, r_max = GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.compute_octant_distribution(verts)
+            self._send_json({
+                "success": True,
+                "archetype": archetype,
+                "vertex_count": len(verts),
+                "vertices": verts[:600],
+                "octant_distribution": octant_dist.to_dict(),
+                "centroid": centroid,
+                "bounding_radius": r_max,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/benchmark/polymorphic-telemetry/telemetry':
+            voltage = float(req_data.get("core_voltage_v", 1.15))
+            resistance = float(req_data.get("circuit_resistance_ohms", 0.045))
+            temp = float(req_data.get("junction_temp_celsius", 52.4))
+            l2 = float(req_data.get("l2_cache_limit_mb", 4.0))
+            telem = GLOBAL_POLYMORPHIC_BENCHMARK_ENGINE.ingest_hardware_telemetry(
+                core_voltage_v=voltage,
+                circuit_resistance_ohms=resistance,
+                junction_temp_celsius=temp,
+                l2_cache_limit_mb=l2
+            )
+            self._send_json({
+                "success": True,
+                "telemetry": telem.to_dict(),
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return
