@@ -1,0 +1,33 @@
+{
+  "kinds": ["OBSERVED", "DERIVED", "PREDICTED", "VALIDATED", "COUNTERFACTUAL", "QUARANTINED"],
+  "implicit_conversions": [
+    ["OBSERVED", "DERIVED"]
+  ],
+  "forbidden_conversions": [
+    ["PREDICTED", "OBSERVED"],
+    ["COUNTERFACTUAL", "OBSERVED"],
+    ["COUNTERFACTUAL", "VALIDATED"],
+    ["QUARANTINED", "OBSERVED"]
+  ],
+  "explicit_transitions": {
+    "PREDICTED->VALIDATED": "requires EvidenceGate corroboration by a non-expired OBSERVED node",
+    "VALIDATED->actuation": "requires Authority approval + SafetyGate pass",
+    "any->QUARANTINED": "EvidenceGate may defer at any time"
+  },
+  "actuation_allowed_from": ["VALIDATED"],
+  "actuation_forbidden_from": ["PREDICTED", "COUNTERFACTUAL", "QUARANTINED", "DERIVED_FROM_PREDICTED"],
+  "derivation_rule": "kind(op(a,b)) = worst_of(kind(a), kind(b)) with order OBSERVED < DERIVED < PREDICTED < COUNTERFACTUAL",
+  "temporal_qualifiers": {
+    "EPOCH_LEASED": "expired evidence cannot participate in commit authority",
+    "MONOTONIC_LATCH": "value may only advance state_version",
+    "BISTABLE_HYSTERETIC": "two thresholds; no flapping",
+    "SHADOW_HYPOTHETICAL": "zero host mutation; never commit-eligible"
+  },
+  "authority": {
+    "may_propose": ["planner", "healer"],
+    "may_veto": ["SafetyGate"],
+    "may_defer": ["EvidenceGate"],
+    "may_commit": ["Authority"],
+    "learning_may_mutate_authority_policy": false
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "edge_kinds": ["PREDICTS", "INVALIDATES", "DERIVES_FROM", "CORROBORATES", "BOUNDS"],
+  "invalidation_propagates_over": ["PREDICTS", "INVALIDATES", "DERIVES_FROM"],
+  "non_propagating": ["CORROBORATES", "BOUNDS"],
+  "direction": "edge (src -> dst): change in src invalidates dst; DERIVES_FROM is stored dependent->source and propagates source->dependent",
+  "scope": "domain-scoped read sets; a change MUST NOT invalidate nodes outside the transitive downstream closure",
+  "versioning": "per-domain state_version; consumers compare version of their read set only",
+  "healer_circuits": ["shadow_exploration", "proof_amortization", "domain_scoped_versioning", "invariant_lock", "memory_sentinel"],
+  "healer_authority": "propose only; reversible; SafetyGate veto; no policy mutation"
+}

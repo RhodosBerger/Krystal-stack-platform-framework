@@ -109,6 +109,13 @@ def parse_yaml_subset(text: str) -> Dict[str, Any]:
                 cur_list = parent_obj[parent_key]
             elif isinstance(parent_obj, list):
                 cur_list = parent_obj
+            elif (isinstance(parent_obj, dict) and not parent_obj and len(stack) > 1
+                  and stack[-2][2] is not None and isinstance(stack[-2][1], dict)
+                  and stack[-2][1].get(stack[-2][2]) is parent_obj):
+                # Empty placeholder dict created by 'key:' -> this key holds a block list
+                cur_list = []
+                stack[-2][1][stack[-2][2]] = cur_list
+                stack[-1] = (stack[-1][0], cur_list, None)
             else:
                 cur_list = []
 

@@ -1,0 +1,19 @@
+{
+  "abi_version": 1,
+  "c_standard": "C17",
+  "rules": {
+    "field_order": "declared order in binary_layouts.yaml is authoritative; C, Rust repr(C) and ctypes are generated, never hand-written",
+    "padding": "explicit reserved fields only; no implicit padding permitted (generator rejects gaps)",
+    "alignment": "struct alignment >= 64 for cacheline-resident envelopes",
+    "endianness": "little unless a packet declares @big_endian",
+    "integrity": "crc32 IEEE over declared range; verified on decode",
+    "errors": "no exceptions; kr_status return + out parameter",
+    "pointers_in_wire_structs": "forbidden"
+  },
+  "status_codes": {"KR_OK": 0, "KR_ERR_BAD_MAGIC": 1, "KR_ERR_BAD_CRC": 2, "KR_ERR_BAD_VERSION": 3, "KR_ERR_INVARIANT": 4, "KR_ERR_NULL": 5},
+  "api_ownership": {
+    "kr_envelope_seal": {"allocates": "caller", "frees": "caller", "mutates": "arg0", "lifetime": "call"},
+    "kr_envelope_validate": {"allocates": "none", "frees": "none", "mutates": "none", "lifetime": "call"}
+  },
+  "claims_policy": "performance numbers live in claims_ledger.json with status DECLARED|MEASURED|REPRODUCED|UNVERIFIED; only REPRODUCED may be cited as fact"
+}

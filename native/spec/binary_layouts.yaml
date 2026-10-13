@@ -1,0 +1,44 @@
+{
+  "_comment": "SSOT. JSON-subset YAML (parseable by json or PyYAML). Generated artifacts live in native/generated/. Do not hand-edit those.",
+  "structs": [
+    {
+      "name": "kr_resource_evidence_envelope",
+      "version": 1,
+      "size": 64,
+      "alignment": 64,
+      "endianness": "little",
+      "ownership": "caller_allocated_value_type",
+      "lifetime": "copy; no pointers inside; valid until lease expiry",
+      "mutation_rights": "producer_sets_once; consumers read-only; kr_envelope_seal() recomputes crc",
+      "crc": {"algorithm": "crc32_ieee", "field": "crc32", "covers": [0, 56]},
+      "fields": [
+        {"name": "magic",          "type": "u8[4]", "offset": 0,  "doc": "ASCII 'KREV'"},
+        {"name": "abi_version",    "type": "u16",   "offset": 4},
+        {"name": "flags",          "type": "u16",   "offset": 6,  "doc": "bit0=sealed"},
+        {"name": "state_version",  "type": "u64",   "offset": 8,  "doc": "domain-scoped monotone version"},
+        {"name": "observed_ns",    "type": "u64",   "offset": 16, "doc": "CLOCK_MONOTONIC ns"},
+        {"name": "lease_ttl_ns",   "type": "u64",   "offset": 24, "doc": "0 = no lease (never commit-eligible)"},
+        {"name": "value",          "type": "f64",   "offset": 32},
+        {"name": "uncertainty",    "type": "f64",   "offset": 40, "doc": "1-sigma absolute"},
+        {"name": "domain_id",      "type": "u32",   "offset": 48},
+        {"name": "epistemic_kind", "type": "u8",    "offset": 52, "enum": "epistemic_kind"},
+        {"name": "temporal_mode",  "type": "u8",    "offset": 53, "enum": "temporal_mode"},
+        {"name": "ownership",      "type": "u8",    "offset": 54, "enum": "ownership"},
+        {"name": "reserved0",      "type": "u8",    "offset": 55, "doc": "must be 0"},
+        {"name": "crc32",          "type": "u32",   "offset": 56},
+        {"name": "reserved1",      "type": "u32",   "offset": 60, "doc": "must be 0"}
+      ],
+      "golden": {
+        "magic": [75, 82, 69, 86], "abi_version": 1, "flags": 1, "state_version": 42,
+        "observed_ns": 1000000000, "lease_ttl_ns": 250000000, "value": 71.5,
+        "uncertainty": 0.25, "domain_id": 7, "epistemic_kind": 0,
+        "temporal_mode": 1, "ownership": 0
+      }
+    }
+  ],
+  "enums": {
+    "epistemic_kind": {"OBSERVED": 0, "DERIVED": 1, "PREDICTED": 2, "VALIDATED": 3, "COUNTERFACTUAL": 4, "QUARANTINED": 5},
+    "temporal_mode": {"MONOTONIC_LATCH": 0, "EPOCH_LEASED": 1, "BISTABLE_HYSTERETIC": 2, "SHADOW_HYPOTHETICAL": 3},
+    "ownership": {"OWNED": 0, "BORROWED": 1, "VIEW": 2, "PINNED": 3, "SHARED_RING": 4}
+  }
+}

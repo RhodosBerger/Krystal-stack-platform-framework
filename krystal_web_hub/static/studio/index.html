@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Krystal Studio – Render & Workspace SaaS</title>
+<meta name="description" content="Krystal Studio: SAP-style workspace organisation with Adobe / Inkscape / GIMP hybrid canvas editor and keyboard shortcuts.">
+<link rel="stylesheet" href="studio.css">
+</head>
+<body>
+<!-- SHELL BAR (SAP Fiori style) -->
+<header class="shellbar" role="banner">
+  <div class="brand"><span class="logo">K</span><h1>Krystal Studio</h1></div>
+  <nav class="menubar" id="menubar" aria-label="Hlavné menu"></nav>
+  <div class="spacer"></div>
+  <button id="btn-palette" class="chip" title="Ctrl+K">⌘ Príkazy <kbd>Ctrl+K</kbd></button>
+  <button id="btn-help" class="chip" title="F1">Skratky <kbd>F1</kbd></button>
+</header>
+
+<div class="workspace">
+  <!-- SIDE NAVIGATION: SAP-like module tree -->
+  <aside class="sidenav" id="sidenav" aria-label="Moduly">
+    <div class="nav-group"><h2>Workspace</h2>
+      <button class="nav-item active" data-view="canvas">🎨 Canvas Editor</button>
+      <button class="nav-item" data-view="projects">📁 Projekty</button>
+      <button class="nav-item" data-view="renders">🖼 Render Queue</button>
+      <button class="nav-item" data-view="billing">💳 Billing / Tiers</button>
+      <button class="nav-item" data-view="audit">🧾 Audit Log</button>
+    </div>
+    <div class="nav-group"><h2>Vrstvy</h2><ul id="layers" class="layers"></ul></div>
+  </aside>
+
+  <main class="content">
+    <!-- Toolbox (left of canvas, GIMP/Inkscape style) -->
+    <section id="view-canvas" class="view active">
+      <div class="optionsbar" id="optionsbar">
+        <label>Výplň <input type="color" id="fill" value="#7c5cff"></label>
+        <label>Obrys <input type="color" id="stroke" value="#ffffff"></label>
+        <label>Hrúbka <input type="number" id="sw" value="2" min="0" max="64"></label>
+        <label>Krytie <input type="range" id="opacity" min="0" max="100" value="100"></label>
+        <label><input type="checkbox" id="snap" checked> Snap (')</label>
+        <label><input type="checkbox" id="grid" checked> Mriežka (#)</label>
+        <span class="spacer"></span>
+        <span id="zoomlbl">100 %</span>
+      </div>
+      <div class="editor">
+        <div class="toolbox" id="toolbox"></div>
+        <div class="stage" id="stage"><canvas id="cv"></canvas></div>
+        <aside class="inspector" id="inspector">
+          <h2>Vlastnosti</h2>
+          <dl id="props"><dt>Výber</dt><dd>—</dd></dl>
+          <h2>História <small>Ctrl+Z / Ctrl+Shift+Z</small></h2>
+          <ol id="history" class="history"></ol>
+        </aside>
+      </div>
+    </section>
+
+    <section id="view-projects" class="view"><h2>Projekty</h2><table class="grid" id="tbl-projects"></table></section>
+    <section id="view-renders" class="view"><h2>Render Queue</h2><table class="grid" id="tbl-renders"></table></section>
+    <section id="view-billing" class="view"><h2>Billing / Tiers</h2><table class="grid" id="tbl-billing"></table></section>
+    <section id="view-audit" class="view"><h2>Audit Log</h2><table class="grid" id="tbl-audit"></table></section>
+  </main>
+</div>
+
+<footer class="statusbar"><span id="st-tool">Tool: Move</span><span id="st-pos">0, 0</span><span id="st-msg">Pripravené</span></footer>
+
+<div id="palette" class="overlay hidden"><div class="modal"><input id="pal-input" placeholder="Hľadaj príkaz…" autocomplete="off"><ul id="pal-list"></ul></div></div>
+<div id="help" class="overlay hidden"><div class="modal wide"><h2>Klávesové skratky</h2><div id="help-body" class="helpgrid"></div></div></div>
+
+<script src="studio.js"></script>
+</body>
+</html>

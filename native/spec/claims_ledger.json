@@ -1,0 +1,11 @@
+{
+  "policy": "Numbers copied from the skill are DECLARED/UNVERIFIED until a generated benchmark reproduces them.",
+  "claims": [
+    {"id": "crc_8x", "text": "8x CRC speedup", "status": "UNVERIFIED", "evidence": null},
+    {"id": "zero_copy_32_6x", "text": "32.6x zero-copy gain", "status": "UNVERIFIED", "evidence": null},
+    {"id": "recovery_1208x", "text": "1208x recovery gain", "status": "UNVERIFIED", "evidence": null},
+    {"id": "codec_87_7x", "text": "87.7x codec gain", "status": "UNVERIFIED", "evidence": null},
+    {"id": "protix_310us", "text": "310 us PROTIX inference", "status": "DECLARED", "evidence": null},
+    {"id": "npu_1500x", "text": "1500x NPU reassignment", "status": "UNVERIFIED", "evidence": null}
+  ]
+}
