@@ -165,6 +165,10 @@ from krystal_kernel.termix_smart_contract_accountant import (
     SmartContractTransaction,
     NpuMicroOpcode
 )
+from krystal_kernel.fibonacci_paradox_pattern_orchestrator import (
+    GLOBAL_PATTERN_ORCHESTRATOR,
+    FibonacciParadoxPatternOrchestrator
+)
 from krystal_kernel.openai_llm_connector import (
     GLOBAL_OPENAI_CONNECTOR,
     OpenAILLMConnector,
@@ -1806,6 +1810,11 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json(GLOBAL_TERMIX_ACCOUNTANT.get_accountant_status())
             return
 
+        # ── FIBONACCI PARADOX PATTERN ORCHESTRATOR (GET) ───────────────────
+        if path == '/api/pattern-orchestrator/status':
+            self._send_json(GLOBAL_PATTERN_ORCHESTRATOR.get_orchestrator_status())
+            return
+
         # ── UNIVERSAL OPENAI LLM CONNECTOR ENDPOINTS (GET) ──────────────────
         if path == '/api/llm/status':
             self._send_json(GLOBAL_OPENAI_CONNECTOR.get_status())
@@ -2915,6 +2924,41 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
                 "success": True,
                 "metrics": metrics.to_dict(),
                 "context": ctx,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── FIBONACCI PARADOX PATTERN ORCHESTRATOR POST ENDPOINTS ───────────
+        if path == '/api/pattern-orchestrator/move':
+            player = req_data.get("player", "X")
+            row = int(req_data.get("row", 0))
+            col = int(req_data.get("col", 0))
+            move_res = GLOBAL_PATTERN_ORCHESTRATOR.place_symbol(player, row, col)
+            self._send_json({
+                "success": move_res.get("success", False),
+                "move_result": move_res,
+                "status": GLOBAL_PATTERN_ORCHESTRATOR.get_orchestrator_status(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/pattern-orchestrator/resolve-turn':
+            opponent_focus = req_data.get("opponent_element_focus", None)
+            res_turn = GLOBAL_PATTERN_ORCHESTRATOR.resolve_turn_or_paradox(opponent_element_focus=opponent_focus)
+            self._send_json({
+                "success": True,
+                "resolution": res_turn,
+                "status": GLOBAL_PATTERN_ORCHESTRATOR.get_orchestrator_status(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path == '/api/pattern-orchestrator/reset':
+            reset_res = GLOBAL_PATTERN_ORCHESTRATOR.reset_board()
+            self._send_json({
+                "success": True,
+                "reset_result": reset_res,
+                "status": GLOBAL_PATTERN_ORCHESTRATOR.get_orchestrator_status(),
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return
