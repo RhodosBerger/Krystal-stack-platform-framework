@@ -777,6 +777,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "factographic_network_learning_studio.html", "text/html")
             return
+        elif norm_path in (
+            "/dtp-studio", "/polygraphic-dtp", "/dtp-generator",
+            "/polygraphic_dtp_vulkan_studio.html", "/vulkan-dtp"
+        ):
+            self.serve_file(STATIC_DIR / "polygraphic_dtp_vulkan_studio.html", "text/html")
+            return
         elif norm_path in ("/cloud-backoffice", "/backoffice", "/cloud_backoffice_studio.html", "/evidence"):
             self.serve_file(STATIC_DIR / "cloud_backoffice_studio.html", "text/html")
             return
@@ -878,6 +884,21 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "OK",
                 "pyramid": GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.pyramid.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Polygraphic DTP Generator & 2B Parameter Model Engine ─
+        elif norm_path in ("/api/dtp/status", "/api/polygraphic-dtp/status"):
+            from krystal_kernel.polygraphic_dtp_generator import GLOBAL_POLYGRAPHIC_DTP_ENGINE
+            self.send_json(GLOBAL_POLYGRAPHIC_DTP_ENGINE.get_status())
+            return
+
+        elif norm_path in ("/api/dtp/scenes", "/api/polygraphic-dtp/scenes"):
+            from krystal_kernel.polygraphic_dtp_generator import GLOBAL_POLYGRAPHIC_DTP_ENGINE
+            self.send_json({
+                "status": "OK",
+                "scenes": [s.to_dict() for s in GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog.values()],
                 "vital_max_hp": 6
             })
             return
@@ -3463,6 +3484,63 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "OK",
                 "consensus_report": rep.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Polygraphic DTP Generator & 2B Parameter Model Engine ─
+        elif self.path in ("/api/dtp/generate", "/api/polygraphic-dtp/generate"):
+            from krystal_kernel.polygraphic_dtp_generator import (
+                GLOBAL_POLYGRAPHIC_DTP_ENGINE,
+                DtpProductType,
+                QuantizationPrecision
+            )
+            prompt_str = str(data.get("prompt", "Luxusná viazaná kniha s pevnou väzbou a zlatou razbou."))
+            ptype_str = data.get("product_type")
+            ptype = DtpProductType[ptype_str] if ptype_str and ptype_str in DtpProductType.__members__ else None
+            q_str = data.get("quantization", "INT4_AWQ")
+            quant = QuantizationPrecision[q_str] if q_str in QuantizationPrecision.__members__ else QuantizationPrecision.INT4_AWQ
+            scene = GLOBAL_POLYGRAPHIC_DTP_ENGINE.generate_scene_from_prompt(
+                prompt=prompt_str,
+                product_type=ptype,
+                quantization=quant
+            )
+            vram_info = GLOBAL_POLYGRAPHIC_DTP_ENGINE.estimate_vram_and_throughput(scene)
+            self.send_json({
+                "status": "OK",
+                "scene": scene.to_dict(),
+                "vram_and_throughput": vram_info,
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/dtp/blender-script", "/api/polygraphic-dtp/blender-script"):
+            from krystal_kernel.polygraphic_dtp_generator import GLOBAL_POLYGRAPHIC_DTP_ENGINE
+            scene_id = data.get("scene_id")
+            if scene_id and scene_id in GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog:
+                sc = GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog[scene_id]
+            else:
+                sc = list(GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog.values())[-1]
+            self.send_json({
+                "status": "OK",
+                "scene_id": sc.scene_id,
+                "blender_python_script": sc.blender_python_script,
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/dtp/vulkan-pipeline", "/api/polygraphic-dtp/vulkan-pipeline"):
+            from krystal_kernel.polygraphic_dtp_generator import GLOBAL_POLYGRAPHIC_DTP_ENGINE
+            scene_id = data.get("scene_id")
+            if scene_id and scene_id in GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog:
+                sc = GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog[scene_id]
+            else:
+                sc = list(GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog.values())[-1]
+            vk_desc = GLOBAL_POLYGRAPHIC_DTP_ENGINE.generate_vulkan_pipeline_descriptor(sc)
+            self.send_json({
+                "status": "OK",
+                "scene_id": sc.scene_id,
+                "vulkan_pipeline_descriptor": vk_desc,
                 "vital_max_hp": 6
             })
             return

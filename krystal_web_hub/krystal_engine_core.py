@@ -212,6 +212,13 @@ from krystal_kernel.factographic_network_learning_engine import (
     FactographicScale,
     RelationType
 )
+from krystal_kernel.polygraphic_dtp_generator import (
+    GLOBAL_POLYGRAPHIC_DTP_ENGINE,
+    PolygraphicDtpGeneratorEngine,
+    DtpProductType,
+    PaperStandard,
+    QuantizationPrecision
+)
 from krystal_web_hub.economic_engine.polymorphic_shape_blender_platform import (
     GLOBAL_SHAPE_PLATFORM,
     LanguageMode,
@@ -1186,6 +1193,9 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
         if path in ('/factographic-learning', '/learning-studio', '/factographic_network_learning_studio.html', '/factographic-network', '/multi-scale-learning'):
             self._serve_file(os.path.join(STATIC_DIR, "factographic_network_learning_studio.html"), "text/html")
             return
+        if path in ('/dtp-studio', '/polygraphic-dtp', '/dtp-generator', '/polygraphic_dtp_vulkan_studio.html', '/vulkan-dtp'):
+            self._serve_file(os.path.join(STATIC_DIR, "polygraphic_dtp_vulkan_studio.html"), "text/html")
+            return
         if path in ('/shape-studio', '/shape-platform', '/blender-library', '/polymorphic-shapes'):
             self._serve_file(os.path.join(STATIC_DIR, "polymorphic_shape_studio.html"), "text/html")
             return
@@ -1907,6 +1917,19 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json({
                 "success": True,
                 "pyramid": GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE.pyramid.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── POLYGRAPHIC DTP GENERATOR & 2B PARAMETER MODEL ENGINE (GET) ────
+        if path in ('/api/dtp/status', '/api/polygraphic-dtp/status'):
+            self._send_json(GLOBAL_POLYGRAPHIC_DTP_ENGINE.get_status())
+            return
+
+        if path in ('/api/dtp/scenes', '/api/polygraphic-dtp/scenes'):
+            self._send_json({
+                "success": True,
+                "scenes": [s.to_dict() for s in GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog.values()],
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return
@@ -3349,6 +3372,57 @@ class KrystalEngineHandler(BaseHTTPRequestHandler):
             self._send_json({
                 "success": True,
                 "consensus_report": rep.to_dict(),
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        # ── POLYGRAPHIC DTP GENERATOR & 2B PARAMETER MODEL ENGINE (POST) ───
+        if path in ('/api/dtp/generate', '/api/polygraphic-dtp/generate'):
+            prompt_str = str(req_data.get("prompt", "Luxusná viazaná kniha s pevnou väzbou a zlatou razbou."))
+            ptype_str = req_data.get("product_type")
+            ptype = DtpProductType[ptype_str] if ptype_str and ptype_str in DtpProductType.__members__ else None
+            q_str = req_data.get("quantization", "INT4_AWQ")
+            quant = QuantizationPrecision[q_str] if q_str in QuantizationPrecision.__members__ else QuantizationPrecision.INT4_AWQ
+            
+            scene = GLOBAL_POLYGRAPHIC_DTP_ENGINE.generate_scene_from_prompt(
+                prompt=prompt_str,
+                product_type=ptype,
+                quantization=quant
+            )
+            vram_info = GLOBAL_POLYGRAPHIC_DTP_ENGINE.estimate_vram_and_throughput(scene)
+            self._send_json({
+                "success": True,
+                "scene": scene.to_dict(),
+                "vram_and_throughput": vram_info,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path in ('/api/dtp/blender-script', '/api/polygraphic-dtp/blender-script'):
+            scene_id = req_data.get("scene_id")
+            if scene_id and scene_id in GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog:
+                sc = GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog[scene_id]
+            else:
+                sc = list(GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog.values())[-1]
+            self._send_json({
+                "success": True,
+                "scene_id": sc.scene_id,
+                "blender_python_script": sc.blender_python_script,
+                "vital_max_hp_rule": VITAL_MAX_HP
+            })
+            return
+
+        if path in ('/api/dtp/vulkan-pipeline', '/api/polygraphic-dtp/vulkan-pipeline'):
+            scene_id = req_data.get("scene_id")
+            if scene_id and scene_id in GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog:
+                sc = GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog[scene_id]
+            else:
+                sc = list(GLOBAL_POLYGRAPHIC_DTP_ENGINE.scenes_catalog.values())[-1]
+            vk_desc = GLOBAL_POLYGRAPHIC_DTP_ENGINE.generate_vulkan_pipeline_descriptor(sc)
+            self._send_json({
+                "success": True,
+                "scene_id": sc.scene_id,
+                "vulkan_pipeline_descriptor": vk_desc,
                 "vital_max_hp_rule": VITAL_MAX_HP
             })
             return

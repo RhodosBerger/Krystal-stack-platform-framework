@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POLYGRAPHIC DTP & 3D VULKAN STUDIO // KRYSTAL-DTP-2B</title>
+    <meta name="description" content="Priemyselný polygrafický DTP generátor 3D scén poháňaný 2B parametrovým neurónovým modelom s priamym prístupom do editora Blender a runtime Vulkan 1.3 renderovacími parametrami.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #05070d;
+            --bg-card: rgba(11, 16, 28, 0.88);
+            --bg-panel: rgba(8, 12, 22, 0.96);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(0, 245, 212, 0.45);
+
+            --cyan-dtp: #00f5d4;
+            --cyan-glow: rgba(0, 245, 212, 0.4);
+            --magenta-dtp: #f43f5e;
+            --yellow-dtp: #fbbf24;
+            --black-dtp: #334155;
+            --gold-foil: #d4af37;
+            --vulkan-red: #ea2938;
+            --purple-accel: #a855f7;
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --blur: blur(18px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 12% 18%, rgba(0, 245, 212, 0.06) 0%, transparent 42%),
+                radial-gradient(circle at 88% 82%, rgba(234, 41, 56, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.03) 0%, transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+        }
+
+        /* ── HEADER ──────────────────────────────────────────────────────── */
+        header.studio-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 36px;
+            background: rgba(5, 8, 15, 0.94);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(234, 41, 56, 0.25), rgba(0, 245, 212, 0.25));
+            border: 1px solid var(--cyan-dtp);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 0 16px var(--cyan-glow);
+        }
+
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff 0%, var(--cyan-dtp) 50%, var(--gold-foil) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge-tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: rgba(0, 245, 212, 0.12);
+            color: var(--cyan-dtp);
+            border: 1px solid rgba(0, 245, 212, 0.35);
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 1px;
+        }
+
+        .badge-tag.vulkan {
+            background: rgba(234, 41, 56, 0.14);
+            color: #ff6b77;
+            border-color: rgba(234, 41, 56, 0.4);
+        }
+
+        .badge-tag.gold {
+            background: rgba(212, 175, 55, 0.15);
+            color: var(--gold-foil);
+            border-color: rgba(212, 175, 55, 0.4);
+        }
+
+        .vital-hp-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(244, 63, 94, 0.35);
+            padding: 6px 14px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
+        }
+
+        .vital-heart {
+            font-size: 14px;
+            color: var(--magenta-dtp);
+            animation: pulse-heart 2s infinite ease-in-out;
+            text-shadow: 0 0 8px rgba(244, 63, 94, 0.8);
+        }
+
+        @keyframes pulse-heart {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.18); opacity: 1; }
+        }
+
+        /* ── MAIN LAYOUT ─────────────────────────────────────────────────── */
+        main.studio-content {
+            display: grid;
+            grid-template-columns: 370px 1fr 440px;
+            gap: 20px;
+            padding: 24px 32px;
+            flex: 1;
+            max-width: 1920px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (max-width: 1440px) {
+            main.studio-content {
+                grid-template-columns: 340px 1fr;
+            }
+            .panel-right {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 980px) {
+            main.studio-content {
+                grid-template-columns: 1fr;
+            }
+            .panel-right {
+                grid-column: span 1;
+            }
+        }
+
+        .panel-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            backdrop-filter: var(--blur);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan-dtp), var(--gold-foil), var(--vulkan-red), transparent);
+            opacity: 0.6;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+        }
+
+        .panel-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── PROMPT & MODEL INPUT ────────────────────────────────────────── */
+        .prompt-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        textarea.prompt-field {
+            width: 100%;
+            height: 85px;
+            background: rgba(8, 12, 22, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            resize: none;
+            outline: none;
+            transition: border-color 0.25s ease;
+        }
+
+        textarea.prompt-field:focus {
+            border-color: var(--cyan-dtp);
+            box-shadow: 0 0 12px var(--cyan-glow);
+        }
+
+        .preset-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chip-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chip-btn:hover {
+            background: rgba(0, 245, 212, 0.15);
+            color: #fff;
+            border-color: var(--cyan-dtp);
+        }
+
+        /* ── METRIC TILES ────────────────────────────────────────────────── */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .metric-tile {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metric-tile.full-width {
+            grid-column: span 2;
+        }
+
+        .metric-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--cyan-dtp);
+        }
+
+        .metric-value.gold { color: var(--gold-foil); }
+        .metric-value.vulkan { color: #ff6b77; }
+        .metric-value.purple { color: var(--purple-accel); }
+
+        .metric-sub {
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* ── CANVAS 3D DTP PREVIEW ───────────────────────────────────────── */
+        .canvas-container {
+            position: relative;
+            flex: 1;
+            min-height: 520px;
+            background: rgba(4, 7, 14, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas#dtp3dCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: grab;
+        }
+
+        canvas#dtp3dCanvas:active {
+            cursor: grabbing;
+        }
+
+        .canvas-hud-overlay {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: none;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+        }
+
+        .hud-pill {
+            background: rgba(11, 16, 28, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 4px 10px;
+            border-radius: 6px;
+            backdrop-filter: blur(8px);
+        }
+
+        /* ── TABS IN RIGHT PANEL ─────────────────────────────────────────── */
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            gap: 6px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.25s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--cyan-dtp);
+            border-bottom-color: var(--cyan-dtp);
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        .code-box {
+            background: #030509;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            color: #cbd5e1;
+            height: 380px;
+            overflow-y: auto;
+            white-space: pre;
+            line-height: 1.45;
+        }
+
+        /* ── SEPARATION BARS ─────────────────────────────────────────────── */
+        .cmyk-plate-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.74rem;
+        }
+
+        .cmyk-plate-label {
+            width: 80px;
+            color: var(--text-muted);
+        }
+
+        .cmyk-bar-track {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .cmyk-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.2), rgba(212, 175, 55, 0.2));
+            border: 1px solid var(--border-glow);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: var(--radius-md);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.25s ease;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.35), rgba(212, 175, 55, 0.35));
+            box-shadow: 0 0 20px var(--cyan-glow);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── NAV HEADER ── -->
+    <header class="studio-nav">
+        <div class="brand-container">
+            <div class="brand-icon">🖨</div>
+            <div>
+                <div class="brand-title">POLYGRAPHIC DTP & 3D VULKAN STUDIO</div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 2px;">
+                    <span class="badge-tag">2,048,000,000 PARAMS</span>
+                    <span class="badge-tag vulkan">VULKAN 1.3 SPIR-V</span>
+                    <span class="badge-tag gold">BLENDER DIRECT EDITOR</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-status">
+            <div class="vital-hp-bar" title="Universal System Invariant: VITAL_MAX_HP == 6">
+                <span style="font-family:'Fira Code'; font-size:0.72rem; color:var(--magenta-dtp); font-weight:700; margin-right:4px;">VITAL HP</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+                <span class="vital-heart">♥</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── MAIN STUDIO CONTENT ── -->
+    <main class="studio-content">
+
+        <!-- ── LEFT PANEL: GENERATIVE 2B MODEL CONTROLS ── -->
+        <section class="panel-card">
+            <div class="panel-header">
+                <div class="panel-title"><span>◈</span> 2B PARAMETER MODEL</div>
+                <span class="badge-tag" id="quantBadge">INT4 AWQ</span>
+            </div>
+
+            <!-- Natural Language Prompt Input -->
+            <div class="prompt-input-area">
+                <label style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">PROMPT PRE GENEROVANIE 3D DTP SCÉNY</label>
+                <textarea class="prompt-field" id="promptInput" placeholder="Zadajte popis tlačoviny (napr. Luxusná viazaná kniha s pevnou väzbou, zlatou metalickou razbou a matným laminom)...">Luxusná viazaná kniha s pevnou väzbou, zlatou metalickou razbou a matným laminom.</textarea>
+            </div>
+
+            <!-- Prompt Quick Presets -->
+            <div class="preset-chips">
+                <button class="chip-btn" onclick="setPresetPrompt('Luxusná viazaná kniha s pevnou väzbou, zlatou metalickou razbou a matným laminom.')">📖 Viazaná kniha</button>
+                <button class="chip-btn" onclick="setPresetPrompt('Prezentačná skladaná skladačka A4 na 3 časti (trifold) s parciálnym UV lakom.')">📄 Trifold leták</button>
+                <button class="chip-btn" onclick="setPresetPrompt('Prémiová kozmetická škatuľka s holografickou fóliou a reliéfnym embosovaním.')">📦 Kozmetická škatuľa</button>
+                <button class="chip-btn" onclick="setPresetPrompt('Balíček luxusných vizitiek 400g s parciálnym UV lakom a zlatou hranou.')">💳 Balíček vizitiek</button>
+            </div>
+
+            <!-- Precision Quantization Selector -->
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <label style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">KVANTOVANIE MODELU (VRAM FOOTPRINT)</label>
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;">
+                    <button class="chip-btn" id="btnInt4" style="background:rgba(0,245,212,0.15); color:#fff; border-color:var(--cyan-dtp);" onclick="setQuantization('INT4_AWQ')">INT4 (1.18 GB)</button>
+                    <button class="chip-btn" id="btnFp8" onclick="setQuantization('FP8_E4M3')">FP8 (2.05 GB)</button>
+                    <button class="chip-btn" id="btnFp16" onclick="setQuantization('FP16_BF16')">FP16 (4.10 GB)</button>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button class="action-btn" id="btnGenerate">
+                <span>Syntetizovať 3D DTP Scénu</span>
+                <span>➔</span>
+            </button>
+
+            <!-- VRAM & Throughput HUD -->
+            <div class="metric-grid">
+                <div class="metric-tile">
+                    <span class="metric-label">Model Parametre</span>
+                    <span class="metric-value">2.048 B</span>
+                    <span class="metric-sub">24 Vrstiev, D=2048</span>
+                </div>
+                <div class="metric-tile">
+                    <span class="metric-label">VRAM Celkovo</span>
+                    <span class="metric-value gold" id="totalVramVal">3793.9 MB</span>
+                    <span class="metric-sub" id="vramSub">Vulkan 4K Framebuffer</span>
+                </div>
+                <div class="metric-tile">
+                    <span class="metric-label">Vulkan Frametime</span>
+                    <span class="metric-value vulkan" id="frametimeVal">7.42 ms</span>
+                    <span class="metric-sub">~135 FPS @ 4K HDR</span>
+                </div>
+                <div class="metric-tile">
+                    <span class="metric-label">Generačná Rýchlosť</span>
+                    <span class="metric-value purple">67.5 t/s</span>
+                    <span class="metric-sub">GQA 8 KV Hláv</span>
+                </div>
+            </div>
+
+            <div style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.25); border-radius:var(--radius-md); padding:10px; font-size:0.74rem;">
+                <strong style="color:var(--gold-foil);">💡 PRIAMY PRÍSTUP DO BLENDERA:</strong> Skript automaticky vytvára kolekciu <code>Krystal_DTP_3D_Scene</code>, millimetrický mesh s UV mapou pre spadávku (bleed), materiálový node strom s CMYK/fóliou a štúdiový 3-bodový softbox setup.
+            </div>
+        </section>
+
+        <!-- ── CENTER PANEL: INTERACTIVE 3D DTP VIEWPORT ── -->
+        <section class="panel-card" style="display:flex; flex-direction:column;">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span>📐</span> 3D DTP PRE-PRESS PROJEKCIA
+                </div>
+                <div style="font-family:'Fira Code'; font-size:0.72rem; color:var(--cyan-dtp);" id="sceneTitle">
+                    HARDCOVER_BOOK (148x210x26mm)
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <div class="canvas-hud-overlay">
+                    <div class="hud-pill" style="color:var(--cyan-dtp);">TRIM BOX: <span id="trimBoxHud">148.0 x 210.0 mm</span></div>
+                    <div class="hud-pill" style="color:#ff6b77;">BLEED BOX (+3mm): <span id="bleedBoxHud">154.0 x 216.0 mm</span></div>
+                    <div class="hud-pill" style="color:#10b981;">SAFE TYPO BOX: <span id="safeBoxHud">132.0 x 194.0 mm</span></div>
+                    <div class="hud-pill" style="color:var(--gold-foil);">PAPER DENSITY: <span id="gsmHud">130 g/m² (300 DPI)</span></div>
+                </div>
+                <canvas id="dtp3dCanvas"></canvas>
+            </div>
+
+            <!-- Viewport Controls Footer -->
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(4,7,14,0.9); padding:10px 14px; border-radius:var(--radius-md); font-family:'Fira Code'; font-size:0.72rem;">
+                <div style="display:flex; gap:12px; color:var(--text-muted);">
+                    <span>Ťahanie myšou: <strong>Rotácia 3D</strong></span>
+                    <span>Koliesko: <strong>Priblíženie</strong></span>
+                </div>
+                <div style="color:var(--gold-foil); cursor:pointer;" onclick="resetCamera()">↺ Reset Pohľadu</div>
+            </div>
+        </section>
+
+        <!-- ── RIGHT PANEL: DUAL TABS (BLENDER SCRIPT & VULKAN PARAMS) ── -->
+        <section class="panel-card panel-right">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="switchTab('blenderTab', this)">Blender Script (bpy)</button>
+                <button class="tab-btn" onclick="switchTab('vulkanTab', this)">Vulkan 1.3 Parametre</button>
+                <button class="tab-btn" onclick="switchTab('separationTab', this)">CMYK & Lakovanie</button>
+            </div>
+
+            <!-- Tab 1: Blender Script -->
+            <div class="tab-content active" id="blenderTab">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">AUTONÓMNY BLENDER PYTHON SKRIPT</span>
+                    <button class="chip-btn" onclick="copyBlenderScript()">Kopírovať Skript</button>
+                </div>
+                <div class="code-box" id="blenderCodeBox"># Načítavam Blender kód...</div>
+                <button class="action-btn" onclick="downloadBlenderScript()">
+                    <span>Stiahnuť .py Skript pre Blender</span>
+                    <span>💾</span>
+                </button>
+            </div>
+
+            <!-- Tab 2: Vulkan Pipeline Parameters -->
+            <div class="tab-content" id="vulkanTab">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">VULKAN 1.3 SPIR-V PIPELINE DESCRIPTOR</span>
+                    <span class="badge-tag vulkan">VK_KHR_ray_tracing</span>
+                </div>
+                <div class="code-box" id="vulkanCodeBox"># Načítavam Vulkan parametre...</div>
+            </div>
+
+            <!-- Tab 3: CMYK Separation Plates -->
+            <div class="tab-content" id="separationTab">
+                <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; margin-bottom:4px;">
+                    POLYGRAFICKÉ FAREBNÉ VÝŤAŽKY & PARCIÁLNE LAKY
+                </div>
+
+                <div class="cmyk-plate-row">
+                    <span class="cmyk-plate-label" style="color:#00f5d4;">Cyan (C):</span>
+                    <div class="cmyk-bar-track">
+                        <div class="cmyk-bar-fill" id="barCyan" style="width:15%; background:#00f5d4;"></div>
+                    </div>
+                    <span id="valCyan">15%</span>
+                </div>
+
+                <div class="cmyk-plate-row">
+                    <span class="cmyk-plate-label" style="color:#f43f5e;">Magenta (M):</span>
+                    <div class="cmyk-bar-track">
+                        <div class="cmyk-bar-fill" id="barMagenta" style="width:75%; background:#f43f5e;"></div>
+                    </div>
+                    <span id="valMagenta">75%</span>
+                </div>
+
+                <div class="cmyk-plate-row">
+                    <span class="cmyk-plate-label" style="color:#fbbf24;">Yellow (Y):</span>
+                    <div class="cmyk-bar-track">
+                        <div class="cmyk-bar-fill" id="barYellow" style="width:85%; background:#fbbf24;"></div>
+                    </div>
+                    <span id="valYellow">85%</span>
+                </div>
+
+                <div class="cmyk-plate-row">
+                    <span class="cmyk-plate-label" style="color:#94a3b8;">Key Black:</span>
+                    <div class="cmyk-bar-track">
+                        <div class="cmyk-bar-fill" id="barBlack" style="width:88%; background:#475569;"></div>
+                    </div>
+                    <span id="valBlack">88%</span>
+                </div>
+
+                <div style="border-top:1px solid rgba(255,255,255,0.08); margin:8px 0;"></div>
+
+                <div class="cmyk-plate-row">
+                    <span class="cmyk-plate-label" style="color:var(--gold-foil);">Pantone Gold:</span>
+                    <div class="cmyk-bar-track">
+                        <div class="cmyk-bar-fill" style="width:95%; background:var(--gold-foil);"></div>
+                    </div>
+                    <span>95%</span>
+                </div>
+
+                <div class="cmyk-plate-row">
+                    <span class="cmyk-plate-label" style="color:#38bdf8;">Spot UV Lak:</span>
+                    <div class="cmyk-bar-track">
+                        <div class="cmyk-bar-fill" style="width:85%; background:#38bdf8;"></div>
+                    </div>
+                    <span id="varnishThicknessVal">18 µm</span>
+                </div>
+
+                <div class="cmyk-plate-row">
+                    <span class="cmyk-plate-label" style="color:#e2e8f0;">Razba Fóliou:</span>
+                    <div class="cmyk-bar-track">
+                        <div class="cmyk-bar-fill" style="width:70%; background:#e2e8f0;"></div>
+                    </div>
+                    <span>0.35 mm</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ── SCRIPT LOGIC ── -->
+    <script>
+        let currentScene = null;
+        let currentQuantization = 'INT4_AWQ';
+        let rotX = 0.45;
+        let rotY = -0.65;
+        let zoom = 1.0;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        const canvas = document.getElementById('dtp3dCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            render3D();
+        });
+        resizeCanvas();
+
+        function setPresetPrompt(text) {
+            document.getElementById('promptInput').value = text;
+        }
+
+        function setQuantization(q) {
+            currentQuantization = q;
+            document.getElementById('quantBadge').innerText = q.replace('_', ' ');
+            document.getElementById('btnInt4').style.borderColor = (q === 'INT4_AWQ') ? 'var(--cyan-dtp)' : 'rgba(255,255,255,0.08)';
+            document.getElementById('btnFp8').style.borderColor = (q === 'FP8_E4M3') ? 'var(--cyan-dtp)' : 'rgba(255,255,255,0.08)';
+            document.getElementById('btnFp16').style.borderColor = (q === 'FP16_BF16') ? 'var(--cyan-dtp)' : 'rgba(255,255,255,0.08)';
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function resetCamera() {
+            rotX = 0.45;
+            rotY = -0.65;
+            zoom = 1.0;
+            render3D();
+        }
+
+        // Mouse controls for 3D Viewport
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - lastMouseX;
+            const dy = e.clientY - lastMouseY;
+            rotY += dx * 0.008;
+            rotX += dy * 0.008;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            render3D();
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            zoom *= (e.deltaY > 0) ? 0.92 : 1.08;
+            zoom = Math.max(0.4, Math.min(3.0, zoom));
+            render3D();
+        });
+
+        // 3D Rendering of DTP Physical Geometry
+        function project(x, y, z, w, h) {
+            // Apply rotation Y
+            const cosY = Math.cos(rotY);
+            const sinY = Math.sin(rotY);
+            let x1 = x * cosY - z * sinY;
+            let z1 = x * sinY + z * cosY;
+
+            // Apply rotation X
+            const cosX = Math.cos(rotX);
+            const sinX = Math.sin(rotX);
+            let y2 = y * cosX - z1 * sinX;
+            let z2 = y * sinX + z1 * cosX;
+
+            // Perspective factor
+            const dist = 500.0;
+            const pz = z2 + dist;
+            const factor = (dist / pz) * zoom * 1.35;
+
+            return {
+                x: w / 2 + x1 * factor,
+                y: h / 2 - y2 * factor,
+                z: z2
+            };
+        }
+
+        function render3D() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Determine dimensions from current scene or defaults
+            let sx = 148, sy = 210, sz = 26;
+            if (currentScene && currentScene.geometry) {
+                sx = currentScene.geometry.width_mm;
+                sy = currentScene.geometry.height_mm;
+                sz = currentScene.geometry.depth_mm;
+            }
+
+            // Draw shadow base
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+            ctx.beginPath();
+            ctx.ellipse(w / 2, h / 2 + 120 * zoom, 160 * zoom, 50 * zoom, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Box vertices
+            const hx = sx / 2;
+            const hy = sy / 2;
+            const hz = sz / 2;
+
+            const verts = [
+                [-hx, -hy, -hz], [hx, -hy, -hz], [hx, hy, -hz], [-hx, hy, -hz],
+                [-hx, -hy,  hz], [hx, -hy,  hz], [hx, hy,  hz], [-hx, hy,  hz]
+            ];
+
+            const p = verts.map(v => project(v[0], v[1], v[2], w, h));
+
+            const faces = [
+                { idxs: [0, 1, 2, 3], color: '#0d1527', normalZ: 0 },
+                { idxs: [4, 5, 6, 7], color: '#1a243d', normalZ: 1 }, // Front
+                { idxs: [0, 1, 5, 4], color: '#131b2e', normalZ: 0 }, // Bottom
+                { idxs: [2, 3, 7, 6], color: '#243254', normalZ: 0 }, // Top
+                { idxs: [0, 3, 7, 4], color: '#d4af37', normalZ: 0 }, // Spine
+                { idxs: [1, 2, 6, 5], color: '#0f172a', normalZ: 0 }
+            ];
+
+            // Draw Faces
+            faces.forEach(f => {
+                ctx.beginPath();
+                ctx.moveTo(p[f.idxs[0]].x, p[f.idxs[0]].y);
+                for (let i = 1; i < f.idxs.length; i++) {
+                    ctx.lineTo(p[f.idxs[i]].x, p[f.idxs[i]].y);
+                }
+                ctx.closePath();
+                ctx.fillStyle = f.color;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(0, 245, 212, 0.4)';
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+            });
+
+            // Draw Bleed Box Margin (Outward dashed line)
+            const bleedOut = 12.0;
+            const bVerts = [
+                [-hx - bleedOut, -hy - bleedOut, hz],
+                [hx + bleedOut, -hy - bleedOut, hz],
+                [hx + bleedOut, hy + bleedOut, hz],
+                [-hx - bleedOut, hy + bleedOut, hz]
+            ];
+            const bp = bVerts.map(v => project(v[0], v[1], v[2], w, h));
+            ctx.beginPath();
+            ctx.moveTo(bp[0].x, bp[0].y);
+            for (let i = 1; i < bp.length; i++) ctx.lineTo(bp[i].x, bp[i].y);
+            ctx.closePath();
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw Gold Stamped Emblem Highlight in Center of Front Cover
+            const centerF = project(0, 0, hz + 1, w, h);
+            ctx.beginPath();
+            ctx.arc(centerF.x, centerF.y, 22 * zoom, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(212, 175, 55, 0.85)';
+            ctx.shadowColor = '#d4af37';
+            ctx.shadowBlur = 15;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#fff';
+            ctx.stroke();
+
+            ctx.font = '700 10px Outfit';
+            ctx.fillStyle = '#05070d';
+            ctx.textAlign = 'center';
+            ctx.fillText('KRYSTAL', centerF.x, centerF.y + 3);
+        }
+
+        // Fetch Initial Scene & Catalog Status
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/dtp/status');
+                const data = await res.json();
+                if (data.scenes && data.scenes.length > 0) {
+                    currentScene = data.scenes[0];
+                    updateUI(currentScene);
+                    fetchBlenderScript(currentScene.scene_id);
+                    fetchVulkanPipeline(currentScene.scene_id);
+                }
+            } catch (err) {
+                console.error("Chyba načítania DTP statusu:", err);
+            }
+        }
+
+        async function fetchBlenderScript(sceneId) {
+            try {
+                const res = await fetch('/api/dtp/blender-script', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ scene_id: sceneId })
+                });
+                const data = await res.json();
+                if (data.blender_python_script) {
+                    document.getElementById('blenderCodeBox').innerText = data.blender_python_script;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function fetchVulkanPipeline(sceneId) {
+            try {
+                const res = await fetch('/api/dtp/vulkan-pipeline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ scene_id: sceneId })
+                });
+                const data = await res.json();
+                if (data.vulkan_pipeline_descriptor) {
+                    document.getElementById('vulkanCodeBox').innerText = JSON.stringify(data.vulkan_pipeline_descriptor, null, 2);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function updateUI(scene) {
+            if (!scene) return;
+            document.getElementById('sceneTitle').innerText = `${scene.product_type} (${scene.geometry.width_mm}x${scene.geometry.height_mm}x${scene.geometry.depth_mm}mm)`;
+            document.getElementById('trimBoxHud').innerText = `${scene.geometry.width_mm} x ${scene.geometry.height_mm} mm`;
+            document.getElementById('bleedBoxHud').innerText = `${scene.geometry.bleed_box_mm[0]} x ${scene.geometry.bleed_box_mm[1]} mm`;
+            document.getElementById('safeBoxHud').innerText = `${scene.geometry.safe_box_mm[0]} x ${scene.geometry.safe_box_mm[1]} mm`;
+            document.getElementById('gsmHud').innerText = `${scene.geometry.paper_gsm} g/m² (${scene.geometry.dpi} DPI)`;
+
+            // CMYK Bars
+            if (scene.cmyk_densities) {
+                const c = scene.cmyk_densities;
+                const cP = Math.round((c.Cyan || 0.1) * 100);
+                const mP = Math.round((c.Magenta || 0.1) * 100);
+                const yP = Math.round((c.Yellow || 0.1) * 100);
+                const kP = Math.round((c.KeyBlack || 0.1) * 100);
+                document.getElementById('barCyan').style.width = cP + '%';
+                document.getElementById('valCyan').innerText = cP + '%';
+                document.getElementById('barMagenta').style.width = mP + '%';
+                document.getElementById('valMagenta').innerText = mP + '%';
+                document.getElementById('barYellow').style.width = yP + '%';
+                document.getElementById('valYellow').innerText = yP + '%';
+                document.getElementById('barBlack').style.width = kP + '%';
+                document.getElementById('valBlack').innerText = kP + '%';
+            }
+
+            render3D();
+        }
+
+        // Generate Action
+        document.getElementById('btnGenerate').addEventListener('click', async () => {
+            const prompt = document.getElementById('promptInput').value;
+            try {
+                const res = await fetch('/api/dtp/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        quantization: currentQuantization
+                    })
+                });
+                const data = await res.json();
+                if (data.success && data.scene) {
+                    currentScene = data.scene;
+                    updateUI(data.scene);
+                    if (data.vram_and_throughput) {
+                        document.getElementById('totalVramVal').innerText = `${data.vram_and_throughput.total_estimated_vram_mb} MB`;
+                        document.getElementById('frametimeVal').innerText = `${data.vram_and_throughput.vulkan_predicted_frametime_ms} ms`;
+                    }
+                    fetchBlenderScript(data.scene.scene_id);
+                    fetchVulkanPipeline(data.scene.scene_id);
+                }
+            } catch (err) {
+                alert("Generovanie zlyhalo: " + err);
+            }
+        });
+
+        function copyBlenderScript() {
+            const code = document.getElementById('blenderCodeBox').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert("Blender Python skript bol skopírovaný do schránky!");
+            });
+        }
+
+        function downloadBlenderScript() {
+            const code = document.getElementById('blenderCodeBox').innerText;
+            const blob = new Blob([code], { type: 'text/x-python' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `krystal_dtp_${currentScene ? currentScene.scene_id : 'scene'}.py`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Init
+        fetchStatus();
+    </script>
+</body>
+</html>
