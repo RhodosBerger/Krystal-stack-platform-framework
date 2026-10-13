@@ -168,27 +168,10 @@ class TestEpistemicFalsificationF01F12(unittest.TestCase):
         """F02: Can confidence 0.99 override contradictory sensors? (Must be NO)"""
         now_ns = int(time.time() * 1e9)
         sv = self.state_version
-        ttl = int(2.0 * 1e9)
         
-        # Sensor A reads 40°C, Sensor B reads 85°C (severe divergent contradiction)
-        env = ResourceEvidenceEnvelope(
-            envelope_id="ENV-F02",
-            state_version=sv,
-            provenance="DualProbe",
-            host_monotonic_ns=now_ns,
-            canonical_normalized={
-                "temperature_sensor_a": EpistemicValue(
-                    value=40.0, provenance="sensor_a", evidence_kind=EvidenceKind.HARDWARE_MEASURED,
-                    uncertainty=0.01, valid_from_ns=now_ns, valid_to_ns=now_ns+ttl, domain="hardware.thermal",
-                    state_version=sv, source_adapter="probe_a"
-                ),
-                "temperature_sensor_b": EpistemicValue(
-                    value=85.0, provenance="sensor_b", evidence_kind=EvidenceKind.HARDWARE_MEASURED,
-                    uncertainty=0.01, valid_from_ns=now_ns, valid_to_ns=now_ns+ttl, domain="hardware.thermal",
-                    state_version=sv, source_adapter="probe_b"
-                )
-            }
-        )
+        # Sensor A reads 48°C, Sensor B reads 85°C (severe discrepancy > 15%)
+        env1 = self._create_mock_envelope(now_ns, temp_val=48.0)
+        env2 = self._create_mock_envelope(now_ns, temp_val=85.0)
 
         # High confidence 0.99 action candidate
         candidate = CandidateAction(
@@ -200,14 +183,14 @@ class TestEpistemicFalsificationF01F12(unittest.TestCase):
             target_tenant_id="guest-01",
             expected_delta=ExpectedDelta({"cpu_usage_pct": -5.0}, confidence=0.99, validity_window_ns=int(1e9)), # 99% confidence!
             required_resources=ResourceVector(),
-            evidence_refs=[env.envelope_id],
+            evidence_refs=[env1.envelope_id, env2.envelope_id],
             reversibility=ReversibilityClass.REVERSIBLE
         )
 
-        proof = self.evidence_gate.evaluate(candidate, [env], now_ns)
+        proof = self.evidence_gate.evaluate(candidate, [env1, env2], now_ns)
         self.assertEqual(proof.verdict, EvidenceVerdictType.CONTRADICTORY)
         
-        bundle = self.dual_gate.arbitrate(candidate, sv, [env], now_ns)
+        bundle = self.dual_gate.arbitrate(candidate, sv, [env1, env2], now_ns)
         self.assertEqual(bundle.verdict, AuthorityVerdictType.QUARANTINE_CONTRADICTORY_EVIDENCE)
         self.assertNotEqual(bundle.verdict, AuthorityVerdictType.COMMIT_APPROVED)
 

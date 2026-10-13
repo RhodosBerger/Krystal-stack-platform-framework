@@ -153,11 +153,13 @@ class StateSpacePruner:
         safety_gate: Optional[SafetyGate] = None,
         evidence_gate: Optional[EvidenceGate] = None,
         risk_registry: Optional[ContextualRiskRegistry] = None,
-        host_capacity: Optional[ResourceVector] = None
+        host_capacity: Optional[ResourceVector] = None,
+        supporting_envelopes: Optional[List[ResourceEvidenceEnvelope]] = None
     ) -> PruningReport:
         t0 = time.perf_counter()
         gate_safety = safety_gate or SafetyGate()
         gate_evidence = evidence_gate or EvidenceGate()
+        evidence_history = supporting_envelopes if supporting_envelopes is not None else ([envelope] * gate_evidence.policy.min_sample_count)
         capacity = host_capacity or ResourceVector(
             cpu_normalized_share=1.0,
             memory_bytes=128 * 1024 * 1024 * 1024, # 128 GB
@@ -328,7 +330,7 @@ class StateSpacePruner:
                     continue
 
             # Evaluate EvidenceGate
-            evidence_proof = gate_evidence.evaluate(cand, [envelope], now_ns)
+            evidence_proof = gate_evidence.evaluate(cand, evidence_history, now_ns)
             if evidence_proof.verdict == EvidenceVerdictType.CONTRADICTORY:
                 pruned_records.append(PrunedCandidate(
                     candidate_id=cand.action_id,
