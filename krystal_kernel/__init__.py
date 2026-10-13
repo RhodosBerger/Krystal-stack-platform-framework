@@ -313,6 +313,22 @@ from .geometric_procedural_supersampling_engine import (  # noqa: F401
     GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE
 )
 
+from .isa_performance_taxonomies_and_profiler import (  # noqa: F401
+    IsaArchitectureFamily,
+    VectorRegisterWidth,
+    WorkloadArithmeticTaxon,
+    CacheLocalityTaxon,
+    ThermalPowerTaxon,
+    IsaInstructionDescriptor,
+    CANONICAL_ISA_CATALOG,
+    IsaPerformanceProfile,
+    IsaRecommendationReport,
+    IsaPerformanceProfiler,
+    ProfileGuidedIsaGovernor,
+    GLOBAL_ISA_PERFORMANCE_PROFILER,
+    GLOBAL_ISA_GOVERNOR
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -398,5 +414,10 @@ __all__ = [
     "NpuSupersamplingSoftwareProfile", "CANONICAL_NPU_PROFILES", "ProceduralFrame",
     "GeometricManifoldSynthesizer", "IntermediateFrameInterpolator", "NpuMultiFrameSupersampler",
     "ImageQualityEvaluationReport", "ImageQualityEvaluator", "SupersampledSceneBundle",
-    "GeometricProceduralSupersamplingEngine", "GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE"
+    "GeometricProceduralSupersamplingEngine", "GLOBAL_GEOMETRIC_PROCEDURAL_SUPERSAMPLING_ENGINE",
+    "IsaArchitectureFamily", "VectorRegisterWidth", "WorkloadArithmeticTaxon",
+    "CacheLocalityTaxon", "ThermalPowerTaxon", "IsaInstructionDescriptor",
+    "CANONICAL_ISA_CATALOG", "IsaPerformanceProfile", "IsaRecommendationReport",
+    "IsaPerformanceProfiler", "ProfileGuidedIsaGovernor", "GLOBAL_ISA_PERFORMANCE_PROFILER",
+    "GLOBAL_ISA_GOVERNOR"
 ]

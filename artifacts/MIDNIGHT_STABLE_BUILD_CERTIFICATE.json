@@ -1,7 +1,7 @@
 {
   "certificate_title": "KRYSTAL-STACK MIDNIGHT STABLE BUILD CERTIFICATE",
-  "run_id": "MIDNIGHT-7571EBA7",
-  "timestamp": 1791881847.6539402,
+  "run_id": "MIDNIGHT-62FB9D13",
+  "timestamp": 1791882203.4584067,
   "release_candidate": "v2.0-midnight-stable",
   "target_setup": {
     "setup_type": "SETUP_A_WINDOWS_IRIS_XE_BAREMETAL",
@@ -22,7 +22,7 @@
     "exhibit_1": {
       "exhibit_name": "Exhibit 1: 8-Phase Causal LLM Execution Plane",
       "status": "PASS",
-      "trace_id": "TRACE-LLM-B7CD5317",
+      "trace_id": "TRACE-LLM-4207CF39",
       "phases_completed": 8,
       "ttft_ms": 22.14,
       "inter_token_latency_ms": 5.0,
@@ -140,7 +140,7 @@
       "status": "PASS",
       "nodes_traversed": 16,
       "strategy_selected": "PlannerStrategyKind.PARETO_OPTIMAL_NPU",
-      "cycle_latency_us": 547.8,
+      "cycle_latency_us": 251.1,
       "vital_hp": 6
     },
     "exhibit_8": {
@@ -148,9 +148,9 @@
       "status": "PASS",
       "core_subsystems_count": 6,
       "extension_branches_count": 8,
-      "version_vector": "<S:2 | P:POL-2.0-CANONICAL | E:00000000>",
+      "version_vector": "<S:4 | P:POL-2.0-CANONICAL | E:a68c472c>",
       "authority_verdict": "AUTH_COMMIT_APPROVED",
-      "cycle_duration_us": 257.9,
+      "cycle_duration_us": 136.6,
       "vital_hp": 6
     },
     "exhibit_9": {
@@ -160,12 +160,24 @@
       "profile": "NPU_ULTRA_QUALITY_12BIT",
       "total_frames_generated": 15,
       "intermediate_frames": 12,
-      "throughput_fps": 690.216866139341,
+      "throughput_fps": 856.9861511037982,
       "psnr_db": 25.43,
       "ssim_score": 0.9545,
       "color_entropy_bits": 5.523,
       "laplacian_edge_energy": 11.59,
       "bit_depth_effective": "DEEP_12BIT",
+      "vital_hp": 6
+    },
+    "exhibit_10": {
+      "exhibit_name": "Exhibit 10: Multi-ISA Performance Profiling & Epistemic Taxonomy Engine",
+      "status": "PASS",
+      "total_isas_profiled": 9,
+      "top_performer_isa": "INTEL_AMX_TILE",
+      "top_sustained_gflops": 481.536,
+      "recommended_isa": "INTEL_AMX_TILE",
+      "projected_speedup": 85.98857142857143,
+      "projected_latency_us": 3484.1041998936735,
+      "energy_rating": "HIGH_POWER_COMPUTE_C",
       "vital_hp": 6
     }
   },

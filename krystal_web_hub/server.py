@@ -2626,6 +2626,51 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: Multi-ISA Performance Taxonomies & Profiler ────────────────
+        elif path in ("/api/isa-taxonomy/catalog", "/api/isa/catalog"):
+            from krystal_kernel.isa_performance_taxonomies_and_profiler import CANONICAL_ISA_CATALOG
+            catalog_data = [d.to_dict() for d in CANONICAL_ISA_CATALOG.values()]
+            self.send_json({
+                "status": "OK",
+                "catalog": catalog_data,
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/isa-taxonomy/dimensions", "/api/isa/dimensions"):
+            from krystal_kernel.isa_performance_taxonomies_and_profiler import (
+                IsaArchitectureFamily,
+                VectorRegisterWidth,
+                WorkloadArithmeticTaxon,
+                CacheLocalityTaxon,
+                ThermalPowerTaxon
+            )
+            self.send_json({
+                "status": "OK",
+                "dimensions": {
+                    "architecture_families": [f.value for f in IsaArchitectureFamily],
+                    "vector_widths": [w.value for w in VectorRegisterWidth],
+                    "workload_taxons": [t.value for t in WorkloadArithmeticTaxon],
+                    "cache_locality_taxons": [c.value for c in CacheLocalityTaxon],
+                    "thermal_power_taxons": [th.value for th in ThermalPowerTaxon]
+                },
+                "vital_max_hp": 6
+            })
+            return
+
+        elif path in ("/api/isa-taxonomy/profiles", "/api/isa/profiles"):
+            from krystal_kernel.isa_performance_taxonomies_and_profiler import (
+                GLOBAL_ISA_PERFORMANCE_PROFILER,
+                WorkloadArithmeticTaxon
+            )
+            profiles = GLOBAL_ISA_PERFORMANCE_PROFILER.profile_all_isas(WorkloadArithmeticTaxon.INT8_TENSOR_DOT)
+            self.send_json({
+                "status": "OK",
+                "profiles": [p.to_dict() for p in profiles],
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Status ────────────────────────────────────────────
         elif path == "/api/status":
             with state.lock:
@@ -4402,6 +4447,60 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({
                 "status": "OK",
                 "report": report.to_dict(),
+                "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Multi-ISA Performance Taxonomies & Profiler ────────────────
+        elif self.path in ("/api/isa-taxonomy/profile-workload", "/api/isa/profile-workload"):
+            from krystal_kernel.isa_performance_taxonomies_and_profiler import (
+                GLOBAL_ISA_PERFORMANCE_PROFILER,
+                WorkloadArithmeticTaxon
+            )
+            taxon_str = data.get("workload_taxon", "INT8_TENSOR_DOT")
+            taxon = WorkloadArithmeticTaxon[taxon_str] if taxon_str in WorkloadArithmeticTaxon.__members__ else WorkloadArithmeticTaxon.INT8_TENSOR_DOT
+            data_size = max(1024, int(data.get("data_size_bytes", 1024 * 1024)))
+            iterations = max(1, min(10000, int(data.get("iterations", 100))))
+
+            profiles = GLOBAL_ISA_PERFORMANCE_PROFILER.profile_all_isas(
+                workload_taxon=taxon,
+                data_size_bytes=data_size,
+                iterations=iterations
+            )
+            self.send_json({
+                "status": "OK",
+                "workload_taxon": taxon.value,
+                "profiles": [p.to_dict() for p in profiles],
+                "vital_max_hp": 6
+            })
+            return
+
+        elif self.path in ("/api/isa-taxonomy/recommend-isa", "/api/isa/recommend-isa"):
+            from krystal_kernel.isa_performance_taxonomies_and_profiler import (
+                GLOBAL_ISA_GOVERNOR,
+                WorkloadArithmeticTaxon,
+                IsaArchitectureFamily
+            )
+            taxon_str = data.get("workload_taxon", "INT8_TENSOR_DOT")
+            taxon = WorkloadArithmeticTaxon[taxon_str] if taxon_str in WorkloadArithmeticTaxon.__members__ else WorkloadArithmeticTaxon.INT8_TENSOR_DOT
+            data_size = max(1024, int(data.get("data_size_bytes", 1024 * 1024)))
+            thermal = float(data.get("thermal_celsius", 52.0))
+            power = float(data.get("power_budget_watts", 28.0))
+            latency = float(data.get("target_latency_us", 5000.0))
+            pref_family_str = data.get("preferred_family", None)
+            pref_family = IsaArchitectureFamily[pref_family_str] if pref_family_str in IsaArchitectureFamily.__members__ else None
+
+            report = GLOBAL_ISA_GOVERNOR.recommend_optimal_isa(
+                workload_taxon=taxon,
+                data_size_bytes=data_size,
+                current_thermal_celsius=thermal,
+                power_budget_watts=power,
+                target_latency_us=latency,
+                preferred_family=pref_family
+            )
+            self.send_json({
+                "status": "OK",
+                "recommendation": report.to_dict(),
                 "vital_max_hp": 6
             })
             return

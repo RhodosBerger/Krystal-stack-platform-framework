@@ -1508,6 +1508,164 @@
             </div>
         </div>
 
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <!-- ── 17. MULTI-ISA PERFORMANCE TAXONOMIES & ROOFLINE PROFILER ──────── -->
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <div class="ks-card" style="margin-top: 32px; border-color: rgba(56, 189, 248, 0.4); background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.05), transparent 70%), var(--surface-card);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">⚙️</span>
+                        <h2 style="font-size: 18px; font-weight: 800; color: #f1f5f9; letter-spacing: -0.02em; margin: 0;">
+                            17. MULTI-ISA PERFORMANCE TAXONOMIES &amp; ROOFLINE PROFILER
+                        </h2>
+                        <span class="ks-badge badge-optimal" id="isaCountBadge">9 INSTRUCTION SETS</span>
+                        <span class="ks-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">ROOFLINE AWARE</span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 13px; margin: 6px 0 0 0;">
+                        Epistemic taxonomy hierarchy &bull; Williams Roofline model &bull; Cross-ISA performance profiling (AVX-512, AVX2, AMX, DP4A, NEON, SVE2, RVV) &bull; Dynamic PGO Governor
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn-krystal btn-primary-npu" onclick="runCrossIsaProfiling()" id="btnRunIsaProfiling">
+                        ⚡ Spustiť Cross-ISA Profilovanie
+                    </button>
+                    <button class="btn-krystal btn-glass" onclick="recommendOptimalIsaLive()">
+                        🎯 Odporučiť Optimálnu Sadu
+                    </button>
+                </div>
+            </div>
+
+            <!-- Taxonomy Matrix Dimensions Ribbon -->
+            <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px;">
+                <div style="font-size: 11px; font-weight: 700; color: #38bdf8; font-family: var(--font-code); margin-bottom: 10px;">
+                    🏛 5-DIMENZIONÁLNA EPISTEMICKÁ TAXONÓMIA INŠTRUKČNÝCH SÁD (ISA LATTICE)
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; font-size: 11px; font-family: var(--font-code);">
+                    <div>
+                        <span style="color: var(--text-muted);">1. Architektúry:</span>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                            <span class="ks-badge" style="background: rgba(56,189,248,0.15); color: #38bdf8;">x86_64</span>
+                            <span class="ks-badge" style="background: rgba(168,85,247,0.15); color: #c084fc;">ARM64</span>
+                            <span class="ks-badge" style="background: rgba(251,191,36,0.15); color: #fbbf24;">RISC-V</span>
+                            <span class="ks-badge" style="background: rgba(52,211,153,0.15); color: #34d399;">NPU/DP4A</span>
+                            <span class="ks-badge" style="background: rgba(148,163,184,0.15); color: #94a3b8;">Scalar</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted);">2. Vektorová Šírka:</span>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                            <span class="ks-badge" style="background: rgba(255,255,255,0.06); color: #f1f5f9;">64b GPR</span>
+                            <span class="ks-badge" style="background: rgba(255,255,255,0.06); color: #f1f5f9;">128b SSE/NEON</span>
+                            <span class="ks-badge" style="background: rgba(255,255,255,0.06); color: #f1f5f9;">256b AVX2</span>
+                            <span class="ks-badge" style="background: rgba(255,255,255,0.06); color: #f1f5f9;">512b AVX-512</span>
+                            <span class="ks-badge" style="background: rgba(255,255,255,0.06); color: #f1f5f9;">2D Systolic AMX</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted);">3. Cache Lokalita:</span>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                            <span class="ks-badge badge-optimal">L1 Hot (≥85%)</span>
+                            <span class="ks-badge" style="background: rgba(56,189,248,0.15); color: #38bdf8;">L2 Tiled</span>
+                            <span class="ks-badge" style="background: rgba(251,191,36,0.15); color: #fbbf24;">L3 Shared</span>
+                            <span class="ks-badge" style="background: rgba(236,72,153,0.15); color: #ec4899;">Non-Temporal Bypass</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted);">4. Tepelno-Napäťový Režim:</span>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                            <span class="ks-badge" style="background: rgba(52,211,153,0.15); color: #34d399;">Eco (≤65°C)</span>
+                            <span class="ks-badge" style="background: rgba(56,189,248,0.15); color: #38bdf8;">Balanced (≤78°C)</span>
+                            <span class="ks-badge" style="background: rgba(251,191,36,0.15); color: #fbbf24;">Burst (≤85°C)</span>
+                            <span class="ks-badge" style="background: rgba(239,68,68,0.15); color: #ef4444;">Downclock Guard</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Ribbon: Workload & Operational Regimes -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px;">
+                <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                        ARITMETICKÝ TAXÓN WORKLOADU:
+                    </label>
+                    <select id="isaWorkloadSelector" class="ks-select" style="width: 100%; background: #030712; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px;" onchange="runCrossIsaProfiling()">
+                        <option value="INT8_TENSOR_DOT" selected>🧠 INT8 Tensor Dot Product (VNNI / DP4A)</option>
+                        <option value="FP16_VECTOR_DOT">⚡ FP16 Vector Dot (Half-Precision Vision)</option>
+                        <option value="FP32_CONVOLUTION">📐 FP32 Convolution (Geometric Filtering)</option>
+                        <option value="FP64_SCIENTIFIC_LATTICE">🔬 FP64 Scientific Lattice (Double Precision)</option>
+                        <option value="STREAMING_MEMORY_BOUND">🌊 Streaming Memory Bound (LLC Bypass)</option>
+                        <option value="SCALAR_CONTROL_LOOP">🔀 Scalar Control Loop (Branch Heavy)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                        TEPELNÝ STAV CPU / CHIPU (°C):
+                    </label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="range" id="isaThermalSlider" min="40" max="85" value="52" style="flex: 1;" oninput="document.getElementById('isaThermalVal').textContent = this.value + '°C'" onchange="recommendOptimalIsaLive()" />
+                        <span id="isaThermalVal" style="font-family: var(--font-code); font-size: 12px; color: #10b981; font-weight: 700; min-width: 45px;">52°C</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                        POWER ROZPOČET (WATTS):
+                    </label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="range" id="isaPowerSlider" min="10" max="65" value="28" style="flex: 1;" oninput="document.getElementById('isaPowerVal').textContent = this.value + 'W'" onchange="recommendOptimalIsaLive()" />
+                        <span id="isaPowerVal" style="font-family: var(--font-code); font-size: 12px; color: #fbbf24; font-weight: 700; min-width: 45px;">28W</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile-Guided Recommendation Banner -->
+            <div id="isaRecommendationBanner" style="background: rgba(56, 189, 248, 0.08); border: 1px solid #38bdf8; border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #38bdf8; font-family: var(--font-code);">🎯 PGO ODPORÚČANIE:</span>
+                        <span id="pgoWinnerBadge" class="ks-badge badge-optimal">INTEL_AMX_TILE</span>
+                        <span id="pgoRatingBadge" class="ks-badge" style="background: rgba(52,211,153,0.15); color: #34d399;">ENERGY_STAR_OPTIMAL_A+</span>
+                    </div>
+                    <div id="pgoRationaleText" style="font-size: 12px; color: #f1f5f9; margin-top: 6px; font-family: var(--font-code);">
+                        Vyhodnocujem optimálnu inštrukčnú sadu cez multi-objektívny Pareto model...
+                    </div>
+                </div>
+                <div style="display: flex; gap: 14px; font-family: var(--font-code); font-size: 11px;">
+                    <div>Zrýchlenie: <span id="pgoSpeedupVal" style="color: #10b981; font-weight: 800;">-- x</span></div>
+                    <div>Latencia: <span id="pgoLatencyVal" style="color: #38bdf8; font-weight: 800;">-- μs</span></div>
+                    <div>Projekcia Tj: <span id="pgoThermalVal" style="color: #fbbf24; font-weight: 800;">-- °C</span></div>
+                </div>
+            </div>
+
+            <!-- Cross-ISA Performance Comparison Table -->
+            <div style="background: #030712; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); overflow-x: auto; margin-bottom: 16px;">
+                <table style="width: 100%; border-collapse: collapse; font-family: var(--font-code); font-size: 11px; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: var(--text-muted);">
+                            <th style="padding: 10px 14px;">INŠTRUKČNÁ SADA (ISA)</th>
+                            <th style="padding: 10px 14px;">RODINA</th>
+                            <th style="padding: 10px 14px;">ROOFLINE REGIM</th>
+                            <th style="padding: 10px 14px;">SUSTAINED GFLOPS</th>
+                            <th style="padding: 10px 14px;">LATENCIA (μs)</th>
+                            <th style="padding: 10px 14px;">EFEKTIVITA (GFLOPS/W)</th>
+                            <th style="padding: 10px 14px;">ΔT OTEPLENIE</th>
+                            <th style="padding: 10px 14px;">ZRÝCHLENIE VS SCALAR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="isaProfilingTableBody">
+                        <tr>
+                            <td colspan="8" style="padding: 18px; text-align: center; color: var(--text-dim);">
+                                Načítavam profilovanie inštrukčných sád...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <footer style="margin-top: 60px; text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 24px; color: var(--text-dim); font-size: 12px;">
             Krystal-Stack Platform Framework • Epistemic UI Kit & Living Design System v2.0 • Invariant VITAL_MAX_HP == 6
         </footer>
@@ -3662,7 +3820,125 @@
             }
         }
 
-        // Initialize Templates, HW Status, Actor Loops, Matrix, Image MVP & Runtime Core
+        // ══════════════════════════════════════════════════════════════════════
+        // ── 17: MULTI-ISA PERFORMANCE TAXONOMIES & PROFILER CONTROLLER ───────
+        // ══════════════════════════════════════════════════════════════════════
+        let latestIsaProfiles = [];
+
+        async function runCrossIsaProfiling() {
+            const taxonSel = document.getElementById('isaWorkloadSelector');
+            const taxon = taxonSel ? taxonSel.value : 'INT8_TENSOR_DOT';
+            const btn = document.getElementById('btnRunIsaProfiling');
+
+            showToast(`⚙️ Profilujem inštrukčné sady pre taxon ${taxon}...`, 'info');
+            playCyberTone('blip');
+            if (btn) btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/isa-taxonomy/profile-workload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        workload_taxon: taxon,
+                        data_size_bytes: 1048576,
+                        iterations: 100
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'OK' && data.profiles) {
+                    latestIsaProfiles = data.profiles;
+                    renderIsaProfilingTable(data.profiles);
+                    showToast(`✅ Cross-ISA profilovanie dokončené: ${data.profiles.length} inštrukčných sád vyhodnotených`, 'success');
+                    playCyberTone('confirm');
+                } else {
+                    showToast('Chyba pri profilovaní inštrukčných sád', 'danger');
+                }
+            } catch (e) {
+                console.error("runCrossIsaProfiling error:", e);
+                showToast(`Chyba: ${e.message}`, 'danger');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+
+            recommendOptimalIsaLive();
+        }
+
+        function renderIsaProfilingTable(profiles) {
+            const tbody = document.getElementById('isaProfilingTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            profiles.forEach((p, idx) => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+                if (idx === 0) tr.style.background = 'rgba(56, 189, 248, 0.05)';
+
+                const regimeBadgeClass = p.operational_regime === 'COMPUTE_BOUND' ? 'badge-optimal' : 'badge-warning';
+
+                tr.innerHTML = `
+                    <td style="padding: 10px 14px; font-weight: 700; color: ${idx === 0 ? '#38bdf8' : '#f1f5f9'};">
+                        ${idx === 0 ? '👑 ' : ''}${p.isa_name}
+                    </td>
+                    <td style="padding: 10px 14px; color: var(--text-dim);">${p.family}</td>
+                    <td style="padding: 10px 14px;"><span class="ks-badge ${regimeBadgeClass}">${p.operational_regime}</span></td>
+                    <td style="padding: 10px 14px; color: #10b981; font-weight: 700;">${p.measured_gflops} GFLOPS</td>
+                    <td style="padding: 10px 14px; color: #38bdf8;">${p.execution_latency_us} μs</td>
+                    <td style="padding: 10px 14px; color: #c084fc;">${p.energy_efficiency_gflops_watt} GFLOPS/W</td>
+                    <td style="padding: 10px 14px; color: ${p.thermal_elevation_delta_c > 10.0 ? '#ef4444' : '#fbbf24'};">+${p.thermal_elevation_delta_c}°C</td>
+                    <td style="padding: 10px 14px; font-weight: 800; color: ${p.speedup_vs_scalar >= 2.0 ? '#10b981' : '#f1f5f9'};">${p.speedup_vs_scalar}x</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function recommendOptimalIsaLive() {
+            const taxonSel = document.getElementById('isaWorkloadSelector');
+            const taxon = taxonSel ? taxonSel.value : 'INT8_TENSOR_DOT';
+            const thermSlider = document.getElementById('isaThermalSlider');
+            const powerSlider = document.getElementById('isaPowerSlider');
+
+            const thermal = thermSlider ? parseFloat(thermSlider.value) : 52.0;
+            const power = powerSlider ? parseFloat(powerSlider.value) : 28.0;
+
+            try {
+                const res = await fetch('/api/isa-taxonomy/recommend-isa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        workload_taxon: taxon,
+                        data_size_bytes: 1048576,
+                        thermal_celsius: thermal,
+                        power_budget_watts: power,
+                        target_latency_us: 5000.0
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'OK' && data.recommendation) {
+                    const r = data.recommendation;
+                    const winnerBadge = document.getElementById('pgoWinnerBadge');
+                    if (winnerBadge) winnerBadge.textContent = r.selected_isa_id;
+
+                    const ratingBadge = document.getElementById('pgoRatingBadge');
+                    if (ratingBadge) ratingBadge.textContent = r.energy_rating;
+
+                    const ratText = document.getElementById('pgoRationaleText');
+                    if (ratText) ratText.textContent = r.rationale;
+
+                    const speedEl = document.getElementById('pgoSpeedupVal');
+                    if (speedEl) speedEl.textContent = `${r.projected_speedup}x`;
+
+                    const latEl = document.getElementById('pgoLatencyVal');
+                    if (latEl) latEl.textContent = `${r.projected_latency_us} μs`;
+
+                    const thermEl = document.getElementById('pgoThermalVal');
+                    if (thermEl) thermEl.textContent = `${r.projected_thermal_celsius}°C`;
+                }
+            } catch (e) {
+                console.error("recommendOptimalIsaLive error:", e);
+            }
+        }
+
+        // Initialize Templates, HW Status, Actor Loops, Matrix, Image MVP, Runtime Core & ISA Profiler
         renderCoordinationTemplates();
         fetchHardwareAndTimerStatus();
         fetchActorLoopsStatus();
@@ -3674,6 +3950,7 @@
         fetchClosedLoopStatus();
         fetchCoreRuntimeStatus();
         generateGeometricSupersampledStream();
+        runCrossIsaProfiling();
     </script>
 </body>
 </html>

@@ -378,6 +378,35 @@ class MidnightDemonstrator:
             "vital_hp": VITAL_MAX_HP
         }
 
+    def run_exhibit_10_multi_isa_performance_taxonomies(self) -> Dict[str, Any]:
+        """Exhibit 10: Multi-ISA Performance Profiling & Epistemic Taxonomy Engine."""
+        from krystal_kernel.isa_performance_taxonomies_and_profiler import (
+            GLOBAL_ISA_PERFORMANCE_PROFILER,
+            GLOBAL_ISA_GOVERNOR,
+            WorkloadArithmeticTaxon,
+            CANONICAL_ISA_CATALOG
+        )
+        profiles = GLOBAL_ISA_PERFORMANCE_PROFILER.profile_all_isas(WorkloadArithmeticTaxon.INT8_TENSOR_DOT)
+        rec = GLOBAL_ISA_GOVERNOR.recommend_optimal_isa(WorkloadArithmeticTaxon.INT8_TENSOR_DOT)
+        passed = (
+            len(profiles) == len(CANONICAL_ISA_CATALOG) and
+            rec.vital_max_hp == 6 and
+            rec.projected_speedup > 1.0 and
+            all(p.vital_max_hp == 6 for p in profiles)
+        )
+        return {
+            "exhibit_name": "Exhibit 10: Multi-ISA Performance Profiling & Epistemic Taxonomy Engine",
+            "status": "PASS" if passed else "FAIL",
+            "total_isas_profiled": len(profiles),
+            "top_performer_isa": profiles[0].isa_id,
+            "top_sustained_gflops": profiles[0].measured_gflops,
+            "recommended_isa": rec.selected_isa_id,
+            "projected_speedup": rec.projected_speedup,
+            "projected_latency_us": rec.projected_latency_us,
+            "energy_rating": rec.energy_rating,
+            "vital_hp": VITAL_MAX_HP
+        }
+
     def run_full_suite(self) -> Dict[str, Any]:
         """Executes all exhibits, builds certificate, and writes JSON artifact."""
         print("\n" + "=" * 76)
@@ -444,6 +473,12 @@ class MidnightDemonstrator:
         ex9 = self.run_exhibit_9_geometric_procedural_supersampling()
         self.exhibits_results["exhibit_9"] = ex9
         print(f"[OK] (Frames: {ex9['total_frames_generated']}, FPS: {ex9['throughput_fps']}, PSNR: {ex9['psnr_db']}dB, Depth: {ex9['bit_depth_effective']})")
+
+        # 10. Exhibit 10
+        print("  >> Executing Exhibit 10 (Multi-ISA Performance Taxonomies & Profiler)...", end=" ")
+        ex10 = self.run_exhibit_10_multi_isa_performance_taxonomies()
+        self.exhibits_results["exhibit_10"] = ex10
+        print(f"[OK] (ISAs: {ex10['total_isas_profiled']}, Top: {ex10['top_performer_isa']} @ {ex10['top_sustained_gflops']} GFLOPS, Rec: {ex10['recommended_isa']})")
 
         print("-" * 76)
         all_passed = all(e.get("status") == "PASS" for e in self.exhibits_results.values())
