@@ -184,6 +184,39 @@
             display: block;
         }
 
+        canvas.radar-canvas {
+            width: 100%;
+            height: 380px;
+            background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.95) 0%, rgba(3, 7, 18, 0.98) 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            display: block;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .merkle-heart-node {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-family: var(--font-code);
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+
+        .merkle-heart-node.active {
+            border-color: var(--rose-danger);
+            box-shadow: 0 0 10px rgba(244, 63, 94, 0.25);
+        }
+
+        .merkle-heart-node.inactive {
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+
         .nav-links {
             display: flex;
             gap: 14px;
@@ -229,6 +262,8 @@
                     <a href="#badges" class="nav-link">Badges</a>
                     <a href="#forms" class="nav-link">Forms</a>
                     <a href="#telemetry" class="nav-link">Telemetry</a>
+                    <a href="#paradox-radar" class="nav-link" style="color: var(--gold-bright);">★ Paradox Radar</a>
+                    <a href="#taxonomies-sandbox" class="nav-link" style="color: var(--cyan-npu);">◈ Taxonomies</a>
                 </nav>
 
                 <div class="ks-vital-gauge" id="topVitalGauge" title="VITAL_MAX_HP == 6 Invariant Visual Contract">
@@ -573,6 +608,144 @@
             </div>
         </div>
 
+        <!-- SECTION 09: EPISTEMIC MISSION CONTROL & PARADOX RESONANCE RADAR -->
+        <div class="section-title-wrap" id="paradox-radar">
+            <h2 class="text-display-md gradient-text-gold">09 // Epistemic Mission Control & Systemic Resonance Radar</h2>
+            <span class="section-tag">Decagon Constellation • 10 Paradox Nodes • 5 Compound Super-Paradoxes</span>
+        </div>
+
+        <div class="panel-krystal" style="padding: 24px; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                <div>
+                    <div class="token-name" style="color: var(--gold-bright); font-size: 15px;">CAUSAL RESONANCE MATRIX (10 PARADOX NODES)</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Interactive hypergraph linking PARADOX-01..10 with compound super-paradoxes (PARADOX-11..15).</div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn-krystal btn-danger-veto" style="padding: 8px 14px; font-size: 11px;" onclick="injectRadarStress()">
+                        ⚡ Inject Stress Paradox
+                    </button>
+                    <button class="btn-krystal btn-primary-npu" style="padding: 8px 14px; font-size: 11px;" onclick="triggerRadarHeal()">
+                        🛡️ Activate Autonomous Healer
+                    </button>
+                    <button class="btn-krystal btn-glass" style="padding: 8px 12px; font-size: 11px;" onclick="toggleRadarAudio()" id="audioToggleBtn">
+                        🔊 Sound: ON
+                    </button>
+                </div>
+            </div>
+
+            <canvas id="paradoxRadarCanvas" class="radar-canvas"></canvas>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 11px; font-family: var(--font-code); color: var(--text-dim); flex-wrap: wrap; gap: 10px;">
+                <span>ACTIVE ALERTS: <span id="radarAlertsCount" style="color: var(--emerald-stable); font-weight: 700;">0 BREACHED</span></span>
+                <span>ENGAGED CIRCUIT: <span id="radarCircuitStatus" style="color: var(--cyan-npu);">IDLE_LISTENING</span></span>
+                <span>COMPOUND RESONANCES: <span style="color: var(--purple-epistemic);">5 SUPER-PARADOXES ARMED</span></span>
+                <span>CONSTITUTION: <span style="color: var(--rose-danger); font-weight: 700;">VITAL_MAX_HP == 6 LOCKED</span></span>
+            </div>
+        </div>
+
+        <!-- SECTION 10: LIVE EPISTEMIC TAXONOMIES & MERKLE PLAYGROUND -->
+        <div class="section-title-wrap" id="taxonomies-sandbox">
+            <h2 class="text-display-md gradient-text-npu">10 // Live Epistemic Taxonomies & Merkle Tree Sandbox</h2>
+            <span class="section-tag">7-Valued Boolean Lattice • Bounded 6-Heart List • SHA-256 Merkle Verification</span>
+        </div>
+
+        <div class="grid-2col">
+            <!-- Col A: Epistemic Boolean Builder -->
+            <div class="panel-krystal">
+                <div class="token-name" style="color: var(--cyan-npu); font-size: 14px; margin-bottom: 4px;">EPISTEMIC BOOLEAN BUILDER (7-VALUED LATTICE)</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Configure orthogonal taxonomic dimensions to evaluate real-time committability.</div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <label style="font-size: 11px; color: var(--text-dim); font-weight: 600;">1. MODAL TRUTH LATTICE</label>
+                        <select class="ks-select" id="builderModal" onchange="evaluateCustomBoolean()">
+                            <option value="VERIFIED_TRUE">VERIFIED_TRUE (Measured on silicon / Z3 Proven)</option>
+                            <option value="COUNTERFACTUAL_TRUE">COUNTERFACTUAL_TRUE (Model Predicted)</option>
+                            <option value="FALSIFIED_FALSE">FALSIFIED_FALSE (Empirically Refuted)</option>
+                            <option value="VETOED_FALSE">VETOED_FALSE (Blocked by Safety Gate)</option>
+                            <option value="INDETERMINATE_PENDING">INDETERMINATE_PENDING (Proof In-Flight)</option>
+                            <option value="PARADOXICAL_CONTRADICTORY">PARADOXICAL_CONTRADICTORY (Cross-Sensor Drift)</option>
+                            <option value="QUARANTINED">QUARANTINED (Memory / Stream Fault)</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="font-size: 11px; color: var(--text-dim); font-weight: 600;">2. TEMPORAL LEASE</label>
+                            <select class="ks-select" id="builderTemporal" onchange="evaluateCustomBoolean()">
+                                <option value="EPOCH_LEASED">EPOCH_LEASED (5000ms TTL)</option>
+                                <option value="MONOTONIC_LATCH">MONOTONIC_LATCH (Write-once True)</option>
+                                <option value="BISTABLE_HYSTERETIC">BISTABLE_HYSTERETIC (Hysteresis)</option>
+                                <option value="SHADOW_HYPOTHETICAL">SHADOW_HYPOTHETICAL (Zero-Mutation)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; color: var(--text-dim); font-weight: 600;">3. INVARIANT AUTHORITY</label>
+                            <select class="ks-select" id="builderInvariant" onchange="evaluateCustomBoolean()">
+                                <option value="PROVABLE_LEMMA">PROVABLE_LEMMA (SHA-256 Proof)</option>
+                                <option value="CONSTITUTIONAL_INVARIANT">CONSTITUTIONAL_INVARIANT (VITAL_MAX_HP == 6)</option>
+                                <option value="BAYESIAN_STOCHASTIC">BAYESIAN_STOCHASTIC (Belief P in [0,1])</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim);">
+                            <span>CONFIDENCE SCORE</span>
+                            <span id="builderConfVal" style="color: var(--cyan-npu); font-weight: 700;">95%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="95" style="width: 100%; accent-color: var(--cyan-npu);" oninput="document.getElementById('builderConfVal').textContent = this.value + '%'; evaluateCustomBoolean();">
+                    </div>
+
+                    <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px; margin-top: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span class="detail-label">VERDICT STATUS:</span>
+                            <span id="builderVerdictBadge" class="ks-badge badge-optimal">COMMITTABLE (OK)</span>
+                        </div>
+                        <div class="text-code" id="builderCodePreview" style="color: #94a3b8; font-size: 11px; word-break: break-all;">
+                            EpistemicBoolean(value=True, modal=VERIFIED_TRUE, committable=True)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col B: Live Merkle Vital List Inspector -->
+            <div class="panel-krystal">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <div class="token-name" style="color: var(--rose-danger); font-size: 14px;">VITAL_BOUNDED_LIST & MERKLE ROOT</div>
+                    <span class="ks-badge" style="background: rgba(244, 63, 94, 0.15); color: #fecdd3; border: 1px solid rgba(244,63,94,0.3);">
+                        VITAL_MAX_HP == 6
+                    </span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                    Each of the 6 discrete hearts calculates a rolling SHA-256 Merkle root live in browser memory.
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px;" id="merkleHeartsGrid">
+                    <!-- Populated dynamically with 6 nodes -->
+                </div>
+
+                <div style="background: rgba(3, 7, 18, 0.85); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+                    <div style="font-size: 10px; font-family: var(--font-code); color: var(--text-dim); margin-bottom: 4px;">ROLLING MERKLE ROOT (SHA-256):</div>
+                    <div id="liveMerkleRootHex" class="text-code" style="color: var(--gold-bright); font-size: 11px; word-break: break-all;">
+                        e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 14px;">
+                    <button class="btn-krystal btn-danger-veto" style="flex: 1; padding: 6px 10px; font-size: 11px;" onclick="adjustHp(-1); renderMerkleHearts();">
+                        -1 Damage Pip
+                    </button>
+                    <button class="btn-krystal btn-primary-npu" style="flex: 1; padding: 6px 10px; font-size: 11px;" onclick="adjustHp(1); renderMerkleHearts();">
+                        +1 Heal Pip
+                    </button>
+                    <button class="btn-krystal btn-glass" style="padding: 6px 10px; font-size: 11px;" onclick="attemptBreach7thHeart()" title="Attempt to breach N=6 capacity">
+                        ⚠️ Test 7th Breach
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <footer style="margin-top: 60px; text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 24px; color: var(--text-dim); font-size: 12px;">
             Krystal-Stack Platform Framework • Epistemic UI Kit & Living Design System v2.0 • Invariant VITAL_MAX_HP == 6
         </footer>
@@ -622,9 +795,13 @@
         function adjustHp(delta) {
             currentHp = Math.max(0, Math.min(MAX_HP, currentHp + delta));
             updateAllHpViews();
+            if (typeof renderMerkleHearts === 'function') renderMerkleHearts();
+            if (typeof evaluateCustomBoolean === 'function') evaluateCustomBoolean();
             if (delta < 0) {
+                if (typeof playCyberTone === 'function') playCyberTone('stress');
                 showToast(`Vitality Damaged! Current: ${currentHp}/${MAX_HP}`, 'danger');
             } else {
+                if (typeof playCyberTone === 'function') playCyberTone('heal');
                 showToast(`Vitality Restored! Current: ${currentHp}/${MAX_HP}`, 'success');
             }
         }
@@ -751,6 +928,634 @@
 
         drawWaveform();
         updateAllHpViews();
+
+        // ══════════════════════════════════════════════════════════════════════
+        // ── 09 & 10: CYBERNETIC SOUND SYNTHESIZER (WEB AUDIO API) ─────────────
+        // ══════════════════════════════════════════════════════════════════════
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioCtx = new AudioContext();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function toggleRadarAudio() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('audioToggleBtn');
+            if (btn) {
+                btn.textContent = soundEnabled ? '🔊 Sound: ON' : '🔈 Sound: MUTED';
+            }
+            showToast(soundEnabled ? 'Synthesizer Audio Enabled' : 'Synthesizer Audio Muted');
+            if (soundEnabled) playCyberTone('blip');
+        }
+
+        function playCyberTone(type = 'blip') {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+
+                if (type === 'blip') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'heal') {
+                    // Harmonic dual chord: 528Hz (Solfeggio) + 852Hz
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const gain1 = ctx.createGain();
+                    const gain2 = ctx.createGain();
+
+                    osc1.connect(gain1);
+                    osc2.connect(gain2);
+                    gain1.connect(ctx.destination);
+                    gain2.connect(ctx.destination);
+
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(528, now);
+                    gain1.gain.setValueAtTime(0.12, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+
+                    osc2.type = 'triangle';
+                    osc2.frequency.setValueAtTime(852, now);
+                    gain2.gain.setValueAtTime(0.08, now);
+                    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.5);
+                    osc2.stop(now + 0.6);
+                } else if (type === 'stress') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(240, now);
+                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.38);
+                    gain.gain.setValueAtTime(0.16, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+
+                    osc.start(now);
+                    osc.stop(now + 0.38);
+                } else if (type === 'breach') {
+                    // Dissonant 7Hz beating cluster
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const gain1 = ctx.createGain();
+                    const gain2 = ctx.createGain();
+
+                    osc1.connect(gain1);
+                    osc2.connect(gain2);
+                    gain1.connect(ctx.destination);
+                    gain2.connect(ctx.destination);
+
+                    osc1.type = 'sawtooth';
+                    osc1.frequency.setValueAtTime(110, now);
+                    gain1.gain.setValueAtTime(0.2, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+                    osc2.type = 'square';
+                    osc2.frequency.setValueAtTime(117, now);
+                    gain2.gain.setValueAtTime(0.15, now);
+                    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.45);
+                    osc2.stop(now + 0.45);
+                }
+            } catch (err) {
+                console.warn('Web Audio synthesis deferred:', err);
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // ── 09: EPISTEMIC RESONANCE RADAR (60 FPS DECAGON HARDWARE CANVAS) ────
+        // ══════════════════════════════════════════════════════════════════════
+        const radarCanvas = document.getElementById('paradoxRadarCanvas');
+        const radarCtx = radarCanvas.getContext('2d');
+
+        const RADAR_NODES = [
+            { id: "P-01", name: "Epistemic Safety", stress: 0.0, targetStress: 0.0, desc: "Exploration Freeze" },
+            { id: "P-02", name: "Proof Gate", stress: 0.0, targetStress: 0.0, desc: "Expiration Deadlock" },
+            { id: "P-03", name: "Dynamic Fallback", stress: 0.0, targetStress: 0.0, desc: "Semantic Thrashing" },
+            { id: "P-04", name: "Non-Monotonic", stress: 0.0, targetStress: 0.0, desc: "Cascading Invalidation" },
+            { id: "P-05", name: "Predictive Commit", stress: 0.0, targetStress: 0.0, desc: "False Consensus" },
+            { id: "P-06", name: "Telemetry Heisenberg", stress: 0.0, targetStress: 0.0, desc: "Sampling Distortion" },
+            { id: "P-07", name: "Invariant Anchor", stress: 0.0, targetStress: 0.0, desc: "Petrification vs Drift" },
+            { id: "P-08", name: "Quorum Converge", stress: 0.0, targetStress: 0.0, desc: "Byzantine Stalemate" },
+            { id: "P-09", name: "Self-Heal Memory", stress: 0.0, targetStress: 0.0, desc: "Auto-Amnesia Drift" },
+            { id: "P-10", name: "Asynch Entangle", stress: 0.0, targetStress: 0.0, desc: "Phantom Causal Loops" }
+        ];
+
+        const COMPOUND_CHORDS = [
+            { id: "SP-11", name: "Frozen Anchor", a: 0, b: 6, color: "#f43f5e" },       // P-01 <-> P-07
+            { id: "SP-12", name: "Thrashing Deadlock", a: 1, b: 2, color: "#f59e0b" },  // P-02 <-> P-03
+            { id: "SP-13", name: "Heisenberg Amnesia", a: 5, b: 8, color: "#a855f7" },  // P-06 <-> P-09
+            { id: "SP-14", name: "Cascading Phantom", a: 3, b: 9, color: "#38bdf8" },   // P-04 <-> P-10
+            { id: "SP-15", name: "False Byzantine", a: 4, b: 7, color: "#fbbf24" }      // P-05 <-> P-08
+        ];
+
+        // 20 Quantum Photons traveling along chords
+        const radarParticles = [];
+        for (let i = 0; i < 20; i++) {
+            radarParticles.push({
+                chordIdx: i % COMPOUND_CHORDS.length,
+                t: Math.random(),
+                speed: 0.003 + Math.random() * 0.006,
+                size: 1.5 + Math.random() * 1.5
+            });
+        }
+
+        let radarScanAngle = 0;
+        let healWaveRadius = -1; // -1 = inactive
+        let hoveredNodeIdx = -1;
+
+        function resizeRadarCanvas() {
+            radarCanvas.width = radarCanvas.parentElement.clientWidth - 48;
+            radarCanvas.height = 380;
+        }
+
+        window.addEventListener('resize', resizeRadarCanvas);
+        resizeRadarCanvas();
+
+        radarCanvas.addEventListener('mousemove', (e) => {
+            const rect = radarCanvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            const cx = radarCanvas.width / 2;
+            const cy = radarCanvas.height / 2;
+            const R = Math.min(radarCanvas.width, radarCanvas.height) * 0.36;
+
+            hoveredNodeIdx = -1;
+            for (let i = 0; i < RADAR_NODES.length; i++) {
+                const angle = (i * 2 * Math.PI / 10) - (Math.PI / 2);
+                const nx = cx + R * Math.cos(angle);
+                const ny = cy + R * Math.sin(angle);
+                const dist = Math.hypot(mx - nx, my - ny);
+                if (dist <= 22) {
+                    hoveredNodeIdx = i;
+                    break;
+                }
+            }
+        });
+
+        radarCanvas.addEventListener('mouseleave', () => {
+            hoveredNodeIdx = -1;
+        });
+
+        function drawParadoxRadar() {
+            const w = radarCanvas.width;
+            const h = radarCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const R = Math.min(w, h) * 0.36;
+
+            radarCtx.clearRect(0, 0, w, h);
+
+            // 1. Concentric Range Rings
+            const ringRadii = [R * 0.33, R * 0.66, R];
+            radarCtx.lineWidth = 1;
+            ringRadii.forEach((r, idx) => {
+                radarCtx.strokeStyle = idx === 2 ? 'rgba(56, 189, 248, 0.18)' : 'rgba(255, 255, 255, 0.05)';
+                radarCtx.beginPath();
+                radarCtx.arc(cx, cy, r, 0, Math.PI * 2);
+                radarCtx.stroke();
+            });
+
+            // Crosshair Axes
+            radarCtx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            radarCtx.beginPath();
+            radarCtx.moveTo(cx - R * 1.15, cy);
+            radarCtx.lineTo(cx + R * 1.15, cy);
+            radarCtx.moveTo(cx, cy - R * 1.15);
+            radarCtx.lineTo(cx, cy + R * 1.15);
+            radarCtx.stroke();
+
+            // 2. Rotating Radar Scan Line
+            radarScanAngle += 0.016;
+            const scanX = cx + R * Math.cos(radarScanAngle);
+            const scanY = cy + R * Math.sin(radarScanAngle);
+
+            const scanGrad = radarCtx.createRadialGradient(cx, cy, 0, cx, cy, R);
+            scanGrad.addColorStop(0, 'rgba(56, 189, 248, 0.15)');
+            scanGrad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+            radarCtx.save();
+            radarCtx.beginPath();
+            radarCtx.moveTo(cx, cy);
+            radarCtx.arc(cx, cy, R, radarScanAngle - 0.45, radarScanAngle);
+            radarCtx.closePath();
+            radarCtx.fillStyle = scanGrad;
+            radarCtx.fill();
+            radarCtx.restore();
+
+            radarCtx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+            radarCtx.lineWidth = 1.5;
+            radarCtx.beginPath();
+            radarCtx.moveTo(cx, cy);
+            radarCtx.lineTo(scanX, scanY);
+            radarCtx.stroke();
+
+            // 3. Decagon Perimeter Ring
+            const nodeCoords = [];
+            for (let i = 0; i < 10; i++) {
+                const angle = (i * 2 * Math.PI / 10) - (Math.PI / 2);
+                nodeCoords.push({
+                    x: cx + R * Math.cos(angle),
+                    y: cy + R * Math.sin(angle),
+                    angle: angle
+                });
+            }
+
+            radarCtx.strokeStyle = 'rgba(168, 85, 247, 0.22)';
+            radarCtx.lineWidth = 1;
+            radarCtx.beginPath();
+            for (let i = 0; i < 10; i++) {
+                const pt = nodeCoords[i];
+                if (i === 0) radarCtx.moveTo(pt.x, pt.y);
+                else radarCtx.lineTo(pt.x, pt.y);
+            }
+            radarCtx.closePath();
+            radarCtx.stroke();
+
+            // 4. Compound Super-Paradox Chords
+            COMPOUND_CHORDS.forEach((chord) => {
+                const p1 = nodeCoords[chord.a];
+                const p2 = nodeCoords[chord.b];
+                const node1 = RADAR_NODES[chord.a];
+                const node2 = RADAR_NODES[chord.b];
+                const combinedStress = Math.max(node1.stress, node2.stress);
+
+                radarCtx.beginPath();
+                radarCtx.moveTo(p1.x, p1.y);
+                radarCtx.lineTo(p2.x, p2.y);
+
+                if (combinedStress > 0.4) {
+                    radarCtx.strokeStyle = 'rgba(244, 63, 94, 0.85)';
+                    radarCtx.lineWidth = 2.5;
+                    radarCtx.shadowColor = 'rgba(244, 63, 94, 0.7)';
+                    radarCtx.shadowBlur = 10;
+                } else {
+                    radarCtx.strokeStyle = 'rgba(168, 85, 247, 0.28)';
+                    radarCtx.lineWidth = 1.2;
+                    radarCtx.shadowBlur = 0;
+                }
+                radarCtx.stroke();
+                radarCtx.shadowBlur = 0;
+            });
+
+            // 5. Quantum Photons (Particles along Chords)
+            radarParticles.forEach((p) => {
+                const chord = COMPOUND_CHORDS[p.chordIdx];
+                const p1 = nodeCoords[chord.a];
+                const p2 = nodeCoords[chord.b];
+
+                p.t = (p.t + p.speed) % 1;
+                const px = (1 - p.t) * p1.x + p.t * p2.x;
+                const py = (1 - p.t) * p1.y + p.t * p2.y;
+
+                const node1 = RADAR_NODES[chord.a];
+                const node2 = RADAR_NODES[chord.b];
+                const isAlarm = Math.max(node1.stress, node2.stress) > 0.4;
+
+                radarCtx.fillStyle = isAlarm ? '#f43f5e' : '#38bdf8';
+                radarCtx.shadowColor = isAlarm ? '#f43f5e' : '#38bdf8';
+                radarCtx.shadowBlur = 6;
+                radarCtx.beginPath();
+                radarCtx.arc(px, py, p.size, 0, Math.PI * 2);
+                radarCtx.fill();
+                radarCtx.shadowBlur = 0;
+            });
+
+            // 6. Expanding Autonomous Healing Pulse Wave
+            if (healWaveRadius >= 0) {
+                healWaveRadius += 5;
+                const alpha = Math.max(0, 1.0 - (healWaveRadius / (R * 1.6)));
+                radarCtx.strokeStyle = `rgba(16, 185, 129, ${alpha})`;
+                radarCtx.lineWidth = 3;
+                radarCtx.shadowColor = 'rgba(16, 185, 129, 0.8)';
+                radarCtx.shadowBlur = 16;
+                radarCtx.beginPath();
+                radarCtx.arc(cx, cy, healWaveRadius, 0, Math.PI * 2);
+                radarCtx.stroke();
+                radarCtx.shadowBlur = 0;
+
+                if (healWaveRadius > R * 1.6) {
+                    healWaveRadius = -1; // finished
+                }
+            }
+
+            // 7. Node Rendering & Lerp
+            for (let i = 0; i < 10; i++) {
+                const node = RADAR_NODES[i];
+                const pt = nodeCoords[i];
+
+                // Smooth stress lerp
+                node.stress += (node.targetStress - node.stress) * 0.08;
+
+                const isHovered = (i === hoveredNodeIdx);
+                const stressVal = node.stress;
+
+                // Outer aura pulse
+                const pulseR = 10 + stressVal * 10 + (isHovered ? 4 : 0);
+                radarCtx.beginPath();
+                radarCtx.arc(pt.x, pt.y, pulseR, 0, Math.PI * 2);
+                if (stressVal > 0.3) {
+                    radarCtx.fillStyle = `rgba(244, 63, 94, ${0.15 + stressVal * 0.35})`;
+                } else {
+                    radarCtx.fillStyle = isHovered ? 'rgba(56, 189, 248, 0.35)' : 'rgba(56, 189, 248, 0.12)';
+                }
+                radarCtx.fill();
+
+                // Core Pip
+                radarCtx.beginPath();
+                radarCtx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+                if (stressVal > 0.3) {
+                    radarCtx.fillStyle = '#f43f5e';
+                    radarCtx.shadowColor = '#f43f5e';
+                    radarCtx.shadowBlur = 10;
+                } else {
+                    radarCtx.fillStyle = isHovered ? '#fbbf24' : '#38bdf8';
+                    radarCtx.shadowColor = isHovered ? '#fbbf24' : '#38bdf8';
+                    radarCtx.shadowBlur = 8;
+                }
+                radarCtx.fill();
+                radarCtx.shadowBlur = 0;
+
+                // Node Identifier (P-01..10) positioned outward
+                const labelR = R + 24;
+                const lx = cx + labelR * Math.cos(pt.angle);
+                const ly = cy + labelR * Math.sin(pt.angle);
+
+                radarCtx.font = '10px "Fira Code", monospace';
+                radarCtx.textAlign = 'center';
+                radarCtx.textBaseline = 'middle';
+                radarCtx.fillStyle = stressVal > 0.3 ? '#fca5a5' : (isHovered ? '#fbbf24' : '#94a3b8');
+                radarCtx.fillText(node.id, lx, ly);
+            }
+
+            // 8. Tooltip for Hovered Node
+            if (hoveredNodeIdx >= 0) {
+                const node = RADAR_NODES[hoveredNodeIdx];
+                const pt = nodeCoords[hoveredNodeIdx];
+
+                const tipW = 190;
+                const tipH = 50;
+                const tx = Math.max(10, Math.min(w - tipW - 10, pt.x - tipW / 2));
+                const ty = Math.max(10, Math.min(h - tipH - 10, pt.y - 45));
+
+                radarCtx.fillStyle = 'rgba(10, 16, 31, 0.95)';
+                radarCtx.strokeStyle = 'var(--border-subtle)';
+                radarCtx.lineWidth = 1;
+                radarCtx.beginPath();
+                radarCtx.roundRect(tx, ty, tipW, tipH, 6);
+                radarCtx.fill();
+                radarCtx.stroke();
+
+                radarCtx.font = 'bold 11px Outfit, sans-serif';
+                radarCtx.fillStyle = '#38bdf8';
+                radarCtx.textAlign = 'left';
+                radarCtx.fillText(`${node.id}: ${node.name}`, tx + 10, ty + 18);
+
+                radarCtx.font = '10px "Fira Code", monospace';
+                radarCtx.fillStyle = node.stress > 0.3 ? '#f43f5e' : '#10b981';
+                radarCtx.fillText(`Stress: ${(node.stress * 100).toFixed(0)}% • ${node.desc}`, tx + 10, ty + 36);
+            }
+
+            requestAnimationFrame(drawParadoxRadar);
+        }
+
+        drawParadoxRadar();
+
+        // ── RADAR INTERACTIVE CONTROLS ──────────────────────────────────────
+        function injectRadarStress() {
+            // Trigger compound resonance: SP-11 (P-01 & P-07) and SP-12 (P-02 & P-03)
+            RADAR_NODES[0].targetStress = 0.95; // P-01 Epistemic Safety
+            RADAR_NODES[6].targetStress = 0.90; // P-07 Invariant Anchor
+            RADAR_NODES[1].targetStress = 0.85; // P-02 Proof Gate
+            RADAR_NODES[2].targetStress = 0.80; // P-03 Dynamic Fallback
+
+            currentHp = 2; // Damage vitality down to critical threshold
+            updateAllHpViews();
+            if (typeof renderMerkleHearts === 'function') renderMerkleHearts();
+            if (typeof evaluateCustomBoolean === 'function') evaluateCustomBoolean();
+
+            const countEl = document.getElementById('radarAlertsCount');
+            if (countEl) {
+                countEl.textContent = '2 COMPOUND SUPER-PARADOXES (SP-11, SP-12)';
+                countEl.style.color = 'var(--rose-danger)';
+            }
+            const statusEl = document.getElementById('radarCircuitStatus');
+            if (statusEl) {
+                statusEl.textContent = 'ALARM_EMERGENCY_VETO';
+                statusEl.style.color = 'var(--rose-danger)';
+            }
+
+            playCyberTone('stress');
+            showToast('⚡ Injected Epistemic Stress: SP-11 Frozen Anchor and SP-12 Deadlock breached!', 'danger');
+        }
+
+        async function triggerRadarHeal() {
+            // Reconcile and relax all nodes
+            RADAR_NODES.forEach((node) => {
+                node.targetStress = 0.0;
+            });
+
+            // Start expanding healing ripple wave
+            healWaveRadius = 0;
+
+            // Restore Vital Invariant HP to Nominal 6/6
+            currentHp = MAX_HP;
+            updateAllHpViews();
+            if (typeof renderMerkleHearts === 'function') renderMerkleHearts();
+            if (typeof evaluateCustomBoolean === 'function') evaluateCustomBoolean();
+
+            const countEl = document.getElementById('radarAlertsCount');
+            if (countEl) {
+                countEl.textContent = '0 BREACHED (NOMINAL)';
+                countEl.style.color = 'var(--emerald-stable)';
+            }
+            const statusEl = document.getElementById('radarCircuitStatus');
+            if (statusEl) {
+                statusEl.textContent = 'AUTONOMOUS_HEALED (5 CIRCUITS CONVERGED)';
+                statusEl.style.color = 'var(--emerald-stable)';
+            }
+
+            playCyberTone('heal');
+
+            // Dispatch to backend API /api/paradoxes/auto-heal in background
+            try {
+                const res = await fetch('/api/paradoxes/auto-heal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: '{}'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    showToast('✨ Autonomous Healer: 5 circuits converged across all paradox nodes!', 'success');
+                    return;
+                }
+            } catch (e) {
+                // If offline or standalone preview, local simulation already converged
+            }
+            showToast('✨ Autonomous Healer: All 10 nodes reconciled & converged!', 'success');
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // ── 10: EPISTEMIC BOOLEAN BUILDER & 7-VALUED LATTICE EVALUATOR ────────
+        // ══════════════════════════════════════════════════════════════════════
+        function evaluateCustomBoolean() {
+            const modalEl = document.getElementById('builderModal');
+            const temporalEl = document.getElementById('builderTemporal');
+            const invariantEl = document.getElementById('builderInvariant');
+            const confEl = document.getElementById('builderConfVal');
+            const badgeEl = document.getElementById('builderVerdictBadge');
+            const previewEl = document.getElementById('builderCodePreview');
+
+            if (!modalEl || !temporalEl || !invariantEl || !confEl || !badgeEl || !previewEl) return;
+
+            const modal = modalEl.value;
+            const temporal = temporalEl.value;
+            const invariant = invariantEl.value;
+            const conf = parseInt(confEl.textContent) / 100;
+
+            let committable = false;
+            let verdictText = "";
+            let badgeClass = "";
+
+            if (['VETOED_FALSE', 'QUARANTINED', 'FALSIFIED_FALSE', 'PARADOXICAL_CONTRADICTORY'].includes(modal)) {
+                committable = false;
+                verdictText = `BLOCKED (${modal})`;
+                badgeClass = 'badge-critical';
+            } else if (modal === 'INDETERMINATE_PENDING') {
+                committable = false;
+                verdictText = 'DEFERRED (PROOF IN-FLIGHT)';
+                badgeClass = 'badge-degraded';
+            } else if (conf < 0.80) {
+                committable = false;
+                verdictText = `DEFERRED (CONF ${(conf * 100).toFixed(0)}% < 80%)`;
+                badgeClass = 'badge-degraded';
+            } else if (invariant === 'CONSTITUTIONAL_INVARIANT' && currentHp !== 6) {
+                committable = false;
+                verdictText = `VETOED (VITAL_MAX_HP ${currentHp}/6 != 6)`;
+                badgeClass = 'badge-critical';
+            } else {
+                committable = true;
+                verdictText = 'COMMITTABLE (OPTIMAL OK)';
+                badgeClass = 'badge-optimal';
+            }
+
+            badgeEl.className = `ks-badge ${badgeClass}`;
+            badgeEl.textContent = verdictText;
+
+            const isValueTrue = (modal === 'VERIFIED_TRUE' || modal === 'COUNTERFACTUAL_TRUE');
+            previewEl.textContent = `EpistemicBoolean(value=${isValueTrue ? 'True' : 'False'}, modal=${modal}, temporal=${temporal}, invariant=${invariant}, conf=${conf.toFixed(2)}, is_committable=${committable ? 'True' : 'False'})`;
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // ── 10: 6-HEART BOUNDED LIST & REALTIME MERKLE ROOT CALCULATION ───────
+        // ══════════════════════════════════════════════════════════════════════
+        async function calculateSha256(str) {
+            if (window.crypto && window.crypto.subtle) {
+                try {
+                    const msgBuffer = new TextEncoder().encode(str);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                } catch (e) {
+                    // Fallback
+                }
+            }
+            // Simple deterministic 64-hex fallback if SubtleCrypto is unavailable
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+            return (Math.abs(hash).toString(16).padStart(16, '0') + "fedcba98765432100123456789abcdef").repeat(2).slice(0, 64);
+        }
+
+        async function renderMerkleHearts() {
+            const grid = document.getElementById('merkleHeartsGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const leafHashes = [];
+            for (let i = 0; i < MAX_HP; i++) {
+                const isActive = (i < currentHp);
+                const leafData = `heart_${i}:state=${isActive ? 'nominal' : 'zeroed'}:cap=6:salt=krystal_kernel`;
+                const leafHash = await calculateSha256(leafData);
+                leafHashes.push(leafHash);
+
+                const nodeCard = document.createElement('div');
+                nodeCard.className = `merkle-heart-node ${isActive ? 'active' : 'inactive'}`;
+                nodeCard.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: ${isActive ? 'var(--rose-danger)' : 'var(--text-dim)'};">♥ HEART #${i}</span>
+                        <span style="font-size: 9px; padding: 2px 5px; border-radius: 3px; background: ${isActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(244, 63, 94, 0.2)'}; color: ${isActive ? 'var(--emerald-stable)' : 'var(--rose-danger)'};">
+                            ${isActive ? 'ACTIVE' : 'LOST'}
+                        </span>
+                    </div>
+                    <div style="font-size: 9px; color: var(--text-dim); margin-top: 2px;">Leaf: heart_${i}</div>
+                    <div style="font-size: 9px; color: var(--gold-bright); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${leafHash}">
+                        H: ${leafHash.substring(0, 14)}…
+                    </div>
+                `;
+                grid.appendChild(nodeCard);
+            }
+
+            // Calculate Rolling Merkle Root
+            let rollingRoot = "0000000000000000000000000000000000000000000000000000000000000000";
+            for (let i = 0; i < leafHashes.length; i++) {
+                rollingRoot = await calculateSha256(rollingRoot + ":" + leafHashes[i]);
+            }
+
+            const rootEl = document.getElementById('liveMerkleRootHex');
+            if (rootEl) {
+                rootEl.textContent = rollingRoot;
+            }
+        }
+
+        function attemptBreach7thHeart() {
+            playCyberTone('breach');
+
+            const grid = document.getElementById('merkleHeartsGrid');
+            if (grid) {
+                grid.style.boxShadow = '0 0 30px rgba(244, 63, 94, 0.85)';
+                grid.style.border = '1px solid var(--rose-danger)';
+                setTimeout(() => {
+                    grid.style.boxShadow = '';
+                    grid.style.border = '';
+                }, 1200);
+            }
+
+            showToast('🛑 InvariantViolationError: VITAL_MAX_HP == 6 violated! (Attempted insertion of Heart #7 was rejected by kernel hypervisor)', 'danger');
+        }
+
+        // Initialize dynamic components on page load
+        evaluateCustomBoolean();
+        renderMerkleHearts();
     </script>
 </body>
 </html>
