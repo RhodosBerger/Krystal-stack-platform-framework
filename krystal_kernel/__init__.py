@@ -15,6 +15,28 @@ from .params import KernelParams, derive_params  # noqa: F401
 from .eventlog import EventLog  # noqa: F401
 from .kernel import ComputeKernel, Backpressure, DeadlineMissed, get_kernel, shutdown_kernel  # noqa: F401
 from .metabolic_governor import BrainwavePhase, MetabolicFidelityProfile, SystemMetabolismState, MetabolicGovernor  # noqa: F401
+from .custom_governor import (  # noqa: F401
+    GovernorMode,
+    GovernorLimits,
+    GovernorDecision,
+    ExecutionEnvelope,
+    CustomHardwareGovernor,
+)
+from .custom_planner import (  # noqa: F401
+    TaskCategory,
+    WorkloadTask,
+    ScheduledTaskAssignment,
+    WorkloadPlan,
+    ExecutionFeedbackRecord,
+    CustomWorkloadPlanner,
+)
+from .verification.capability_registry import (  # noqa: F401
+    CapabilityState,
+    HardwareBackend,
+    BackendCapability,
+    CapabilityRegistry,
+    GLOBAL_CAPABILITY_REGISTRY,
+)
 from .processor_whisperer import (  # noqa: F401
     VITAL_MAX_HP,
     EngineOpcode,
@@ -396,6 +418,46 @@ from .nextgen_algorithms_and_templates import (  # noqa: F401
     GLOBAL_NEXTGEN_ALGORITHMS_SUITE
 )
 
+from .custom_governor import (  # noqa: F401
+    GovernorMode,
+    GovernorLimits,
+    GovernorDecision,
+    ExecutionEnvelope,
+    CustomHardwareGovernor
+)
+
+from .custom_planner import (  # noqa: F401
+    TaskCategory,
+    WorkloadTask,
+    ScheduledTaskAssignment,
+    WorkloadPlan,
+    ExecutionFeedbackRecord,
+    CustomWorkloadPlanner
+)
+
+from .verification.capability_registry import (  # noqa: F401
+    CapabilityState,
+    HardwareBackend,
+    BackendCapability,
+    CapabilityRegistry,
+    GLOBAL_CAPABILITY_REGISTRY
+)
+
+from .hardware_input_driver import (  # noqa: F401
+    InputSourceKind,
+    UserActivityState,
+    RawHardwarePacket,
+    NormalizedInputState,
+    InputReplayFrame,
+    LockFreeInputRingBuffer,
+    DeadzoneAndJitterFilter,
+    SerialTelemetryDecoder,
+    DeterministicInputJournal,
+    HardwareInputDriver,
+    EpistemicInputBridge,
+    GLOBAL_HARDWARE_INPUT_DRIVER
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -505,5 +567,12 @@ __all__ = [
     "PlacementDecision", "HeterogeneousBreakEvenPlacementAlgorithm",
     "CalibrationStatus", "OnlineCalibrationLedgerAlgorithm",
     "HarmonicTensorPoint", "GoldenRatioHarmonicTensorAlgorithm",
-    "NextGenAlgorithmsSuite", "GLOBAL_NEXTGEN_ALGORITHMS_SUITE"
+    "NextGenAlgorithmsSuite", "GLOBAL_NEXTGEN_ALGORITHMS_SUITE",
+    "GovernorMode", "GovernorLimits", "GovernorDecision", "ExecutionEnvelope", "CustomHardwareGovernor",
+    "TaskCategory", "WorkloadTask", "ScheduledTaskAssignment", "WorkloadPlan", "ExecutionFeedbackRecord", "CustomWorkloadPlanner",
+    "CapabilityState", "HardwareBackend", "BackendCapability", "CapabilityRegistry", "GLOBAL_CAPABILITY_REGISTRY",
+    "InputSourceKind", "UserActivityState", "RawHardwarePacket", "NormalizedInputState",
+    "InputReplayFrame", "LockFreeInputRingBuffer", "DeadzoneAndJitterFilter",
+    "SerialTelemetryDecoder", "DeterministicInputJournal", "HardwareInputDriver",
+    "EpistemicInputBridge", "GLOBAL_HARDWARE_INPUT_DRIVER"
 ]

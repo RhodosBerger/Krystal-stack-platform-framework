@@ -58,6 +58,10 @@ class TestOpenAILLMConnector(unittest.TestCase):
         self.kernel = ComputeKernel(KernelParams())
         self.ctx = ApiContext(self.kernel)
 
+    def tearDown(self):
+        if hasattr(self, "kernel") and self.kernel:
+            self.kernel.shutdown()
+
     def test_universal_invariants(self):
         """Verifies VITAL_MAX_HP == 6 invariant in connector and status dictionaries."""
         self.assertEqual(VITAL_MAX_HP, 6)

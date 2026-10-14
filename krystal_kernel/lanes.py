@@ -252,6 +252,9 @@ class _Worker:
         if self.dead or proc is None or proc.poll() is not None:
             fut.set_exception(WorkerCrashed(f"worker {self.idx} is dead"))
             return fut
+        if not self.ready.wait(timeout=3.0):
+            fut.set_exception(WorkerCrashed(f"worker {self.idx} not ready"))
+            return fut
         with self.plock:
             self._seq += 1
             rid = self._seq

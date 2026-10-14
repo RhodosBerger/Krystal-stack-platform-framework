@@ -378,7 +378,9 @@ class MaskedElasticLoraAdapter:
       c_evidence -> dynamic loss weights (lambda_cite, lambda_abstain)
     """
 
-    def __init__(self, cond_dim: int = 12, hidden_dim: int = 64, max_rank: int = 16, seed: int = 42):
+    def __init__(self, cond_dim: int = 12, hidden_dim: int = 64, max_rank: int = 16, seed: int = 42, rag_dim: Optional[int] = None):
+        if rag_dim is not None:
+            cond_dim = rag_dim
         np.random.seed(seed)
         self.cond_dim = cond_dim
         self.hidden_dim = hidden_dim
@@ -445,7 +447,7 @@ class MaskedElasticLoraAdapter:
         beta = film_params[self.hidden_dim:]
 
         # 2. Dynamic rank selection
-        effective_rank, lora_scale = self.compute_effective_rank(cond_vec)
+        effective_rank, lora_scale = self.compute_effective_rank(cond_vector)
 
         # 3. Masked LoRA projection using slice [:effective_rank]
         A_slice = self.lora_A[:, :effective_rank]

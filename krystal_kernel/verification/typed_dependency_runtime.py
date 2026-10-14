@@ -141,7 +141,7 @@ class DependencyValue:
 
 # ---------------------------------------------------------------- runtime
 class TypedDependencyRuntime:
-    def __init__(self, policy_version: str = "v1", clock: Callable[[], int] = time.time_ns):
+    def __init__(self, policy_version: str = "v1", clock: Callable[[], int] = time.monotonic_ns):
         self.policy_version = policy_version
         self._clock = clock
         self._values: Dict[str, DependencyValue] = {}

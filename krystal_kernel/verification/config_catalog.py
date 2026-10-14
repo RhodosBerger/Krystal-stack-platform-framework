@@ -18,11 +18,21 @@ class ConfigProfile:
     gpu_enabled: bool
     batch_size: int
     tick_hz: int                # kernel/render tick rate
-    codec_bits: int             # 16 / 32 / 64 B zero-copy codec width (in bytes)
+    codec_width_bytes: int      # 16 / 32 / 64 B zero-copy codec width (in bytes)
     perf_score: float           # relative throughput 0..1
     power_draw_w: float         # estimated average draw
     notes: str = ""
     tags: List[str] = field(default_factory=list)
+
+    @property
+    def codec_bits(self) -> int:
+        """Backward compatibility alias for codec_width_bytes."""
+        return self.codec_width_bytes
+
+    @property
+    def codec_bytes(self) -> int:
+        """Alias for codec_width_bytes."""
+        return self.codec_width_bytes
 
     @property
     def efficiency(self) -> float:
@@ -42,14 +52,14 @@ CATALOG: Dict[str, ConfigProfile] = {p.name: p for p in [
     ConfigProfile("performance_gpu", "performance", 85, False, True, 16, 60, 64, 0.90, 25.0,
                   "GPU-heavy, 60 Hz, 64B codec. Plugged in.", ["training", "ac"]),
     ConfigProfile("max_burst", "performance", 100, False, True, 32, 120, 64, 1.00, 40.0,
-                  "Short bursts only; thermal-limited.", ["benchmark", "ac"]),
+                  "Short bursts only; thermal-limited.", ["benchmark", "ac", "SHORT_BURST_ONLY"]),
 ]}
 
 
 def validate(profile: ConfigProfile) -> None:
     assert VITAL_MAX_HP == 6
     assert 0 < profile.cpu_cap_pct <= 100
-    assert profile.codec_bits in (16, 32, 64)
+    assert profile.codec_width_bytes in (16, 32, 64)
     assert 0.0 <= profile.perf_score <= 1.0 and profile.power_draw_w > 0
 
 
