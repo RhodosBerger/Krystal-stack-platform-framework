@@ -46,7 +46,8 @@ typedef enum KrystalIPCOpcode {
     KRYSTAL_OP_AABB_CULL        = 0x03,  /* Subgroup SIMD16 Bounding Box Culling */
     KRYSTAL_OP_MATRIX_COMPRESS  = 0x04,  /* L1-Cache Matrix Repetition Compressor */
     KRYSTAL_OP_RAYMARCH_FRAME   = 0x05,  /* Vulkan Host-Visible Screen SDF Raymarching */
-    KRYSTAL_OP_MAX              = 0x06
+    KRYSTAL_OP_CONTRACT_BATCH_VERIFY = 0x06, /* SIMD/GPU 7-Contract Pipeline Causal Verification */
+    KRYSTAL_OP_MAX              = 0x07
 } KrystalIPCOpcode;
 
 /* 20-byte Strictly Packed Binary IPC Header */
