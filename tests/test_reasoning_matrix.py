@@ -297,6 +297,163 @@ class TestReasoningMatrix(unittest.TestCase):
                 vital_max_hp=5  # Violation!
             )
 
+    def test_11_execute_pipeline_end_to_end_verdict_and_receipt(self):
+        """Validates closed-loop pipeline producing AdmissibilityVerdict and ActuationReceipt."""
+        kernel = EpistemicOrchestrationKernel(
+            funnel=self.funnel,
+            nodes=[CausalDiagnosticNode(), DeterministicMemoryStabilizerNode()],
+        )
+        state = WorldStateVector(
+            state_timestamp_ns=5_000_000,
+            sequence_id=505,
+            cpu_utilization_pct=40.0,
+            gpu_utilization_pct=70.0,
+            uma_pressure=0.75,
+            temperature_c=66.0,
+            battery_pct=88.0,
+            plugged=True,
+            queue_depth=8,
+            vital_max_hp=6,
+        )
+
+        res = kernel.execute_pipeline(state, query="Pipeline Test")
+        self.assertEqual(res.vital_max_hp, 6)
+        self.assertEqual(res.verdict.vital_max_hp, 6)
+        self.assertEqual(res.receipt.vital_max_hp, 6)
+        self.assertEqual(res.receipt.applied_envelope.vital_max_hp, 6)
+
+        self.assertTrue(res.verdict.is_admissible)
+        self.assertEqual(res.verdict.verdict_code, "AUTH_COMMIT_APPROVED")
+        self.assertFalse(res.receipt.was_degraded_fallback)
+        self.assertEqual(res.receipt.applied_profile, "balanced_hybrid")
+
+    def test_12_architectural_acid_test_plug_new_node_without_kernel_modification(self):
+        """
+        THE ARCHITECTURAL ACID TEST:
+        Plugs in a completely new node (ThermalGradientPredictorNode) WITHOUT touching
+        a single line of the EpistemicOrchestrationKernel or AdmissibleHypothesisFunnel.
+        Proves strict compliance with the Open-Closed Principle (OCP) and polymorphic orchestration.
+        """
+        from krystal_kernel.reasoning_matrix import WorkspaceNode
+
+        class ThermalGradientPredictorNode:
+            """Brand-new third-party node created outside the core kernel."""
+            @property
+            def node_id(self) -> str:
+                return "node_thirdparty_thermal_predictor"
+
+            @property
+            def reasoning_mode(self) -> ReasoningModeKind:
+                return ReasoningModeKind.CUSTOM_NN_PREDICTOR
+
+            def can_evaluate(self, state: WorldStateVector) -> bool:
+                assert state.vital_max_hp == 6
+                # Evaluates only if temperature trend is warm
+                return state.temperature_c > 60.0
+
+            def propose(self, state: WorldStateVector) -> List[HypothesisEnvelope]:
+                assert state.vital_max_hp == 6
+                return [
+                    HypothesisEnvelope(
+                        hypothesis_id=f"{self.node_id}_hyp_cool_npu",
+                        node_id=self.node_id,
+                        reasoning_mode=self.reasoning_mode,
+                        target_profile="balanced_hybrid",
+                        predicted_latency_ms=9.5,
+                        predicted_throughput_fps=195.0,
+                        predicted_power_w=5.8,
+                        predicted_uma_pressure=0.55,
+                        assumptions={"thermal_gradient_c_per_s": -0.8},
+                        confidence=0.95,
+                        requires_npu=False,
+                        vital_max_hp=6,
+                    )
+                ]
+
+            def feedback(self, residual: ObservationResidual) -> None:
+                assert residual.vital_max_hp == 6
+
+            def render_ui_contribution(
+                self, state: WorldStateVector, hypothesis: Optional[HypothesisEnvelope]
+            ) -> Optional[WorkspaceNode]:
+                assert state.vital_max_hp == 6
+                return WorkspaceNode(
+                    node_id=self.node_id,
+                    kind=WorkspaceNodeKind.ACTION_CARD,
+                    title="Alternatíva C (Termálny Prediktor)",
+                    summary="Optimalizácia termálneho spádu cez NPU offload.",
+                    properties={"predicted_power": "5.8 W", "confidence": 0.95},
+                    actions=[{"label": "Aktivovať NPU chladenie", "action_id": "commit_npu_cool"}],
+                    vital_max_hp=6,
+                )
+
+        new_node = ThermalGradientPredictorNode()
+        self.assertIsInstance(new_node, IEpistemicNode)
+
+        # Register dynamically into the existing kernel without modifying its code
+        kernel = EpistemicOrchestrationKernel(funnel=self.funnel)
+        kernel.register_node(new_node)
+
+        state = WorldStateVector(
+            state_timestamp_ns=10_000_000,
+            sequence_id=999,
+            cpu_utilization_pct=40.0,
+            gpu_utilization_pct=50.0,
+            uma_pressure=0.55,
+            temperature_c=75.0,
+            battery_pct=90.0,
+            plugged=True,
+            queue_depth=5,
+            vital_max_hp=6,
+        )
+
+        res = kernel.execute_pipeline(state, query="Test New Node")
+        self.assertEqual(res.vital_max_hp, 6)
+        self.assertTrue(res.verdict.is_admissible)
+        self.assertEqual(res.receipt.applied_profile, "balanced_hybrid")
+
+        # Confirm that the new node's UI contribution is seamlessly present in the scene
+        node_ids = [n.node_id for n in res.workspace_scene.nodes]
+        self.assertIn("node_thirdparty_thermal_predictor", node_ids)
+
+    def test_13_adversarial_immutability_and_hidden_mutations(self):
+        """Adversarial test: verifies that frozen dataclasses prevent all field tampering."""
+        from dataclasses import FrozenInstanceError
+
+        state = WorldStateVector(
+            state_timestamp_ns=1, sequence_id=1, cpu_utilization_pct=10, gpu_utilization_pct=10,
+            uma_pressure=0.5, temperature_c=50, battery_pct=100, plugged=True, queue_depth=0,
+            vital_max_hp=6
+        )
+        with self.assertRaises(FrozenInstanceError):
+            state.temperature_c = 99.0  # Attack: mutate telemetry in-place
+
+        hyp = HypothesisEnvelope(
+            hypothesis_id="hyp_test", node_id="node_test", reasoning_mode=ReasoningModeKind.DETERMINISTIC_BITMASK,
+            target_profile="balanced_npu", predicted_latency_ms=10.0, predicted_throughput_fps=100.0,
+            predicted_power_w=5.0, predicted_uma_pressure=0.5, vital_max_hp=6
+        )
+        with self.assertRaises(FrozenInstanceError):
+            hyp.predicted_latency_ms = 1.0  # Attack: alter analytical prediction after emission
+
+    def test_14_adversarial_zero_authority_veto_cannot_be_bypassed(self):
+        """Adversarial test: when all candidates are vetoed, authority forces degraded-safe fallback."""
+        kernel = EpistemicOrchestrationKernel(funnel=self.funnel)
+        # No nodes registered -> candidate pool is empty -> A_commit == 0
+        state = WorldStateVector(
+            state_timestamp_ns=1, sequence_id=2, cpu_utilization_pct=10, gpu_utilization_pct=10,
+            uma_pressure=0.95, temperature_c=98.0, battery_pct=5.0, plugged=False, queue_depth=100,
+            vital_max_hp=6
+        )
+
+        res = kernel.execute_pipeline(state, query="Total Veto Test")
+        self.assertFalse(res.verdict.is_admissible)
+        self.assertEqual(res.verdict.verdict_code, "AUTH_DEGRADED_SAFE_FALLBACK")
+        self.assertTrue(res.receipt.was_degraded_fallback)
+        self.assertEqual(res.receipt.applied_profile, "ultra_saver")
+        self.assertEqual(res.receipt.applied_envelope.governor_mode, "EMERGENCY_COOL")
+        self.assertEqual(res.receipt.applied_envelope.vital_max_hp, 6)
+
 
 if __name__ == "__main__":
     unittest.main()
