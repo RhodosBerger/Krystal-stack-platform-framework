@@ -374,9 +374,9 @@ In all cases, the invariant holds: **probabilistic models hypothesize; determini
 
 ---
 
-## 16. Future Work
+## 16. Future Work and Verification Milestones
 
-1. **Machine-Checked SMT Verification (V-AUTH-FORMAL/Z3):** Translating the 64-bit authority algebra, transition rules, and the Non-Interference Capability Theorem ($\text{CAN\_PROPOSE} \not\supseteq \text{CAN\_AUTHORIZE} \not\supseteq \text{CAN\_EXECUTE}$) into Z3 and TLA+ theorems to provide automated, machine-checked mathematical proofs of safety and non-interference between epistemic and execution spaces.
+1. **Machine-Checked SMT Verification (Milestone V-AUTH-FORMAL-01 Completed):** We have formalized and proved all six constitutional theorems and forbidden state edges in Microsoft Z3 SMT (`krystal_kernel/formal_verification.py`, verified in `tests/test_v_auth_formal_z3.py`). All safety negation conjectures are proven `UNSAT` and bounded liveness is validated in $< 10\,\text{ms}$ SMT runtime. Full specification: [`docs/research/V_AUTH_FORMAL_01_NON_INTERFERENCE_SMT.md`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/docs/research/V_AUTH_FORMAL_01_NON_INTERFERENCE_SMT.md).
 2. **Distributed Provenance and Asymmetric Attestation (V-PLUGIN-01):** Upgrading the receipt verification predicate from local SHA-256 integrity chaining (`ProofHashOK`) to hardware-anchored Ed25519 signatures (`SignatureOK`) to support untrusted multi-agent networks and distributed edge clusters without modifying downstream gradient update rules.
 3. **Dynamic Manifest-Based Plugin Ecosystem:** Standardizing a declarative YAML/JSON manifest for third-party epistemic nodes with sandboxed `SHADOW_ONLY` staging and strict memory/time execution quotas.
 4. **Hierarchical Multi-Horizon Meta-Scheduling:** Extending the meta-scheduler to construct hierarchical plans spanning strategic (causal diagnosis), tactical (tier selection), and execution (core binding) horizons.

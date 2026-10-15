@@ -17,6 +17,7 @@
 | **KHI-E2E-003** | 8 kHz Clock-Driven Queue Stability | 2,000 | **PASS** | $0$ dropped events ($K \ge 3$) |
 | **KHI-E2E-004** | Fault Injection & Authority Recovery | 500 | **PASS** | $100\%$ zero-authority vetos captured |
 | **V-PLAN-01..03** | Reasoning Meta-Scheduling & Early Exit | 18 suites | **PASS** | $0$ tokens wasted on nominal cycles |
+| **V-AUTH-FORMAL-01** | Z3 SMT Non-Interference & State Machine | 10 suites | **PASS** | $100\%$ theorems proved (`UNSAT`, $7.75\,\text{ms}$) |
 | **Full Regression** | Entire framework verification | 1,960 | **PASS** | $0$ failures, $0$ errors |
 
 ---
@@ -134,4 +135,44 @@ SUITE: tests/test_reasoning_matrix.py (18 test cases)
 [TEST 18] V-PLAN-03 Evidence-Efficient MetaScheduling Early Exit ....... PASS
 ===================================================================================
 ALL 18 TESTS PASSED (0.005 seconds execution time)
+```
+
+---
+
+## 6. SMT Formal Verification Benchmark (V-AUTH-FORMAL-01)
+
+Automated theorem proving executed via Microsoft Z3 SMT solver (`tests/test_v_auth_formal_z3.py`):
+
+```text
+=====================================================================================
+              KRYSTAL STACK - V-AUTH-FORMAL-01 SMT VERIFICATION REPORT
+=====================================================================================
+Z3 Solver Engine: (5, 3, 0, 0) | Target Architecture: Intel x86-64 / OpenVINO
+Constitutional Invariant: assert VITAL_MAX_HP == 6
+-------------------------------------------------------------------------------------
+ID       Theorem Name                           Proof Obligation         Time     Status
+-------------------------------------------------------------------------------------
+THM-01   Zero-Authority Failsafe Invariance     A_commit == 0 => (tran..  1.96ms  VALID (UNSAT)
+THM-02   Anti-TOCTOU Generation Monotonicity    g_H != g_C => (is_admi..  0.28ms  VALID (UNSAT)
+THM-03   Capability Non-Interference Theorem    is_epistemic_node => n..  0.28ms  VALID (UNSAT)
+THM-04   Shadow-Only Isolation Invariance       is_shadow_only => (ver..  0.52ms  VALID (UNSAT)
+THM-05   Constitutional Vitality State Unreac   vital_max_hp != 6 => (..  2.52ms  VALID (UNSAT)
+THM-06   Bounded Liveness Property              (ValidProposal and Aut..  2.19ms  VALID (UNSAT)
+=====================================================================================
+SUMMARY: 6 Theorems Checked | All Valid: True | Total SMT Time: 7.75ms
+=====================================================================================
+SUITE: tests/test_v_auth_formal_z3.py (10 test cases)
+[TEST 01] Constitutional Invariant VITAL_MAX_HP == 6 ................... PASS
+[TEST 02] Theorem 1 (Zero-Authority Failsafe) .......................... PASS
+[TEST 03] Theorem 2 (Anti-TOCTOU Generation Monotonicity) .............. PASS
+[TEST 04] Theorem 3 (Capability Non-Interference) ...................... PASS
+[TEST 05] Theorem 4 (Shadow-Only Isolation Invariance) ................. PASS
+[TEST 06] Theorem 5 (Constitutional Vitality State Unreachability) ..... PASS
+[TEST 07] Theorem 6 (Bounded Liveness Property) ........................ PASS
+[TEST 08] Forbidden Edge: PROPOSED -> EXECUTED (UNSAT) ................. PASS
+[TEST 09] Forbidden Edge: STALE_GENERATION -> APPROVED (UNSAT) ......... PASS
+[TEST 10] Full Suite Execution & Benchmark Generation .................. PASS
+=====================================================================================
+ALL 10 SMT THEOREMS/TESTS PASSED (0.012 seconds execution time)
+=====================================================================================
 ```

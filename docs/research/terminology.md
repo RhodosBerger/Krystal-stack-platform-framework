@@ -81,9 +81,10 @@ The platform-wide constitutional invariant (`VITAL_MAX_HP == 6`). Enforced acros
 
 ---
 
-## 5. Capability Taxonomy and System Invariants
+## 5. Capability Taxonomy and System Invariants (V-AUTH-FORMAL-01)
 
-### 5.1 Capability Partitioning
+### 5.1 Four-Layer Capability Partitioning
+- **`CAN_OBSERVE` (Ingress Capability):** Granted to telemetry collectors and state observers. Enables read-only inspection of immutable `WorldStateVector` snapshots. Cannot formulate hypotheses or execute transitions.
 - **`CAN_PROPOSE` (Epistemic Capability):** Granted to analytical and reasoning nodes (`IEpistemicNode`). Enables emitting candidate `HypothesisEnvelope` objects based on state observations. Possesses zero authority to invoke OS or hardware actuators.
 - **`CAN_AUTHORIZE` (Authority Capability):** Encapsulated strictly within the deterministic authority reducer (`AdmissibilityFunnel`). Computes the bitmask intersection $A_{\text{commit}}$, verifies capability snapshots, and emits `ExecutionEnvelope`.
 - **`CAN_EXECUTE` (Actuation Capability):** Restricted exclusively to the low-level hardware actuation dispatcher. Accepts strictly verified `ExecutionEnvelope` instances; rejects unreduced hypothesis proposals.
@@ -91,5 +92,6 @@ The platform-wide constitutional invariant (`VITAL_MAX_HP == 6`). Enforced acros
 ### 5.2 Non-Interference Invariant
 $$\text{CAN\_PROPOSE} \not\supseteq \text{CAN\_AUTHORIZE} \not\supseteq \text{CAN\_EXECUTE}$$
 $$\text{CAN\_PROPOSE} \cap \text{CAN\_EXECUTE} = \emptyset$$
+$$\forall H, \pi: \quad \text{CAN\_PROPOSE}(H) \land \neg \text{CAN\_AUTHORIZE}(H) \implies \neg \text{CAN\_EXECUTE}(H)$$
 
-**Principle:** *Reasoning cannot grant authority.* No reasoning engine, plugin, or prompt can bypass the deterministic authority boundary to directly execute state mutations.
+**Principle:** *Reasoning cannot grant authority.* No reasoning engine, plugin, or prompt can bypass the deterministic authority boundary to directly execute state mutations. Machine-checked via Z3 SMT (`THM-01` through `THM-06`).
