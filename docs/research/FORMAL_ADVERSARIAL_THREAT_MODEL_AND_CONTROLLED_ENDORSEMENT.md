@@ -1,7 +1,12 @@
 # Formal Adversarial Threat Model & Controlled-Endorsement Non-Interference
 
 **Document Reference:** `docs/research/FORMAL_ADVERSARIAL_THREAT_MODEL_AND_CONTROLLED_ENDORSEMENT.md`  
-**Milestone:** KATB-01 (Krystal Adversarial Trust Benchmark) & Formal Verification  
+**Milestone:** KATB-01 (Krystal Adversarial Trust Benchmark) & V-REDTEAM-02  
+**Evidence Level:**
+- `REMOTE-GIT-PRESENT`
+- `LOCAL/REPO TEST-SUITE CLAIMED PASS`
+- `INTERNAL ADVERSARIAL VALIDATION`
+- *(Status: Pending Independent Third-Party Red-Team & Remote CI Validation)*  
 **Constitutional Invariant:** $\text{VITAL\_MAX\_HP} \equiv 6$  
 **Security Boundary:** Production Exception-Enforced (`ContractViolation`), Resilient under `python -O`  
 **Primary Theorem:** $\forall \tau, \ Exec(\tau) \subseteq Endorsed(Auth(\tau)) \;\land\; (\Delta \text{EpistemicState} \not\implies \Delta \text{ExecutionAuthority})$
@@ -112,10 +117,17 @@ $$\tau_1 \equiv_{\text{Low}} \tau_2 \implies Exec(\tau_1) = Exec(\tau_2)$$
 is inappropriate for reasoning systems because it would require that epistemic hypotheses *never* affect execution. We deliberately require that untrusted models can influence execution, **but exclusively through the authorized endorsement pipeline**.
 
 ### 4.2 Theorem: Trace Non-Interference Modulo Authorized Endorsement
+
+We define equality of authorization event sequences $Auth(\tau_1) = Auth(\tau_2)$ as element-wise equality of the canonical authorization tuple:
+
+$$\textbf{Authorization Tuple Definition:}\quad a_i \equiv \langle \text{target\_profile}, A_{\text{commit}}, \text{PolicyDigest}, \text{generation\_id}, \text{sequence\_id}, \text{nonce}, \text{verdict\_code} \rangle$$
+
+$$Auth(\tau_1) = Auth(\tau_2) \iff \forall k \in [0, |Auth(\tau_1)|-1]: \ a_1^{(k)} \equiv a_2^{(k)}$$
+
 $$\textbf{Theorem 1 (Controlled-Endorsement Non-Interference):}$$
 $$\forall \tau_1, \tau_2: \quad Auth(\tau_1) = Auth(\tau_2) \implies Exec(\tau_1) = Exec(\tau_2)$$
 
-*Interpretation:* If the sequence of authorized contracts is identical, no divergence in untrusted epistemic nodes (LLM outputs, plugin heuristics, fabricated confidences) can produce any divergence in physical hardware actuation.
+*Interpretation:* If two execution traces possess identical sequences of canonically authorized endorsement tuples, no divergence in untrusted epistemic nodes (LLM hypotheses, third-party plugin algorithms, forged confidence scores, or stochastic reasoning drift) can induce any variance whatsoever in physical hardware actuation.
 
 ### 4.3 Theorem: Authorization Completeness
 $$\textbf{Theorem 2 (Authorization Completeness):}$$

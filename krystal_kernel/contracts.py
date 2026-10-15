@@ -840,12 +840,16 @@ class CausalProofChain:
                     raise ContractViolation(f"Principal '{state.header.principal_id}' lacks CAN_OBSERVE")
                 if not registry.verify_principal_capability(proposal.header.principal_id, CapabilityToken.CAN_PROPOSE):
                     raise ContractViolation(f"Principal '{proposal.header.principal_id}' lacks CAN_PROPOSE")
+                if proposal.header.capability_scope & CapabilityToken.CAN_EXECUTE:
+                    raise ContractViolation("Proposal header illegally asserts CAN_EXECUTE", proposal.header.contract_id, violation_code="ERR_CAPABILITY_ESCALATION")
                 if not registry.verify_principal_capability(evidence.header.principal_id, CapabilityToken.CAN_FALSIFY):
                     raise ContractViolation(f"Principal '{evidence.header.principal_id}' lacks CAN_FALSIFY")
                 if not registry.verify_principal_capability(authorization.header.principal_id, CapabilityToken.CAN_AUTHORIZE):
                     raise ContractViolation(f"Principal '{authorization.header.principal_id}' lacks CAN_AUTHORIZE")
                 if not registry.verify_principal_capability(execution.header.principal_id, CapabilityToken.CAN_EXECUTE):
                     raise ContractViolation(f"Principal '{execution.header.principal_id}' lacks CAN_EXECUTE")
+                if execution.header.capability_scope & CapabilityToken.CAN_PROPOSE:
+                    raise ContractViolation("Execution header illegally asserts CAN_PROPOSE", execution.header.contract_id, violation_code="ERR_CAPABILITY_ESCALATION")
 
             # 7. Origin Authenticity Verification (if authenticator supplied)
             if authenticator:
