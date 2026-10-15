@@ -1,14 +1,19 @@
 """KHI-E2E-002 Phase Q authority hot-path primitives.
 
-This module is intentionally side-effect free with respect to actuation.  It compiles
+This module is intentionally side-effect free with respect to actuation. It compiles
 existing governor feasibility rules into uint64 profile masks and keeps a cached,
-generation-numbered capability snapshot.  The result is suitable for integrating
+generation-numbered capability snapshot. The result is suitable for integrating
 into CustomHardwareGovernor while preserving the slower proof/explain path.
+
+Safety rule: an empty authority intersection stays empty. The reducer must never
+manufacture a fallback profile after evidence, policy, thermal, battery, or
+capability vetoes have removed all candidates. Any fallback decision belongs to
+an explicit higher-level safety/authority path with its own reason code.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Iterable, Mapping, Tuple
+from typing import Iterable, Mapping, Tuple
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
 from krystal_kernel.verification.authority_bits import (
@@ -62,7 +67,7 @@ class CapabilitySnapshotCache:
             if profile.gpu_enabled and not gpu_ok:
                 continue
             mask |= int(PROFILE_TO_BIT[profile_id])
-        return mask
+        return mask & ALL_PROFILE_BITS
 
     def get_snapshot(self) -> CapabilitySnapshot:
         key = self._state_tuple()
@@ -105,7 +110,7 @@ class PhaseQAuthorityReducer:
             bit = PROFILE_TO_BIT.get(profile_id)
             if bit is not None:
                 mask |= int(bit)
-        return mask
+        return mask & ALL_PROFILE_BITS
 
     @staticmethod
     def _mask_for_profiles(profiles: Iterable[ConfigProfile]) -> int:
@@ -146,17 +151,15 @@ class PhaseQAuthorityReducer:
     ) -> Tuple[int, CapabilitySnapshot]:
         snapshot = self.snapshot_cache.get_snapshot()
         mask = reduce_authority_masks(
-            requested_mask,
+            requested_mask & ALL_PROFILE_BITS,
             self.thermal_mask(thermal_band),
             self.battery_mask(battery_band, min_perf=min_perf),
             snapshot.capability_mask,
-            evidence_mask,
-            policy_mask,
+            evidence_mask & ALL_PROFILE_BITS,
+            policy_mask & ALL_PROFILE_BITS,
         )
-        if mask == 0:
-            # Match current governor fallback semantics.
-            mask = int(PROFILE_TO_BIT["balanced_npu"])
-        return mask, snapshot
+        # IMPORTANT: zero remains zero. Never bypass a veto by inventing a fallback.
+        return mask & ALL_PROFILE_BITS, snapshot
 
     def profiles_from_mask(self, mask: int) -> list[ConfigProfile]:
         return [
