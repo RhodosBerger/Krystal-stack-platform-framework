@@ -21,12 +21,15 @@ Invariants:
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
+import hmac
 import json
 import time
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, is_dataclass
 from enum import Enum, IntFlag, auto
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
 
@@ -157,6 +160,9 @@ def _to_canonical_form(obj: Any) -> Any:
         return str(obj.value)
     if is_dataclass(obj) and not isinstance(obj, type):
         fields = sorted(obj.__dataclass_fields__.keys())
+        if isinstance(obj, ContractHeader):
+            # Signature signs the canonical digest of the payload; excluding signature prevents circular dependency
+            fields = [f for f in fields if f != "signature"]
         return {f: _to_canonical_form(getattr(obj, f)) for f in fields}
     return str(obj)
 
@@ -190,6 +196,8 @@ class ContractHeader:
     timestamp_ns: int
     predecessor_hash: str
     principal_id: str = "kernel_internal"
+    nonce: str = "0"
+    signature: str = ""
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self):
@@ -479,13 +487,220 @@ class LearningContract:
 
 
 # ============================================================================
-# 6. MULTI-DIMENSIONAL CAUSAL PROOF CHAIN VERIFIER
+# 6. ORIGIN AUTHENTICATION & PROVENANCE LEDGER (V-PROVENANCE-01)
+# ============================================================================
+
+class OriginAuthenticator(ABC):
+    """Abstract interface for verifying origin authenticity and non-repudiation."""
+
+    @abstractmethod
+    def sign_digest(self, principal_id: str, digest: str) -> str:
+        """Signs the canonical digest of a contract on behalf of a principal."""
+        pass
+
+    @abstractmethod
+    def verify_digest(self, principal_id: str, digest: str, signature: str) -> bool:
+        """Verifies that the signature was issued by the declared principal over the digest."""
+        pass
+
+
+class HmacOriginAuthenticator(OriginAuthenticator):
+    """
+    Standard-library cryptographic HMAC-SHA256 origin authenticator.
+    Provides cryptographically unforgeable message authentication codes per principal.
+    """
+
+    def __init__(self, principal_keys: Optional[Dict[str, bytes]] = None):
+        self._keys: Dict[str, bytes] = dict(principal_keys or {})
+
+    def register_key(self, principal_id: str, secret_key: bytes) -> None:
+        self._keys[principal_id] = secret_key
+
+    def sign_digest(self, principal_id: str, digest: str) -> str:
+        key = self._keys.get(principal_id)
+        if not key:
+            raise ContractViolation(
+                f"No signing key registered for principal '{principal_id}'",
+                violation_code="ERR_KEY_NOT_FOUND",
+            )
+        return hmac.new(key, digest.encode("utf-8"), hashlib.sha256).hexdigest()
+
+    def verify_digest(self, principal_id: str, digest: str, signature: str) -> bool:
+        if not signature:
+            return False
+        key = self._keys.get(principal_id)
+        if not key:
+            return False
+        expected = hmac.new(key, digest.encode("utf-8"), hashlib.sha256).hexdigest()
+        return hmac.compare_digest(expected, signature)
+
+
+def sign_contract(contract: Any, authenticator: OriginAuthenticator, principal_id: Optional[str] = None) -> Any:
+    """
+    Signs a contract using the provided authenticator and returns a new frozen
+    contract instance with the signature embedded in the header.
+    Because signature is excluded from canonical serialization, the contract digest is preserved.
+    """
+    p_id = principal_id or contract.header.principal_id
+    digest = contract.compute_digest()
+    sig = authenticator.sign_digest(p_id, digest)
+    new_header = dataclasses.replace(contract.header, signature=sig)
+    return dataclasses.replace(contract, header=new_header)
+
+
+@dataclass(frozen=True)
+class ProvenanceRecord:
+    """Immutable entry in the append-only provenance ledger."""
+    ledger_index: int
+    contract_id: str
+    sequence_id: int
+    generation_id: int
+    nonce: str
+    principal_id: str
+    contract_digest: str
+    signature: str
+    timestamp_ns: int
+    prev_ledger_hash: str
+    ledger_entry_hash: str
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        if self.vital_max_hp != 6:
+            raise ContractViolation("Platform invariant VITAL_MAX_HP == 6 must hold in ProvenanceRecord")
+
+
+class AppendOnlyProvenanceLedger:
+    """
+    Cryptographically chained, append-only provenance ledger ensuring:
+      1. Replay Protection: (sequence_id, nonce) must be strictly unique.
+      2. True Prefix Uniqueness: guarantees unique (contract_id, sequence_id, generation_id, nonce).
+      3. Origin Authenticity: optional verification of digital signatures.
+      4. Auditable History: hash-chained ledger blocks.
+    """
+
+    def __init__(self):
+        self._records: List[ProvenanceRecord] = []
+        self._seen_contract_ids: Set[str] = set()
+        self._seen_sequence_nonces: Set[Tuple[int, str]] = set()
+        self._last_ledger_hash: str = "0" * 64
+
+    def record(self, contract: Any, authenticator: Optional[OriginAuthenticator] = None) -> ProvenanceRecord:
+        """Appends a verified contract to the immutable ledger."""
+        h = getattr(contract, "header", None)
+        if not isinstance(h, ContractHeader):
+            raise ContractViolation("Object has no valid ContractHeader", violation_code="ERR_INVALID_CONTRACT")
+
+        # 1. Duplicate Contract ID Check
+        if h.contract_id in self._seen_contract_ids:
+            raise ContractViolation(
+                f"Duplicate contract_id '{h.contract_id}' rejected by provenance ledger",
+                contract_id=h.contract_id,
+                violation_code="ERR_DUPLICATE_CONTRACT_ID",
+            )
+
+        # 2. Replay Protection: (sequence_id, nonce)
+        seq_nonce = (h.sequence_id, h.nonce)
+        if seq_nonce in self._seen_sequence_nonces:
+            raise ContractViolation(
+                f"Replay detected: sequence_id={h.sequence_id}, nonce='{h.nonce}' has already been committed",
+                contract_id=h.contract_id,
+                violation_code="ERR_REPLAY_DETECTED",
+            )
+
+        digest = contract.compute_digest()
+
+        # 3. Origin Authenticity Check (if authenticator provided)
+        if authenticator:
+            if not authenticator.verify_digest(h.principal_id, digest, h.signature):
+                raise ContractViolation(
+                    f"Origin authentication failed for contract '{h.contract_id}' signed by '{h.principal_id}'",
+                    contract_id=h.contract_id,
+                    violation_code="ERR_ORIGIN_AUTHENTICATION_FAILED",
+                )
+
+        # 4. Append-Only Entry Construction with SHA-256 Chaining
+        idx = len(self._records)
+        entry_payload = {
+            "ledger_index": idx,
+            "contract_id": h.contract_id,
+            "sequence_id": h.sequence_id,
+            "generation_id": h.generation_id,
+            "nonce": h.nonce,
+            "principal_id": h.principal_id,
+            "contract_digest": digest,
+            "signature": h.signature,
+            "timestamp_ns": h.timestamp_ns,
+            "prev_ledger_hash": self._last_ledger_hash,
+            "vital_max_hp": VITAL_MAX_HP,
+        }
+        entry_hash = hashlib.sha256(canonical_serialize(entry_payload)).hexdigest()
+
+        record = ProvenanceRecord(
+            ledger_index=idx,
+            contract_id=h.contract_id,
+            sequence_id=h.sequence_id,
+            generation_id=h.generation_id,
+            nonce=h.nonce,
+            principal_id=h.principal_id,
+            contract_digest=digest,
+            signature=h.signature,
+            timestamp_ns=h.timestamp_ns,
+            prev_ledger_hash=self._last_ledger_hash,
+            ledger_entry_hash=entry_hash,
+            vital_max_hp=VITAL_MAX_HP,
+        )
+
+        self._records.append(record)
+        self._seen_contract_ids.add(h.contract_id)
+        self._seen_sequence_nonces.add(seq_nonce)
+        self._last_ledger_hash = entry_hash
+        return record
+
+    def contains_contract(self, contract_id: str) -> bool:
+        return contract_id in self._seen_contract_ids
+
+    def is_sequence_nonce_used(self, sequence_id: int, nonce: str) -> bool:
+        return (sequence_id, nonce) in self._seen_sequence_nonces
+
+    def get_record_count(self) -> int:
+        return len(self._records)
+
+    def verify_ledger_integrity(self) -> bool:
+        """Verifies cryptographic hash continuity across all ledger entries."""
+        prev_hash = "0" * 64
+        for idx, rec in enumerate(self._records):
+            if rec.ledger_index != idx:
+                return False
+            if rec.prev_ledger_hash != prev_hash:
+                return False
+            entry_payload = {
+                "ledger_index": rec.ledger_index,
+                "contract_id": rec.contract_id,
+                "sequence_id": rec.sequence_id,
+                "generation_id": rec.generation_id,
+                "nonce": rec.nonce,
+                "principal_id": rec.principal_id,
+                "contract_digest": rec.contract_digest,
+                "signature": rec.signature,
+                "timestamp_ns": rec.timestamp_ns,
+                "prev_ledger_hash": rec.prev_ledger_hash,
+                "vital_max_hp": rec.vital_max_hp,
+            }
+            expected_hash = hashlib.sha256(canonical_serialize(entry_payload)).hexdigest()
+            if rec.ledger_entry_hash != expected_hash:
+                return False
+            prev_hash = rec.ledger_entry_hash
+        return True
+
+
+# ============================================================================
+# 7. MULTI-DIMENSIONAL CAUSAL PROOF CHAIN VERIFIER
 # ============================================================================
 
 class CausalProofChain:
     """
-    Verifies cryptographic hash continuity AND semantic consistency
-    across the entire seven-contract pipeline.
+    Verifies cryptographic hash continuity, semantic consistency, origin authenticity,
+    and ledger-backed replay protection across the entire seven-contract pipeline.
     """
 
     @staticmethod
@@ -498,6 +713,8 @@ class CausalProofChain:
         receipt: ReceiptContract,
         learning: LearningContract,
         registry: Optional[PrincipalCapabilityRegistry] = None,
+        authenticator: Optional[OriginAuthenticator] = None,
+        ledger: Optional[AppendOnlyProvenanceLedger] = None,
         max_freshness_ns: int = 2_000_000_000,  # 2.0s maximum pipeline horizon
         strict: bool = False,
     ) -> bool:
@@ -509,6 +726,8 @@ class CausalProofChain:
           4. Monotonic Freshness: timestamp_ns is strictly non-decreasing
           5. Semantic Profile Parity: profiles and fallback flags match
           6. Principal Capability Validation: if registry provided
+          7. Origin Authenticity: verifies digital signatures if authenticator provided
+          8. Replay Protection & Unique Provenance: commits to append-only ledger if ledger provided
         """
         try:
             contracts = [state, proposal, evidence, authorization, execution, receipt, learning]
@@ -571,6 +790,21 @@ class CausalProofChain:
                     raise ContractViolation(f"Principal '{authorization.header.principal_id}' lacks CAN_AUTHORIZE")
                 if not registry.verify_principal_capability(execution.header.principal_id, CapabilityToken.CAN_EXECUTE):
                     raise ContractViolation(f"Principal '{execution.header.principal_id}' lacks CAN_EXECUTE")
+
+            # 7. Origin Authenticity Verification (if authenticator supplied)
+            if authenticator:
+                for c in contracts:
+                    if not authenticator.verify_digest(c.header.principal_id, c.compute_digest(), c.header.signature):
+                        raise ContractViolation(
+                            f"Origin signature verification failed for principal '{c.header.principal_id}' on contract '{c.header.contract_id}'",
+                            contract_id=c.header.contract_id,
+                            violation_code="ERR_ORIGIN_AUTHENTICATION_FAILED",
+                        )
+
+            # 8. Append-Only Provenance Ledger & Replay Protection (if ledger supplied)
+            if ledger:
+                for c in contracts:
+                    ledger.record(c, authenticator=authenticator)
 
             return True
 

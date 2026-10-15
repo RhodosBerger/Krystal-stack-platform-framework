@@ -31,6 +31,10 @@ from krystal_kernel.contracts import (
     CausalProofChain,
     canonical_serialize,
     compute_canonical_digest,
+    HmacOriginAuthenticator,
+    AppendOnlyProvenanceLedger,
+    ProvenanceRecord,
+    sign_contract,
     VITAL_MAX_HP,
 )
 
@@ -298,3 +302,157 @@ class TestHardenedProofCarryingContracts:
         assert CausalProofChain.verify_causal_continuity(
             state, proposal, evidence, authorization, execution, receipt, learning
         ) is False
+
+    # =========================================================================
+    # 6. MILESTONE V-PROVENANCE-01: IDENTITY, REPLAY & NON-REPUDIATION
+    # =========================================================================
+
+    def test_12_origin_authentication_hmac_valid_and_tampered_signature(self):
+        """Verifies HMAC origin authentication and tamper detection."""
+        auth = HmacOriginAuthenticator({"node_alpha": b"secret_key_1234567890"})
+        t0 = time.time_ns()
+        h = ContractHeader("c_prop_sig", 1, 401, CapabilityToken.CAN_PROPOSE, 1, t0, "0" * 64, principal_id="node_alpha", nonce="nonce_a1")
+        prop = ProposalContract(h, "node_alpha", "balanced_hybrid", 10.0, 100.0, 0.95)
+
+        # 1. Unsigned contract verification fails
+        assert auth.verify_digest(prop.header.principal_id, prop.compute_digest(), prop.header.signature) is False
+
+        # 2. Signed contract verification succeeds
+        signed_prop = sign_contract(prop, auth)
+        assert signed_prop.header.signature != ""
+        assert auth.verify_digest(signed_prop.header.principal_id, signed_prop.compute_digest(), signed_prop.header.signature) is True
+
+        # 3. Tampered signature fails
+        assert auth.verify_digest(signed_prop.header.principal_id, signed_prop.compute_digest(), "bad_signature_hex") is False
+
+        # 4. Tampered principal fails
+        assert auth.verify_digest("impostor_node", signed_prop.compute_digest(), signed_prop.header.signature) is False
+
+    def test_13_provenance_ledger_records_and_detects_replay(self):
+        """Replaying the same (sequence_id, nonce) strictly raises ERR_REPLAY_DETECTED."""
+        ledger = AppendOnlyProvenanceLedger()
+        t0 = time.time_ns()
+        h1 = ContractHeader("c_state_r1", 1, 501, CapabilityToken.CAN_OBSERVE, 1, t0, "0" * 64, nonce="nonce_999")
+        state1 = StateContract(h1, 0.5, 0.5, 0.5, 60.0, 1)
+
+        # First recording succeeds
+        rec1 = ledger.record(state1)
+        assert rec1.ledger_index == 0
+        assert ledger.contains_contract("c_state_r1")
+        assert ledger.is_sequence_nonce_used(501, "nonce_999")
+
+        # Second recording with different contract_id but same (sequence_id, nonce) is a replay attack
+        h2 = ContractHeader("c_state_replay", 1, 501, CapabilityToken.CAN_OBSERVE, 1, t0 + 100, "0" * 64, nonce="nonce_999")
+        state_replay = StateContract(h2, 0.5, 0.5, 0.5, 60.0, 1)
+
+        with pytest.raises(ContractViolation) as exc_info:
+            ledger.record(state_replay)
+        assert exc_info.value.violation_code == "ERR_REPLAY_DETECTED"
+
+    def test_14_provenance_ledger_detects_duplicate_contract_id(self):
+        """Duplicate contract_id is strictly rejected."""
+        ledger = AppendOnlyProvenanceLedger()
+        t0 = time.time_ns()
+        h1 = ContractHeader("c_dup_id", 1, 601, CapabilityToken.CAN_OBSERVE, 1, t0, "0" * 64, nonce="nonce_1")
+        state1 = StateContract(h1, 0.5, 0.5, 0.5, 60.0, 1)
+        ledger.record(state1)
+
+        h2 = ContractHeader("c_dup_id", 1, 602, CapabilityToken.CAN_OBSERVE, 1, t0 + 10, "0" * 64, nonce="nonce_2")
+        state2 = StateContract(h2, 0.5, 0.5, 0.5, 60.0, 1)
+
+        with pytest.raises(ContractViolation) as exc_info:
+            ledger.record(state2)
+        assert exc_info.value.violation_code == "ERR_DUPLICATE_CONTRACT_ID"
+
+    def test_15_provenance_ledger_hash_chain_integrity(self):
+        """Verifies cryptographic hash continuity across ledger entries."""
+        ledger = AppendOnlyProvenanceLedger()
+        t0 = time.time_ns()
+        for i in range(5):
+            h = ContractHeader(f"c_chain_{i}", 1, 700 + i, CapabilityToken.CAN_OBSERVE, 1, t0 + i * 1000, "0" * 64, nonce=f"nonce_{i}")
+            s = StateContract(h, 0.1 * i, 0.1 * i, 0.1 * i, 50.0 + i, 1)
+            ledger.record(s)
+
+        assert ledger.get_record_count() == 5
+        assert ledger.verify_ledger_integrity() is True
+
+    def test_16_end_to_end_authenticated_pipeline_with_ledger(self):
+        """
+        Comprehensive V-PROVENANCE-01 end-to-end integration:
+        All 7 contracts signed by distinct authenticated principals, verified by CausalProofChain,
+        and committed to AppendOnlyProvenanceLedger ensuring true prefix uniqueness.
+        """
+        # 1. Setup Principals and Capabilities
+        registry = PrincipalCapabilityRegistry()
+        registry.register_grant(PrincipalCapabilityGrant("telemetry_service", CapabilityToken.CAN_OBSERVE, "telemetry", 10, "0" * 64))
+        registry.register_grant(PrincipalCapabilityGrant("reasoning_solver", CapabilityToken.CAN_PROPOSE, "epistemic", 10, "0" * 64))
+        registry.register_grant(PrincipalCapabilityGrant("falsification_verifier", CapabilityToken.CAN_FALSIFY, "verification", 10, "0" * 64))
+        registry.register_grant(PrincipalCapabilityGrant("authority_gatekeeper", CapabilityToken.CAN_AUTHORIZE, "authority", 10, "0" * 64))
+        registry.register_grant(PrincipalCapabilityGrant("actuation_dispatcher", CapabilityToken.CAN_EXECUTE, "actuation", 10, "0" * 64))
+        registry.register_grant(PrincipalCapabilityGrant("learning_calibrator", CapabilityToken.CAN_LEARN, "learning", 10, "0" * 64))
+
+        # 2. Setup Origin Authenticator Keys
+        authenticator = HmacOriginAuthenticator({
+            "telemetry_service": b"key_telemetry_secure_1",
+            "reasoning_solver": b"key_reasoning_secure_2",
+            "falsification_verifier": b"key_falsification_secure_3",
+            "authority_gatekeeper": b"key_authority_secure_4",
+            "actuation_dispatcher": b"key_actuation_secure_5",
+            "learning_calibrator": b"key_learning_secure_6",
+        })
+
+        # 3. Setup Append-Only Provenance Ledger
+        ledger = AppendOnlyProvenanceLedger()
+
+        seq = 801
+        gen = 10
+        t0 = time.time_ns()
+
+        # Build and sign all 7 contracts with unique nonces
+        # C0: State
+        h_s = ContractHeader("c0_state", 1, seq, CapabilityToken.CAN_OBSERVE, gen, t0, "0" * 64, principal_id="telemetry_service", nonce="nonce_c0")
+        state = sign_contract(StateContract(h_s, 0.7, 0.7, 0.7, 65.0, 4, power_source="AC"), authenticator)
+
+        # C1: Proposal
+        h_p = ContractHeader("c1_prop", 1, seq, CapabilityToken.CAN_PROPOSE, gen, t0 + 10_000, state.compute_digest(), principal_id="reasoning_solver", nonce="nonce_c1")
+        proposal = sign_contract(ProposalContract(h_p, "reasoning_solver", "balanced_hybrid", 10.0, 140.0, 0.95, requires_npu=True), authenticator)
+
+        # C2: Evidence
+        h_e = ContractHeader("c2_evid", 1, seq, CapabilityToken.CAN_FALSIFY, gen, t0 + 20_000, proposal.compute_digest(), principal_id="falsification_verifier", nonce="nonce_c2")
+        evidence = sign_contract(EvidenceContract(h_e, proposal.compute_digest(), 0.85, True, 0.99, gen), authenticator)
+
+        # C3: Authorization
+        policy = PolicyBundle("policy_provenance", 1, "governed_execution", ("assert VITAL_MAX_HP == 6",), 0x04)
+        h_a = ContractHeader("c3_auth", 1, seq, CapabilityToken.CAN_AUTHORIZE, gen, t0 + 30_000, evidence.compute_digest(), principal_id="authority_gatekeeper", nonce="nonce_c3")
+        authorization = sign_contract(AuthorizationContract(h_a, evidence.compute_digest(), "balanced_hybrid", 0x04, True, "AUTH_COMMIT_APPROVED", policy), authenticator)
+
+        # C4: Execution
+        h_x = ContractHeader("c4_exec", 1, seq, CapabilityToken.CAN_EXECUTE, gen, t0 + 40_000, authorization.compute_digest(), principal_id="actuation_dispatcher", nonce="nonce_c4")
+        execution = sign_contract(ExecutionContract(h_x, authorization, "balanced_hybrid", "BALANCED", 4, transition_type="NORMAL_SELECTION"), authenticator)
+
+        # C5: Receipt
+        h_r = ContractHeader("c5_rcpt", 1, seq, CapabilityToken.CAN_EXECUTE, gen, t0 + 50_000, execution.compute_digest(), principal_id="actuation_dispatcher", nonce="nonce_c5")
+        receipt = sign_contract(ReceiptContract(h_r, execution.compute_digest(), "balanced_hybrid", 12_200, was_degraded_fallback=False), authenticator)
+
+        # C6: Learning
+        h_l = ContractHeader("c6_lrn", 1, seq, CapabilityToken.CAN_LEARN, gen, t0 + 60_000, receipt.compute_digest(), principal_id="learning_calibrator", nonce="nonce_c6")
+        learning_unsigned = LearningContract.derive_from_receipt(h_l, receipt, 0.1, "reasoning_solver", current_generation=gen)
+        learning = sign_contract(learning_unsigned, authenticator)
+
+        # 4. Verify Causal Continuity + Origin Authenticity + Ledger Recording
+        is_valid = CausalProofChain.verify_causal_continuity(
+            state, proposal, evidence, authorization, execution, receipt, learning,
+            registry=registry, authenticator=authenticator, ledger=ledger, strict=True
+        )
+        assert is_valid is True
+        assert ledger.get_record_count() == 7
+        assert ledger.verify_ledger_integrity() is True
+
+        # 5. Immediate Replay Attempt Fails
+        with pytest.raises(ContractViolation) as exc_info:
+            CausalProofChain.verify_causal_continuity(
+                state, proposal, evidence, authorization, execution, receipt, learning,
+                registry=registry, authenticator=authenticator, ledger=ledger, strict=True
+            )
+        assert exc_info.value.violation_code == "ERR_DUPLICATE_CONTRACT_ID"
+

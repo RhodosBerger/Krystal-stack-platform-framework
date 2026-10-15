@@ -85,8 +85,12 @@ Any attempt to register or execute contradictory capabilities triggers an immedi
 Digest computation replaces string concatenation with RFC-8785-compliant deterministic canonical serialization:
 $$\text{DataClass} \xrightarrow{\text{canonical\_dict}} \text{Canonical JSON (sorted keys, 8-dec floats)} \xrightarrow{\text{SHA-256}} \text{Digest}$$
 
-Every semantic field—including thermal limits, power source, NPU/GPU dispatch flags, latency targets, admission flags, and verified generation IDs—enters the cryptographic digest:
-$$C_i \neq C_i' \implies \text{Digest}(C_i) \neq \text{Digest}(C_i')$$
+Every semantic field—including thermal limits, power source, NPU/GPU dispatch flags, latency targets, admission flags, and verified generation IDs—enters the canonical byte representation. Formally:
+
+$$\textbf{Injectivity Statement:}\quad C_i \neq C_i' \implies \text{Serialize}(C_i) \neq \text{Serialize}(C_i')$$
+$$\text{Serialize}(C_i) \neq \text{Serialize}(C_i') \xrightarrow{\text{collision resistance}} \text{Digest}(C_i) \neq \text{Digest}(C_i')$$
+
+Canonical serialization is injective over the supported contract representation; digest integrity relies on the collision resistance of SHA-256 with negligible collision probability.
 
 ### Pillar 3: Production Exception Enforcement
 All security checks are upgraded from debug asserts to production domain exceptions:
@@ -123,7 +127,8 @@ Fallback degraded executions, stale generation receipts, or unbounded residuals 
 
 ## 3. The Acceptance Theorem
 
-$$\textbf{Theorem (Semantic Proof Integrity):}$$
+$$\textbf{Theorem (Semantic Proof Integrity under Unique Identity):}$$
+$$\text{Assuming an append-only provenance registry guaranteeing uniqueness of } (contract\_id, sequence\_id, generation\_id, nonce):$$
 $$\forall C_4 \in \text{ExecutionContract}: \quad \text{ValidExecution}(C_4) \implies \exists! (C_0, C_1, C_2, C_3) \text{ such that:}$$
 $$\begin{aligned}
 1. &\quad \text{ChainChained}(C_0, C_1, C_2, C_3, C_4) \land \text{DigestConsistent}(C_0 \dots C_4) \\

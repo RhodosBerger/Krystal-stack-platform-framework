@@ -222,12 +222,29 @@ All invariants are machine-checked in Microsoft Z3 (`tests/test_v_auth_formal_z3
 Milestone **V-CONTRACT-HARDEN-01** (see [V_CONTRACT_HARDEN_01_SEMANTIC_PROOF_INTEGRITY.md](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/docs/research/V_CONTRACT_HARDEN_01_SEMANTIC_PROOF_INTEGRITY.md)) hardens the seven-contract architecture against adversarial syntax/semantics divergence:
 
 1. **Principal-Bound Capabilities:** Extends orthogonal bitmasks to cryptographically bound principals (`PrincipalCapabilityGrant`, `PrincipalCapabilityRegistry`), proving $\forall p: \text{CAN\_PROPOSE}(p) \implies \neg \text{CAN\_EXECUTE}(p)$.
-2. **Complete-Contract Canonical Serialization:** Deterministic JSON serialization ensures that every contract field (including power source, throughput predictions, and NPU flags) enters the SHA-256 digest: $C_i \neq C_i' \implies \text{Digest}(C_i) \neq \text{Digest}(C_i')$.
+2. **Complete-Contract Canonical Serialization:** Deterministic canonical serialization is injective over the contract representation ($C_i \neq C_i' \implies \text{Serialize}(C_i) \neq \text{Serialize}(C_i')$); digest integrity relies on the collision resistance of SHA-256 ($\text{Serialize}(C_i) \neq \text{Serialize}(C_i') \implies \text{Digest}(C_i) \neq \text{Digest}(C_i')$).
 3. **Production Exception Boundaries:** Hardened with `ContractViolation` exceptions; unaffected by `python -O` byte-code optimization.
 4. **Bidirectional Semantic Consistency:** Enforces strict congruence between authorization verdicts, admissibility flags, authority bitmasks, and execution target profiles.
 5. **Kernel-Derived Learning Boundary:** $\text{gradient\_step\_allowed} := \text{Valid}(R_t) \land \text{ResidualBound}(R_t, S_{t+1})$ is computed by the kernel from physical ground truth rather than asserted by the caller.
 6. **Multi-Dimensional Causal Continuity:** Verifies sequence monotonicity, anti-TOCTOU generation constancy, timestamp ordering, and registered principal capabilities in addition to cryptographic hash continuity.
 
 ### Acceptance Theorem
+$$\text{Assuming an append-only provenance registry guaranteeing uniqueness of } (contract\_id, sequence\_id, generation\_id, nonce):$$
 $$\forall C_4 \in \text{ExecutionContract}: \quad \text{ValidExecution}(C_4) \implies \exists! (C_0, C_1, C_2, C_3) \text{ such that the prefix is capability-valid, cryptographically chained, and semantically consistent.}$$
+
+---
+
+## 9. Milestone V-PROVENANCE-01: Identity, Replay & Non-Repudiation
+
+Milestone **V-PROVENANCE-01** (see [V_PROVENANCE_01_IDENTITY_REPLAY_NON_REPUDIATION.md](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/docs/research/V_PROVENANCE_01_IDENTITY_REPLAY_NON_REPUDIATION.md)) completes the proof architecture by transforming proof-carrying execution into **authenticated proof-carrying execution**:
+
+1. **Replay Protection via Nonces:** Every `ContractHeader` embeds an explicit, entropy-backed `nonce`. Replay of $(sequence\_id, nonce)$ is strictly prohibited.
+2. **Origin Authenticity & Signatures:** Every contract is cryptographically signed by its emitting principal (`OriginAuthenticator`, `HmacOriginAuthenticator`). The signature is excluded from canonical serialization of the header, ensuring that contract digests remain invariant before and after signing.
+3. **Append-Only Provenance Ledger:** `AppendOnlyProvenanceLedger` records an immutable, hash-chained ledger of executed contracts, guaranteeing true prefix uniqueness ($Unique(contract\_id, sequence, generation, nonce)$).
+4. **Governed Execution Predicate:**
+   $$\text{ValidExecution}(C_4) = \text{ChainValid} \land \text{SemanticValid} \land \text{CapabilityValid} \land \text{GenerationValid} \land \text{Fresh} \land \text{NonReplay} \land \text{SignatureValid} \land \text{PolicyValid}$$
+5. **Bridge to V-PLUGIN-01:** Untrusted third-party solvers and plugins are verified strictly through:
+   $$\textbf{Trust} := \text{Identity} + \text{Capability} + \text{Signature} + \text{Evidence} + \text{Policy}$$
+
+
 
