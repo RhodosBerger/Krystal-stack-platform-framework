@@ -14,6 +14,14 @@ from krystal_kernel.reasoning_matrix import (
     AdmissibleHypothesisFunnel,
     CausalDiagnosticWorkspaceComposer,
     WorkspaceNodeKind,
+    WorldStateVector,
+    HypothesisEnvelope,
+    ObservationResidual,
+    IEpistemicNode,
+    CausalDiagnosticNode,
+    DeterministicMemoryStabilizerNode,
+    ShadowExplorationNode,
+    EpistemicOrchestrationKernel,
 )
 
 
@@ -185,6 +193,109 @@ class TestReasoningMatrix(unittest.TestCase):
             self.assertIn("summary", n)
             self.assertIn("properties", n)
             self.assertIn("actions", n)
+
+    def test_07_inter_node_protocol_and_world_state_vector(self):
+        """Verifies that all concrete nodes adhere to IEpistemicNode runtime protocol."""
+        diag_node = CausalDiagnosticNode()
+        mem_node = DeterministicMemoryStabilizerNode()
+        shadow_node = ShadowExplorationNode()
+
+        self.assertIsInstance(diag_node, IEpistemicNode)
+        self.assertIsInstance(mem_node, IEpistemicNode)
+        self.assertIsInstance(shadow_node, IEpistemicNode)
+
+        state = WorldStateVector(
+            state_timestamp_ns=1_000_000,
+            sequence_id=42,
+            cpu_utilization_pct=45.0,
+            gpu_utilization_pct=80.0,
+            uma_pressure=0.85,
+            temperature_c=71.0,
+            battery_pct=92.0,
+            plugged=True,
+            queue_depth=12,
+            vital_max_hp=6,
+        )
+        self.assertEqual(state.vital_max_hp, 6)
+        self.assertTrue(diag_node.can_evaluate(state))
+        self.assertTrue(mem_node.can_evaluate(state))
+        self.assertTrue(shadow_node.can_evaluate(state))
+
+        hyps_diag = diag_node.propose(state)
+        hyps_mem = mem_node.propose(state)
+        hyps_shadow = shadow_node.propose(state)
+
+        self.assertEqual(len(hyps_diag), 1)
+        self.assertEqual(len(hyps_mem), 1)
+        self.assertEqual(len(hyps_shadow), 1)
+
+        self.assertEqual(hyps_diag[0].vital_max_hp, 6)
+        self.assertEqual(hyps_mem[0].vital_max_hp, 6)
+        self.assertEqual(hyps_shadow[0].vital_max_hp, 6)
+
+    def test_08_epistemic_orchestration_kernel_multi_node_step(self):
+        """End-to-end multi-node orchestration cycle through the kernel."""
+        diag_node = CausalDiagnosticNode()
+        mem_node = DeterministicMemoryStabilizerNode()
+        shadow_node = ShadowExplorationNode()
+
+        kernel = EpistemicOrchestrationKernel(
+            funnel=self.funnel,
+            nodes=[diag_node, mem_node, shadow_node],
+        )
+
+        state = WorldStateVector(
+            state_timestamp_ns=2_000_000,
+            sequence_id=101,
+            cpu_utilization_pct=50.0,
+            gpu_utilization_pct=85.0,
+            uma_pressure=0.86,
+            temperature_c=68.0,
+            battery_pct=95.0,
+            plugged=True,
+            queue_depth=18,
+            vital_max_hp=6,
+        )
+
+        winner, scene, telemetry = kernel.step(state, query="Prečo je vysoká latencia?", now_s=200.0)
+
+        self.assertIsNotNone(winner)
+        self.assertEqual(telemetry.authority_verdict, "AUTH_COMMIT_APPROVED")
+        self.assertEqual(scene.vital_max_hp, 6)
+        self.assertTrue(scene.is_shadow_available)
+        self.assertGreaterEqual(len(scene.nodes), 3)
+
+    def test_09_attested_feedback_loop_calibrates_node_weights(self):
+        """Verifies that observation residuals adjust internal node calibration."""
+        mem_node = DeterministicMemoryStabilizerNode()
+        initial_scale = mem_node._calibration_scale
+
+        residual = ObservationResidual(
+            residual_id="res_001",
+            hypothesis_id="node_alt_a_memory_hyp_stream_throttle",
+            node_id="node_alt_a_memory",
+            error_latency_ms=4.5,  # Measured latency was higher than predicted
+            error_throughput_fps=-20.0,
+            error_power_w=0.5,
+            error_uma_pressure=0.04,
+            real_duration_us=15700.0,
+            proof_hash="SHA256-PROOF-TEST-RESIDUAL",
+            vital_max_hp=6,
+        )
+
+        mem_node.feedback(residual)
+        # Scale should increase because error_latency_ms > 0
+        self.assertGreater(mem_node._calibration_scale, initial_scale)
+
+    def test_10_constitutional_invariant_vital_max_hp_across_all_abi_types(self):
+        """Strict verification of VITAL_MAX_HP == 6 across all inter-node types."""
+        self.assertEqual(VITAL_MAX_HP, 6)
+        with self.assertRaises(AssertionError):
+            WorldStateVector(
+                state_timestamp_ns=1, sequence_id=1, cpu_utilization_pct=10, gpu_utilization_pct=10,
+                uma_pressure=0.5, temperature_c=50, battery_pct=100, plugged=True, queue_depth=0,
+                vital_max_hp=5  # Violation!
+            )
 
 
 if __name__ == "__main__":

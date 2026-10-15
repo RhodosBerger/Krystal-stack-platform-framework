@@ -30,7 +30,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field, asdict
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Protocol, Set, Tuple, runtime_checkable
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
 from krystal_kernel.verification.authority_bits import (
@@ -366,3 +366,397 @@ class CausalDiagnosticWorkspaceComposer:
             authority_verdict="AUTH_COMMIT_APPROVED",
             is_shadow_available=True,
         )
+
+
+# ============================================================================
+# 4. UNIFIED EPISTEMIC DATA TYPES & NODE CONTRACT (INTER-NODE ABI)
+# ============================================================================
+
+@dataclass(frozen=True)
+class WorldStateVector:
+    """Canonical immutable world state snapshot feeding all reasoning nodes."""
+    state_timestamp_ns: int
+    sequence_id: int
+    cpu_utilization_pct: float
+    gpu_utilization_pct: float
+    uma_pressure: float
+    temperature_c: float
+    battery_pct: float
+    plugged: bool
+    queue_depth: int
+    evidence_confidence: float = 1.0
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        assert self.vital_max_hp == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
+
+
+@dataclass(frozen=True)
+class HypothesisEnvelope:
+    """Formalized proposal emitted by any reasoning node."""
+    hypothesis_id: str
+    node_id: str
+    reasoning_mode: ReasoningModeKind
+    target_profile: str
+    predicted_latency_ms: float
+    predicted_throughput_fps: float
+    predicted_power_w: float
+    predicted_uma_pressure: float
+    assumptions: Dict[str, Any] = field(default_factory=dict)
+    confidence: float = 1.0
+    requires_gpu: bool = False
+    requires_npu: bool = False
+    requires_openvino: bool = False
+    is_shadow: bool = False
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        assert self.vital_max_hp == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
+
+    def to_candidate_action(self) -> CandidateAction:
+        return CandidateAction(
+            action_id=self.hypothesis_id,
+            target_profile=self.target_profile,
+            reasoning_mode=self.reasoning_mode,
+            proposed_by=self.node_id,
+            predicted_latency_ms=self.predicted_latency_ms,
+            predicted_throughput_fps=self.predicted_throughput_fps,
+            predicted_power_w=self.predicted_power_w,
+            predicted_uma_pressure=self.predicted_uma_pressure,
+            requires_gpu=self.requires_gpu,
+            requires_npu=self.requires_npu,
+            requires_openvino=self.requires_openvino,
+            is_shadow_experiment=self.is_shadow,
+            evidence_score=self.confidence,
+            vital_max_hp=self.vital_max_hp,
+        )
+
+
+@dataclass(frozen=True)
+class ObservationResidual:
+    """Prediction error residual used strictly for attested calibration."""
+    residual_id: str
+    hypothesis_id: str
+    node_id: str
+    error_latency_ms: float       # real - predicted
+    error_throughput_fps: float   # real - predicted
+    error_power_w: float          # real - predicted
+    error_uma_pressure: float     # real - predicted
+    real_duration_us: float
+    proof_hash: str
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        assert self.vital_max_hp == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
+
+
+@runtime_checkable
+class IEpistemicNode(Protocol):
+    """Formal inter-node contract for all reasoning, prediction, and solver nodes."""
+    @property
+    def node_id(self) -> str: ...
+    @property
+    def reasoning_mode(self) -> ReasoningModeKind: ...
+    def can_evaluate(self, state: WorldStateVector) -> bool: ...
+    def propose(self, state: WorldStateVector) -> List[HypothesisEnvelope]: ...
+    def feedback(self, residual: ObservationResidual) -> None: ...
+    def render_ui_contribution(
+        self, state: WorldStateVector, hypothesis: Optional[HypothesisEnvelope]
+    ) -> Optional[WorkspaceNode]: ...
+
+
+class CausalDiagnosticNode:
+    """Implements causal reasoning over telemetries (LLM / Causal Graph)."""
+
+    def __init__(self, node_id: str = "node_causal_diag_main"):
+        self._node_id = node_id
+        self._residual_history: List[ObservationResidual] = []
+
+    @property
+    def node_id(self) -> str:
+        return self._node_id
+
+    @property
+    def reasoning_mode(self) -> ReasoningModeKind:
+        return ReasoningModeKind.LLM_CAUSAL_NODE
+
+    def can_evaluate(self, state: WorldStateVector) -> bool:
+        assert state.vital_max_hp == 6
+        return True
+
+    def propose(self, state: WorldStateVector) -> List[HypothesisEnvelope]:
+        assert state.vital_max_hp == 6
+        is_uma_high = state.uma_pressure > 0.82
+        return [
+            HypothesisEnvelope(
+                hypothesis_id=f"{self._node_id}_hyp_balanced",
+                node_id=self._node_id,
+                reasoning_mode=self.reasoning_mode,
+                target_profile="balanced_npu" if is_uma_high else "balanced_hybrid",
+                predicted_latency_ms=12.0 if is_uma_high else 8.0,
+                predicted_throughput_fps=180.0,
+                predicted_power_w=6.5,
+                predicted_uma_pressure=0.65 if is_uma_high else state.uma_pressure,
+                assumptions={"cause": "UMA_SATURATION" if is_uma_high else "NOMINAL"},
+                confidence=0.92,
+                requires_npu=True,
+            )
+        ]
+
+    def feedback(self, residual: ObservationResidual) -> None:
+        assert residual.vital_max_hp == 6
+        self._residual_history.append(residual)
+
+    def render_ui_contribution(
+        self, state: WorldStateVector, hypothesis: Optional[HypothesisEnvelope]
+    ) -> Optional[WorkspaceNode]:
+        assert state.vital_max_hp == 6
+        is_uma = state.uma_pressure > 0.82
+        summary = (
+            f"Koreňová príčina: Saturácia zbernice UMA (Tlak {state.uma_pressure:.2f} > 0.82 limit). "
+            f"Zdieľaná pamäť brzdí GPU prístupy k inferenčnému modelu."
+            if is_uma
+            else "Hardvérová telemetria v normále."
+        )
+        return WorkspaceNode(
+            node_id=self._node_id,
+            kind=WorkspaceNodeKind.CAUSAL_DIAGNOSIS,
+            title="Causal Diagnostic Engine",
+            summary=summary,
+            properties={
+                "observed_uma": state.uma_pressure,
+                "temperature_c": state.temperature_c,
+                "queue_depth": state.queue_depth,
+            },
+        )
+
+
+class DeterministicMemoryStabilizerNode:
+    """Implements conservative memory bandwidth and stream stabilization."""
+
+    def __init__(self, node_id: str = "node_alt_a_memory"):
+        self._node_id = node_id
+        self._calibration_scale = 1.0
+
+    @property
+    def node_id(self) -> str:
+        return self._node_id
+
+    @property
+    def reasoning_mode(self) -> ReasoningModeKind:
+        return ReasoningModeKind.PARETO_HEURISTIC_SOLVER
+
+    def can_evaluate(self, state: WorldStateVector) -> bool:
+        assert state.vital_max_hp == 6
+        return state.uma_pressure >= 0.70
+
+    def propose(self, state: WorldStateVector) -> List[HypothesisEnvelope]:
+        assert state.vital_max_hp == 6
+        return [
+            HypothesisEnvelope(
+                hypothesis_id=f"{self._node_id}_hyp_stream_throttle",
+                node_id=self._node_id,
+                reasoning_mode=self.reasoning_mode,
+                target_profile="balanced_hybrid",
+                predicted_latency_ms=11.2 * self._calibration_scale,
+                predicted_throughput_fps=150.0,
+                predicted_power_w=5.0,
+                predicted_uma_pressure=0.68,
+                assumptions={"throttle_gpu_streams": 2, "activation_compression_16bit": True},
+                confidence=0.96,
+                requires_gpu=False,
+            )
+        ]
+
+    def feedback(self, residual: ObservationResidual) -> None:
+        assert residual.vital_max_hp == 6
+        # Learn strictly from attested residual: calibrate scaling
+        if abs(residual.error_latency_ms) > 0.5:
+            # Subtle Bayesian adjustment (damping factor 0.1)
+            self._calibration_scale += 0.1 * (residual.error_latency_ms / 10.0)
+            self._calibration_scale = max(0.5, min(2.0, self._calibration_scale))
+
+    def render_ui_contribution(
+        self, state: WorldStateVector, hypothesis: Optional[HypothesisEnvelope]
+    ) -> Optional[WorkspaceNode]:
+        assert state.vital_max_hp == 6
+        return WorkspaceNode(
+            node_id=self._node_id,
+            kind=WorkspaceNodeKind.ACTION_CARD,
+            title="Alternatíva A (Pamäťový uzol)",
+            summary="Konzervatívna stabilizácia zbernice: zníženie GPU streamov 4 -> 2 + 16-bit kompresia.",
+            properties={
+                "predicted_gain": "-54% latencia",
+                "predicted_uma": 0.68,
+                "predicted_latency_ms": 11.2 * self._calibration_scale,
+                "risk_profile": "0% (deterministicky overené)",
+                "authority_safe": True,
+            },
+            actions=[{"label": "Aplikovať okamžite", "action_id": "commit_alt_a"}],
+        )
+
+
+class ShadowExplorationNode:
+    """Implements speculative shadow exploration and sandbox execution."""
+
+    def __init__(self, node_id: str = "node_alt_b_exploration"):
+        self._node_id = node_id
+        self._exploration_bias = 0.0
+
+    @property
+    def node_id(self) -> str:
+        return self._node_id
+
+    @property
+    def reasoning_mode(self) -> ReasoningModeKind:
+        return ReasoningModeKind.SHADOW_EXPLORER
+
+    def can_evaluate(self, state: WorldStateVector) -> bool:
+        assert state.vital_max_hp == 6
+        return state.plugged and state.temperature_c < 85.0
+
+    def propose(self, state: WorldStateVector) -> List[HypothesisEnvelope]:
+        assert state.vital_max_hp == 6
+        return [
+            HypothesisEnvelope(
+                hypothesis_id=f"{self._node_id}_hyp_shadow_simd_cache",
+                node_id=self._node_id,
+                reasoning_mode=self.reasoning_mode,
+                target_profile="performance_gpu",
+                predicted_latency_ms=7.8,
+                predicted_throughput_fps=220.0,
+                predicted_power_w=14.0,
+                predicted_uma_pressure=0.62,
+                assumptions={"offload_embedding_to_simd": True, "measure_vram_fragmentation": True},
+                confidence=0.88,
+                requires_gpu=True,
+                is_shadow=True,
+            )
+        ]
+
+    def feedback(self, residual: ObservationResidual) -> None:
+        assert residual.vital_max_hp == 6
+        # Update exploration bias based on real vs predicted margin
+        self._exploration_bias += (residual.error_throughput_fps / 100.0)
+
+    def render_ui_contribution(
+        self, state: WorldStateVector, hypothesis: Optional[HypothesisEnvelope]
+    ) -> Optional[WorkspaceNode]:
+        assert state.vital_max_hp == 6
+        return WorkspaceNode(
+            node_id=self._node_id,
+            kind=WorkspaceNodeKind.ACTION_CARD,
+            title="Alternatíva B (Exploračný uzol)",
+            summary="Agresívny shadow experiment: dočasný offload cache do CPU SIMD a meranie VRAM fragmentácie.",
+            properties={
+                "predicted_gain": "-68% latencia",
+                "predicted_uma": 0.62,
+                "predicted_latency_ms": 7.8,
+                "risk_profile": "Možný krátkodobý frame drop počas testu",
+                "requires_shadow_envelope": True,
+            },
+            actions=[{"label": "Zobraziť detail a simuláciu", "action_id": "expand_alt_b"}],
+        )
+
+
+class EpistemicOrchestrationKernel:
+    """
+    Central orchestration kernel coordinating multi-node candidate generation,
+    funnel filtration, deterministic authority gates, and dynamic scene composition.
+    """
+
+    def __init__(
+        self,
+        funnel: Optional[AdmissibleHypothesisFunnel] = None,
+        nodes: Optional[List[IEpistemicNode]] = None,
+    ):
+        self.funnel = funnel or AdmissibleHypothesisFunnel()
+        self.nodes: Dict[str, IEpistemicNode] = {}
+        for n in (nodes or []):
+            self.register_node(n)
+
+    def register_node(self, node: IEpistemicNode) -> None:
+        self.nodes[node.node_id] = node
+
+    def step(
+        self,
+        state: WorldStateVector,
+        query: str = "Tactical Cycle",
+        now_s: Optional[float] = None,
+    ) -> Tuple[Optional[CandidateAction], DynamicWorkspaceScene, FunnelStageTelemetry]:
+        """
+        Executes a complete orchestration cycle:
+          1. Gathers hypotheses from all eligible nodes
+          2. Runs hypotheses through the 5-stage selection funnel
+          3. Emits dynamic polymorphic UI scene
+          4. Returns (WinningAction, WorkspaceScene, FunnelTelemetry)
+        """
+        assert state.vital_max_hp == 6
+
+        # 1. Harvest proposals
+        active_hypotheses: List[HypothesisEnvelope] = []
+        ui_nodes: List[WorkspaceNode] = []
+
+        for node in self.nodes.values():
+            if node.can_evaluate(state):
+                hyps = node.propose(state)
+                active_hypotheses.extend(hyps)
+                for h in hyps:
+                    ui_elem = node.render_ui_contribution(state, h)
+                    if ui_elem:
+                        ui_nodes.append(ui_elem)
+
+        # 2. Convert hypotheses to candidate actions for funnel filtering
+        candidates = [h.to_candidate_action() for h in active_hypotheses]
+
+        # 3. Filter through 5-stage funnel & authority gate
+        winner, telemetry = self.funnel.filter_and_select(
+            candidates,
+            current_temp_c=state.temperature_c,
+            current_uma_pressure=state.uma_pressure,
+            battery_pct=state.battery_pct,
+            now_s=now_s,
+        )
+
+        # 4. Synthesize interactive simulation layer if shadow action is present
+        has_shadow = any(h.is_shadow for h in active_hypotheses)
+        if has_shadow:
+            sim_node = WorkspaceNode(
+                node_id="node_sim_verification_b",
+                kind=WorkspaceNodeKind.INTERACTIVE_SIMULATION,
+                title="Verifikačná & Simulačná Vrstva (Alternatíva B)",
+                summary="Predikcia dynamického poklesu UMA tlaku z 0.84 na 0.62 s deterministickým ohraničením.",
+                properties={
+                    "simulation_horizon_s": 2.0,
+                    "missing_evidence": "Vplyv na 8 kHz input stream nebol overený.",
+                    "authority_boundary": "Autorita obmedzí shadow experiment na max. 3.0 sekundy.",
+                },
+                actions=[{"label": "SPUSTIŤ EXPERIMENT V TIENI", "action_id": "launch_shadow_experiment"}],
+            )
+            ui_nodes.append(sim_node)
+
+        # 5. Build Workspace Scene
+        root_cause = (
+            f"UMA bus thrashing detected (Pressure {state.uma_pressure:.2f} > 0.82 limit)."
+            if state.uma_pressure > 0.82
+            else "Hardware envelope nominal."
+        )
+
+        scene = DynamicWorkspaceScene(
+            scene_id=f"SCENE-{state.sequence_id}",
+            query=query,
+            root_cause_summary=root_cause,
+            nodes=ui_nodes,
+            authority_verdict=telemetry.authority_verdict,
+            is_shadow_available=has_shadow,
+            vital_max_hp=6,
+        )
+
+        return winner, scene, telemetry
+
+    def dispatch_feedback(self, residual: ObservationResidual) -> None:
+        """Dispatches verified observation residuals back to the originating node."""
+        assert residual.vital_max_hp == 6
+        node = self.nodes.get(residual.node_id)
+        if node:
+            node.feedback(residual)

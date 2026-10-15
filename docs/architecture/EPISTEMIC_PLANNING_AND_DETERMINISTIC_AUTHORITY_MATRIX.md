@@ -227,3 +227,105 @@ Ak používateľ klikne na **[ Spustiť experiment v tieni ]**:
 2. Vygeneruje sa izolovaný `ExecutionEnvelope` s atribútom `is_shadow = True` a generáciou naviazanou na aktuálny stav.
 3. Výsledok experimentu zapíše namerané fakty do **Evidence Ledger**.
 4. Ak experiment potvrdí zníženie latencie bez nárastu chýb, učenie posilní váhu tejto stratégie v selekčnej matici pre identické kontextové stavy $S_t$. Ak experiment zlyhá, informácia putuje do falzifikačného registra a matica tento typ úvahy pre UMA > 0.80 v budúcnosti vyradí už v kroku 2 (Safety/Capability filter).
+
+---
+
+### 7. Formálny kontrakt medzi uzlami (Inter-Node Contract & Protocol ABI)
+
+Pre zabezpečenie 100% zameniteľnosti a polymorfizmu uzlov (či už ide o heuristický solver, Keras model, LLM uzol alebo Godot scénový kompozitor) je zavedené formálne rozhranie `IEpistemicNode` a nemenné dátové štruktúry:
+
+```python
+@dataclass(frozen=True)
+class WorldStateVector:
+    """Kanonická nemenná snímka telemetrie sveta pre všetky uzly."""
+    state_timestamp_ns: int
+    sequence_id: int
+    cpu_utilization_pct: float
+    gpu_utilization_pct: float
+    uma_pressure: float
+    temperature_c: float
+    battery_pct: float
+    plugged: bool
+    queue_depth: int
+    evidence_confidence: float = 1.0
+    vital_max_hp: int = 6
+
+
+@dataclass(frozen=True)
+class HypothesisEnvelope:
+    """Formalizovaný návrh kandidáta emitovaný ktorýmkoľvek uzlom."""
+    hypothesis_id: str
+    node_id: str
+    reasoning_mode: ReasoningModeKind
+    target_profile: str
+    predicted_latency_ms: float
+    predicted_throughput_fps: float
+    predicted_power_w: float
+    predicted_uma_pressure: float
+    assumptions: Dict[str, Any]
+    confidence: float = 1.0
+    requires_gpu: bool = False
+    requires_npu: bool = False
+    requires_openvino: bool = False
+    is_shadow: bool = False
+    vital_max_hp: int = 6
+
+
+@dataclass(frozen=True)
+class ObservationResidual:
+    """Chyba predikcie pre attested kalibráciu (realita - predikcia)."""
+    residual_id: str
+    hypothesis_id: str
+    node_id: str
+    error_latency_ms: float
+    error_throughput_fps: float
+    error_power_w: float
+    error_uma_pressure: float
+    real_duration_us: float
+    proof_hash: str
+    vital_max_hp: int = 6
+
+
+@runtime_checkable
+class IEpistemicNode(Protocol):
+    """Formálny kontrakt pre všetky uvažovacie, predikčné a riešiteľské uzly."""
+    @property
+    def node_id(self) -> str: ...
+    @property
+    def reasoning_mode(self) -> ReasoningModeKind: ...
+    def can_evaluate(self, state: WorldStateVector) -> bool: ...
+    def propose(self, state: WorldStateVector) -> List[HypothesisEnvelope]: ...
+    def feedback(self, residual: ObservationResidual) -> None: ...
+    def render_ui_contribution(
+        self, state: WorldStateVector, hypothesis: Optional[HypothesisEnvelope]
+    ) -> Optional[WorkspaceNode]: ...
+```
+
+---
+
+### 8. Životný cyklus dátového toku (End-to-End Orchestration Loop)
+
+Celý orchestračný cyklus vykonáva `EpistemicOrchestrationKernel` v 5 striktných fázach:
+
+```text
+ 1. HARVEST
+    └── Iterácia cez registrované uzly -> can_evaluate(state) -> propose(state)
+        Každý uzol vygeneruje HypothesisEnvelope a prispeje do UI scény.
+
+ 2. FUNNEL REDUCTION
+    └── AdmissibleHypothesisFunnel:
+        [32 Hypotheses] -> Capability (18) -> Safety (9) -> Evidence (5) -> Utility (2) -> Dwell (1)
+
+ 3. DETERMINISTIC GATE
+    └── reduce_authority_masks():
+        • Ak A_commit == 0 => AUTH_DEGRADED_SAFE_FALLBACK (ultra_saver)
+        • Ak A_commit != 0 => AUTH_COMMIT_APPROVED (vybraný víťaz)
+
+ 4. SCENE SYNTHESIS
+    └── DynamicWorkspaceScene:
+        Zostavenie mikro-aplikácie (Causal Panel + Akčné karty + Interaktívna simulácia).
+
+ 5. ATTESTED CALIBRATION
+    └── Po odmeraní skutočného behu -> výpočet ObservationResidual.
+        dispatch_feedback(residual) -> spätná väzba IBA do uzla, ktorý hypotézu navrhol.
+```
