@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuthorityProfileBitsSchema",
+  "description": "Schema for authority profile eligibility bitmasks and profiles.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "mask_semantics",
+    "bitmask_width",
+    "profiles"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "mask_semantics": {
+      "type": "string",
+      "const": "PROFILE_ELIGIBILITY"
+    },
+    "bitmask_width": {
+      "type": "integer",
+      "const": 64
+    },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "profile_id",
+          "enum_name",
+          "bit",
+          "hex"
+        ],
+        "properties": {
+          "profile_id": {
+            "type": "string"
+          },
+          "enum_name": {
+            "type": "string"
+          },
+          "bit": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 63
+          },
+          "hex": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{16}$"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

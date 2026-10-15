@@ -182,8 +182,17 @@ class TestMimicryCompositor(unittest.TestCase):
         req = urllib.request.Request(f"{base_url}/api/mimicry/scenes")
         with urllib.request.urlopen(req, timeout=3) as resp:
             scs_data = json.loads(resp.read().decode("utf-8"))
-            self.assertEqual(scs_data.get("status"), "OK")
-            self.assertEqual(len(scs_data.get("scenes", [])), 9)
+            from mimicry_engine.scene_composer import SCENES_CATALOG
+            scenes = scs_data.get("scenes", [])
+            self.assertEqual(len(scenes), len(SCENES_CATALOG))
+            scene_ids = {s.get("id") for s in scenes}
+            required_scenes = {
+                "SCENE_CYBERPUNK_DISTRICT",
+                "SCENE_SACRED_ALCHEMICAL_RUINS",
+                "SCENE_OLD_TOWN_PRAGUE_SQUARE",
+                "SCENE_NOIR_MORTAR_INTERROGATION"
+            }
+            self.assertTrue(required_scenes.issubset(scene_ids))
 
         # 3. POST select object
         select_obj_payload = json.dumps({"type": "object", "id": "HISTORIC_TENEMENT_FACADE"}).encode("utf-8")

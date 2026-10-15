@@ -6,7 +6,7 @@ Do not change bit assignments without updating the SSOT and regenerating peers.
 from __future__ import annotations
 
 from enum import IntFlag
-from typing import Dict
+from typing import Dict, Iterable, Set
 
 
 class AuthorityProfileBit(IntFlag):
@@ -66,3 +66,16 @@ def reduce_authority_masks(
         & evidence_supported
         & policy_allowed
     )
+
+
+def set_to_mask(profile_names: Iterable[str]) -> int:
+    mask = 0
+    for name in profile_names:
+        bit = PROFILE_TO_BIT.get(name)
+        if bit is not None:
+            mask |= int(bit)
+    return mask & ALL_PROFILE_BITS
+
+
+def mask_to_set(mask: int) -> Set[str]:
+    return {k for k, v in PROFILE_TO_BIT.items() if mask & int(v)}
