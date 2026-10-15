@@ -288,7 +288,7 @@ class ObservationResidual:
 
 @runtime_checkable
 class IEpistemicNode(Protocol):
-    """Formálny kontrakt pre všetky uvažovacie, predikčné a riešiteľské uzly."""
+    """Formálny výpočtový kontrakt pre uvažovacie, predikčné a riešiteľské uzly (nulová závislosť na UI)."""
     @property
     def node_id(self) -> str: ...
     @property
@@ -296,6 +296,9 @@ class IEpistemicNode(Protocol):
     def can_evaluate(self, state: WorldStateVector) -> bool: ...
     def propose(self, state: WorldStateVector) -> List[HypothesisEnvelope]: ...
     def feedback(self, residual: ObservationResidual) -> None: ...
+
+class IWorkspaceContributor(Protocol):
+    """Voliteľný prezentačný kontrakt pre uzly projektujúce karty do dynamického workspace."""
     def render_ui_contribution(
         self, state: WorldStateVector, hypothesis: Optional[HypothesisEnvelope]
     ) -> Optional[WorkspaceNode]: ...
@@ -303,14 +306,26 @@ class IEpistemicNode(Protocol):
 
 ---
 
-### 8. Životný cyklus dátového toku (End-to-End Orchestration Loop)
+### 8. Životný cyklus dátového toku a 7 nemenných typov
 
-Celý orchestračný cyklus vykonáva `EpistemicOrchestrationKernel` v 5 striktných fázach:
+Invariant `vital_max_hp == 6` je vynútený naprieč **7 základnými nemennými typmi** (`@dataclass(frozen=True)`):
+1. **`WorldStateVector`**: Nemenná snímka fyzického sveta.
+2. **`HypothesisEnvelope`**: Analytický návrh vygenerovaný uvažovacím uzlom.
+3. **`AdmissibilityVerdict`**: Formálny verdikt autority (`AUTH_COMMIT_APPROVED` alebo `AUTH_DEGRADED_SAFE_FALLBACK`).
+4. **`ExecutionEnvelope`**: Výhradný transportný profil pre hardvérovú konfiguráciu.
+5. **`ActuationReceipt`**: Auditovateľný doklad o vykonaní zmeny (obsahuje `transition_type`).
+6. **`ObservationResidual`**: Chyba predikcie ($\mathbf{e}_t = \mathbf{y}_{\text{real}} - \hat{\mathbf{y}}_{\text{pred}}$) viazaná na SHA-256 hash.
+7. **`OrchestrationCycleResult`**: Celkový výsledok jedného cyklu prepojený s dynamickou scénou.
+
+#### Formálna hranica pre degraded fallback:
+$$A_{\text{commit}} = 0 \implies \neg \texttt{COMMIT\_APPROVED}$$
+$$\text{VETO} \longrightarrow \text{FAILSAFE\_AUTHORITY\_TRANSITION} \longrightarrow \text{ULTRA\_SAVER}$$
+Fallback nie je normálne vybraným kandidátom, ale osobitným bezpečnostným prechodom s `transition_type="FAILSAFE_AUTHORITY_TRANSITION"`.
 
 ```text
- 1. HARVEST
-    └── Iterácia cez registrované uzly -> can_evaluate(state) -> propose(state)
-        Každý uzol vygeneruje HypothesisEnvelope a prispeje do UI scény.
+ 1. HARVEST (alebo METASCHEDULE)
+    └── Iterácia cez uzly podľa rozpočtu -> can_evaluate(state) -> propose(state)
+        Uzly implementujúce IWorkspaceContributor navyše prispievajú do UI scény.
 
  2. FUNNEL REDUCTION
     └── AdmissibleHypothesisFunnel:
@@ -318,8 +333,8 @@ Celý orchestračný cyklus vykonáva `EpistemicOrchestrationKernel` v 5 striktn
 
  3. DETERMINISTIC GATE
     └── reduce_authority_masks():
-        • Ak A_commit == 0 => AUTH_DEGRADED_SAFE_FALLBACK (ultra_saver)
-        • Ak A_commit != 0 => AUTH_COMMIT_APPROVED (vybraný víťaz)
+        • Ak A_commit == 0 => AUTH_DEGRADED_SAFE_FALLBACK (transition: FAILSAFE_AUTHORITY_TRANSITION)
+        • Ak A_commit != 0 => AUTH_COMMIT_APPROVED (transition: NORMAL_SELECTION)
 
  4. SCENE SYNTHESIS
     └── DynamicWorkspaceScene:
@@ -329,3 +344,28 @@ Celý orchestračný cyklus vykonáva `EpistemicOrchestrationKernel` v 5 striktn
     └── Po odmeraní skutočného behu -> výpočet ObservationResidual.
         dispatch_feedback(residual) -> spätná väzba IBA do uzla, ktorý hypotézu navrhol.
 ```
+
+---
+
+### 9. ReasoningMetaScheduler a univerzálny epistemický cyklus
+
+Namiesto mapovania záťaže na hardvér (`workload -> CPU/GPU`) plánuje **`ReasoningMetaScheduler`** samotný druh výpočtového uvažovania:
+
+```text
+PROBLÉM / KONTEXT (WorldStateVector)
+             │
+             ▼
+    ReasoningMetaScheduler
+   (Rozpočet: Čas, Tokeny, Energia)
+             │
+             ├─ Tier 1: SHALLOW (Deterministický reduktor / Pareto solver, < 50 µs)
+             ├─ Tier 2: BALANCED (Neurónové prediktory UMA/teploty, < 2 ms)
+             └─ Tier 3: DEEP_EPISTEMIC (Kauzálne LLM / Shadow Explorer, > 10 ms)
+                        (Aktivované LEN ak entropia > 0.50 alebo pri anomálii)
+```
+
+#### Univerzálny epistemický cyklus:
+$$\text{Observe} \longrightarrow \text{Represent} \longrightarrow \text{Hypothesize} \longrightarrow \text{Select} \longrightarrow \text{Falsify} \longrightarrow \text{Authorize} \longrightarrow \text{Execute} \longrightarrow \text{Attest} \longrightarrow \text{Learn}$$
+
+Tým sa Krystal Stack stáva všeobecnou platformou:
+> **Krystal Stack is an epistemic orchestration runtime for selecting, validating, executing, and learning from heterogeneous computational strategies under deterministic authority.**

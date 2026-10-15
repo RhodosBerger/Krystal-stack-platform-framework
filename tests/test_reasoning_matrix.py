@@ -453,6 +453,153 @@ class TestReasoningMatrix(unittest.TestCase):
         self.assertEqual(res.receipt.applied_profile, "ultra_saver")
         self.assertEqual(res.receipt.applied_envelope.governor_mode, "EMERGENCY_COOL")
         self.assertEqual(res.receipt.applied_envelope.vital_max_hp, 6)
+        self.assertEqual(res.receipt.transition_type, "FAILSAFE_AUTHORITY_TRANSITION")
+
+    def test_15_decoupled_compute_node_and_workspace_contributor_protocol(self):
+        """
+        Validates complete decoupling of compute ABI (IEpistemicNode)
+        from presentation ABI (IWorkspaceContributor).
+        Pure compute nodes have ZERO UI dependencies.
+        """
+        from krystal_kernel.reasoning_matrix import IWorkspaceContributor
+
+        class PureFFTSolverNode:
+            """Pure headless compute node: implements IEpistemicNode only, NO UI method."""
+            @property
+            def node_id(self) -> str:
+                return "node_pure_fft_solver"
+
+            @property
+            def reasoning_mode(self) -> ReasoningModeKind:
+                return ReasoningModeKind.PARETO_HEURISTIC_SOLVER
+
+            def can_evaluate(self, state: WorldStateVector) -> bool:
+                assert state.vital_max_hp == 6
+                return True
+
+            def propose(self, state: WorldStateVector) -> List[HypothesisEnvelope]:
+                assert state.vital_max_hp == 6
+                return [
+                    HypothesisEnvelope(
+                        hypothesis_id=f"{self.node_id}_hyp_1",
+                        node_id=self.node_id,
+                        reasoning_mode=self.reasoning_mode,
+                        target_profile="balanced_hybrid",
+                        predicted_latency_ms=10.0,
+                        predicted_throughput_fps=160.0,
+                        predicted_power_w=5.2,
+                        predicted_uma_pressure=0.60,
+                        vital_max_hp=6,
+                    )
+                ]
+
+            def feedback(self, residual: ObservationResidual) -> None:
+                assert residual.vital_max_hp == 6
+
+        pure_node = PureFFTSolverNode()
+        # Verify protocol conformity
+        self.assertIsInstance(pure_node, IEpistemicNode)
+        self.assertNotIsInstance(pure_node, IWorkspaceContributor)
+
+        # Plug into kernel and execute pipeline
+        kernel = EpistemicOrchestrationKernel(funnel=self.funnel)
+        kernel.register_node(pure_node)
+
+        state = WorldStateVector(
+            state_timestamp_ns=1, sequence_id=701, cpu_utilization_pct=30, gpu_utilization_pct=30,
+            uma_pressure=0.60, temperature_c=65, battery_pct=95, plugged=True, queue_depth=2,
+            vital_max_hp=6
+        )
+
+        res = kernel.execute_pipeline(state, query="Headless solver test")
+        self.assertTrue(res.verdict.is_admissible)
+        self.assertEqual(res.receipt.applied_profile, "balanced_hybrid")
+        self.assertEqual(res.receipt.transition_type, "NORMAL_SELECTION")
+        # Ensure no UI card was generated for the headless node
+        node_ids = [n.node_id for n in res.workspace_scene.nodes]
+        self.assertNotIn("node_pure_fft_solver", node_ids)
+
+    def test_16_reasoning_meta_scheduler_composition_and_budgeting(self):
+        """
+        Validates ReasoningMetaScheduler:
+          1. Multi-tier planning based on compute budget and telemetry entropy.
+          2. Preserving token/compute budget by skipping Tier 3 (LLM) under nominal state.
+          3. Dynamic scheduling of Tier 3 when anomaly/entropy threshold is exceeded.
+          4. Invariant compliance across all 7 core data types.
+        """
+        from krystal_kernel.reasoning_matrix import (
+            ReasoningMetaScheduler, ComputeBudget, EvidenceDepthTier
+        )
+
+        meta_scheduler = ReasoningMetaScheduler(confidence_convergence_threshold=0.90)
+        kernel = EpistemicOrchestrationKernel(
+            funnel=self.funnel,
+            nodes=[
+                DeterministicMemoryStabilizerNode(),
+                CausalDiagnosticNode(),
+                ShadowExplorationNode(),
+            ],
+            scheduler=meta_scheduler,
+        )
+
+        # Case A: Nominal condition (low entropy, UMA < 0.80) -> LLM Tier 3 omitted to save budget
+        nominal_state = WorldStateVector(
+            state_timestamp_ns=100, sequence_id=801, cpu_utilization_pct=25, gpu_utilization_pct=30,
+            uma_pressure=0.50, temperature_c=55, battery_pct=90, plugged=True, queue_depth=2,
+            vital_max_hp=6
+        )
+        budget = ComputeBudget(max_time_us=6000.0, max_tokens=512, vital_max_hp=6)
+
+        plan_nominal = meta_scheduler.plan_schedule(
+            state=nominal_state,
+            nodes=list(kernel.nodes.values()),
+            budget=budget,
+            query="Routine health check",
+        )
+        self.assertEqual(plan_nominal.vital_max_hp, 6)
+        self.assertLess(plan_nominal.actual_entropy, 0.50)
+        self.assertIn(EvidenceDepthTier.SHALLOW, plan_nominal.dispatched_tiers)
+        # Tier 3 (DEEP_EPISTEMIC) MUST NOT be dispatched under nominal low entropy!
+        self.assertNotIn(EvidenceDepthTier.DEEP_EPISTEMIC, plan_nominal.dispatched_tiers)
+
+        # Case B: High anomaly condition (UMA = 0.88 > 0.82) -> Tier 3 dispatched within budget
+        critical_state = WorldStateVector(
+            state_timestamp_ns=200, sequence_id=802, cpu_utilization_pct=75, gpu_utilization_pct=85,
+            uma_pressure=0.88, temperature_c=86, battery_pct=40, plugged=True, queue_depth=35,
+            vital_max_hp=6
+        )
+        plan_critical = meta_scheduler.plan_schedule(
+            state=critical_state,
+            nodes=list(kernel.nodes.values()),
+            budget=budget,
+            query="High latency incident",
+        )
+        self.assertGreaterEqual(plan_critical.actual_entropy, 0.50)
+        self.assertIn(EvidenceDepthTier.DEEP_EPISTEMIC, plan_critical.dispatched_tiers)
+        scheduled_node_ids = [n.node_id for n in plan_critical.scheduled_nodes]
+        self.assertIn("node_causal_diag_main", scheduled_node_ids)
+
+        # Case C: End-to-end execute_pipeline with budget and meta-scheduler
+        res = kernel.execute_pipeline(
+            critical_state, query="Emergency Incident Pipeline", budget=budget
+        )
+        self.assertEqual(res.vital_max_hp, 6)
+        self.assertEqual(res.verdict.vital_max_hp, 6)
+        self.assertEqual(res.receipt.vital_max_hp, 6)
+        self.assertEqual(res.receipt.applied_envelope.vital_max_hp, 6)
+
+        # Verify that all 7 core data types uphold the vital_max_hp == 6 invariant
+        seven_types = [
+            res.receipt.applied_envelope,
+            res.verdict,
+            res.receipt,
+            res,
+            critical_state,
+            budget,
+            plan_critical,
+        ]
+        for t in seven_types:
+            self.assertEqual(t.vital_max_hp, 6)
 
 
 if __name__ == "__main__":

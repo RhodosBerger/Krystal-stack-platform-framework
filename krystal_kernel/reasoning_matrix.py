@@ -479,6 +479,7 @@ class ActuationReceipt:
     applied_envelope: ExecutionEnvelope
     was_degraded_fallback: bool
     is_shadow: bool
+    transition_type: str = "NORMAL_SELECTION"  # or "FAILSAFE_AUTHORITY_TRANSITION"
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self):
@@ -487,7 +488,7 @@ class ActuationReceipt:
 
 @runtime_checkable
 class IEpistemicNode(Protocol):
-    """Formal inter-node contract for all reasoning, prediction, and solver nodes."""
+    """Formal inter-node compute contract for all reasoning, prediction, and solver nodes."""
     @property
     def node_id(self) -> str: ...
     @property
@@ -495,6 +496,11 @@ class IEpistemicNode(Protocol):
     def can_evaluate(self, state: WorldStateVector) -> bool: ...
     def propose(self, state: WorldStateVector) -> List[HypothesisEnvelope]: ...
     def feedback(self, residual: ObservationResidual) -> None: ...
+
+
+@runtime_checkable
+class IWorkspaceContributor(Protocol):
+    """Optional presentation contract for epistemic nodes that project visual artifacts or cards into the workspace."""
     def render_ui_contribution(
         self, state: WorldStateVector, hypothesis: Optional[HypothesisEnvelope]
     ) -> Optional[WorkspaceNode]: ...
@@ -694,6 +700,157 @@ class ShadowExplorationNode:
         )
 
 
+# ============================================================================
+# 5. REASONING META-SCHEDULER & COMPUTE BUDGET
+# ============================================================================
+
+class EvidenceDepthTier(str, Enum):
+    SHALLOW = "SHALLOW"                # Deterministic bitmask & fast heuristics (< 50 µs)
+    BALANCED = "BALANCED"              # Neural predictors & specialized solvers (< 2 ms)
+    DEEP_EPISTEMIC = "DEEP_EPISTEMIC"  # Causal LLM / Deep exploration (> 10 ms)
+
+
+@dataclass(frozen=True)
+class ComputeBudget:
+    """Computational envelope allocated to the reasoning meta-scheduler."""
+    max_time_us: float = 5000.0          # Time budget in microseconds
+    max_tokens: int = 1024               # Token budget for generative / LLM nodes
+    energy_budget_uj: float = 50_000.0   # Energy budget in microjoules
+    allowed_tiers: Tuple[EvidenceDepthTier, ...] = (
+        EvidenceDepthTier.SHALLOW,
+        EvidenceDepthTier.BALANCED,
+        EvidenceDepthTier.DEEP_EPISTEMIC,
+    )
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        assert self.vital_max_hp == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
+
+
+@dataclass(frozen=True)
+class ScheduledNodeExecution:
+    node_id: str
+    priority: int
+    tier: EvidenceDepthTier
+    allocated_time_us: float
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        assert self.vital_max_hp == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
+
+
+@dataclass(frozen=True)
+class MetaSchedulePlan:
+    """Orchestrated composition of reasoning nodes selected for a problem context."""
+    plan_id: str
+    target_query: str
+    scheduled_nodes: Tuple[ScheduledNodeExecution, ...]
+    early_exit_confidence_threshold: float
+    actual_entropy: float
+    dispatched_tiers: Tuple[EvidenceDepthTier, ...]
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        assert self.vital_max_hp == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
+
+
+class ReasoningMetaScheduler:
+    """
+    Schedules the *mode of computational reasoning* rather than raw hardware execution.
+    Plans node composition, assigns compute/token budgets, and detects early evidence convergence.
+    """
+    def __init__(self, confidence_convergence_threshold: float = 0.90):
+        self.convergence_threshold = confidence_convergence_threshold
+
+    def plan_schedule(
+        self,
+        state: WorldStateVector,
+        nodes: Sequence[IEpistemicNode],
+        budget: ComputeBudget,
+        query: str = "Root cause analysis",
+    ) -> MetaSchedulePlan:
+        assert state.vital_max_hp == 6
+        assert budget.vital_max_hp == 6
+
+        # Calculate telemetry entropy / anomaly pressure
+        is_anomalous = (state.uma_pressure > 0.80) or (state.temperature_c > 85.0) or (state.queue_depth > 20)
+        entropy = 0.85 if is_anomalous else 0.18
+
+        scheduled: List[ScheduledNodeExecution] = []
+        dispatched_tiers: List[EvidenceDepthTier] = []
+
+        # Tier 1: Deterministic bitmask & Pareto solvers (Always scheduled first)
+        if EvidenceDepthTier.SHALLOW in budget.allowed_tiers:
+            dispatched_tiers.append(EvidenceDepthTier.SHALLOW)
+            for n in nodes:
+                if n.reasoning_mode in (ReasoningModeKind.DETERMINISTIC_BITMASK, ReasoningModeKind.PARETO_HEURISTIC_SOLVER):
+                    scheduled.append(ScheduledNodeExecution(
+                        node_id=n.node_id,
+                        priority=1,
+                        tier=EvidenceDepthTier.SHALLOW,
+                        allocated_time_us=min(500.0, budget.max_time_us * 0.1),
+                    ))
+
+        # Tier 2: Neural Predictors (Scheduled next if budget allows)
+        if EvidenceDepthTier.BALANCED in budget.allowed_tiers and budget.max_time_us >= 1000.0:
+            dispatched_tiers.append(EvidenceDepthTier.BALANCED)
+            for n in nodes:
+                if n.reasoning_mode == ReasoningModeKind.CUSTOM_NN_PREDICTOR:
+                    scheduled.append(ScheduledNodeExecution(
+                        node_id=n.node_id,
+                        priority=2,
+                        tier=EvidenceDepthTier.BALANCED,
+                        allocated_time_us=min(2000.0, budget.max_time_us * 0.4),
+                    ))
+
+        # Tier 3: LLM Causal Node / Shadow Explorer (Dispatched ONLY if entropy is high and budget has tokens/time)
+        # Early exit / budget preservation: if entropy is low (< 0.50), Tier 3 is omitted!
+        if EvidenceDepthTier.DEEP_EPISTEMIC in budget.allowed_tiers:
+            if entropy >= 0.50 and budget.max_tokens >= 256 and budget.max_time_us >= 3000.0:
+                dispatched_tiers.append(EvidenceDepthTier.DEEP_EPISTEMIC)
+                for n in nodes:
+                    if n.reasoning_mode in (ReasoningModeKind.LLM_CAUSAL_NODE, ReasoningModeKind.SHADOW_EXPLORER):
+                        scheduled.append(ScheduledNodeExecution(
+                            node_id=n.node_id,
+                            priority=3,
+                            tier=EvidenceDepthTier.DEEP_EPISTEMIC,
+                            allocated_time_us=budget.max_time_us * 0.5,
+                        ))
+
+        return MetaSchedulePlan(
+            plan_id=f"PLAN-{state.sequence_id}-{int(budget.max_time_us)}",
+            target_query=query,
+            scheduled_nodes=tuple(scheduled),
+            early_exit_confidence_threshold=self.convergence_threshold,
+            actual_entropy=entropy,
+            dispatched_tiers=tuple(dispatched_tiers),
+            vital_max_hp=6,
+        )
+
+    def execute_scheduled_synthesis(
+        self,
+        schedule: MetaSchedulePlan,
+        state: WorldStateVector,
+        nodes: Mapping[str, IEpistemicNode],
+    ) -> List[HypothesisEnvelope]:
+        """Executes nodes in priority order, supporting early exit when evidence converges."""
+        assert state.vital_max_hp == 6
+        assert schedule.vital_max_hp == 6
+
+        harvested_hypotheses: List[HypothesisEnvelope] = []
+        for exec_spec in schedule.scheduled_nodes:
+            node = nodes.get(exec_spec.node_id)
+            if node and node.can_evaluate(state):
+                hyps = node.propose(state)
+                harvested_hypotheses.extend(hyps)
+                # Check for decisive high-confidence early exit
+                if any(h.confidence >= schedule.early_exit_confidence_threshold for h in hyps):
+                    if exec_spec.priority >= 2:
+                        break
+
+        return harvested_hypotheses
+
+
 class EpistemicOrchestrationKernel:
     """
     Central orchestration kernel coordinating multi-node candidate generation,
@@ -704,8 +861,10 @@ class EpistemicOrchestrationKernel:
         self,
         funnel: Optional[AdmissibleHypothesisFunnel] = None,
         nodes: Optional[List[IEpistemicNode]] = None,
+        scheduler: Optional[ReasoningMetaScheduler] = None,
     ):
         self.funnel = funnel or AdmissibleHypothesisFunnel()
+        self.scheduler = scheduler
         self.nodes: Dict[str, IEpistemicNode] = {}
         for n in (nodes or []):
             self.register_node(n)
@@ -718,10 +877,11 @@ class EpistemicOrchestrationKernel:
         state: WorldStateVector,
         query: str = "Tactical Cycle",
         now_s: Optional[float] = None,
+        budget: Optional[ComputeBudget] = None,
     ) -> Tuple[Optional[CandidateAction], DynamicWorkspaceScene, FunnelStageTelemetry]:
         """
         Executes a complete orchestration cycle:
-          1. Gathers hypotheses from all eligible nodes
+          1. Gathers hypotheses from all eligible nodes (optionally via ReasoningMetaScheduler)
           2. Runs hypotheses through the 5-stage selection funnel
           3. Emits dynamic polymorphic UI scene
           4. Returns (WinningAction, WorkspaceScene, FunnelTelemetry)
@@ -732,14 +892,27 @@ class EpistemicOrchestrationKernel:
         active_hypotheses: List[HypothesisEnvelope] = []
         ui_nodes: List[WorkspaceNode] = []
 
-        for node in self.nodes.values():
-            if node.can_evaluate(state):
-                hyps = node.propose(state)
-                active_hypotheses.extend(hyps)
-                for h in hyps:
-                    ui_elem = node.render_ui_contribution(state, h)
-                    if ui_elem:
-                        ui_nodes.append(ui_elem)
+        if self.scheduler is not None and budget is not None:
+            schedule = self.scheduler.plan_schedule(state, list(self.nodes.values()), budget, query)
+            active_hypotheses = self.scheduler.execute_scheduled_synthesis(schedule, state, self.nodes)
+            for node_exec in schedule.scheduled_nodes:
+                node = self.nodes.get(node_exec.node_id)
+                if node and isinstance(node, IWorkspaceContributor):
+                    node_hyps = [h for h in active_hypotheses if h.node_id == node.node_id]
+                    for h in node_hyps:
+                        ui_elem = node.render_ui_contribution(state, h)
+                        if ui_elem:
+                            ui_nodes.append(ui_elem)
+        else:
+            for node in self.nodes.values():
+                if node.can_evaluate(state):
+                    hyps = node.propose(state)
+                    active_hypotheses.extend(hyps)
+                    if isinstance(node, IWorkspaceContributor):
+                        for h in hyps:
+                            ui_elem = node.render_ui_contribution(state, h)
+                            if ui_elem:
+                                ui_nodes.append(ui_elem)
 
         # 2. Convert hypotheses to candidate actions for funnel filtering
         candidates = [h.to_candidate_action() for h in active_hypotheses]
@@ -794,14 +967,15 @@ class EpistemicOrchestrationKernel:
         state: WorldStateVector,
         query: str = "Tactical Cycle",
         now_s: Optional[float] = None,
+        budget: Optional[ComputeBudget] = None,
     ) -> OrchestrationCycleResult:
         """
         Executes the formal closed-loop pipeline from WorldStateVector to ActuationReceipt.
         Adheres strictly to the invariant:
-          A_commit == 0 => AUTH_DEGRADED_SAFE_FALLBACK
+          A_commit == 0 => AUTH_DEGRADED_SAFE_FALLBACK (FAILSAFE_AUTHORITY_TRANSITION)
         """
         assert state.vital_max_hp == 6
-        winner_action, scene, telemetry = self.step(state, query=query, now_s=now_s)
+        winner_action, scene, telemetry = self.step(state, query=query, now_s=now_s, budget=budget)
 
         is_approved = (telemetry.authority_verdict == "AUTH_COMMIT_APPROVED")
         profile_name = winner_action.target_profile if winner_action else "ultra_saver"
@@ -853,6 +1027,7 @@ class EpistemicOrchestrationKernel:
             applied_envelope=envelope,
             was_degraded_fallback=not is_approved,
             is_shadow=winner_action.is_shadow_experiment if winner_action else False,
+            transition_type="FAILSAFE_AUTHORITY_TRANSITION" if not is_approved else "NORMAL_SELECTION",
             vital_max_hp=6,
         )
 
