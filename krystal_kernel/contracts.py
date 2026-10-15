@@ -363,7 +363,7 @@ class ExecutionContract:
         if self.vital_max_hp != 6:
             raise ContractViolation("Platform invariant VITAL_MAX_HP == 6 must hold in ExecutionContract", self.header.contract_id)
         if not (self.header.capability_scope & CapabilityToken.CAN_EXECUTE):
-            raise ContractViolation("ExecutionContract requires CAN_EXECUTE capability", self.header.contract_id)
+            raise ContractViolation("ExecutionContract requires CAN_EXECUTE capability", self.header.contract_id, violation_code="ERR_EXECUTION_CAPABILITY_REQUIRED")
 
         # Cross-Contract Semantic Parity: Target profile must match authorization
         if self.target_profile != self.authorization.target_profile:
