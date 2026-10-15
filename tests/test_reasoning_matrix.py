@@ -601,6 +601,130 @@ class TestReasoningMatrix(unittest.TestCase):
         for t in seven_types:
             self.assertEqual(t.vital_max_hp, 6)
 
+    def test_17_reasoning_plan_and_reasoning_receipt_abi(self):
+        """
+        Validates formal ReasoningPlan and ReasoningReceipt immutable ABI contracts.
+        Distinguishes how we think (ReasoningPlan) from what we execute (ExecutionEnvelope).
+        """
+        from dataclasses import FrozenInstanceError
+        from krystal_kernel.reasoning_matrix import (
+            ReasoningMetaScheduler, ComputeBudget, ReasoningPlan, ReasoningReceipt
+        )
+
+        meta_scheduler = ReasoningMetaScheduler(confidence_convergence_threshold=0.90)
+        kernel = EpistemicOrchestrationKernel(
+            funnel=self.funnel,
+            nodes=[
+                DeterministicMemoryStabilizerNode(),
+                CausalDiagnosticNode(),
+            ],
+            scheduler=meta_scheduler,
+        )
+
+        state = WorldStateVector(
+            state_timestamp_ns=500, sequence_id=901, cpu_utilization_pct=50, gpu_utilization_pct=60,
+            uma_pressure=0.85, temperature_c=88, battery_pct=70, plugged=True, queue_depth=15,
+            vital_max_hp=6
+        )
+        budget = ComputeBudget(max_time_us=5000.0, max_tokens=512, vital_max_hp=6)
+
+        res = kernel.execute_pipeline(state, query="Causal Diagnosis Cycle", budget=budget)
+        self.assertIsNotNone(res.reasoning_plan)
+        self.assertIsNotNone(res.reasoning_receipt)
+
+        rplan = res.reasoning_plan
+        rrcpt = res.reasoning_receipt
+
+        self.assertIsInstance(rplan, ReasoningPlan)
+        self.assertIsInstance(rrcpt, ReasoningReceipt)
+        self.assertEqual(rplan.vital_max_hp, 6)
+        self.assertEqual(rrcpt.vital_max_hp, 6)
+        self.assertEqual(rplan.max_time_us, 5000)
+        self.assertEqual(rplan.max_tokens, 512)
+        self.assertEqual(rplan.stop_condition, "EVIDENCE_CONVERGENCE_OR_BUDGET_EXHAUSTION")
+
+        # Immutability verification
+        with self.assertRaises(FrozenInstanceError):
+            rplan.max_tokens = 9999
+        with self.assertRaises(FrozenInstanceError):
+            rrcpt.tokens_consumed = 9999
+
+    def test_18_milestone_v_plan_03_evidence_efficient_metascheduling(self):
+        """
+        THE V-PLAN-03 MILESTONE PROOF:
+        Proves that ReasoningMetaScheduler reaches required evidence threshold (E_min >= 0.90)
+        with minimal compute/token cost, skipping downstream expensive LLM nodes.
+        """
+        from krystal_kernel.reasoning_matrix import (
+            ReasoningMetaScheduler, ComputeBudget, IEpistemicNode
+        )
+
+        class HighConfidenceFastStabilizerNode:
+            """Tier 1 fast deterministic solver that produces decisive 0.94 evidence in < 50 µs."""
+            @property
+            def node_id(self) -> str:
+                return "node_fast_decisive_stabilizer"
+
+            @property
+            def reasoning_mode(self) -> ReasoningModeKind:
+                return ReasoningModeKind.PARETO_HEURISTIC_SOLVER
+
+            def can_evaluate(self, state: WorldStateVector) -> bool:
+                assert state.vital_max_hp == 6
+                return True
+
+            def propose(self, state: WorldStateVector) -> List[HypothesisEnvelope]:
+                assert state.vital_max_hp == 6
+                return [
+                    HypothesisEnvelope(
+                        hypothesis_id=f"{self.node_id}_hyp_1",
+                        node_id=self.node_id,
+                        reasoning_mode=self.reasoning_mode,
+                        target_profile="balanced_hybrid",
+                        predicted_latency_ms=8.0,
+                        predicted_throughput_fps=180.0,
+                        predicted_power_w=4.8,
+                        predicted_uma_pressure=0.60,
+                        confidence=0.94,  # Decisive evidence >= 0.90 threshold!
+                        vital_max_hp=6,
+                    )
+                ]
+
+            def feedback(self, residual: ObservationResidual) -> None:
+                assert residual.vital_max_hp == 6
+
+        fast_node = HighConfidenceFastStabilizerNode()
+        llm_node = CausalDiagnosticNode(node_id="node_expensive_llm")
+
+        meta_scheduler = ReasoningMetaScheduler(confidence_convergence_threshold=0.90)
+        kernel = EpistemicOrchestrationKernel(
+            funnel=self.funnel,
+            nodes=[fast_node, llm_node],
+            scheduler=meta_scheduler,
+        )
+
+        critical_state = WorldStateVector(
+            state_timestamp_ns=600, sequence_id=902, cpu_utilization_pct=80, gpu_utilization_pct=85,
+            uma_pressure=0.89, temperature_c=88, battery_pct=50, plugged=True, queue_depth=30,
+            vital_max_hp=6
+        )
+        budget = ComputeBudget(max_time_us=8000.0, max_tokens=1024, vital_max_hp=6)
+
+        res = kernel.execute_pipeline(
+            critical_state, query="Evidence-Efficiency Benchmark", budget=budget
+        )
+        rrcpt = res.reasoning_receipt
+        self.assertIsNotNone(rrcpt)
+
+        # Proves evidence-efficient early exit:
+        # Fast stabilizer ran first, reached confidence 0.94 >= 0.90,
+        # so expensive LLM was marked as SKIPPED and consumed 0 tokens!
+        self.assertIn("node_fast_decisive_stabilizer", rrcpt.executed_nodes)
+        self.assertIn("node_expensive_llm", rrcpt.skipped_nodes)
+        self.assertEqual(rrcpt.tokens_consumed, 0)
+        self.assertEqual(rrcpt.early_exit_reason, "EVIDENCE_CONVERGENCE_THRESHOLD_REACHED")
+        self.assertGreaterEqual(rrcpt.evidence_gained, 0.90)
+
 
 if __name__ == "__main__":
     unittest.main()

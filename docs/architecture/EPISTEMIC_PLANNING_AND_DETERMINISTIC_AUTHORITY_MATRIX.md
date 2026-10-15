@@ -1,8 +1,8 @@
 # KRYSTAL-STACK: EPISTEMIC PLANNING & DETERMINISTIC AUTHORITY MATRIX
 ## System Architecture, Selection Funnel, and Reasoning Matrix (V-PLAN-02)
 
-**Status:** CANONICAL ARCHITECTURAL SPECIFICATION  
-**Author:** Dušan Kopecký & Krystal-Stack Architecture & Epistemic Systems Council (2026)  
+**Status:** CANONICAL ARCHITECTURAL SPECIFICATION<br>
+**Author:** Dušan Kopecký & Krystal-Stack Architecture & Epistemic Systems Council (2026)<br>
 **Constitutional Invariant:** `assert VITAL_MAX_HP == 6` across all states, envelopes, nodes, and plans.
 
 ---
@@ -369,3 +369,25 @@ $$\text{Observe} \longrightarrow \text{Represent} \longrightarrow \text{Hypothes
 
 Tým sa Krystal Stack stáva všeobecnou platformou:
 > **Krystal Stack is an epistemic orchestration runtime for selecting, validating, executing, and learning from heterogeneous computational strategies under deterministic authority.**
+
+---
+
+### 10. V-PLAN-03: Reasoning Plan ABI & Dvojitá auditovateľnosť (Reasoning vs. Actuation)
+
+Architektúra formalizuje striktnú dualitu medzi uvažovaním a fyzickou realizáciou:
+
+| Úroveň | Špecifikácia zámeru (Čo/Ako) | Doklad o realizácii (Attestation) | Účel |
+|---|---|---|---|
+| **Epistemická (Uvažovacia)** | **`ReasoningPlan`** (*ako budeme premýšľať*) | **`ReasoningReceipt`** (*attested dôkaz o cene a dôkaze*) | Optimalizácia stratégie myslenia a rozpočtu tokenov/času |
+| **Deterministická (Fyzická)** | **`ExecutionEnvelope`** (*čo smieme vykonať*) | **`ActuationReceipt`** (*attested dôkaz o hardvérovej zmene*) | Ochrana hardvérových limitov a bezpečnosti systému |
+
+#### Matematická optimalizácia plánovania uvažovania:
+$$\min_{\pi} \left( C_{\text{compute}}(\pi) + C_{\text{latency}}(\pi) + C_{\text{tokens}}(\pi) + C_{\text{risk}}(\pi) \right) \quad \text{s.t.} \quad \text{Evidence}(\pi) \ge E_{\min}$$
+
+kde $\pi$ predstavuje nemenný `ReasoningPlan`.
+
+#### Dvojitá učiaca slučka:
+1. **Hardvérová kalibrácia**: $\text{Receipt} \rightarrow \mathbf{e}_t = \mathbf{y}_{\text{real}} - \hat{\mathbf{y}}_{\text{pred}} \rightarrow \text{Uzol.feedback}()$
+2. **MetaScheduler kalibrácia (Learning-to-Reason)**:
+   $$\text{Kontext problému} \longrightarrow \text{ReasoningPlan} \longrightarrow \text{ReasoningReceipt} \longrightarrow \Delta \text{Evidence} / \text{Cost}$$
+   Metascheduler sa učí pravidlo typu: *„Pri UMA > 0.82 nepotrebujem LLM v 87 % prípadov, pretože MemorySolver + QueueSolver dosiahnu rovnaký verdikt lacnejšie a v mikrosekundách.“*

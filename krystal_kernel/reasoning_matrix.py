@@ -754,6 +754,43 @@ class MetaSchedulePlan:
         assert self.vital_max_hp == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
 
 
+@dataclass(frozen=True)
+class ReasoningPlan:
+    """Formal specification of how the system will reason over a problem."""
+    plan_id: str
+    selected_nodes: Tuple[str, ...]
+    execution_order: Tuple[str, ...]
+    parallel_groups: Tuple[Tuple[str, ...], ...]
+    max_time_us: int
+    max_tokens: int
+    required_evidence: float
+    stop_condition: str
+    state_version: int
+    capability_generation: int
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        assert self.vital_max_hp == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
+
+
+@dataclass(frozen=True)
+class ReasoningReceipt:
+    """Cryptographically auditable proof of epistemic computation, cost, and evidence gained."""
+    receipt_id: str
+    plan_id: str
+    executed_nodes: Tuple[str, ...]
+    skipped_nodes: Tuple[str, ...]
+    node_durations_us: Dict[str, float]
+    tokens_consumed: int
+    confidence_contribution: Dict[str, float]
+    evidence_gained: float
+    early_exit_reason: Optional[str]
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        assert self.vital_max_hp == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
+
+
 class ReasoningMetaScheduler:
     """
     Schedules the *mode of computational reasoning* rather than raw hardware execution.
@@ -827,6 +864,134 @@ class ReasoningMetaScheduler:
             vital_max_hp=6,
         )
 
+    def plan_reasoning_plan(
+        self,
+        state: WorldStateVector,
+        nodes: Sequence[IEpistemicNode],
+        budget: ComputeBudget,
+        query: str = "Root cause analysis",
+        capability_generation: int = 0,
+    ) -> ReasoningPlan:
+        """Formal synthesizer emitting an immutable ReasoningPlan."""
+        assert state.vital_max_hp == 6
+        assert budget.vital_max_hp == 6
+
+        group_shallow: List[str] = []
+        group_balanced: List[str] = []
+        group_deep: List[str] = []
+
+        is_anomalous = (state.uma_pressure > 0.80) or (state.temperature_c > 85.0) or (state.queue_depth > 20)
+        entropy = 0.85 if is_anomalous else 0.18
+
+        if EvidenceDepthTier.SHALLOW in budget.allowed_tiers:
+            for n in nodes:
+                if n.reasoning_mode in (ReasoningModeKind.DETERMINISTIC_BITMASK, ReasoningModeKind.PARETO_HEURISTIC_SOLVER):
+                    group_shallow.append(n.node_id)
+
+        if EvidenceDepthTier.BALANCED in budget.allowed_tiers and budget.max_time_us >= 1000.0:
+            for n in nodes:
+                if n.reasoning_mode == ReasoningModeKind.CUSTOM_NN_PREDICTOR:
+                    group_balanced.append(n.node_id)
+
+        if EvidenceDepthTier.DEEP_EPISTEMIC in budget.allowed_tiers:
+            if entropy >= 0.50 and budget.max_tokens >= 256 and budget.max_time_us >= 3000.0:
+                for n in nodes:
+                    if n.reasoning_mode in (ReasoningModeKind.LLM_CAUSAL_NODE, ReasoningModeKind.SHADOW_EXPLORER):
+                        group_deep.append(n.node_id)
+
+        parallel_groups_list = []
+        if group_shallow:
+            parallel_groups_list.append(tuple(group_shallow))
+        if group_balanced:
+            parallel_groups_list.append(tuple(group_balanced))
+        if group_deep:
+            parallel_groups_list.append(tuple(group_deep))
+
+        exec_order = tuple(group_shallow + group_balanced + group_deep)
+
+        return ReasoningPlan(
+            plan_id=f"RPLAN-{state.sequence_id}-{int(budget.max_time_us)}",
+            selected_nodes=exec_order,
+            execution_order=exec_order,
+            parallel_groups=tuple(parallel_groups_list),
+            max_time_us=int(budget.max_time_us),
+            max_tokens=int(budget.max_tokens),
+            required_evidence=self.convergence_threshold,
+            stop_condition="EVIDENCE_CONVERGENCE_OR_BUDGET_EXHAUSTION",
+            state_version=state.sequence_id,
+            capability_generation=capability_generation,
+            vital_max_hp=6,
+        )
+
+    def execute_plan(
+        self,
+        plan: ReasoningPlan,
+        state: WorldStateVector,
+        nodes: Mapping[str, IEpistemicNode],
+    ) -> Tuple[List[HypothesisEnvelope], ReasoningReceipt]:
+        """Executes the ReasoningPlan, returning hypotheses and an auditable ReasoningReceipt."""
+        assert state.vital_max_hp == 6
+        assert plan.vital_max_hp == 6
+
+        harvested_hypotheses: List[HypothesisEnvelope] = []
+        executed_nodes: List[str] = []
+        skipped_nodes: List[str] = []
+        node_durations_us: Dict[str, float] = {}
+        confidence_contrib: Dict[str, float] = {}
+        tokens_consumed = 0
+        early_exit_reason: Optional[str] = None
+
+        t_start = time.perf_counter()
+
+        for idx, node_id in enumerate(plan.execution_order):
+            elapsed_us = (time.perf_counter() - t_start) * 1e6
+            if elapsed_us >= plan.max_time_us:
+                early_exit_reason = "TIME_BUDGET_EXCEEDED"
+                skipped_nodes.extend(plan.execution_order[idx:])
+                break
+
+            node = nodes.get(node_id)
+            if not node or not node.can_evaluate(state):
+                skipped_nodes.append(node_id)
+                continue
+
+            t0 = time.perf_counter()
+            hyps = node.propose(state)
+            t1 = time.perf_counter()
+            dur_us = max(1.0, (t1 - t0) * 1e6)
+
+            executed_nodes.append(node_id)
+            node_durations_us[node_id] = dur_us
+            harvested_hypotheses.extend(hyps)
+
+            node_conf = max((h.confidence for h in hyps), default=0.0)
+            confidence_contrib[node_id] = node_conf
+
+            if node.reasoning_mode == ReasoningModeKind.LLM_CAUSAL_NODE:
+                tokens_consumed += 128
+
+            # Early exit check: if evidence threshold reached
+            if node_conf >= plan.required_evidence and idx < len(plan.execution_order) - 1:
+                early_exit_reason = "EVIDENCE_CONVERGENCE_THRESHOLD_REACHED"
+                skipped_nodes.extend(plan.execution_order[idx + 1:])
+                break
+
+        evidence_gained = max((h.confidence for h in harvested_hypotheses), default=0.0)
+
+        receipt = ReasoningReceipt(
+            receipt_id=f"RRCPT-{plan.plan_id}",
+            plan_id=plan.plan_id,
+            executed_nodes=tuple(executed_nodes),
+            skipped_nodes=tuple(skipped_nodes),
+            node_durations_us=node_durations_us,
+            tokens_consumed=tokens_consumed,
+            confidence_contribution=confidence_contrib,
+            evidence_gained=evidence_gained,
+            early_exit_reason=early_exit_reason,
+            vital_max_hp=6,
+        )
+        return harvested_hypotheses, receipt
+
     def execute_scheduled_synthesis(
         self,
         schedule: MetaSchedulePlan,
@@ -866,6 +1031,8 @@ class EpistemicOrchestrationKernel:
         self.funnel = funnel or AdmissibleHypothesisFunnel()
         self.scheduler = scheduler
         self.nodes: Dict[str, IEpistemicNode] = {}
+        self.last_reasoning_plan: Optional[ReasoningPlan] = None
+        self.last_reasoning_receipt: Optional[ReasoningReceipt] = None
         for n in (nodes or []):
             self.register_node(n)
 
@@ -893,10 +1060,20 @@ class EpistemicOrchestrationKernel:
         ui_nodes: List[WorkspaceNode] = []
 
         if self.scheduler is not None and budget is not None:
-            schedule = self.scheduler.plan_schedule(state, list(self.nodes.values()), budget, query)
-            active_hypotheses = self.scheduler.execute_scheduled_synthesis(schedule, state, self.nodes)
-            for node_exec in schedule.scheduled_nodes:
-                node = self.nodes.get(node_exec.node_id)
+            self.last_reasoning_plan = self.scheduler.plan_reasoning_plan(
+                state=state,
+                nodes=list(self.nodes.values()),
+                budget=budget,
+                query=query,
+                capability_generation=self.funnel.caps.generation,
+            )
+            active_hypotheses, self.last_reasoning_receipt = self.scheduler.execute_plan(
+                plan=self.last_reasoning_plan,
+                state=state,
+                nodes=self.nodes,
+            )
+            for nid in self.last_reasoning_receipt.executed_nodes:
+                node = self.nodes.get(nid)
                 if node and isinstance(node, IWorkspaceContributor):
                     node_hyps = [h for h in active_hypotheses if h.node_id == node.node_id]
                     for h in node_hyps:
@@ -904,6 +1081,8 @@ class EpistemicOrchestrationKernel:
                         if ui_elem:
                             ui_nodes.append(ui_elem)
         else:
+            self.last_reasoning_plan = None
+            self.last_reasoning_receipt = None
             for node in self.nodes.values():
                 if node.can_evaluate(state):
                     hyps = node.propose(state)
@@ -1038,6 +1217,8 @@ class EpistemicOrchestrationKernel:
             receipt=receipt,
             workspace_scene=scene,
             telemetry=telemetry,
+            reasoning_plan=self.last_reasoning_plan,
+            reasoning_receipt=self.last_reasoning_receipt,
             vital_max_hp=6,
         )
 
@@ -1085,6 +1266,8 @@ class OrchestrationCycleResult:
     receipt: ActuationReceipt
     workspace_scene: DynamicWorkspaceScene
     telemetry: FunnelStageTelemetry
+    reasoning_plan: Optional[ReasoningPlan] = None
+    reasoning_receipt: Optional[ReasoningReceipt] = None
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self):
