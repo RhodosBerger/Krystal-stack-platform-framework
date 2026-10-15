@@ -535,6 +535,62 @@ class HmacOriginAuthenticator(OriginAuthenticator):
         return hmac.compare_digest(expected, signature)
 
 
+class Ed25519OriginAuthenticator(OriginAuthenticator):
+    """
+    Asymmetric RFC 8032 Ed25519 origin authenticator providing cryptographic non-repudiation.
+    The signer holds sk_p (32 bytes private seed); verifiers hold only pk_p (32 bytes public key).
+    Verifiers cannot forge signatures because they do not possess the private key.
+    """
+
+    def __init__(
+        self,
+        public_keys: Optional[Dict[str, bytes]] = None,
+        private_keys: Optional[Dict[str, bytes]] = None,
+    ):
+        self._public_keys: Dict[str, bytes] = dict(public_keys or {})
+        self._private_keys: Dict[str, bytes] = dict(private_keys or {})
+
+    def register_principal(
+        self,
+        principal_id: str,
+        public_key_32: bytes,
+        secret_key_32: Optional[bytes] = None,
+    ) -> None:
+        if len(public_key_32) != 32:
+            raise ContractViolation(f"Ed25519 public key for '{principal_id}' must be 32 bytes", violation_code="ERR_INVALID_KEY_LENGTH")
+        if secret_key_32 and len(secret_key_32) != 32:
+            raise ContractViolation(f"Ed25519 secret key for '{principal_id}' must be 32 bytes", violation_code="ERR_INVALID_KEY_LENGTH")
+        self._public_keys[principal_id] = public_key_32
+        if secret_key_32:
+            self._private_keys[principal_id] = secret_key_32
+
+    def sign_digest(self, principal_id: str, digest: str) -> str:
+        sk = self._private_keys.get(principal_id)
+        if not sk:
+            raise ContractViolation(
+                f"No private signing key registered for principal '{principal_id}'",
+                violation_code="ERR_KEY_NOT_FOUND",
+            )
+        from krystal_kernel.ed25519 import ed25519_public_key, ed25519_sign
+        pk = self._public_keys.get(principal_id) or ed25519_public_key(sk)
+        sig = ed25519_sign(digest.encode("utf-8"), sk, pk)
+        return sig.hex()
+
+    def verify_digest(self, principal_id: str, digest: str, signature: str) -> bool:
+        if not signature:
+            return False
+        pk = self._public_keys.get(principal_id)
+        if not pk:
+            return False
+        try:
+            from krystal_kernel.ed25519 import ed25519_verify
+            sig_bytes = bytes.fromhex(signature)
+            return ed25519_verify(sig_bytes, digest.encode("utf-8"), pk)
+        except Exception:
+            return False
+
+
+
 def sign_contract(contract: Any, authenticator: OriginAuthenticator, principal_id: Optional[str] = None) -> Any:
     """
     Signs a contract using the provided authenticator and returns a new frozen

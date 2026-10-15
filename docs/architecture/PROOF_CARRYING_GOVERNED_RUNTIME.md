@@ -246,5 +246,25 @@ Milestone **V-PROVENANCE-01** (see [V_PROVENANCE_01_IDENTITY_REPLAY_NON_REPUDIAT
 5. **Bridge to V-PLUGIN-01:** Untrusted third-party solvers and plugins are verified strictly through:
    $$\textbf{Trust} := \text{Identity} + \text{Capability} + \text{Signature} + \text{Evidence} + \text{Policy}$$
 
+---
+
+## 10. Milestones V-IDENTITY-02 & V-PLUGIN-01: Asymmetric Identity & Plugin Sandbox
+
+Milestones **V-IDENTITY-02 & V-PLUGIN-01** (see [V_PLUGIN_01_UNTRUSTED_NODE_SANDBOX_AND_ASYMMETRIC_IDENTITY.md](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/docs/research/V_PLUGIN_01_UNTRUSTED_NODE_SANDBOX_AND_ASYMMETRIC_IDENTITY.md)) formalize sovereign non-repudiation and untrusted third-party node execution:
+
+1. **Sovereign Asymmetric Ed25519 Non-Repudiation:** Pure-Python RFC 8032 implementation (`krystal_kernel/ed25519.py`) ensures that principals sign with private seed $sk_p$ while the runtime verifies strictly with public key $pk_p$, preventing signature forgery by any verifier.
+2. **Signed Plugin Manifests:** Third-party nodes submit cryptographically signed manifests (`SignedPluginManifest`) declaring identity, resource bounds, requested capabilities, and artifact digests.
+3. **Constitutional Capability Containment:**
+   $$\forall \text{plugin}: \quad \text{Capabilities}(\text{plugin}) \subseteq \{\text{CAN\_OBSERVE}, \text{CAN\_PROPOSE}, \text{CAN\_FALSIFY}\}$$
+   No third-party plugin can ever acquire $\text{CAN\_AUTHORIZE}$ or $\text{CAN\_EXECUTE}$.
+4. **Progressive Trust Tier Promotion:**
+   $$\text{UNTRUSTED} \longrightarrow \text{MANIFEST\_VALIDATED} \longrightarrow \text{SHADOW\_ONLY} \longrightarrow \text{EVIDENCE\_QUALIFIED} \longrightarrow \text{ACTIVE\_CONSULTANT}$$
+   - `SHADOW_ONLY`: Proposals evaluated and logged against telemetry residuals; strictly isolated from actuation.
+   - `ACTIVE_CONSULTANT`: Proposals admitted into metascheduling funnel based on verified prediction accuracy.
+5. **The Fundamental Platform Theorem:**
+   $$\boxed{\textbf{Trust increases epistemic influence, not execution authority.}}$$
+   Higher trust tiers increase selection eligibility, but never alter or expand the plugin's capability class.
+
+
 
 
