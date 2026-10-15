@@ -76,7 +76,8 @@ Krystal Stack's horizontal architecture addresses three multi-billion-dollar ver
 1. **Hardware-Proven Performance:** Benchmarked on baremetal silicon at sustained **8 kHz event rates** ($125\,\mu\text{s}$ quanta) with verified **$317.4\,\mu\text{s}$ p99** latency.
 2. **Double-Receipt Auditability:** Proprietary cryptographic duality pairing `ReasoningReceipt` (attested cost of thought) with `ActuationReceipt` (attested proof of physical action).
 3. **Vendor-Agnostic C/Rust/Python ABI:** Pluggable `IEpistemicNode` protocol allows OEMs and developers to hot-plug proprietary models without recompiling or modifying the kernel core.
-4. **Formal Verification Readiness:** Mathematical mask algebra ready for automated Z3/SMT proofs, creating an unassailable regulatory and safety certification moat.
+4. **Machine-Checked SMT Verification:** Milestone V-AUTH-FORMAL-01 completed with automated Microsoft Z3 SMT proofs of non-interference ($\text{CAN\_PROPOSE} \cap \text{CAN\_EXECUTE} = \emptyset$), zero-authority failsafe, and bounded liveness in $< 10\,\text{ms}$, creating an unassailable regulatory and safety certification moat.
+5. **Proof-Carrying Execution:** Every hardware state transition is sealed with an unbroken causal proof chain ($ProofChain_t = \text{Action} + \text{EvidenceProof} + \text{PolicyProof} + \text{CapabilityProof}$), enabling instant retrospective auditing.
 
 ---
 
@@ -92,4 +93,4 @@ Krystal Stack's horizontal architecture addresses three multi-billion-dollar ver
 
 Krystal Stack is designed by systems architects and deep-tech engineers who understand that the future of computing belongs neither to static spreadsheets nor to wild, unconstrained neural models.
 
-The future belongs to **Governed Autonomous Intelligence** — and Krystal Stack is building the engine that powers it.
+The category we are defining is the **Proof-Carrying Governed Runtime for Adaptive Systems** — where probabilistic intelligence explores, deterministic authority constrains, and the physical world transitions only upon self-evident proof.

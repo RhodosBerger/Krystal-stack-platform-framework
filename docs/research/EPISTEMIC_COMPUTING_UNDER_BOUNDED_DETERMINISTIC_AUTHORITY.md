@@ -386,7 +386,9 @@ In all cases, the invariant holds: **probabilistic models hypothesize; determini
 ## References
 
 1. Krystal Stack Architectural Specification: `docs/architecture/EPISTEMIC_PLANNING_AND_DETERMINISTIC_AUTHORITY_MATRIX.md` (2026).
-2. Krystal Hardware Invariants & Verification Suites: `tests/test_reasoning_matrix.py`, `tests/test_khi_e2e_003_queue_contract.py`.
-3. Tiger Lake Microarchitecture & OpenVINO Execution Triad Research: `docs/research/DEEP_RESEARCH_INTEL_11TH_GEN_TIGER_LAKE_HARDWARE_ACCELERATION_AND_OPENVINO_EXTENSIONS.md`.
-4. Lamport, L., *Specifying Systems: The TLA+ Language and Tools for Hardware and Software Engineers*, Addison-Wesley (2002).
-5. De Moura, L., Bjørner, N., *Z3: An Efficient SMT Solver*, TACAS (2008).
+2. Krystal Stack Proof-Carrying Governed Runtime: `docs/architecture/PROOF_CARRYING_GOVERNED_RUNTIME.md` (2026).
+3. Machine-Checked Non-Interference Specification: `docs/research/V_AUTH_FORMAL_01_NON_INTERFERENCE_SMT.md` (2026).
+4. Krystal Hardware Invariants & Verification Suites: `tests/test_reasoning_matrix.py`, `tests/test_v_auth_formal_z3.py`, `tests/test_khi_e2e_003_queue_contract.py`.
+5. Tiger Lake Microarchitecture & OpenVINO Execution Triad Research: `docs/research/DEEP_RESEARCH_INTEL_11TH_GEN_TIGER_LAKE_HARDWARE_ACCELERATION_AND_OPENVINO_EXTENSIONS.md`.
+6. Lamport, L., *Specifying Systems: The TLA+ Language and Tools for Hardware and Software Engineers*, Addison-Wesley (2002).
+7. De Moura, L., Bjørner, N., *Z3: An Efficient SMT Solver*, TACAS (2008).
