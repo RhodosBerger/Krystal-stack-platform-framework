@@ -18,13 +18,15 @@
 
 Modern autonomous systems face a critical dilemma: deterministic control systems (e.g., PID controllers, statecharts, static schedulers) are mathematically verifiable but fundamentally incapable of generalizing over high-entropy, anomalous contexts; conversely, stochastic artificial intelligence models (deep neural networks, large language models) exhibit rich causal and heuristic synthesis but lack verifiable safety guarantees, making their unmediated actuation hazardous in production and physical environments.
 
-This paper formalizes **Epistemic Computing under Bounded Deterministic Authority**, realized in the Krystal Stack platform framework. We introduce a dual-space mathematical model that bifurcates the lifecycle of state transitions into:
+This paper formalizes **Epistemic Computing under Bounded Deterministic Authority**, realized in the Krystal Stack platform framework. We introduce a tripartite mathematical model that bifurcates the lifecycle of state transitions into:
 1. A **non-deterministic epistemic reasoning space** governed by a budget-aware meta-scheduler that solves:
-   $$\pi^*(S_t) = \arg\min_{\pi \in \Pi} C(\pi) \quad \text{subject to } \text{Evidence}(\pi, S_t) \ge E_{\min}$$
+   $$\pi^*(S_t) = \arg\min_{\pi \in \Pi} C(\pi) \quad \text{subject to } E(\pi, S_t) \ge E_{\min}, \ T(\pi) \le T_{\max}, \ K(\pi) \le K_{\max}$$
 2. An **immutable deterministic authority space** that evaluates all candidate proposals through bitmask reduction:
-   $$A_{\text{commit}} = A_{\text{req}} \cap A_{\text{safe}} \cap A_{\text{cap}} \cap A_{\text{evid}} \cap A_{\text{policy}}$$
+   $$A_{\text{commit}} = \left( A_{\text{req}} \cap A_{\text{safe}} \cap A_{\text{cap}} \cap A_{\text{evid}} \cap A_{\text{policy}} \right) \cap A_{\text{domain}}$$
+3. An **attested learning space** strictly conditioned on a cryptographic validity predicate:
+   $$\mathbf{e}_t = \mathbf{y}_{\text{real}} - \hat{\mathbf{y}}_{\text{pred}}, \quad \text{Valid}(R_t) = 1 \implies \theta_{t+1} = \theta_t - \eta \nabla_{\theta} \mathcal{L}(\mathbf{e}_t)$$
 
-When $A_{\text{commit}} = 0$, the system strictly executes an emergency failsafe transition ($\texttt{FAILSAFE\_AUTHORITY\_TRANSITION} \to \texttt{ultra\_saver}$), prohibiting any normal commit status. We prove that this separation decouples the ingest sampling rate (8 kHz, 125 µs tick quantum) from the analytical planning horizon while guaranteeing that downstream learning operates exclusively over empirical prediction residuals ($\mathbf{e}_t = \mathbf{y}_{\text{real}} - \hat{\mathbf{y}}_{\text{pred}}$) attested by cryptographic actuation receipts. Empirical validation on x86-64/Iris Xe baremetal validates sub-500 µs p99 end-to-end control loops, zero frame drops under bounded queues, and zero authority bypasses under adversarial injection.
+When $A_{\text{commit}} = 0$, the system strictly executes an emergency failsafe transition ($\texttt{FAILSAFE\_AUTHORITY\_TRANSITION} \to \texttt{ultra\_saver}$), prohibiting any normal commit status. We prove that this separation decouples the ingest sampling rate (8 kHz, 125 µs tick quantum) from the analytical planning horizon while guaranteeing that downstream learning operates exclusively over empirical prediction residuals attested by cryptographic actuation receipts. Empirical validation on x86-64/Iris Xe baremetal validates sub-500 µs p99 end-to-end control loops, zero frame drops under bounded queues, and zero authority bypasses under adversarial injection.
 
 ---
 
@@ -46,7 +48,7 @@ The fundamental research question is: **How can a system leverage heterogeneous,
 We formulate the core hypothesis as three interrelated propositions:
 
 - **$H_1$ (Decoupled Admissibility):** By restricting reasoning nodes to proposing immutable hypothesis envelopes ($H_i$) and enforcing that all state mutations flow through a bitmask authority reducer ($A_{\text{commit}}$), safety violations can be reduced to zero, regardless of the stochastic error rate of the reasoning nodes.
-- **$H_2$ (Reasoning Budget Optimization):** Framing reasoning node invocation as an evidence-constrained optimization problem enables the platform to resolve $>85\%$ of hardware contention events in the microsecond domain using low-cost deterministic reducers, invoking expensive deep epistemic nodes (LLMs) only when state entropy exceeds empirical bounds ($H > H_{\text{threshold}}$).
+- **$H_2$ (Reasoning Budget Optimization):** Framing reasoning node invocation as an evidence-constrained optimization problem enables the platform to resolve $>85\%$ of hardware contention events in the microsecond domain using low-cost deterministic reducers, invoking expensive deep epistemic nodes (LLMs) only when state entropy or disagreement exceeds empirical bounds ($(\Xi \ge \Xi_{\min}) \lor (H_{\text{hyp}} \ge H_{\min})$).
 - **$H_3$ (Attested Calibration):** Restricting weight calibration to attested empirical residuals ($\mathbf{e}_t$) bound to signed actuation receipts eliminates hallucination feedback loops, allowing continuous offline calibration without risk of runtime model drift.
 
 ---
@@ -101,7 +103,7 @@ The platform architecture establishes an impermeable operational air-gap between
         │
         ▼
    Authority Bitmask Reducer:
-   A_commit = A_req & A_safe & A_cap & A_evid & A_pol
+   A_commit = (A_req & A_safe & A_cap & A_evid & A_pol) & A_domain
         │
         ├── If A_commit != 0: AUTH_COMMIT_APPROVED -> ExecutionEnvelope (Et)
         └── If A_commit == 0: AUTH_DEGRADED_SAFE_FALLBACK -> ultra_saver
@@ -138,11 +140,18 @@ Presentation and UI generation are completely decoupled into the optional `IWork
 
 Rather than merely mapping static tasks to execution units, the **ReasoningMetaScheduler** schedules the *mode and depth of computational reasoning*.
 
-### 6.1 The Reasoning Optimization Formulation
-Given state $S_t$ and query context $\mathcal{Q}$, the metascheduler constructs an immutable `ReasoningPlan` $\pi^*$ solving:
+### 6.1 Dimensionless Cost Function and Aggregated Evidence
+The cost of an epistemic node $n_i$ is normalized against reference baselines to ensure unitless dimensional consistency:
+$$C(n_i) = \alpha \frac{\tau(n_i)}{\tau_{\text{ref}}} + \beta \frac{\kappa(n_i)}{\kappa_{\text{ref}}} + \gamma \frac{\psi(n_i)}{\psi_{\text{ref}}} + \delta R(n_i), \quad C(n_i) \in \mathbb{R}_{\ge 0}$$
 
-$$\pi^*(S_t) = \arg\min_{\pi \in \Pi} \left[ C_{\text{time}}(\pi) + C_{\text{tokens}}(\pi) + C_{\text{energy}}(\pi) + C_{\text{risk}}(\pi) \right]$$
-$$\text{subject to } \quad \text{Confidence}(\pi, S_t) \ge E_{\min}$$
+The aggregated evidence functional $E(\pi, S_t)$ penalizes pairwise disagreement among nodes:
+$$E(\pi, S_t) = \Phi\left( E_{n_1}, \dots, E_{n_k}, C_{\text{agreement}}, C_{\text{provenance}} \right)$$
+
+If two high-confidence nodes contradict each other, $C_{\text{agreement}} \to 0$, forcing $E(\pi, S_t) < E_{\min}$, thereby preventing false consensus.
+
+Given state $S_t$ and query context $\mathcal{Q}$, the metascheduler constructs an immutable `ReasoningPlan` $\pi^*$ solving:
+$$\pi^*(S_t) = \arg\min_{\pi \subseteq \mathcal{N}} \sum_{n_i \in \pi} C(n_i)$$
+$$\text{subject to } \quad E(\pi, S_t) \ge E_{\min}, \quad \sum_{n_i \in \pi} \tau(n_i) \le T_{\max}, \quad \sum_{n_i \in \pi} \kappa(n_i) \le K_{\max}$$
 
 ### 6.2 Multi-Tier Scheduling Architecture
 
@@ -150,10 +159,10 @@ $$\text{subject to } \quad \text{Confidence}(\pi, S_t) \ge E_{\min}$$
 |---|---|---|---|---|
 | **Tier 1: SHALLOW** | `DETERMINISTIC_BITMASK`, `PARETO_HEURISTIC_SOLVER` | $< 50\,\mu\text{s}$ | 0 | Default for all cycles |
 | **Tier 2: BALANCED** | `CUSTOM_NN_PREDICTOR`, Specialized Solvers | $100\,\mu\text{s} - 2\,\text{ms}$ | 0 | Moderate contention, budget $\ge 1\,\text{ms}$ |
-| **Tier 3: DEEP_EPISTEMIC** | `LLM_CAUSAL_NODE`, `SHADOW_EXPLORER` | $10\,\text{ms} - 50\,\text{ms}$ | $128 - 1024$ | Entropy $H \ge 0.50$, token budget $\ge 256$ |
+| **Tier 3: DEEP_EPISTEMIC** | `LLM_CAUSAL_NODE`, `SHADOW_EXPLORER` | $10\,\text{ms} - 50\,\text{ms}$ | $128 - 1024$ | $(\Xi(S_t) \ge \Xi_{\min}) \lor (H_{\text{hyp}} \ge H_{\min})$ |
 
-### 6.3 Evidence Convergence & Early Stopping
-If Tier 1 or Tier 2 nodes generate a hypothesis with confidence exceeding the required evidence threshold ($c_i \ge E_{\min}$, default $0.90$), the metascheduler halts further execution. Downstream Tier 3 (LLM) nodes are marked as `skipped_nodes` in the resulting `ReasoningReceipt`, preserving $100\%$ of token expenditure and avoiding millisecond-range latency penalties.
+### 6.3 Dual-Trigger Escalation & Early Stopping
+We decouple the physical anomaly score $\Xi(S_t)$ from hypothesis Shannon entropy $H_{\text{hyp}} = -\sum p_j \log_2 p_j$. If Tier 1 or Tier 2 nodes generate consensus exceeding evidence threshold $E_{\min}$ under low entropy, the metascheduler halts further execution. Downstream Tier 3 (LLM) nodes are marked as `skipped_nodes` in the resulting `ReasoningReceipt`, preserving $100\%$ of token expenditure.
 
 ---
 
@@ -171,20 +180,23 @@ Authority is represented as a 64-bit unsigned bitmask where individual bits corr
 | `Bit 5` (`0x20`) | `max_burst` | Maximum Clocks | All Backends | Short-term Thermal Headroom |
 
 ### 7.1 Authority Reduction Algebra
-The authorized execution mask $A_{\text{commit}}$ is computed via formal bitwise intersection:
+The authorized execution mask $A_{\text{commit}}$ is computed via formal bitwise intersection, bounded by the active domain mask $A_{\text{domain}} = \mathbf{0x3F}$ (bits 0..5 registered):
 
-$$A_{\text{commit}} = A_{\text{requested}} \ \& \ A_{\text{safety}} \ \& \ A_{\text{capability}} \ \& \ A_{\text{evidence}} \ \& \ A_{\text{policy}}$$
+$$A_{\text{commit}} = \left( A_{\text{requested}} \ \& \ A_{\text{safety}} \ \& \ A_{\text{capability}} \ \& \ A_{\text{evidence}} \ \& \ A_{\text{policy}} \right) \ \& \ A_{\text{domain}}$$
 
 Where:
-- $A_{\text{capability}}$ is cached with a generation counter $g_{\text{caps}}$ to prevent Time-of-Check to Time-of-Use (TOCTOU) desynchronization.
+- **Capability Generation Invariant (Anti-TOCTOU):** Let $g_H$ be the generation counter when hypothesis $H$ was formulated and $g_C$ be active capability generation at the commit boundary. If $g_H \neq g_C$, then $\text{Admissible}(H) \leftarrow \text{False}$ and $A_{\text{commit}} \leftarrow 0$.
 - $A_{\text{safety}}$ zeroes out burst profiles when $T_{\text{die}} \ge 85^\circ\text{C}$ or $\rho_{\text{uma}} \ge 0.85$.
 - $A_{\text{evidence}}$ requires minimum empirical proof scores before allowing high-power profiles.
 
 ### 7.2 Strict Degraded Fallback Semantics
-A zero-intersection veto ($A_{\text{commit}} == 0$) represents an absolute safety veto. In this state:
-$$A_{\text{commit}} = 0 \implies \neg \texttt{COMMIT\_APPROVED}$$
-The system executes a designated state transition:
-$$\text{VETO} \longrightarrow \texttt{FAILSAFE\_AUTHORITY\_TRANSITION} \longrightarrow \texttt{ultra\_saver}$$
+We formally decouple the selection algebra from emergency failsafe transition semantics:
+
+$$\textbf{Theorem (Veto Soundness):}$$
+$$A_{\text{commit}} = 0 \implies \neg \texttt{NORMAL\_SELECTION}$$
+$$A_{\text{commit}} = 0 \implies \text{transition} \equiv \texttt{FAILSAFE\_AUTHORITY\_TRANSITION}$$
+$$\texttt{FAILSAFE\_AUTHORITY\_TRANSITION} \implies \text{profile} \equiv \texttt{ultra\_saver}$$
+
 The resulting `ActuationReceipt` is explicitly tagged with `transition_type="FAILSAFE_AUTHORITY_TRANSITION"`. Under no circumstances can a zero-authority fallback be masked as a normal approval.
 
 ---
@@ -203,12 +215,17 @@ The feedback loop in Krystal Stack strictly prohibits learning from self-generat
   4. Subsequent State:     Observe S_{t+1} (empirical physical ground truth)
   5. Attested Residual:    e_t = y_real(S_{t+1}) - y_hat(Hi)
   6. Cryptographic Proof:  proof_hash = SHA256(Rt.receipt_id || e_t || seq)
-  7. Targeted Feedback:    originating_node.feedback(ObservationResidual(e_t))
+  7. Validity Check:       Valid(Rt) = SignatureOK ∧ GenerationMatch ∧ Confirmed
+  8. Targeted Feedback:    Valid(Rt) == 1 => θ_{t+1} = θ_t - η ∇ L(e_t)
 +-------------------------------------------------------------------------------+
 ```
 
-Observation residuals are dispatched exclusively to the node that emitted the chosen hypothesis. If a node consistently overestimates throughput or underestimates memory contention, its internal weight calibration parameter decays:
-$$w_{k+1} = w_k - \eta \cdot \nabla_{\theta} \mathcal{L}(\mathbf{e}_t)$$
+Observation residuals are dispatched exclusively to the node that emitted the chosen hypothesis. Model calibration is strictly piecewise:
+$$\theta_{t+1} = \begin{cases}
+\theta_t - \eta \cdot \nabla_{\theta} \mathcal{L}(\mathbf{e}_t), & \text{if } \text{Valid}(R_t) = 1 \\
+\theta_t, & \text{if } \text{Valid}(R_t) = 0
+\end{cases}$$
+If an actuation receipt is unverified or generated during an emergency failsafe veto, the gradient step is suppressed.
 
 ---
 
@@ -219,7 +236,7 @@ The architecture enforces seven constitutional invariants verified at runtime an
 1. **$I_1$ (Constitutional Vitality):** $\forall x \in \text{CoreTypes}, \ x.\text{vital\_max\_hp} \equiv 6$. Any instantiation with $V_{\text{max}} \neq 6$ raises an immediate assertion error.
 2. **$I_2$ (Immutable Envelopes):** All 7 primary data types (`WorldStateVector`, `HypothesisEnvelope`, `AdmissibilityVerdict`, `ExecutionEnvelope`, `ActuationReceipt`, `ObservationResidual`, `OrchestrationCycleResult`) are frozen dataclasses. Field mutation raises `dataclasses.FrozenInstanceError`.
 3. **$I_3$ (Zero Authority Veto):** $(A_{\text{commit}} = 0) \iff (\text{Verdict} = \texttt{AUTH\_DEGRADED\_SAFE\_FALLBACK}) \land (\text{Profile} = \texttt{ultra\_saver})$.
-4. **$I_4$ (Capability Generation Monotonicity):** If $g_{\text{snapshot}} \neq g_{\text{active}}$, any transition based on the stale snapshot is invalidated ($A_{\text{commit}} \leftarrow 0$).
+4. **$I_4$ (Capability Generation Monotonicity):** If $g_H \neq g_C$, any transition based on the stale snapshot is invalidated ($A_{\text{commit}} \leftarrow 0$).
 5. **$I_5$ (Anti-Flapping Dwell):** A profile transition $P_a \to P_b$ is admissible only if $\Delta t_{\text{commit}} \ge t_{\text{dwell}}$ (100 ms) or if $P_b \equiv \texttt{ultra\_saver}$ (emergency preemption).
 6. **$I_6$ (Budget Exhaustion Invariance):** If $t_{\text{elapsed}} \ge \text{plan.max\_time\_us}$, the metascheduler halts node evaluation immediately; unexecuted nodes are marked `skipped_nodes`.
 7. **$I_7$ (Reasoning/Actuation Decoupling):** A `ReasoningPlan` cannot modify hardware; an `ExecutionEnvelope` cannot modify reasoning algorithms.
@@ -248,10 +265,18 @@ The platform was subjected to sustained validation on baremetal hardware:
 
 **Key Result:** The entire control path (Ring Ingest $\to$ Evidence Extraction $\to$ Governor $\to$ Planner) operates at **$317.4\,\mu\text{s}$ p99**, satisfying the hard requirement of $< 500\,\mu\text{s}$ p99.
 
-### 11.2 Queue Stability Contract (KHI-E2E-003)
-Under the theoretical stability boundary $K > 1.36$ ($f_{\text{control}} < 5882\text{ Hz}$):
+### 11.2 Queue Stability and Tail Scheduling Bounds (KHI-E2E-003)
+We formally distinguish two operational regimes:
+1. **Mean-Service Queue Stability (M/G/1):**
+   $$\rho(K) = \lambda \cdot \left( t_{\text{ingest}} + \frac{\mathbb{E}[t_{\text{control}}]}{K} \right) < 1$$
+   With $t_{\text{ingest}} \approx 8.5\,\mu\text{s}$ and $\mathbb{E}[t_{\text{control}}] \approx 108.8\,\mu\text{s}$, this condition is satisfied for any $K \ge 1$ (at $K = 2$, $\rho \approx 0.503$), proving why empirical queue stability is sustained at $K \ge 2$.
+2. **Conservative Tail Scheduling Bound (p99 Control-Window Isolation):**
+   $$\frac{K}{f_{\text{ingest}}} > p99(t_{\text{control}}) \implies \frac{K}{8000} > 0.0003174\,\text{s} \implies K \ge 3$$
+   Guarantees that individual 99th-percentile control cycles never exceed their scheduling slot.
+
+Under sustained operation:
 - **Clock-Driven 8 kHz Ingest:** Handled without event loss through ring-buffer batching.
-- **Backlog Slope:** Maintained at $\le 0.0$ under steady-state conditions.
+- **Backlog Slope:** Maintained at $\le 0.0$ under steady-state conditions for $K \ge 2$.
 - **Finite-Capacity Drop Behavior:** Strict tail-drop with verifiable backpressure signals rather than unbounded heap allocation.
 
 ### 11.3 Evidence-Efficient MetaScheduling (V-PLAN-03)

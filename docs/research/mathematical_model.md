@@ -1,135 +1,171 @@
 # Mathematical Model of Governed Epistemic Computing
-## Formal Derivations, Bitmask Algebra, and Stability Bounds
+## Formal Derivations, Bitmask Algebra, Queue Stability, and Multi-Space Separation
 
 **Module:** `docs/research/mathematical_model.md`<br>
 **Part of:** Krystal Stack Epistemic Computing Research Suite<br>
+**Classification:** Canonical Formal Specification (2026)<br>
 **Invariant:** `assert VITAL_MAX_HP == 6`
 
 ---
 
-## 1. Dual-Space State Machine Formulation
+## 1. The Tripartite Space Architecture
 
-The operational space of Krystal Stack is defined as a tuple:
-$$\mathcal{M} = \langle \mathcal{S}, \mathcal{H}, \mathcal{A}, \mathcal{R}, \mathcal{E}, \delta, \lambda \rangle$$
+Krystal Stack decomposes autonomous system governance into three formally decoupled spaces operating under distinct authorization bounds:
+
+```text
+===================================================================================
+1. EPISTEMIC SPACE (Hypothesis Generation & Planning)
+   π* = argmin C(π)  subject to  E(π, St) >= E_min, T(π) <= T_max, K(π) <= K_max
+   Decides: "HOW TO THINK" (Node composition, reasoning tier, and compute budget)
+===================================================================================
+                                      │
+                                      ▼
+===================================================================================
+2. DETERMINISTIC AUTHORITY SPACE (Bitmask Reduction & Safety Invariants)
+   A_commit = (A_req ∧ A_safe ∧ A_cap ∧ A_evid ∧ A_policy) ∧ A_domain
+   Decides: "WHAT IS PERMITTED" (Exclusive sovereign right to enact state change)
+===================================================================================
+                                      │
+                                      ▼
+===================================================================================
+3. ATTESTED LEARNING SPACE (Residual Quantification & Falsification)
+   e_t = y_t - y_hat_t ;  Valid(Rt) = 1 => θ_{t+1} = θ_t - η ∇_θ L(e_t)
+   Decides: "WHAT MAY BE LEARNED" (Model calibration strictly from attested ground truth)
+===================================================================================
+```
+
+---
+
+## 2. Epistemic Space: Meta-Scheduling and Evidence Functionals
+
+Let $\mathcal{N} = \{n_1, n_2, \dots, n_k\}$ be the set of registered epistemic nodes adhering to the `IEpistemicNode` protocol.
+
+### 2.1 Dimensionless Normalized Cost Function
+To prevent dimensional inconsistency across heterogeneous resource metrics (microseconds, token counts, microjoules, epistemic risks), the cost of an epistemic node $n_i$ is normalized against reference baselines:
+
+$$C(n_i) = \alpha \frac{\tau(n_i)}{\tau_{\text{ref}}} + \beta \frac{\kappa(n_i)}{\kappa_{\text{ref}}} + \gamma \frac{\psi(n_i)}{\psi_{\text{ref}}} + \delta R(n_i), \quad C(n_i) \in \mathbb{R}_{\ge 0}$$
 
 where:
-- $\mathcal{S}$ is the set of immutable physical state vectors $S_t \in \mathbb{R}^{d_s}$.
-- $\mathcal{H}$ is the non-deterministic hypothesis space emitted by reasoning nodes.
-- $\mathcal{A} \subset \{0, 1\}^{64}$ is the lattice of 64-bit authority bitmasks.
-- $\mathcal{R}$ is the set of cryptographically signed actuation receipts.
-- $\mathcal{E}$ is the space of execution envelopes.
-- $\delta: \mathcal{S} \times \mathcal{E} \to \mathcal{S}$ is the physical hardware state transition function.
-- $\lambda: \mathcal{S} \times \mathcal{H} \times \mathcal{A} \to \mathcal{E}$ is the deterministic authority reduction operator.
+- $\tau(n_i)$ is evaluation latency (reference $\tau_{\text{ref}} = 1000.0\,\mu\text{s}$).
+- $\kappa(n_i)$ is token consumption (reference $\kappa_{\text{ref}} = 256$ tokens; $\kappa \equiv 0$ for deterministic/NN nodes).
+- $\psi(n_i)$ is energy expenditure (reference $\psi_{\text{ref}} = 10,000\,\mu\text{J}$).
+- $R(n_i) \in [0.0, 1.0]$ represents intrinsic epistemic risk or qualitative assumption debt.
+- $\alpha, \beta, \gamma, \delta \in \mathbb{R}^+$ are dimensionless weighting multipliers with $\alpha + \beta + \gamma + \delta = 1$.
+
+### 2.2 Aggregated Evidence Functional
+A single high-confidence node must not unilaterally legitimize an entire plan if other nodes contradict it. We define the aggregated evidence functional $E(\pi, S_t)$:
+
+$$E(\pi, S_t) = \Phi\left( E_{n_1}, E_{n_2}, \dots, E_{n_k}, C_{\text{agreement}}, C_{\text{provenance}} \right)$$
+
+Specifically, let $\hat{y}_i$ denote the profile prediction of node $n_i$ with individual confidence $E_{n_i} \in [0.0, 1.0]$. The pairwise consensus agreement factor $C_{\text{agreement}}$ is given by:
+
+$$C_{\text{agreement}} = \frac{1}{\binom{|\pi|}{2}} \sum_{i < j} \mathbf{1}_{\{\hat{y}_i = \hat{y}_j\}} \cdot \left(1 - |E_{n_i} - E_{n_j}|\right)$$
+
+If Node A predicts profile $P_1$ with confidence $0.94$ and Node B predicts profile $P_2 \neq P_1$ with confidence $0.91$, the disagreement penalty collapses $C_{\text{agreement}} \to 0$, forcing $E(\pi, S_t) < E_{\min}$, thereby preventing false consensus and triggering deeper causal escalation.
+
+### 2.3 The Optimal Reasoning Plan Problem
+$$\pi^*(S_t) = \arg\min_{\pi \subseteq \mathcal{N}} \sum_{n_i \in \pi} C(n_i)$$
+$$\text{subject to } \quad E(\pi, S_t) \ge E_{\min}, \quad \sum_{n_i \in \pi} \tau(n_i) \le T_{\max}, \quad \sum_{n_i \in \pi} \kappa(n_i) \le K_{\max}$$
+
+### 2.4 Anomaly Escalation Score vs. Hypothesis Shannon Entropy
+We decouple the physical anomaly of the system from the semantic uncertainty of the hypotheses:
+
+1. **Epistemic Escalation Score $\Xi(S_t)$ (Physical Contention Severity):**
+   $$\Xi(S_t) = w_u \cdot \sigma(\rho_{\text{uma}} - 0.80) + w_t \cdot \sigma\left(\frac{T_{\text{die}} - 80.0}{15.0}\right) + w_q \cdot \sigma\left(\frac{Q_{\text{depth}} - 20}{10}\right)$$
+   where $\sigma(z) = \frac{1}{1 + e^{-z}}$.
+2. **Hypothesis Shannon Entropy $H_{\text{hyp}}$ (Diagnostic Ambiguity):**
+   Let $p_j$ be the softmax probability distribution over target profiles proposed across all harvested hypotheses:
+   $$H_{\text{hyp}} = - \sum_{j=1}^{|P|} p_j \log_2 p_j$$
+
+**Tier 3 (LLM) Escalation Criterion:**
+$$\text{Dispatch Tier 3 (DEEP\_EPISTEMIC)} \iff (\Xi(S_t) \ge \Xi_{\min}) \lor (H_{\text{hyp}} \ge H_{\min})$$
+
+When physical anomaly is low ($\Xi < \Xi_{\min}$) and explanatory consensus is high ($H_{\text{hyp}} < H_{\min}$), Tier 3 is omitted, preserving $100\%$ of token expenditure.
 
 ---
 
-## 2. Epistemic Meta-Scheduling Optimization
+## 3. Authority Space: Bitmask Lattice and TOCTOU Invariant
 
-Let $\mathcal{N} = \{n_1, n_2, \dots, n_k\}$ be the set of registered reasoning nodes implementing `IEpistemicNode`. Each node $n_i$ is characterized by a cost function:
-$$C(n_i) = \alpha \cdot \tau(n_i) + \beta \cdot \kappa(n_i) + \gamma \cdot \psi(n_i)$$
+Authority profiles form a finite Boolean lattice $\langle \mathcal{L}_{64}, \land, \lor, \neg, \mathbf{0}, \mathbf{1} \rangle$.
+
+### 3.1 Domain Mask and Canonical Truncation
+Because Krystal Stack currently registers six operational profiles, the active authority domain mask $A_{\text{domain}}$ is explicitly defined:
+$$A_{\text{domain}} = \bigvee_{p \in P_{\text{registered}}} 2^{b(p)} = \mathbf{0x3F} \quad (\text{Bits 0..5})$$
+
+To guarantee that reserved bits 6–63 can never influence decisions, every intermediate authority mask $A_i$ is canonically truncated:
+$$A_i' = A_i \land A_{\text{domain}}$$
+
+### 3.2 Five-Fold Authority Reduction
+$$A_{\text{commit}} = \left( A_{\text{requested}} \land A_{\text{safety}} \land A_{\text{capability}} \land A_{\text{evidence}} \land A_{\text{policy}} \right) \land A_{\text{domain}}$$
+
+### 3.3 TOCTOU Generation Invariant
+Let $g_H \in \mathbb{N}$ denote the capability snapshot generation counter at the epoch when hypothesis $H$ was formulated by an epistemic node. Let $g_C \in \mathbb{N}$ denote the active capability generation counter at the commit boundary:
+
+$$g_H \neq g_C \implies \text{Admissible}(H) \equiv \text{False} \implies A_{\text{commit}} \leftarrow 0$$
+
+This eliminates Time-of-Check to Time-of-Use desynchronization when hardware states (e.g., driver disconnect, thermal throttling state change) shift during asynchronous evaluation.
+
+### 3.4 Separation of Selection Algebra from Emergency Transition Semantics
+We establish the formal separation between the selection algebra and the failsafe state machine:
+
+$$\textbf{Theorem (Veto Soundness):}$$
+$$A_{\text{commit}} = 0 \implies \neg \texttt{NORMAL\_SELECTION}$$
+$$A_{\text{commit}} = 0 \implies \text{transition} \equiv \texttt{FAILSAFE\_AUTHORITY\_TRANSITION}$$
+$$\texttt{FAILSAFE\_AUTHORITY\_TRANSITION} \implies \text{profile} \equiv \texttt{ultra\_saver}$$
+
+*Proof:* By construction of the reduction pipeline, when $A_{\text{commit}} = 0$, the funnel emits `verdict_code="AUTH_DEGRADED_SAFE_FALLBACK"`. The kernel's actuation dispatcher binds this to `transition_type="FAILSAFE_AUTHORITY_TRANSITION"` and assigns `governor_mode="EMERGENCY_COOL"`. No profile bit in $A_{\text{commit}}$ is acknowledged as approved. Thus, an emergency fallback cannot be masked as a normal selection. $\blacksquare$
+
+---
+
+## 4. Queue Stability and Tail Scheduling Bounds
+
+We resolve the relationship between ingress sampling rates, average service times, and tail percentile deadlines by establishing two distinct mathematical bounds:
+
+### 4.1 Mean-Service Queue Stability (M/G/1 Stability)
+Let $\lambda = 8000\,\text{events/s}$ be the arrival rate ($T_{\text{tick}} = 125\,\mu\text{s}$). Let $t_{\text{ingest}}$ be the raw telemetry ring-buffer ingest time ($t_{\text{ingest}} \approx 8.5\,\mu\text{s}$). Let $\mathbb{E}[t_{\text{control}}]$ be the expected execution time of the control path across normal cycles ($\mathbb{E}[t_{\text{control}}] \approx 108.8\,\mu\text{s}$).
+
+With batching decoupling factor $K$ (one control step per $K$ ingress ticks), the mean service time per event is:
+$$\mathbb{E}[S(K)] = t_{\text{ingest}} + \frac{\mathbb{E}[t_{\text{control}}]}{K}$$
+
+From M/G/1 queueing theory, the queue is strictly stable if and only if utilization $\rho(K) < 1$:
+$$\rho(K) = \lambda \cdot \mathbb{E}[S(K)] = 8000 \cdot \left( 0.0000085 + \frac{0.0001088}{K} \right) < 1$$
+$$0.068 + \frac{0.8704}{K} < 1 \implies \frac{0.8704}{K} < 0.932 \implies K > 0.934$$
+
+**Result:** In the mean-service sense, any integer $K \ge 1$ satisfies $\rho < 1$, and $K \ge 2$ provides comfortable steady-state margin ($\rho(2) \approx 0.503$). This formally proves why empirical stability is observed at $K = 2$ under nominal conditions.
+
+### 4.2 Conservative Tail Scheduling Bound (p99 Control-Window Isolation)
+Queue stability guarantees bounded queues in expectation, but does not guarantee that individual tail events ($p99$) will complete within a single control window. To guarantee that a $p99$ control cycle never overlaps or starves subsequent control epochs:
+
+$$\frac{K}{f_{\text{ingest}}} > p99(t_{\text{control}})$$
+$$\frac{K}{8000} > 0.0003174\,\text{s} \implies K > 2.539 \implies K \ge 3$$
+
+**Synthesis:**
+- **$K \ge 2$:** Guarantees mean-service queue stability ($\rho < 1$, no unbounded memory growth).
+- **$K \ge 3$:** Guarantees deterministic tail scheduling isolation ($p99$ control latency strictly fits within the control window).
+
+---
+
+## 5. Attested Learning Space and Validity Predicates
+
+To eliminate hallucination loops in self-calibrating nodes, model parameters $\theta$ are updated if and only if the actuation receipt satisfies the strict validity predicate $\text{Valid}(R_t)$.
+
+### 5.1 The Validity Predicate
+$$\text{Valid}(R_t) \equiv \text{SignatureOK}(R_t) \land (g_{R_t} = g_{\text{active}}) \land \text{FreshEvidence}(R_t) \land \text{ActuationConfirmed}(R_t)$$
+
 where:
-- $\tau(n_i) \in \mathbb{R}^+$ is the estimated execution latency in microseconds.
-- $\kappa(n_i) \in \mathbb{N}$ is the token consumption cost ($0$ for deterministic/heuristic/NN nodes; $>0$ for LLM causal nodes).
-- $\psi(n_i) \in \mathbb{R}^+$ is the computational energy expenditure in microjoules.
-- $\alpha, \beta, \gamma \in \mathbb{R}^+$ are trade-off weighting multipliers.
+- $\text{SignatureOK}(R_t) \equiv \mathcal{V}_{K_{\text{kernel}}}(\text{receipt\_id}, \text{proof\_hash}) == \text{True}$.
+- $g_{R_t} = g_{\text{active}}$ verifies capability generation consistency.
+- $\text{FreshEvidence}(R_t) \equiv t_{\text{actuation}} + \Delta t_{\text{max}} > t_{\text{eval}}$.
+- $\text{ActuationConfirmed}(R_t) \equiv R_t.\text{was\_degraded\_fallback} == \text{False}$ (prohibiting learning from unapproved fallback baselines).
 
-### 2.1 The Optimal Reasoning Plan Problem
-Given an incoming query $\mathcal{Q}$ and telemetry $S_t$, the meta-scheduler solves:
-$$\pi^* = \arg\min_{\pi \subseteq \mathcal{N}} \sum_{n_i \in \pi} C(n_i)$$
-$$\text{subject to} \quad \max_{n_i \in \pi} \text{Confidence}(n_i, S_t) \ge E_{\min}$$
-$$\text{and} \quad \sum_{n_i \in \pi} \tau(n_i) \le \tau_{\max}, \quad \sum_{n_i \in \pi} \kappa(n_i) \le \kappa_{\max}$$
+### 5.2 Conditional Parameter Update Rule
+The empirical observation residual is:
+$$\mathbf{e}_t = \mathbf{y}_{\text{real}}(S_{t+1}) - \hat{\mathbf{y}}_{\text{pred}}(H^*)$$
 
-### 2.2 Telemetry Entropy Gate
-Let $H(S_t)$ denote the anomaly entropy score:
-$$H(S_t) = w_u \cdot \sigma(\rho_{\text{uma}} - 0.80) + w_t \cdot \sigma\left(\frac{T_{\text{die}} - 80.0}{15.0}\right) + w_q \cdot \sigma\left(\frac{Q_{\text{depth}} - 20}{10}\right)$$
-where $\sigma(z) = \frac{1}{1 + e^{-z}}$.
+The parameter update rule is strictly piecewise:
+$$\theta_{t+1} = \begin{cases}
+\theta_t - \eta \cdot \nabla_{\theta} \mathcal{L}(\mathbf{e}_t), & \text{if } \text{Valid}(R_t) = 1 \\
+\theta_t, & \text{if } \text{Valid}(R_t) = 0
+\end{cases}$$
 
-- If $H(S_t) < 0.50$, the state is **Nominal**: Tier 3 (LLM) is strictly excluded from $\pi^*$.
-- If $H(S_t) \ge 0.50$, the state is **Anomalous**: Tier 3 is permitted within remaining token budget $\kappa_{\max}$.
-
----
-
-## 3. Authority Bitmask Lattice Algebra
-
-Authority profiles form a finite Boolean lattice $\langle \mathcal{L}_{64}, \land, \lor, \neg, \mathbf{0}, \mathbf{1} \rangle$, isomorphic to the powerset of 64 profile bits $\mathcal{P}(\{0, \dots, 63\})$.
-
-### 3.1 Five-Fold Mask Intersection
-For any candidate hypothesis $H$, the commit bitmask $A_{\text{commit}}$ is defined by:
-$$A_{\text{commit}} = A_{\text{requested}} \land A_{\text{safety}} \land A_{\text{capability}} \land A_{\text{evidence}} \land A_{\text{policy}}$$
-
-### 3.2 Mask Definitions
-1. **$A_{\text{requested}} \in \mathcal{L}_{64}$:**
-   The one-hot bit corresponding to the target profile:
-   $$A_{\text{requested}} = 1 \ll \text{BitIndex}(\text{target\_profile})$$
-2. **$A_{\text{capability}} \in \mathcal{L}_{64}$:**
-   Hardware-verified backends present on host:
-   $$A_{\text{capability}} = \bigvee_{b \in \mathcal{B}_{\text{verified}}} \text{AllowedMask}(b)$$
-3. **$A_{\text{safety}} \in \mathcal{L}_{64}$:**
-   Environmental safety envelope:
-   $$A_{\text{safety}} = \begin{cases}
-   \mathbf{0x07} \ (\text{Profiles } 0..2 \text{ only}), & \text{if } T_{\text{die}} \ge 85^\circ\text{C} \lor \rho_{\text{uma}} \ge 0.85 \\
-   \mathbf{0x3F} \ (\text{All nominal profiles}), & \text{otherwise}
-   \end{cases}$$
-4. **$A_{\text{evidence}} \in \mathcal{L}_{64}$:**
-   Empirical proof threshold:
-   $$A_{\text{evidence}} = \begin{cases}
-   \mathbf{0x3F}, & \text{if } \text{confidence}(H) \ge 0.70 \\
-   \mathbf{0x0F}, & \text{if } 0.40 \le \text{confidence}(H) < 0.70 \\
-   \mathbf{0x03}, & \text{if } \text{confidence}(H) < 0.40
-   \end{cases}$$
-5. **$A_{\text{policy}} \in \mathcal{L}_{64}$:**
-   User and governor policy constraints (e.g., battery conservation constraints).
-
-### 3.3 Theorem: Veto Soundness
-$$\forall H \in \mathcal{H}, \quad (A_{\text{commit}}(H) = 0) \implies (\text{Normal Commit Forbidden})$$
-$$\text{Proof: By construction of } \texttt{reduce\_authority\_masks()}, \text{ if } A_{\text{commit}} = 0, \text{ the selector branch forces:}$$
-$$\text{verdict} \leftarrow \texttt{AUTH\_DEGRADED\_SAFE\_FALLBACK}, \quad \text{action} \leftarrow \texttt{ultra\_saver}.$$
-$$\text{No profile bit } b > 0 \text{ can be selected. Q.E.D.}$$
-
----
-
-## 4. Queue Stability and Control Rate Bounds
-
-Let $\lambda$ be the ingress rate of raw events (8 kHz = 8,000 events/s, tick duration $T_{\text{tick}} = 125\,\mu\text{s}$). Let $\mu$ be the service rate of the control path.
-
-From M/G/1 queueing theory, the queue is stable if and only if the utilization factor $\rho < 1$:
-$$\rho = \frac{\lambda}{\mu} < 1 \iff \mu > \lambda$$
-
-### 4.1 Invariant Batching and Decoupling Factor $K$
-Because full epistemic planning and LLM causal diagnosis take longer than $125\,\mu\text{s}$, the system decouples the **Ingest Plane** from the **Control Plane** via ring-buffer aggregation with decoupling factor $K$:
-$$f_{\text{control}} = \frac{f_{\text{ingest}}}{K} = \frac{8000}{K}$$
-
-From empirical Phase Q measurements:
-$$t_{\text{control}} = 317.4\,\mu\text{s (p99)}$$
-
-To guarantee $\rho < 1$ under sustained operation:
-$$\frac{1}{f_{\text{control}}} > t_{\text{control}} \implies \frac{K}{8000} > 0.0003174 \implies K > 2.539$$
-
-Rounding up to integer quanta:
-- At $K = 1$: System is overloaded if full control loop is executed per tick.
-- At $K \ge 3$: Control path is unconditionally stable ($f_{\text{control}} \le 2666\,\text{Hz}$, backlog slope $\le 0$).
-- At $K = 8$: Deep epistemic planning window allows up to $1.0\,\text{ms}$ service time with zero queue growth.
-
----
-
-## 5. Attested Falsification and Loss Function
-
-For a chosen profile $P$, the observation residual $\mathbf{e}_t$ is:
-$$\mathbf{e}_t = \begin{bmatrix}
-e_{\text{latency}} \\
-e_{\text{throughput}} \\
-e_{\text{power}} \\
-e_{\text{uma}}
-\end{bmatrix} = \begin{bmatrix}
-t_{\text{real}} - t_{\text{pred}} \\
-\text{fps}_{\text{real}} - \text{fps}_{\text{pred}} \\
-W_{\text{real}} - W_{\text{pred}} \\
-\rho_{\text{real}} - \rho_{\text{pred}}
-\end{bmatrix}$$
-
-The calibration loss function for node $\theta$ is:
-$$\mathcal{L}(\theta) = \frac{1}{2} \mathbf{e}_t^T \mathbf{W} \mathbf{e}_t + \lambda_{\text{reg}} \|\theta - \theta_0\|_2^2$$
-where $\mathbf{W} = \text{diag}(w_l, w_f, w_p, w_u)$ is the importance weight matrix.
-Parameter adjustment follows regularized gradient descent:
-$$\theta \leftarrow \theta - \eta \nabla_{\theta} \mathcal{L}(\theta)$$
-strictly conditioned on the existence of a valid, verifiable `ActuationReceipt` $R_t$.
+If an actuation receipt is unverified, expired, or generated during an emergency failsafe veto, the gradient step is strictly suppressed ($\theta_{t+1} \leftarrow \theta_t$). **Models cannot learn from unverified hypotheses or simulated hallucinations.**
