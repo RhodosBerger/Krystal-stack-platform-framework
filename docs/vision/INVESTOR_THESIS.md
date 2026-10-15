@@ -38,14 +38,14 @@ Every enterprise wants autonomous systems, but no enterprise can afford unconstr
 Krystal Stack introduces two proprietary architectural breakthroughs:
 
 ### Breakthrough 1: Epistemic / Deterministic Separation
-Models act strictly as **hypothesis generators**. They output structured proposals (`HypothesisEnvelope`) declaring expected latency, power, throughput, and confidence. An independent, 64-bit deterministic authority reducer evaluates these proposals against cached hardware capabilities and physical safety envelopes. If the intersection is zero ($A_{\text{commit}} = 0$), the kernel immediately executes a hard fail-safe transition. Safety violations are reduced to zero by construction.
+Models act strictly as **hypothesis generators**. They output structured proposals (`HypothesisEnvelope`) declaring expected latency, power, throughput, and confidence. An independent, 64-bit deterministic authority reducer evaluates these proposals against cached hardware capabilities and physical safety envelopes. If the intersection is zero ($A_{\text{commit}} = 0$), the kernel immediately executes a hard fail-safe transition. Stochastic reasoning errors cannot directly bypass the encoded deterministic authority invariants.
 
 ### Breakthrough 2: Evidence-Efficient Meta-Scheduling
 Intelligence is treated as a budgeted resource. Our proprietary **ReasoningMetaScheduler** solves:
 $$\min_{\pi} \text{Cost}(\pi) \quad \text{s.t.} \quad \text{Evidence}(\pi) \ge E_{\min}$$
 - **$90\%$ of events** are resolved in $< 50\,\mu\text{s}$ using zero-token deterministic bitmask reducers.
 - Expensive LLM causal synthesis is invoked **only** when state entropy exceeds verified thresholds.
-- Result: **$99.1\%$ reduction in token expenditure** with sub-500 µs p99 control latency.
+- Result: **$99.1\%$ reduction in token expenditure** with sub-500 µs p99 software control-path latency.
 
 ---
 

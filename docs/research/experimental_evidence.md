@@ -44,7 +44,7 @@ Full Ring->Plan Max            580.1 µs           492.0 µs          -15.2%
 ```
 
 ### Scientific Claim:
-Phase Q reduced the end-to-end Ring $\to$ Evidence $\to$ Governor $\to$ Plan latency by **$-30.5\,\mu\text{s}$ at p99**, firmly establishing operational margins well beneath the platform safety ceiling of $500.0\,\mu\text{s}$.
+Phase Q reduced the software Ring $\to$ Evidence $\to$ Governor $\to$ Plan latency by **$-30.5\,\mu\text{s}$ at p99** (reaching $317.4\,\mu\text{s}$ p99), firmly establishing operational margins well beneath the platform software control ceiling of $500.0\,\mu\text{s}$. (Note: This measures the software control orchestration path and does not include physical display or hardware actuator settling).
 
 ---
 
@@ -58,15 +58,32 @@ Ingress event generator operating at $8,000\,\text{Hz}$ ($125.0\,\mu\text{s}$ pe
 ===================================================================================
 Decoupling Factor (K)    Control Freq (fc)    Mean Queue Depth    Drops    Stability
 -----------------------------------------------------------------------------------
-K = 1                    8000 Hz              Overload (> 128)    YES      UNSTABLE
-K = 2                    4000 Hz              Fluctuating (12-28) NO       MARGINAL
-K = 3                    2666 Hz              Steady (2-5)        NO       STABLE
-K = 8                    1000 Hz              Bounded (0-2)       NO       ROBUST
+K = 1                    8000 Hz              Overload (> 128)    YES      UNSTABLE (ρ ≈ 1.422)
+K = 2                    4000 Hz              Fluctuating (12-28) NO       MEAN-STABLE (ρ ≈ 0.745)
+K = 3                    2666 Hz              Steady (2-5)        NO       TAIL-ISOLATED (ρ ≈ 0.519)
+K = 8                    1000 Hz              Bounded (0-2)       NO       ROBUST (ρ ≈ 0.237)
 ===================================================================================
 ```
 
-### Analytical Proof:
-For $K \ge 3$, service rate $\mu \approx 3150\,\text{Hz} > f_{\text{control}} = 2666\,\text{Hz}$, yielding steady-state queue depth $Q_t \le 4$, with zero dropped frames.
+### Explicit Model Calibration & D/G/1 Analysis:
+We strictly separate the latency profile from the queue service expectations:
+
+```text
+Phase-Q latency distribution:
+  p50(Ring→Plan) = 108.8 µs
+  p99(Ring→Plan) = 317.4 µs
+
+KHI-E2E-003 queue-service mean:
+  E[S_{K=1}] = 177.7 µs  (ρ = 1.4218 > 1, empirically unstable, growing backlog)
+
+Analytical component model (D/G/1):
+  E[S(K)] ≈ t_ingest + t_control / K
+  t_ingest ≈ 8.5 µs,  t_control ≈ 169.2 µs
+```
+
+- **$K = 1$:** $\mathbb{E}[S(1)] \approx 177.7\,\mu\text{s} \implies \rho(1) \approx 1.422 > 1$. The system is overloaded; backlog diverges and drops occur.
+- **$K = 2$:** $\mathbb{E}[S(2)] \approx 93.1\,\mu\text{s} \implies \rho(2) \approx 0.745 < 1$. Utilization is strictly below unity; mean queue depth is bounded with zero dropped events.
+- **$K \ge 3$:** $\frac{K}{f_{\text{ingest}}} = \frac{3}{8000} = 375.0\,\mu\text{s} > 317.4\,\mu\text{s} = p99(t_{\text{control}})$. Provides full tail-window isolation, guaranteeing that 99% of control cycles never overlap consecutive scheduling epochs.
 
 ---
 

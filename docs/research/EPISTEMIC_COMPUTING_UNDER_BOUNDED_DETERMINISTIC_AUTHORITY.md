@@ -26,7 +26,7 @@ This paper formalizes **Epistemic Computing under Bounded Deterministic Authorit
 3. An **attested learning space** strictly conditioned on a cryptographic validity predicate:
    $$\mathbf{e}_t = \mathbf{y}_{\text{real}} - \hat{\mathbf{y}}_{\text{pred}}, \quad \text{Valid}(R_t) = 1 \implies \theta_{t+1} = \theta_t - \eta \nabla_{\theta} \mathcal{L}(\mathbf{e}_t)$$
 
-When $A_{\text{commit}} = 0$, the system strictly executes an emergency failsafe transition ($\texttt{FAILSAFE\_AUTHORITY\_TRANSITION} \to \texttt{ultra\_saver}$), prohibiting any normal commit status. We prove that this separation decouples the ingest sampling rate (8 kHz, 125 µs tick quantum) from the analytical planning horizon while guaranteeing that downstream learning operates exclusively over empirical prediction residuals attested by cryptographic actuation receipts. Empirical validation on x86-64/Iris Xe baremetal validates sub-500 µs p99 end-to-end control loops, zero frame drops under bounded queues, and zero authority bypasses under adversarial injection.
+When $A_{\text{commit}} = 0$, the system strictly executes an emergency failsafe transition ($\texttt{FAILSAFE\_AUTHORITY\_TRANSITION} \to \texttt{ultra\_saver}$), prohibiting any normal commit status. We prove that this separation decouples the ingest sampling rate (8 kHz, 125 µs tick quantum) from the analytical planning horizon while guaranteeing that downstream learning operates exclusively over empirical prediction residuals attested by cryptographically hashed actuation receipts. Empirical validation on x86-64/Iris Xe baremetal validates sub-500 µs p99 software Ring→Plan control-path latency, zero frame drops under bounded queues in stable operating regimes ($K \ge 2$), and zero authority bypasses under adversarial injection.
 
 ---
 
@@ -47,9 +47,9 @@ The fundamental research question is: **How can a system leverage heterogeneous,
 
 We formulate the core hypothesis as three interrelated propositions:
 
-- **$H_1$ (Decoupled Admissibility):** By restricting reasoning nodes to proposing immutable hypothesis envelopes ($H_i$) and enforcing that all state mutations flow through a bitmask authority reducer ($A_{\text{commit}}$), safety violations can be reduced to zero, regardless of the stochastic error rate of the reasoning nodes.
+- **$H_1$ (Decoupled Admissibility):** By restricting reasoning nodes to proposing immutable hypothesis envelopes ($H_i$) and enforcing that all state mutations flow through a bitmask authority reducer ($A_{\text{commit}}$), stochastic reasoning errors cannot directly bypass the encoded deterministic authority invariants.
 - **$H_2$ (Reasoning Budget Optimization):** Framing reasoning node invocation as an evidence-constrained optimization problem enables the platform to resolve $>85\%$ of hardware contention events in the microsecond domain using low-cost deterministic reducers, invoking expensive deep epistemic nodes (LLMs) only when state entropy or disagreement exceeds empirical bounds ($(\Xi \ge \Xi_{\min}) \lor (H_{\text{hyp}} \ge H_{\min})$).
-- **$H_3$ (Attested Calibration):** Restricting weight calibration to attested empirical residuals ($\mathbf{e}_t$) bound to signed actuation receipts eliminates hallucination feedback loops, allowing continuous offline calibration without risk of runtime model drift.
+- **$H_3$ (Attested Calibration):** Restricting weight calibration to attested empirical residuals ($\mathbf{e}_t$) bound to cryptographically hashed actuation receipts eliminates hallucination feedback loops, allowing continuous offline calibration without risk of runtime model drift.
 
 ---
 
@@ -215,7 +215,7 @@ The feedback loop in Krystal Stack strictly prohibits learning from self-generat
   4. Subsequent State:     Observe S_{t+1} (empirical physical ground truth)
   5. Attested Residual:    e_t = y_real(S_{t+1}) - y_hat(Hi)
   6. Cryptographic Proof:  proof_hash = SHA256(Rt.receipt_id || e_t || seq)
-  7. Validity Check:       Valid(Rt) = SignatureOK ∧ GenerationMatch ∧ Confirmed
+  7. Validity Check:       Valid(Rt) = ProofHashOK ∧ GenerationMatch ∧ Confirmed
   8. Targeted Feedback:    Valid(Rt) == 1 => θ_{t+1} = θ_t - η ∇ L(e_t)
 +-------------------------------------------------------------------------------+
 ```
@@ -263,19 +263,35 @@ The platform was subjected to sustained validation on baremetal hardware:
 | **Full Ring $\to$ Plan p50** | $120.4\,\mu\text{s}$ | $108.8\,\mu\text{s}$ | **$-9.6\%$** |
 | **Full Ring $\to$ Plan p99** | $347.9\,\mu\text{s}$ | $317.4\,\mu\text{s}$ | **$-8.8\%$ ($-30.5\,\mu\text{s}$)** |
 
-**Key Result:** The entire control path (Ring Ingest $\to$ Evidence Extraction $\to$ Governor $\to$ Planner) operates at **$317.4\,\mu\text{s}$ p99**, satisfying the hard requirement of $< 500\,\mu\text{s}$ p99.
+**Key Result:** The software control path (Ring Ingest $\to$ Evidence Extraction $\to$ Governor $\to$ Planner) operates at **$317.4\,\mu\text{s}$ p99** ($108.8\,\mu\text{s}$ p50), satisfying the requirement of $< 500\,\mu\text{s}$ p99 software control-path latency. Note that this metric captures software orchestration time and excludes downstream display driver or physical actuation latency.
 
 ### 11.2 Queue Stability and Tail Scheduling Bounds (KHI-E2E-003)
-We formally distinguish two operational regimes:
-1. **Mean-Service Queue Stability (M/G/1):**
-   $$\rho(K) = \lambda \cdot \left( t_{\text{ingest}} + \frac{\mathbb{E}[t_{\text{control}}]}{K} \right) < 1$$
-   With $t_{\text{ingest}} \approx 8.5\,\mu\text{s}$ and $\mathbb{E}[t_{\text{control}}] \approx 108.8\,\mu\text{s}$, this condition is satisfied for any $K \ge 1$ (at $K = 2$, $\rho \approx 0.503$), proving why empirical queue stability is sustained at $K \ge 2$.
+Ingress hardware telemetry is delivered periodically at $f_{\text{ingest}} = 8000\,\text{Hz}$ ($D = 125\,\mu\text{s}$ quantum). We model the ingestion pipeline as a **D/G/1 queue** (deterministic inter-arrival $D$, general service distribution $G$). We rigorously separate empirical latency distributions from queue-service expectations:
+
+```text
+Phase-Q latency distribution:
+  p50(Ring→Plan) = 108.8 µs
+  p99(Ring→Plan) = 317.4 µs
+
+KHI-E2E-003 queue-service mean:
+  E[S_{K=1}] = 177.7 µs  (ρ = 1.4218 > 1, empirically unstable, growing backlog)
+
+Analytical component model:
+  E[S(K)] ≈ t_ingest + t_control / K
+```
+
+Calibrating on measured baremetal values ($t_{\text{ingest}} \approx 8.5\,\mu\text{s}$, $t_{\text{control}} = \mathbb{E}[S_{K=1}] - t_{\text{ingest}} \approx 169.2\,\mu\text{s}$), we formally distinguish two operational regimes:
+
+1. **Mean-Service Queue Stability (D/G/1):**
+   $$\rho(K) = \lambda \cdot \left( t_{\text{ingest}} + \frac{t_{\text{control}}}{K} \right) = 0.068 + \frac{1.3536}{K} < 1 \iff K > 1.452 \implies K \ge 2$$
+   - At $K = 1$: $\rho(1) \approx 1.422 > 1$, mathematically proving the diverging backlog and dropped frames observed in KHI-E2E-003.
+   - At $K = 2$: $\mathbb{E}[S(2)] \approx 93.1\,\mu\text{s} \implies \rho(2) \approx 0.745 < 1$, proving why steady-state queue stability is sustained for $K \ge 2$.
 2. **Conservative Tail Scheduling Bound (p99 Control-Window Isolation):**
    $$\frac{K}{f_{\text{ingest}}} > p99(t_{\text{control}}) \implies \frac{K}{8000} > 0.0003174\,\text{s} \implies K \ge 3$$
-   Guarantees that individual 99th-percentile control cycles never exceed their scheduling slot.
+   Guarantees that individual 99th-percentile control cycles ($317.4\,\mu\text{s}$) complete entirely within the assigned control slot ($3 \times 125\,\mu\text{s} = 375\,\mu\text{s}$), preventing transient pipeline starvation.
 
 Under sustained operation:
-- **Clock-Driven 8 kHz Ingest:** Handled without event loss through ring-buffer batching.
+- **Clock-Driven 8 kHz Ingest:** Handled without event loss through ring-buffer batching in stable regimes ($K \ge 2$).
 - **Backlog Slope:** Maintained at $\le 0.0$ under steady-state conditions for $K \ge 2$.
 - **Finite-Capacity Drop Behavior:** Strict tail-drop with verifiable backpressure signals rather than unbounded heap allocation.
 
@@ -329,15 +345,18 @@ We evaluated five adversarial attack vectors against the architecture:
 | **2. Capability Spoofing** | Node requests NPU acceleration on host without verified NPU backend. | Bitmask reducer matches request against active `CapabilitySnapshot`. Unverified bits are masked to 0. | **Vetoed / PASS** |
 | **3. Empty Intersection Bypass** | Malicious node designs inputs causing $A_{\text{commit}} = 0$, hoping to inherit last approved profile. | Reducer strictly traps $A_{\text{commit}} = 0$, forcing `AUTH_DEGRADED_SAFE_FALLBACK` to `ultra_saver`. | **Vetoed / PASS** |
 | **4. High-Frequency Flapping** | Adversarial workload toggles utilization between 10% and 90% every 5 ms. | Funnel enforces 100 ms minimum dwell time, holding current profile steady. | **Vetoed / PASS** |
-| **5. Hallucinated Model Self-Training** | Node attempts to update weights based on predicted output without physical verification. | Feedback loop requires signed `ActuationReceipt` and physical residual $\mathbf{e}_t$. | **Vetoed / PASS** |
+| **5. Hallucinated Model Self-Training** | Node attempts to update weights based on predicted output without physical verification. | Feedback loop requires valid `ActuationReceipt` (`ProofHashOK`) and empirical physical residual $\mathbf{e}_t$. | **Vetoed / PASS** |
 
 ---
 
-## 14. Limitations
+## 14. Limitations and Proven Scope
 
-1. **Hardware Telemetry Granularity:** Current implementation relies on OS and silicon vendor counters (e.g., Intel RAPL, Windows performance counters). Sampling jitter can introduce noise into short-duration ($< 50\,\mu\text{s}$) residuals.
-2. **Deterministic Bitmask Capacity:** The current 64-bit mask structure supports up to 64 discrete authority profiles. Systems requiring continuous-space action profiles must map continuous parameters into discrete operational envelopes.
-3. **Cold-Start Scheduling:** When encountering entirely novel state spaces with high entropy, the metascheduler defaults to full multi-tier evaluation until empirical trajectories populate the policy store.
+1. **Scope of Deterministic Authority Guarantees:** A deterministic authority gate can strictly guarantee safety invariants if and only if those invariants are: (1) explicitly modeled in the formal authority specification, (2) correctly implemented in executable code, and (3) faithfully covered by the active state representation. Unmodeled physical phenomena or uninstrumented hardware variables cannot be bounded by the authority bitmask and require defense-in-depth physical margins.
+2. **Software-Only Control Latency Scope:** All reported sub-500 µs p99 latency figures specifically characterize the **software Ring→Plan control path** (Ring Ingest $\to$ Evidence Extraction $\to$ Governor $\to$ Planner). They do not encompass display driver serialization, input-to-photon latency, or full physical actuator settling times.
+3. **Queue Stability Regime Scope:** Zero frame drops and bounded queue depths are strictly conditioned on stable operating regimes ($K \ge 2$, with $K \ge 3$ providing complete tail isolation). In the overloaded regime ($K = 1$), the queue is theoretically and empirically unstable ($\rho \approx 1.422 > 1$).
+4. **Hardware Telemetry Granularity:** The current implementation relies on OS and silicon vendor counters (e.g., Intel RAPL, Windows performance counters). Sampling jitter can introduce noise into short-duration ($< 50\,\mu\text{s}$) residuals.
+5. **Deterministic Bitmask Capacity:** The current 64-bit mask structure supports up to 64 discrete authority profiles. Systems requiring continuous-space action profiles must map continuous parameters into discrete operational envelopes.
+6. **Cold-Start Scheduling:** When encountering entirely novel state spaces with high entropy, the metascheduler defaults to full multi-tier evaluation until empirical trajectories populate the policy store.
 
 ---
 

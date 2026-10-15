@@ -24,7 +24,7 @@ The formal determination rendered by the deterministic authority gate. Specifies
 The authorized operational envelope bounding physical hardware execution. Specifies governor modes, allowed compute backends (CPU, SIMD, GPU, NPU), core worker allocations, maximum power draw, tick quantum limits, and memory pressure thresholds.
 
 ### 1.5 `ActuationReceipt` ($R_t$)
-A cryptographically verifiable receipt proving that a physical hardware actuation occurred. Contains unique receipt ID, verdict ID, applied profile name, physical timestamp, applied envelope snapshot, and explicit `transition_type` (`NORMAL_SELECTION` or `FAILSAFE_AUTHORITY_TRANSITION`).
+A cryptographically hashed receipt with integrity proof verifying that a physical hardware actuation occurred. Contains unique receipt ID, verdict ID, applied profile name, physical timestamp, applied envelope snapshot, explicit `transition_type` (`NORMAL_SELECTION` or `FAILSAFE_AUTHORITY_TRANSITION`), and SHA-256 `proof_hash` (`ProofHashOK`). If asymmetric multi-agent provenance is required, this integrity hash is signed into a full asymmetric digital signature (`SignatureOK`).
 
 ### 1.6 `ObservationResidual` ($\mathbf{e}_t$)
 The quantified prediction error vector calculated as empirical ground truth minus prior hypothesis prediction:

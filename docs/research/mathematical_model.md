@@ -119,29 +119,55 @@ $$\texttt{FAILSAFE\_AUTHORITY\_TRANSITION} \implies \text{profile} \equiv \textt
 
 ## 4. Queue Stability and Tail Scheduling Bounds
 
-We resolve the relationship between ingress sampling rates, average service times, and tail percentile deadlines by establishing two distinct mathematical bounds:
+We resolve the relationship between ingress sampling rates, average service times, and tail percentile deadlines by establishing two distinct mathematical bounds, rigorously separating empirical latency distributions from queue-service expectations:
 
-### 4.1 Mean-Service Queue Stability (M/G/1 Stability)
-Let $\lambda = 8000\,\text{events/s}$ be the arrival rate ($T_{\text{tick}} = 125\,\mu\text{s}$). Let $t_{\text{ingest}}$ be the raw telemetry ring-buffer ingest time ($t_{\text{ingest}} \approx 8.5\,\mu\text{s}$). Let $\mathbb{E}[t_{\text{control}}]$ be the expected execution time of the control path across normal cycles ($\mathbb{E}[t_{\text{control}}] \approx 108.8\,\mu\text{s}$).
+```text
+Phase-Q latency distribution:
+  p50(Ring→Plan) = 108.8 µs
+  p99(Ring→Plan) = 317.4 µs
 
-With batching decoupling factor $K$ (one control step per $K$ ingress ticks), the mean service time per event is:
-$$\mathbb{E}[S(K)] = t_{\text{ingest}} + \frac{\mathbb{E}[t_{\text{control}}]}{K}$$
+KHI-E2E-003 queue-service mean:
+  E[S_{K=1}] = 177.7 µs  (ρ = 1.4218 > 1, empirically unstable, growing backlog)
 
-From M/G/1 queueing theory, the queue is strictly stable if and only if utilization $\rho(K) < 1$:
-$$\rho(K) = \lambda \cdot \mathbb{E}[S(K)] = 8000 \cdot \left( 0.0000085 + \frac{0.0001088}{K} \right) < 1$$
-$$0.068 + \frac{0.8704}{K} < 1 \implies \frac{0.8704}{K} < 0.932 \implies K > 0.934$$
+Analytical component model:
+  E[S(K)] ≈ t_ingest + t_control / K
+```
 
-**Result:** In the mean-service sense, any integer $K \ge 1$ satisfies $\rho < 1$, and $K \ge 2$ provides comfortable steady-state margin ($\rho(2) \approx 0.503$). This formally proves why empirical stability is observed at $K = 2$ under nominal conditions.
+### 4.1 Mean-Service Queue Stability (D/G/1 Queue Formulation)
+Ingress hardware telemetry is delivered as a periodic stream at $f_{\text{ingest}} = 8000\,\text{Hz}$ with deterministic inter-arrival interval $T_{\text{tick}} = 125\,\mu\text{s}$ ($D = 125\,\mu\text{s}$). The service process exhibits a general distribution $G$ on heterogeneous silicon. The ingestion pipeline is therefore formally modeled as a **D/G/1 queue** (deterministic arrivals, general service, single server).
+
+For any stationary queueing system (including D/G/1), the necessary and sufficient condition for steady-state queue stability (finite expected backlog) is:
+$$\rho(K) = \lambda \cdot \mathbb{E}[S(K)] < 1$$
+
+We decompose the mean service time per event $\mathbb{E}[S(K)]$ into fixed ring-buffer ingest and decoupled control execution:
+$$\mathbb{E}[S(K)] \approx t_{\text{ingest}} + \frac{t_{\text{control}}}{K}$$
+
+Calibrating on empirical baremetal measurements:
+- Telemetry ring-buffer ingest time: $t_{\text{ingest}} \approx 8.5\,\mu\text{s}$.
+- Measured mean service time at $K=1$: $\mathbb{E}[S_{K=1}] = 177.7\,\mu\text{s}$.
+- Deduced mean control service duration: $t_{\text{control}} = \mathbb{E}[S_{K=1}] - t_{\text{ingest}} \approx 177.7 - 8.5 = 169.2\,\mu\text{s}$.
+
+Evaluating utilization $\rho(K)$ across decoupling factor $K$:
+$$\rho(K) = 8000 \cdot \left( 8.5 \times 10^{-6} + \frac{169.2 \times 10^{-6}}{K} \right) = 0.068 + \frac{1.3536}{K}$$
+
+Solving for stability $\rho(K) < 1$:
+$$0.068 + \frac{1.3536}{K} < 1 \iff \frac{1.3536}{K} < 0.932 \iff K > \frac{1.3536}{0.932} \approx 1.452 \implies K \ge 2$$
+
+**Empirical & Theoretical Consistency:**
+- **$K = 1$:** $\mathbb{E}[S(1)] \approx 177.7\,\mu\text{s} \implies \rho(1) \approx 1.4218 > 1$. The arrival rate exceeds service capacity, mathematically proving the diverging backlog and dropped events observed in KHI-E2E-003.
+- **$K = 2$:** $\mathbb{E}[S(2)] \approx 8.5 + 84.6 = 93.1\,\mu\text{s} \implies \rho(2) \approx 0.745 < 1$. The queue is provably stable with a $25.5\%$ capacity margin.
+- **$K = 3$:** $\mathbb{E}[S(3)] \approx 8.5 + 56.4 = 64.9\,\mu\text{s} \implies \rho(3) \approx 0.519 < 1$. Provides robust headroom.
 
 ### 4.2 Conservative Tail Scheduling Bound (p99 Control-Window Isolation)
-Queue stability guarantees bounded queues in expectation, but does not guarantee that individual tail events ($p99$) will complete within a single control window. To guarantee that a $p99$ control cycle never overlaps or starves subsequent control epochs:
+Mean-service stability guarantees a bounded queue in expectation, but does not guarantee that individual tail control latency events ($p99 = 317.4\,\mu\text{s}$) will complete within a single control window without transient starvation. To ensure that 99th-percentile control cycles remain strictly isolated within their assigned scheduling slot:
 
 $$\frac{K}{f_{\text{ingest}}} > p99(t_{\text{control}})$$
-$$\frac{K}{8000} > 0.0003174\,\text{s} \implies K > 2.539 \implies K \ge 3$$
+$$\frac{K}{8000} > 0.0003174\,\text{s} \iff K > 2.539 \implies K \ge 3$$
 
-**Synthesis:**
-- **$K \ge 2$:** Guarantees mean-service queue stability ($\rho < 1$, no unbounded memory growth).
-- **$K \ge 3$:** Guarantees deterministic tail scheduling isolation ($p99$ control latency strictly fits within the control window).
+**Synthesis of Operating Regimes:**
+- **$K = 1$ (Overload Regime):** $\rho \approx 1.422 > 1$. Queue diverges; real-time failure.
+- **$K = 2$ (Mean-Stable Regime):** $\rho \approx 0.745 < 1$. Mean queue depth bounded, steady-state backlog slope $\le 0.0$.
+- **$K \ge 3$ (Tail-Isolated Robust Regime):** $\rho \le 0.519 \ll 1$ and $K / f_{\text{ingest}} > p99$. Zero frame drops and complete control-window isolation.
 
 ---
 
@@ -150,13 +176,15 @@ $$\frac{K}{8000} > 0.0003174\,\text{s} \implies K > 2.539 \implies K \ge 3$$
 To eliminate hallucination loops in self-calibrating nodes, model parameters $\theta$ are updated if and only if the actuation receipt satisfies the strict validity predicate $\text{Valid}(R_t)$.
 
 ### 5.1 The Validity Predicate
-$$\text{Valid}(R_t) \equiv \text{SignatureOK}(R_t) \land (g_{R_t} = g_{\text{active}}) \land \text{FreshEvidence}(R_t) \land \text{ActuationConfirmed}(R_t)$$
+$$\text{Valid}(R_t) \equiv \text{ProofHashOK}(R_t) \land (g_{R_t} = g_{\text{active}}) \land \text{FreshEvidence}(R_t) \land \text{ActuationConfirmed}(R_t)$$
 
 where:
-- $\text{SignatureOK}(R_t) \equiv \mathcal{V}_{K_{\text{kernel}}}(\text{receipt\_id}, \text{proof\_hash}) == \text{True}$.
-- $g_{R_t} = g_{\text{active}}$ verifies capability generation consistency.
-- $\text{FreshEvidence}(R_t) \equiv t_{\text{actuation}} + \Delta t_{\text{max}} > t_{\text{eval}}$.
-- $\text{ActuationConfirmed}(R_t) \equiv R_t.\text{was\_degraded\_fallback} == \text{False}$ (prohibiting learning from unapproved fallback baselines).
+- $\text{ProofHashOK}(R_t) \equiv \mathcal{H}_{\text{SHA256}}(\text{receipt\_payload}(R_t)) == R_t.\text{proof\_hash}$ confirms cryptographic hash integrity of the execution receipt.
+- $g_{R_t} = g_{\text{active}}$ verifies capability generation consistency (anti-TOCTOU invariant).
+- $\text{FreshEvidence}(R_t) \equiv t_{\text{actuation}} + \Delta t_{\text{max}} > t_{\text{eval}}$ ensures temporal freshness.
+- $\text{ActuationConfirmed}(R_t) \equiv R_t.\text{was\_degraded\_fallback} == \text{False}$ (prohibiting learning from emergency fallback baselines).
+
+> **Security Note:** In the current reference implementation, $R_t$ uses a SHA-256 digest chaining scheme (`ProofHashOK`), guaranteeing tamper-evident integrity. For untrusted distributed or multi-agent deployments, this predicate generalizes directly to asymmetric key authentication $\text{SignatureOK}(R_t) \equiv \mathcal{V}_{K_{\text{kernel}}}(R_t.\text{receipt\_id}, R_t.\text{signature}) == \text{True}$ (e.g. Ed25519) without altering the downstream learning logic.
 
 ### 5.2 Conditional Parameter Update Rule
 The empirical observation residual is:
@@ -168,4 +196,4 @@ $$\theta_{t+1} = \begin{cases}
 \theta_t, & \text{if } \text{Valid}(R_t) = 0
 \end{cases}$$
 
-If an actuation receipt is unverified, expired, or generated during an emergency failsafe veto, the gradient step is strictly suppressed ($\theta_{t+1} \leftarrow \theta_t$). **Models cannot learn from unverified hypotheses or simulated hallucinations.**
+If an actuation receipt fails hash verification, is stale, or was generated during an emergency failsafe veto, the gradient step is strictly suppressed ($\theta_{t+1} \leftarrow \theta_t$). **Models cannot learn from unverified hypotheses, stale state, or unapproved fallbacks.**
