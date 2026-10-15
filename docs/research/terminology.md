@@ -78,3 +78,18 @@ The designated state transition triggered when authority reduction yields an emp
 
 ### 4.3 `VITAL_MAX_HP`
 The platform-wide constitutional invariant (`VITAL_MAX_HP == 6`). Enforced across all state vectors, candidate actions, envelopes, receipts, and scene objects to guarantee systemic integrity.
+
+---
+
+## 5. Capability Taxonomy and System Invariants
+
+### 5.1 Capability Partitioning
+- **`CAN_PROPOSE` (Epistemic Capability):** Granted to analytical and reasoning nodes (`IEpistemicNode`). Enables emitting candidate `HypothesisEnvelope` objects based on state observations. Possesses zero authority to invoke OS or hardware actuators.
+- **`CAN_AUTHORIZE` (Authority Capability):** Encapsulated strictly within the deterministic authority reducer (`AdmissibilityFunnel`). Computes the bitmask intersection $A_{\text{commit}}$, verifies capability snapshots, and emits `ExecutionEnvelope`.
+- **`CAN_EXECUTE` (Actuation Capability):** Restricted exclusively to the low-level hardware actuation dispatcher. Accepts strictly verified `ExecutionEnvelope` instances; rejects unreduced hypothesis proposals.
+
+### 5.2 Non-Interference Invariant
+$$\text{CAN\_PROPOSE} \not\supseteq \text{CAN\_AUTHORIZE} \not\supseteq \text{CAN\_EXECUTE}$$
+$$\text{CAN\_PROPOSE} \cap \text{CAN\_EXECUTE} = \emptyset$$
+
+**Principle:** *Reasoning cannot grant authority.* No reasoning engine, plugin, or prompt can bypass the deterministic authority boundary to directly execute state mutations.

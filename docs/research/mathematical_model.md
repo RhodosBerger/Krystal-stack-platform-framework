@@ -154,20 +154,23 @@ Solving for stability $\rho(K) < 1$:
 $$0.068 + \frac{1.3536}{K} < 1 \iff \frac{1.3536}{K} < 0.932 \iff K > \frac{1.3536}{0.932} \approx 1.452 \implies K \ge 2$$
 
 **Empirical & Theoretical Consistency:**
-- **$K = 1$:** $\mathbb{E}[S(1)] \approx 177.7\,\mu\text{s} \implies \rho(1) \approx 1.4218 > 1$. The arrival rate exceeds service capacity, mathematically proving the diverging backlog and dropped events observed in KHI-E2E-003.
-- **$K = 2$:** $\mathbb{E}[S(2)] \approx 8.5 + 84.6 = 93.1\,\mu\text{s} \implies \rho(2) \approx 0.745 < 1$. The queue is provably stable with a $25.5\%$ capacity margin.
-- **$K = 3$:** $\mathbb{E}[S(3)] \approx 8.5 + 56.4 = 64.9\,\mu\text{s} \implies \rho(3) \approx 0.519 < 1$. Provides robust headroom.
+- **$K = 1$:** $\mathbb{E}[S(1)] \approx 177.7\,\mu\text{s} \implies \rho(1) \approx 1.4218 > 1$. The calibrated D/G/1 model predicts instability at $K = 1$, consistent with the empirically observed positive backlog slope and dropped events in KHI-E2E-003.
+- **$K = 2$:** $\mathbb{E}[S(2)] \approx 8.5 + 84.6 = 93.1\,\mu\text{s} \implies \rho(2) \approx 0.745 < 1$. The system is mean-service stable with a $25.5\%$ capacity margin.
+- **$K \ge 3$:** $\mathbb{E}[S(3)] \approx 8.5 + 56.4 = 64.9\,\mu\text{s} \implies \rho(3) \approx 0.519 < 1$. Provides robust scheduling headroom.
 
-### 4.2 Conservative Tail Scheduling Bound (p99 Control-Window Isolation)
-Mean-service stability guarantees a bounded queue in expectation, but does not guarantee that individual tail control latency events ($p99 = 317.4\,\mu\text{s}$) will complete within a single control window without transient starvation. To ensure that 99th-percentile control cycles remain strictly isolated within their assigned scheduling slot:
+### 4.2 Conservative Tail Scheduling Bound (p99 Slot Isolation)
+Mean-service stability guarantees a bounded queue in expectation, but does not guarantee that individual tail control latency events ($p99 = 317.4\,\mu\text{s}$) will complete within a single control window without transient starvation. To ensure that 99th-percentile control cycles remain isolated within their assigned scheduling slot:
 
 $$\frac{K}{f_{\text{ingest}}} > p99(t_{\text{control}})$$
 $$\frac{K}{8000} > 0.0003174\,\text{s} \iff K > 2.539 \implies K \ge 3$$
 
+At $K = 3$, the control window budget is $\frac{3}{8000} = 375.0\,\mu\text{s} > 317.4\,\mu\text{s} = p99(t_{\text{control}})$.
+
 **Synthesis of Operating Regimes:**
-- **$K = 1$ (Overload Regime):** $\rho \approx 1.422 > 1$. Queue diverges; real-time failure.
-- **$K = 2$ (Mean-Stable Regime):** $\rho \approx 0.745 < 1$. Mean queue depth bounded, steady-state backlog slope $\le 0.0$.
-- **$K \ge 3$ (Tail-Isolated Robust Regime):** $\rho \le 0.519 \ll 1$ and $K / f_{\text{ingest}} > p99$. Zero frame drops and complete control-window isolation.
+- **$K = 1$ (Overload Regime):** $\rho \approx 1.422 > 1$. The calibrated model predicts backlog divergence, matching observed positive backlog slopes.
+- **$K = 2$ (Mean-Service Stable):** $\rho \approx 0.745 < 1$. Mean queue depth bounded, steady-state backlog slope $\le 0.0$.
+- **$K \ge 3$ (p99 Slot-Isolated):** $\rho \le 0.519 \ll 1$ and $K / f_{\text{ingest}} > p99$. Achieves approximately 99th-percentile slot isolation. (Note: By definition, $p99$ admits $\approx 1\%$ tail observations to exceed this boundary, which represents empirical quantile containment rather than a hard worst-case execution time (WCET) proof).
+- **$K = 8$ (Higher Scheduling Headroom):** $\rho \approx 0.237 \ll 1$. Ample buffer for background batch optimization.
 
 ---
 
@@ -184,9 +187,18 @@ where:
 - $\text{FreshEvidence}(R_t) \equiv t_{\text{actuation}} + \Delta t_{\text{max}} > t_{\text{eval}}$ ensures temporal freshness.
 - $\text{ActuationConfirmed}(R_t) \equiv R_t.\text{was\_degraded\_fallback} == \text{False}$ (prohibiting learning from emergency fallback baselines).
 
-> **Security Note:** In the current reference implementation, $R_t$ uses a SHA-256 digest chaining scheme (`ProofHashOK`), guaranteeing tamper-evident integrity. For untrusted distributed or multi-agent deployments, this predicate generalizes directly to asymmetric key authentication $\text{SignatureOK}(R_t) \equiv \mathcal{V}_{K_{\text{kernel}}}(R_t.\text{receipt\_id}, R_t.\text{signature}) == \text{True}$ (e.g. Ed25519) without altering the downstream learning logic.
+### 5.2 Threat Model of ProofHashOK vs Asymmetric Signatures
+We explicitly formalize the security guarantees of the integrity predicate:
+$$\text{ProofHashOK}(R_t) \implies \text{Integrity Consistency}$$
+$$\text{ProofHashOK}(R_t) \not\implies \text{Origin Authenticity}$$
 
-### 5.2 Conditional Parameter Update Rule
+- **Guaranteed by `ProofHashOK`:** A SHA-256 digest chain detects any inconsistent mutation, bit-flip, or payload tampering between the authorized execution envelope and the recorded receipt against the expected pipeline digest.
+- **Not Guaranteed by `ProofHashOK` alone:** A hash digest does not prove author provenance if an adversary compromises both the generation source and the reconstruction channel.
+- **Roadmap Extension (`V-PLUGIN-01`):** In untrusted distributed or multi-agent deployments, origin authenticity is achieved by upgrading the verification predicate to asymmetric public-key cryptography:
+  $$\text{SignatureOK}(R_t) \equiv \mathcal{V}_{K_{\text{kernel}}}(R_t.\text{receipt\_id}, R_t.\text{signature}) == \text{True}$$
+  (e.g., using Ed25519 signatures over the receipt payload) without requiring any changes to the downstream learning update rule.
+
+### 5.3 Conditional Parameter Update Rule
 The empirical observation residual is:
 $$\mathbf{e}_t = \mathbf{y}_{\text{real}}(S_{t+1}) - \hat{\mathbf{y}}_{\text{pred}}(H^*)$$
 
@@ -197,3 +209,40 @@ $$\theta_{t+1} = \begin{cases}
 \end{cases}$$
 
 If an actuation receipt fails hash verification, is stale, or was generated during an emergency failsafe veto, the gradient step is strictly suppressed ($\theta_{t+1} \leftarrow \theta_t$). **Models cannot learn from unverified hypotheses, stale state, or unapproved fallbacks.**
+
+---
+
+## 6. The Non-Interference Capability Theorem
+
+We formalize the overarching architectural principle governing all epistemic reasoning and actuation:
+
+$$\boxed{\text{Reasoning Cannot Grant Authority}}$$
+
+### 6.1 Capability Separation Model
+Let the system capabilities be partitioned into three mutually exclusive sets:
+$$\mathcal{C}_{\text{epistemic}} = \{ \text{CAN\_PROPOSE} \}$$
+$$\mathcal{C}_{\text{authority}} = \{ \text{CAN\_AUTHORIZE} \}$$
+$$\mathcal{C}_{\text{actuation}} = \{ \text{CAN\_EXECUTE} \}$$
+
+We establish the foundational capability isolation invariant:
+$$\text{CAN\_PROPOSE} \not\supseteq \text{CAN\_AUTHORIZE} \not\supseteq \text{CAN\_EXECUTE}$$
+$$\text{CAN\_PROPOSE} \cap \text{CAN\_EXECUTE} = \emptyset$$
+
+### 6.2 Formal Non-Interference Theorem
+Let $\pi \in \Pi$ be an arbitrary reasoning plan formulated by the metascheduler, and let $H_\pi \in \mathcal{H}$ be any hypothesis envelope generated by any epistemic node executed under $\pi$:
+
+$$\forall \pi \in \Pi, \ \forall H_\pi \in \mathcal{H}: \quad H_\pi \not\Rightarrow \text{Execution}$$
+
+without the existence and explicit evaluation of:
+$$V_t = \text{Authorize}(H_\pi, S_t, A_t)$$
+such that $A_{\text{commit}} \neq 0$ and $V_t.\text{verdict\_code} == \texttt{AUTH\_COMMIT\_APPROVED}$.
+
+### 6.3 Type-Theoretic Proof and V-AUTH-FORMAL/Z3 SMT Foundation
+*Proof:*
+1. By type definition, `HypothesisEnvelope` exposes no method, reference, or ABI binding to physical hardware actuators or OS control handles.
+2. The hardware actuation dispatcher accepts strictly an instance of `ExecutionEnvelope`.
+3. The constructor and emission of `ExecutionEnvelope` is encapsulated within `AdmissibilityFunnel.evaluate()`. It is emitted if and only if $A_{\text{commit}} = \left(\bigcap_i A_i\right) \cap A_{\text{domain}} \neq 0$.
+4. When $A_{\text{commit}} = 0$, the funnel emits `AUTH_DEGRADED_SAFE_FALLBACK`, forcing the fallback profile `ultra_saver`.
+5. Therefore, no sequence of analytical operations inside any epistemic node (heuristic, symbolic, neural network, or LLM)—now or in future plugins—can synthesize an execution command bypassing the deterministic authority reducer. $\blacksquare$
+
+This theorem serves as the specification contract for machine-checked SMT proofs in Z3/TLA+ under **V-AUTH-FORMAL/Z3**.

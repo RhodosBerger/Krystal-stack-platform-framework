@@ -239,7 +239,7 @@ The architecture enforces seven constitutional invariants verified at runtime an
 4. **$I_4$ (Capability Generation Monotonicity):** If $g_H \neq g_C$, any transition based on the stale snapshot is invalidated ($A_{\text{commit}} \leftarrow 0$).
 5. **$I_5$ (Anti-Flapping Dwell):** A profile transition $P_a \to P_b$ is admissible only if $\Delta t_{\text{commit}} \ge t_{\text{dwell}}$ (100 ms) or if $P_b \equiv \texttt{ultra\_saver}$ (emergency preemption).
 6. **$I_6$ (Budget Exhaustion Invariance):** If $t_{\text{elapsed}} \ge \text{plan.max\_time\_us}$, the metascheduler halts node evaluation immediately; unexecuted nodes are marked `skipped_nodes`.
-7. **$I_7$ (Reasoning/Actuation Decoupling):** A `ReasoningPlan` cannot modify hardware; an `ExecutionEnvelope` cannot modify reasoning algorithms.
+7. **$I_7$ (Reasoning Non-Interference):** $\text{CAN\_PROPOSE} \not\supseteq \text{CAN\_AUTHORIZE} \not\supseteq \text{CAN\_EXECUTE}$ with $\text{CAN\_PROPOSE} \cap \text{CAN\_EXECUTE} = \emptyset$. A `ReasoningPlan` / `HypothesisEnvelope` has no execution dispatch capability; physical state transitions can only be triggered by an authorized `ExecutionEnvelope` emitted by the deterministic authority gate.
 
 ---
 
@@ -280,15 +280,16 @@ Analytical component model:
   E[S(K)] ≈ t_ingest + t_control / K
 ```
 
-Calibrating on measured baremetal values ($t_{\text{ingest}} \approx 8.5\,\mu\text{s}$, $t_{\text{control}} = \mathbb{E}[S_{K=1}] - t_{\text{ingest}} \approx 169.2\,\mu\text{s}$), we formally distinguish two operational regimes:
+Calibrating on measured baremetal values ($t_{\text{ingest}} \approx 8.5\,\mu\text{s}$, $t_{\text{control}} = \mathbb{E}[S_{K=1}] - t_{\text{ingest}} \approx 169.2\,\mu\text{s}$), we formally distinguish the operational regimes:
 
 1. **Mean-Service Queue Stability (D/G/1):**
    $$\rho(K) = \lambda \cdot \left( t_{\text{ingest}} + \frac{t_{\text{control}}}{K} \right) = 0.068 + \frac{1.3536}{K} < 1 \iff K > 1.452 \implies K \ge 2$$
-   - At $K = 1$: $\rho(1) \approx 1.422 > 1$, mathematically proving the diverging backlog and dropped frames observed in KHI-E2E-003.
-   - At $K = 2$: $\mathbb{E}[S(2)] \approx 93.1\,\mu\text{s} \implies \rho(2) \approx 0.745 < 1$, proving why steady-state queue stability is sustained for $K \ge 2$.
-2. **Conservative Tail Scheduling Bound (p99 Control-Window Isolation):**
+   - **$K = 1$ (Overload Regime):** $\rho(1) \approx 1.422 > 1$. The calibrated D/G/1 model predicts instability, consistent with the empirically observed positive backlog slope and dropped frames in KHI-E2E-003.
+   - **$K = 2$ (Mean-Service Stable):** $\mathbb{E}[S(2)] \approx 93.1\,\mu\text{s} \implies \rho(2) \approx 0.745 < 1$. Utilization is strictly below unity; mean queue depth is bounded with zero dropped events.
+2. **Conservative Tail Scheduling Bound (p99 Slot Isolation):**
    $$\frac{K}{f_{\text{ingest}}} > p99(t_{\text{control}}) \implies \frac{K}{8000} > 0.0003174\,\text{s} \implies K \ge 3$$
-   Guarantees that individual 99th-percentile control cycles ($317.4\,\mu\text{s}$) complete entirely within the assigned control slot ($3 \times 125\,\mu\text{s} = 375\,\mu\text{s}$), preventing transient pipeline starvation.
+   - **$K \ge 3$ (p99 Slot-Isolated):** At $K = 3$, slot budget is $375\,\mu\text{s} > 317.4\,\mu\text{s} = p99(t_{\text{control}})$, providing approximately 99th-percentile slot isolation. (Note: By definition, $p99$ admits $\approx 1\%$ tail observations to exceed this boundary, which does not constitute a hard worst-case execution time (WCET) proof).
+   - **$K = 8$ (Higher Scheduling Headroom):** $\rho(8) \approx 0.237 \ll 1$, providing ample buffering for deep epistemic batch planning.
 
 Under sustained operation:
 - **Clock-Driven 8 kHz Ingest:** Handled without event loss through ring-buffer batching in stable regimes ($K \ge 2$).
@@ -375,9 +376,10 @@ In all cases, the invariant holds: **probabilistic models hypothesize; determini
 
 ## 16. Future Work
 
-1. **Machine-Checked SMT Verification:** Translating the 64-bit authority algebra and transition rules into Z3/TLA+ theorems to provide automated mathematical proofs of safety invariants.
-2. **Dynamic Manifest-Based Plugin Ecosystem:** Standardizing a declarative YAML/JSON manifest for third-party epistemic nodes with sandboxed `SHADOW_ONLY` staging.
-3. **Distributed Epistemic Fabrics:** Extending signed actuation and reasoning receipts across multi-node clusters with causal vector clocks.
+1. **Machine-Checked SMT Verification (V-AUTH-FORMAL/Z3):** Translating the 64-bit authority algebra, transition rules, and the Non-Interference Capability Theorem ($\text{CAN\_PROPOSE} \not\supseteq \text{CAN\_AUTHORIZE} \not\supseteq \text{CAN\_EXECUTE}$) into Z3 and TLA+ theorems to provide automated, machine-checked mathematical proofs of safety and non-interference between epistemic and execution spaces.
+2. **Distributed Provenance and Asymmetric Attestation (V-PLUGIN-01):** Upgrading the receipt verification predicate from local SHA-256 integrity chaining (`ProofHashOK`) to hardware-anchored Ed25519 signatures (`SignatureOK`) to support untrusted multi-agent networks and distributed edge clusters without modifying downstream gradient update rules.
+3. **Dynamic Manifest-Based Plugin Ecosystem:** Standardizing a declarative YAML/JSON manifest for third-party epistemic nodes with sandboxed `SHADOW_ONLY` staging and strict memory/time execution quotas.
+4. **Hierarchical Multi-Horizon Meta-Scheduling:** Extending the meta-scheduler to construct hierarchical plans spanning strategic (causal diagnosis), tactical (tier selection), and execution (core binding) horizons.
 
 ---
 

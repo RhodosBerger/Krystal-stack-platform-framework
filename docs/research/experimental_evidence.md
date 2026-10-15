@@ -60,8 +60,8 @@ Decoupling Factor (K)    Control Freq (fc)    Mean Queue Depth    Drops    Stabi
 -----------------------------------------------------------------------------------
 K = 1                    8000 Hz              Overload (> 128)    YES      UNSTABLE (ρ ≈ 1.422)
 K = 2                    4000 Hz              Fluctuating (12-28) NO       MEAN-STABLE (ρ ≈ 0.745)
-K = 3                    2666 Hz              Steady (2-5)        NO       TAIL-ISOLATED (ρ ≈ 0.519)
-K = 8                    1000 Hz              Bounded (0-2)       NO       ROBUST (ρ ≈ 0.237)
+K = 3                    2666 Hz              Steady (2-5)        NO       p99-SLOT-ISOLATED (ρ ≈ 0.519)
+K = 8                    1000 Hz              Bounded (0-2)       NO       HIGHER-HEADROOM (ρ ≈ 0.237)
 ===================================================================================
 ```
 
@@ -81,9 +81,10 @@ Analytical component model (D/G/1):
   t_ingest ≈ 8.5 µs,  t_control ≈ 169.2 µs
 ```
 
-- **$K = 1$:** $\mathbb{E}[S(1)] \approx 177.7\,\mu\text{s} \implies \rho(1) \approx 1.422 > 1$. The system is overloaded; backlog diverges and drops occur.
+- **$K = 1$:** $\mathbb{E}[S(1)] \approx 177.7\,\mu\text{s} \implies \rho(1) \approx 1.422 > 1$. The calibrated D/G/1 model predicts instability, matching the observed positive backlog slope and dropped events.
 - **$K = 2$:** $\mathbb{E}[S(2)] \approx 93.1\,\mu\text{s} \implies \rho(2) \approx 0.745 < 1$. Utilization is strictly below unity; mean queue depth is bounded with zero dropped events.
-- **$K \ge 3$:** $\frac{K}{f_{\text{ingest}}} = \frac{3}{8000} = 375.0\,\mu\text{s} > 317.4\,\mu\text{s} = p99(t_{\text{control}})$. Provides full tail-window isolation, guaranteeing that 99% of control cycles never overlap consecutive scheduling epochs.
+- **$K \ge 3$:** $\frac{K}{f_{\text{ingest}}} = \frac{3}{8000} = 375.0\,\mu\text{s} > 317.4\,\mu\text{s} = p99(t_{\text{control}})$. Provides approximately 99th-percentile slot isolation within the scheduled epoch. (Quantile containment rather than hard WCET bound).
+- **$K = 8$:** $\rho(8) \approx 0.237 \ll 1$. High scheduling headroom for multi-tier batching.
 
 ---
 
