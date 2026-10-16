@@ -72,7 +72,7 @@ def test_anti_batch_allows_cross_subsystem_bundle_but_one_tx_at_a_time():
     engine.stack.begin_transaction(tx1, engine.adapters)
     assert engine.stack.has_unvalidated_transaction is True
 
-    # Attempting to start a second transaction while tx1 is unvalidated must fail
+    # Attempting to start a second transaction while tx1 is unvalidated in the same domain must fail
     tx2 = proposer.formulate_transaction(
         hypothesis_rationale="Second transaction",
         actions=[action_cpu],
@@ -81,7 +81,7 @@ def test_anti_batch_allows_cross_subsystem_bundle_but_one_tx_at_a_time():
         side_effects="none",
         falsifier="latency > 10ms",
     )
-    with pytest.raises(EpistemicContractViolation, match="Anti-Batch Invariant Violation"):
+    with pytest.raises(EpistemicContractViolation, match="Domain Lock Contention"):
         engine.stack.begin_transaction(tx2, engine.adapters)
 
     # Commit first transaction unlocks the stack
@@ -156,11 +156,12 @@ def test_ebpf_in_observability_channel_not_actuation_tier():
     assert ObservabilityChannel.EBPF_TRACEPOINT == "EBPF_TRACEPOINT"
     assert ObservabilityChannel.ETW_WINDOWS == "ETW_WINDOWS"
 
-    # Tier values must only be actuation
+    # Tier values must only be standard userspace actuation (1..9)
     tier_names = [t.name for t in ControlSurfaceTier]
     assert "EBPF_OBSERVATION" not in tier_names
     assert "APP_CONFIG" in tier_names
-    assert "KERNEL_PATCH" in tier_names
+    assert "KERNEL_PATCH" not in tier_names  # Excluded from standard tiers behind HardExclusionSafetyGate
+    assert "BOOT_PARAMETERS" in tier_names
 
 
 def test_capability_provider_separation():

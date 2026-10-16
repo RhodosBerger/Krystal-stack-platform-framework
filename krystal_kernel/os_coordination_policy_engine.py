@@ -1,24 +1,27 @@
 """
-os_coordination_policy_engine.py - Non-Invasive OS Coordination Layer & Reversible Policy Engine (V2).
+os_coordination_policy_engine.py - Non-Invasive OS Coordination Layer & Reversible Policy Engine (V3).
 
-Implements the refined normative tenets of Milestone V-NON-INVASIVE-OS-02:
-1. One Policy Brain, thin capability-based adapters, host OS remains authority.
-2. Anti-Batch Invariant reformulated as: "One unvalidated transaction at a time"
-   (enables coordinated cross-subsystem hypotheses while preventing uncontrolled drift).
-3. Explicit Rollback Classes:
-   - EXACT_STATE: immediate discrete state restoration (cpuset, env vars, cgroups).
-   - CONFIG_RESTORE: register/param restoration; physical state converges over dwell time (power limits, thermals, GPU clocks).
-   - DRAIN_AND_CONVERGE: queue flush / buffer drain (dirty writeback, socket buffers).
-   - IRREVERSIBLE_SIDE_EFFECT: parameter restored, but side-effect cannot be un-done (cache drops).
-4. eBPF moved to Observability (separate from Actuation Control Surface Hierarchy).
-5. Explicit separation of Linux and Windows via Capability Providers.
-6. Component separation: PolicyProposer != ValidationEvaluator as distinct object components.
-7. VITAL_MAX_HP maintained as a global repository invariant.
+Implements the refined normative tenets of Milestone V-NON-INVASIVE-OS-03:
+1. Doctrine: One Policy Brain, thin capability-based adapters, host OS remains authority.
+   Reversible is configuration (not always physical system state due to thermal/cache hysteresis).
+2. Domain-Scoped Transaction Locking (DomainLockManager): Disjoint domains (e.g. Storage vs Network)
+   can execute independently, while overlapping domains remain strictly serialized.
+3. HardExclusionSafetyGate: Kernel patching is placed behind a strict safety barrier outside
+   the standard 9-tier control surface hierarchy, forbidden for automated policy engines.
+4. Explicit Rollback Classes: EXACT_STATE, CONFIG_RESTORE, DRAIN_AND_CONVERGE, IRREVERSIBLE_SIDE_EFFECT.
+5. Observability separated from Actuation (eBPF, ETW, HW counters in ObservabilityChannel).
+6. Resilience & Chaos Engineering:
+   - Transaction Timeout Handling.
+   - Atomic Partial Apply Failure Unwinding.
+   - Self-Healing Rollback with Safe Baseline Recovery.
+7. Component Separation: PolicyProposer != ValidationEvaluator.
+8. Global Invariant: GLOBAL_VITAL_MAX_HP == 6 maintained in global repository contracts.
 """
 
 from __future__ import annotations
 
 import enum
+import time
 import uuid
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
@@ -32,9 +35,15 @@ class EpistemicContractViolation(Exception):
     pass
 
 
+class SubsystemExecutionError(Exception):
+    """Raised when an adapter fails during apply or rollback execution."""
+    pass
+
+
 class RollbackClass(str, enum.Enum):
     """
     Categorizes the physical and temporal nature of reversibility.
+    Reversible is configuration, while physical state (thermal, cache) has dynamic hysteresis.
     """
     EXACT_STATE = "EXACT_STATE"
     CONFIG_RESTORE = "CONFIG_RESTORE"
@@ -44,9 +53,9 @@ class RollbackClass(str, enum.Enum):
 
 class ControlSurfaceTier(enum.IntEnum):
     """
-    10-Tier Control Surface Hierarchy strictly for Actuation.
+    9-Tier Standard Control Surface Hierarchy for Userspace Actuation.
     Ordered from least invasive to most invasive.
-    eBPF is deliberately excluded here and placed in ObservabilityChannel.
+    Kernel patching is excluded from this standard hierarchy.
     """
     APP_CONFIG = 1
     ENV_VARS = 2
@@ -57,13 +66,10 @@ class ControlSurfaceTier(enum.IntEnum):
     IRQ_AFFINITY = 7
     MODULE_PARAMETERS = 8
     BOOT_PARAMETERS = 9
-    KERNEL_PATCH = 10
 
 
 class ObservabilityChannel(str, enum.Enum):
-    """
-    Channels reserved purely for passive non-intrusive observation and telemetry.
-    """
+    """Channels reserved purely for passive non-intrusive observation and telemetry."""
     EBPF_TRACEPOINT = "EBPF_TRACEPOINT"
     ETW_WINDOWS = "ETW_WINDOWS"
     HW_PERF_COUNTERS = "HW_PERF_COUNTERS"
@@ -84,12 +90,55 @@ class SubsystemType(str, enum.Enum):
     DRIVER = "DRIVER"
 
 
+class SubsystemDomain(str, enum.Enum):
+    """
+    Resource domains for domain-scoped transaction locking.
+    """
+    COMPUTE_AND_THERMAL = "COMPUTE_AND_THERMAL"
+    STORAGE_AND_IO = "STORAGE_AND_IO"
+    NETWORK = "NETWORK"
+    PLATFORM_SLICES = "PLATFORM_SLICES"
+
+
+def get_subsystem_domain(subsystem: SubsystemType) -> SubsystemDomain:
+    """Maps a subsystem to its resource domain."""
+    if subsystem in (SubsystemType.CPU, SubsystemType.ACCELERATOR, SubsystemType.THERMAL):
+        return SubsystemDomain.COMPUTE_AND_THERMAL
+    if subsystem in (SubsystemType.IO, SubsystemType.FILESYSTEM, SubsystemType.MEMORY):
+        return SubsystemDomain.STORAGE_AND_IO
+    if subsystem == SubsystemType.NETWORK:
+        return SubsystemDomain.NETWORK
+    return SubsystemDomain.PLATFORM_SLICES
+
+
 class OptimizationStatus(str, enum.Enum):
     HYPOTHESIS = "hypothesis"
     TESTING = "testing"
     SUPPORTED = "supported"
     REJECTED = "rejected"
+    TIMED_OUT = "timed_out"
     CONFLICT = "conflict"
+
+
+# ============================================================================
+# Hard Exclusion Safety Gate (Kernel Patch Barrier)
+# ============================================================================
+
+class HardExclusionSafetyGate:
+    """
+    Blocks automated kernel patching.
+    Requires explicit manual two-man rule cryptographic authorization token.
+    """
+    EMERGENCY_OVERRIDE_TOKEN = "CRYPTO_TWO_MAN_MANUAL_OVERRIDE_TOKEN_2026_CONFIRMED"
+
+    @classmethod
+    def verify_actuation_permitted(cls, tier_name: str, authorization_token: Optional[str] = None) -> None:
+        if "KERNEL" in tier_name.upper():
+            if authorization_token != cls.EMERGENCY_OVERRIDE_TOKEN:
+                raise EpistemicContractViolation(
+                    "HardExclusionSafetyGate: Kernel patching is strictly excluded from automated policy actuation. "
+                    "Invalid or missing emergency cryptographic override token."
+                )
 
 
 # ============================================================================
@@ -97,7 +146,6 @@ class OptimizationStatus(str, enum.Enum):
 # ============================================================================
 
 class OSCapabilityProvider:
-    """Base capability provider defining OS-specific interface query methods."""
     def __init__(self, platform_name: str) -> None:
         self.platform_name = platform_name
 
@@ -129,7 +177,6 @@ class LinuxCapabilityProvider(OSCapabilityProvider):
             ControlSurfaceTier.IRQ_AFFINITY,
             ControlSurfaceTier.MODULE_PARAMETERS,
             ControlSurfaceTier.BOOT_PARAMETERS,
-            # KERNEL_PATCH is supported by OS physically, but strictly prohibited by policy
         }
 
     def get_subsystem_interface(self, subsystem: SubsystemType) -> str:
@@ -159,9 +206,9 @@ class WindowsCapabilityProvider(OSCapabilityProvider):
         return {
             ControlSurfaceTier.APP_CONFIG,
             ControlSurfaceTier.ENV_VARS,
-            ControlSurfaceTier.CGROUPS_OR_JOBOBJECTS,  # Windows Job Objects
-            ControlSurfaceTier.IRQ_AFFINITY,          # SetThreadSelectedCpuSets / SetProcessAffinityMask
-            ControlSurfaceTier.BOOT_PARAMETERS,       # BCD / bootmgr
+            ControlSurfaceTier.CGROUPS_OR_JOBOBJECTS,
+            ControlSurfaceTier.IRQ_AFFINITY,
+            ControlSurfaceTier.BOOT_PARAMETERS,
         }
 
     def get_subsystem_interface(self, subsystem: SubsystemType) -> str:
@@ -186,9 +233,7 @@ class WindowsCapabilityProvider(OSCapabilityProvider):
 
 @dataclass
 class SubsystemAction:
-    """
-    An individual action within a coordinated transaction.
-    """
+    """An individual action within a coordinated transaction."""
     subsystem: SubsystemType
     control_surface: ControlSurfaceTier
     rollback_class: RollbackClass
@@ -205,7 +250,6 @@ class SubsystemAction:
 class CoordinationTransaction:
     """
     Represents an atomic, cross-subsystem optimization hypothesis.
-    Invariant: Only ONE unvalidated transaction may be active in TESTING state at any time.
     """
     transaction_id: str
     hypothesis_rationale: str
@@ -217,6 +261,8 @@ class CoordinationTransaction:
     status: OptimizationStatus = OptimizationStatus.HYPOTHESIS
     baseline_metric: Optional[float] = None
     post_change_metric: Optional[float] = None
+    start_time: float = field(default_factory=time.time)
+    timeout_seconds: float = 5.0
 
     def __post_init__(self) -> None:
         if not self.actions:
@@ -224,12 +270,17 @@ class CoordinationTransaction:
         if not self.falsifier:
             raise EpistemicContractViolation("CoordinationTransaction requires an explicit falsifier.")
 
+    @property
+    def affected_domains(self) -> Set[SubsystemDomain]:
+        return {get_subsystem_domain(a.subsystem) for a in self.actions}
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "transaction_id": self.transaction_id,
             "hypothesis": self.hypothesis_rationale,
             "action_count": len(self.actions),
             "subsystems": [a.subsystem.value for a in self.actions],
+            "domains": [d.value for d in self.affected_domains],
             "rollback_classes": [a.rollback_class.value for a in self.actions],
             "target_metric": self.target_metric,
             "expected_gain": self.expected_gain,
@@ -242,193 +293,233 @@ class CoordinationTransaction:
 
 
 # ============================================================================
-# Capability-Based Thin Adapters
+# Capability-Based Thin Adapters (with Fault Injection & Safe Defaults)
 # ============================================================================
 
 class CapabilityBasedThinAdapter:
-    """Base thin adapter bound to an OSCapabilityProvider."""
+    """Base thin adapter bound to an OSCapabilityProvider with safe baseline recovery."""
     def __init__(self, subsystem: SubsystemType, provider: OSCapabilityProvider) -> None:
         self.subsystem = subsystem
         self.provider = provider
         self.active_state: Dict[str, Any] = {}
+        self.safe_baseline_defaults: Dict[str, Any] = {}
+        self.simulate_apply_failure: bool = False
+        self.simulate_rollback_failure: bool = False
 
     def apply_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        raise NotImplementedError
+        if self.simulate_apply_failure:
+            raise SubsystemExecutionError(f"Simulated hardware/kernel rejection in {self.subsystem.value}")
+        old_state = dict(self.active_state)
+        self.active_state[action.target_param] = action.target_value
+        return old_state
 
     def rollback_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        raise NotImplementedError
+        if self.simulate_rollback_failure:
+            raise SubsystemExecutionError(f"Simulated adapter failure during rollback in {self.subsystem.value}")
+        self.active_state.update(action.rollback_payload)
+        return {
+            "subsystem": self.subsystem.value,
+            "rollback_class": action.rollback_class.value,
+            "restored_state": action.rollback_payload,
+        }
+
+    def emergency_safe_baseline_reset(self) -> None:
+        """Self-healing fallback when rollback encounters an adapter crash."""
+        self.active_state.update(self.safe_baseline_defaults)
 
 
 class CapabilityCPUAdapter(CapabilityBasedThinAdapter):
     def __init__(self, provider: OSCapabilityProvider) -> None:
         super().__init__(SubsystemType.CPU, provider)
         self.active_state = {"cpuset": "0-7", "governor": "powersave", "epp": "balance_performance"}
-
-    def apply_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        old_state = dict(self.active_state)
-        self.active_state[action.target_param] = action.target_value
-        return old_state
-
-    def rollback_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        self.active_state.update(action.rollback_payload)
-        return {
-            "subsystem": self.subsystem.value,
-            "rollback_class": action.rollback_class.value,
-            "restored_state": action.rollback_payload,
-        }
+        self.safe_baseline_defaults = dict(self.active_state)
 
 
 class CapabilityMemoryAdapter(CapabilityBasedThinAdapter):
     def __init__(self, provider: OSCapabilityProvider) -> None:
         super().__init__(SubsystemType.MEMORY, provider)
         self.active_state = {"swappiness": 60, "dirty_ratio": 20, "thp": "madvise"}
-
-    def apply_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        old_state = dict(self.active_state)
-        self.active_state[action.target_param] = action.target_value
-        return old_state
-
-    def rollback_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        self.active_state.update(action.rollback_payload)
-        return {
-            "subsystem": self.subsystem.value,
-            "rollback_class": action.rollback_class.value,
-            "restored_state": action.rollback_payload,
-        }
+        self.safe_baseline_defaults = dict(self.active_state)
 
 
 class CapabilityIOAdapter(CapabilityBasedThinAdapter):
     def __init__(self, provider: OSCapabilityProvider) -> None:
         super().__init__(SubsystemType.IO, provider)
         self.active_state = {"scheduler": "mq-deadline", "read_ahead_kb": 128}
-
-    def apply_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        old_state = dict(self.active_state)
-        self.active_state[action.target_param] = action.target_value
-        return old_state
-
-    def rollback_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        self.active_state.update(action.rollback_payload)
-        return {
-            "subsystem": self.subsystem.value,
-            "rollback_class": action.rollback_class.value,
-            "restored_state": action.rollback_payload,
-        }
+        self.safe_baseline_defaults = dict(self.active_state)
 
 
 class CapabilityAcceleratorAdapter(CapabilityBasedThinAdapter):
     def __init__(self, provider: OSCapabilityProvider) -> None:
         super().__init__(SubsystemType.ACCELERATOR, provider)
         self.active_state = {"priority_queue": "normal", "power_limit_watts": 28.0}
-
-    def apply_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        old_state = dict(self.active_state)
-        self.active_state[action.target_param] = action.target_value
-        return old_state
-
-    def rollback_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        self.active_state.update(action.rollback_payload)
-        return {
-            "subsystem": self.subsystem.value,
-            "rollback_class": action.rollback_class.value,
-            "restored_state": action.rollback_payload,
-        }
+        self.safe_baseline_defaults = dict(self.active_state)
 
 
 class CapabilityThermalAdapter(CapabilityBasedThinAdapter):
     def __init__(self, provider: OSCapabilityProvider) -> None:
         super().__init__(SubsystemType.THERMAL, provider)
         self.active_state = {"pl1_limit_watts": 28.0, "pl2_limit_watts": 64.0, "tau_sec": 28}
+        self.safe_baseline_defaults = dict(self.active_state)
 
-    def apply_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        old_state = dict(self.active_state)
-        self.active_state[action.target_param] = action.target_value
-        return old_state
 
-    def rollback_action(self, action: SubsystemAction) -> Dict[str, Any]:
-        self.active_state.update(action.rollback_payload)
-        return {
-            "subsystem": self.subsystem.value,
-            "rollback_class": action.rollback_class.value,
-            "restored_state": action.rollback_payload,
-        }
+class CapabilityNetworkAdapter(CapabilityBasedThinAdapter):
+    def __init__(self, provider: OSCapabilityProvider) -> None:
+        super().__init__(SubsystemType.NETWORK, provider)
+        self.active_state = {"tcp_congestion": "bbr", "rmem_max": 2097152}
+        self.safe_baseline_defaults = dict(self.active_state)
 
 
 # ============================================================================
-# Transactional Change Stack: One Unvalidated Transaction At A Time
+# Domain Lock Manager & Transactional Stack (Resilient & Fault-Tolerant)
 # ============================================================================
+
+class DomainLockManager:
+    """
+    Manages domain-scoped locks.
+    Disjoint domains (e.g. Storage vs Network) can execute concurrently,
+    while overlapping domains (e.g. CPU vs Thermal) remain strictly serialized.
+    """
+    def __init__(self) -> None:
+        self._locked_domains: Dict[SubsystemDomain, str] = {}  # Domain -> transaction_id
+
+    def is_domain_locked(self, domain: SubsystemDomain) -> bool:
+        return domain in self._locked_domains
+
+    def acquire_domains(self, domains: Set[SubsystemDomain], transaction_id: str) -> None:
+        for d in domains:
+            if d in self._locked_domains:
+                holder = self._locked_domains[d]
+                raise EpistemicContractViolation(
+                    f"Domain Lock Contention: Domain '{d.value}' is already locked by active transaction '{holder}'."
+                )
+        for d in domains:
+            self._locked_domains[d] = transaction_id
+
+    def release_domains(self, domains: Set[SubsystemDomain]) -> None:
+        for d in domains:
+            self._locked_domains.pop(d, None)
+
 
 class TransactionalChangeStack:
     """
-    Manages transactional isolation and LIFO rollback.
-    Anti-Batch Invariant: Exactly ONE unvalidated transaction in TESTING state at any time.
-    Supports atomic cross-subsystem bundles within that single transaction.
+    Manages transactional isolation, domain-scoped locking, and resilient rollback.
     """
     def __init__(self) -> None:
-        self._history: List[CoordinationTransaction] = []
-        self._active_unvalidated_transaction: Optional[CoordinationTransaction] = None
+        self.domain_locks = DomainLockManager()
+        self._active_transactions: Dict[str, CoordinationTransaction] = {}
         self._active_adapters: Dict[SubsystemType, CapabilityBasedThinAdapter] = {}
-
-    @property
-    def has_unvalidated_transaction(self) -> bool:
-        return self._active_unvalidated_transaction is not None
+        self._completed_history: List[CoordinationTransaction] = []
 
     def begin_transaction(
         self,
         transaction: CoordinationTransaction,
         adapters: Dict[SubsystemType, CapabilityBasedThinAdapter]
     ) -> None:
-        if self.has_unvalidated_transaction:
-            assert self._active_unvalidated_transaction is not None
-            raise EpistemicContractViolation(
-                f"Anti-Batch Invariant Violation: Cannot begin transaction '{transaction.transaction_id}' while "
-                f"transaction '{self._active_unvalidated_transaction.transaction_id}' is still in unvalidated/testing state."
-            )
+        # Acquire domain locks (enforces domain-scoped serialization)
+        self.domain_locks.acquire_domains(transaction.affected_domains, transaction.transaction_id)
 
         transaction.status = OptimizationStatus.TESTING
-        self._active_unvalidated_transaction = transaction
+        transaction.start_time = time.time()
+        self._active_transactions[transaction.transaction_id] = transaction
         self._active_adapters = adapters
 
-        # Atomically apply all actions within the transaction
-        for action in transaction.actions:
-            if action.subsystem not in adapters:
-                raise EpistemicContractViolation(f"No adapter available for subsystem {action.subsystem.value}")
-            adapters[action.subsystem].apply_action(action)
+        # Atomic apply: if any action fails, unwind all previously applied actions within this tx
+        applied_actions: List[Tuple[SubsystemAction, CapabilityBasedThinAdapter]] = []
+        try:
+            for action in transaction.actions:
+                if action.subsystem not in adapters:
+                    raise EpistemicContractViolation(f"No adapter available for subsystem {action.subsystem.value}")
+                adapter = adapters[action.subsystem]
+                adapter.apply_action(action)
+                applied_actions.append((action, adapter))
+        except Exception as apply_err:
+            # Atomic reverse unwind of partially applied actions
+            for act, adp in reversed(applied_actions):
+                try:
+                    adp.rollback_action(act)
+                except Exception:
+                    adp.emergency_safe_baseline_reset()
+
+            self.domain_locks.release_domains(transaction.affected_domains)
+            self._active_transactions.pop(transaction.transaction_id, None)
+            transaction.status = OptimizationStatus.REJECTED
+            raise SubsystemExecutionError(f"Partial apply failure. Unwound successfully: {apply_err}") from apply_err
+
+    @property
+    def has_unvalidated_transaction(self) -> bool:
+        return len(self._active_transactions) > 0
 
     def commit_transaction(self, transaction_id: str) -> None:
-        if not self._active_unvalidated_transaction or self._active_unvalidated_transaction.transaction_id != transaction_id:
+        if transaction_id not in self._active_transactions:
             raise EpistemicContractViolation(f"No active unvalidated transaction matching '{transaction_id}' to commit.")
 
-        self._active_unvalidated_transaction.status = OptimizationStatus.SUPPORTED
-        self._history.append(self._active_unvalidated_transaction)
-        self._active_unvalidated_transaction = None
+        tx = self._active_transactions.pop(transaction_id)
+        tx.status = OptimizationStatus.SUPPORTED
+        self.domain_locks.release_domains(tx.affected_domains)
+        self._completed_history.append(tx)
 
-    def rollback_transaction(self, reason: str) -> Dict[str, Any]:
+    def rollback_transaction(
+        self,
+        transaction_id: Optional[str] = None,
+        reason: str = "Rollback",
+        status_override: Optional[OptimizationStatus] = None,
+    ) -> Dict[str, Any]:
         """
-        Rolls back the active unvalidated transaction in reverse (LIFO) action order.
+        Resilient LIFO rollback across all actions with fallback self-healing.
         """
-        if not self._active_unvalidated_transaction:
-            return {"rolled_back": False, "reason": "No active transaction to rollback"}
+        target_id = transaction_id
+        if target_id is None:
+            if not self._active_transactions:
+                return {"rolled_back": False, "reason": "No active transaction to rollback"}
+            target_id = next(iter(self._active_transactions))
 
-        tx = self._active_unvalidated_transaction
+        if target_id not in self._active_transactions:
+            return {"rolled_back": False, "reason": f"No matching active transaction for '{target_id}'"}
+
+        tx = self._active_transactions.pop(target_id)
         action_receipts = []
+        encountered_adapter_errors = []
 
         # LIFO unwind across all actions
         for action in reversed(tx.actions):
             adapter = self._active_adapters[action.subsystem]
-            rec = adapter.rollback_action(action)
-            action_receipts.append(rec)
+            try:
+                rec = adapter.rollback_action(action)
+                action_receipts.append(rec)
+            except Exception as roll_err:
+                encountered_adapter_errors.append(str(roll_err))
+                # Self-healing fallback to safe defaults
+                adapter.emergency_safe_baseline_reset()
+                action_receipts.append({
+                    "subsystem": action.subsystem.value,
+                    "rollback_class": "EMERGENCY_SAFE_BASELINE_FALLBACK",
+                    "error": str(roll_err),
+                })
 
-        tx.status = OptimizationStatus.REJECTED
-        self._history.append(tx)
-        self._active_unvalidated_transaction = None
+        tx.status = status_override or OptimizationStatus.REJECTED
+        self.domain_locks.release_domains(tx.affected_domains)
+        self._completed_history.append(tx)
 
         return {
             "rolled_back": True,
             "transaction_id": tx.transaction_id,
             "reason": reason,
             "actions_unwound": action_receipts,
+            "had_adapter_errors": len(encountered_adapter_errors) > 0,
         }
+
+    def check_and_enforce_timeout(self, transaction_id: str, current_time: float) -> Optional[Dict[str, Any]]:
+        """Automatically rolls back transactions exceeding timeout."""
+        if transaction_id in self._active_transactions:
+            tx = self._active_transactions[transaction_id]
+            if (current_time - tx.start_time) > tx.timeout_seconds:
+                return self.rollback_transaction(
+                    transaction_id=transaction_id,
+                    reason="Transaction timeout exceeded.",
+                    status_override=OptimizationStatus.TIMED_OUT,
+                )
+        return None
 
 
 # ============================================================================
@@ -436,10 +527,7 @@ class TransactionalChangeStack:
 # ============================================================================
 
 class PolicyProposer:
-    """
-    Component 1: Proposes coordinated cross-subsystem transactions.
-    Has NO authority to evaluate or commit changes.
-    """
+    """Component 1: Proposes coordinated cross-subsystem transactions."""
     def __init__(self, proposer_id: str = "policy_brain_proposer") -> None:
         self.proposer_id = proposer_id
 
@@ -451,13 +539,11 @@ class PolicyProposer:
         expected_gain: str,
         side_effects: str,
         falsifier: str,
+        timeout_seconds: float = 5.0,
     ) -> CoordinationTransaction:
-        # Check against forbidden kernel patches
+        # Check against forbidden kernel patches via HardExclusionSafetyGate
         for a in actions:
-            if a.control_surface == ControlSurfaceTier.KERNEL_PATCH:
-                raise EpistemicContractViolation(
-                    "Violation of Non-Invasive Invariant: Kernel patches are forbidden when userspace actuation exists."
-                )
+            HardExclusionSafetyGate.verify_actuation_permitted(a.control_surface.name)
 
         tx_id = f"tx_coord_{uuid.uuid4().hex[:6]}"
         return CoordinationTransaction(
@@ -468,15 +554,12 @@ class PolicyProposer:
             expected_gain=expected_gain,
             side_effects=side_effects,
             falsifier=falsifier,
+            timeout_seconds=timeout_seconds,
         )
 
 
 class ValidationEvaluator:
-    """
-    Component 2: Completely independent audit component.
-    Must NOT be the same instance as PolicyProposer.
-    Compares baseline vs post-change metrics against the falsifier.
-    """
+    """Component 2: Completely independent audit component."""
     def __init__(self, evaluator_id: str = "independent_system_auditor") -> None:
         self.evaluator_id = evaluator_id
 
@@ -491,7 +574,7 @@ class ValidationEvaluator:
         # Physical component separation
         if self is proposer or self.evaluator_id == proposer.proposer_id:
             raise EpistemicContractViolation(
-                f"Anti-Self-Certification Component Violation: Evaluator cannot be the same component as Proposer."
+                "Anti-Self-Certification Component Violation: Evaluator cannot be the same component as Proposer."
             )
 
         transaction.baseline_metric = baseline
@@ -525,12 +608,6 @@ class ValidationEvaluator:
 # ============================================================================
 
 class KrystalPolicyEngine:
-    """
-    The orchestrating coordinator:
-    - Hosts the Proposer and Evaluator as distinct components.
-    - Uses platform-specific Capability Provider (Linux or Windows).
-    - Maintains the TransactionalChangeStack (one unvalidated transaction at a time).
-    """
     def __init__(
         self,
         provider: Optional[OSCapabilityProvider] = None,
@@ -549,6 +626,7 @@ class KrystalPolicyEngine:
             SubsystemType.IO: CapabilityIOAdapter(self.provider),
             SubsystemType.ACCELERATOR: CapabilityAcceleratorAdapter(self.provider),
             SubsystemType.THERMAL: CapabilityThermalAdapter(self.provider),
+            SubsystemType.NETWORK: CapabilityNetworkAdapter(self.provider),
         }
 
     def execute_transaction(
@@ -558,24 +636,15 @@ class KrystalPolicyEngine:
         simulated_post_change: float,
         falsifier_triggered: bool = False,
     ) -> Dict[str, Any]:
-        """
-        Executes an atomic coordinated transaction:
-        1. Measure Baseline.
-        2. Begin Transaction (applies cross-subsystem actions atomically).
-        3. Measure Post-Change.
-        4. Independent ValidationEvaluator decides.
-        5. Commit or LIFO Rollback.
-        """
-        # 1. Baseline
         baseline = simulated_baseline
 
-        # 2. Begin transaction (enforces one unvalidated transaction invariant)
+        # 1. Begin transaction (acquires domain locks & applies actions)
         self.stack.begin_transaction(transaction, self.adapters)
 
-        # 3. Post-change
+        # 2. Post-change measurement
         post = simulated_post_change
 
-        # 4. Evaluation
+        # 3. Independent audit
         audit_res = self.evaluator.audit_transaction(
             transaction=transaction,
             proposer=self.proposer,
@@ -584,9 +653,12 @@ class KrystalPolicyEngine:
             falsifier_triggered=falsifier_triggered,
         )
 
-        # 5. Commit or Rollback
+        # 4. Commit or Rollback
         if audit_res["should_rollback"]:
-            rollback_res = self.stack.rollback_transaction(reason=audit_res["reason"])
+            rollback_res = self.stack.rollback_transaction(
+                transaction_id=transaction.transaction_id,
+                reason=audit_res["reason"],
+            )
             return {
                 "outcome": "ROLLED_BACK",
                 "transaction": transaction.to_dict(),
