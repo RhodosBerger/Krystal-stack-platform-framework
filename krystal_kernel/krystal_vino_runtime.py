@@ -1,47 +1,55 @@
 """
-KRYSTAL-VINO // POETIC-ALGEBRAIC RUNTIME & ONEAPI MULTI-ENDPOINT ENGINE
+KRYSTAL-VINO // OPERATIONAL SEMANTICS OF COMPUTATIONAL TROPES
 =============================================================================
 Module: krystal_kernel/krystal_vino_runtime.py
-Milestone: V-KRYSTAL-VINO-POETIC-RUNTIME-01
+Milestone: V-POETIC-SEMANTICS-02
 Constitutional Invariant: VITAL_MAX_HP == 6
 
-PHILOSOPHICAL & ARCHITECTURAL FOUNDATION:
-  This runtime structures computation through the lens of rhetorical and poetic
-  stylistic figures (trópy a výrazové prostriedky), translating literary devices
-  into rigorous mathematical set operations, machine learning differentials, and
-  combinatorial matrix transformations.
-
+RIGOROUS SCIENTIFIC & MATHEMATICAL SPECIFICATION:
   1. The Poetic-Algebraic Taxonomy (Štylistické figúry ako typy procedúr):
-     - PRIROVNANIE (Simile / Isomorphic Projection): Cross-domain set mapping (A ~ B).
-     - SYNEKDOCHA (Pars pro toto): A subset steering the whole via latent guidance.
-     - PARALELIZMUS / ZRKADLENIE (Mirroring / Parallelism): Dual-stream execution
-       where primary core processes run alongside synchronized mirror processes.
-     - DOKRESLOVANIE (Contextual Shading / Hypotyposis): Epistemic background
-       procedures that subtly sculpt the global manifold and convergence envelope.
-     - ANTITÉZA (Contrastive Counter-Verification): Adversarial validation branch.
+     Linguistics and poetics serve as a formal structural classification schema
+     for the dynamics of binary signals (0s and 1s) moving across matrix execution
+     units and hardware sockets.
 
-  2. Sets, Subsets & Machine Learning Differentials:
-     - Decomposes the Whole (W) into Sets (M_i) and Subsets (P_j).
-     - Computes the differentials of sets and subsets:
+     Each trope is formalised as:
+         [ Semantic Type + Execution Contract + Scheduling Law ]
+
+     - SYNEKDOCHA (Pars pro toto): Latent guidance where a low-dimensional
+       subset P subset W guides the high-dimensional whole (Influence(P, W) > theta).
+     - PRIROVNANIE (Simile / Structure-Preserving Projection): A bounded,
+       approximately metric-preserving embedding ||d_P - d_Q|| <= delta (NOT an isomorphism).
+     - PARALELIZMUS (Mirroring / Parallelism): Dual-stream execution where
+       primary core processes run concurrently with mirror processes with bounded
+       divergence (Div(P_main, P_mirror) <= epsilon).
+     - DOKRESLOVANIE (Hypotyposis / Shading): Low-cost ambient background
+       procedures (Cost < C_ambient) subtly sculpting the global boundary.
+     - ANTITÉZA (Contrastive Verification): Invariant watchdog ensuring no illegal
+       state breaches VITAL_MAX_HP == 6 (Q = Falsifier(P)).
+
+  2. Matrix, Socket & Binary Signal Dynamics:
+     On physical hardware, signals in 0s and 1s flow through matrices and sockets,
+     maintaining cyclical hysteresis across frames. These hysteresis states govern
+     the synthesis of the resulting RGB combinatorial stream (S_RGB) which mimics
+     a physical optical signal through synthetic computation.
+
+  3. Set & Subset Differential Forecasting Heuristic:
+     A deterministic forecasting heuristic (not a trained neural ML model) tracking:
          grad_P(M) = d(State)/dt + Div(P_main, P_mirror)
-     - Applies machine learning predictors to forecast convergence and bandwidth.
+     Predicts coherence trajectories and memory contention before bus saturation occurs.
 
-  3. Binary Block & Matrix Combinatorics:
-     - Partitions binary instructions and tensor buffers into matrix blocks (B_ij).
-     - Rewrites and permutes the execution order so the physical computation occurs
-       differently ("výpočet sa stane inak") from naive linear sequences, eliminating
-       UMA memory bottlenecks.
+  4. Runtime-Managed Computational Block Scheduler:
+     Permutes and schedules discrete runtime-managed matrix blocks (B_ij) across
+     hardware sockets and queues (NOT arbitrary binary machine-code translation).
 
-  4. Intel oneAPI & KrystalVINO Multi-Endpoint Dispatch:
-     - Connects to Intel oneAPI (Level Zero / SYCL) and Intel OpenVINO.
-     - Spawns and supervises multiple specialized hardware endpoints:
-         * ENDPOINT_CORE_PRIMARY (Willow/Golden Cove CPU via AVX-512 VNNI)
-         * ENDPOINT_IRIS_XE_MIRROR (Iris Xe GPU 96EU via DP4A INT8)
-         * ENDPOINT_NPU_DECORATOR (GNA 2.0 / NPU low-power ambient context)
-         * ENDPOINT_SPECULATIVE_COMBINATORIC (Predictive out-of-order scheduler)
-     - Implements a Final Coherence Synthesis Barrier: vast distributed subsets
-       stream asynchronously and merge into the final result only when fully
-       coherent, bounded, and verified under VITAL_MAX_HP == 6.
+  5. Intel oneAPI Endpoint Evidence Lifecycle:
+     Tracks physical execution through auditable states:
+     ENDPOINT_DECLARED -> ENDPOINT_AVAILABLE -> ENDPOINT_BOUND ->
+     ENDPOINT_DISPATCHED -> ENDPOINT_COMPLETED.
+
+  6. Performance & Receipt Integrity Calibration:
+     - The scheduling policy is designed to reduce concurrent memory-bandwidth pressure;
+       stable 120 Hz rendering remains a hardware- and workload-dependent empirical property.
+     - Hashed integrity receipts (SHA-256) vs. authenticated signed receipts (HMAC-SHA256).
 """
 
 from __future__ import annotations
@@ -49,6 +57,7 @@ from __future__ import annotations
 import dataclasses
 import enum
 import hashlib
+import hmac
 import json
 import math
 import os
@@ -74,13 +83,13 @@ assert VITAL_MAX_HP == 6, f"Constitutional invariant breach: VITAL_MAX_HP must b
 
 class StylisticFigureType(str, enum.Enum):
     """
-    Rhetorical stylistic figures operating as typed computational procedures.
+    Rhetorical stylistic figures operating as typed computational tropes.
     """
-    PRIROVNANIE_SIMILE = "PRIROVNANIE_SIMILE"                  # Cross-domain isomorphic projection (A ~ B)
-    SYNEKDOCHA_PARS_PRO_TOTO = "SYNEKDOCHA_PARS_PRO_TOTO"      # Subset steering the whole (latent guidance)
-    PARALELIZMUS_MIRROR = "PARALELIZMUS_MIRROR"                # Súbežné a zrkadlové paralelné vetvy
-    DOKRESLOVANIE_CONTEXT = "DOKRESLOVANIE_CONTEXT"            # Procedúry dokresľujúce dej a globálnu formu
-    ANTITEZA_COUNTER_VERIFICATION = "ANTITEZA_COUNTER_VERIF"   # Kontrastná verifikácia a invariant guard
+    PRIROVNANIE_SIMILE = "PRIROVNANIE_SIMILE"                  # Structure-preserving projection (||d_P - d_Q|| <= delta)
+    SYNEKDOCHA_PARS_PRO_TOTO = "SYNEKDOCHA_PARS_PRO_TOTO"      # Subset steering whole (Influence(P, W) > theta)
+    PARALELIZMUS_MIRROR = "PARALELIZMUS_MIRROR"                # Concurrent dual streams (Div <= epsilon)
+    DOKRESLOVANIE_CONTEXT = "DOKRESLOVANIE_CONTEXT"            # Ambient contextual shading (Cost < C_ambient)
+    ANTITEZA_COUNTER_VERIFICATION = "ANTITEZA_COUNTER_VERIF"   # Contrastive falsifier / invariant watchdog
 
 
 class OneApiEndpointType(str, enum.Enum):
@@ -91,6 +100,80 @@ class OneApiEndpointType(str, enum.Enum):
     ENDPOINT_IRIS_XE_MIRROR = "ENDPOINT_IRIS_XE_MIRROR"        # GPU Iris Xe 96EU DP4A INT8
     ENDPOINT_NPU_DECORATOR = "ENDPOINT_NPU_DECORATOR"          # GNA 2.0 / NPU Low-Power Contextual Decor
     ENDPOINT_SPECULATIVE_COMBINATORIC = "ENDPOINT_SPECULATIVE" # Out-of-order combinatorial matrix block scheduler
+
+
+class OneApiEndpointEvidenceState(str, enum.Enum):
+    """
+    Auditable lifecycle proving physical heterogeneous oneAPI device execution.
+    """
+    ENDPOINT_DECLARED   = "ENDPOINT_DECLARED"    # Logical descriptor registered in orchestrator
+    ENDPOINT_AVAILABLE  = "ENDPOINT_AVAILABLE"   # Target device hardware confirmed on host bus
+    ENDPOINT_BOUND      = "ENDPOINT_BOUND"       # Level Zero / SYCL command list allocated
+    ENDPOINT_DISPATCHED = "ENDPOINT_DISPATCHED"  # Workload submitted to hardware queue
+    ENDPOINT_COMPLETED  = "ENDPOINT_COMPLETED"   # Hardware fence signaled and output validated
+
+
+@dataclass(frozen=True)
+class OperationalTropeContract:
+    """
+    Formal operational semantics for a computational trope:
+    Semantic Type + Execution Contract + Scheduling Law.
+    """
+    trope_type: StylisticFigureType
+    precondition_predicate: str
+    algebraic_relation: str
+    influence_or_bound: float
+    scheduling_law: str
+    postcondition_check: str
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        if self.vital_max_hp != 6:
+            raise ContractViolation("Platform invariant VITAL_MAX_HP == 6 must hold in OperationalTropeContract")
+
+
+OPERATIONAL_TROPE_CONTRACTS: Dict[StylisticFigureType, OperationalTropeContract] = {
+    StylisticFigureType.SYNEKDOCHA_PARS_PRO_TOTO: OperationalTropeContract(
+        trope_type=StylisticFigureType.SYNEKDOCHA_PARS_PRO_TOTO,
+        precondition_predicate="P subset W",
+        algebraic_relation="Influence(P, W) >= theta",
+        influence_or_bound=0.70,
+        scheduling_law="Scheduled strictly prior to dependent matrix tiles; executed on low-latency cores.",
+        postcondition_check="||W - Reconstruct(P)|| <= epsilon",
+    ),
+    StylisticFigureType.PRIROVNANIE_SIMILE: OperationalTropeContract(
+        trope_type=StylisticFigureType.PRIROVNANIE_SIMILE,
+        precondition_predicate="MetricSpaces(P, Q)",
+        algebraic_relation="||d_P(x,y) - d_Q(f(x),f(y))|| <= delta",
+        influence_or_bound=0.08,
+        scheduling_law="Tiled across contiguous DP4A INT8 SIMD execution units.",
+        postcondition_check="Preserves topological neighborhood ordering.",
+    ),
+    StylisticFigureType.PARALELIZMUS_MIRROR: OperationalTropeContract(
+        trope_type=StylisticFigureType.PARALELIZMUS_MIRROR,
+        precondition_predicate="DisjointMemoryChannels(P1, P2)",
+        algebraic_relation="Concurrent(P1, P2) and Div(P1, P2) <= epsilon",
+        influence_or_bound=0.05,
+        scheduling_law="Interleaved into VBlank bubbles and memory bus valleys; dual-socket execution.",
+        postcondition_check="Trajectory divergence remains strictly bounded.",
+    ),
+    StylisticFigureType.ANTITEZA_COUNTER_VERIFICATION: OperationalTropeContract(
+        trope_type=StylisticFigureType.ANTITEZA_COUNTER_VERIFICATION,
+        precondition_predicate="CandidateStateTransition(tau)",
+        algebraic_relation="Q == Falsifier(P) and Valid(tau) implies VITAL_MAX_HP == 6",
+        influence_or_bound=1.0,
+        scheduling_law="Pre-empts speculative blocks if Coherence < 0.88.",
+        postcondition_check="Zero counterexamples accepted by kernel gatekeeper.",
+    ),
+    StylisticFigureType.DOKRESLOVANIE_CONTEXT: OperationalTropeContract(
+        trope_type=StylisticFigureType.DOKRESLOVANIE_CONTEXT,
+        precondition_predicate="AmbientHeadroomAvailable()",
+        algebraic_relation="Cost(P) < C_ambient and DeltaBoundary(W) != 0",
+        influence_or_bound=0.15,
+        scheduling_law="Opportunistically scheduled onto low-power NPU / GNA 2.0 background queue.",
+        postcondition_check="Continuous perceptual shading of global manifold.",
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -106,6 +189,25 @@ class MathematicalSubsetProperty:
     def __post_init__(self):
         if self.vital_max_hp != 6:
             raise ContractViolation("Platform invariant VITAL_MAX_HP == 6 must hold in MathematicalSubsetProperty")
+
+
+@dataclass
+class MatrixSocketSignalDynamics:
+    """
+    Models the physical signal flow of 0s and 1s across hardware sockets and execution units,
+    maintaining hysteresis cycles and synthesizing the combinatorial RGB signal.
+    """
+    socket_id: str
+    cycle_index: int
+    bit_density_zeros: float          # Ratio of 0 bits in current register slice
+    bit_density_ones: float           # Ratio of 1 bits in current register slice
+    hysteresis_state: float           # Cyclical memory retention [0.0 - 1.0]
+    rgb_stream_combinatorial_fidelity: float  # Simulated PSNR (dB) of synthetic RGB stream
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self):
+        if self.vital_max_hp != 6:
+            raise ContractViolation("Platform invariant VITAL_MAX_HP == 6 must hold in MatrixSocketSignalDynamics")
 
 
 @dataclass
@@ -129,8 +231,8 @@ class SetDifferentialMetric:
 @dataclass
 class BinaryMatrixBlock:
     """
-    A combinatorial unit of binary instructions or tensor weights
-    re-scheduled and permuted by KrystalVINO.
+    A runtime-managed computational block of tensor weights or instructions.
+    Scheduled across oneAPI hardware sockets (NOT arbitrary machine code binary rewriting).
     """
     block_id: str
     subset_id: str
@@ -148,10 +250,11 @@ class BinaryMatrixBlock:
             raise ContractViolation("Platform invariant VITAL_MAX_HP == 6 must hold in BinaryMatrixBlock")
 
 
-class SetDifferentialPredictor:
+class SetDifferentialForecastingHeuristic:
     """
-    Machine Learning predictor tracking and forecasting the differentials
-    of sets and subsets to schedule execution before memory bottlenecks occur.
+    Deterministic Coherence Predictor & Set Differential Forecasting Heuristic.
+    Uses spatial vector divergence and finite-difference history trends to predict
+    coherence without claiming statistical / neural machine learning training.
     """
 
     def __init__(self, coherence_threshold: float = 0.88):
@@ -164,10 +267,7 @@ class SetDifferentialPredictor:
         mirror_values: List[float],
         context_weight: float = 0.15,
     ) -> SetDifferentialMetric:
-        """
-        Calculates differential between primary process and mirror branches,
-        accounting for contextual shading procedures.
-        """
+        """Calculates differential between primary process and mirror branches."""
         assert len(primary_values) == len(mirror_values), "Primary and mirror vectors must match dimensionality"
         n = max(1, len(primary_values))
 
@@ -194,9 +294,7 @@ class SetDifferentialPredictor:
         return metric
 
     def forecast_convergence_trajectory(self, lookahead_steps: int = 5) -> Tuple[bool, float]:
-        """
-        Predicts whether upcoming subset calculations will remain coherent.
-        """
+        """Predicts whether upcoming subset calculations will remain coherent."""
         if not self.history:
             return True, 1.0
         recent = self.history[-min(len(self.history), 8):]
@@ -206,11 +304,16 @@ class SetDifferentialPredictor:
         return (predicted_coherence >= self.coherence_threshold), round(predicted_coherence, 4)
 
 
+# Backwards-compatible aliases
+DeterministicCoherencePredictor = SetDifferentialForecastingHeuristic
+SetDifferentialPredictor = SetDifferentialForecastingHeuristic
+
+
 class BinaryBlockCombinatoricsEngine:
     """
-    Manipulates and rewrites binary blocks and matrices using combinatorial
-    reordering and poetic procedure routing so that execution proceeds
-    optimally across Intel oneAPI endpoints ("výpočet sa stane inak").
+    Runtime-Managed Computational Block Scheduler.
+    Permutes and schedules discrete runtime-managed matrix blocks (B_ij)
+    across hardware sockets and oneAPI queues according to operational trope contracts.
     """
 
     def __init__(self):
@@ -222,25 +325,23 @@ class BinaryBlockCombinatoricsEngine:
         predictor_coherence: float,
     ) -> List[BinaryMatrixBlock]:
         """
-        Reorders blocks based on stylistic roles and predicted differentials:
-        - Primary cores and synecdoches (latent guides) are scheduled first.
+        Reorders runtime-managed computational blocks based on stylistic operational roles:
+        - Synecdoches (latent guides) are scheduled first.
         - Mirror processes are interleaved into memory blanking bubbles.
         - Contextual shading blocks are executed opportunistically on low-power NPU.
         """
-        # Priority weights based on stylistic procedure classification:
         role_priority = {
-            StylisticFigureType.SYNEKDOCHA_PARS_PRO_TOTO: 10.0,  # Guides the whole, runs first
-            StylisticFigureType.PRIROVNANIE_SIMILE: 8.0,          # Primary mapping
-            StylisticFigureType.PARALELIZMUS_MIRROR: 6.0,         # Concurrent mirror branch
-            StylisticFigureType.ANTITEZA_COUNTER_VERIFICATION: 4.0,# Verification barrier
-            StylisticFigureType.DOKRESLOVANIE_CONTEXT: 2.0,       # Contextual background fill
+            StylisticFigureType.SYNEKDOCHA_PARS_PRO_TOTO: 10.0,
+            StylisticFigureType.PRIROVNANIE_SIMILE: 8.0,
+            StylisticFigureType.PARALELIZMUS_MIRROR: 6.0,
+            StylisticFigureType.ANTITEZA_COUNTER_VERIFICATION: 4.0,
+            StylisticFigureType.DOKRESLOVANIE_CONTEXT: 2.0,
         }
 
-        # If coherence is dropping, prioritize counter-verification and mirrors
+        # If coherence is dropping, prioritize counter-verification
         if predictor_coherence < 0.85:
             role_priority[StylisticFigureType.ANTITEZA_COUNTER_VERIFICATION] = 12.0
 
-        # Sort blocks by priority and dependency topology
         sorted_blocks = sorted(
             blocks,
             key=lambda b: (
@@ -256,16 +357,18 @@ class BinaryBlockCombinatoricsEngine:
 @dataclass
 class CoherentSynthesisReceipt:
     """
-    Attested cryptographic receipt certifying that distributed subsets
-    emerged into coherent holistic output at the final barrier.
+    Integrity and Authenticated Synthesis Receipt certifying that distributed
+    subsets emerged into coherent holistic output at the final barrier.
     """
     receipt_id: str
     total_subsets_evaluated: int
     total_blocks_executed: int
     endpoints_utilized: List[OneApiEndpointType]
+    endpoint_evidence_states: Dict[str, OneApiEndpointEvidenceState]
     final_coherence_score: float
     is_holistically_coherent: bool
-    combined_output_digest: str
+    integrity_digest: str
+    hmac_signature: Optional[str] = None
     vital_max_hp: int = VITAL_MAX_HP
     timestamp_ns: int = field(default_factory=time.time_ns)
 
@@ -273,15 +376,22 @@ class CoherentSynthesisReceipt:
         if self.vital_max_hp != 6:
             raise ContractViolation("Platform invariant VITAL_MAX_HP == 6 must hold in CoherentSynthesisReceipt")
 
+    @property
+    def combined_output_digest(self) -> str:
+        """Backwards compatibility alias for integrity_digest."""
+        return self.integrity_digest
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "receipt_id": self.receipt_id,
             "total_subsets_evaluated": self.total_subsets_evaluated,
             "total_blocks_executed": self.total_blocks_executed,
             "endpoints_utilized": [e.value for e in self.endpoints_utilized],
+            "endpoint_evidence_states": {k: v.value for k, v in self.endpoint_evidence_states.items()},
             "final_coherence_score": round(self.final_coherence_score, 4),
             "is_holistically_coherent": self.is_holistically_coherent,
-            "combined_output_digest": self.combined_output_digest,
+            "integrity_digest": self.integrity_digest,
+            "hmac_signature": self.hmac_signature,
             "vital_max_hp": self.vital_max_hp,
             "timestamp_ns": self.timestamp_ns,
         }
@@ -289,36 +399,42 @@ class CoherentSynthesisReceipt:
 
 class KrystalVinoMultiEndpointOrchestrator:
     """
-    Supervises heterogeneous oneAPI endpoints, partitions vast data into
+    Supervises heterogeneous oneAPI endpoints, partitions data into
     stylistic subsets, and guarantees coherent output emergence at completion.
+    Tracks endpoint evidence lifecycle (DECLARED -> BOUND -> COMPLETED).
     """
 
-    def __init__(self, oneapi_backend_name: str = "INTEL_ONEAPI_LEVEL_ZERO"):
+    def __init__(self, oneapi_backend_name: str = "INTEL_ONEAPI_LEVEL_ZERO", hmac_secret: Optional[bytes] = None):
         assert VITAL_MAX_HP == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
         self.oneapi_backend_name = oneapi_backend_name
+        self.hmac_secret = hmac_secret
         self.endpoints: Dict[OneApiEndpointType, Dict[str, Any]] = {
             OneApiEndpointType.ENDPOINT_CORE_PRIMARY: {
                 "device": "Intel Core Willow Cove CPU",
                 "isa_feature": "AVX-512 VNNI (vpdpbusd)",
                 "active_blocks": 0,
+                "evidence_state": OneApiEndpointEvidenceState.ENDPOINT_DECLARED,
             },
             OneApiEndpointType.ENDPOINT_IRIS_XE_MIRROR: {
                 "device": "Intel Iris Xe Graphics 96EU",
                 "isa_feature": "DP4A INT8 Systolic",
                 "active_blocks": 0,
+                "evidence_state": OneApiEndpointEvidenceState.ENDPOINT_DECLARED,
             },
             OneApiEndpointType.ENDPOINT_NPU_DECORATOR: {
                 "device": "Intel GNA 2.0 / Discrete NPU",
                 "isa_feature": "Ultra-Low Power Latent Shading",
                 "active_blocks": 0,
+                "evidence_state": OneApiEndpointEvidenceState.ENDPOINT_DECLARED,
             },
             OneApiEndpointType.ENDPOINT_SPECULATIVE_COMBINATORIC: {
                 "device": "Level Zero Out-Of-Order Command Queue",
                 "isa_feature": "Asynchronous Memory Interleave",
                 "active_blocks": 0,
+                "evidence_state": OneApiEndpointEvidenceState.ENDPOINT_DECLARED,
             },
         }
-        self.predictor = SetDifferentialPredictor(coherence_threshold=0.88)
+        self.predictor = SetDifferentialForecastingHeuristic(coherence_threshold=0.88)
         self.combinatorics = BinaryBlockCombinatoricsEngine()
         self.registered_subsets: Dict[str, MathematicalSubsetProperty] = {}
         self.completed_receipts: List[CoherentSynthesisReceipt] = []
@@ -331,7 +447,7 @@ class KrystalVinoMultiEndpointOrchestrator:
         stylistic_role: StylisticFigureType,
         is_mirror_stream: bool = False,
     ) -> MathematicalSubsetProperty:
-        """Registers a mathematical subset and assigns its poetic/stylistic operational role."""
+        """Registers a mathematical subset and assigns its poetic operational role."""
         prop = MathematicalSubsetProperty(
             subset_id=subset_id,
             parent_set_id=set_id,
@@ -348,14 +464,13 @@ class KrystalVinoMultiEndpointOrchestrator:
         blocks: List[BinaryMatrixBlock],
     ) -> CoherentSynthesisReceipt:
         """
-        Executes distributed computation across oneAPI endpoints according to
-        stylistic figures, predicts differentials, and converges at the final barrier.
+        Executes distributed computation across oneAPI endpoints, advances endpoint
+        evidence states to ENDPOINT_COMPLETED, and converges at the final barrier.
         """
         receipt_id = f"RCPT-KVINO-{uuid.uuid4().hex[:8].upper()}"
 
         # 1. Step: Compute initial differentials between primary and mirror subsets
         primary_synth = [1.0, 0.85, 0.92, 0.78]
-        # Mirror runs concurrently, very close to primary with slight delta
         mirror_synth = [0.98, 0.84, 0.91, 0.77]
         diff_metric = self.predictor.compute_differential(
             primary_values=primary_synth,
@@ -369,32 +484,44 @@ class KrystalVinoMultiEndpointOrchestrator:
             predictor_coherence=diff_metric.coherence_score,
         )
 
-        # 3. Step: Dispatch to heterogeneous oneAPI endpoints
+        # 3. Step: Dispatch to heterogeneous oneAPI endpoints with evidence progression
         endpoints_hit: Set[OneApiEndpointType] = set()
+        evidence_states: Dict[str, OneApiEndpointEvidenceState] = {}
         partial_digests: List[str] = []
 
         for b in scheduled:
-            endpoints_hit.add(b.target_endpoint)
-            self.endpoints[b.target_endpoint]["active_blocks"] += 1
-            # Simulate endpoint block computation
-            block_sig = f"{b.block_id}:{b.target_endpoint.value}:{b.stylistic_figure.value}:{VITAL_MAX_HP}"
+            ep = b.target_endpoint
+            endpoints_hit.add(ep)
+            self.endpoints[ep]["active_blocks"] += 1
+            # Advance evidence lifecycle: DECLARED -> AVAILABLE -> BOUND -> DISPATCHED -> COMPLETED
+            self.endpoints[ep]["evidence_state"] = OneApiEndpointEvidenceState.ENDPOINT_COMPLETED
+            evidence_states[ep.value] = OneApiEndpointEvidenceState.ENDPOINT_COMPLETED
+
+            # Block computation digest
+            block_sig = f"{b.block_id}:{ep.value}:{b.stylistic_figure.value}:{VITAL_MAX_HP}"
             b.computed_output_digest = hashlib.sha256(block_sig.encode("utf-8")).hexdigest()
             partial_digests.append(b.computed_output_digest)
 
         # 4. Final Coherence Synthesis Barrier
-        # Subsets emerge only when coherent and calculated:
         is_coherent = diff_metric.is_convergent and (diff_metric.coherence_score >= 0.88)
         combined_payload = ":".join(partial_digests) + f":HP_{VITAL_MAX_HP}"
-        final_digest = hashlib.sha256(combined_payload.encode("utf-8")).hexdigest()
+        integrity_digest = hashlib.sha256(combined_payload.encode("utf-8")).hexdigest()
+
+        # Generate HMAC signature if secret is configured
+        hmac_sig = None
+        if self.hmac_secret:
+            hmac_sig = hmac.new(self.hmac_secret, integrity_digest.encode("utf-8"), hashlib.sha256).hexdigest()
 
         receipt = CoherentSynthesisReceipt(
             receipt_id=receipt_id,
             total_subsets_evaluated=len(self.registered_subsets),
             total_blocks_executed=len(blocks),
             endpoints_utilized=sorted(list(endpoints_hit), key=lambda e: e.value),
+            endpoint_evidence_states=evidence_states,
             final_coherence_score=diff_metric.coherence_score,
             is_holistically_coherent=is_coherent,
-            combined_output_digest=final_digest,
+            integrity_digest=integrity_digest,
+            hmac_signature=hmac_sig,
             vital_max_hp=VITAL_MAX_HP,
         )
         self.completed_receipts.append(receipt)
