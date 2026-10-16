@@ -1,138 +1,140 @@
 # Non-Invasive OS Coordination & Reversible Policy Engine Specification
-**Document ID:** `ARCH-POLICY-ENGINE-2026-V1`  
-**Milestone:** `V-NON-INVASIVE-OS-01`  
+**Document ID:** `ARCH-POLICY-ENGINE-2026-V2`  
+**Milestone:** `V-NON-INVASIVE-OS-02`  
 **Classification:** OS Koordinačná vrstva, reverzibilná správa subsystémov & Krystal Policy Engine  
-**Constitutional Invariant:** `VITAL_MAX_HP == 6`  
+**Global Invariant:** `VITAL_MAX_HP == 6` (Udržiavaný v globálnom zmluvnom kontexte repozitára)  
 
 ---
 
-## 1. Účel a základný princíp
+## 1. Účel a základná architektonická doktrína
 
 Základným inžinierskym postulátom tejto špecifikácie je:
-> **„Neprepisovať operačný systém, ale postaviť koordinačnú vrstvu, ktorá zasahuje do subsystémov výhradne cez stabilné, existujúce rozhrania a každú zmenu dokáže deterministicky vrátiť späť (Transactional Rollback).“**
+> **„Jeden policy mozog, tenké capability-based adaptéry, hostiteľský OS ostáva autorita, všetko merateľné, reverzibilné a auditovateľné.“**
 
-Namiesto zásahov do zdrojového kódu kernelu, inštalácie proprietárnych nestabilných modulov alebo binárneho patchovania OS systém operuje ako inteligentný **Krystal Policy Engine**, ktorý:
-1. Rešpektuje pôvodnú architektúru hostiteľského OS (Windows / Linux).
-2. Preferuje rozhrania s najmenšou mierou invazivity (od aplikačnej konfigurácie po sysctl).
-3. Vykonáva zmeny striktne po jednej (zákaz „desať zmien naraz“).
-4. Každú zmenu formuluje ako falzifikovateľnú hypotézu a meria stav pred a po.
-5. Pri akejkoľvek regresii alebo falzifikácii vykoná okamžitý LIFO rollback.
+Koordinačná vrstva neprepisuje OS kernel a nevytvára proprietárne neprenosné bypassy. Systém optimalizuje koexistenciu subsystémov výhradne cez **stabilné, existujúce rozhrania hostiteľského OS** s garanciou reverzibility.
 
 ---
 
-## 2. Fáza Discovery: Zmapovanie subsystémov OS
+## 2. Štyri kľúčové architektonické piliere (Revízia V2)
 
-Pred akýmkoľvek zásahom koordinačná vrstva vykonáva pasívny discovery audit 10 subsystémov:
+### 2.1. Anti-Batch Invariant: „Jedna nevalidovaná transakcia naraz“
+* Pôvodné striktné pravidlo „jedna zmena naraz“ bolo príliš reštriktívne pre koordináciu – znemožňovalo overiť cross-subsystémovú synergiu (napr. súčasné nastavenie CPU affinity na P-cores a zníženie I/O queue latency).
+* **Nový invariant:** V stave `TESTING / UNVALIDATED` smie byť v celom systéme **výhradne jedna jediná transakcia**.
+* Transakcia môže obsahovať viacero koordinovaných akcií naprieč subsystémami, no tvorí **jeden atomický celok** s jednotnou hypotézou, orakulom a spoločným rollback plánom.
 
-| Subsystém | Skúmané charakteristiky a parametre | Existujúce stabilné rozhrania |
+### 2.2. Rollback triedy (Rollback Classes)
+Deterministický rollback nefunguje na všetkých fyzikálnych subsystémoch identicky. Obnovenie registrov nespôsobí okamžité fyzikálne ochladenie čipu ani okamžité znovunaplnenie zahodenej L3 cache. Preto zavádzame 4 explicitné triedy rollbacku:
+
+| Trieda rollbacku | Význam a mechanizmus | Príklady subsystémov |
 | :--- | :--- | :--- |
-| **1. CPU** | Topológia (P-core vs E-core), frekvenčné domény, scaling governory, EPP (Energy Performance Preference), scheduler time-slice, cpuset affinity | `/sys/devices/system/cpu/`, `PowerRegisterSuspendResumeNotification`, Win32 `SetThreadSelectedCpuSets` |
-| **2. Pamäť** | RAM kapacita, LPDDR zbernica, dirty writeback thresholds, swapinness, zram kompresné algoritmy, HugePages, Transparent HugePages (THP) | `/proc/sys/vm/`, Windows VirtualAlloc telemetry, MEMORYSTATUSEX |
-| **3. I/O Storage** | I/O schedulery (BFQ, Kyber, mq-deadline), queue depth, read-ahead buffer, write-cache flushes, blkio limits | `/sys/block/*/queue/`, DeviceIoControl (FSCTL), storage bus counters |
-| **4. Filesystem** | Mount options (noatime, commit=30), journaling režimy, page-cache flush intervals | `/proc/mounts`, Win32 GetVolumeInformationByHandle |
-| **5. Sieť** | TCP socket buffery (rmem, wmem), TCP congestion control (BBR, CUBIC), NIC ring buffery, GRO/GSO/TSO offloading | `sysctl net.ipv4.*`, ethtool, IP Helper API |
-| **6. Akcelerátory** | GPU/NPU compute queues, UMA clock domains, power limits, DirectX/Vulkan context priority, Level Zero / OpenVINO scheduler | DXGI adapter telemetry, OpenVINO Core, Level Zero sysman |
-| **7. Termály** | Teplotné zóny, junction temperatures, power limits (PL1, PL2, Tau), passive/active cooling policies | `/sys/class/thermal/`, Intel DPTF / Energy Driver, Windows Thermal Zones |
-| **8. cgroups** | cgroups v2 resource hierarchy, cpu.weight, cpu.max, memory.high, memory.max, io.weight | `/sys/fs/cgroup/`, Windows Job Objects |
-| **9. systemd / Init** | Service slices, unit drop-ins, CPUQuota, MemoryHigh, IOWeight | `systemctl set-property`, systemd drop-in files (`.d/*.conf`) |
-| **10. Ovládače** | Driver runtime parameters, GPU scheduling flags (HAGS on/off), TDR timeouts | `/sys/module/*/parameters/`, Windows Registry Display Parameters |
+| **`EXACT_STATE`** | Okamžité a plné obnovenie diskrétneho stavu. | CPU cpuset affinity, cgroups limit, premenná prostredia, process priority. |
+| **`CONFIG_RESTORE`** | Obnovenie riadiaceho parametra/registra; fyzikálny stav (teplota, P-state) konverguje cez dwell time. | Thermal power limit (PL1/PL2), clock scaling governor, GPU frequency floor. |
+| **`DRAIN_AND_CONVERGE`** | Asynchrónne vyprázdnenie frontov a vyrovnanie tokov pred návratom. | Page-cache dirty writeback flush, network socket buffer drain. |
+| **`IRREVERSIBLE_SIDE_EFFECT`** | Zmena parametra je vratná, no zanecháva nevratný vedľajší efekt (napr. strata horúcej cache). | Invalidation of compiled JIT traces, dropped filesystem buffer cache. |
+
+### 2.3. Oddelenie eBPF do Observability (Mimo Actuation hierarchie)
+* eBPF v našej architektúre neslúži ako kontrolná plocha na priamy zápis/actuation.
+* **eBPF patrí výhradne do vrstvy pasívnej telemetrie (Observability & Tracing)** spolu s HW performance counters, ETW a procfs pollingom.
+* **Hierarchia kontrolných plôch pre Actuation** má 10 úrovní (od najmenej invazívnej po najviac):
+  1. `App Config` (aplikačná konfigurácia, flags)
+  2. `Env Vars` (premenné prostredia)
+  3. `systemd drop-ins` (service slices)
+  4. `cgroups v2` / `Windows Job Objects`
+  5. `sysfs` & `procfs` (dynamické runtime zápisy)
+  6. `sysctl` (kernel tunables)
+  7. `IRQ affinity` (smerovanie prerušení)
+  8. `Parametre modulov` (`/etc/modprobe.d/` runtime reload)
+  9. `Boot parametre` (cmdline - len ako predposledná možnosť)
+  10. `Kernel patch` (posledná núdzová možnosť, zakázaná pokiaľ existujú userspace rozhrania)
+
+### 2.4. Oddelenie Linuxu a Windows cez Capability Providery
+Aby sa nemiešali rozhrania rôznych platforiem, tenké adaptéry nevolajú operačný systém priamo, ale dopytujú sa cez **Capability Provider**:
+* `LinuxCapabilityProvider`: poskytuje `cgroups_v2`, `sysfs`, `sysctl`, `systemd`, `sched_setaffinity`.
+* `WindowsCapabilityProvider`: poskytuje `JobObjects`, `SetProcessInformation(ProcessPowerThrottling / EcoQoS)`, `RegistryDisplayParameters`, `DXGI`, `ETW`.
+* Adaptér dynamicky zistí dostupné schopnosti hostiteľského OS a odmietne nekompatibilný zásah bez rizika behovej chyby.
 
 ---
 
-## 3. Hierarchia kontrolných plôch (Control Surface Hierarchy)
+### 2.5. Komponentové oddelenie: Proposer != Evaluator
+* Oddelenie rolí nie je iba logická podmienka (`if id1 == id2`), ale **samostatná fyzická komponentová architektúra**:
+  * **`PolicyProposer`**: generuje hypotézy a navrhuje transakcie. Nemá oprávnenie hodnotiť úspech ani commitovať transakciu.
+  * **`ValidationEvaluator`**: nezávislá entita s vlastným orakulom a telemetrickým vstupom. Ako jediná má právo vydať verdict `APPROVE` alebo nariadiť `ROLLBACK`.
 
-Pri voľbe zásahu systém striktne postupuje zhora nadol. Nižšia vrstva sa smie použiť **výhradne vtedy**, ak vyššia vrstva neumožňuje dosiahnuť merateľný efekt:
+---
+
+## 3. Architektonická schéma systému
 
 ```
-[NAJMENEJ INVAZÍVNE / NAJVIAC PREFEROVANÉ]
-  1. Aplikačná konfigurácia (App Config, flags, runtime JSON)
-  2. Premenné prostredia (Environment Variables)
-  3. Systemd Drop-ins (service slices, resource restrictions)
-  4. cgroups v2 (CPU/Memory/IO resource limits, Job Objects)
-  5. sysfs & procfs (runtime dynamically writable tunables)
-  6. sysctl (kernel network/vm parameters)
-  7. IRQ affinity (smerovanie sieťových a GPU prerušení na dedikované jadrá)
-  8. eBPF pozorovanie (výhradne pasívna telemetria a tracepointy)
-  9. Parametre modulov (/etc/modprobe.d/ runtime reloading)
- 10. Boot parametre (GRUB / systemd-boot cmdline - len ako predposledná možnosť)
- 11. Kernel patch (LEN A LEN VTEDY, KEĎ NIČ INÉ NEFUNGUJE)
-[NAJVIAC INVAZÍVNE / ZÁKAZ BEZ EXPLICITNÉHO SCHVÁLENIA]
+  +-------------------------------------------------------------------------------+
+  |                        OBSERVABILITY VRSTVA (Telemetria)                      |
+  |  - eBPF Tracepointy    - ETW (Windows)    - HW Performance Counters (TSC/PMC)  |
+  +---------------------------------------+---------------------------------------+
+                                          | Pasívna telemetria (Baseline & Post)
+                                          v
+  +-------------------------------------------------------------------------------+
+  |                        POLICY PROPOSER (Centrálny mozog)                      |
+  |  - Analyzuje úzke miesta a generuje koordinačnú transakciu                    |
+  |  - Priraďuje kontrolné plochy (úrovne 1-10) a Rollback triedy                 |
+  +---------------------------------------+---------------------------------------+
+                                          | Navrhnutá transakcia (1 aktívna naraz)
+                                          v
+  +-------------------------------------------------------------------------------+
+  |                         TRANSACTIONAL CHANGE STACK                            |
+  |  - Anti-Batch: Presne 1 nevalidovaná transakcia v stave TESTING               |
+  |  - LIFO Rollback Stack s evidenciou RollbackClass                            |
+  +---------------------------------------+---------------------------------------+
+                                          | Koordinovaný zásah cez adaptéry
+                                          v
+  +-------------------------------------------------------------------------------+
+  |                 CAPABILITY-BASED TENKÉ ADAPTÉRY (CPU, Mem, IO, Accel, Therm)  |
+  |  - LinuxCapabilityProvider        vs        - WindowsCapabilityProvider       |
+  |    (cgroups, sysfs, sysctl)                    (Job Objects, EcoQoS, Registry) |
+  +---------------------------------------+---------------------------------------+
+                                          | Zmeraný efekt po zmene
+                                          v
+  +-------------------------------------------------------------------------------+
+  |                        VALIDATION EVALUATOR (Audit Gate)                      |
+  |  - Komponentovo oddelený od Proposera                                         |
+  |  - Porovnáva baseline vs post-change voči falzifikátoru                       |
+  |  - Verdikt: COMMIT (Supported)  alebo  LIFO ROLLBACK                          |
+  +-------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 4. Architektúra Krystal Policy Engine
-
-Systém rozdeľuje zodpovednosti do troch izolovaných funkčných entít s prísnym zákazom miešania rolí:
-
-```
-                 +---------------------------------------------+
-                 |            TELEMETRIA (OBSERVER)            |
-                 |   - Čisto pasívne čítanie telemetrie        |
-                 |   - Meria baseline a post-change metriky    |
-                 +----------------------+----------------------+
-                                        | Raw Telemetry
-                                        v
-                 +---------------------------------------------+
-                 |        KRYSTAL POLICY ENGINE (PROPOSER)     |
-                 |   - Centrálny riadiaci mozog                |
-                 |   - Generuje cross-subsystémové hypotézy    |
-                 |   - Udržiava transakčný stack zmien         |
-                 +----------------------+----------------------+
-                                        | Navrhnutá zmena
-                                        v
-     +--------------------------------------------------------------------+
-     |                         TENKÉ ADAPTÉRY                             |
-     |  [CPUAdapter] [MemoryAdapter] [IOAdapter] [AccelAdapter] [Thermal] |
-     |      (Zásahy iba cez existujúce rozhrania s rollbackom)            |
-     +----------------------------------+---------------------------------+
-                                        | Meranie po zmene
-                                        v
-                 +---------------------------------------------+
-                 |          VALIDATION GATE (EVALUATOR)        |
-                 |   - Nezávislý audit (Anti-Self-Certification)|
-                 |   - Porovnáva post-change s falzifikátorom  |
-                 |   - Verdikt: APPROVED / ROLLBACK            |
-                 +---------------------------------------------+
-```
-
-1. **Telemetria len pozoruje (Telemetry / Observer):** Číta počítadlá, jitter, latenciu, LLC cache miss rate a teplotu. Nemá právo meniť žiadnu konfiguráciu.
-2. **Politika navrhuje (Policy Engine / Proposer):** Analyzuje úzke miesta a generuje izolovanú hypotézu s očakávaným ziskom a presným rollback skriptom.
-3. **Validácia rozhoduje (Validation Gate / Evaluator):** Nezávislý audit porovnáva nameranú zmenu voči falzifikátoru. Ak nastane regresia alebo rozpor, spúšťa okamžitý návrat stavu.
-
----
-
-## 5. Pravidlo izolovaných transakčných zmien (Anti-Batch Invariant)
-
-* **Zákaz hromadných zmien:** Je striktne zakázané aplikovať viac ako 1 zmenu konfigurácie súčasne („žiadne desať zmien naraz“).
-* **Záväzný životný cyklus zmeny:**
-  $$\text{Baseline Telemetria} \longrightarrow \text{Aplikácia zmeny } S_i \longrightarrow \text{Post-Change Telemetria} \longrightarrow \text{Audit} \longrightarrow (\text{Commit} \lor \text{Rollback})$$
-* **Povinný Rollback Receipt:** Každá aplikovaná zmena ukladá reverzný payload do LIFO zásobníka `TransactionalChangeStack`. Akýkoľvek neočakávaný stav alebo chyba spôsobí okamžité obnovenie pôvodných hodnôt v opačnom poradí.
-
----
-
-## 6. Šablóna hypotézy optimalizačného mechanizmu
-
-Pre každý navrhnutý mechanizmus engine eviduje:
+## 4. Šablóna koordinačnej transakcie
 
 ```json
 {
-  "subsystem": "CPU",
-  "control_surface": "cgroups_v2",
-  "mechanism": "Pinned LLM compute worker to physical P-cores, excluding HyperThreads and E-cores during display VBlank",
-  "target_metric": "VSync Jitter and LLC Cache Miss Rate",
-  "expected_gain": "-35% LLC contention during active scanout",
-  "side_effects": "Slightly increased power draw on P-cores (+1.2W)",
-  "reversibility": "Immediate runtime rollback via cpu.cpuset write",
-  "falsifier": "VSync jitter exceeds 2.5ms or render FPS drops below 118 FPS",
-  "rollback_payload": { "previous_cpuset": "0-7" },
-  "status": "hypothesis"
+  "transaction_id": "tx_coordination_uma_01",
+  "hypothesis": "Pin compute workers to P-cores and lower I/O queue latency during active scanout",
+  "actions": [
+    {
+      "subsystem": "CPU",
+      "control_surface": "cgroups_v2_or_job_object",
+      "tier": 4,
+      "rollback_class": "EXACT_STATE",
+      "rollback_payload": { "cpuset": "0-7" }
+    },
+    {
+      "subsystem": "IO",
+      "control_surface": "sysfs_or_registry",
+      "tier": 5,
+      "rollback_class": "CONFIG_RESTORE",
+      "rollback_payload": { "scheduler": "mq-deadline" }
+    }
+  ],
+  "target_metric": "VSync Jitter and LLC Contention",
+  "expected_gain": "-35% Jitter",
+  "side_effects": "+1.5W CPU package power",
+  "falsifier": "Jitter exceeds 2.5ms or render FPS drops below 118",
+  "status": "testing"
 }
 ```
 
 ---
 
-## 7. Hardvérové a konštitučné invarianty
+## 5. Globálne invarianty
 
-1. **`VITAL_MAX_HP == 6`:** Žiadna zmena konfigurácie nesmie porušiť konštitučnú integritu Krystal Stacku.
-2. **Zero-Destruction Guarantee:** Akékoľvek prerušenie spojenia, crash procesu alebo výpadok telemetrie musí automaticky iniciovať reset subsystémov do bezpečného východiskového stavu hostiteľského OS.
+1. **`VITAL_MAX_HP == 6`:** Zachovaný v globálnych kontraktoch Krystal Stacku (zmluvy, tokeny, receipts).
+2. **Autorita hostiteľa:** Hostiteľský OS ostáva nespochybniteľnou autoritou; zásahy sú len koordinované odporúčania cez existujúce rozhrania.

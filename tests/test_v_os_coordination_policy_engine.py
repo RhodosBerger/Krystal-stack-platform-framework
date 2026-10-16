@@ -1,286 +1,305 @@
 """
 tests/test_v_os_coordination_policy_engine.py
-Test suite for Non-Invasive OS Coordination Layer & Reversible Policy Engine.
-Milestone: V-NON-INVASIVE-OS-01 (ARCH-POLICY-ENGINE-2026-V1).
-Constitutional Invariant: VITAL_MAX_HP == 6.
+Test suite for Non-Invasive OS Coordination Layer & Reversible Policy Engine (V2).
+Milestone: V-NON-INVASIVE-OS-02 (ARCH-POLICY-ENGINE-2026-V2).
 """
 
 import pytest
 
 from krystal_kernel.os_coordination_policy_engine import (
-    VITAL_MAX_HP,
+    GLOBAL_VITAL_MAX_HP,
+    CapabilityCPUAdapter,
+    CapabilityMemoryAdapter,
     ControlSurfaceTier,
-    CPUAdapter,
+    CoordinationTransaction,
     EpistemicContractViolation,
     KrystalPolicyEngine,
-    MemoryAdapter,
+    LinuxCapabilityProvider,
+    ObservabilityChannel,
     OptimizationStatus,
-    SubsystemOptimizationHypothesis,
+    PolicyProposer,
+    RollbackClass,
+    SubsystemAction,
     SubsystemType,
     TransactionalChangeStack,
-    ValidationGate,
+    ValidationEvaluator,
+    WindowsCapabilityProvider,
 )
 
 
-def test_constitutional_invariant_hp():
-    """Verify VITAL_MAX_HP == 6 across OS coordination structures."""
-    assert VITAL_MAX_HP == 6
+def test_global_invariant_hp():
+    """Verify global repository invariant is maintained."""
+    assert GLOBAL_VITAL_MAX_HP == 6
 
-    hyp = SubsystemOptimizationHypothesis(
-        hypothesis_id="hyp_cpu_01",
+
+def test_anti_batch_allows_cross_subsystem_bundle_but_one_tx_at_a_time():
+    """
+    Verify:
+    1. A single transaction CAN coordinate multiple cross-subsystem actions.
+    2. Exactly ONE unvalidated transaction can be active in TESTING state at any time.
+    """
+    proposer = PolicyProposer()
+    action_cpu = SubsystemAction(
         subsystem=SubsystemType.CPU,
-        control_surface=ControlSurfaceTier.CGROUPS_V2,
-        mechanism="Restrict compute threads to P-cores",
-        target_metric="VSync Jitter",
-        expected_gain="-30% jitter",
-        side_effects="+1.2W power",
-        falsifier="Jitter exceeds 2.5ms",
-        reversibility="Restore cpuset to 0-7",
+        control_surface=ControlSurfaceTier.CGROUPS_OR_JOBOBJECTS,
+        rollback_class=RollbackClass.EXACT_STATE,
+        target_param="cpuset",
+        target_value="0-3",
         rollback_payload={"cpuset": "0-7"},
     )
-    assert hyp.vital_max_hp == 6
-
-    with pytest.raises(EpistemicContractViolation):
-        SubsystemOptimizationHypothesis(
-            hypothesis_id="hyp_tampered",
-            subsystem=SubsystemType.CPU,
-            control_surface=ControlSurfaceTier.CGROUPS_V2,
-            mechanism="none",
-            target_metric="none",
-            expected_gain="none",
-            side_effects="none",
-            falsifier="none",
-            reversibility="none",
-            rollback_payload={"cpuset": "0-7"},
-            vital_max_hp=12,
-        )
-
-
-def test_subsystem_discovery_completeness():
-    """Verify discovery covers all 10 OS subsystems."""
-    engine = KrystalPolicyEngine()
-    catalog = engine.run_subsystem_discovery()
-
-    required_subsystems = [
-        SubsystemType.CPU,
-        SubsystemType.MEMORY,
-        SubsystemType.IO,
-        SubsystemType.FILESYSTEM,
-        SubsystemType.NETWORK,
-        SubsystemType.ACCELERATOR,
-        SubsystemType.THERMAL,
-        SubsystemType.CGROUPS,
-        SubsystemType.SYSTEMD,
-        SubsystemType.DRIVER,
-    ]
-
-    for sub in required_subsystems:
-        assert sub in catalog, f"Missing subsystem in discovery: {sub}"
-        assert len(catalog[sub]) > 0
-
-
-def test_control_surface_hierarchy_and_kernel_patch_ban():
-    """
-    Verify control surface ordering and that proposing a kernel patch
-    raises an immediate contract violation.
-    """
-    assert ControlSurfaceTier.APP_CONFIG < ControlSurfaceTier.SYSCTL
-    assert ControlSurfaceTier.SYSCTL < ControlSurfaceTier.BOOT_PARAMETERS
-    assert ControlSurfaceTier.BOOT_PARAMETERS < ControlSurfaceTier.KERNEL_PATCH
-
-    engine = KrystalPolicyEngine()
-
-    with pytest.raises(EpistemicContractViolation, match="Violation of Non-Invasive Invariant"):
-        engine.propose_hypothesis(
-            subsystem=SubsystemType.CPU,
-            control_surface=ControlSurfaceTier.KERNEL_PATCH,
-            mechanism="Kernel patch scheduler CFS",
-            target_metric="latency",
-            expected_gain="gain",
-            side_effects="stability loss",
-            falsifier="crash",
-            reversibility="recompile",
-            rollback_payload={"restore": True},
-        )
-
-
-def test_transactional_isolation_anti_batch_rule():
-    """
-    Verify rule: strictly 1 change at a time.
-    Applying a second change while one is uncommitted raises EpistemicContractViolation.
-    """
-    engine = KrystalPolicyEngine()
-    hyp1 = engine.propose_hypothesis(
-        subsystem=SubsystemType.CPU,
-        control_surface=ControlSurfaceTier.CGROUPS_V2,
-        mechanism="Pin P-cores",
-        target_metric="Jitter",
-        expected_gain="-20%",
-        side_effects="none",
-        falsifier="jitter > 3ms",
-        reversibility="restore cpuset",
-        rollback_payload={"cpuset": "0-7"},
-    )
-    hyp2 = engine.propose_hypothesis(
-        subsystem=SubsystemType.MEMORY,
-        control_surface=ControlSurfaceTier.SYSCTL,
-        mechanism="Lower swappiness",
-        target_metric="Memory pressure",
-        expected_gain="-15%",
-        side_effects="none",
-        falsifier="OOM events > 0",
-        reversibility="restore swappiness",
-        rollback_payload={"swappiness": 60},
-    )
-
-    # Start first transaction
-    engine.stack.begin_transaction(hyp1, engine.adapters[SubsystemType.CPU])
-    assert engine.stack.has_uncommitted_change is True
-
-    # Attempting to start second transaction before committing hyp1 must fail (Anti-Batch)
-    with pytest.raises(EpistemicContractViolation, match="Anti-Batch Violation"):
-        engine.stack.begin_transaction(hyp2, engine.adapters[SubsystemType.MEMORY])
-
-    # Commit hyp1 unlocks stack
-    engine.stack.commit_transaction(hyp1.hypothesis_id)
-    assert engine.stack.has_uncommitted_change is False
-
-
-def test_successful_optimization_cycle():
-    """Verify end-to-end successful optimization cycle with commit."""
-    engine = KrystalPolicyEngine()
-    hyp = engine.propose_hypothesis(
-        subsystem=SubsystemType.MEMORY,
-        control_surface=ControlSurfaceTier.SYSFS_PROCFS,
-        mechanism="Tune dirty writeback ratio to 10%",
-        target_metric="I/O stall ms",
-        expected_gain="-50% stall",
-        side_effects="more frequent background flushes",
-        falsifier="I/O stall > 50ms",
-        reversibility="restore dirty_ratio to 20",
-        rollback_payload={"dirty_ratio": 20},
-    )
-
-    # Baseline 42.0ms -> Post-change 18.5ms (Improvement)
-    res = engine.execute_transactional_optimization_cycle(
-        hypothesis=hyp,
-        simulated_baseline=42.0,
-        simulated_post_change=18.5,
-        falsifier_triggered=False,
-    )
-
-    assert res["outcome"] == "COMMITTED"
-    assert res["verdict"]["verdict"] == "APPROVE_AND_COMMIT"
-    assert hyp.status == OptimizationStatus.SUPPORTED
-    assert not engine.stack.has_uncommitted_change
-
-
-def test_rollback_on_falsifier_trigger():
-    """Verify that when falsifier is triggered, automatic LIFO rollback occurs."""
-    engine = KrystalPolicyEngine()
-    adapter = engine.adapters[SubsystemType.CPU]
-    initial_cpuset = adapter.active_state["cpuset"]
-    assert initial_cpuset == "0-7"
-
-    hyp = engine.propose_hypothesis(
-        subsystem=SubsystemType.CPU,
-        control_surface=ControlSurfaceTier.CGROUPS_V2,
-        mechanism="Isolate CPU cores 0-3",
-        target_metric="Jitter us",
-        expected_gain="-40%",
-        side_effects="Higher single-core temp",
-        falsifier="Jitter exceeds 50us",
-        reversibility="Reset cpuset",
-        rollback_payload={"cpuset": "0-7"},
-    )
-
-    # Falsifier triggered
-    res = engine.execute_transactional_optimization_cycle(
-        hypothesis=hyp,
-        simulated_baseline=20.0,
-        simulated_post_change=65.0,  # Regression exceeding 50us falsifier
-        falsifier_triggered=True,
-    )
-
-    assert res["outcome"] == "ROLLED_BACK"
-    assert res["rollback"]["rolled_back"] is True
-    assert hyp.status == OptimizationStatus.REJECTED
-    # State must be restored
-    assert adapter.active_state["cpuset"] == "0-7"
-
-
-def test_rollback_on_metric_regression():
-    """Verify rollback when post-change metric is worse than baseline."""
-    engine = KrystalPolicyEngine()
-    hyp = engine.propose_hypothesis(
+    action_io = SubsystemAction(
         subsystem=SubsystemType.IO,
         control_surface=ControlSurfaceTier.SYSFS_PROCFS,
-        mechanism="Change queue scheduler to kyber",
-        target_metric="Read latency ms",
-        expected_gain="-25%",
-        side_effects="Potential throughput drop",
-        falsifier="Latency > 15ms",
-        reversibility="Restore mq-deadline",
+        rollback_class=RollbackClass.CONFIG_RESTORE,
+        target_param="scheduler",
+        target_value="kyber",
         rollback_payload={"scheduler": "mq-deadline"},
     )
 
-    # Baseline 10.0ms -> Post-change 14.0ms (Regression, but not exceeding falsifier 15ms)
-    res = engine.execute_transactional_optimization_cycle(
-        hypothesis=hyp,
-        simulated_baseline=10.0,
-        simulated_post_change=14.0,
-        falsifier_triggered=False,
+    tx1 = proposer.formulate_transaction(
+        hypothesis_rationale="Cross-subsystem: Pin CPU and tune IO queue for display scanout",
+        actions=[action_cpu, action_io],
+        target_metric="Scanout Jitter",
+        expected_gain="-30% Jitter",
+        side_effects="Marginal power increase",
+        falsifier="Jitter > 2.5ms",
+    )
+    assert len(tx1.actions) == 2
+
+    engine = KrystalPolicyEngine(proposer=proposer)
+
+    # Start first transaction
+    engine.stack.begin_transaction(tx1, engine.adapters)
+    assert engine.stack.has_unvalidated_transaction is True
+
+    # Attempting to start a second transaction while tx1 is unvalidated must fail
+    tx2 = proposer.formulate_transaction(
+        hypothesis_rationale="Second transaction",
+        actions=[action_cpu],
+        target_metric="CPU Latency",
+        expected_gain="-10%",
+        side_effects="none",
+        falsifier="latency > 10ms",
+    )
+    with pytest.raises(EpistemicContractViolation, match="Anti-Batch Invariant Violation"):
+        engine.stack.begin_transaction(tx2, engine.adapters)
+
+    # Commit first transaction unlocks the stack
+    engine.stack.commit_transaction(tx1.transaction_id)
+    assert engine.stack.has_unvalidated_transaction is False
+
+
+def test_rollback_classes_and_lifo_unwind():
+    """
+    Verify:
+    1. Four explicit rollback classes exist.
+    2. Rollback unwinds cross-subsystem actions in reverse (LIFO) order.
+    """
+    assert RollbackClass.EXACT_STATE == "EXACT_STATE"
+    assert RollbackClass.CONFIG_RESTORE == "CONFIG_RESTORE"
+    assert RollbackClass.DRAIN_AND_CONVERGE == "DRAIN_AND_CONVERGE"
+    assert RollbackClass.IRREVERSIBLE_SIDE_EFFECT == "IRREVERSIBLE_SIDE_EFFECT"
+
+    engine = KrystalPolicyEngine()
+    proposer = engine.proposer
+
+    act1 = SubsystemAction(
+        subsystem=SubsystemType.CPU,
+        control_surface=ControlSurfaceTier.CGROUPS_OR_JOBOBJECTS,
+        rollback_class=RollbackClass.EXACT_STATE,
+        target_param="cpuset",
+        target_value="0-3",
+        rollback_payload={"cpuset": "0-7"},
+    )
+    act2 = SubsystemAction(
+        subsystem=SubsystemType.MEMORY,
+        control_surface=ControlSurfaceTier.SYSCTL,
+        rollback_class=RollbackClass.DRAIN_AND_CONVERGE,
+        target_param="swappiness",
+        target_value=10,
+        rollback_payload={"swappiness": 60},
     )
 
-    assert res["outcome"] == "ROLLED_BACK"
-    assert "Regression" in res["verdict"]["reason"]
-    assert hyp.status == OptimizationStatus.REJECTED
+    tx = proposer.formulate_transaction(
+        hypothesis_rationale="Bundle CPU and Memory tuning",
+        actions=[act1, act2],
+        target_metric="IPC Stall Rate",
+        expected_gain="-20%",
+        side_effects="none",
+        falsifier="Stall rate > 5%",
+    )
+
+    engine.stack.begin_transaction(tx, engine.adapters)
+    assert engine.adapters[SubsystemType.CPU].active_state["cpuset"] == "0-3"
+    assert engine.adapters[SubsystemType.MEMORY].active_state["swappiness"] == 10
+
+    # Execute rollback
+    res = engine.stack.rollback_transaction(reason="Falsifier triggered during testing")
+    assert res["rolled_back"] is True
+    # LIFO order: act2 (Memory) was unwound before act1 (CPU)
+    assert res["actions_unwound"][0]["subsystem"] == "MEMORY"
+    assert res["actions_unwound"][0]["rollback_class"] == "DRAIN_AND_CONVERGE"
+    assert res["actions_unwound"][1]["subsystem"] == "CPU"
+    assert res["actions_unwound"][1]["rollback_class"] == "EXACT_STATE"
+
+    # Confirmed state restoration
+    assert engine.adapters[SubsystemType.CPU].active_state["cpuset"] == "0-7"
+    assert engine.adapters[SubsystemType.MEMORY].active_state["swappiness"] == 60
 
 
-def test_anti_self_certification():
-    """Verify that proposer cannot act as evaluator in ValidationGate."""
-    gate = ValidationGate(evaluator_id="agent_proposer")
-    hyp = SubsystemOptimizationHypothesis(
-        hypothesis_id="hyp_test",
+def test_ebpf_in_observability_channel_not_actuation_tier():
+    """
+    Verify:
+    1. eBPF is part of ObservabilityChannel.
+    2. ControlSurfaceTier contains only actuation levels and excludes eBPF.
+    """
+    assert ObservabilityChannel.EBPF_TRACEPOINT == "EBPF_TRACEPOINT"
+    assert ObservabilityChannel.ETW_WINDOWS == "ETW_WINDOWS"
+
+    # Tier values must only be actuation
+    tier_names = [t.name for t in ControlSurfaceTier]
+    assert "EBPF_OBSERVATION" not in tier_names
+    assert "APP_CONFIG" in tier_names
+    assert "KERNEL_PATCH" in tier_names
+
+
+def test_capability_provider_separation():
+    """
+    Verify clean separation of Linux and Windows interfaces via capability providers.
+    """
+    linux_prov = LinuxCapabilityProvider()
+    win_prov = WindowsCapabilityProvider()
+
+    assert linux_prov.platform_name == "Linux"
+    assert win_prov.platform_name == "Windows"
+
+    # Linux supports sysfs, sysctl, systemd
+    assert linux_prov.supports_control_surface(ControlSurfaceTier.SYSFS_PROCFS)
+    assert linux_prov.supports_control_surface(ControlSurfaceTier.SYSCTL)
+    assert linux_prov.supports_control_surface(ControlSurfaceTier.SYSTEMD_DROPINS)
+    assert "/sys/devices/system/cpu" in linux_prov.get_subsystem_interface(SubsystemType.CPU)
+
+    # Windows supports Job Objects, EcoQoS, DXGI, ETW
+    assert win_prov.supports_control_surface(ControlSurfaceTier.CGROUPS_OR_JOBOBJECTS)
+    assert "SetThreadSelectedCpuSets" in win_prov.get_subsystem_interface(SubsystemType.CPU)
+    assert "VirtualAlloc2" in win_prov.get_subsystem_interface(SubsystemType.MEMORY)
+
+
+def test_component_separation_proposer_vs_evaluator():
+    """
+    Verify component-level separation: Evaluator CANNOT be the same instance as Proposer.
+    """
+    proposer = PolicyProposer(proposer_id="single_agent_brain")
+
+    # Creating an evaluator with same ID / instance
+    evaluator_same_id = ValidationEvaluator(evaluator_id="single_agent_brain")
+
+    act = SubsystemAction(
         subsystem=SubsystemType.CPU,
         control_surface=ControlSurfaceTier.APP_CONFIG,
-        mechanism="m",
-        target_metric="t",
-        expected_gain="g",
-        side_effects="s",
-        falsifier="f",
-        reversibility="r",
-        rollback_payload={"k": "v"},
+        rollback_class=RollbackClass.EXACT_STATE,
+        target_param="threads",
+        target_value=4,
+        rollback_payload={"threads": 8},
+    )
+    tx = proposer.formulate_transaction(
+        hypothesis_rationale="test",
+        actions=[act],
+        target_metric="latency",
+        expected_gain="gain",
+        side_effects="none",
+        falsifier="falsifier",
     )
 
-    with pytest.raises(EpistemicContractViolation, match="Anti-Self-Certification Violation"):
-        gate.evaluate_change(
-            hypothesis=hyp,
-            proposer_id="agent_proposer",
+    with pytest.raises(EpistemicContractViolation, match="Anti-Self-Certification Component Violation"):
+        evaluator_same_id.audit_transaction(
+            transaction=tx,
+            proposer=proposer,
             baseline=10.0,
-            post_change=5.0,
+            post_change=8.0,
             falsifier_triggered=False,
         )
 
 
-def test_all_thin_adapters_reversibility():
-    """Test apply and rollback across all 5 implemented thin adapters."""
+def test_end_to_end_cross_subsystem_transaction_success():
+    """
+    Verify complete transaction execution with cross-subsystem bundle and commit.
+    """
     engine = KrystalPolicyEngine()
+    proposer = engine.proposer
 
-    for sub_type, adapter in engine.adapters.items():
-        hyp = engine.propose_hypothesis(
-            subsystem=sub_type,
-            control_surface=ControlSurfaceTier.CGROUPS_V2,
-            mechanism=f"Tune {sub_type.value}",
-            target_metric="latency",
-            expected_gain="gain",
-            side_effects="none",
-            falsifier="falsified",
-            reversibility="rollback",
-            rollback_payload={"test_key": "original_val"},
-        )
-        old_state = adapter.apply(hyp)
-        assert isinstance(old_state, dict)
-        success = adapter.rollback(hyp.rollback_payload)
-        assert success is True
-        assert adapter.active_state["test_key"] == "original_val"
+    act_cpu = SubsystemAction(
+        subsystem=SubsystemType.CPU,
+        control_surface=ControlSurfaceTier.CGROUPS_OR_JOBOBJECTS,
+        rollback_class=RollbackClass.EXACT_STATE,
+        target_param="cpuset",
+        target_value="0-3",
+        rollback_payload={"cpuset": "0-7"},
+    )
+    act_mem = SubsystemAction(
+        subsystem=SubsystemType.MEMORY,
+        control_surface=ControlSurfaceTier.APP_CONFIG,
+        rollback_class=RollbackClass.CONFIG_RESTORE,
+        target_param="dirty_ratio",
+        target_value=10,
+        rollback_payload={"dirty_ratio": 20},
+    )
+
+    tx = proposer.formulate_transaction(
+        hypothesis_rationale="Coordinate CPU P-core pinning with aggressive memory writeback",
+        actions=[act_cpu, act_mem],
+        target_metric="Stall latency ms",
+        expected_gain="-40%",
+        side_effects="Slightly higher flush frequency",
+        falsifier="Stall latency > 30ms",
+    )
+
+    res = engine.execute_transaction(
+        transaction=tx,
+        simulated_baseline=35.0,
+        simulated_post_change=18.0,  # Improved
+        falsifier_triggered=False,
+    )
+
+    assert res["outcome"] == "COMMITTED"
+    assert tx.status == OptimizationStatus.SUPPORTED
+    assert res["verdict"]["verdict"] == "APPROVE_AND_COMMIT"
+    assert not engine.stack.has_unvalidated_transaction
+
+
+def test_end_to_end_cross_subsystem_transaction_rollback_on_falsifier():
+    """
+    Verify complete transaction rollback across all bundled actions when falsifier fires.
+    """
+    engine = KrystalPolicyEngine()
+    proposer = engine.proposer
+
+    act_cpu = SubsystemAction(
+        subsystem=SubsystemType.CPU,
+        control_surface=ControlSurfaceTier.CGROUPS_OR_JOBOBJECTS,
+        rollback_class=RollbackClass.EXACT_STATE,
+        target_param="cpuset",
+        target_value="0-1",
+        rollback_payload={"cpuset": "0-7"},
+    )
+
+    tx = proposer.formulate_transaction(
+        hypothesis_rationale="Over-restrictive CPU isolation",
+        actions=[act_cpu],
+        target_metric="Jitter us",
+        expected_gain="-50%",
+        side_effects="Starvation",
+        falsifier="Jitter exceeds 40us",
+    )
+
+    res = engine.execute_transaction(
+        transaction=tx,
+        simulated_baseline=25.0,
+        simulated_post_change=70.0,  # Severe regression
+        falsifier_triggered=True,
+    )
+
+    assert res["outcome"] == "ROLLED_BACK"
+    assert tx.status == OptimizationStatus.REJECTED
+    assert res["rollback"]["rolled_back"] is True
+    assert engine.adapters[SubsystemType.CPU].active_state["cpuset"] == "0-7"
