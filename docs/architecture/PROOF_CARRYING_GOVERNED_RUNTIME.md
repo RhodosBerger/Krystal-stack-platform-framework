@@ -400,6 +400,32 @@ Every reasoning execution produces an auditable `EpistemicExecutionReceipt` cont
 - Tier-3 buffer metrics (`frames_admitted_to_tier3`, `frames_throttled_by_tier3`).
 - Invariant integrity verification (`vital_max_hp == 6`) and SHA-256 signature digest.
 
+---
+
+## 15. Milestone V-AUDIOVISUAL-GRAPH-DIAGNOSTICS-01: Audiovisual Telemetry Graphs, Visual State Space Language, Collision Diagnostics & Memory-Aware LLM Evaluator
+
+Milestone **V-AUDIOVISUAL-GRAPH-DIAGNOSTICS-01** (see [krystal_kernel/audiovisual_graph_diagnostics.py](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_kernel/audiovisual_graph_diagnostics.py) and [krystal_bot/audiovisual_diagnostics.py](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_bot/audiovisual_diagnostics.py)) introduces a formal visual and diagnostic language to make micro-architectural memory behavior, resource contention, and Schmitt-Trigger hysteretic stability transparent, interpretable, and auditable by LLMs:
+
+### 15.1 Audiovisual Graph Language & Phase Space State Trajectories
+The runtime synthesizes multidimensional visual telemetry:
+1. **Time-Series Waveforms:** Real-time dual-curve waveforms comparing frame rendering latency ($t_{\text{frame}}$ vs. $8.33\text{ ms}$ budget) with UMA bus memory saturation ($\text{Saturation}$ vs. $0.78$ threshold), enriched with pacing indicators (`[PACE Xms]`) and hysteresis lock flags (`[HELD]`).
+2. **Phase-Space State Portraits:** Visualizes system trajectory in $(t_{\text{frame}}, \text{ProfileRank})$ phase space, mathematically mapping the Schmitt-Trigger hysteresis loop (downscale jump at $> 0.90 \times t_{\text{budget}}$, dwell count $N_{\text{dwell}} = 12$, and upscale return at $< 0.70 \times t_{\text{budget}}$).
+3. **Hardware Contention DAG:** Topological representation of directional resource competition between `INTERNAL_ENGINE_RENDERER` (texture fetch/scanout) and `DEEP_REASONING_PIPELINE` (KV-cache read streams) mediated by `UMA_MEMORY_BUS`.
+
+### 15.2 Graph Collision & Anomaly Diagnostics Detector
+The `GraphCollisionDiagnosticsDetector` operates over graph snapshots and memory chronologs, isolating structural anomalies:
+- `ANOMALY_UMA_UNPACED_COLLISION` (Critical): Bus saturation $\ge 0.78$ without active reasoning pacing.
+- `ANOMALY_UMA_BUS_COLLISION_CONTAINED` (Warning): High bus contention successfully managed via token pacing.
+- `ANOMALY_FRAME_DEADLINE_BREACH` (Critical): Frame latency $> 8.33\text{ ms}$ on 120 Hz display pipeline.
+- `ANOMALY_PROFILE_THRASHING` (Warning): Rapid oscillation between resolution profiles without respecting the hysteresis dwell window.
+
+### 15.3 Memory-Aware LLM Evaluator & Root Cause Analysis (RCA)
+The `LlmMemoryDiagnosticsEvaluator` receives the full diagnostic bundle (visual waveforms, topology DAG, memory logs, and detected anomalies):
+- Formulates automated **Root Cause Analysis (RCA)** identifying the exact physical origin of performance divergences.
+- Re-verifies platform invariant integrity (`VITAL_MAX_HP == 6`).
+- Emits **Prescriptive Tuning Strategies** (e.g. dynamic calibration of hysteresis dwell frames, UMA thresholds, and speculative decode slots).
+
+
 
 
 
