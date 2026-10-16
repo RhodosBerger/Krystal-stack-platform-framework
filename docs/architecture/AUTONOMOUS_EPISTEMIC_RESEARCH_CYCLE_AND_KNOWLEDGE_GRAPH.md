@@ -209,7 +209,91 @@ Milestone V3 posúva systém od emulovaných a simulovaných experimentov k **re
      $$\{M_{0\text{-NO\_EFFECT}}, M_{1\text{-NOISE}}, M_{2\text{-MEASUREMENT\_ERROR}}\} \subseteq \text{Portfolio}$$
      Vynechanie ktoréhokoľvek z nich okamžite vyvoláva `EpistemicContractViolation`.
 
-7. **Procesne/dôveryhodnostne izolovaný oponent (`IsolatedAdversarialCritic`):**
-   - Oddelený hodnotiaci kontext s parametrizovanou vedou riadenou politikou (`AdversarialCriticPolicy`), ktorý nezdieľa stav s navrhovateľom ani orchestrátorom.
+7. **Komponentovo oddelený oponent (`AdversarialCritic`):**
+   - Samostatná trieda s parametrizovanou vedou riadenou politikou (`AdversarialCriticPolicy`) a súkromnou auditnou soľou (`_private_audit_salt`), nezávislá od navrhovateľa zmien.
 
+---
 
+## 7. Milestone V-AUTONOMOUS-RESEARCH-04: Causal Experiment Closure
+
+Milestone V4 definitívne uzatvára kauzálnu slučku experimentálneho cyklu: eliminuje predčasné komitovanie pred meraním, zavádza smerové ciele metrík na zamedzenie akceptácie regresií a premieňa systém na plne uzatvorený fyzický experimentálny runtime.
+
+> ### Ústredný invariant V4 (Core Invariant)
+> $$\boxed{\text{KnowledgePromotion} \Longrightarrow \text{Actuated}_{\text{physical}} \land \text{Measured}_{\text{physical}} \land \text{ObjectiveSatisfied} \land \text{IndependentAudit} \land \text{ReceiptValid}}$$
+
+### Dvojfázový stavový automat kauzálneho experimentu (Causal State Machine):
+
+```text
+                  [ PLANNED ]
+                       │
+                       ▼
+             [ BASELINE_MEASURED ]
+        (HostTelemetrySampler fyzicky odmeria
+         východiskový stav pred zásahom)
+                       │
+                       ▼
+                 [ ACTUATED ]
+         (PolicyEngine.begin_transaction:
+          zamkne doménu, GroundedCapabilityAdapter
+          fyzicky modifikuje OS hostiteľa)
+                       │
+                       ▼
+               [ POST_MEASURED ]
+        (Fyzické meranie prebieha POČAS TOHO,
+         ako je zásah aktívny na hostiteľskom OS.
+         ŽIADNY commit pred meraním!)
+                       │
+                       ▼
+                  [ AUDITED ]
+        (Directional Objective Check +
+         AdversarialCritic audit)
+                 │           │
+           (Approved)    (Rejected/Regressed/Confounded)
+                 │           │
+                 ▼           ▼
+            [ COMMIT ]  [ ROLLBACK ]
+                 │           │
+                 └─────┬─────┘
+                       ▼
+             [ RECEIPT_FINALIZED ]
+       (Injektívny float-hex digest +
+        HMAC-SHA256 origin attestation)
+                       │
+                       ▼
+             [ KNOWLEDGE_ELIGIBLE ]
+       (Append-only KnowledgeRevisionReceipt
+        iba pri splnení všetkých invariantov)
+```
+
+### Kľúčové architektonické uzávery V4:
+
+1. **Odstránenie inverzie komitovania (Two-Phase Grounded Execution):**
+   - V predchádzajúcich verziách Policy Engine komitoval pred tým, než bolo vykonané reálne fyzické post-meranie (spoliehal sa na syntetickú predikciu).
+   - `PolicyEngine.execute_grounded_transaction()` teraz vykonáva live callback `post_measurement_sampler()` priamo vo vnútri aktívneho transakčného bloku (`begin_transaction` $\to$ `physical_sample` $\to$ `audit` $\to$ `commit/rollback`).
+   - Tým je zaručené, že rozhodnutie o commite/rollbacku vychádza výhradne z fyzického stavu hostiteľa.
+
+2. **Smerové ciele metrík (`MetricObjective`) a blokovanie regresií:**
+   - Zavedená explicitná smerovosť:
+     - `MINIMIZE`: Latencia, alokácia pamäte, stall rate (zlepšenie = $post < baseline \times (1 - \text{tolerance})$).
+     - `MAXIMIZE`: Throughput, FPS, operácie/s (zlepšenie = $post > baseline \times (1 + \text{tolerance})$).
+     - `TARGET_RANGE`: Udržanie metriky v intervale $[min, max]$.
+   - `AdversarialCritic` pri zmene v opačnom smere okamžite vracia verdikt `REGRESSION_OBSERVED`. Regresia už nikdy nemôže byť považovaná za „významný efekt“ iba preto, že jej absolútna hodnota $|post - baseline|$ prevyšuje noise floor.
+
+3. **Plné prepojenie `GroundedCapabilityAdapter` do `KrystalPolicyEngine`:**
+   - `ClosedLoopResearchOrchestrator` pri inicializácii registruje `GroundedCapabilityAdapter` do `policy_engine.adapters[SubsystemType.CPU]`.
+   - Riadenie Tier 2 (`ENV_VARS`) a Tier 4 (`CGROUPS_OR_JOBOBJECTS` / affinity) tak prebieha na reálnych OS rozhraniach s deterministickou LIFO obnovou.
+
+4. **Multiplatformová fyzická afinita (Windows & Linux):**
+   - Windows: `SetProcessAffinityMask` a `GetProcessAffinityMask` cez `ctypes.windll.kernel32`.
+   - Linux: `os.sched_setaffinity(0, cpus)` a `os.sched_getaffinity(0)`.
+   - Obe platformy podporujú izoláciu jadier aj exaktný rollback pôvodnej masky/množiny jadier.
+
+5. **Matematicky injektívna kanonická serializácia:**
+   - Floaty sa serializujú cez `canonical_float_repr(val) = float(val).hex()`. Eliminuje zaokrúhľovacie kolízie `f"{val:.6f}"` a zaručuje:
+     $$x \neq y \Longrightarrow \text{Serialize}(x) \neq \text{Serialize}(y)$$
+   - Kanonický JSON je formátovaný s deterministicky triedenými kľúčmi a kompaktnými separátormi (`canonical_json_bytes`).
+   - Integrita je zabezpečená cez SHA-256 a kryptografická atestácia pôvodu cez HMAC-SHA256 (`compute_origin_attestation`).
+
+6. **Rozlíšenie úrovne izolácie kritika (Epistemic Honesty):**
+   - V rámci jedného procesu je kritik označený ako **component-separated**, nie process-isolated.
+   - Pre budúce sieťové/kontajnerové nasadenie je pripravený formát `ExperimentReceipt` ako nemenný vstup pre externý podpisovaný `CritiqueReceipt`.

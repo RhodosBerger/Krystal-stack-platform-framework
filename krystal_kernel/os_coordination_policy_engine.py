@@ -629,6 +629,10 @@ class KrystalPolicyEngine:
             SubsystemType.NETWORK: CapabilityNetworkAdapter(self.provider),
         }
 
+    def register_adapter(self, subsystem: SubsystemType, adapter: CapabilityBasedThinAdapter) -> None:
+        """Registers or replaces an adapter (e.g. grounded physical capability adapter)."""
+        self.adapters[subsystem] = adapter
+
     def execute_transaction(
         self,
         transaction: CoordinationTransaction,
@@ -671,4 +675,66 @@ class KrystalPolicyEngine:
                 "outcome": "COMMITTED",
                 "transaction": transaction.to_dict(),
                 "verdict": audit_res,
+            }
+
+    def execute_grounded_transaction(
+        self,
+        transaction: CoordinationTransaction,
+        baseline_metric: float,
+        post_measurement_sampler: Callable[[], float],
+        falsifier_triggered: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Executes a causal closed-loop transaction where post-change measurement
+        is taken physically on the host WHILE the transaction is active.
+        Never commits prior to post-measurement.
+        """
+        # 1. Begin transaction (acquires domain locks & physically actuates actions on host)
+        self.stack.begin_transaction(transaction, self.adapters)
+
+        # 2. Physical measurement sampled WHILE transaction is active on the OS
+        try:
+            actual_post = post_measurement_sampler()
+        except Exception as sample_err:
+            rollback_res = self.stack.rollback_transaction(
+                transaction_id=transaction.transaction_id,
+                reason=f"Grounded post-measurement failed: {sample_err}",
+            )
+            return {
+                "outcome": "ROLLED_BACK",
+                "transaction": transaction.to_dict(),
+                "verdict": {"verdict": "REJECT_AND_ROLLBACK", "reason": f"Sampling failure: {sample_err}", "should_rollback": True},
+                "rollback": rollback_res,
+                "actual_post_metric": baseline_metric,
+            }
+
+        # 3. Independent audit with actual physically sampled post-metric
+        audit_res = self.evaluator.audit_transaction(
+            transaction=transaction,
+            proposer=self.proposer,
+            baseline=baseline_metric,
+            post_change=actual_post,
+            falsifier_triggered=falsifier_triggered,
+        )
+
+        # 4. Commit or Rollback based on audited physical outcome
+        if audit_res["should_rollback"]:
+            rollback_res = self.stack.rollback_transaction(
+                transaction_id=transaction.transaction_id,
+                reason=audit_res["reason"],
+            )
+            return {
+                "outcome": "ROLLED_BACK",
+                "transaction": transaction.to_dict(),
+                "verdict": audit_res,
+                "rollback": rollback_res,
+                "actual_post_metric": actual_post,
+            }
+        else:
+            self.stack.commit_transaction(transaction.transaction_id)
+            return {
+                "outcome": "COMMITTED",
+                "transaction": transaction.to_dict(),
+                "verdict": audit_res,
+                "actual_post_metric": actual_post,
             }

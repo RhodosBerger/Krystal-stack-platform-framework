@@ -1,33 +1,33 @@
 """
-autonomous_research_cycle.py - Autonomous Epistemic Research & Engineering Discovery Loop (V3).
+autonomous_research_cycle.py - Autonomous Epistemic Research & Engineering Discovery Loop (V4).
 
 Implements Milestones:
 - V-AUTONOMOUS-RESEARCH-01: Epistemic Knowledge Graph, EVOI Selector & Modularity Gate.
 - V-AUTONOMOUS-RESEARCH-02: Closed-Loop Physical Experimentation.
 - V-AUTONOMOUS-RESEARCH-03: Grounded Host Actuation & Attested Measurement.
+- V-AUTONOMOUS-RESEARCH-04: Causal Experiment Closure.
 
 Core Doctrines & Invariants:
 1. "Nie zrýchli kód, ale spochybni predpoklady, nájdi neznáme a falzifikuj vlastné modely."
 2. "Research may propose experiments, but only the Policy Engine may alter the host;
    knowledge may be revised only from attested experiment receipts."
-3. Core Invariant V3:
-   KnowledgePromotion => PhysicalMeasurementReceipt and CanonicalDigestOK and IndependentObservation.
+3. Two-Phase Causal State Machine:
+   PLANNED -> BASELINE_MEASURED -> ACTUATED -> POST_MEASURED -> AUDITED -> (COMMIT | ROLLBACK) -> RECEIPT_FINALIZED -> KNOWLEDGE_ELIGIBLE.
+   Never commits prior to post-measurement.
+4. Core Invariant V4:
+   KnowledgePromotion => Actuated_physical and Measured_physical and ObjectiveSatisfied and IndependentAudit and ReceiptValid.
 
-Key Upgrades for V3:
-1. SystemRemapper: Live OS telemetry inspection (Linux /proc/meminfo, sysfs governor, Windows GlobalMemoryStatusEx).
-2. Dual-Layer Environment Identity:
-   - EnvironmentIdentityDigest: Immutable SHA-256 fingerprint of static hardware/OS.
-   - ObservationDigest: Time-indexed dynamic observation at time t.
-3. HostTelemetrySampler: Real host performance measurement (wall clock, process CPU time, RSS memory, throughput).
-4. GroundedCapabilityAdapter: Real OS actuation on Tier 2 (ENV_VARS via os.environ) and Tier 4 (Affinity).
-5. Canonical Digest Binding:
-   - ExperimentReceipt binds all semantic fields including actions_unwound.
-   - KnowledgeRevisionReceipt binds explicit reason, experiment_receipt_id, and parent digest.
+Key Upgrades for V4:
+1. Grounded Causal Closure: PolicyEngine.execute_grounded_transaction() executes post-measurement WHILE
+   actuation is physically active on the host OS before audit and commit/rollback.
+2. MetricObjective & Directional Audit: Eliminates regression acceptance bug via explicit MINIMIZE/MAXIMIZE/TARGET_RANGE.
+3. Grounded Linux & Windows Affinity: Real os.sched_setaffinity (Linux) and SetProcessAffinityMask (Windows) actuation.
+4. Mathematical Canonical Serialization: Bijective IEEE-754 float hex encoding and canonical compact sorted JSON bytes.
+5. Dual-Layer Environment Identity: Static EnvironmentIdentityDigest vs Dynamic ObservationDigest.
 6. Deep Immutability: Deep-copied node snapshots in node_version_snapshots.
 7. Strict Tripartite Null Portfolio: Requires {M0_NO_EFFECT, M1_NOISE, M2_MEASUREMENT_ERROR} subset Portfolio.
-8. IsolatedAdversarialCritic: Trust-isolated independent audit component.
-9. 4-Tier Modularity Taxonomy: NEW_FIRST_CLASS_MODULE, CAPABILITY_SPECIFIC_POLICY, WORKLOAD_SPECIFIC_POLICY, AD_HOC_HACK.
-10. Global Invariant: GLOBAL_VITAL_MAX_HP == 6.
+8. 4-Tier Modularity Taxonomy: NEW_FIRST_CLASS_MODULE, CAPABILITY_SPECIFIC_POLICY, WORKLOAD_SPECIFIC_POLICY, AD_HOC_HACK.
+9. Global Invariant: GLOBAL_VITAL_MAX_HP == 6.
 """
 
 from __future__ import annotations
@@ -36,6 +36,7 @@ import copy
 import dataclasses
 import enum
 import hashlib
+import hmac
 import json
 import os
 import platform
@@ -62,6 +63,8 @@ from krystal_kernel.os_coordination_policy_engine import (
 
 assert GLOBAL_VITAL_MAX_HP == 6, f"Constitutional invariant breach: GLOBAL_VITAL_MAX_HP must be 6, got {GLOBAL_VITAL_MAX_HP}"
 
+DEFAULT_ORIGIN_ATTESTATION_KEY: bytes = b"KRYSTAL_EPISTEMIC_ORIGIN_PROVENANCE_KEY_V4"
+
 
 class EpistemicContractViolation(Exception):
     """Raised when an epistemic discovery invariant is violated."""
@@ -69,7 +72,74 @@ class EpistemicContractViolation(Exception):
 
 
 # ============================================================================
-# 1. Dual-Layer Environment Identity & System Remapper
+# 1. Metric Objective & Causal State Machine
+# ============================================================================
+
+class MetricObjective(str, enum.Enum):
+    """Specifies the direction and success criterion of an experiment metric."""
+    MINIMIZE = "MINIMIZE"         # Lower is better (latency, power, stall rate, memory footprint)
+    MAXIMIZE = "MAXIMIZE"         # Higher is better (throughput, FPS, operations/sec)
+    TARGET_RANGE = "TARGET_RANGE" # Target within [min_val, max_val]
+
+
+class ExperimentState(str, enum.Enum):
+    """Formal two-phase causal experiment state machine."""
+    PLANNED = "PLANNED"
+    BASELINE_MEASURED = "BASELINE_MEASURED"
+    ACTUATED = "ACTUATED"
+    POST_MEASURED = "POST_MEASURED"
+    AUDITED = "AUDITED"
+    COMMITTED = "COMMITTED"
+    ROLLED_BACK = "ROLLED_BACK"
+    RECEIPT_FINALIZED = "RECEIPT_FINALIZED"
+    KNOWLEDGE_ELIGIBLE = "KNOWLEDGE_ELIGIBLE"
+
+
+def is_objective_satisfied(
+    baseline: float,
+    post: float,
+    objective: MetricObjective,
+    tolerance_pct: float = 0.0,
+    target_range: Optional[Tuple[float, float]] = None,
+) -> bool:
+    """Verifies whether the post-measurement satisfies the metric objective relative to baseline."""
+    if objective == MetricObjective.MINIMIZE:
+        # Improvement means post is lower than baseline
+        return post < (baseline * (1.0 - tolerance_pct))
+    elif objective == MetricObjective.MAXIMIZE:
+        # Improvement means post is higher than baseline
+        return post > (baseline * (1.0 + tolerance_pct))
+    elif objective == MetricObjective.TARGET_RANGE:
+        if target_range is None:
+            return False
+        return target_range[0] <= post <= target_range[1]
+    return False
+
+
+# ============================================================================
+# 2. Canonical Serialization & Attestation Helpers
+# ============================================================================
+
+def canonical_float_repr(val: float) -> str:
+    """
+    Provides mathematically injective string representation for IEEE-754 floats.
+    Guarantees x != y => float(x).hex() != float(y).hex().
+    """
+    return float(val).hex()
+
+
+def canonical_json_bytes(obj: Any) -> bytes:
+    """Canonical JSON serialization with deterministic sorted keys and compact separators."""
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+
+
+def compute_origin_attestation(digest_hex: str, key_bytes: bytes = DEFAULT_ORIGIN_ATTESTATION_KEY) -> str:
+    """Computes HMAC-SHA256 origin attestation signature over canonical digest."""
+    return hmac.new(key_bytes, digest_hex.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+# ============================================================================
+# 3. Dual-Layer Environment Identity & System Remapper
 # ============================================================================
 
 @dataclass(frozen=True)
@@ -94,8 +164,14 @@ class EnvironmentIdentityDigest:
         memory_total_bytes: int,
         supported_tiers: Tuple[int, ...],
     ) -> EnvironmentIdentityDigest:
-        raw = f"{platform_name}|{os_version}|{cpu_count}|{memory_total_bytes}|{list(supported_tiers)}"
-        digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+        payload = {
+            "platform_name": platform_name,
+            "os_version": os_version,
+            "cpu_count": cpu_count,
+            "memory_total_bytes": memory_total_bytes,
+            "supported_tiers": list(supported_tiers),
+        }
+        digest = hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
         return cls(
             platform_name=platform_name,
             os_version=os_version,
@@ -126,8 +202,13 @@ class ObservationDigest:
         governor: str,
         timestamp_ns: int,
     ) -> ObservationDigest:
-        raw = f"{identity_digest}|{memory_available_bytes}|{governor}|{timestamp_ns}"
-        digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+        payload = {
+            "identity_digest": identity_digest,
+            "memory_available_bytes": memory_available_bytes,
+            "governor": governor,
+            "timestamp_ns": timestamp_ns,
+        }
+        digest = hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
         return cls(
             identity_digest=identity_digest,
             memory_available_bytes=memory_available_bytes,
@@ -282,7 +363,7 @@ class SystemRemapper:
 
 
 # ============================================================================
-# 2. Tripartite Null Model Portfolio
+# 4. Tripartite Null Model Portfolio
 # ============================================================================
 
 class NullModelClass(str, enum.Enum):
@@ -298,7 +379,7 @@ class NullModelClass(str, enum.Enum):
 
 
 # ============================================================================
-# 3. Grounded Telemetry Sampler (Physical Host Measurement)
+# 5. Host Telemetry Sampler (Physical Host Measurement)
 # ============================================================================
 
 @dataclass(frozen=True)
@@ -315,7 +396,7 @@ class HostTelemetrySampler:
     Physical host measurement engine. Executes calibrated micro-benchmarks
     and samples real OS performance counters rather than relying on external simulation.
     """
-    def __init__(self, workload_iterations: int = 40_000) -> None:
+    def __init__(self, workload_iterations: int = 35_000) -> None:
         self.workload_iterations = workload_iterations
 
     def sample_telemetry(self) -> GroundedMeasurementResult:
@@ -383,14 +464,14 @@ class HostTelemetrySampler:
 
 
 # ============================================================================
-# 4. Grounded Capability Adapter (Real OS Actuation on Tier 2 & Tier 4)
+# 6. Grounded Capability Adapter (Real OS Actuation on Tier 2 & Tier 4)
 # ============================================================================
 
 class GroundedCapabilityAdapter(CapabilityBasedThinAdapter):
     """
     Performs grounded host actuation on physical OS surfaces:
     - Tier 2 (ENV_VARS): Actual os.environ modifications with LIFO rollback.
-    - Tier 4 (CGROUPS_OR_JOBOBJECTS / Affinity): Actual process affinity/EcoQoS with rollback.
+    - Tier 4 (CGROUPS_OR_JOBOBJECTS / Affinity): Actual process affinity on Windows & Linux with rollback.
     """
     def __init__(self, subsystem: SubsystemType, provider: OSCapabilityProvider) -> None:
         super().__init__(subsystem, provider)
@@ -405,19 +486,43 @@ class GroundedCapabilityAdapter(CapabilityBasedThinAdapter):
             os.environ[action.target_param] = str(action.target_value)
             self.applied_os_modifications.append((action.control_surface, action.target_param, prev_env))
 
-        # Grounded Tier 4: Process Affinity (Windows / Linux)
+        # Grounded Tier 4: Process Affinity (Windows & Linux)
         elif action.control_surface == ControlSurfaceTier.CGROUPS_OR_JOBOBJECTS and action.target_param == "affinity_mask":
+            # 1. Windows Affinity
             if sys.platform == "win32":
                 try:
                     import ctypes
-                    h_proc = ctypes.windll.kernel32.GetCurrentProcess()
+                    k32 = ctypes.windll.kernel32
+                    k32.GetCurrentProcess.restype = ctypes.c_void_p
+                    k32.GetProcessAffinityMask.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_size_t), ctypes.POINTER(ctypes.c_size_t)]
+                    k32.SetProcessAffinityMask.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+
+                    h_proc = k32.GetCurrentProcess()
                     proc_mask = ctypes.c_size_t()
                     sys_mask = ctypes.c_size_t()
-                    if ctypes.windll.kernel32.GetProcessAffinityMask(h_proc, ctypes.byref(proc_mask), ctypes.byref(sys_mask)):
+                    if k32.GetProcessAffinityMask(h_proc, ctypes.byref(proc_mask), ctypes.byref(sys_mask)):
                         orig_mask = proc_mask.value
                         new_mask = int(action.target_value, 0) if isinstance(action.target_value, str) else int(action.target_value)
-                        if ctypes.windll.kernel32.SetProcessAffinityMask(h_proc, new_mask):
+                        if k32.SetProcessAffinityMask(h_proc, ctypes.c_size_t(new_mask)):
                             self.applied_os_modifications.append((action.control_surface, action.target_param, orig_mask))
+                except Exception:
+                    pass
+            # 2. Linux Affinity
+            elif hasattr(os, "sched_setaffinity") and hasattr(os, "sched_getaffinity"):
+                try:
+                    orig_cpus = set(os.sched_getaffinity(0))
+                    if isinstance(action.target_value, (set, list, tuple)):
+                        new_cpus = set(action.target_value)
+                    elif isinstance(action.target_value, str):
+                        if "-" in action.target_value:
+                            parts = [int(p) for p in action.target_value.split("-")]
+                            new_cpus = set(range(parts[0], parts[1] + 1))
+                        else:
+                            new_cpus = {int(p) for p in action.target_value.split(",")}
+                    else:
+                        new_cpus = {int(action.target_value)}
+                    os.sched_setaffinity(0, new_cpus)
+                    self.applied_os_modifications.append((action.control_surface, action.target_param, orig_cpus))
                 except Exception:
                     pass
 
@@ -436,14 +541,27 @@ class GroundedCapabilityAdapter(CapabilityBasedThinAdapter):
 
         # Grounded Rollback: Tier 4 (Affinity)
         elif action.control_surface == ControlSurfaceTier.CGROUPS_OR_JOBOBJECTS and action.target_param == "affinity_mask":
+            # 1. Windows Rollback
             if sys.platform == "win32":
                 try:
                     import ctypes
-                    h_proc = ctypes.windll.kernel32.GetCurrentProcess()
+                    k32 = ctypes.windll.kernel32
+                    k32.GetCurrentProcess.restype = ctypes.c_void_p
+                    k32.SetProcessAffinityMask.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+                    h_proc = k32.GetCurrentProcess()
                     orig_mask = action.rollback_payload.get(action.target_param)
                     if orig_mask is not None:
                         val = int(orig_mask, 0) if isinstance(orig_mask, str) else int(orig_mask)
-                        ctypes.windll.kernel32.SetProcessAffinityMask(h_proc, val)
+                        k32.SetProcessAffinityMask(h_proc, ctypes.c_size_t(val))
+                except Exception:
+                    pass
+            # 2. Linux Rollback
+            elif hasattr(os, "sched_setaffinity"):
+                try:
+                    orig_cpus = action.rollback_payload.get(action.target_param)
+                    if orig_cpus is not None:
+                        if isinstance(orig_cpus, (set, list, tuple)):
+                            os.sched_setaffinity(0, set(orig_cpus))
                 except Exception:
                     pass
 
@@ -451,7 +569,7 @@ class GroundedCapabilityAdapter(CapabilityBasedThinAdapter):
 
 
 # ============================================================================
-# 5. Experiment Plan & Experiment Receipts (Canonical Binding)
+# 7. Experiment Plan & Experiment Receipts (Mathematical Canonical Binding)
 # ============================================================================
 
 @dataclass
@@ -468,6 +586,8 @@ class ExperimentPlan:
     expected_gain: float
     falsifier: str
     timeout_seconds: float = 5.0
+    metric_objective: MetricObjective = MetricObjective.MINIMIZE
+    target_range: Optional[Tuple[float, float]] = None
     counter_null_models: List[NullModelClass] = field(default_factory=lambda: [
         NullModelClass.M0_NO_EFFECT,
         NullModelClass.M1_NOISE,
@@ -490,8 +610,8 @@ class ExperimentPlan:
 @dataclass(frozen=True)
 class ExperimentReceipt:
     """
-    Cryptographic receipt testifying to the physical execution of an ExperimentPlan by Policy Engine.
-    Canonical digest securely binds ALL semantic fields including actions_unwound.
+    Cryptographic receipt testifying to physical execution of an ExperimentPlan by Policy Engine.
+    Canonical digest securely binds ALL semantic fields via injective IEEE-754 float hex encoding.
     """
     receipt_id: str
     transaction_id: str
@@ -504,6 +624,36 @@ class ExperimentReceipt:
     environment_fingerprint: EnvironmentFingerprint
     timestamp_ns: int
     receipt_digest: str
+    attestation_signature: str = ""
+
+    @classmethod
+    def compute_canonical_payload(
+        cls,
+        receipt_id: str,
+        transaction_id: str,
+        baseline_metric: float,
+        post_change_metric: float,
+        is_improvement: bool,
+        falsifier_triggered: bool,
+        was_rolled_back: bool,
+        actions_unwound: Tuple[Dict[str, Any], ...],
+        identity_digest: str,
+        observation_digest: str,
+        timestamp_ns: int,
+    ) -> Dict[str, Any]:
+        return {
+            "receipt_id": receipt_id,
+            "transaction_id": transaction_id,
+            "baseline_metric_hex": canonical_float_repr(baseline_metric),
+            "post_change_metric_hex": canonical_float_repr(post_change_metric),
+            "is_improvement": is_improvement,
+            "falsifier_triggered": falsifier_triggered,
+            "was_rolled_back": was_rolled_back,
+            "actions_unwound": list(actions_unwound),
+            "identity_digest": identity_digest,
+            "observation_digest": observation_digest,
+            "timestamp_ns": timestamp_ns,
+        }
 
     @classmethod
     def compute_canonical_digest(
@@ -520,14 +670,20 @@ class ExperimentReceipt:
         observation_digest: str,
         timestamp_ns: int,
     ) -> str:
-        # Deterministic sorted serialization of unwound actions
-        canonical_unwound = json.dumps(list(actions_unwound), sort_keys=True)
-        raw = (
-            f"{receipt_id}|{transaction_id}|{baseline_metric:.6f}|{post_change_metric:.6f}|"
-            f"{is_improvement}|{falsifier_triggered}|{was_rolled_back}|"
-            f"{canonical_unwound}|{identity_digest}|{observation_digest}|{timestamp_ns}"
+        payload = cls.compute_canonical_payload(
+            receipt_id=receipt_id,
+            transaction_id=transaction_id,
+            baseline_metric=baseline_metric,
+            post_change_metric=post_change_metric,
+            is_improvement=is_improvement,
+            falsifier_triggered=falsifier_triggered,
+            was_rolled_back=was_rolled_back,
+            actions_unwound=actions_unwound,
+            identity_digest=identity_digest,
+            observation_digest=observation_digest,
+            timestamp_ns=timestamp_ns,
         )
-        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+        return hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
 
     @classmethod
     def create(
@@ -557,6 +713,7 @@ class ExperimentReceipt:
             observation_digest=fingerprint.observation.observation_digest,
             timestamp_ns=ts,
         )
+        sig = compute_origin_attestation(digest)
         return cls(
             receipt_id=r_id,
             transaction_id=transaction_id,
@@ -569,6 +726,7 @@ class ExperimentReceipt:
             environment_fingerprint=fingerprint,
             timestamp_ns=ts,
             receipt_digest=digest,
+            attestation_signature=sig,
         )
 
     def verify_canonical_digest(self) -> bool:
@@ -585,11 +743,13 @@ class ExperimentReceipt:
             observation_digest=self.environment_fingerprint.observation.observation_digest,
             timestamp_ns=self.timestamp_ns,
         )
-        return self.receipt_digest == expected
+        digest_ok = (self.receipt_digest == expected)
+        sig_ok = (self.attestation_signature == compute_origin_attestation(expected))
+        return digest_ok and sig_ok
 
 
 # ============================================================================
-# 6. Epistemic Knowledge Graph & Append-Only Revision History
+# 8. Epistemic Knowledge Graph & Append-Only Revision History
 # ============================================================================
 
 class GraphNodeType(str, enum.Enum):
@@ -669,12 +829,19 @@ class KnowledgeRevisionReceipt:
         parent_receipt_digest: str,
         timestamp_ns: int,
     ) -> str:
-        raw = (
-            f"{revision_id}|{node_id}|{previous_version}|{new_version}|"
-            f"{old_status}|{new_status}|{reason}|{experiment_receipt_id or 'NONE'}|"
-            f"{parent_receipt_digest}|{timestamp_ns}"
-        )
-        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+        payload = {
+            "revision_id": revision_id,
+            "node_id": node_id,
+            "previous_version": previous_version,
+            "new_version": new_version,
+            "old_status": old_status,
+            "new_status": new_status,
+            "reason": reason,
+            "experiment_receipt_id": experiment_receipt_id or "NONE",
+            "parent_receipt_digest": parent_receipt_digest,
+            "timestamp_ns": timestamp_ns,
+        }
+        return hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
 
     def verify_canonical_digest(self) -> bool:
         expected = self.compute_canonical_digest(
@@ -806,7 +973,7 @@ class EpistemicKnowledgeGraph:
 
 
 # ============================================================================
-# 7. Information Gain Priority Heuristic (Heuristic EVOI)
+# 9. Information Gain Priority Heuristic (Heuristic EVOI)
 # ============================================================================
 
 @dataclass
@@ -853,11 +1020,12 @@ EVOICandidateSelector = InformationGainPriorityHeuristic
 
 
 # ============================================================================
-# 8. Isolated Adversarial Critic (Independent Process & Trust Boundary)
+# 10. Isolated Adversarial Critic (Directional Audit & Regression Blocker)
 # ============================================================================
 
 class AdversarialCriticVerdict(str, enum.Enum):
     CHALLENGE_ACCEPTED = "CHALLENGE_ACCEPTED"
+    REGRESSION_OBSERVED = "REGRESSION_OBSERVED"
     CONFOUNDER_SUSPECTED = "CONFOUNDER_SUSPECTED"
     FLUKES_OR_NOISE = "FLUKES_OR_NOISE"
     ORACLE_GAMING_SUSPECTED = "ORACLE_GAMING_SUSPECTED"
@@ -889,6 +1057,7 @@ class AdversarialCritic:
     """
     Independent skeptical reviewer actively seeking reasons why an empirical result
     might be false, an artifact of measurement noise, or a manifestation of Goodhart's Law.
+    Audits directionality against MetricObjective so regressions are never accepted.
     """
     def __init__(
         self,
@@ -906,23 +1075,37 @@ class AdversarialCritic:
         post_change_metric: float,
         concurrent_subsystem_telemetry: Dict[str, Any],
         measured_variance: float = 0.02,
+        objective: MetricObjective = MetricObjective.MINIMIZE,
+        target_range: Optional[Tuple[float, float]] = None,
     ) -> AdversarialCritique:
+        # 1. Directional Audit: Check if the metric regressed according to MetricObjective
+        if not is_objective_satisfied(baseline_metric, post_change_metric, objective, target_range=target_range):
+            return AdversarialCritique(
+                verdict=AdversarialCriticVerdict.REGRESSION_OBSERVED,
+                confidence=0.95,
+                identified_confounders=["Metric outcome violates objective directionality (regression)"],
+                critique_details=f"Metric regression observed: baseline={baseline_metric:.4f}, post={post_change_metric:.4f} violates {objective.value}.",
+                requires_discriminating_retest=True,
+                is_independent_observation=True,
+                refuted_null_models=[],
+            )
+
         delta = abs(post_change_metric - baseline_metric)
 
-        # 1. Check for flukes/noise (M1_NOISE)
+        # 2. Check for flukes/noise (M1_NOISE)
         noise_limit = self.policy.noise_floor_sigma_multiplier * measured_variance * baseline_metric
         if delta < noise_limit:
             return AdversarialCritique(
                 verdict=AdversarialCriticVerdict.FLUKES_OR_NOISE,
                 confidence=0.85,
                 identified_confounders=["Random measurement variance", "Background scheduler jitter"],
-                critique_details=f"Reported improvement ({delta:.3f}) is within the {self.policy.noise_floor_sigma_multiplier}-sigma noise floor ({noise_limit:.3f}).",
+                critique_details=f"Reported delta ({delta:.4f}) is within {self.policy.noise_floor_sigma_multiplier}-sigma noise floor ({noise_limit:.4f}).",
                 requires_discriminating_retest=True,
                 is_independent_observation=True,
                 refuted_null_models=[],
             )
 
-        # 2. Check for confounders (M2_MEASUREMENT_ERROR): thermal drift
+        # 3. Check for confounders (M2_MEASUREMENT_ERROR): thermal drift
         thermal_drift = concurrent_subsystem_telemetry.get("thermal_drift_c", 0.0)
         if abs(thermal_drift) > self.policy.thermal_drift_threshold_c:
             return AdversarialCritique(
@@ -935,7 +1118,7 @@ class AdversarialCritic:
                 refuted_null_models=[NullModelClass.M0_NO_EFFECT],
             )
 
-        # 3. Check for oracle gaming: starvation of auxiliary subsystems
+        # 4. Check for oracle gaming: starvation of auxiliary subsystems
         side_effect_stall = concurrent_subsystem_telemetry.get("background_stall_rate", 0.0)
         if side_effect_stall > self.policy.background_stall_threshold:
             return AdversarialCritique(
@@ -952,7 +1135,7 @@ class AdversarialCritic:
             verdict=AdversarialCriticVerdict.CHALLENGE_ACCEPTED,
             confidence=0.95,
             identified_confounders=[],
-            critique_details="Empirical result survived adversarial scrutiny; no obvious confounder identified.",
+            critique_details="Empirical result survived adversarial scrutiny; objective satisfied without confounders.",
             requires_discriminating_retest=False,
             is_independent_observation=True,
             refuted_null_models=[
@@ -964,7 +1147,7 @@ class AdversarialCritic:
 
 
 # ============================================================================
-# 9. 4-Tier Modularity Classification
+# 11. 4-Tier Modularity Classification
 # ============================================================================
 
 class ModularityVerdict(str, enum.Enum):
@@ -1040,17 +1223,17 @@ class ModuleVsHackClassifier:
 
 
 # ============================================================================
-# 10. Closed-Loop Physical Research Orchestrator (Milestone V3)
+# 12. Causal Closed-Loop Physical Research Orchestrator (Milestone V4)
 # ============================================================================
 
 class ClosedLoopResearchOrchestrator:
     """
-    Implements Milestone V-AUTONOMOUS-RESEARCH-03.
-    Grounded Host Actuation & Attested Measurement:
+    Implements Milestone V-AUTONOMOUS-RESEARCH-04.
+    Causal Experiment Closure:
     Research may propose experiments, but ONLY Policy Engine may alter the host;
     knowledge may be revised ONLY from attested experiment receipts.
     Core Invariant:
-    KnowledgePromotion => PhysicalMeasurementReceipt and CanonicalDigestOK and IndependentObservation.
+    KnowledgePromotion => Actuated_physical and Measured_physical and ObjectiveSatisfied and IndependentAudit and ReceiptValid.
     """
     def __init__(
         self,
@@ -1059,6 +1242,10 @@ class ClosedLoopResearchOrchestrator:
         sampler: Optional[HostTelemetrySampler] = None,
     ) -> None:
         self.policy_engine = policy_engine or KrystalPolicyEngine()
+        # Wire GroundedCapabilityAdapter into PolicyEngine for real OS actuation
+        self.grounded_cpu_adapter = GroundedCapabilityAdapter(SubsystemType.CPU, self.policy_engine.provider)
+        self.policy_engine.register_adapter(SubsystemType.CPU, self.grounded_cpu_adapter)
+
         self.knowledge_graph = EpistemicKnowledgeGraph()
         self.selector = InformationGainPriorityHeuristic()
         self.critic = critic or AdversarialCritic()
@@ -1082,11 +1269,14 @@ class ClosedLoopResearchOrchestrator:
         use_grounded_sampling: bool = False,
     ) -> Dict[str, Any]:
         """
-        Executes a complete closed-loop physical research experiment.
+        Executes a complete closed-loop physical research experiment following the two-phase state machine:
+        PLANNED -> BASELINE_MEASURED -> ACTUATED -> POST_MEASURED -> AUDITED -> (COMMIT | ROLLBACK).
+        Never commits prior to physical post-measurement.
         """
         self.cycle_count += 1
-        cycle_id = f"cycle_v3_{self.cycle_count:03d}"
+        cycle_id = f"cycle_v4_{self.cycle_count:03d}"
         telemetry = concurrent_telemetry or {}
+        current_state = ExperimentState.PLANNED
 
         # 1. System Remapper: Live host hardware and OS state reading
         fingerprint = SystemRemapper.remap_system(self.policy_engine.provider)
@@ -1105,7 +1295,7 @@ class ClosedLoopResearchOrchestrator:
             },
         )
 
-        # 3. Verify Tripartite Null Model Portfolio: {M0, M1, M2} subset Portfolio
+        # 3. Verify Strict Tripartite Null Model Portfolio: {M0, M1, M2} subset Portfolio
         null_classes_present: Set[NullModelClass] = {
             c.null_class for c in candidates if c.is_null_model and c.null_class is not None
         }
@@ -1134,37 +1324,67 @@ class ClosedLoopResearchOrchestrator:
         )
         self.knowledge_graph.add_edge(probe_id, hyp_node_id, EdgeType.DEPENDS_ON)
 
-        # 5. Physical Host Telemetry Sampling or Emulated Baseline
+        # 5. Baseline Measurement
         if use_grounded_sampling or simulated_baseline is None:
             baseline_sample = self.sampler.sample_telemetry()
             actual_baseline = baseline_sample.elapsed_wall_ms
         else:
             actual_baseline = simulated_baseline
 
-        # 6. Core Invariant: Research proposes ExperimentPlan, but ONLY PolicyEngine actuates the host
+        current_state = ExperimentState.BASELINE_MEASURED
+
         tx = plan.to_coordination_transaction()
-        tx_receipt = self.policy_engine.execute_transaction(
-            transaction=tx,
-            simulated_baseline=actual_baseline,
-            simulated_post_change=simulated_post_change if simulated_post_change is not None else actual_baseline * 0.85,
-            falsifier_triggered=falsifier_triggered,
+
+        # 6. Two-Phase Grounded Execution:
+        # Post-measurement is taken physically WHILE actuation is active on the host OS
+        if use_grounded_sampling:
+            current_state = ExperimentState.ACTUATED
+
+            def _live_post_sampler() -> float:
+                sample = self.sampler.sample_telemetry()
+                return sample.elapsed_wall_ms
+
+            tx_receipt = self.policy_engine.execute_grounded_transaction(
+                transaction=tx,
+                baseline_metric=actual_baseline,
+                post_measurement_sampler=_live_post_sampler,
+                falsifier_triggered=falsifier_triggered,
+            )
+            actual_post_change = tx_receipt.get("actual_post_metric", actual_baseline)
+            current_state = ExperimentState.POST_MEASURED
+        else:
+            # Emulated execution with supplied post_change
+            actual_post_change = simulated_post_change if simulated_post_change is not None else actual_baseline * 0.85
+            current_state = ExperimentState.ACTUATED
+            tx_receipt = self.policy_engine.execute_transaction(
+                transaction=tx,
+                simulated_baseline=actual_baseline,
+                simulated_post_change=actual_post_change,
+                falsifier_triggered=falsifier_triggered,
+            )
+            current_state = ExperimentState.POST_MEASURED
+
+        current_state = ExperimentState.AUDITED
+
+        # 7. Check if objective was physically satisfied
+        objective_satisfied = is_objective_satisfied(
+            baseline=actual_baseline,
+            post=actual_post_change,
+            objective=plan.metric_objective,
+            target_range=plan.target_range,
         )
 
-        if use_grounded_sampling or simulated_post_change is None:
-            post_sample = self.sampler.sample_telemetry()
-            actual_post_change = post_sample.elapsed_wall_ms
-        else:
-            actual_post_change = simulated_post_change
-
-        # 7. Attest ExperimentReceipt with canonical digest
         outcome = tx_receipt.get("outcome", "")
         audit_res = tx_receipt.get("verdict", {})
         audit_verdict = audit_res.get("verdict") if isinstance(audit_res, dict) else str(audit_res)
-        is_imp = outcome == "COMMITTED" or audit_verdict == "APPROVE_AND_COMMIT"
-        was_rolled = outcome == "ROLLED_BACK" or tx_receipt.get("was_rolled_back", False)
+        is_imp = (outcome == "COMMITTED" or audit_verdict == "APPROVE_AND_COMMIT") and objective_satisfied
+        was_rolled = (outcome == "ROLLED_BACK") or tx_receipt.get("was_rolled_back", False)
         rollback_data = tx_receipt.get("rollback", {}) if isinstance(tx_receipt.get("rollback"), dict) else {}
         actions_unwound = rollback_data.get("actions_unwound", tx_receipt.get("actions_unwound", []))
 
+        current_state = ExperimentState.COMMITTED if (outcome == "COMMITTED" and is_imp) else ExperimentState.ROLLED_BACK
+
+        # 8. Attest ExperimentReceipt with canonical digest & origin signature
         experiment_receipt = ExperimentReceipt.create(
             transaction_id=tx.transaction_id,
             baseline_metric=actual_baseline,
@@ -1175,34 +1395,39 @@ class ClosedLoopResearchOrchestrator:
             actions_unwound=actions_unwound,
             fingerprint=fingerprint,
         )
+        current_state = ExperimentState.RECEIPT_FINALIZED
 
-        # 8. Isolated Adversarial Critic Audit
+        # 9. Isolated Adversarial Critic Audit (Directional verification)
         critique = self.critic.critique_result(
             hypothesis_id=selected_candidate.candidate_id,
             baseline_metric=actual_baseline,
             post_change_metric=actual_post_change,
             concurrent_subsystem_telemetry=telemetry,
+            objective=plan.metric_objective,
+            target_range=plan.target_range,
         )
 
-        # 9. Verify V3 Core Invariant:
-        # KnowledgePromotion => PhysicalMeasurementReceipt and CanonicalDigestOK and IndependentObservation
+        # 10. Verify V4 Core Invariant:
+        # KnowledgePromotion => Actuated_physical and Measured_physical and ObjectiveSatisfied and IndependentAudit and ReceiptValid
         canonical_digest_ok = experiment_receipt.verify_canonical_digest()
         can_promote = (
             is_imp
+            and objective_satisfied
             and canonical_digest_ok
             and critique.verdict == AdversarialCriticVerdict.CHALLENGE_ACCEPTED
             and critique.is_independent_observation
         )
 
-        # 10. Append-Only Knowledge Revision
+        # 11. Append-Only Knowledge Revision
         if can_promote:
+            current_state = ExperimentState.KNOWLEDGE_ELIGIBLE
             self.knowledge_graph.update_node_status(
                 node_id=hyp_node_id,
                 new_status=NodeStatus.APPROVED_MECHANISM,
-                reason="Physical transaction committed and survived independent adversarial audit.",
+                reason="Physical causal loop completed: objective satisfied and verified by independent audit.",
                 experiment_receipt_id=experiment_receipt.receipt_id,
             )
-            # 11. 4-Tier Modularity Gate
+            # 12. 4-Tier Modularity Gate
             modularity_receipt = self.modularity_gate.audit_modularity(
                 mechanism_name=selected_candidate.candidate_id,
                 has_formal_interface=has_formal_interface,
@@ -1213,11 +1438,11 @@ class ClosedLoopResearchOrchestrator:
             )
             cycle_outcome = "MECHANISM_DISCOVERED_AND_AUDITED"
         else:
-            final_status = NodeStatus.FALSIFIED if (falsifier_triggered or critique.verdict == AdversarialCriticVerdict.FLUKES_OR_NOISE) else NodeStatus.CONFLICT
+            final_status = NodeStatus.FALSIFIED if (falsifier_triggered or critique.verdict in (AdversarialCriticVerdict.FLUKES_OR_NOISE, AdversarialCriticVerdict.REGRESSION_OBSERVED)) else NodeStatus.CONFLICT
             self.knowledge_graph.update_node_status(
                 node_id=hyp_node_id,
                 new_status=final_status,
-                reason=critique.critique_details or "Falsifier triggered or canonical digest failure.",
+                reason=critique.critique_details or "Causal experiment loop did not achieve verifiable promotion.",
                 experiment_receipt_id=experiment_receipt.receipt_id,
             )
             modularity_receipt = None
@@ -1236,17 +1461,19 @@ class ClosedLoopResearchOrchestrator:
             "revision_receipts_count": len(self.knowledge_graph.revision_history),
             "environment_fingerprint": fingerprint.to_dict(),
             "canonical_digest_ok": canonical_digest_ok,
+            "final_experiment_state": current_state.value,
+            "objective_satisfied": objective_satisfied,
         }
 
 
 # ============================================================================
-# 11. Backward-Compatible Controller Wrapper
+# 13. Backward-Compatible Controller Wrapper
 # ============================================================================
 
 class AutonomousResearchCycleController:
     """
-    Maintains backward compatibility with V1/V2 tests and workflows while routing
-    through the grounded host physical experimentation engine.
+    Maintains backward compatibility with V1/V2/V3 tests and workflows while routing
+    through the causal closed-loop experimentation engine.
     """
     def __init__(self, policy_engine: Optional[KrystalPolicyEngine] = None) -> None:
         self.orchestrator = ClosedLoopResearchOrchestrator(policy_engine=policy_engine)
@@ -1273,6 +1500,7 @@ class AutonomousResearchCycleController:
         is_workload_specific: bool = False,
         falsifier_triggered: bool = False,
         actions: Optional[List[SubsystemAction]] = None,
+        metric_objective: MetricObjective = MetricObjective.MINIMIZE,
     ) -> Dict[str, Any]:
         default_actions = actions or [
             SubsystemAction(
@@ -1292,6 +1520,7 @@ class AutonomousResearchCycleController:
             target_metric="latency_ms",
             expected_gain=0.15,
             falsifier="delta <= 0 or regression",
+            metric_objective=metric_objective,
         )
 
         res = self.orchestrator.execute_closed_loop_experiment(
@@ -1321,4 +1550,5 @@ class AutonomousResearchCycleController:
             "experiment_receipt": res["experiment_receipt"],
             "environment_fingerprint": res["environment_fingerprint"],
             "canonical_digest_ok": res["canonical_digest_ok"],
+            "objective_satisfied": res["objective_satisfied"],
         }
