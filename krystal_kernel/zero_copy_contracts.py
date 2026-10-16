@@ -70,12 +70,12 @@ ID_TO_VERDICT = {v: k for k, v in VERDICT_TO_ID.items()}
 
 # Struct Layout Format:
 # Header: <I(magic) I(version) H(vital_hp) H(type) I(payload_size) I(flags) -> 20 bytes
-# Identity: <I(seq) I(gen) Q(time_ns) I(cap_scope) Q(nonce) -> 28 bytes
+# Identity: <I(seq) I(gen) I(cap_scope) Q(time_ns) Q(nonce) -> 28 bytes
 # Pred Hash: 32s -> 32 bytes
 # Payload: <H(profile_id) H(verdict_id) I(mask) f(metric1) f(metric2) -> 16 bytes
 # Signature/Digest: 32s -> 32 bytes
 # Total: 20 + 28 + 32 + 16 + 32 = 128 bytes
-FRAME_STRUCT_FORMAT = "<IIHHII IIQIQ 32s HHIff 32s"
+FRAME_STRUCT_FORMAT = "<IIHHII IIIQQ 32s HHIff 32s"
 assert struct.calcsize(FRAME_STRUCT_FORMAT) == ZERO_COPY_FRAME_SIZE, "Frame struct must be exactly 128 bytes!"
 
 
@@ -129,8 +129,8 @@ class ZeroCopyContractFrame:
             self.flags,
             self.sequence_id,
             self.generation_id,
-            self.timestamp_ns,
             self.capability_scope,
+            self.timestamp_ns,
             self.nonce,
             self.predecessor_hash_raw.ljust(32, b"\x00")[:32],
             self.profile_id,
@@ -155,7 +155,7 @@ class ZeroCopyContractFrame:
         values = struct.unpack_from(FRAME_STRUCT_FORMAT, buf, offset)
         (
             magic, version, vital_hp, c_type, p_size, flags,
-            seq_id, gen_id, t_ns, cap_scope, nonce,
+            seq_id, gen_id, cap_scope, t_ns, nonce,
             pred_hash, prof_id, verd_id, mask, m1, m2, sig
         ) = values
 

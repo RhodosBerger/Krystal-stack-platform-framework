@@ -107,30 +107,40 @@ Communication between the injected graphics layer, the central arbiter daemon, a
 ```c
 #pragma pack(push, 1)
 typedef struct {
-    uint32_t magic;               // 0x4B525953 ("KRYS")
-    uint32_t version;             // 2
-    uint16_t vital_hp;            // Inviolable: Must equal 6
-    uint16_t contract_type;       // BinaryContractType (STATE = 1)
-    uint32_t payload_size;        // 16 bytes
-    uint32_t flags;               // QoS & blanking flags
-    uint32_t sequence;            // Monotonic frame index
-    uint32_t generation;          // Policy epoch
-    uint64_t timestamp_ns;        // Hardware timestamp
-    uint32_t cap_scope;           // Capability mask
-    uint64_t nonce;               // Replay prevention
-    uint8_t  predecessor_hash[32];// Causal chain digest
-    uint16_t profile_id;          // NSS profile ID
-    uint16_t verdict_id;          // Arbitration verdict
-    uint32_t mask;                // Actuator mask
-    float    gpu_render_ms;       // Measured GPU frame time
-    float    drs_scale_factor;    // Recommended DRS scale (0.50 - 1.0)
-    uint8_t  signature_digest[32];// SHA-256 tamper-evident digest
+    /* 20-byte Header */
+    uint32_t magic;               // 0x4B525953 ("KRYS") [Offset 0..3]
+    uint32_t version;             // 2                   [Offset 4..7]
+    uint16_t vital_hp;            // Inviolable: Must equal 6 [Offset 8..9]
+    uint16_t contract_type;       // BinaryContractType (STATE = 1) [Offset 10..11]
+    uint32_t payload_size;        // 16 bytes            [Offset 12..15]
+    uint32_t flags;               // QoS & blanking flags [Offset 16..19]
+
+    /* 28-byte Identity (Naturally aligned scalars) */
+    uint32_t sequence;            // Monotonic frame index [Offset 20..23, 4B aligned]
+    uint32_t generation;          // Policy epoch         [Offset 24..27, 4B aligned]
+    uint32_t cap_scope;           // Capability mask      [Offset 28..31, 4B aligned]
+    uint64_t timestamp_ns;        // Hardware timestamp   [Offset 32..39, 8B aligned at 32 % 8 == 0]
+    uint64_t nonce;               // Replay prevention    [Offset 40..47, 8B aligned at 40 % 8 == 0]
+
+    /* 32-byte Causal Digest */
+    uint8_t  predecessor_hash[32];// Causal chain digest  [Offset 48..79, crosses 64B cache line boundary]
+
+    /* 16-byte Payload */
+    uint16_t profile_id;          // NSS profile ID       [Offset 80..81, 2B aligned]
+    uint16_t verdict_id;          // Arbitration verdict  [Offset 82..83, 2B aligned]
+    uint32_t mask;                // Actuator mask        [Offset 84..87, 4B aligned]
+    float    gpu_render_ms;       // Measured GPU frame time [Offset 88..91, 4B aligned]
+    float    drs_scale_factor;    // Recommended DRS scale (0.50 - 1.0) [Offset 92..95, 4B aligned]
+
+    /* 32-byte Cryptographic Signature */
+    uint8_t  signature_digest[32];// SHA-256 tamper-evident digest [Offset 96..127, ends at exact 128B boundary]
 } KrystalZeroCopyFrame;
 #pragma pack(pop)
 ```
 
 **Key Performance Properties:**
-* **Size:** Exactly 128 bytes (occupies exactly two 64-byte CPU cache lines).
+* **Size:** Exactly 128 bytes (occupies exactly two 64-byte CPU cache lines: CL0 = 0..63B, CL1 = 64..127B).
+* **Natural Scalar Alignment:** Every scalar field ($2\text{B}, 4\text{B}, 8\text{B}$) is naturally aligned to its size without padding. Layout is identical with `#pragma pack(1)` or default struct alignment. Eliminates unaligned 64-bit access faults and penalties on ARM64 and RISC-V.
 * **Write Latency:** $< 45\text{ nanoseconds}$ on x86_64 and ARM64.
 * **Lock-Free:** Single-producer single-consumer (SPSC) ring buffer with atomic head/tail pointers.
 * **Constitutional Invariant:** Every frame strictly validates `vital_hp == 6`.

@@ -234,8 +234,8 @@ class GraphicsInterceptionHook:
             flags,
             sequence,
             gen,
-            time_ns,
             cap_scope,
+            time_ns,
             nonce,
             pred_hash,
             profile_id,
@@ -522,12 +522,12 @@ typedef struct {
     uint32_t payload_size;
     uint32_t flags;
 
-    /* 28-byte Identity */
-    uint32_t sequence;
-    uint32_t generation;
-    uint64_t timestamp_ns;
-    uint32_t cap_scope;
-    uint64_t nonce;
+    /* 28-byte Identity (Naturally aligned scalars) */
+    uint32_t sequence;       /* Offset 20..23 (4B naturally aligned) */
+    uint32_t generation;     /* Offset 24..27 (4B naturally aligned) */
+    uint32_t cap_scope;      /* Offset 28..31 (4B naturally aligned) */
+    uint64_t timestamp_ns;   /* Offset 32..39 (8B naturally aligned at 32 % 8 == 0) */
+    uint64_t nonce;          /* Offset 40..47 (8B naturally aligned at 40 % 8 == 0) */
 
     /* 32-byte Predecessor Hash */
     uint8_t  predecessor_hash[32];

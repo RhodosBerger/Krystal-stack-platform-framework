@@ -163,9 +163,15 @@ class TestVUniversalEngineInterposer:
         assert "INTERPOSER_THROTTLED" in d2.action_verdict
 
     def test_06_c_abi_header_export_integrity(self):
-        """Validates C header export contains essential definitions and invariant."""
+        """Validates C header export contains essential definitions, natural scalar alignment, and invariant."""
         header = UniversalEngineInterposer.export_c_header_interface()
         assert "KRYSTAL_NEXUS_API_H" in header
         assert "KRYSTAL_VITAL_MAX_HP      6" in header
         assert "KrystalZeroCopyFrame" in header
         assert "uint8_t  signature_digest[32];" in header
+        # Verify natural alignment order: cap_scope (offset 28) precedes timestamp_ns (offset 32)
+        cap_pos = header.find("uint32_t cap_scope;")
+        time_pos = header.find("uint64_t timestamp_ns;")
+        assert cap_pos != -1 and time_pos != -1
+        assert cap_pos < time_pos, "cap_scope must precede timestamp_ns for natural 8-byte alignment"
+        assert struct.calcsize(FRAME_STRUCT_FORMAT) == 128
