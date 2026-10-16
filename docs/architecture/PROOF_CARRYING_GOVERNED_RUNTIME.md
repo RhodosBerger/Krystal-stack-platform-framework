@@ -372,6 +372,35 @@ To prevent profile oscillation ("breathing" artifacts or micro-stuttering) when 
 ### 13.6 UMA Memory Bus Arbiter & Workload Pacing
 On unified memory architectures (UMA, e.g. Intel Iris Xe sharing system LPDDR4x/5), concurrent execution of `DEEP_REASONING_PIPELINE` (dense weights streaming) and `INTERNAL_ENGINE_RENDERER` (texture sampling and framebuffer scanout) can saturate memory bus bandwidth ($\text{Saturation} \ge 0.78$). The `UmaBandwidthArbiter` dynamically paces epistemic token generation and expands graphics memory bandwidth priority, ensuring deterministic 120 Hz VSync without frame drops.
 
+---
+
+## 14. Milestone V-EPISTEMIC-END-TO-END-01: Governed Epistemic Reasoning Pipeline, UMA Token Pacing & Tier-3 Zero-Copy Ingestion
+
+Milestone **V-EPISTEMIC-END-TO-END-01** (see [krystal_kernel/epistemic_governed_worker.py](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_kernel/epistemic_governed_worker.py) and [krystal_bot/epistemic_worker.py](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_bot/epistemic_worker.py)) achieves closed-loop integration between the asynchronous deep reasoning planes and high-frequency actuation/rendering loops:
+
+### 14.1 Closed-Loop Dynamic Pacing & Speculative Slot Compression
+Under concurrent reasoning and 120 Hz graphics rendering on shared LPDDR4x/5 memory:
+1. **Bus Contention Detection:** `UmaBandwidthArbiter` continuously monitors `UmaBusTelemetry`. If saturation exceeds $0.78$:
+   $$\text{ThrottlePct} = \min\left(0.90, \frac{\text{Saturation} - 0.78}{0.22} \cdot 0.80 + 0.20\right)$$
+2. **Speculative Slot Compression:** The worker shrinks active lookahead slots:
+   $$K_{\text{spec}} := \max(1, \lfloor K_{\text{spec}}^{\text{max}} \cdot (1 - \text{ThrottlePct}) \rfloor)$$
+3. **Inter-Token Pacing Injection:** Injects proportional micro-delays per token step ($t_{\text{pacing}} \in [1.0, 20.0]\text{ ms}$), shedding reasoning memory bus load and preventing frame drops on `INTERNAL_ENGINE_RENDERER`.
+
+### 14.2 Tier-3 Zero-Copy Binary Contract Dispatch
+As reasoning hypotheses and deductions solidify:
+- Candidate hypotheses are wrapped in `ProposalContract` (stamped with immutable `CapabilityToken.CAN_PROPOSE`).
+- Converted with zero string allocation into 128-byte cache-line aligned `ZeroCopyContractFrame` instances.
+- Pushed into Tier 3 (`ContractHierarchyTier.EPISTEMIC_SPECULATION`) of the `HierarchicalTieredIPCBuffer`.
+- Under physical impact surges, the buffer dynamically shrinks Tier 3 down to `min_quota_slots` and executes `MessageEvictionPolicy.ELASTIC_THROTTLE`, discarding excess speculative proposals while leaving critical actuation completely unaffected.
+
+### 14.3 Cryptographically Verifiable Epistemic Receipts
+Every reasoning execution produces an auditable `EpistemicExecutionReceipt` containing:
+- Pacing metrics (`was_pacing_engaged`, `avg_pacing_delay_ms`, `speculative_slots_allocated`).
+- Observed bus saturation (`uma_bus_saturation_observed`).
+- Tier-3 buffer metrics (`frames_admitted_to_tier3`, `frames_throttled_by_tier3`).
+- Invariant integrity verification (`vital_max_hp == 6`) and SHA-256 signature digest.
+
+
 
 
 
