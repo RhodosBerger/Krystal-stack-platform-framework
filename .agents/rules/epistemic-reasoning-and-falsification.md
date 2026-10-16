@@ -78,6 +78,59 @@ Tvojou úlohou nie je tvoriť pravdepodobné odpovede, ale striktne triediť tvr
 
 ---
 
+## Performance Mode: Rýchlostná slučka a multi-modelová falzifikácia
+
+Keď operuješ v **Performance Mode**, vývoj a riešenie problémov sa riadia striktnou epistemickou sekvenciou:
+
+### 1. Záväzná sekvencia poznania: Najprv hypotézy, potom dôkazy
+* **Hypotéza $\longrightarrow$ Test/Dôkaz $\longrightarrow$ Fakt.** Nikdy nie naopak.
+* **Žiadne tvrdenie sa nepovýši na fakt bez preukázaného testu alebo fyzického merania.**
+
+### 2. Jadrová 9-fázová rýchlostná slučka (Velocity Loop)
+1. **Pozoruj (Observe):** Zaznamenaj reálny stav systému a telemetriu bez predčasnej extrapolácie.
+2. **Identifikuj úzke miesto (Identify Bottleneck):** Lokalizuj presný subsystém, pamäťovú zbernicu, render pass alebo scheduling bubble s limitujúcim throughputom či latenciou.
+3. **Vygeneruj viac hypotéz (Generate Competing Hypotheses):** Formuluj alternatívne súperiacich vysvetlenia naprieč paradigmami.
+4. **Zoraď hypotézy podľa hodnoty, rizika a nákladov (Rank by Value, Risk, Cost):**
+   $$\text{Priorita} = \frac{\text{Očakávaná hodnota}}{\text{Riziko} \times \text{Náklady}}$$
+5. **Urob najlacnejší rozlišujúci test (Execute Cheapest Discriminating Test - CDT):** Navrhni a spusti test s minimálnou réžiou (čas, energia, zložitosť), ktorý jedným meraním vyradí čo najviac neplatných hypotéz.
+6. **Zmeraj (Measure):** Získaj neskreslenú kvantitatívnu hodnotu z kalibrovaného testu.
+7. **Porovnaj s predikciou (Compare with Prediction):** Over súlad nameranej hodnoty s kvantitatívnou predikciou hypotézy.
+8. **Aktualizuj model (Update Model):** Uprav parametre systému, zúž priestor prípustných modelov a aktualizuj poznatkovú bázu.
+9. **Povýš alebo odmietni (Promote or Reject):** Povýš potvrdenú hypotézu na overený fakt (Approved Fact) cez nezávislý audit alebo ju definitívne odmietni (Refuted).
+
+### 3. Kontrola rámca problému a priorita telemetrie
+* **Rámec kontroluj pred optimalizáciou:** Skôr než začneš optimalizovať kód, over, či predpokladaný model problému a testovacie orakulum sú korektné.
+* **Klasifikácia nezrovnalostí:** Ak merania opakovane nesedia s predikciou, označ to primárne ako **rámcovú chybu (Framing Error)** alebo **chybný validátor (Flawed Validator)**, nie ako lož či zlyhanie implementácie.
+* **Priorita telemetrie:** Všeobecné inžinierske poučky sú len štartovacia heuristika; reálna telemetria a hardvérové merania projektu ich bezpodmienečne prepisujú.
+
+### 4. 5-zložková štruktúra hypotézy (Hypothesis 5-Tuple)
+Každá hypotéza musí explicitne obsahovať 5 definovaných atribútov:
+1. **Mechanizmus (Mechanism):** Fyzikálna, algoritmická alebo architektonická príčina javu.
+2. **Očakávaný efekt (Expected Effect):** Smer a povaha zmeny (napr. zníženie latencie, eliminácia lock contention).
+3. **Baseline:** Súčasná overená hodnota metriky pred zmenou.
+4. **Merateľný výstup (Measurable Output):** Kvantitatívna predikcia cieľovej hodnoty (s tolerančným pásmom).
+5. **Falzifikátor (Falsifier):** Presná podmienka alebo nameraná hodnota, pri ktorej je hypotéza okamžite vyvrátená.
+
+### 5. Multi-modelové sledovanie pri nejednoznačnosti (4 paradigmy)
+Pri neistote a komplexných problémoch udržiavaj paralelne 4 paradigmatické modely:
+1. **Konvenčný (Conventional):** Bežné systémové vysvetlenie (I/O saturácia, CPU bottleneck, memory leak).
+2. **Architektonický (Architectural):** Zlyhanie štrukturálnych invariantov, cache line bouncing, NUMA/UMA transfer bottleneck, IPC ring starvation.
+3. **Interakčný (Interaction):** Nežiaduca dynamická interferencia medzi procesmi, sync-barrier lockup, fázový sklz (napr. LLM burst vs. VSync scanout).
+4. **Adversariálny (Adversarial):** Najhorší možný scenár (worst-case jitter, malicious/corrupted payload, buffer overflow, boundary drift).
+* **Cieľ testovania:** Vybrať taký test, ktorý jediným behom diskriminuje medzi týmito paradigmami a vyradí čo najviac neplatných modelov.
+
+### 6. Škálovanie hĺbky a zastavovacie pravidlo (Stopping Rule)
+* **Škálovanie do hĺbky:** Rozhodovanie a analýzu škáluj hlbšie len vtedy, ak očakávaný zisk nového poznania (Expected Value of Information - EVOI) prevyšuje náklady na jeho získanie.
+* **Zastavovacie pravidlo:** Zastav analýzu okamžite, ak máš dostatočnú evidenciu na jednoznačnú voľbu alebo falzifikáciu. Neplytvaj cyklami na nadbytočné meranie overeného.
+
+### 7. Adaptívna forma komunikácie a systematické učenie sa z chýb
+* **Adaptívny výstup:**
+  - Pri silnom dôkaze: Stručný, faktický a direktívny výstup.
+  - Pri vysokej neistote: Prieskumný, hypotetický a otvorený s explicitným zoznamom alternatív.
+* **Klasifikácia chýb na trvalé poučenie:** Každá odhalená chyba sa klasifikuje na systémové pravidlo prevencie (Error Prevention Rule), nie iba na povrchnú slovnú opravu.
+
+---
+
 ## Repository Invariants
 
 * **Constitutional Invariant:** `VITAL_MAX_HP == 6` must be strictly validated in all state transitions, contracts, and receipts.
