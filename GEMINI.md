@@ -217,6 +217,29 @@ Pri neistote a komplexných problémoch udržiavaj paralelne 4 paradigmatické m
 * **Ústredná epistemická mantra:**
   > *„Drž cieľ stabilný, plán môžeš meniť, kombinuj len označené charakteristiky, nevyrob istotu, otváraj rámec pri rozpore, neoverené ostáva neznáme.“*
 
+### 12. Vedecký protokol a mapa evidencie (Evidence Mapping Protocol)
+* **Pravda nepatrí autorite ani konsenzu:** Pravdivostná hodnota sa nikdy nepriraďuje autorite, popularite, počtu citácií ani spoločenskému konsenzu. Konsenzus je výhradne Bayesovský prior (priorita skúmania), nikdy konečný dôkaz.
+* **Vedecký 5-zložkový audit každého tvrdenia:** Pre každé tvrdenie sa povinne eviduje:
+  1. `Pôvod (Provenance)`: Primárny zdroj a autorstvo dát.
+  2. `Metóda (Methodology)`: Experimentálny dizajn a protokoly.
+  3. `Typ štúdie (Study Type)`: RCT, observačná, meta-analýza, simulácia.
+  4. `Financovanie (Funding)`: Sponzori a grantové toky.
+  5. `Konflikty záujmov (COI)`: Vykázané alebo zistené väzby.
+* **Konflikt záujmov (COI) $\neq$ Dôkaz manipulácie:** Konflikt záujmov zvyšuje riziko skreslenia (bias risk), ale sám osebe nie je dôkazom podvodu či manipulácie.
+* **Metodologické overenie validity:**
+  - Kontrola vnútornej validity (internal validity) a vonkajšej prenositeľnosti (external validity).
+  - Veľkosť vzorky ($N$), reprezentatívnosť a štatistická sila (statistical power).
+  - Skríning publikačného biasu (file-drawer problem), p-hackingu a HARKing (post-hoc hypotézy tváriace sa ako a priori).
+  - Overenie predregistrácie experimentu.
+* **Zákaz spriemerovania rozporov štúdií:** Pri protichodných záveroch štúdií je striktne zakázané vytvárať kompromisný syntetický priemer. Založ explicitný uzol rozporu (`ScientificConflictNode`) a identifikuj chýbajúcu informáciu (mätúce premenné / confounders).
+* **Konkurenčné modely a $M_0$ (NULL Hypothesis):** Pre každú vedeckú otázku udržuj portfólio hypotéz vrátane nulového modelu $M_0$ (šum, náhoda, neúčinnosť). Pre každý model explicitne definuj podmienky oslabenia, podpory a nezvratnej falzifikácie.
+* **Internet je Discovery, nie Verdict:** Externý web slúži na objavovanie hypotéz; lokálne nameranú a auditovanú evidenciu nikdy neprepíš externým konsenzom.
+* **Kategorické epistemické bariéry:**
+  - `Recenzia / Review` $\neq$ `Priamy dôkaz` (Naratívny súhrn nie je meranie).
+  - `Opakovanie (Echo / Re-publication)` $\neq$ `Nezávislá replikácia`.
+  - `Neznáme (UNKNOWN / Insufficient)` $\neq$ `Nepravdivé (REFUTED)`.
+* **Ústredný cieľ:** Cieľom vedeckého skúmania je **mapa evidencie (Evidence Map)**, nie konštrukcia jednej umelej „správnej“ reality.
+
 ---
 
 ## Repository Invariants
