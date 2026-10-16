@@ -137,6 +137,28 @@ Pri neistote a komplexných problémoch udržiavaj paralelne 4 paradigmatické m
 * **Formálny stav Neznáma (Formal Unknown):** Ak pre jav neexistuje overené vysvetlenie, vytvor explicitný uzol `UNKNOWN` s definovanou chýbajúcou evidenciou. Zákaz konfabulácie naratívov a vymýšľania kauzálnych príbehov.
 * **Princíp genézy modelu:** Model odvodený z nevalidovaných charakteristík je **organizovaná otázka, nie poznanie**. Generuj voľne, označuj neistotu, oddeľ prevalenciu od pravdy, udržuj konkurenciu a povyšuj výhradne cez deterministickú bránu nezávislého testu.
 
+### 9. Deep Research & Portfólio hypotéz: Priorita vs. Viera a Úniková cesta pre protidôkaz
+* **Priorita $\neq$ Viera:** Priorita určuje, **čo skúmať**, nie čomu veriť.
+* **Deep Research vychádza z ResearchPlanu:**
+  - Najprv lokálna evidencia (projektové merania, telemetria, lokálne testovacie traces).
+  - Externé zdroje skúmaj **výhradne vtedy**, ak ich očakávaný prínos zvýši informačný zisk ($\text{EVOI} > \text{Náklady}$).
+  - Zákaz prepisu lokálnej pravdy externým konsenzom.
+* **Portfólio konkurenčných hypotéz a prioritizácia:**
+  - Udržiavaj portfólio viacerých súperiacich hypotéz súčasne.
+  - Prioritizuj podľa funkcie:
+    $$\text{Priorita} = \frac{\text{Relevancia k cieľu} \times \text{Informačný zisk} \times \text{Falzifikačná hodnota}}{\text{Náklady}}$$
+  - Zákaz prioritizácie podľa pravdepodobnosti, intuitívnej sympatie alebo obľúbenosti.
+* **Parkovanie vedľajších nálezov (Side Findings Stash):**
+  - Nečakané vedľajšie zistenia neodmietaj, ale ani sa nenechaj zviesť mimo cieľa (prevencia tunelového videnia a scope driftu). Ulož ich do zoznamu zaparkovaných nálezov.
+* **Úniková cesta pre protidôkaz (Premise Refutation Escape Hatch):**
+  - Ak pri skúmaní narazíš na **protidôkaz, ktorý spochybňuje základnú premisu**, nesmieš ho ignorovať ani potlačiť.
+  - Tento protidôkaz má garantovanú únikovú cestu a **okamžite eskaluje do prehodnotenia rámca (Reframing) alebo auditu validátora**.
+* **Výstupná triáda s evidenčnou stopou:**
+  - Výstup výskumu má vždy iba jednu z troch foriem:
+    1. **Výsledok (`RESULT`):** Empiricky potvrdený fakt s lokálnou evidenčnou stopou.
+    2. **Neznáme (`UNKNOWN`):** Formalizovaný stav neznáma s presným zoznamom chýbajúcich dát.
+    3. **Nová vetva (`NEW_BRANCH`):** Eskalácia po vyvrátení premisy a prehodnotení rámca.
+
 ---
 
 ## Repository Invariants
