@@ -91,4 +91,85 @@ Hrany nesú sémantické vzťahy:
 ## 4. Invarianty a architektonické mantry
 
 1. **`GLOBAL_VITAL_MAX_HP == 6`:** Nemenný globálny zmluvný invariant.
-2. **Zákaz ad-hoc hackov:** Každá schválená zmena musí byť povýšená na first-class systémový modul alebo adaptér.
+2. **Zákaz ad-hoc hackov:** Každá schválená zmena musí byť povýšená na first-class systémový modul, capability policy alebo workload policy.
+3. **Zákaz priamej manipulácie hostiteľa výskumnou vrstvou:** Výskum navrhuje plány experimentov, ale hostiteľa smie meniť výhradne Policy Engine.
+
+---
+
+## 5. Milestone V-AUTONOMOUS-RESEARCH-02: Closed-Loop Physical Experimentation
+
+Milestone V2 premieňa simulovaný experimentálny tok na skutočný **uzavretý výskumno-experimentálny cyklus** nad hostiteľským operačným systémom.
+
+> ### Kľúčová doktrína V2 (Core Doctrine)
+> **„Research may propose experiments, but only the Policy Engine may alter the host; knowledge may be revised only from attested experiment receipts.“**
+
+### Cieľový tok riadenia (Closed-Loop Pipeline):
+
+```
+                   [ ResearchOrchestrator ]
+                              |
+                              v
+                      [ SystemRemapper ]
+             (Číta reálny OS/HW stav, CPU, pamäť, topológiu)
+                              |
+                              v
+                    [ HypothesisPortfolio ]
+      (Trojitý nulový model: M0_NO_EFFECT, M1_NOISE, M2_MEASUREMENT_ERROR)
+                              |
+                              v
+                      [ ExperimentPlan ]
+                (Čistý návrh zásahu bez aktuácie)
+                              |
+                              v
+               [ InformationGainPriorityHeuristic ]
+            (Prioritizácia podľa informačného zisku a falzifikácie)
+                              |
+                              v
+              [ PolicyEngine.execute_transaction() ]
+           (Jediná povolená cesta k zásahu cez tenké adaptéry)
+                              |
+                              v
+                     [ ExperimentReceipt ]
+        (Attestovaný výsledok: baseline, post, rollback, fingerprint)
+                              |
+                              v
+                    [ Independent Critic ]
+           (Izolovaný oponent s parametrizovanou critic policy)
+                              |
+                              v
+                 [ KnowledgeRevisionReceipt ]
+       (Append-only kryptograficky linkovaná revízna história grafu)
+                              |
+                              v
+                [ Modularity Classification ]
+  (4 úrovne: NEW_FIRST_CLASS_MODULE, CAPABILITY_SPECIFIC_POLICY,
+              WORKLOAD_SPECIFIC_POLICY, AD_HOC_HACK)
+```
+
+### Kľúčové komponenty V2:
+
+1. **`SystemRemapper` & `EnvironmentFingerprint`:**
+   - Real-time audit topológie hostiteľa (platforma, jadro, CPU sety, pamäť, cgroups/JobObjects, rozhrania).
+   - Generuje kryptograficky zakotvený `EnvironmentFingerprint` s časovou pečiatkou a SHA-256 odtlačkom.
+
+2. **Diferencované nulové modely (`NullModelClass`):**
+   - `M0_NO_EFFECT`: Zásah nespôsobuje žiadnu kauzálnu odchýlku od baseline stavu.
+   - `M1_NOISE`: Nameraný rozdiel leží plne v stochastickom šume systému ($\le 2\sigma$).
+   - `M2_MEASUREMENT_ERROR`: Nameraný rozdiel je telemetrický artefakt alebo zlyhanie validátora (napr. drift časovača, thermal drift confounder, pretečenie počítadla).
+
+3. **`ExperimentPlan` vs `PolicyEngine.execute_transaction()`:**
+   - `ExperimentPlan` je nemenný návrh (`SubsystemAction`s, cieľová metrika, očakávaný zisk, falzifikátor).
+   - Výskumná vrstva nemá oprávnenie priamo zasahovať do subsystémov; zásah smie vykonať len `PolicyEngine`, ktorý riadi domain locky, `HardExclusionSafetyGate` a garantuje rollback.
+
+4. **`ExperimentReceipt`:**
+   - Formálny záznam o vykonanom zásahu nesúci presnú telemetriu pred a po, informáciu o aktivácii falzifikátora, zoznam unwound akcií a fingerprint prostredia.
+
+5. **`KnowledgeRevisionReceipt` (Append-Only revízna história):**
+   - Žiadny uzol grafu sa neprepisuje na mieste bez zachovania histórie. Každá revízia generuje nemenný `KnowledgeRevisionReceipt` naviazaný na predchádzajúci digest a prislúchajúci `ExperimentReceipt`.
+
+6. **4-stupňová taxonómia modularity (`ModuleVsHackClassifier`):**
+   - `NEW_FIRST_CLASS_MODULE`: Plne prenosný modul (`is_cross_platform_abstracted=True`), formálne rozhranie, invariantné mantinely, žiadne magické konštanty.
+   - `CAPABILITY_SPECIFIC_POLICY`: Platformovo alebo hardvérovo viazaná konfigurácia (napr. Windows DWM EcoQoS vs Linux sysfs) s čistou abstrakciou capability providera.
+   - `WORKLOAD_SPECIFIC_POLICY`: Špecifická adaptácia pre konkrétny pracovný režim (napr. LLM inferencia vs 120Hz VSync render).
+   - `AD_HOC_HACK`: Spolieha sa na nekalibrované magické konštanty, postráda formálny kontrakt alebo porušuje invarianty.
+
