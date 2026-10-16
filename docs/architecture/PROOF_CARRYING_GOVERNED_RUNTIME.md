@@ -299,6 +299,37 @@ $$\text{Quota}_{\text{Epistemic}}(\text{Severity}) = \max\left(\text{MinQuota}_3
 
 This guarantees that physical actuation and safety fallback loops are never starved or dropped due to speculative LLM reasoning or third-party plugin proposal surges.
 
+---
+
+## 12. Milestone V-PREDICTIVE-TPU-NPU-01: Probabilistic Chip State Forecasting & Workload DAG Synthesis
+
+Milestone **V-PREDICTIVE-TPU-NPU-01** (see [krystal_kernel/probabilistic_chip_predictor.py](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_kernel/probabilistic_chip_predictor.py)) transitions the IPC buffer from purely reactive telemetry feedback to **proactive, probabilistic forecasting** of memory and chip states under simulated TPU systolic bursts and asynchronous NPU workloads:
+
+### 12.1 The TPU/NPU Heterogeneous Workload DAG
+
+Operations are structured into a Directed Acyclic Graph ($G = \langle V, E \rangle$) capturing asynchronous parallelism and synchronization barriers:
+- **TPU Systolic Nodes:** High-throughput matrix multiplications, dense tensor contractions, and transformer self-attention bursts.
+- **NPU Asynchronous Nodes:** Out-of-band symbolic decoding, zero-copy Bitwise Merkle Proof verification, and contract token interning.
+- **Shared Memory Bus:** Zero-copy DMA transfers across IPC ring buffers.
+- **Mutual Sync Barriers:** Hardware execution fences enforcing deterministic causal ordering between TPU predictions and NPU validation.
+
+### 12.2 Probabilistic State Forecasting
+
+Because workload variants cannot be deterministically anticipated, the predictor models the joint distribution:
+$$P(\text{MemoryState}_{t + \Delta t}, \text{ChipSaturation}_{t + \Delta t} \mid G_{\text{workload}}, \text{Regime}_t)$$
+
+1. **Markovian Regime Transitions:** The runtime models load regimes $\mathcal{S} \in \{\text{IDLE}, \text{NOMINAL}, \text{BURST}, \text{SATURATED}\}$ via an empirical transition matrix $P(\mathcal{S}_{t+1} \mid \mathcal{S}_t)$.
+2. **Bayesian Confidence Bounds:** For each metric $X \in \{\text{TPU\_Util}, \text{NPU\_Util}, \text{SHM\_Pressure}\}$, the predictor derives expected mean $\mu_X$ and variance $\sigma_X^2$, establishing conservative $[ \mu_X - 2\sigma_X, \mu_X + 2\sigma_X ]$ confidence intervals.
+3. **Value-at-Risk ($VaR_{99}$):** Computes the 99th-percentile queue depth $Q_{99}$ over Monte Carlo simulations of the execution graph.
+
+### 12.3 Proactive Safe Threshold Synthesis
+
+Instead of waiting for actual buffer drops, the predictor synthesizes proactive safe quotas:
+$$\Theta_{\text{safe}}^{(k)} := \arg\max_{\Theta} \left\{ P(\text{QueueOverflow} \mid \Theta) \le 10^{-4} \right\}$$
+
+When high TPU systolic bursts or NPU synchronization stalls are forecasted ahead ($t + 20\text{ ms}$), the `DynamicBufferQuotaManager` expands `CRITICAL_ACTUATION` memory allocation to over 70% in advance, completely immunizing high-frequency actuation loops against bus congestion and memory starvation.
+
+
 
 
 
