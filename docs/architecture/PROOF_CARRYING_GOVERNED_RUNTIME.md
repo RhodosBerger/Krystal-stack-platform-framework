@@ -329,6 +329,37 @@ $$\Theta_{\text{safe}}^{(k)} := \arg\max_{\Theta} \left\{ P(\text{QueueOverflow}
 
 When high TPU systolic bursts or NPU synchronization stalls are forecasted ahead ($t + 20\text{ ms}$), the `DynamicBufferQuotaManager` expands `CRITICAL_ACTUATION` memory allocation to over 70% in advance, completely immunizing high-frequency actuation loops against bus congestion and memory starvation.
 
+---
+
+## 13. Milestone V-ENV-RENDER-PROFILE-01: Environmental Program Profiling, Probabilistic Success Selection & Neural-Predictive Render Copilot
+
+Milestone **V-ENV-RENDER-PROFILE-01** (see [krystal_kernel/predictive_render_profiler.py](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_kernel/predictive_render_profiler.py)) realizes the dual-domain operational vision: prioritizing memory and execution schemes based on metadata from external programs, while proactively intervening in the native graphics pipeline using companion neural image manipulations:
+
+### 13.1 Environmental Program Harness & Metadata Profiling
+
+Any workload executing through the Krystal environment declares structured metadata:
+- **Workload Classification:** `INTERNAL_ENGINE_RENDERER`, `EXTERNAL_INTERACTIVE_GRAPHICS` (e.g. Godot / Blender), `NEURAL_VISION_RECONSTRUCTION`, `DEEP_REASONING_PIPELINE`, or `BACKGROUND_BATCH_COMPUTE`.
+- **Target Performance Envelope:** Target FPS (e.g. 60 Hz / 120 Hz), latency tolerance ($t_{\text{budget}}$), memory ceilings, and compute intensity.
+
+### 13.2 Probabilistic Profile Selection by Sampled Success
+
+Candidate allocation schemes $\mathcal{C}$ are evaluated probabilistically against forecasted chip and bus states:
+$$P(\text{Success} \mid \mathcal{C}, \text{Meta}, \text{Forecast}) = P(\text{Latency} \le t_{\text{budget}}) \times P(\text{QueueDepth} \le \text{Quota}) \times P(\text{Fidelity} \ge \text{Norm})$$
+
+The selector only admits schemes where $P(\text{Success}) \ge 0.90$, prioritizing the combination that maximizes operational utility:
+$$\mathcal{C}^* := \arg\max_{\mathcal{C} \in \text{Acceptable}} \text{Utility}(\mathcal{C})$$
+
+External programs (e.g. Godot viewport or external simulations) receive prioritized zero-copy lanes, dedicated IPC rings, and pre-allocated buffer slices based on their proven probability of meeting real-time deadlines.
+
+### 13.3 Neural-Predictive Render Steering Copilot
+
+For internal engine rendering passes, the neural copilot monitors code mechanics, shader timings, and chip pressure. When latency risks breaching target frame boundaries:
+1. **Dynamic Render Downscaling:** Adjusts internal rendering resolution (e.g. 1080p target rendered at 540p or 635p).
+2. **K-NSS DP4A Neural Reconstruction:** Dispatches vectorized 8-bit dot product tensor upsampling on Intel Iris Xe / TPU units.
+3. **YCoCg Neighborhood Color Clamping:** Eliminates ghosting, disocclusion smearing, and temporal jitter.
+4. **Attested Fidelity Norm Enforcement:** Verifies that the final image strictly satisfies engine precision norms ($\text{PSNR} \ge 35.0\text{ dB}$, sub-8.3ms frame time), emitting a cryptographic `RenderInterventionReceipt`.
+
+
 
 
 
