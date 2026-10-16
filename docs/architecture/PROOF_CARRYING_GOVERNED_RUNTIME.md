@@ -265,6 +265,41 @@ Milestones **V-IDENTITY-02 & V-PLUGIN-01** (see [V_PLUGIN_01_UNTRUSTED_NODE_SAND
    $$\boxed{\textbf{Trust increases epistemic influence, not execution authority.}}$$
    Higher trust tiers increase selection eligibility, but never alter or expand the plugin's capability class.
 
+---
+
+## 11. Milestone V-PERF-TIERED-IPC-01: Multi-Frequency Message Profiles & Impact-Monitored Dynamic Buffer Quotas
+
+Milestone **V-PERF-TIERED-IPC-01** (see [krystal_kernel/hierarchical_ipc_buffer.py](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_kernel/hierarchical_ipc_buffer.py)) addresses high-frequency real-time scaling (1 kHz actuation vs 10 Hz epistemic planning) by establishing hierarchical message profiles and dynamic memory threshold allocation driven by physical impact monitoring:
+
+### 11.1 Message Profiles Derived from Governance Hierarchy
+
+Contracts are mapped into 4 isolated operational memory tiers with distinct frequency and latency budgets:
+
+| Tier | Contracts | Target Frequency | Latency Budget | Eviction Policy | Base Memory Quota |
+|---|---|---|---|---|---|
+| **`CRITICAL_ACTUATION` (Tier 0)** | `ExecutionContract`, `ReceiptContract` | **1000 Hz – 2000 Hz** | $< 500\ \mu\text{s}$ | **Zero-Drop / Burst Expansion** | 45% (surges to 70% under stress) |
+| **`GOVERNED_AUTHORITY` (Tier 1)** | `AuthorizationContract`, `EvidenceContract` | **240 Hz – 500 Hz** | $< 2.0\ \text{ms}$ | **Bounded Backpressure** | 25% |
+| **`STREAMING_OBSERVATION` (Tier 2)** | `StateContract` | **120 Hz – 240 Hz** | $< 5.0\ \text{ms}$ | **Ring Coalescing (Freshest Retained)** | 15% |
+| **`EPISTEMIC_SPECULATION` (Tier 3)** | `ProposalContract`, `LearningContract` | **10 Hz – 30 Hz** | $< 100.0\ \text{ms}$ | **Elastic Early Throttle** | 15% (contracts to 3% under stress) |
+
+### 11.2 The Impact Branch Telemetry Oracle
+
+The impact branch continuously monitors real physical outcomes through closed-loop contract feedback:
+1. `ReceiptContract` records actuation durations and degraded safe fallback occurrences.
+2. `LearningContract` records observation residuals ($\Delta = |\text{predicted} - \text{actual}|$).
+3. Telemetry monitors shared-memory pressure and UMA saturation.
+
+$$\text{ImpactSeverity} := 0.4 \cdot \min\left(1.0, \frac{\bar{R}}{20.0}\right) + 0.4 \cdot \min\left(1.0, 2.0 \cdot \text{Ratio}_{\text{fallback}}\right) + 0.2 \cdot \text{Pressure}_{\text{UMA}}$$
+
+### 11.3 Dynamic Memory Threshold Allocation
+
+As $\text{ImpactSeverity} \to 1.0$, the `DynamicBufferQuotaManager` automatically shifts shared-memory thresholds:
+$$\text{Quota}_{\text{Actuation}}(\text{Severity}) = \text{BaseQuota}_0 + \alpha \cdot \text{Severity} \quad (\text{up to } 70\%)$$
+$$\text{Quota}_{\text{Epistemic}}(\text{Severity}) = \max\left(\text{MinQuota}_3, \text{BaseQuota}_3 - \beta \cdot \text{Severity}\right) \quad (\text{down to } 3\%)$$
+
+This guarantees that physical actuation and safety fallback loops are never starved or dropped due to speculative LLM reasoning or third-party plugin proposal surges.
+
+
 
 
 
