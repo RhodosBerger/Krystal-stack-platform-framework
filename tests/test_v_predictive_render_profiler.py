@@ -155,3 +155,70 @@ class TestVPredictiveRenderProfiler:
         scheme = selector.select_optimal_scheme(meta_reasoning, forecast)
         # For deep reasoning, epistemic speculation allocation must be elevated
         assert scheme.tier_quotas[ContractHierarchyTier.EPISTEMIC_SPECULATION] >= 200
+
+    def test_06_conditional_probability_formulation(self):
+        """Verifies that conditional fidelity avoids false negatives when latency margin is ample."""
+        selector = ProbabilisticProfileSelector(min_success_threshold=0.85)
+        meta = ProgramMetadata("prog_cond", ProgramWorkloadClass.INTERNAL_ENGINE_RENDERER, 60.0, 16.66, 1024, 0.5)
+
+        # Forecast with low memory and bus pressure
+        forecast = ProbabilisticForecast(
+            horizon_ms=10.0, tpu_utilization_mean=0.2, tpu_utilization_sigma=0.01,
+            npu_utilization_mean=0.2, npu_utilization_sigma=0.01,
+            shm_pressure_mean=0.05, shm_pressure_sigma=0.01,
+            p99_queue_depth=50, overflow_risk_probability=0.0,
+            recommended_safe_thresholds={ContractHierarchyTier.CRITICAL_ACTUATION: 500}
+        )
+
+        scheme = AllocationSchemeVariant("s_bal", {ContractHierarchyTier.CRITICAL_ACTUATION: 500}, NssQualityProfile.BALANCED, 20.0, 0.95, 0)
+        score = selector.evaluate_scheme(scheme, meta, forecast)
+
+        assert score.probability_fidelity_ok > 0.85
+        assert score.composite_success_probability >= 0.85
+        assert score.is_acceptable_candidate is True
+
+    def test_07_hysteresis_filter_prevents_profile_oscillation(self):
+        """Verifies that alternating boundary latencies (8.2ms vs 8.4ms) do not oscillate profiles."""
+        copilot = NeuralRenderSteeringCopilot(hysteresis_dwell_frames=8)
+        meta = ProgramMetadata("prog_120hz", ProgramWorkloadClass.INTERNAL_ENGINE_RENDERER, 120.0, 8.33, 1024, 0.9)
+
+        scheme_ultra = AllocationSchemeVariant("s_ultra", {}, NssQualityProfile.ULTRA_QUALITY, 20.0, 0.95, 0)
+        scheme_perf = AllocationSchemeVariant("s_perf", {}, NssQualityProfile.PERFORMANCE, 50.0, 0.80, 0)
+
+        # 1. Trigger downscale to PERFORMANCE due to heavy latency (8.5 ms > 90% budget)
+        r1 = copilot.execute_render_intervention(meta, scheme_perf, simulated_pre_render_latency_ms=8.5)
+        assert r1.nss_profile_applied == NssQualityProfile.PERFORMANCE
+        assert r1.was_held_by_hysteresis is False
+
+        # 2. Next frames latency dips to 7.2 ms (candidate is ULTRA_QUALITY, but dwell counter is active)
+        # Hysteresis must hold the PERFORMANCE profile across the full 8-frame dwell window!
+        for frame_idx in range(8):
+            r = copilot.execute_render_intervention(meta, scheme_ultra, simulated_pre_render_latency_ms=7.2)
+            assert r.nss_profile_applied == NssQualityProfile.PERFORMANCE, f"Oscillation detected on frame {frame_idx}!"
+            assert r.was_held_by_hysteresis is True
+
+        # 3. After dwell frames expire AND latency is safely below upscale margin (5.0 ms < 70% budget), upscale is permitted
+        r_up = copilot.execute_render_intervention(meta, scheme_ultra, simulated_pre_render_latency_ms=5.0)
+        assert r_up.nss_profile_applied == NssQualityProfile.ULTRA_QUALITY
+        assert r_up.was_held_by_hysteresis is False
+
+    def test_08_uma_bandwidth_arbiter_paces_reasoning_pipeline(self):
+        """Verifies that UMA memory bus saturation throttles reasoning to preserve 120 Hz rendering."""
+        from krystal_kernel.predictive_render_profiler import UmaBusTelemetry, UmaBandwidthArbiter
+
+        arbiter = UmaBandwidthArbiter(saturation_threshold=0.78)
+
+        # Baseline: GPU consumes 30 GB/s, LLM consumes 15 GB/s -> 45/68 GB/s (66% < 78%)
+        telem_normal = UmaBusTelemetry(gpu_bandwidth_gb_s=30.0, reasoning_bandwidth_gb_s=15.0)
+        should_pace, throttle_pct, code = arbiter.evaluate_arbitration(telem_normal, is_rendering_active=True)
+        assert should_pace is False
+        assert throttle_pct == 0.0
+        assert code == "ARBITRATION_BANDWIDTH_OK"
+
+        # Contention: GPU consumes 38 GB/s, LLM attention bursts to 24 GB/s -> 62/68 GB/s (91% > 78%)
+        telem_saturated = UmaBusTelemetry(gpu_bandwidth_gb_s=38.0, reasoning_bandwidth_gb_s=24.0)
+        should_pace_sat, throttle_pct_sat, code_sat = arbiter.evaluate_arbitration(telem_saturated, is_rendering_active=True)
+        assert should_pace_sat is True
+        assert throttle_pct_sat > 0.50
+        assert code_sat == "ARBITRATION_PACE_REASONING_PRESERVE_120HZ"
+

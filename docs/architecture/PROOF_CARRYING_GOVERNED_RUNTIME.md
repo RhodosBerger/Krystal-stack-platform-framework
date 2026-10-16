@@ -359,6 +359,20 @@ For internal engine rendering passes, the neural copilot monitors code mechanics
 3. **YCoCg Neighborhood Color Clamping:** Eliminates ghosting, disocclusion smearing, and temporal jitter.
 4. **Attested Fidelity Norm Enforcement:** Verifies that the final image strictly satisfies engine precision norms ($\text{PSNR} \ge 35.0\text{ dB}$, sub-8.3ms frame time), emitting a cryptographic `RenderInterventionReceipt`.
 
+### 13.4 Conditional Fidelity Formulation
+In practice, render resolution, latency, and reconstruction fidelity are strongly correlated. Naive multiplication assuming independence risks false-negative rejections of viable schemes. The runtime evaluates fidelity conditionally on the projected latency headroom:
+$$P(\text{Fidelity} \ge \text{Norm} \mid \text{Scheme}, \text{Latency}) = \Phi\left(\frac{\text{PSNR}_{\text{predicted}} - \text{PSNR}_{\text{target}}}{\sigma_{\text{recon}}}\right)$$
+where $\text{PSNR}_{\text{predicted}} = \text{PSNR}_{\text{base}} - \text{DownscalePenalty} + \text{NeuralReconstructionGain}(\Delta t_{\text{headroom}})$. When latency headroom is abundant, multi-tap DP4A reconstruction can run unconstrained, recovering high-frequency spatial components.
+
+### 13.5 Temporal Hysteresis Filter (Dual-Threshold Schmitt Trigger)
+To prevent profile oscillation ("breathing" artifacts or micro-stuttering) when frame times hover around critical boundaries (e.g. 8.2–8.4 ms at 120 Hz):
+- **Downscale Transition:** Triggered immediately when frame time exceeds the upper threshold ($t_{\text{frame}} > 0.90 \times t_{\text{budget}}$) to protect real-time deadlines.
+- **Upscale Recovery Transition:** Requires conservative frame time ($t_{\text{frame}} < 0.70 \times t_{\text{budget}}$) sustained across a dwell window of at least $N_{\text{dwell}} = 12$ consecutive frames.
+
+### 13.6 UMA Memory Bus Arbiter & Workload Pacing
+On unified memory architectures (UMA, e.g. Intel Iris Xe sharing system LPDDR4x/5), concurrent execution of `DEEP_REASONING_PIPELINE` (dense weights streaming) and `INTERNAL_ENGINE_RENDERER` (texture sampling and framebuffer scanout) can saturate memory bus bandwidth ($\text{Saturation} \ge 0.78$). The `UmaBandwidthArbiter` dynamically paces epistemic token generation and expands graphics memory bandwidth priority, ensuring deterministic 120 Hz VSync without frame drops.
+
+
 
 
 
