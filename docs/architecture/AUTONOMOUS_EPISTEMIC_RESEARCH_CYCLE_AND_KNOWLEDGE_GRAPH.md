@@ -173,3 +173,43 @@ Milestone V2 premieňa simulovaný experimentálny tok na skutočný **uzavretý
    - `WORKLOAD_SPECIFIC_POLICY`: Špecifická adaptácia pre konkrétny pracovný režim (napr. LLM inferencia vs 120Hz VSync render).
    - `AD_HOC_HACK`: Spolieha sa na nekalibrované magické konštanty, postráda formálny kontrakt alebo porušuje invarianty.
 
+---
+
+## 6. Milestone V-AUTONOMOUS-RESEARCH-03: Grounded Host Actuation & Attested Measurement
+
+Milestone V3 posúva systém od emulovaných a simulovaných experimentov k **reálnej, meranej fyzickej interakcii s hostiteľským OS**.
+
+> ### Ústredný invariant V3 (Core Invariant)
+> $$\text{KnowledgePromotion} \Longrightarrow \text{PhysicalMeasurementReceipt} \land \text{CanonicalDigestOK} \land \text{IndependentObservation}$$
+
+### Kľúčové vylepšenia V3:
+
+1. **Reálna aktuácia na kontrolných plochách OS (`GroundedCapabilityAdapter`):**
+   - Žiadne púhe prepisovanie interných Python atribútov.
+   - **Tier 2 (ENV_VARS):** Fyzické nastavenie premenných prostredia cez `os.environ` (napr. `OMP_NUM_THREADS`, `KRYSTAL_PERF_MODE`) s deterministickým LIFO rollbackom.
+   - **Tier 4 (CGROUPS_OR_JOBOBJECTS / Affinity):** Reálna manipulácia afinity jadier (Windows `SetProcessAffinityMask` / Linux `sched_setaffinity`) a triedy priority procesu s obnovením pôvodnej masky.
+
+2. **Nezávislý telemetrický vzorkovač (`HostTelemetrySampler`):**
+   - Meranie baseline a post-change nie je dodávané umelo zo simulácie.
+   - Sampler vykonáva kalibrovaný fyzický mikroworkload, meria nanosekundový wall-clock čas (`perf_counter_ns`), procesorový čas procesu (`process_time_ns`), a reálnu spotrebu pamäte (Windows `GetProcessMemoryInfo` WorkingSetSize / Linux `/proc/self/statm` RSS).
+
+3. **Dvojvrstvová identita prostredia (Dual-Layer Environment Identity):**
+   - **`EnvironmentIdentityDigest`:** Deterministický statický SHA-256 odtlačok nemenného hardvéru (platforma, release OS, počet CPU jadier, celková RAM, podporované tiery). Nemenný naprieč cyklami na tom istom stroji.
+   - **`ObservationDigest`:** Časovo viazaný dynamický odtlačok okamžitého stavu v čase $t$ (voľná pamäť, reálny governor z `/sys` alebo power scheme, nanosekundový timestamp, prepojenie na identity digest).
+
+4. **Kanonické kanonizované digestovanie (Canonical Digest Binding):**
+   - `ExperimentReceipt.receipt_digest`: viaže deterministicky zoradené polia vrátane `actions_unwound`, čím garantuje dôkazné reťazenie rollbacku.
+   - `KnowledgeRevisionReceipt.receipt_digest`: viaže explicitný text `reason`, `experiment_receipt_id`, predchádzajúci digest aj verzie uzla.
+
+5. **Hlboká nemennosť snapshotov (Deep Immutability):**
+   - `node_version_snapshots` uchováva hlboké kópie (`copy.deepcopy`) vrátane metadát, čím zabraňuje retroaktívnej mutácii histórie cez zdieľané referencie.
+
+6. **Striktné vynútenie tripartitného portfólia nulových modelov:**
+   - Každý cyklus musí povinne obsahovať celú trojicu:
+     $$\{M_{0\text{-NO\_EFFECT}}, M_{1\text{-NOISE}}, M_{2\text{-MEASUREMENT\_ERROR}}\} \subseteq \text{Portfolio}$$
+     Vynechanie ktoréhokoľvek z nich okamžite vyvoláva `EpistemicContractViolation`.
+
+7. **Procesne/dôveryhodnostne izolovaný oponent (`IsolatedAdversarialCritic`):**
+   - Oddelený hodnotiaci kontext s parametrizovanou vedou riadenou politikou (`AdversarialCriticPolicy`), ktorý nezdieľa stav s navrhovateľom ani orchestrátorom.
+
+
