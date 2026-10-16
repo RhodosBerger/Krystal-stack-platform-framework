@@ -1,0 +1,94 @@
+# Autonómny výskumno-inžiniersky cyklus a Epistemický Knowledge Graph (V-AUTONOMOUS-RESEARCH-01)
+**Document ID:** `SPEC-AUTONOMOUS-RESEARCH-01`  
+**Milestone:** `V-AUTONOMOUS-RESEARCH-01`  
+**Classification:** Autonómny výskumno-inžiniersky cyklus, Knowledge Graph & Modularity Gate  
+**Global Invariant:** `GLOBAL_VITAL_MAX_HP == 6`  
+
+---
+
+## 1. Účel a základná výskumná doktrína
+
+Tento dokument povyšuje Krystal Policy Engine z reaktívneho tunera na **autonómny výskumno-inžiniersky cyklus**.
+
+Systém neslúži na slepý hon za syntetickými benchmarkovými číslami ani preťažovanie parametrov. Cieľom je **odhaľovanie nových kauzálnych mechanizmov**, ktoré štrukturálne zlepšujú správanie systému a prehlbujú poznanie o vzájomnej interakcii hardvéru a softvéru.
+
+> ### Jadrová výskumná direktíva
+> **„Nie zrýchli kód, ale spochybni predpoklady, nájdi neznáme a falzifikuj vlastné modely.“**
+
+---
+
+## 2. 8-kroková autonómna výskumná slučka (The 8-Stage Epistemic Research Loop)
+
+Každý výskumný cyklus prebieha v uzavretej 8-fázovej sekvencii:
+
+```
+                  [ 1. FRESH SYSTEM RE-MAPPING ]
+                   Zmapuj celý systém nanovo
+                                |
+                                v
+                  [ 2. HYPOTHESIS PORTFOLIO + M0 ]
+                   Generuj viacero hypotéz vrátane nulovej (M0)
+                                |
+                                v
+                  [ 3. ISOLATED ACTUATION + ROLLBACK ]
+                   Priraď kontrolnú plochu (Tier 1..9), falzifikátor a rollback
+                                |
+                                v
+                  [ 4. EVOI CANDIDATE SELECTION ]
+                   Vyber kandidáta podľa informačného zisku (EVOI), nie greedily
+                                |
+                                v
+                  [ 5. TRANSACTIONAL ACTUATION & MEASURE ]
+                   Aplikuj cez tenký adaptér a zmeraj pred a po
+                                |
+                                v
+                  [ 6. ADVERSARIAL CRITIC AUDIT ]
+                   Nezávislé spochybnenie (hľadanie confounderov a flukov)
+                                |
+                                v
+                  [ 7. KNOWLEDGE GRAPH REVISION ]
+                   Aktualizuj stavy uzlov v Epistemic Knowledge Graph
+                                |
+                                v
+                  [ 8. MODULARITY GATE: MODULE VS HACK ]
+                   Otázka: Je to čistý nový modul, alebo len ad-hoc hack?
+```
+
+### Podrobný popis fáz:
+1. **Fresh System Re-Mapping:** V každom cykle sa nanovo prečíta kompletný stav CPU, pamäte, I/O, akcelerátorov a termálov, čím sa eliminuje predpojatý odhad z predchádzajúcich behov.
+2. **Hypothesis Portfolio + $M_0$ (NULL Model):** Pre každú neznámu alebo pozorovaný jav sa povinne formuluje portfólio hypotéz, kde $M_0$ predpokladá, že jav je šum, chyba kalibrácie orakula alebo náhodná fluktuácia.
+3. **Isolated Actuation + Rollback:** Každý kandidát má jasne definovanú kontrolnú plochu v hierarchii 1..9 (App Config až Boot param) a priradenú triedu rollbacku (`EXACT_STATE`, `CONFIG_RESTORE`, `DRAIN_AND_CONVERGE`, `IRREVERSIBLE_SIDE_EFFECT`).
+4. **EVOI Candidate Selection:** Kandidát sa nevyberá iba podľa najvyššieho sľubovaného zrýchlenia ($\text{Gain}$), ale podľa **očakávaného informačného zisku (Expected Value of Information)**:
+   $$\text{Priorita}_{\text{EVOI}} = \frac{\text{Informačný zisk (Diskrétna entropia)} \times \text{Falzifikačná hodnota}}{\text{Riziko} \times \text{Náklady}}$$
+   Testuje sa to, čo najefektívnejšie vyradí chybné teórie a zúži priestor prípustných modelov.
+5. **Transactional Actuation & Measure:** Vykoná sa izolovaná zmena s pred a po meraním v rámci domain-scoped zámku.
+6. **Adversarial Critic Audit:** Nezávislý oponent (`AdversarialCritic`) aktívne pátra po dôvodoch zlyhania:
+   - Nešlo o prechodnú fluktuáciu?
+   - Nezlepšila sa latencia na úkor skrytého vyhladovania iného procesu (thermal trottling, memory leak)?
+   - Nebolo testovacie orakulum triviálne splnené bez reálneho mechanizmu?
+7. **Knowledge Graph Revision:** Zistenia sa zapíšu do epistemického orientovaného grafu so statusmi (`HYPOTHESIS`, `UNDER_TEST`, `FALSIFIED`, `APPROVED_MECHANISM`, `UNKNOWN_GAP`, `CONFLICT`).
+8. **Modularity Gate („Nový modul vs. Hack“):**
+   - Po ukončení cyklu prebehne architektonický audit:
+     * *„Dá sa tento mechanizmus vyjadriť ako čistá, znovupoužiteľná abstrakcia v Krystal Stacku (nový modul)?“*
+     * Ak ide iba o „magickú konštantu“ viazanú na jedno špecifické prostredie, klasifikuje sa ako **AD_HOC_HACK** a je odmietnutá alebo odoslaná na refaktorovanie do zovšeobecneného kontraktu.
+
+---
+
+## 3. Štruktúra Epistemického Knowledge Graphu
+
+Uzly v grafe reprezentujú typy poznania:
+* `MechanismNode`: Skúmaný alebo potvrdený kauzálny mechanizmus (napr. VSync Blanking Micro-Slicing).
+* `HypothesisNode`: Aktuálne testované hypotézy s falzifikátormi.
+* `ModelNode`: Konkurenčné modely (vrátane $M_0$ NULL).
+* `UnknownGapNode`: Formalizované biele miesta v telemetrii (nezmapované javy).
+* `ConflictNode`: Nevyriešené rozpory medzi štúdiami alebo meraniami.
+
+Hrany nesú sémantické vzťahy:
+* `SUPPORTS`, `WEAKENS`, `FALSIFIES`, `REPLACES`, `DEPENDS_ON`, `DISCRIMINATES_AGAINST`.
+
+---
+
+## 4. Invarianty a architektonické mantry
+
+1. **`GLOBAL_VITAL_MAX_HP == 6`:** Nemenný globálny zmluvný invariant.
+2. **Zákaz ad-hoc hackov:** Každá schválená zmena musí byť povýšená na first-class systémový modul alebo adaptér.

@@ -239,6 +239,20 @@ Pri neistote a komplexných problémoch udržiavaj paralelne 4 paradigmatické m
   - `Neznáme (UNKNOWN / Insufficient)` $\neq$ `Nepravdivé (REFUTED)`.
 * **Ústredný cieľ:** Cieľom vedeckého skúmania je **mapa evidencie (Evidence Map)**, nie konštrukcia jednej umelej „správnej“ reality.
 
+### 13. Autonómny výskumno-inžiniersky cyklus (Epistemic Discovery Loop)
+* **Zmena orientácie – Nie hon za benchmarkom:** Cieľom výskumného cyklu nie je povrchné pretaktovanie alebo naháňanie jednorazového benchmarkového čísla, ale **hľadanie nových kauzálnych mechanizmov**, ktoré štrukturálne zlepšujú správanie systému.
+* **Jadrová direktíva:**
+  > *„Nie zrýchli kód, ale spochybni predpoklady, nájdi neznáme a falzifikuj vlastné modely.“*
+* **8-kroková výskumná slučka:**
+  1. *Čerstvé mapovanie:* V každom cykle zmapuj stav a telemetriu celého systému nanovo, bez predpojatosti z minulých behov.
+  2. *Konkurenčné hypotézy a $M_0$:* Formuluj portfólio viacerých hypotéz vrátane nulovej $M_0$ (jav je šum, fluktuácia alebo chyba orakula).
+  3. *Izolované zásahy s rollbackom:* Každý zásah má priradenú kontrolnú plochu (Tier 1..9), falzifikátor, explicitný rollback payload a `RollbackClass`.
+  4. *Výber podľa informačného zisku (EVOI):* Kandidáta vyberaj podľa informačného zisku a diskriminačnej schopnosti vyvrátiť modely, nie iba podľa greedy očakávaného zisku metriky.
+  5. *Aplikuj a zmeraj:* Vykonaj zásah transakčne cez tenký adaptér a zaznamenaj pred/po telemetriu.
+  6. *Nezávislé spochybnenie (Adversarial Audit):* Výsledok podrob nezávislej oponentúre (`AdversarialCritic`), ktorá aktívne pátra po skrytých premenných (confounders), pretrénovaní (overfitting) a iluzórnych koreláciách.
+  7. *Graf poznania so statusmi:* Udržiavaj epistemický Knowledge Graph uzlov s explicitnými statusmi (`HYPOTHESIS`, `UNDER_TEST`, `FALSIFIED`, `APPROVED_MECHANISM`, `UNKNOWN_GAP`, `CONFLICT`).
+  8. *Architektonická reflexia (Nový modul vs. Hack):* Po každom cykle polož otázku: *„Je toto čistý, samostatný modul (nová architektonická abstrakcia), alebo len ad-hoc hack?“* Hack sa odmieta alebo refaktoruje do čistého subsystému.
+
 ---
 
 ## Repository Invariants
