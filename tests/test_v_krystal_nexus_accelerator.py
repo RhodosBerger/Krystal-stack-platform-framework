@@ -125,3 +125,61 @@ class TestVKrystalNexusAccelerator:
         engine = KrystalNexusEngine()
         receipt = engine.run_coexistence_cycle(simulated_frames=10)
         assert receipt.vital_max_hp == 6
+
+    def test_08_msr_lock_bit_63_fallback_to_mmio(self):
+        """Governor detects MSR bit 63 lock and falls back to MMIO MCHBAR without failing."""
+        gov = PowerLimitGovernor()
+
+        # Simulate MSR value with bit 63 set: 0x8000000000000000
+        raw_locked_msr = 1 << 63
+        assert gov.check_msr_lock_bit(raw_locked_msr) is True
+
+        unlocked, watts, code = gov.unlock_power_clamp(
+            target_pl1_watts=32.0,
+            temperature_c=62.0,
+            raw_msr_value=raw_locked_msr,
+        )
+        assert unlocked is True
+        assert watts == 32.0
+        assert gov.active_interface == "MMIO_MCHBAR_0x59A0_FALLBACK"
+        assert code == "PL1_UNCLAMPED_VIA_MMIO_LOCK_BYPASS"
+
+    def test_09_hardware_vsync_clock_source_jitter_reduction(self):
+        """Hardware VSync clock sources provide sub-0.05ms precision compared to software sleep."""
+        from krystal_kernel.krystal_nexus_accelerator import HardwareVsyncClockSource
+
+        sched_hw = VsyncMicroSlicingScheduler(
+            target_fps=120.0,
+            clock_source=HardwareVsyncClockSource.VULKAN_PRESENT_FENCE,
+        )
+        sched_sw = VsyncMicroSlicingScheduler(
+            target_fps=120.0,
+            clock_source=HardwareVsyncClockSource.HIGH_RES_MONOTONIC,
+        )
+
+        assert sched_hw.expected_jitter_ms == 0.04
+        assert sched_sw.expected_jitter_ms == 1.25
+
+        # With 6.2ms render time, hardware fence provides greater headroom than software sleep
+        slice_hw, tokens_hw = sched_hw.calculate_micro_slice_budget(current_render_duration_ms=6.2)
+        slice_sw, tokens_sw = sched_sw.calculate_micro_slice_budget(current_render_duration_ms=6.2)
+        assert slice_hw > slice_sw
+        assert tokens_hw >= tokens_sw
+
+    def test_10_multi_isa_topology_detection_arm_and_riscv(self):
+        """Topology detector recognizes ARM64 Apple Silicon and RISC-V platforms."""
+        from krystal_kernel.multiplatform_inference_protocol import ArchitectureISA
+
+        topo_x86 = HardwareTopologyDetector.detect_host(ArchitectureISA.X86_64_INTEL_CORE)
+        assert topo_x86.isa == ArchitectureISA.X86_64_INTEL_CORE
+        assert topo_x86.has_dp4a is True
+
+        topo_arm = HardwareTopologyDetector.detect_host(ArchitectureISA.ARM64_UNIFIED)
+        assert topo_arm.isa == ArchitectureISA.ARM64_UNIFIED
+        assert topo_arm.bus_capacity_gb_s == 150.0
+        assert topo_arm.vital_max_hp == 6
+
+        topo_riscv = HardwareTopologyDetector.detect_host(ArchitectureISA.RISCV_OPEN_ACCELERATOR)
+        assert topo_riscv.isa == ArchitectureISA.RISCV_OPEN_ACCELERATOR
+        assert topo_riscv.bus_capacity_gb_s == 48.0
+        assert topo_riscv.vital_max_hp == 6
