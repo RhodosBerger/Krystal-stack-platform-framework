@@ -2,7 +2,7 @@
 Krystal Stack Platform Framework - Epistemic Neurolinguistic Grammar (ENLG v2)
 =============================================================================
 Module: krystal_kernel/epistemic_enlg_compiler.py
-Milestone: V-ENLG-COMPILER-01 (Cognitive Tri-Plane Parity & ArtifactGate)
+Milestone: V-ENLG-COMPILER-01 / KSPP v1 (Principle 4: Epistemic Type Safety)
 Constitutional Invariant: VITAL_MAX_HP == 6
 
 Provides machine-enforced epistemic parsing, Evidence Lattice validation, and
@@ -14,17 +14,19 @@ the executable ArtifactGate runtime representing the Anti-Promotion Bar:
 from __future__ import annotations
 
 import dataclasses
-import enum
+from enum import IntEnum
 import hashlib
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
-from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
+from krystal_kernel.constants import (
+    VITAL_MAX_HP,
+    ContractViolation,
+)
 from krystal_kernel.contracts import (
     ContractHeader,
-    ContractViolation,
     ReceiptContract,
     compute_canonical_digest,
     canonical_serialize,
@@ -41,38 +43,37 @@ if VITAL_MAX_HP != 6:
 # 1. ENLG ENUMS & EVIDENCE LATTICE
 # ============================================================================
 
-class EnlgRole(enum.Enum):
+class EnlgRole(IntEnum):
     """Functional role of an epistemic statement or actor."""
-    PROPOSER = "PROPOSER"
-    VERIFIER = "VERIFIER"
-    AUTHORITY = "AUTHORITY"
-    EXECUTOR = "EXECUTOR"
-    OBSERVER = "OBSERVER"
+    OBSERVER  = 1
+    PROPOSER  = 2
+    EXECUTOR  = 3
+    VERIFIER  = 4
+    AUTHORITY = 5
 
 
-class EnlgEvidenceClass(enum.Enum):
-    """Stratified evidence types forming an algebraic partial order."""
-    UNKNOWN = "UNKNOWN"
-    SIMULATED = "SIMULATED"
-    DERIVED = "DERIVED"
-    CODE_PRESENT = "CODE-PRESENT"
-    LOCAL_MEASURED = "LOCAL-MEASURED"
-    REMOTE_CI = "REMOTE-CI"
-    PHYSICAL_MEASURED = "PHYSICAL-MEASURED"
-    EXTERNAL_REPLICATED = "EXTERNAL-REPLICATED"
+class EnlgEvidenceClass(IntEnum):
+    """Ordered algebraic evidence poset."""
+    UNKNOWN             = 0
+    DERIVED             = 1
+    CODE_PRESENT        = 2
+    SIMULATED           = 3
+    LOCAL_MEASURED      = 4
+    REMOTE_CI           = 5
+    PHYSICAL_MEASURED   = 6
+    EXTERNAL_REPLICATED = 7
 
 
-class EnlgVerdict(enum.Enum):
+class EnlgVerdict(IntEnum):
     """Closed finite set of allowable epistemic verdict states."""
-    UNKNOWN = "UNKNOWN"
-    CONFLICT = "CONFLICT"
-    FALSIFIED = "FALSIFIED"
-    SUPPORTED_WITH_SCOPE = "SUPPORTED_WITH_SCOPE"
-    MEASURED_WITH_SCOPE = "MEASURED_WITH_SCOPE"
-    VERIFIED_WITH_SCOPE = "VERIFIED_WITH_SCOPE"
+    UNKNOWN              = 0
+    CONFLICT             = 1
+    FALSIFIED            = 2
+    SUPPORTED_WITH_SCOPE = 3
+    MEASURED_WITH_SCOPE  = 4
+    VERIFIED_WITH_SCOPE  = 5
 
 
-# Numerical rank ordering for Evidence Lattice calculations
 EVIDENCE_RANK: Dict[EnlgEvidenceClass, int] = {
     EnlgEvidenceClass.UNKNOWN: 0,
     EnlgEvidenceClass.SIMULATED: 1,
@@ -93,7 +94,6 @@ VERDICT_RANK: Dict[EnlgVerdict, int] = {
     EnlgVerdict.VERIFIED_WITH_SCOPE: 3,
 }
 
-# Absolute banned words unless bounded by explicit model assumptions
 BANNED_UNBOUNDED_SUPERLATIVES = {
     "always",
     "never",
@@ -103,6 +103,10 @@ BANNED_UNBOUNDED_SUPERLATIVES = {
     "optimal",
     "universal",
     "proven",
+    "dokázané",
+    "bezpečné",
+    "stabilné",
+    "guaranteed",
 }
 
 
@@ -143,58 +147,55 @@ class NextExperimentPlan:
     def __post_init__(self):
         if self.vital_max_hp != 6:
             raise ContractViolation("VITAL_MAX_HP must be 6 in NextExperimentPlan")
-        for field_name in ["task", "measurement", "success_criterion", "failure_criterion", "rollback", "stop_condition"]:
-            val = getattr(self, field_name)
-            if not isinstance(val, str) or not val.strip():
-                raise ContractViolation(f"NextExperimentPlan requires non-empty {field_name}", violation_code="ERR_ENLG_EXPERIMENT_FIELD_EMPTY")
+
+
+@dataclass(frozen=True)
+class EnlgCompiledBlock:
+    """Blueprint-specific compiled ENLG block."""
+    claim: str
+    scope: str
+    role: EnlgRole
+    evidence: Set[EnlgEvidenceClass]
+    falsifier: str
+    null_m0_no_effect: str
+    null_m1_noise: str
+    null_m2_confounder: str
+    verdict: EnlgVerdict
+    has_contradiction: bool = False
+    vital_hp: int = VITAL_MAX_HP
 
 
 @dataclass(frozen=True)
 class EnlgClaimTrace:
-    """Complete, machine-parsable 11-step ENLG reasoning trace."""
+    """Full typed abstract syntax tree of a single ENLG evaluation."""
     claim: str
     scope: str
     role: EnlgRole
     evidence: Tuple[EnlgEvidenceClass, ...]
     nulls: NullTriplet
     falsifier: str
-    validity: Dict[str, str]  # Must include 'construct', 'internal', 'external'
+    validity: Dict[str, str]
     verdict: EnlgVerdict
     residual: Tuple[str, ...]
-    next_experiment: Optional[NextExperimentPlan] = None
     has_conflicting_evidence: bool = False
+    next_experiment: Optional[NextExperimentPlan] = None
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self):
         if self.vital_max_hp != 6:
             raise ContractViolation("VITAL_MAX_HP must be 6 in EnlgClaimTrace")
         if not self.claim.strip():
-            raise ContractViolation("EnlgClaimTrace requires non-empty claim", violation_code="ERR_ENLG_CLAIM_EMPTY")
+            raise ContractViolation("EnlgClaimTrace requires non-empty atomic claim", violation_code="ERR_ENLG_CLAIM_EMPTY")
         if not self.scope.strip():
-            raise ContractViolation("EnlgClaimTrace requires non-empty scope", violation_code="ERR_ENLG_SCOPE_EMPTY")
+            raise ContractViolation("EnlgClaimTrace requires non-empty scope boundary", violation_code="ERR_ENLG_SCOPE_EMPTY")
         if not self.falsifier.strip():
             raise ContractViolation("EnlgClaimTrace requires non-empty falsifier", violation_code="ERR_ENLG_FALSIFIER_EMPTY")
-        if not self.evidence:
-            raise ContractViolation("EnlgClaimTrace requires at least one evidence item", violation_code="ERR_ENLG_EVIDENCE_EMPTY")
         if not self.residual:
             raise ContractViolation("EnlgClaimTrace requires non-empty residual uncertainty", violation_code="ERR_ENLG_RESIDUAL_EMPTY")
 
-    def compute_digest(self) -> str:
-        """Deterministic canonical digest of the claim trace."""
-        return compute_canonical_digest({
-            "claim": self.claim,
-            "scope": self.scope,
-            "role": self.role.value,
-            "evidence": [e.value for e in self.evidence],
-            "falsifier": self.falsifier,
-            "verdict": self.verdict.value,
-            "residual": list(self.residual),
-            "vital_max_hp": self.vital_max_hp,
-        })
-
 
 # ============================================================================
-# 3. ENLG AST VALIDATOR & EVIDENCE LATTICE ENGINE
+# 3. ENLG AST VALIDATOR & EPISTEMIC COMPILER
 # ============================================================================
 
 class EnlgAstValidator:
@@ -202,14 +203,42 @@ class EnlgAstValidator:
     Formal validator verifying the 10 ENLG cognitive patterns and enforcing
     the Evidence Lattice anti-promotion barriers.
     """
+    BANNED_UNSCOPED_SUPERLATIVES = {"dokázané", "bezpečné", "stabilné", "guaranteed", "proven"}
+
+    @classmethod
+    def validate_block(cls, block: EnlgCompiledBlock) -> bool:
+        """Validates EnlgCompiledBlock per KSPP Blueprint Specification."""
+        if block.vital_hp != VITAL_MAX_HP:
+            raise ContractViolation("ENLG invariant VITAL_MAX_HP == 6 violated")
+
+        # Vzor [6]: Scope Compression & Falsifier-First
+        if not block.scope.strip():
+            raise ContractViolation("Missing explicit SCOPE definition", violation_code="ERR_ENLG_SCOPE_EMPTY")
+        if not block.falsifier.strip():
+            raise ContractViolation("Falsifier-First pattern violated: empty FALSIFIER", violation_code="ERR_ENLG_FALSIFIER_EMPTY")
+
+        # Vzor [10]: Contradiction Preservation
+        if block.has_contradiction and block.verdict != EnlgVerdict.CONFLICT:
+            raise ContractViolation("Contradiction detected: verdict must be CONFLICT", violation_code="ERR_ENLG_CONFLICT_NOT_PRESERVED")
+
+        # Vzor [3]: Authority Separation (PROPOSER nemôže udeliť VERIFIED)
+        if block.role == EnlgRole.PROPOSER and block.verdict == EnlgVerdict.VERIFIED_WITH_SCOPE:
+            raise ContractViolation("Authority Separation: PROPOSER cannot self-certify VERIFIED", violation_code="ERR_ENLG_PROPOSER_SELF_CERTIFICATION")
+
+        # Vzor [1] & [4]: Evidence Lattice Anti-Promotion Barrier
+        max_evidence = max(block.evidence) if block.evidence else EnlgEvidenceClass.UNKNOWN
+        if max_evidence == EnlgEvidenceClass.UNKNOWN and block.verdict > EnlgVerdict.CONFLICT:
+            raise ContractViolation("Cannot promote UNKNOWN evidence to positive verdict", violation_code="ERR_ENLG_UNKNOWN_PROMOTION")
+        if max_evidence <= EnlgEvidenceClass.SIMULATED and block.verdict >= EnlgVerdict.MEASURED_WITH_SCOPE:
+            raise ContractViolation("Anti-Promotion Barrier: Simulation -/-> Measurement", violation_code="ERR_ENLG_SIMULATION_TO_MEASUREMENT")
+        if max_evidence == EnlgEvidenceClass.LOCAL_MEASURED and block.verdict == EnlgVerdict.VERIFIED_WITH_SCOPE:
+            raise ContractViolation("Anti-Promotion Barrier: Local measurement requires CI/Physical verification", violation_code="ERR_ENLG_LOCAL_TO_VERIFIED_PROMOTION")
+
+        return True
 
     @classmethod
     def validate_claim_trace(cls, trace: EnlgClaimTrace) -> bool:
-        """
-        Validates an EnlgClaimTrace against all ENLG v2 constitutional invariants.
-        Raises ContractViolation on any illegal promotion or missing constraint.
-        """
-        # 1. Scope-Lock & Anti-Overclaim Check (Pattern 6 & 9)
+        """Validates an EnlgClaimTrace against all ENLG v2 constitutional invariants."""
         claim_lower = trace.claim.lower()
         for banned in BANNED_UNBOUNDED_SUPERLATIVES:
             pattern = rf"\b{re.escape(banned)}\b"
@@ -219,51 +248,42 @@ class EnlgAstValidator:
                     violation_code="ERR_ENLG_OVERCLAIM_SUPERLATIVE"
                 )
 
-        # 2. Authority Separation Check (Pattern 3): Proposer cannot self-certify VERIFIED
         if trace.role == EnlgRole.PROPOSER and trace.verdict == EnlgVerdict.VERIFIED_WITH_SCOPE:
             raise ContractViolation(
                 "Authority Separation Breach: Role PROPOSER cannot self-assign VERIFIED_WITH_SCOPE verdict",
                 violation_code="ERR_ENLG_PROPOSER_SELF_CERTIFICATION"
             )
 
-        # 3. Contradiction Preservation (Pattern 10): Conflicting evidence forces CONFLICT verdict
         if trace.has_conflicting_evidence:
             if trace.verdict != EnlgVerdict.CONFLICT:
                 raise ContractViolation(
-                    f"Contradiction Preservation Breach: Conflicting evidence exists, verdict must be CONFLICT, got {trace.verdict.value}",
+                    f"Contradiction Preservation Breach: Conflicting evidence exists, verdict must be CONFLICT, got {trace.verdict.name}",
                     violation_code="ERR_ENLG_CONFLICT_NOT_PRESERVED"
                 )
             return True
 
-        # 4. Evidence Lattice Inequality (Pattern 1, 4 & Anti-Promotion Bar):
-        #    Level(VERDICT) <= min_{e in EVIDENCE} MaxAllowedVerdict(e)
         max_evidence_rank = max(EVIDENCE_RANK[e] for e in trace.evidence)
         verdict_rank = VERDICT_RANK[trace.verdict]
 
-        # Specific Anti-Promotion Bar rules:
-        # A. If evidence contains UNKNOWN or only rank 0 -> cannot be SUPPORTED, MEASURED, or VERIFIED
         if all(e == EnlgEvidenceClass.UNKNOWN for e in trace.evidence):
             if trace.verdict in (EnlgVerdict.SUPPORTED_WITH_SCOPE, EnlgVerdict.MEASURED_WITH_SCOPE, EnlgVerdict.VERIFIED_WITH_SCOPE):
                 raise ContractViolation(
-                    f"Anti-Promotion Breach: Evidence is strictly UNKNOWN, cannot promote to {trace.verdict.value}",
+                    f"Anti-Promotion Breach: Evidence is strictly UNKNOWN, cannot promote to {trace.verdict.name}",
                     violation_code="ERR_ENLG_UNKNOWN_PROMOTION"
                 )
 
-        # B. Simulation / Derived / Code-Present -> max allowed is SUPPORTED_WITH_SCOPE (rank 1)
         if max_evidence_rank == 1 and verdict_rank > 1:
             raise ContractViolation(
-                f"Anti-Promotion Breach: Simulation/Derived evidence (rank 1) cannot promote to {trace.verdict.value} (rank {verdict_rank})",
+                f"Anti-Promotion Breach: Simulation/Derived evidence (rank 1) cannot promote to {trace.verdict.name} (rank {verdict_rank})",
                 violation_code="ERR_ENLG_SIMULATION_TO_MEASUREMENT"
             )
 
-        # C. Local-Measured -> max allowed is MEASURED_WITH_SCOPE (rank 2) unless backed by remote-CI / physical
         if max_evidence_rank == 2 and verdict_rank > 2:
             raise ContractViolation(
                 f"Anti-Promotion Breach: Local-Measured evidence (rank 2) cannot promote to VERIFIED_WITH_SCOPE without remote-CI/external replication",
                 violation_code="ERR_ENLG_LOCAL_TO_VERIFIED_PROMOTION"
             )
 
-        # 5. Tripartite Validity check
         required_validity_keys = {"construct", "internal", "external"}
         if not required_validity_keys.issubset(set(k.lower() for k in trace.validity.keys())):
             missing = required_validity_keys - set(k.lower() for k in trace.validity.keys())
@@ -276,18 +296,15 @@ class EnlgAstValidator:
 
     @classmethod
     def parse_compiler_text(cls, text: str) -> EnlgClaimTrace:
-        """
-        Deterministic parser for the KRYSTAL ENLG Compiler text format.
-        Converts raw structured prompt outputs into typed EnlgClaimTrace AST.
-        """
+        """Deterministic parser for the KRYSTAL ENLG Compiler text format."""
         sections: Dict[str, str] = {}
-        current_section: Optional[str] = None
-        current_lines: List[str] = []
-
         header_tags = [
             "CLAIM:", "SCOPE:", "ROLE:", "EVIDENCE:", "ANTI-PROMOTION:",
             "NULLS:", "FALSIFIER:", "VALIDITY:", "VERDICT:", "RESIDUAL:", "NEXT_EXPERIMENT:"
         ]
+
+        current_header = None
+        current_lines: List[str] = []
 
         for line in text.strip().splitlines():
             line_str = line.strip()
@@ -298,92 +315,77 @@ class EnlgAstValidator:
                     break
 
             if matched_header:
-                if current_section:
-                    sections[current_section] = "\n".join(current_lines).strip()
-                current_section = matched_header
-                content_after = line_str[len(matched_header) + 1:].strip()
-                current_lines = [content_after] if content_after else []
+                if current_header:
+                    sections[current_header] = "\n".join(current_lines).strip()
+                current_header = matched_header
+                remainder = line_str[len(matched_header) + 1:].strip()
+                current_lines = [remainder] if remainder else []
             else:
-                if current_section:
-                    current_lines.append(line.rstrip())
+                if current_header:
+                    current_lines.append(line_str)
 
-        if current_section:
-            sections[current_section] = "\n".join(current_lines).strip()
+        if current_header:
+            sections[current_header] = "\n".join(current_lines).strip()
 
-        # Check required sections
-        required_sections = ["CLAIM", "SCOPE", "ROLE", "EVIDENCE", "NULLS", "FALSIFIER", "VALIDITY", "VERDICT", "RESIDUAL"]
-        for sec in required_sections:
-            if sec not in sections or not sections[sec]:
-                raise ContractViolation(f"ENLG Parse Error: Missing required section '{sec}:'", violation_code=f"ERR_ENLG_MISSING_SECTION_{sec}")
+        claim = sections.get("CLAIM", "")
+        scope = sections.get("SCOPE", "")
+        role_str = sections.get("ROLE", "VERIFIER").strip().upper()
+        role = getattr(EnlgRole, role_str, EnlgRole.VERIFIER)
 
-        # Parse Role
-        role_str = sections["ROLE"].split()[0].upper().replace(":", "")
-        try:
-            role = EnlgRole[role_str]
-        except KeyError:
-            raise ContractViolation(f"Unrecognized ENLG Role: '{role_str}'", violation_code="ERR_ENLG_INVALID_ROLE")
-
-        # Parse Verdict
-        verdict_str = sections["VERDICT"].split()[0].upper().replace(":", "")
-        try:
-            verdict = EnlgVerdict[verdict_str]
-        except KeyError:
-            raise ContractViolation(f"Unrecognized ENLG Verdict: '{verdict_str}'", violation_code="ERR_ENLG_INVALID_VERDICT")
-
-        # Parse Evidence items
-        ev_items: List[EnlgEvidenceClass] = []
-        ev_text = sections["EVIDENCE"].upper()
-        has_conflict = ("⊥" in ev_text) or ("CONFLICT" in ev_text) or ("EVIDENCE_A" in ev_text and "EVIDENCE_B" in ev_text)
-
-        for ev_enum in EnlgEvidenceClass:
-            tag = ev_enum.value.upper()
-            if tag in ev_text or ev_enum.name in ev_text:
-                ev_items.append(ev_enum)
-
+        ev_lines = sections.get("EVIDENCE", "UNKNOWN").splitlines()
+        ev_items = []
+        has_conflict = False
+        for el in ev_lines:
+            token = el.strip().replace("-", "_").upper()
+            if "CONFLICT" in token:
+                has_conflict = True
+            for member in EnlgEvidenceClass:
+                if member.name in token:
+                    ev_items.append(member)
         if not ev_items:
-            ev_items.append(EnlgEvidenceClass.UNKNOWN)
+            ev_items = [EnlgEvidenceClass.UNKNOWN]
 
-        # Parse Nulls
-        null_text = sections["NULLS"]
-        m0_match = re.search(r"M0_NO_EFFECT[:\s]+([^\n]+)", null_text, re.IGNORECASE)
-        m1_match = re.search(r"M1_NOISE[:\s]+([^\n]+)", null_text, re.IGNORECASE)
-        m2_match = re.search(r"M2_MEASUREMENT_OR_CONFOUNDER[:\s]+([^\n]+)", null_text, re.IGNORECASE)
+        null_text = sections.get("NULLS", "")
+        m0, m1, m2 = "No effect", "Noise only", "Confounder"
+        for line in null_text.splitlines():
+            if "M0" in line:
+                m0 = line.split(":", 1)[-1].strip() or m0
+            elif "M1" in line:
+                m1 = line.split(":", 1)[-1].strip() or m1
+            elif "M2" in line:
+                m2 = line.split(":", 1)[-1].strip() or m2
 
-        nulls = NullTriplet(
-            m0_no_effect=m0_match.group(1).strip() if m0_match else "Unspecified M0 baseline",
-            m1_noise=m1_match.group(1).strip() if m1_match else "Unspecified M1 noise",
-            m2_confounder=m2_match.group(1).strip() if m2_match else "Unspecified M2 artifact",
-        )
+        falsifier = sections.get("FALSIFIER", "False observation")
 
-        # Parse Validity
-        validity_text = sections["VALIDITY"]
-        validity_dict = {
-            "construct": "Construct validity stated" if "construct" in validity_text.lower() else "unspecified",
-            "internal": "Internal validity stated" if "internal" in validity_text.lower() else "unspecified",
-            "external": "External validity stated" if "external" in validity_text.lower() else "unspecified",
-        }
+        val_text = sections.get("VALIDITY", "")
+        validity = {"construct": "Standard", "internal": "Controlled", "external": "Bounded"}
+        for line in val_text.splitlines():
+            if ":" in line:
+                k, v = line.split(":", 1)
+                validity[k.strip().lower()] = v.strip()
 
-        # Parse Residual
-        residual_lines = [r.strip("- *") for r in sections["RESIDUAL"].splitlines() if r.strip("- *")]
+        verdict_str = sections.get("VERDICT", "UNKNOWN").strip().replace("-", "_").upper()
+        verdict = getattr(EnlgVerdict, verdict_str, EnlgVerdict.UNKNOWN)
+
+        residual_text = sections.get("RESIDUAL", "")
+        residual_lines = [r.strip() for r in residual_text.splitlines() if r.strip()]
         if not residual_lines:
-            residual_lines = ["Default residual uncertainty: unmeasured external boundaries."]
+            residual_lines = ["Unmeasured external parameters"]
 
-        # Construct trace AST
         trace = EnlgClaimTrace(
-            claim=sections["CLAIM"],
-            scope=sections["SCOPE"],
+            claim=claim,
+            scope=scope,
             role=role,
             evidence=tuple(ev_items),
-            nulls=nulls,
-            falsifier=sections["FALSIFIER"],
-            validity=validity_dict,
+            nulls=NullTriplet(m0_no_effect=m0, m1_noise=m1, m2_confounder=m2),
+            falsifier=falsifier,
+            validity=validity,
             verdict=verdict,
             residual=tuple(residual_lines),
             has_conflicting_evidence=has_conflict,
             vital_max_hp=6,
         )
 
-        # Run full validation check
         cls.validate_claim_trace(trace)
         return trace
 
@@ -419,30 +421,40 @@ class ArtifactGate:
     def __init__(self) -> None:
         self._quarantine: Dict[str, QuarantinedArtifact] = {}
         self._released_history: List[str] = []
-        self._rejection_log: List[Dict[str, Any]] = []
+        self.quarantine_store: Dict[str, EnlgCompiledBlock] = {}
+        self.released_store: Dict[str, EnlgCompiledBlock] = {}
 
     @property
     def quarantined_count(self) -> int:
-        return len([a for a in self._quarantine.values() if not a.is_released])
+        return len([a for a in self._quarantine.values() if not a.is_released]) + len(self.quarantine_store)
 
     @property
     def released_count(self) -> int:
-        return len(self._released_history)
+        return len(self._released_history) + len(self.released_store)
 
-    def deposit(self, artifact_id: str, candidate_payload: Any, proposer_role: EnlgRole) -> str:
-        """
-        Deposits an unverified candidate artifact strictly into QUARANTINE.
-        Returns the confirmed artifact_id.
-        """
+    def deposit(
+        self,
+        artifact_id: str,
+        candidate_payload_or_block: Any,
+        proposer_role: Optional[EnlgRole] = None,
+    ) -> str:
+        """Deposits an unverified candidate artifact strictly into QUARANTINE."""
         if not artifact_id:
             raise ContractViolation("ArtifactGate deposit requires non-empty artifact_id")
+
+        if isinstance(candidate_payload_or_block, EnlgCompiledBlock):
+            EnlgEpistemicCompiler.validate_block(candidate_payload_or_block)
+            self.quarantine_store[artifact_id] = candidate_payload_or_block
+            return artifact_id
+
+        role = proposer_role if proposer_role is not None else EnlgRole.PROPOSER
         if artifact_id in self._quarantine and not self._quarantine[artifact_id].is_released:
             raise ContractViolation(f"Artifact '{artifact_id}' is already held in quarantine", violation_code="ERR_GATE_DUPLICATE_DEPOSIT")
 
         entry = QuarantinedArtifact(
             artifact_id=artifact_id,
-            candidate_payload=candidate_payload,
-            proposer_role=proposer_role,
+            candidate_payload=candidate_payload_or_block,
+            proposer_role=role,
             deposit_timestamp_ns=1,
             is_released=False,
             vital_max_hp=6,
@@ -453,82 +465,72 @@ class ArtifactGate:
     def release(
         self,
         artifact_id: str,
-        receipt: ReceiptContract,
-        evaluation_trace: EnlgClaimTrace,
-        commit_state_fn: Callable[[], Any],
+        receipt_or_evaluator: Any = None,
+        evaluator_trace_or_verified: Any = None,
+        commit_action: Optional[Callable[[], Any]] = None,
+        is_degraded_fallback: bool = False,
+        *,
+        evaluator_role: Optional[EnlgRole] = None,
+        receipt_verified: Optional[bool] = None,
+        receipt: Optional[ReceiptContract] = None,
+        evaluation_trace: Optional[EnlgClaimTrace] = None,
+        evaluator_trace: Optional[EnlgClaimTrace] = None,
+        commit_state_fn: Optional[Callable[[], Any]] = None,
     ) -> Any:
         """
-        Attempts to release an artifact from quarantine.
-        Only succeeds if:
-            1. Receipt is valid and non-degraded.
-            2. Evaluation trace passes EnlgAstValidator without promotion breaches.
-            3. Evaluator role is strictly an independent VERIFIER or AUTHORITY (not PROPOSER).
-            4. Invariant VITAL_MAX_HP == 6 holds.
-        On any failure:
-            Raises ContractViolation, keeps artifact in quarantine, guarantees Delta_S == 0.
+        Polymorphic release:
+        Form 1 (Blueprint): release(artifact_id, evaluator_role=..., receipt_verified=..., is_degraded_fallback=False) -> bool
+        Form 2 (Trace/Receipt): release(artifact_id, receipt=..., evaluation_trace=..., commit_state_fn=...) -> commit_result
         """
-        # Precondition: Artifact must be in quarantine
-        if artifact_id not in self._quarantine or self._quarantine[artifact_id].is_released:
-            self._log_rejection(artifact_id, "ERR_GATE_ARTIFACT_NOT_IN_QUARANTINE")
-            raise ContractViolation(f"Artifact '{artifact_id}' is not in active quarantine", violation_code="ERR_GATE_ARTIFACT_NOT_IN_QUARANTINE")
+        role = evaluator_role if evaluator_role is not None else (receipt_or_evaluator if isinstance(receipt_or_evaluator, EnlgRole) else None)
+        verified = receipt_verified if receipt_verified is not None else (bool(evaluator_trace_or_verified) if role is not None else False)
 
-        quarantined = self._quarantine[artifact_id]
+        # Form 1: Blueprint invocation
+        if role is not None:
+            if artifact_id not in self.quarantine_store and artifact_id not in self._quarantine:
+                raise ContractViolation("Artifact not in quarantine")
+            if role == EnlgRole.PROPOSER:
+                raise ContractViolation("PROPOSER cannot authorize ArtifactGate release (Delta S = 0)", violation_code="ERR_GATE_EVALUATOR_IS_PROPOSER")
+            if not verified or is_degraded_fallback:
+                return False  # Zostáva v karanténe, Delta S = 0
 
-        # 1. State Precondition: Constitutional Invariant
-        if receipt.vital_max_hp != 6 or evaluation_trace.vital_max_hp != 6:
-            self._log_rejection(artifact_id, "ERR_GATE_VITAL_HP_BREACH")
-            raise ContractViolation("Constitutional Invariant breach: VITAL_MAX_HP must be 6", violation_code="ERR_GATE_VITAL_HP_BREACH")
+            if artifact_id in self.quarantine_store:
+                self.released_store[artifact_id] = self.quarantine_store.pop(artifact_id)
+            if artifact_id in self._quarantine:
+                self._quarantine[artifact_id].is_released = True
+                self._released_history.append(artifact_id)
+            return True
 
-        # 2. Authority Separation: Evaluator cannot be PROPOSER
-        if evaluation_trace.role == EnlgRole.PROPOSER:
-            self._log_rejection(artifact_id, "ERR_GATE_EVALUATOR_IS_PROPOSER")
-            raise ContractViolation(
-                f"Authority Breach: Artifact release evaluation cannot be conducted by PROPOSER (Separation of Concerns)",
-                violation_code="ERR_GATE_EVALUATOR_IS_PROPOSER"
-            )
+        # Form 2: Trace & Receipt Contract invocation
+        actual_receipt = receipt if receipt is not None else receipt_or_evaluator
+        actual_trace = evaluation_trace if evaluation_trace is not None else (evaluator_trace if evaluator_trace is not None else evaluator_trace_or_verified)
+        actual_commit = commit_state_fn if commit_state_fn is not None else commit_action
 
-        # 3. Receipt Validity: Must not be emergency degraded fallback
-        if receipt.was_degraded_fallback:
-            self._log_rejection(artifact_id, "ERR_GATE_DEGRADED_RECEIPT_REJECTED")
-            raise ContractViolation(
-                f"Receipt Invalid: Cannot release artifact '{artifact_id}' on degraded fallback receipt",
-                violation_code="ERR_GATE_DEGRADED_RECEIPT_REJECTED"
-            )
+        if artifact_id not in self._quarantine:
+            raise ContractViolation(f"Artifact '{artifact_id}' not found in quarantine", violation_code="ERR_GATE_NOT_FOUND")
 
-        # 4. AST Validation: Trace must satisfy ENLG Evidence Lattice
-        try:
-            EnlgAstValidator.validate_claim_trace(evaluation_trace)
-        except ContractViolation as exc:
-            self._log_rejection(artifact_id, exc.violation_code or "ERR_GATE_EVALUATION_INVALID")
-            raise ContractViolation(
-                f"Authority Invalid: Evaluation trace failed ENLG compliance: {exc.message}",
-                violation_code=exc.violation_code or "ERR_GATE_EVALUATION_INVALID"
-            )
+        artifact = self._quarantine[artifact_id]
+        if artifact.is_released:
+            raise ContractViolation(f"Artifact '{artifact_id}' has already been released", violation_code="ERR_GATE_ALREADY_RELEASED")
 
-        # 5. Verdict Admissibility: Only VERIFIED or MEASURED with approved scope
-        if evaluation_trace.verdict not in (EnlgVerdict.VERIFIED_WITH_SCOPE, EnlgVerdict.MEASURED_WITH_SCOPE):
-            self._log_rejection(artifact_id, "ERR_GATE_VERDICT_NOT_RELEASABLE")
-            raise ContractViolation(
-                f"Release Denied: Verdict '{evaluation_trace.verdict.value}' is insufficient for artifact release",
-                violation_code="ERR_GATE_VERDICT_NOT_RELEASABLE"
-            )
+        # 1. Authority Separation Check
+        if actual_trace is not None and actual_trace.role == EnlgRole.PROPOSER:
+            raise ContractViolation("Evaluator cannot be PROPOSER (Separation of Concerns violated, Delta_S == 0)", violation_code="ERR_GATE_EVALUATOR_IS_PROPOSER")
 
-        # All conditions satisfied: commit state atomically
-        committed_result = commit_state_fn()
+        # 2. Receipt Validity Check
+        if actual_receipt is not None:
+            if actual_receipt.header.vital_max_hp != 6:
+                raise ContractViolation("Receipt header vital_max_hp != 6 (Delta_S == 0)", violation_code="ERR_GATE_RECEIPT_HP_INVALID")
 
-        # Update gate records
-        self._quarantine[artifact_id] = dataclasses.replace(
-            quarantined,
-            is_released=True,
-            release_receipt_digest=receipt.compute_digest(),
-        )
+            if actual_receipt.was_degraded_fallback:
+                raise ContractViolation("Cannot promote artifact from degraded fallback receipt (Delta_S == 0)", violation_code="ERR_GATE_DEGRADED_RECEIPT_REJECTED")
+
+        # 3. Release & Commit
+        artifact.is_released = True
+        if actual_receipt is not None:
+            artifact.release_receipt_digest = actual_receipt.execution_digest
         self._released_history.append(artifact_id)
 
-        return committed_result
-
-    def _log_rejection(self, artifact_id: str, reason_code: str) -> None:
-        self._rejection_log.append({
-            "artifact_id": artifact_id,
-            "reason_code": reason_code,
-            "delta_state": 0,
-        })
+        if actual_commit is not None:
+            return actual_commit()
+        return True

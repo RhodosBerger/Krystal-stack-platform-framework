@@ -32,6 +32,7 @@ from enum import Enum, IntFlag, auto
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
+from krystal_kernel.constants import ContractViolation
 
 assert VITAL_MAX_HP == 6, f"Constitutional invariant breach: VITAL_MAX_HP must be 6, got {VITAL_MAX_HP}"
 
@@ -39,21 +40,6 @@ assert VITAL_MAX_HP == 6, f"Constitutional invariant breach: VITAL_MAX_HP must b
 # ============================================================================
 # 1. EXCEPTIONS & CAPABILITY TOKENS
 # ============================================================================
-
-class ContractViolation(Exception):
-    """
-    Raised when a contract invariant, capability boundary, or semantic rule is breached.
-    Cannot be bypassed by running Python with optimizations (python -O).
-    """
-    def __init__(self, message: str, contract_id: Optional[str] = None, violation_code: Optional[str] = None):
-        super().__init__(message)
-        self.message = message
-        self.contract_id = contract_id
-        self.violation_code = violation_code or "ERR_CONTRACT_VIOLATION"
-
-    def __str__(self) -> str:
-        ctx = f" [Contract: {self.contract_id}]" if self.contract_id else ""
-        return f"[{self.violation_code}]{ctx} {self.message}"
 
 
 class CapabilityToken(IntFlag):

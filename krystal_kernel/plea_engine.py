@@ -1,54 +1,46 @@
 """
-Krystal Stack Platform Framework - Phase-Locked Epistemic Action (PLEA) Engine
+Krystal Stack Platform Framework - Phase-Locked Epistemic Action (PLEA Engine)
 =============================================================================
 Module: krystal_kernel/plea_engine.py
-Milestone: V-PLEA-ENGINE-01 (Phase-Locked Epistemic Action & Meta-Theory Axioms)
+Milestones: V-PLEA-ENGINE-01 / KSPP v1 (Principle 3, 5, 6, 8)
 Constitutional Invariant: VITAL_MAX_HP == 6
 
-Implements the unified PLEA subsystem synthesized from the Meta-Theory Axiom Pack (MTAP v1):
-  T1: Thermodynamics of Epistemic Work (Landauer-Krystal Principle) -> EpistemicCalorimeter
-  T2: Topological Separation of Conflicts (Homotopy of Disagreements) -> BifurcatedConflictRing
-  T3: Chronometric Phase Duality (Phase Shadow Theory) -> VBlankExperimentInjector
-  T4: Cryptographic Causal Inertia (Merkle-Momentum) -> CausalInertiaDamper
-  T5: Invariant Symmetry of Survival (Noether-Krystal Theorem) -> VITAL_MAX_HP == 6 Gate
-
-Epistemic Action Integral:
-  S[pi] = integral (alpha * UMA_Cost + beta * TopoConflict - gamma * CausalInertia) dt
-  subject to HP(pi) == 6
+Executes the Meta-Theory Axiom Pack (MTAP v1):
+  T1 (Calorimeter): Landauer work metering & parasitic hypothesis decoupling.
+  T2 (Homotopy): Bifurcated SPSC conflict ring, prohibits convex averaging of truth.
+  T3 (Chronometrics): Sub-millisecond VBlank experiment injection (Phi_Scanout * Phi_Epistemic == 0).
+  T4 & T5 (Inertia): O(1) recurrent Merkle-Momentum damping and action integral minimization.
 """
 
 from __future__ import annotations
 
 import dataclasses
-import enum
 import hashlib
-import hmac
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Final
 
-from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
-from krystal_kernel.contracts import (
-    ContractHeader,
+from krystal_kernel.constants import (
+    VITAL_MAX_HP,
+    UMA_SATURATION_THRESHOLD,
+    HYSTERESIS_DWELL_FRAMES,
+    FrameFlags,
     ContractViolation,
-    ReceiptContract,
-    compute_canonical_digest,
-    canonical_serialize,
 )
 from krystal_kernel.zero_copy_contracts import (
     BinaryContractType,
     KRYSTAL_MAGIC,
     KRYSTAL_PROTOCOL_VERSION,
-    ZERO_COPY_FRAME_SIZE,
     ZeroCopyContractFrame,
+    canonicalize_float32,
 )
 from krystal_kernel.epistemic_enlg_compiler import (
     EnlgRole,
     EnlgEvidenceClass,
     EnlgVerdict,
     ArtifactGate,
-    QuarantinedArtifact,
 )
+from krystal_kernel.contracts import ReceiptContract
 
 if VITAL_MAX_HP != 6:
     raise ContractViolation(
@@ -56,25 +48,23 @@ if VITAL_MAX_HP != 6:
         violation_code="ERR_CONSTITUTIONAL_INVARIANT_BREACH",
     )
 
+# Hardware & Engine Defaults
+VBLANK_WINDOW_MS: Final[float] = 2.20
+DEFAULT_GAMMA_DECAY: Final[float] = 0.85
+PARASITIC_ENERGY_THRESHOLD_J: Final[float] = 5.0
+PARASITIC_UMA_THRESHOLD_MB: Final[float] = 100.0
+PL1_BASE_POWER_WATTS: Final[float] = 28.0
 
-# ============================================================================
-# CONSTANTS & BIT FLAGS (MTAP v1 / PLEA)
-# ============================================================================
+# Bit flag for bifurcated conflict in FrameFlags
+FLAG_PLEA_CONFLICT_BIFURCATION: Final[int] = int(FrameFlags.BIFURCATED_SUPERPOSITION)
 
-VBLANK_WINDOW_MS: float = 2.2           # Sub-frame blanking budget on 120Hz/60Hz display
-PL1_BASE_POWER_WATTS: float = 28.0      # Default package power ceiling (Tiger Lake / Iris Xe)
-DEFAULT_GAMMA_DECAY: float = 0.85       # Merkle-Momentum exponential decay factor
-PARASITIC_ENERGY_THRESHOLD_J: float = 5.0 # Max Joules permitted before speculation is marked parasitic
-PARASITIC_UMA_THRESHOLD_MB: float = 100.0 # Max UMA bandwidth before speculation is severed
+# Specific Violation Codes
+ERR_PLEA_THERMAL_BUDGET_EXCEEDED: Final[str] = "ERR_PLEA_THERMAL_BUDGET_EXCEEDED"
+ERR_PLEA_HOMOTOPY_VIOLATION: Final[str] = "ERR_PLEA_HOMOTOPY_VIOLATION"
+ERR_PLEA_VBLANK_OVERRUN: Final[str] = "ERR_PLEA_VBLANK_OVERRUN"
+ERR_PLEA_MOMENTUM_CHAIN_BROKEN: Final[str] = "ERR_PLEA_MOMENTUM_CHAIN_BROKEN"
 
-# Frame bit flags
-FLAG_PLEA_ROLE_MASK: int = 0x0F
-FLAG_PLEA_VBLANK_INJECTED: int = 0x20
-FLAG_PLEA_CONFLICT_BIFURCATION: int = 0x40
-FLAG_PLEA_PARASITIC_DECOUPLED: int = 0x80
-
-# Evidence Weight for Merkle-Momentum (T4)
-EVIDENCE_MOMENTUM_WEIGHT: Dict[EnlgEvidenceClass, float] = {
+EVIDENCE_MOMENTUM_WEIGHT: Final[Dict[EnlgEvidenceClass, float]] = {
     EnlgEvidenceClass.UNKNOWN: 0.0,
     EnlgEvidenceClass.SIMULATED: 0.2,
     EnlgEvidenceClass.DERIVED: 0.25,
@@ -91,19 +81,36 @@ EVIDENCE_MOMENTUM_WEIGHT: Dict[EnlgEvidenceClass, float] = {
 # ============================================================================
 
 @dataclass
-class HypothesisThermodynamics:
-    """Tracks thermodynamic energy and UMA consumption for an individual hypothesis."""
+class HypothesisMeter:
+    """Blueprint hypothesis thermodynamic meter."""
     hypothesis_id: str
-    start_timestamp_ns: int
-    cumulative_energy_joules: float = 0.0
-    cumulative_uma_bytes: int = 0
+    joules_consumed: float = 0.0
+    uma_megabytes_transferred: float = 0.0
+    entropy_reduced: bool = False
+    is_decoupled_parasite: bool = False
+    start_timestamp_ns: int = 0
     entropy_reduction_delta: float = 0.0
-    is_parasitic: bool = False
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self):
         if self.vital_max_hp != 6:
-            raise ContractViolation("VITAL_MAX_HP must be 6 in HypothesisThermodynamics")
+            raise ContractViolation("VITAL_MAX_HP must be 6 in HypothesisMeter")
+
+    @property
+    def cumulative_energy_joules(self) -> float:
+        return self.joules_consumed
+
+    @property
+    def cumulative_uma_bytes(self) -> int:
+        return int(round(self.uma_megabytes_transferred * 1024 * 1024))
+
+    @property
+    def is_parasitic(self) -> bool:
+        return self.is_decoupled_parasite
+
+
+# Alias for compatibility
+HypothesisThermodynamics = HypothesisMeter
 
 
 class EpistemicCalorimeter:
@@ -118,80 +125,130 @@ class EpistemicCalorimeter:
         max_energy_joules: float = PARASITIC_ENERGY_THRESHOLD_J,
         max_uma_mb: float = PARASITIC_UMA_THRESHOLD_MB,
         power_watts: float = PL1_BASE_POWER_WATTS,
-    ):
+        max_joules: Optional[float] = None,
+    ) -> None:
         if VITAL_MAX_HP != 6:
             raise ContractViolation("VITAL_MAX_HP must be 6 in EpistemicCalorimeter")
-        self.max_energy_joules = max_energy_joules
-        self.max_uma_bytes = int(max_uma_mb * 1024 * 1024)
+        self.max_joules = max_joules if max_joules is not None else max_energy_joules
+        self.max_uma_mb = max_uma_mb
         self.power_watts = power_watts
-        self._hypotheses: Dict[str, HypothesisThermodynamics] = {}
+        self.meters: Dict[str, HypothesisMeter] = {}
 
-    def register_hypothesis(self, hypothesis_id: str, timestamp_ns: Optional[int] = None) -> HypothesisThermodynamics:
+    def register_hypothesis(self, hypothesis_id: str, timestamp_ns: Optional[int] = None) -> HypothesisMeter:
         """Initializes thermodynamic tracking for a new hypothesis."""
         if not hypothesis_id or not hypothesis_id.strip():
             raise ContractViolation("Hypothesis ID must be non-empty", violation_code="ERR_CALORIMETER_INVALID_ID")
-        t_ns = timestamp_ns if timestamp_ns is not None else time.time_ns()
-        entry = HypothesisThermodynamics(hypothesis_id=hypothesis_id, start_timestamp_ns=t_ns)
-        self._hypotheses[hypothesis_id] = entry
+        entry = HypothesisMeter(hypothesis_id=hypothesis_id)
+        self.meters[hypothesis_id] = entry
         return entry
 
     def record_work(
         self,
         hypothesis_id: str,
-        duration_ms: float,
-        uma_bytes_transferred: int,
-        entropy_reduction: float = 0.0,
-    ) -> HypothesisThermodynamics:
+        delta_joules_or_duration_ms: Optional[float] = None,
+        delta_mb_or_uma_bytes: Optional[float] = None,
+        promoted_or_entropy_reduction: Any = None,
+        *,
+        delta_joules: Optional[float] = None,
+        delta_mb: Optional[float] = None,
+        promoted: Optional[bool] = None,
+        duration_ms: Optional[float] = None,
+        uma_bytes_transferred: Optional[int | float] = None,
+        entropy_reduction: Optional[float] = None,
+    ) -> HypothesisMeter:
         """
-        Records work done by a hypothesis.
-        Energy = Power (Watts) * Time (seconds).
+        Polymorphic work recorder:
+        Form 1 (Blueprint): record_work(hypothesis_id, delta_joules=..., delta_mb=..., promoted=...)
+        Form 2 (Trace):     record_work(hypothesis_id, duration_ms=..., uma_bytes_transferred=..., entropy_reduction=...)
         """
-        if hypothesis_id not in self._hypotheses:
-            self.register_hypothesis(hypothesis_id)
+        m = self.meters.setdefault(hypothesis_id, HypothesisMeter(hypothesis_id))
+        if m.is_decoupled_parasite:
+            raise ContractViolation(f"Hypothesis {hypothesis_id} already decoupled as thermal parasite", violation_code=ERR_PLEA_THERMAL_BUDGET_EXCEEDED)
 
-        entry = self._hypotheses[hypothesis_id]
-        if entry.is_parasitic:
-            return entry
+        # Check keyword arguments for Form 1
+        if delta_joules is not None or delta_mb is not None or promoted is not None:
+            dj = float(delta_joules or 0.0)
+            dmb = float(delta_mb or 0.0)
+            p = bool(promoted)
+            m.joules_consumed += dj
+            m.uma_megabytes_transferred += dmb
+            if p:
+                m.entropy_reduced = True
+                m.entropy_reduction_delta += 1.0
+            if not m.entropy_reduced and (m.joules_consumed > self.max_joules or m.uma_megabytes_transferred > self.max_uma_mb):
+                m.is_decoupled_parasite = True
+            return m
 
-        energy_j = (self.power_watts * (duration_ms / 1000.0))
-        entry.cumulative_energy_joules += energy_j
-        entry.cumulative_uma_bytes += uma_bytes_transferred
-        entry.entropy_reduction_delta += entropy_reduction
+        # Check keyword arguments for Form 2
+        if duration_ms is not None or uma_bytes_transferred is not None or entropy_reduction is not None:
+            dur = float(duration_ms or 0.0)
+            ub = float(uma_bytes_transferred or 0.0)
+            er = float(entropy_reduction or 0.0)
+            energy_j = (self.power_watts * (dur / 1000.0))
+            uma_mb = ub / (1024.0 * 1024.0)
+            m.joules_consumed += energy_j
+            m.uma_megabytes_transferred += uma_mb
+            m.entropy_reduction_delta += er
+            if er > 0.0:
+                m.entropy_reduced = True
+            if (m.joules_consumed >= self.max_joules or m.uma_megabytes_transferred >= self.max_uma_mb):
+                if er <= 0.0 or not m.entropy_reduced:
+                    m.is_decoupled_parasite = True
+            return m
 
-        # Parasitic trip check
-        if (
-            entry.cumulative_energy_joules >= self.max_energy_joules
-            or entry.cumulative_uma_bytes >= self.max_uma_bytes
-        ):
-            if entropy_reduction <= 0.0 or entry.entropy_reduction_delta <= 0.0:
-                entry.is_parasitic = True
+        # Positional arguments dispatch
+        if isinstance(promoted_or_entropy_reduction, bool):
+            delta_j = float(delta_joules_or_duration_ms or 0.0)
+            delta_mb = float(delta_mb_or_uma_bytes or 0.0)
+            p = promoted_or_entropy_reduction
+            m.joules_consumed += delta_j
+            m.uma_megabytes_transferred += delta_mb
+            if p:
+                m.entropy_reduced = True
+                m.entropy_reduction_delta += 1.0
+            if (m.joules_consumed > self.max_joules or m.uma_megabytes_transferred > self.max_uma_mb):
+                if not p:
+                    m.is_decoupled_parasite = True
+        else:
+            dur = float(delta_joules_or_duration_ms or 0.0)
+            ub = float(delta_mb_or_uma_bytes or 0.0)
+            er = float(promoted_or_entropy_reduction or 0.0)
+            energy_j = (self.power_watts * (dur / 1000.0))
+            uma_mb = ub / (1024.0 * 1024.0)
+            m.joules_consumed += energy_j
+            m.uma_megabytes_transferred += uma_mb
+            m.entropy_reduction_delta += er
+            if er > 0.0:
+                m.entropy_reduced = True
+            if (m.joules_consumed >= self.max_joules or m.uma_megabytes_transferred >= self.max_uma_mb):
+                if er <= 0.0 or not m.entropy_reduced:
+                    m.is_decoupled_parasite = True
 
-        return entry
+        return m
+
+    # Compatibility properties and helpers
+    @property
+    def cumulative_energy_joules(self) -> float:
+        return sum(m.joules_consumed for m in self.meters.values())
 
     def is_parasitic(self, hypothesis_id: str) -> bool:
-        """Checks if the hypothesis has devolved into thermal noise."""
-        entry = self._hypotheses.get(hypothesis_id)
-        if entry is None:
-            return False
-        return entry.is_parasitic
+        m = self.meters.get(hypothesis_id)
+        return m.is_decoupled_parasite if m else False
 
     def compute_thermodynamic_cost(self, hypothesis_id: str) -> float:
-        """Normalized UMA & energy cost metric for the Action Integral S[pi]."""
-        entry = self._hypotheses.get(hypothesis_id)
-        if entry is None:
+        m = self.meters.get(hypothesis_id)
+        if not m:
             return 0.0
-        energy_norm = entry.cumulative_energy_joules / max(1.0, self.max_energy_joules)
-        uma_norm = entry.cumulative_uma_bytes / max(1.0, self.max_uma_bytes)
-        return float(energy_norm + uma_norm)
+        return (m.joules_consumed / max(self.max_joules, 1e-6)) + (m.uma_megabytes_transferred / max(self.max_uma_mb, 1e-6))
 
 
 # ============================================================================
 # 2. BIFURCATED CONFLICT RING (T2 + T4)
 # ============================================================================
 
-@dataclass(frozen=True)
+@dataclass
 class BifurcatedBranch:
-    """Parallel SPSC branch representing an unresolved conflict node."""
+    """Explicit branch representation within a bifurcated conflict fork."""
     branch_id: str
     generation_id: int
     fork_predecessor_hash: bytes
@@ -211,22 +268,53 @@ class BifurcatedConflictRing:
     Topological separation of conflicts (T2 + T4).
     Strictly forbids convex averaging of truth:
       E_A ⊥ E_B => (E_A + E_B)/2 ∉ M_valid.
-    Forks the SPSC ring into Branch Alpha and Branch Beta with identical
-    predecessor_hash until collapsed by an empirical discriminating test (CDT).
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         if VITAL_MAX_HP != 6:
             raise ContractViolation("VITAL_MAX_HP must be 6 in BifurcatedConflictRing")
+        self.branches: Dict[int, ZeroCopyContractFrame] = {}
         self._active_forks: Dict[str, Tuple[BifurcatedBranch, BifurcatedBranch]] = {}
+        self.resolved_winner: Optional[ZeroCopyContractFrame] = None
 
-    def attempt_convex_averaging(self, val_a: float, val_b: float) -> float:
-        """Explicitly rejects any attempt to linearly blend contradictory facts."""
+    @staticmethod
+    def attempt_convex_averaging(val_a: float, val_b: float) -> float:
         raise ContractViolation(
-            f"Homotopy breach (T2): Convex averaging of conflicting evidence ({val_a} ⊥ {val_b}) is forbidden. "
+            f"Homotopic Conflict Law: Convex averaging of orthogonal evidence ({val_a} ⊥ {val_b}) is forbidden. "
             "Truth is not the convex mean of contradictory measurements.",
             violation_code="ERR_HOMOTOPY_CONVEX_AVERAGING_FORBIDDEN",
         )
+
+    def fork_superposition(
+        self,
+        common_predecessor_hash: bytes,
+        frame_alpha: ZeroCopyContractFrame,
+        frame_beta: ZeroCopyContractFrame,
+    ) -> Tuple[ZeroCopyContractFrame, ZeroCopyContractFrame]:
+        """Blueprint fork protocol: sets generation=1 (Alpha) and generation=2 (Beta)."""
+        frame_alpha.predecessor_hash = common_predecessor_hash
+        frame_alpha.generation = 1
+        frame_alpha.flags |= int(FrameFlags.BIFURCATED_SUPERPOSITION)
+
+        frame_beta.predecessor_hash = common_predecessor_hash
+        frame_beta.generation = 2
+        frame_beta.flags |= int(FrameFlags.BIFURCATED_SUPERPOSITION)
+
+        self.branches[1] = frame_alpha
+        self.branches[2] = frame_beta
+        return frame_alpha, frame_beta
+
+    def collapse_with_cdt_receipt(
+        self, winning_generation: int, cdt_receipt_valid: bool
+    ) -> ZeroCopyContractFrame:
+        """Blueprint collapse protocol: collapses branches into authoritative winner."""
+        if not cdt_receipt_valid or winning_generation not in self.branches:
+            raise ContractViolation("Cannot collapse bifurcated ring without valid CDT Receipt", violation_code="ERR_PLEA_HOMOTOPY_VIOLATION")
+        winner = self.branches[winning_generation]
+        winner.flags &= ~int(FrameFlags.BIFURCATED_SUPERPOSITION)
+        self.resolved_winner = winner
+        self.branches.clear()
+        return winner
 
     def fork_conflict(
         self,
@@ -239,9 +327,7 @@ class BifurcatedConflictRing:
         evidence_b: EnlgEvidenceClass,
         metric_b: float,
     ) -> Tuple[BifurcatedBranch, BifurcatedBranch]:
-        """
-        Creates two orthogonal branches Alpha and Beta sharing parent_frame digest.
-        """
+        """Creates two orthogonal branches Alpha and Beta sharing parent_frame digest."""
         if parent_frame.vital_hp != 6:
             raise ContractViolation("Parent frame vital_hp must be 6")
 
@@ -255,21 +341,20 @@ class BifurcatedConflictRing:
             contract_type=BinaryContractType.EVIDENCE,
             payload_size=32,
             flags=parent_frame.flags | FLAG_PLEA_CONFLICT_BIFURCATION,
-            sequence_id=parent_frame.sequence_id + 1,
-            generation_id=1,  # Branch Alpha ID
+            sequence=parent_frame.sequence + 1,
+            generation=1,
             timestamp_ns=time.time_ns(),
-            capability_scope=parent_frame.capability_scope,
+            cap_scope=parent_frame.cap_scope,
             nonce=101,
-            predecessor_hash_raw=parent_digest,
+            predecessor_hash=parent_digest,
             profile_id=parent_frame.profile_id,
-            verdict_id=int(EnlgVerdict.CONFLICT.value == "CONFLICT"),
-            approved_authority_mask=parent_frame.approved_authority_mask,
-            metric1=metric_a,
-            metric2=0.0,
-            signature_or_digest_raw=b"\x00" * 32,
+            verdict_id=int(EnlgVerdict.CONFLICT),
+            mask=parent_frame.mask,
+            gpu_render_ms=metric_a,
+            drs_scale_factor=0.0,
+            frame_hmac=b"\x00" * 32,
         )
-        sig_alpha = frame_alpha.compute_binary_digest()
-        frame_alpha = dataclasses.replace(frame_alpha, signature_or_digest_raw=sig_alpha)
+        frame_alpha.frame_hmac = frame_alpha.compute_binary_digest()
         branch_alpha = BifurcatedBranch(
             branch_id=f"{conflict_id}_alpha",
             generation_id=1,
@@ -286,21 +371,20 @@ class BifurcatedConflictRing:
             contract_type=BinaryContractType.EVIDENCE,
             payload_size=32,
             flags=parent_frame.flags | FLAG_PLEA_CONFLICT_BIFURCATION,
-            sequence_id=parent_frame.sequence_id + 1,
-            generation_id=2,  # Branch Beta ID
+            sequence=parent_frame.sequence + 1,
+            generation=2,
             timestamp_ns=time.time_ns(),
-            capability_scope=parent_frame.capability_scope,
+            cap_scope=parent_frame.cap_scope,
             nonce=102,
-            predecessor_hash_raw=parent_digest,
+            predecessor_hash=parent_digest,
             profile_id=parent_frame.profile_id,
-            verdict_id=int(EnlgVerdict.CONFLICT.value == "CONFLICT"),
-            approved_authority_mask=parent_frame.approved_authority_mask,
-            metric1=metric_b,
-            metric2=0.0,
-            signature_or_digest_raw=b"\x00" * 32,
+            verdict_id=int(EnlgVerdict.CONFLICT),
+            mask=parent_frame.mask,
+            gpu_render_ms=metric_b,
+            drs_scale_factor=0.0,
+            frame_hmac=b"\x00" * 32,
         )
-        sig_beta = frame_beta.compute_binary_digest()
-        frame_beta = dataclasses.replace(frame_beta, signature_or_digest_raw=sig_beta)
+        frame_beta.frame_hmac = frame_beta.compute_binary_digest()
         branch_beta = BifurcatedBranch(
             branch_id=f"{conflict_id}_beta",
             generation_id=2,
@@ -310,6 +394,8 @@ class BifurcatedConflictRing:
         )
 
         self._active_forks[conflict_id] = (branch_alpha, branch_beta)
+        self.branches[1] = frame_alpha
+        self.branches[2] = frame_beta
         return branch_alpha, branch_beta
 
     def collapse_branch(
@@ -318,10 +404,7 @@ class BifurcatedConflictRing:
         winning_branch_generation: int,
         cdt_receipt: ReceiptContract,
     ) -> ZeroCopyContractFrame:
-        """
-        Collapses the bifurcated superposition once the Cheapest Discriminating Test (CDT) completes.
-        Returns the surviving authoritative 128B frame.
-        """
+        """Collapses branch with ReceiptContract."""
         if conflict_id not in self._active_forks:
             raise ContractViolation(f"Unknown conflict fork: {conflict_id}")
 
@@ -334,7 +417,6 @@ class BifurcatedConflictRing:
         if cdt_receipt.header.vital_max_hp != 6:
             raise ContractViolation("CDT receipt vital_max_hp must be 6")
 
-        # Create collapsed trunk frame
         collapsed_frame = ZeroCopyContractFrame(
             magic=KRYSTAL_MAGIC,
             version=KRYSTAL_PROTOCOL_VERSION,
@@ -342,23 +424,24 @@ class BifurcatedConflictRing:
             contract_type=BinaryContractType.RECEIPT,
             payload_size=32,
             flags=chosen_branch.frame.flags & ~FLAG_PLEA_CONFLICT_BIFURCATION,
-            sequence_id=chosen_branch.frame.sequence_id + 1,
-            generation_id=0,  # Merged to unified trunk
+            sequence=chosen_branch.frame.sequence + 1,
+            generation=0,
             timestamp_ns=time.time_ns(),
-            capability_scope=chosen_branch.frame.capability_scope,
+            cap_scope=chosen_branch.frame.cap_scope,
             nonce=201,
-            predecessor_hash_raw=chosen_branch.frame.signature_or_digest_raw,
+            predecessor_hash=chosen_branch.frame.frame_hmac,
             profile_id=chosen_branch.frame.profile_id,
-            verdict_id=int(EnlgVerdict.MEASURED_WITH_SCOPE.value == "MEASURED_WITH_SCOPE"),
-            approved_authority_mask=chosen_branch.frame.approved_authority_mask,
-            metric1=chosen_branch.frame.metric1,
-            metric2=chosen_branch.frame.metric2,
-            signature_or_digest_raw=b"\x00" * 32,
+            verdict_id=int(EnlgVerdict.MEASURED_WITH_SCOPE),
+            mask=chosen_branch.frame.mask,
+            gpu_render_ms=chosen_branch.frame.gpu_render_ms,
+            drs_scale_factor=chosen_branch.frame.drs_scale_factor,
+            frame_hmac=b"\x00" * 32,
         )
-        sig = collapsed_frame.compute_binary_digest()
-        collapsed_frame = dataclasses.replace(collapsed_frame, signature_or_digest_raw=sig)
+        collapsed_frame.frame_hmac = collapsed_frame.compute_binary_digest()
 
         del self._active_forks[conflict_id]
+        if winning_branch_generation in self.branches:
+            self.branches.clear()
         return collapsed_frame
 
 
@@ -369,37 +452,58 @@ class BifurcatedConflictRing:
 class VBlankExperimentInjector:
     """
     Sub-millisecond shadow phase executor (T3 + T1).
-    Ensures:
-      Phi_Actuation(t) * Phi_Epistemic(t) == 0.
+    Ensures Phi_Actuation(t) * Phi_Epistemic(t) == 0.
     Invasive epistemic probing is strictly confined within the 2.2 ms VBlank window.
-    If an experiment threatens to overrun, it is suspended/yielded to prevent frame stutter.
     """
 
-    def __init__(self, vblank_budget_ms: float = VBLANK_WINDOW_MS):
+    def __init__(self, vblank_budget_ms: float = VBLANK_WINDOW_MS, jitter_guard_ms: float = 0.05) -> None:
         if VITAL_MAX_HP != 6:
             raise ContractViolation("VITAL_MAX_HP must be 6 in VBlankExperimentInjector")
         self.vblank_budget_ms = vblank_budget_ms
+        self.jitter_guard_ms = jitter_guard_ms
 
     def can_inject(self, estimated_duration_ms: float, elapsed_vblank_ms: float) -> bool:
-        """Determines if the experiment fits into the remaining phase shadow."""
         remaining_ms = self.vblank_budget_ms - elapsed_vblank_ms
-        return estimated_duration_ms <= remaining_ms
+        return estimated_duration_ms <= (remaining_ms - self.jitter_guard_ms + 1e-9)
 
     def execute_in_shadow(
         self,
-        experiment_fn: Callable[[], Any],
-        estimated_duration_ms: float,
-        elapsed_vblank_ms: float,
-    ) -> Tuple[bool, Any, float]:
+        experiment_fn_or_scanout: Any = None,
+        estimated_duration_ms: float = 0.0,
+        task_or_elapsed: Any = 0.0,
+        *,
+        scanout_active: Optional[bool] = None,
+        task: Optional[Callable[[], bool]] = None,
+        experiment_fn: Optional[Callable[[], Any]] = None,
+        elapsed_vblank_ms: Optional[float] = None,
+    ) -> Any:
         """
-        Executes an experiment if within the shadow budget; otherwise yields execution.
-        Returns: (success, result_or_reason, actual_duration_ms)
+        Polymorphic invocation:
+        Form 1 (Blueprint): execute_in_shadow(scanout_active=..., estimated_duration_ms=..., task=...) -> Tuple[bool, str]
+        Form 2 (Trace):     execute_in_shadow(experiment_fn=..., estimated_duration_ms=..., elapsed_vblank_ms=0.0) -> Tuple[bool, Any, float]
         """
-        if not self.can_inject(estimated_duration_ms, elapsed_vblank_ms):
+        # Form 1: Blueprint invocation
+        is_blueprint = (scanout_active is not None) or (task is not None) or isinstance(experiment_fn_or_scanout, bool)
+        if is_blueprint:
+            s_active = scanout_active if scanout_active is not None else bool(experiment_fn_or_scanout)
+            t_fn = task if task is not None else task_or_elapsed
+            if s_active:
+                return False, "DEFERRED_SCANOUT_ACTIVE"
+            usable_window = self.vblank_budget_ms - self.jitter_guard_ms
+            if estimated_duration_ms > usable_window:
+                return False, "YIELDED_BEFORE_DEADLINE"
+            return t_fn(), "EXECUTED_IN_VBLANK_SHADOW"
+
+        # Form 2: execute_in_shadow(experiment_fn: Callable, estimated_duration_ms: float, elapsed_vblank_ms: float = 0.0)
+        actual_experiment_fn: Callable[[], Any] = experiment_fn if experiment_fn is not None else experiment_fn_or_scanout
+        actual_elapsed_ms: float = elapsed_vblank_ms if elapsed_vblank_ms is not None else float(task_or_elapsed or 0.0)
+
+        remaining_ms = self.vblank_budget_ms - actual_elapsed_ms
+        if estimated_duration_ms > remaining_ms:
             return False, "ERR_VBLANK_BUDGET_EXCEEDED_YIELD_BEFORE_SCANOUT", 0.0
 
         t0 = time.perf_counter()
-        result = experiment_fn()
+        result = actual_experiment_fn()
         t1 = time.perf_counter()
         actual_ms = (t1 - t0) * 1000.0
 
@@ -415,76 +519,100 @@ class CausalInertiaDamper:
     Cryptographic Causal Momentum filter (T4 + T5).
     Weights incoming proposals by historical Merkle-chain momentum:
       M(Chain_k) = sum gamma^(k-i) * Weight(Evidence_i).
-    Speculative proposals from PROPOSER cannot mutate authoritative system state
-    if their evidence momentum is inferior to trunk inertia.
-    Guarantees VITAL_MAX_HP == 6 is invariant across all mutations.
     """
 
-    def __init__(self, gamma: float = DEFAULT_GAMMA_DECAY):
+    EVIDENCE_WEIGHTS: Final[Dict[EnlgEvidenceClass, float]] = {
+        EnlgEvidenceClass.UNKNOWN: 0.0,
+        EnlgEvidenceClass.DERIVED: 0.1,
+        EnlgEvidenceClass.CODE_PRESENT: 0.2,
+        EnlgEvidenceClass.SIMULATED: 0.3,
+        EnlgEvidenceClass.LOCAL_MEASURED: 1.0,
+        EnlgEvidenceClass.REMOTE_CI: 1.5,
+        EnlgEvidenceClass.PHYSICAL_MEASURED: 2.5,
+        EnlgEvidenceClass.EXTERNAL_REPLICATED: 3.0,
+    }
+
+    def __init__(self, gamma: float = DEFAULT_GAMMA_DECAY, threshold: float = 1.0) -> None:
         if VITAL_MAX_HP != 6:
             raise ContractViolation("VITAL_MAX_HP must be 6 in CausalInertiaDamper")
         self.gamma = gamma
+        self.threshold = threshold
+        self.momentum: float = 0.0
+        self.last_frame_hash: bytes = b"\x00" * 32
         self._current_momentum: float = 0.0
         self._last_frame_digest: Optional[bytes] = None
         self._step_count: int = 0
 
     @property
     def current_momentum(self) -> float:
-        return self._current_momentum
+        return self.momentum or self._current_momentum
 
     def reset_recurrent_state(self, initial_momentum: float = 0.0) -> None:
+        self.momentum = float(initial_momentum)
         self._current_momentum = float(initial_momentum)
+        self.last_frame_hash = b"\x00" * 32
         self._last_frame_digest = None
         self._step_count = 0
 
+    def push_verified_frame(self, frame: ZeroCopyContractFrame, evidence_class: EnlgEvidenceClass) -> float:
+        if frame.vital_hp != VITAL_MAX_HP:
+            raise ContractViolation("Noether-Krystal survival symmetry violated: vital_hp != 6")
+        if self.last_frame_hash != (b"\x00" * 32) and frame.predecessor_hash != self.last_frame_hash:
+            raise ContractViolation("Causal chain broken: predecessor_hash mismatch", violation_code=ERR_PLEA_MOMENTUM_CHAIN_BROKEN)
+
+        weight = self.EVIDENCE_WEIGHTS.get(evidence_class, 0.0)
+        self.momentum = float((self.gamma * self.momentum) + weight)
+        self.last_frame_hash = hashlib.sha256(frame.frame_hmac).digest()
+        self._current_momentum = self.momentum
+        return self.momentum
+
+    def can_override_trunk(self, proposal_weight: float, min_ratio: float = 0.60) -> bool:
+        return proposal_weight >= (self.current_momentum * min_ratio)
+
     def step_recurrent(
         self,
-        evidence: EnlgEvidenceClass,
+        evidence: Optional[EnlgEvidenceClass] = None,
         frame: Optional[ZeroCopyContractFrame] = None,
         session_key: Optional[bytes] = None,
-    ) -> float:
-        """
-        O(1) Recurrent Merkle-Momentum step:
-          M_k = gamma * M_{k-1} + Weight(Evidence_k)
-        Executed in O(1) constant time with zero allocations.
-        Optionally validates cryptographic continuity against previous frame's digest.
-        """
+        proposal_delta: Optional[float] = None,
+        evidence_weight: Optional[float] = None,
+        predecessor_hash: Optional[bytes] = None,
+    ) -> Any:
+        """O(1) Recurrent Merkle-Momentum step."""
         if frame is not None:
             if frame.vital_hp != 6:
-                raise ContractViolation(
-                    "Noether-Krystal invariant breach: Frame vital_hp must be 6 in Merkle-Momentum step",
-                    violation_code="ERR_PLEA_MOMENTUM_HP_BREACH",
-                )
+                raise ContractViolation("Noether-Krystal invariant breach: Frame vital_hp must be 6 in Merkle-Momentum step", violation_code="ERR_PLEA_MOMENTUM_HP_BREACH")
             if not frame.verify_frame_integrity(session_key):
-                raise ContractViolation(
-                    "Frame integrity verification failed during Merkle-Momentum computation",
-                    violation_code="ERR_PLEA_MOMENTUM_INTEGRITY_FAILED",
-                )
+                raise ContractViolation("Frame integrity verification failed during Merkle-Momentum computation", violation_code="ERR_PLEA_MOMENTUM_INTEGRITY_FAILED")
             if self._last_frame_digest is not None:
-                if frame.predecessor_hash_raw != self._last_frame_digest:
-                    raise ContractViolation(
-                        "Cryptographic causal break: predecessor_hash_raw does not match previous frame digest",
-                        violation_code="ERR_PLEA_MOMENTUM_CHAIN_BROKEN",
-                    )
-            self._last_frame_digest = frame.signature_or_digest_raw
+                pred = getattr(frame, "predecessor_hash_raw", None) or getattr(frame, "predecessor_hash", None)
+                if pred != self._last_frame_digest:
+                    raise ContractViolation("Cryptographic causal break: predecessor_hash_raw does not match previous frame digest", violation_code=ERR_PLEA_MOMENTUM_CHAIN_BROKEN)
+            self._last_frame_digest = getattr(frame, "signature_or_digest_raw", None) or getattr(frame, "frame_hmac", None)
 
-        weight = EVIDENCE_MOMENTUM_WEIGHT.get(evidence, 0.0)
-        self._current_momentum = float((self.gamma * self._current_momentum) + weight)
+        if evidence is not None:
+            w = EVIDENCE_MOMENTUM_WEIGHT.get(evidence, 0.0)
+        elif evidence_weight is not None:
+            w = float(evidence_weight)
+        else:
+            w = 0.0
+
+        self.momentum = float((self.gamma * self.momentum) + w)
+        self._current_momentum = self.momentum
         self._step_count += 1
-        return self._current_momentum
+        return self.momentum
 
     def compute_momentum(self, evidence_stream: List[EnlgEvidenceClass]) -> float:
-        """Computes exponential causal momentum of a verified evidence sequence."""
         k = len(evidence_stream)
         if k == 0:
             return 0.0
-
-        momentum = 0.0
+        m = 0.0
         for i, ev in enumerate(evidence_stream):
-            weight = EVIDENCE_MOMENTUM_WEIGHT.get(ev, 0.0)
-            factor = self.gamma ** (k - 1 - i)
-            momentum += factor * weight
-        return float(momentum)
+            w = EVIDENCE_MOMENTUM_WEIGHT.get(ev, 0.0)
+            m += (self.gamma ** (k - 1 - i)) * w
+        self.momentum = float(m)
+        self._current_momentum = float(m)
+        return float(m)
 
     def evaluate_proposal_admissibility(
         self,
@@ -493,21 +621,12 @@ class CausalInertiaDamper:
         proposal_role: EnlgRole,
         is_hp_valid: bool = True,
     ) -> Tuple[bool, str]:
-        """
-        Determines whether a proposal has sufficient momentum to influence authoritative state.
-        Supports both static history list and O(1) streaming recurrent momentum.
-        """
         if not is_hp_valid:
             raise ContractViolation("Noether-Krystal invariant breach: HP must be 6")
 
-        if trunk_evidence:
-            trunk_momentum = self.compute_momentum(trunk_evidence)
-        else:
-            trunk_momentum = self._current_momentum
-
+        trunk_momentum = self.compute_momentum(trunk_evidence) if trunk_evidence else self.current_momentum
         prop_weight = EVIDENCE_MOMENTUM_WEIGHT.get(proposal_evidence, 0.0)
 
-        # Proposer with unverified evidence cannot override heavy trunk
         if proposal_role == EnlgRole.PROPOSER:
             if proposal_evidence in (EnlgEvidenceClass.UNKNOWN, EnlgEvidenceClass.SIMULATED, EnlgEvidenceClass.DERIVED):
                 if trunk_momentum > 1.5:
@@ -522,7 +641,6 @@ class CausalInertiaDamper:
 
 @dataclass(frozen=True)
 class PleaTrajectoryVerdict:
-    """Actionable result of the Epistemic Action Integral evaluation."""
     admissible: bool
     action_integral_value: float
     thermodynamic_cost: float
@@ -537,13 +655,7 @@ class PleaTrajectoryVerdict:
 
 
 class PleaEngine:
-    """
-    Unified engine for Phase-Locked Epistemic Action (PLEA).
-    Synthesizes Calorimeter, ConflictRing, VBlankInjector, CausalDamper, and ArtifactGate
-    into the Epistemic Action Integral:
-      S[pi] = integral (alpha * UMA_Cost + beta * TopoConflict - gamma * CausalInertia) dt
-      subject to VITAL_MAX_HP == 6
-    """
+    """Hlavný regulátor vyhodnocujúci Epistemický Akčný Integrál S[pi]."""
 
     def __init__(
         self,
@@ -552,10 +664,17 @@ class PleaEngine:
         vblank_injector: Optional[VBlankExperimentInjector] = None,
         inertia_damper: Optional[CausalInertiaDamper] = None,
         artifact_gate: Optional[ArtifactGate] = None,
-    ):
+        alpha: float = 1.0,
+        beta: float = 2.0,
+        gamma_weight: float = 0.5,
+    ) -> None:
         if VITAL_MAX_HP != 6:
             raise ContractViolation("VITAL_MAX_HP must be 6 in PleaEngine")
 
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma_weight = gamma_weight
+        self.vital_hp = VITAL_MAX_HP
         self.calorimeter = calorimeter or EpistemicCalorimeter()
         self.conflict_ring = conflict_ring or BifurcatedConflictRing()
         self.vblank_injector = vblank_injector or VBlankExperimentInjector()
@@ -565,18 +684,26 @@ class PleaEngine:
     def evaluate_action_integral(
         self,
         uma_cost: float,
-        has_topological_conflict: bool,
-        causal_inertia: float,
-        alpha: float = 1.0,
-        beta: float = 2.0,
-        gamma: float = 0.5,
+        topo_conflict: float | bool = 0.0,
+        causal_inertia: float = 0.0,
+        vital_hp: int = VITAL_MAX_HP,
+        alpha: Optional[float] = None,
+        beta: Optional[float] = None,
+        gamma: Optional[float] = None,
+        *,
+        has_topological_conflict: Optional[bool] = None,
     ) -> float:
-        """
-        Computes S[pi] = alpha * UMA_Cost + beta * TopoConflict - gamma * CausalInertia.
-        Lower action represents a more stable, physically grounded epistemic trajectory.
-        """
-        conflict_term = 1.0 if has_topological_conflict else 0.0
-        s_val = (alpha * uma_cost) + (beta * conflict_term) - (gamma * causal_inertia)
+        """Computes S[pi] = alpha * UMA_Cost + beta * TopoConflict - gamma * CausalInertia."""
+        if vital_hp != VITAL_MAX_HP:
+            raise ContractViolation("Noether-Krystal invariant violated in PleaEngine")
+
+        a = alpha if alpha is not None else self.alpha
+        b = beta if beta is not None else self.beta
+        g = gamma if gamma is not None else self.gamma_weight
+
+        tc = has_topological_conflict if has_topological_conflict is not None else topo_conflict
+        conflict_term = 1.0 if isinstance(tc, bool) and tc else float(tc or 0.0)
+        s_val = (a * uma_cost) + (b * conflict_term) - (g * causal_inertia)
         return float(s_val)
 
     def process_proposal(
@@ -589,10 +716,6 @@ class PleaEngine:
         elapsed_vblank_ms: float = 0.0,
         uma_bytes: int = 1024,
     ) -> PleaTrajectoryVerdict:
-        """
-        Evaluates a candidate proposal against the thermodynamic, homotopy,
-        vblank, and momentum barriers.
-        """
         if VITAL_MAX_HP != 6:
             raise ContractViolation("VITAL_MAX_HP must be 6 in process_proposal")
 
@@ -604,7 +727,7 @@ class PleaEngine:
                 thermodynamic_cost=self.calorimeter.compute_thermodynamic_cost(hypothesis_id),
                 has_conflict=False,
                 causal_momentum=0.0,
-                status_code="REJECTED_THERMAL_PARASITE",
+                status_code="REJECTED_PARASITIC_THERMAL_DECOUPLING",
             )
 
         # Record work
@@ -649,3 +772,11 @@ class PleaEngine:
             causal_momentum=trunk_momentum,
             status_code=reason if admissible else "DAMPENED_INSUFFICIENT_MOMENTUM",
         )
+
+    def apply_transition_guarded(self, current_state: Dict[str, Any], candidate_action: Dict[str, Any]) -> Dict[str, Any]:
+        """Ústavná zmena stavu: not Valid(Action) => S_{t+1} == S_t (Delta S == 0)."""
+        if not candidate_action.get("cap_token") or candidate_action.get("status") == "UNAUTHORIZED":
+            return current_state
+        new_state = dict(current_state)
+        new_state.update(candidate_action.get("delta", {}))
+        return new_state
