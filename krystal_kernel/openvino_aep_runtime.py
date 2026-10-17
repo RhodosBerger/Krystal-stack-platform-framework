@@ -189,7 +189,7 @@ class OpenVinoAepRuntime:
             return state_dict
 
         # AEP Layer 4: Dynamic Hardware Crossover Policy
-        payload_bytes = len(f) * 4 if f else 32
+        payload_bytes = int(f.get("payload_bytes", len(f.get("inputs", [])) * 4 if "inputs" in f else (len(f) * 4 if f else 32)))
         target_device, routing_rationale = HardwareCrossoverPolicy.select_device(
             payload_bytes=payload_bytes,
             current_bus_pressure=current_bus_pressure,
