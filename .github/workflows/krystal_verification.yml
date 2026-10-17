@@ -19,6 +19,8 @@ jobs:
   python-test-suite:
     name: Python Integration & Invariants Suite
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -30,8 +32,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install pytest pytest-cov
-          pip install -e . --no-deps
+          pip install pytest
 
       - name: Run Core 58 Integration & Memory Model Tests
         run: |
@@ -43,6 +44,7 @@ jobs:
             tests/test_v_autonomous_research_cycle.py \
             tests/test_v_os_coordination_policy_engine.py \
             tests/test_v_os_coordination_resilience.py \
+            --import-mode=importlib \
             -v --tb=short 2>&1 | tee pytest_output.log
 
       - name: Publish Pytest Report to Job Summary
@@ -62,6 +64,17 @@ jobs:
           name: pytest-execution-log
           path: pytest_output.log
           if-no-files-found: ignore
+
+      - name: Push Log to ci-debug-log Branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B ci-debug-log
+          git add -f pytest_output.log
+          git commit -m "ci: capture pytest output log" || true
+          git push -u origin ci-debug-log --force || true
+
 
 
   # ============================================================
