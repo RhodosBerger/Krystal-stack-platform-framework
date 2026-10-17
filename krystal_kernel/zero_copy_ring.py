@@ -30,7 +30,13 @@ from krystal_kernel.zero_copy_contracts import (
 # CL0 (0..63):   magic(4B), version(4B), capacity(4B), slot_size(4B), head(8B), pad(40B)
 # CL1 (64..127): tail(8B), drop_count(8B), vital_hp(2B), pad(46B)
 RING_HEADER_FORMAT: Final[str] = "<IIIIQ40sQQH46s"
+RING_HEADER_SIZE: Final[int] = 128
 assert struct.calcsize(RING_HEADER_FORMAT) == 128, "Ring header must be exactly 128 bytes (2 cache lines)"
+
+
+class TornFrameDetectedError(Exception):
+    """Raised when torn read or inconsistent atomic sequence is observed in zero copy ring."""
+    pass
 
 
 class ZeroCopyContractRing:

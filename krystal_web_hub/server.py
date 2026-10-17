@@ -3503,8 +3503,17 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             return
 
         elif norm_path in ("/api/game/status", "/api/game/match", "/api/duel/status"):
-            from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
-            self.send_json({"status": "OK", "match": GLOBAL_POSLEDNI_KMEN_GAME.match_state, "vital_max_hp": 6})
+            from krystal_web_hub.economic_engine.game_service import MatchRegistry
+            q = parse_qs(parsed.query)
+            match_id = q.get("match_id", [self.headers.get("X-Match-ID", "default")])[0]
+            service = MatchRegistry.get_or_create(match_id)
+            self.send_json({
+                "status": "OK",
+                "match": service.match_state,
+                "vital_max_hp": 6,
+                "state_hash": service.compute_state_hash(),
+                "telemetry": service.generate_telemetry(action="GET_STATUS")
+            })
             return
 
         elif norm_path in ("/api/game/duel/live-simulation", "/api/game/live-duel"):
@@ -4408,7 +4417,6 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             return
 
         elif self.path in ("/api/learning/factographic-network/update-node", "/api/factographic/update-node"):
-            import time
             from krystal_kernel.factographic_network_learning_engine import GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE
             node_id = data.get("node_id", "")
             val = data.get("measured_value")
@@ -4565,7 +4573,6 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             return
 
         elif self.path in ("/api/puzzle/decode", "/api/strand-puzzle/decode"):
-            import time
             from krystal_kernel.strand_npu_action_puzzle_engine import GLOBAL_STRAND_NPU_ENGINE
             raw_hex = data.get("raw_hex", "0102040501020405")
             puz_id = data.get("puzzle_id", f"puz_custom_{int(time.time())}")
@@ -6193,57 +6200,75 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
 
         # ── API: Poslední Kmen Game Actions (Duel / Mortar / Sapper) ──
         elif self.path in ("/api/game/duel_round", "/api/duel/round", "/api/duel/resolve_round"):
-            from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
+            from krystal_web_hub.economic_engine.game_service import MatchRegistry
+            t_start = time.perf_counter()
+            match_id = str(data.get("match_id") or self.headers.get("X-Match-ID") or "default").strip()
+            service = MatchRegistry.get_or_create(match_id)
             p_zone = str(data.get("player_attack_zone", data.get("attack_zone", "torso"))).lower()
             p_stance = str(data.get("player_dodge_stance", data.get("defense_stance", "stand_firm"))).lower()
             o_zone = data.get("opponent_attack_zone")
             o_stance = data.get("opponent_dodge_stance")
-            res = GLOBAL_POSLEDNI_KMEN_GAME.execute_duel_round(
+            res = service.execute_duel_round(
                 player_attack_zone=p_zone,
                 player_dodge_stance=p_stance,
                 opponent_attack_zone=str(o_zone).lower() if o_zone else None,
                 opponent_dodge_stance=str(o_stance).lower() if o_stance else None
             )
+            rtt_ms = (time.perf_counter() - t_start) * 1000.0
+            res["telemetry"] = service.generate_telemetry(action="DUEL_ROUND", api_rtt_ms=rtt_ms)
             self.send_json(res)
             return
 
         elif self.path in ("/api/game/mortar_strike", "/api/mortar/strike", "/api/game/mortar"):
-            from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
+            from krystal_web_hub.economic_engine.game_service import MatchRegistry
+            t_start = time.perf_counter()
+            match_id = str(data.get("match_id") or self.headers.get("X-Match-ID") or "default").strip()
+            service = MatchRegistry.get_or_create(match_id)
             t_hex = data.get("target_hex", [1, 1])
             a_hex = data.get("attacker_hex")
             s_count = int(data.get("salvo_count", 3))
             elev = float(data.get("elevation_angle_deg", 65.0))
-            res = GLOBAL_POSLEDNI_KMEN_GAME.execute_mortar_strike(
+            res = service.execute_mortar_strike(
                 target_hex=t_hex,
                 attacker_hex=a_hex,
                 salvo_count=s_count,
                 elevation_angle_deg=elev
             )
+            rtt_ms = (time.perf_counter() - t_start) * 1000.0
+            res["telemetry"] = service.generate_telemetry(action="MORTAR_STRIKE", api_rtt_ms=rtt_ms)
             self.send_json(res)
             return
 
         elif self.path in ("/api/game/sapper_trench", "/api/sapper/trench", "/api/sapper/dig_trench"):
-            from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
+            from krystal_web_hub.economic_engine.game_service import MatchRegistry
+            t_start = time.perf_counter()
+            match_id = str(data.get("match_id") or self.headers.get("X-Match-ID") or "default").strip()
+            service = MatchRegistry.get_or_create(match_id)
             h_coord = data.get("hex_coord", [0, 0])
             u_id = data.get("unit_id", "player_hero")
-            res = GLOBAL_POSLEDNI_KMEN_GAME.dig_sapper_trench(
+            res = service.dig_sapper_trench(
                 hex_coord=h_coord,
                 unit_id=u_id
             )
+            rtt_ms = (time.perf_counter() - t_start) * 1000.0
+            res["telemetry"] = service.generate_telemetry(action="DIG_TRENCH", api_rtt_ms=rtt_ms)
             self.send_json(res)
             return
 
         elif self.path in ("/api/game/reset", "/api/duel/reset"):
             from krystal_web_hub.economic_engine.posledni_kmen_authoritative_duel import GLOBAL_AUTHORITATIVE_DUEL_ENGINE
             auth_state = GLOBAL_AUTHORITATIVE_DUEL_ENGINE.reset()
-            from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
+            from krystal_web_hub.economic_engine.game_service import MatchRegistry
+            t_start = time.perf_counter()
+            match_id = str(data.get("match_id") or self.headers.get("X-Match-ID") or "default").strip()
             p_hero = data.get("player_hero_id", "m_oracle_01")
             p_help = int(data.get("player_helper_index", 1))
             p_race = data.get("player_race", "crystal")
             o_hero = data.get("opponent_hero_id", "m_witch_03")
             o_help = int(data.get("opponent_helper_index", 11))
             o_race = data.get("opponent_race", "toxic")
-            new_m = GLOBAL_POSLEDNI_KMEN_GAME.create_fresh_match(
+            service = MatchRegistry.reset_match(
+                match_id=match_id,
                 player_hero_id=p_hero,
                 player_helper_index=p_help,
                 player_race=p_race,
@@ -6251,7 +6276,17 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 opponent_helper_index=o_help,
                 opponent_race=o_race
             )
-            self.send_json({"status": "RESET", "match": new_m, "authoritative_state": auth_state, "vital_max_hp": 6})
+            rtt_ms = (time.perf_counter() - t_start) * 1000.0
+            new_m = service.match_state
+            self.send_json({
+                "status": "RESET",
+                "match_id": match_id,
+                "match": new_m,
+                "authoritative_state": auth_state,
+                "vital_max_hp": 6,
+                "state_hash": service.compute_state_hash(),
+                "telemetry": service.generate_telemetry(action="RESET", api_rtt_ms=rtt_ms)
+            })
             return
 
         # ── API: Unified Verification Layer Experiments & Replays ─────

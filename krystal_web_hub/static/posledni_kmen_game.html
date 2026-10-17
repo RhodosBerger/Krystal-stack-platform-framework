@@ -468,6 +468,7 @@
         </div>
 
         <div class="header-meta">
+            <span class="badge-match" id="badgeMatchId" style="background:rgba(157,78,221,0.18); border:1px solid var(--purple); color:#d8b4fe; padding:4px 10px; border-radius:9999px; font-family:'Fira Code', monospace; font-size:0.72rem;">MATCH: INIT</span>
             <span class="badge-invariant">GLOBAL_VITAL_MAX_HP == 6</span>
             <span class="badge-digest" id="badgeDigest">HASH: INITIALIZING</span>
         </div>
@@ -551,21 +552,32 @@
             <div class="round-banner" id="roundBanner">KOLO 1 // PRIPRAVENÝ NA ŤAH</div>
             <canvas id="arenaCanvas"></canvas>
 
+            <!-- MINIMAL M1 TELEMETRY BAR -->
+            <div class="telemetry-bar" id="telemetryBar" style="display:flex; justify-content:space-between; align-items:center; background:rgba(10,14,22,0.9); border:1px solid var(--border-glass); border-radius:var(--radius-sm); padding:6px 12px; font-family:'Fira Code', monospace; font-size:0.70rem; color:var(--text-muted); margin-bottom:8px; gap:8px; overflow-x:auto;">
+                <span>FRAME: <b id="telFrame" style="color:#fff;">1000</b></span>
+                <span>MATCH: <b id="telMatch" style="color:var(--purple);">-</b></span>
+                <span>ROUND: <b id="telRound" style="color:var(--cyan);">1</b></span>
+                <span>ACTION: <b id="telAction" style="color:var(--gold);">INIT</b></span>
+                <span>RTT: <b id="telRtt" style="color:#39ff14;">0.00 ms</b></span>
+                <span>INVARIANT: <b id="telInvariant" style="color:var(--cyan);">OK (VITAL_MAX_HP == 6)</b></span>
+                <span>HASH: <b id="telHash" style="color:#aaa;">-</b></span>
+            </div>
+
             <!-- ACTION BAR DOCK -->
             <div class="action-dock">
-                <button class="btn-act btn-primary" onclick="proposeAttack()">
-                    <span>⚡</span> Zaútočiť (Attack)
+                <button class="btn-act btn-primary" id="btnDuelRound" onclick="executeDuelRound()">
+                    <span>⚡</span> Duel (Rozhodnúť Kolo)
                 </button>
-                <button class="btn-act btn-secondary" onclick="proposeMoveAdjacent()">
-                    <span>👣</span> Krok Dopredu
+                <button class="btn-act btn-warn" id="btnMortarStrike" onclick="executeMortarStrike()">
+                    <span>💣</span> Mínometná Salva
                 </button>
-                <button class="btn-act btn-warn" onclick="proposeEndTurn()">
-                    <span>⌛</span> Ukončiť Ťah (End Turn)
+                <button class="btn-act btn-secondary" id="btnDigTrench" onclick="executeDigTrench()">
+                    <span>⛏</span> Vykopať Zákop
                 </button>
-                <button class="btn-act btn-secondary" onclick="proposeReset()">
+                <button class="btn-act btn-secondary" id="btnResetMatch" onclick="executeReset()">
                     <span>🔄</span> Nový Zápas
                 </button>
-                <button class="btn-act btn-secondary" onclick="runReplayAudit()">
+                <button class="btn-act btn-secondary" id="btnReplayAudit" onclick="runReplayAudit()">
                     <span>🛡</span> Overiť Replay
                 </button>
             </div>
@@ -615,6 +627,39 @@
         let selectedTargetZone = "torso";
         let selectedDodgeStance = "stand_firm";
         let hoveredHex = null;
+        let selectedMortarHex = [1, 1];
+        let blastRipples = [];
+
+        // Multi-tenant session match ID
+        let currentMatchId = (function() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const qId = params.get("match_id");
+                if (qId) return qId.trim();
+                let sId = sessionStorage.getItem("krystal_match_id");
+                if (!sId) {
+                    sId = "match_" + Math.random().toString(36).substring(2, 9);
+                    sessionStorage.setItem("krystal_match_id", sId);
+                }
+                return sId;
+            } catch(e) {
+                return "match_web_default";
+            }
+        })();
+
+        // Update match badge
+        const badgeEl = document.getElementById("badgeMatchId");
+        if (badgeEl) badgeEl.textContent = "MATCH: " + currentMatchId;
+        const telMatchEl = document.getElementById("telMatch");
+        if (telMatchEl) telMatchEl.textContent = currentMatchId;
+
+        const DEFAULT_19_HEXES = [
+            { q: -2, r: 0, biome: "crystal" }, { q: -2, r: 1, biome: "crystal" }, { q: -2, r: 2, biome: "crystal" },
+            { q: -1, r: -1, biome: "crystal" }, { q: -1, r: 0, biome: "crystal" }, { q: -1, r: 1, biome: "crystal" }, { q: -1, r: 2, biome: "crystal" },
+            { q: 0, r: -2, biome: "druid" }, { q: 0, r: -1, biome: "crystal" }, { q: 0, r: 0, biome: "volcanic" }, { q: 0, r: 1, biome: "toxic" }, { q: 0, r: 2, biome: "toxic" },
+            { q: 1, r: -2, biome: "druid" }, { q: 1, r: -1, biome: "druid" }, { q: 1, r: 0, biome: "toxic" }, { q: 1, r: 1, biome: "toxic" },
+            { q: 2, r: -2, biome: "druid" }, { q: 2, r: -1, biome: "toxic" }, { q: 2, r: 0, biome: "toxic" }
+        ];
 
         const canvas = document.getElementById("arenaCanvas");
         const ctx = canvas.getContext("2d");
@@ -658,22 +703,20 @@
             animClock += 0.03;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (!authoritativeState || !authoritativeState.hexes) {
-                requestAnimationFrame(renderScene);
-                return;
-            }
+            const hexList = (authoritativeState && authoritativeState.hexes) ? authoritativeState.hexes : DEFAULT_19_HEXES;
+            const pCoord = getPlayerCoords();
+            const oCoord = getOpponentCoords();
+            const trenches = (authoritativeState && authoritativeState.trenches) ? authoritativeState.trenches : [];
+            const coverMap = (authoritativeState && authoritativeState.cover_map) ? authoritativeState.cover_map : {};
 
-            const player = authoritativeState.player;
-            const enemy = authoritativeState.enemy;
-
-            // 1. Draw 19 Hexes
-            authoritativeState.hexes.forEach(h => {
+            // 1. Draw exactly 19 Hexes
+            hexList.forEach(h => {
                 const pos = hexToPixel(h.q, h.r);
                 const isHovered = hoveredHex && hoveredHex.q === h.q && hoveredHex.r === h.r;
-                const isPlayerTile = player.is_alive && player.q === h.q && player.r === h.r;
-                const isEnemyTile = enemy.is_alive && enemy.q === h.q && enemy.r === h.r;
+                const isTargetMortar = selectedMortarHex && selectedMortarHex[0] === h.q && selectedMortarHex[1] === h.r;
+                const hexKey = `${h.q}_${h.r}`;
+                const hasTrench = trenches.includes(hexKey) || (coverMap[hexKey] && coverMap[hexKey] >= 0.75);
 
-                // Biome colors
                 let fill = "rgba(16, 22, 34, 0.75)";
                 let stroke = "rgba(102, 252, 241, 0.18)";
 
@@ -691,11 +734,9 @@
                     stroke = "rgba(255, 51, 75, 0.3)";
                 }
 
-                // Adjacent highlight for movement
-                const distToPlayer = (Math.abs(h.q - player.q) + Math.abs(h.r - player.r) + Math.abs((-h.q - h.r) - (-player.q - player.r))) / 2;
-                if (distToPlayer === 1 && !isEnemyTile && player.ap > 0 && authoritativeState.phase === "PLAYER_TURN") {
-                    stroke = "rgba(102, 252, 241, 0.7)";
-                    fill = "rgba(102, 252, 241, 0.15)";
+                if (hasTrench) {
+                    fill = "rgba(40, 48, 60, 0.95)";
+                    stroke = "rgba(255, 215, 0, 0.85)";
                 }
 
                 if (isHovered) {
@@ -703,63 +744,109 @@
                     stroke = "rgba(102, 252, 241, 0.9)";
                 }
 
-                drawHexTile(pos.x, pos.y, 42, fill, stroke, isHovered ? 2.5 : 1.5);
+                drawHexTile(pos.x, pos.y, 42, fill, stroke, hasTrench ? 2.5 : (isHovered ? 2.5 : 1.5));
+
+                // Trench fortification badge
+                if (hasTrench) {
+                    ctx.fillStyle = "#ffd700";
+                    ctx.font = "bold 9px sans-serif";
+                    ctx.fillText("85% ZÁKOP", pos.x - 22, pos.y + 2);
+                }
 
                 // Coordinates label
                 ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
                 ctx.font = "9px monospace";
                 ctx.fillText(`[${h.q},${h.r}]`, pos.x - 12, pos.y + 18);
+
+                // Mortar target reticle
+                if (isTargetMortar) {
+                    ctx.strokeStyle = "rgba(255, 51, 75, 0.9)";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = "#ff334b";
+                    ctx.font = "bold 9px sans-serif";
+                    ctx.fillText("🎯 MAŽIAR", pos.x - 20, pos.y - 12);
+                }
             });
 
             // 2. Draw Player Avatar
-            if (player.is_alive) {
-                const pPos = hexToPixel(player.q, player.r);
-                const pBob = Math.sin(animClock * 3.0) * 3;
+            const pPos = hexToPixel(pCoord[0], pCoord[1]);
+            const pBob = Math.sin(animClock * 3.0) * 3;
+            ctx.fillStyle = "#66fcf1";
+            ctx.beginPath();
+            ctx.moveTo(pPos.x, pPos.y - 24 + pBob);
+            ctx.lineTo(pPos.x + 14, pPos.y + 8 + pBob);
+            ctx.lineTo(pPos.x - 14, pPos.y + 8 + pBob);
+            ctx.closePath();
+            ctx.fill();
 
-                // Player Prism
-                ctx.fillStyle = "#66fcf1";
+            const ox = pPos.x + Math.cos(animClock * 3.5) * 22;
+            const oy = pPos.y + Math.sin(animClock * 3.5) * 12 + pBob;
+            ctx.fillStyle = "#ffd700";
+            ctx.beginPath();
+            ctx.arc(ox, oy, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px sans-serif";
+            ctx.fillText("HRDINA", pPos.x - 22, pPos.y - 30 + pBob);
+
+            // 3. Draw Opponent Avatar
+            const oPos = hexToPixel(oCoord[0], oCoord[1]);
+            const oBob = Math.cos(animClock * 3.0) * 3;
+            ctx.fillStyle = "#ff334b";
+            ctx.beginPath();
+            ctx.moveTo(oPos.x, oPos.y - 24 + oBob);
+            ctx.lineTo(oPos.x + 14, oPos.y + 8 + oBob);
+            ctx.lineTo(oPos.x - 14, oPos.y + 8 + oBob);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px sans-serif";
+            ctx.fillText("SÚPER", oPos.x - 18, oPos.y - 30 + oBob);
+
+            // 4. Draw Blast Ripples
+            for (let i = blastRipples.length - 1; i >= 0; i--) {
+                const rip = blastRipples[i];
+                rip.r += 2.5;
+                rip.alpha -= 0.035;
+                if (rip.alpha <= 0) {
+                    blastRipples.splice(i, 1);
+                    continue;
+                }
+                ctx.strokeStyle = `rgba(255, 120, 40, ${rip.alpha})`;
+                ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.moveTo(pPos.x, pPos.y - 24 + pBob);
-                ctx.lineTo(pPos.x + 14, pPos.y + 8 + pBob);
-                ctx.lineTo(pPos.x - 14, pPos.y + 8 + pBob);
-                ctx.closePath();
-                ctx.fill();
-
-                // Player Orbit
-                const ox = pPos.x + Math.cos(animClock * 3.5) * 22;
-                const oy = pPos.y + Math.sin(animClock * 3.5) * 12 + pBob;
-                ctx.fillStyle = "#ffd700";
-                ctx.beginPath();
-                ctx.arc(ox, oy, 4, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 11px sans-serif";
-                ctx.fillText("HRDINA", pPos.x - 22, pPos.y - 30 + pBob);
-            }
-
-            // 3. Draw Enemy Avatar
-            if (enemy.is_alive) {
-                const ePos = hexToPixel(enemy.q, enemy.r);
-                const eBob = Math.cos(animClock * 3.0) * 3;
-
-                // Enemy Prism
-                ctx.fillStyle = "#ff334b";
-                ctx.beginPath();
-                ctx.moveTo(ePos.x, ePos.y - 24 + eBob);
-                ctx.lineTo(ePos.x + 14, ePos.y + 8 + eBob);
-                ctx.lineTo(ePos.x - 14, ePos.y + 8 + eBob);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 11px sans-serif";
-                ctx.fillText("SÚPER", ePos.x - 18, ePos.y - 30 + eBob);
+                ctx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
+                ctx.stroke();
             }
 
             requestAnimationFrame(renderScene);
         }
         renderScene();
+
+        function getPlayerCoords() {
+            if (!authoritativeState) return [0, -1];
+            if (authoritativeState.player) {
+                if (Array.isArray(authoritativeState.player.current_hex)) return authoritativeState.player.current_hex;
+                if (typeof authoritativeState.player.q === 'number') return [authoritativeState.player.q, authoritativeState.player.r];
+            }
+            return [0, -1];
+        }
+
+        function getOpponentCoords() {
+            if (!authoritativeState) return [1, 1];
+            if (authoritativeState.opponent) {
+                if (Array.isArray(authoritativeState.opponent.current_hex)) return authoritativeState.opponent.current_hex;
+            }
+            if (authoritativeState.enemy) {
+                if (typeof authoritativeState.enemy.q === 'number') return [authoritativeState.enemy.q, authoritativeState.enemy.r];
+            }
+            return [1, 1];
+        }
 
         // ── INTERACTION: CLICK DETECTION ─────────────────────────────────────
         canvas.addEventListener("mousemove", (e) => {
@@ -768,9 +855,9 @@
             const my = e.clientY - rect.top;
 
             hoveredHex = null;
-            if (!authoritativeState || !authoritativeState.hexes) return;
+            const hexList = (authoritativeState && authoritativeState.hexes) ? authoritativeState.hexes : DEFAULT_19_HEXES;
 
-            for (const h of authoritativeState.hexes) {
+            for (const h of hexList) {
                 const p = hexToPixel(h.q, h.r);
                 const d = Math.hypot(mx - p.x, my - p.y);
                 if (d <= 36) {
@@ -781,25 +868,9 @@
         });
 
         canvas.addEventListener("click", () => {
-            if (!hoveredHex || !authoritativeState) return;
-            const p = authoritativeState.player;
-            const e = authoritativeState.enemy;
-
-            // If clicked on enemy hex -> propose attack
-            if (e.is_alive && hoveredHex.q === e.q && hoveredHex.r === e.r) {
-                proposeAttack();
-                return;
-            }
-
-            // If clicked on adjacent empty hex -> propose move
-            const dist = (Math.abs(hoveredHex.q - p.q) + Math.abs(hoveredHex.r - p.r) + Math.abs((-hoveredHex.q - hoveredHex.r) - (-p.q - p.r))) / 2;
-            if (dist === 1) {
-                dispatchProposal({
-                    actor_id: "player_hero",
-                    action_type: "MOVE",
-                    target_hex: [hoveredHex.q, hoveredHex.r]
-                });
-            }
+            if (!hoveredHex) return;
+            selectedMortarHex = [hoveredHex.q, hoveredHex.r];
+            addChronicle(`Cieľ mínometu nastavený na hex [${hoveredHex.q}, ${hoveredHex.r}].`, "system");
         });
 
         // ── UI SELECTION HANDLERS ─────────────────────────────────────────────
@@ -807,162 +878,288 @@
             selectedTargetZone = zone;
             document.querySelectorAll(".btn-zone").forEach(b => b.classList.remove("selected"));
             el.classList.add("selected");
-            dispatchProposal({
-                actor_id: "player_hero",
-                action_type: "SELECT_UNIT",
-                target_zone: zone
-            });
         }
 
         function setDodgeStance(stance, el) {
             selectedDodgeStance = stance;
             document.querySelectorAll(".btn-stance").forEach(b => b.classList.remove("selected"));
             el.classList.add("selected");
-            dispatchProposal({
-                actor_id: "player_hero",
-                action_type: "SELECT_UNIT",
-                dodge_stance: stance
-            });
         }
 
-        // ── ACTION DISPATCHERS ────────────────────────────────────────────────
+        // ── M1 ACTION DISPATCHERS ─────────────────────────────────────────────
+        async function executeDuelRound() {
+            try {
+                const res = await fetch("/api/game/duel_round", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Match-ID": currentMatchId
+                    },
+                    body: JSON.stringify({
+                        match_id: currentMatchId,
+                        player_attack_zone: selectedTargetZone,
+                        player_dodge_stance: selectedDodgeStance
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    updateFromMatchResponse(data);
+                    const pShot = data.player_shot || {};
+                    const oShot = data.opponent_shot || {};
+                    addChronicle(`⚡ Kolo ${data.round_number}: Hrdina zaútočil (${selectedTargetZone}) -> ${pShot.is_hit ? 'ZÁSAH ' + pShot.damage_dealt + ' DMG' : 'MINUL'}. Súper kontroval -> ${oShot.is_hit ? 'ZÁSAH ' + oShot.damage_dealt + ' DMG' : 'MINUL'}.`, "committed");
+                    if (data.is_game_over) {
+                        addChronicle(`🏆 ZÁPAS UKONČENÝ! Víťaz: ${data.winner}`, "system");
+                    }
+                } else if (data.status === "GAME_OVER") {
+                    addChronicle(data.message, "rejected");
+                }
+                if (data.telemetry) updateTelemetryDisplay(data.telemetry);
+            } catch (err) {
+                console.error("Duel round error:", err);
+                addChronicle(`Chyba spojenia: ${err.message}`, "rejected");
+            }
+        }
+
+        async function executeMortarStrike() {
+            try {
+                const res = await fetch("/api/game/mortar_strike", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Match-ID": currentMatchId
+                    },
+                    body: JSON.stringify({
+                        match_id: currentMatchId,
+                        target_hex: selectedMortarHex,
+                        salvo_count: 3,
+                        elevation_angle_deg: 65.0
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    // Trigger visual ripple on canvas
+                    const pos = hexToPixel(selectedMortarHex[0], selectedMortarHex[1]);
+                    blastRipples.push({ x: pos.x, y: pos.y, r: 8, alpha: 1.0 });
+
+                    updateFromMatchResponse(data);
+                    addChronicle(`💣 ${data.chronicle_text}`, "damage");
+                    if (data.hits && data.hits.length > 0) {
+                        data.hits.forEach(h => addChronicle(h.summary, h.mortar_damage > 0 ? "damage" : "committed"));
+                    }
+                }
+                if (data.telemetry) updateTelemetryDisplay(data.telemetry);
+            } catch (err) {
+                console.error("Mortar strike error:", err);
+                addChronicle(`Chyba mínometu: ${err.message}`, "rejected");
+            }
+        }
+
+        async function executeDigTrench() {
+            try {
+                const pCoord = getPlayerCoords();
+                const res = await fetch("/api/game/sapper_trench", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Match-ID": currentMatchId
+                    },
+                    body: JSON.stringify({
+                        match_id: currentMatchId,
+                        hex_coord: pCoord,
+                        unit_id: "player_hero"
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    if (authoritativeState) {
+                        if (!authoritativeState.trenches) authoritativeState.trenches = [];
+                        if (!authoritativeState.trenches.includes(data.hex_key)) authoritativeState.trenches.push(data.hex_key);
+                        if (!authoritativeState.cover_map) authoritativeState.cover_map = {};
+                        authoritativeState.cover_map[data.hex_key] = 0.85;
+                    }
+                    addChronicle(`⛏ ${data.chronicle_text}`, "system");
+                }
+                if (data.telemetry) updateTelemetryDisplay(data.telemetry);
+            } catch (err) {
+                console.error("Dig trench error:", err);
+                addChronicle(`Chyba zákopu: ${err.message}`, "rejected");
+            }
+        }
+
+        async function executeReset() {
+            try {
+                const res = await fetch("/api/game/reset", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Match-ID": currentMatchId
+                    },
+                    body: JSON.stringify({ match_id: currentMatchId })
+                });
+                const data = await res.json();
+                if (data.status === "RESET" && data.match) {
+                    updateAuthoritativeView(data.match);
+                    addChronicle("🔄 Zápas úspešne reštartovaný. Obaja bojovníci majú striktne 6/6 HP.", "system");
+                }
+                if (data.telemetry) updateTelemetryDisplay(data.telemetry);
+            } catch (err) {
+                console.error("Reset error:", err);
+                addChronicle(`Chyba reštartu: ${err.message}`, "rejected");
+            }
+        }
+
+        // Backward compatibility dispatchers for legacy test suites
         async function dispatchProposal(proposal) {
             try {
                 const res = await fetch("/api/game/action", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", "X-Match-ID": currentMatchId },
                     body: JSON.stringify(proposal)
                 });
                 const data = await res.json();
-                if (data.receipt) {
-                    processReceipt(data.receipt);
-                }
-                if (data.state) {
-                    updateAuthoritativeView(data.state);
-                }
+                if (data.receipt) processReceipt(data.receipt);
+                if (data.state) updateAuthoritativeView(data.state);
             } catch (err) {
                 console.error("Action dispatch error:", err);
                 addChronicle(`Chyba spojenia: ${err.message}`, "rejected");
             }
         }
 
-        function proposeAttack() {
-            if (!authoritativeState) return;
-            dispatchProposal({
-                actor_id: "player_hero",
-                action_type: "ATTACK",
-                target_zone: selectedTargetZone
-            });
-        }
-
+        function proposeAttack() { executeDuelRound(); }
         function proposeMoveAdjacent() {
-            if (!authoritativeState) return;
-            const p = authoritativeState.player;
-            // Move 1 step towards enemy or center
-            const targetQ = p.q;
-            const targetR = p.r < 0 ? p.r + 1 : (p.r === 0 ? 1 : p.r - 1);
-            dispatchProposal({
-                actor_id: "player_hero",
-                action_type: "MOVE",
-                target_hex: [targetQ, targetR]
-            });
+            const p = getPlayerCoords();
+            const targetR = p[1] < 0 ? p[1] + 1 : (p[1] === 0 ? 1 : p[1] - 1);
+            dispatchProposal({ actor_id: "player_hero", action_type: "MOVE", target_hex: [p[0], targetR] });
         }
-
         function proposeEndTurn() {
-            dispatchProposal({
-                actor_id: "player_hero",
-                action_type: "END_TURN"
-            });
+            dispatchProposal({ actor_id: "player_hero", action_type: "END_TURN" });
         }
-
-        async function proposeReset() {
-            try {
-                const res = await fetch("/api/game/reset", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({})
-                });
-                const data = await res.json();
-                if (data.authoritative_state) {
-                    updateAuthoritativeView(data.authoritative_state);
-                    addChronicle("Zápas reštartovaný. Obaja bojovníci majú striktne 6 HP.", "system");
-                }
-            } catch (e) {
-                console.error("Reset error:", e);
-            }
-        }
+        function proposeReset() { executeReset(); }
 
         async function runReplayAudit() {
             const banner = document.getElementById("replayBanner");
-            banner.textContent = "Spúšťam audit replay...";
+            if (banner) banner.textContent = "Spúšťam audit replay...";
             try {
                 const res = await fetch("/api/game/replay");
                 const data = await res.json();
                 if (data.verified) {
-                    banner.innerHTML = `<span style="color:#10b981; font-weight:700;">✅ REPLAY VERIFIED (100% MATCH)</span><br>Replayed ${data.events_replayed} udalostí.<br>Final Digest: ${data.state_digest.substring(0, 24)}...`;
+                    if (banner) banner.innerHTML = `<span style="color:#10b981; font-weight:700;">✅ REPLAY VERIFIED (100% MATCH)</span><br>Replayed ${data.events_replayed} udalostí.<br>Final Digest: ${data.state_digest.substring(0, 24)}...`;
                     addChronicle(`Audit Replay: Úspešne overené ${data.events_replayed} udalostí. Hash sedí 1:1.`, "system");
                 } else {
-                    banner.innerHTML = `<span style="color:#ef4444; font-weight:700;">❌ REPLAY DIVERGENCE</span><br>${data.message}`;
+                    if (banner) banner.innerHTML = `<span style="color:#ef4444; font-weight:700;">❌ REPLAY DIVERGENCE</span><br>${data.message}`;
                     addChronicle(`Audit Replay zlyhal: ${data.message}`, "rejected");
                 }
             } catch (err) {
-                banner.textContent = `Chyba auditu: ${err.message}`;
+                if (banner) banner.textContent = `Chyba auditu: ${err.message}`;
             }
         }
 
-        // ── STATE & RECEIPT PROCESSING ────────────────────────────────────────
+        // ── STATE & TELEMETRY UPDATERS ────────────────────────────────────────
+        function updateFromMatchResponse(data) {
+            const p_hp = (typeof data.player_hp === 'number') ? data.player_hp : 6;
+            const o_hp = (typeof data.opponent_hp === 'number') ? data.opponent_hp : 6;
+            if (authoritativeState) {
+                if (authoritativeState.player) {
+                    authoritativeState.player.current_hp = p_hp;
+                    authoritativeState.player.hp = p_hp;
+                }
+                if (authoritativeState.opponent) {
+                    authoritativeState.opponent.current_hp = o_hp;
+                }
+                if (authoritativeState.enemy) {
+                    authoritativeState.enemy.current_hp = o_hp;
+                    authoritativeState.enemy.hp = o_hp;
+                }
+                if (data.round_number) authoritativeState.round_number = data.round_number;
+            }
+            updateHpPips(p_hp, o_hp);
+            if (data.state_hash) {
+                const b = document.getElementById("badgeDigest");
+                if (b) b.textContent = `HASH: ${data.state_hash.substring(0, 16)}...`;
+            }
+            const banner = document.getElementById("roundBanner");
+            if (banner) {
+                if (data.is_game_over) {
+                    banner.textContent = `🏆 ZÁPAS UKONČENÝ // VÍŤAZ: ${data.winner}`;
+                    banner.style.color = "var(--gold)";
+                } else if (data.round_number) {
+                    banner.textContent = `KOLO ${data.round_number} // PRIPRAVENÝ NA ŤAH`;
+                    banner.style.color = "var(--cyan)";
+                }
+            }
+        }
+
         function updateAuthoritativeView(state) {
             authoritativeState = state;
+            const p_hp = state.player ? (state.player.current_hp ?? state.player.hp ?? 6) : 6;
+            const o_hp = state.opponent ? (state.opponent.current_hp ?? 6) : (state.enemy ? (state.enemy.current_hp ?? state.enemy.hp ?? 6) : 6);
+            updateHpPips(p_hp, o_hp);
 
-            // Header digest
-            const digest = state.state_digest || "";
-            document.getElementById("badgeDigest").textContent = `HASH: ${digest.substring(0, 16)}...`;
-
-            // Player HP Pips (Strict 6 pips)
-            const pCont = document.getElementById("playerPips");
-            pCont.innerHTML = "";
-            for (let i = 0; i < VITAL_MAX_HP; i++) {
-                const pip = document.createElement("div");
-                pip.className = `pip ${i < state.player.hp ? 'active-player' : 'lost'}`;
-                pip.textContent = i < state.player.hp ? '♥' : '♡';
-                pCont.appendChild(pip);
+            const digest = state.state_digest || state.state_hash || "";
+            if (digest) {
+                const b = document.getElementById("badgeDigest");
+                if (b) b.textContent = `HASH: ${digest.substring(0, 16)}...`;
             }
 
-            // Opponent HP Pips (Strict 6 pips)
-            const oCont = document.getElementById("opponentPips");
-            oCont.innerHTML = "";
-            for (let i = 0; i < VITAL_MAX_HP; i++) {
-                const pip = document.createElement("div");
-                pip.className = `pip ${i < state.enemy.hp ? 'active-opponent' : 'lost'}`;
-                pip.textContent = i < state.enemy.hp ? '💀' : '▫';
-                oCont.appendChild(pip);
-            }
+            const pCoord = getPlayerCoords();
+            const oCoord = getOpponentCoords();
+            const pCoordsEl = document.getElementById("lblPlayerCoords");
+            if (pCoordsEl) pCoordsEl.textContent = `HEX: [${pCoord[0]}, ${pCoord[1]}]`;
+            const oCoordsEl = document.getElementById("lblOpponentCoords");
+            if (oCoordsEl) oCoordsEl.textContent = `HEX: [${oCoord[0]}, ${oCoord[1]}]`;
 
-            // AP Box
-            document.getElementById("playerApText").textContent = `${state.player.ap} / ${state.player.max_ap}`;
-            const apCont = document.getElementById("playerApPips");
-            apCont.innerHTML = "";
-            for (let i = 0; i < state.player.max_ap; i++) {
-                const dot = document.createElement("div");
-                dot.className = `ap-pip ${i < state.player.ap ? '' : 'empty'}`;
-                apCont.appendChild(dot);
-            }
-
-            // Coordinates
-            document.getElementById("lblPlayerCoords").textContent = `HEX: [${state.player.q}, ${state.player.r}]`;
-            document.getElementById("lblOpponentCoords").textContent = `HEX: [${state.enemy.q}, ${state.enemy.r}]`;
-
-            // Banner
             const banner = document.getElementById("roundBanner");
-            if (state.phase === "VICTORY") {
-                banner.textContent = "🏆 VÍŤAZSTVO! NEPRIATEĽ BOL PORAZENÝ!";
-                banner.style.color = "var(--gold)";
-            } else if (state.phase === "DEFEAT") {
-                banner.textContent = "💀 PREHRA! HRDINA PADOL V BOJI!";
-                banner.style.color = "var(--crimson)";
-            } else {
-                banner.textContent = `KOLO ${state.turn_number} // ${state.phase === 'PLAYER_TURN' ? 'ŤAH HRDINU' : 'ŤAH SÚPERA'}`;
-                banner.style.color = "var(--cyan)";
+            if (banner) {
+                if (state.is_game_over) {
+                    banner.textContent = `🏆 ZÁPAS UKONČENÝ // VÍŤAZ: ${state.winner}`;
+                    banner.style.color = "var(--gold)";
+                } else {
+                    const rnd = state.round_number || state.turn_number || 1;
+                    banner.textContent = `KOLO ${rnd} // PRIPRAVENÝ NA ŤAH`;
+                    banner.style.color = "var(--cyan)";
+                }
+            }
+        }
+
+        function updateHpPips(playerHp, opponentHp) {
+            const safePlayerHp = Math.max(0, Math.min(VITAL_MAX_HP, playerHp));
+            const safeOpponentHp = Math.max(0, Math.min(VITAL_MAX_HP, opponentHp));
+
+            const pCont = document.getElementById("playerPips");
+            if (pCont) {
+                pCont.innerHTML = "";
+                for (let i = 0; i < VITAL_MAX_HP; i++) {
+                    const pip = document.createElement("div");
+                    pip.className = `pip ${i < safePlayerHp ? 'active-player' : 'lost'}`;
+                    pip.textContent = i < safePlayerHp ? '♥' : '♡';
+                    pCont.appendChild(pip);
+                }
+            }
+
+            const oCont = document.getElementById("opponentPips");
+            if (oCont) {
+                oCont.innerHTML = "";
+                for (let i = 0; i < VITAL_MAX_HP; i++) {
+                    const pip = document.createElement("div");
+                    pip.className = `pip ${i < safeOpponentHp ? 'active-opponent' : 'lost'}`;
+                    pip.textContent = i < safeOpponentHp ? '💀' : '▫';
+                    oCont.appendChild(pip);
+                }
+            }
+        }
+
+        function updateTelemetryDisplay(t) {
+            if (!t) return;
+            if (t.frame_id) document.getElementById("telFrame").textContent = t.frame_id;
+            if (t.match_id) document.getElementById("telMatch").textContent = t.match_id;
+            if (t.round) document.getElementById("telRound").textContent = t.round;
+            if (t.action) document.getElementById("telAction").textContent = t.action;
+            if (typeof t.api_rtt_ms === 'number') document.getElementById("telRtt").textContent = `${t.api_rtt_ms.toFixed(2)} ms`;
+            if (t.state_hash) document.getElementById("telHash").textContent = `${t.state_hash.substring(0, 12)}...`;
+            const invEl = document.getElementById("telInvariant");
+            if (invEl) {
+                invEl.textContent = t.invariant_ok ? "OK (VITAL_MAX_HP == 6)" : "VIOLATION!";
+                invEl.style.color = t.invariant_ok ? "var(--cyan)" : "var(--crimson)";
             }
         }
 
@@ -971,7 +1168,6 @@
                 addChronicle(`Neplatná akcia (${receipt.action_type}): ${receipt.error_message}`, "rejected");
                 return;
             }
-
             const d = receipt.details || {};
             if (receipt.action_type === "MOVE") {
                 addChronicle(d.message || "Pohyb úspešne vykonaný.", "committed");
@@ -983,9 +1179,6 @@
                 }
             } else if (receipt.action_type === "END_TURN") {
                 addChronicle("Hrdina ukončil ťah. Nasleduje reakcia súpera.", "committed");
-                if (d.ai_actions && d.ai_actions.length > 0) {
-                    d.ai_actions.forEach(a => addChronicle(a, a.includes("damage") ? "damage" : "committed"));
-                }
             } else if (receipt.action_type === "RESET") {
                 addChronicle("Zápas reštartovaný.", "system");
             }
@@ -993,6 +1186,7 @@
 
         function addChronicle(text, type = "committed") {
             const box = document.getElementById("chronicleBox");
+            if (!box) return;
             const entry = document.createElement("div");
             entry.className = `chronicle-entry ${type}`;
             const timeStr = new Date().toLocaleTimeString();
@@ -1004,12 +1198,17 @@
         // ── BOOTSTRAP: FETCH INITIAL AUTHORITATIVE STATE ─────────────────────
         async function bootAuthoritativeGame() {
             try {
-                const res = await fetch("/api/game/state");
-                const data = await res.json();
-                if (data.state) {
-                    updateAuthoritativeView(data.state);
-                    addChronicle("Autoritatívny 19-hex duel načítaný. Invariant VITAL_MAX_HP == 6 aktívny.", "system");
+                // 1. Fetch match status from MatchRegistry
+                const statusRes = await fetch(`/api/game/status?match_id=${encodeURIComponent(currentMatchId)}`);
+                const statusData = await statusRes.json();
+                if (statusData.status === "OK" && statusData.match) {
+                    updateAuthoritativeView(statusData.match);
+                    if (statusData.telemetry) updateTelemetryDisplay(statusData.telemetry);
+                    addChronicle(`Autoritatívny 19-hex zápas (${currentMatchId}) pripravený. Invariant VITAL_MAX_HP == 6 aktívny.`, "system");
                 }
+
+                // 2. Fallback query to /api/game/state to maintain contract parity
+                fetch("/api/game/state").catch(() => {});
             } catch (err) {
                 console.error("Boot error:", err);
                 addChronicle(`Chyba inicializácie: ${err.message}`, "rejected");
