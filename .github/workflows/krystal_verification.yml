@@ -35,6 +35,7 @@ jobs:
 
       - name: Run Core 58 Integration & Memory Model Tests
         run: |
+          set -o pipefail
           python -m pytest \
             tests/test_v_zerocopy_memory_model_02.py \
             tests/test_v_universal_engine_interposer.py \
@@ -42,7 +43,26 @@ jobs:
             tests/test_v_autonomous_research_cycle.py \
             tests/test_v_os_coordination_policy_engine.py \
             tests/test_v_os_coordination_resilience.py \
-            -v
+            -v --tb=short 2>&1 | tee pytest_output.log
+
+      - name: Publish Pytest Report to Job Summary
+        if: always()
+        run: |
+          if [ -f pytest_output.log ]; then
+            echo "## Core 58 Integration & Memory Model Tests Summary" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            cat pytest_output.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Test Output Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-execution-log
+          path: pytest_output.log
+          if-no-files-found: ignore
+
 
   # ============================================================
   # C11 Cross-ISA ABI & Hardware SPSC Benchmark

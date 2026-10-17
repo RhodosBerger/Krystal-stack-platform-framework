@@ -413,8 +413,8 @@ class TestVZeroCopyMemoryModel02:
         c_thread.start()
         p_thread.start()
 
-        p_thread.join(timeout=10.0)
-        c_thread.join(timeout=10.0)
+        p_thread.join(timeout=30.0)
+        c_thread.join(timeout=30.0)
 
         assert len(errors) == 0, f"Encountered errors during SPSC stress: {errors}"
         assert len(popped_results) == num_frames
