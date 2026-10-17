@@ -1480,14 +1480,24 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        elif norm_path in ("/api/openvino/status", "/api/openvino/runtime_status"):
+            from krystal_kernel.openvino_aep_runtime import GLOBAL_OPENVINO_AEP_RUNTIME
+            self.send_json(GLOBAL_OPENVINO_AEP_RUNTIME.get_runtime_status())
+            return
+
+        elif norm_path in ("/api/openvino/models", "/api/openvino/catalog"):
+            from krystal_kernel.openvino_aep_runtime import GLOBAL_OPENVINO_AEP_RUNTIME
+            self.send_json({"models": GLOBAL_OPENVINO_AEP_RUNTIME.get_models_catalog(), "vital_max_hp": 6})
+            return
+
         elif norm_path in ("/api/openvino/hardware_bypass_status", "/api/openvino/bypass"):
             from krystal_kernel.openvino_hardware_acceleration_pack import TigerLakeTurboUnblocker
             self.send_json(TigerLakeTurboUnblocker.apply_hardware_bypass().to_dict())
             return
 
         elif norm_path in ("/api/openvino/benchmark_dp4a", "/api/openvino/benchmark"):
-            from krystal_kernel.openvino_hardware_acceleration_pack import HardwareAccelerationBenchmark
-            self.send_json(HardwareAccelerationBenchmark.run_comparative_benchmark().to_dict())
+            from krystal_kernel.openvino_aep_runtime import GLOBAL_OPENVINO_AEP_RUNTIME
+            self.send_json(GLOBAL_OPENVINO_AEP_RUNTIME.run_benchmark())
             return
 
         elif norm_path in ("/api/intel/enterprise_status", "/api/intel/status"):
@@ -3481,9 +3491,39 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({"status": "OK", **GLOBAL_POSLEDNI_KMEN_GAME.get_catalog()})
             return
 
+        elif norm_path in ("/api/game/state", "/api/game/authoritative_state", "/api/duel/state"):
+            from krystal_web_hub.economic_engine.posledni_kmen_authoritative_duel import GLOBAL_AUTHORITATIVE_DUEL_ENGINE
+            self.send_json({"status": "OK", "state": GLOBAL_AUTHORITATIVE_DUEL_ENGINE.get_full_state()})
+            return
+
+        elif norm_path in ("/api/game/replay", "/api/duel/replay"):
+            from krystal_web_hub.economic_engine.posledni_kmen_authoritative_duel import (
+                GLOBAL_AUTHORITATIVE_DUEL_ENGINE,
+                DeterministicAuthoritativeDuelEngine
+            )
+            events = [r.to_dict() for r in GLOBAL_AUTHORITATIVE_DUEL_ENGINE.state.event_log if r.verdict == "COMMITTED"]
+            ok, msg, final_state = DeterministicAuthoritativeDuelEngine.replay(GLOBAL_AUTHORITATIVE_DUEL_ENGINE.rng_seed, events)
+            self.send_json({
+                "status": "OK" if ok else "ERROR",
+                "verified": ok,
+                "message": msg,
+                "events_replayed": len(events),
+                "state_digest": final_state.get("state_digest", "")
+            })
+            return
+
         elif norm_path in ("/api/game/status", "/api/game/match", "/api/duel/status"):
-            from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
-            self.send_json({"status": "OK", "match": GLOBAL_POSLEDNI_KMEN_GAME.match_state, "vital_max_hp": 6})
+            from krystal_web_hub.economic_engine.game_service import MatchRegistry
+            q = parse_qs(parsed.query)
+            match_id = q.get("match_id", [self.headers.get("X-Match-ID", "default")])[0]
+            service = MatchRegistry.get_or_create(match_id)
+            self.send_json({
+                "status": "OK",
+                "match": service.match_state,
+                "vital_max_hp": 6,
+                "state_hash": service.compute_state_hash(),
+                "telemetry": service.generate_telemetry(action="GET_STATUS")
+            })
             return
 
         elif norm_path in ("/api/game/duel/live-simulation", "/api/game/live-duel"):
@@ -4387,7 +4427,6 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             return
 
         elif self.path in ("/api/learning/factographic-network/update-node", "/api/factographic/update-node"):
-            import time
             from krystal_kernel.factographic_network_learning_engine import GLOBAL_FACTOGRAPHIC_LEARNING_ENGINE
             node_id = data.get("node_id", "")
             val = data.get("measured_value")
@@ -4544,7 +4583,6 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             return
 
         elif self.path in ("/api/puzzle/decode", "/api/strand-puzzle/decode"):
-            import time
             from krystal_kernel.strand_npu_action_puzzle_engine import GLOBAL_STRAND_NPU_ENGINE
             raw_hex = data.get("raw_hex", "0102040501020405")
             puz_id = data.get("puzzle_id", f"puz_custom_{int(time.time())}")
@@ -5487,33 +5525,23 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
 
         # ── API: OpenVINO Process Prioritization Inference ─────────
         elif self.path in ("/api/cortex/openvino_infer", "/api/openvino/infer"):
-            from krystal_kernel.cortex_openvino_engine import GLOBAL_OPENVINO_GOVERNOR
+            from krystal_kernel.openvino_aep_runtime import GLOBAL_OPENVINO_AEP_RUNTIME
+            runtime_id = self.headers.get("X-Runtime-ID") or self.headers.get("X-Session-ID") or f"infer-{int(time.time()*1000)}"
             pid = int(data.get("pid", 1000))
             name = str(data.get("name", "worker.exe"))
-            cpu = float(data.get("cpu_pct", 50.0))
-            cs = float(data.get("cs_rate", 6500.0))
-            faults = float(data.get("page_faults_per_sec", 120.0))
-            mem = float(data.get("working_set_mb", 256.0))
-            threads = int(data.get("thread_count", 8))
-            io_ops = float(data.get("io_ops_per_sec", 50.0))
-            k_ratio = float(data.get("kernel_time_ratio", 0.15))
-            thrash = float(data.get("thrashing_index", 1.1))
+            pressure = float(data.get("bus_pressure", 0.10))
 
-            res = GLOBAL_OPENVINO_GOVERNOR.infer_process_priority(
+            infer_res, receipt = GLOBAL_OPENVINO_AEP_RUNTIME.infer_process(
+                runtime_id=runtime_id,
                 pid=pid,
                 name=name,
-                cpu_pct=cpu,
-                cs_rate=cs,
-                page_faults_per_sec=faults,
-                working_set_mb=mem,
-                thread_count=threads,
-                io_ops_per_sec=io_ops,
-                kernel_time_ratio=k_ratio,
-                thrashing_index=thrash
+                features=data,
+                current_bus_pressure=pressure
             )
             self.send_json({
-                "status": "OK",
-                "inference": res.to_dict(),
+                "status": "OK" if infer_res else "REJECTED",
+                "inference": infer_res.to_dict() if infer_res else None,
+                "aep_receipt": receipt.to_dict(),
                 "vital_max_hp": 6
             })
             return
@@ -5870,16 +5898,16 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
 
         # ── API: OpenVINO DP4A Hardware Acceleration Pack ──────────
         elif self.path in ("/api/openvino/accelerate", "/api/openvino/acceleration_pack"):
-            from krystal_kernel.openvino_hardware_acceleration_pack import OpenVinoIrisXeDP4APack
+            from krystal_kernel.openvino_aep_runtime import GLOBAL_OPENVINO_AEP_RUNTIME
             use_dp4a = bool(data.get("use_dp4a_int8", True))
             streams = int(data.get("streams_count", 4))
             kv_u8 = bool(data.get("enable_kv_u8", True))
-            cfg = OpenVinoIrisXeDP4APack.generate_extended_config(
-                use_dp4a_int8=use_dp4a,
+            cfg = GLOBAL_OPENVINO_AEP_RUNTIME.configure_acceleration(
+                use_dp4a=use_dp4a,
                 streams_count=streams,
                 enable_kv_u8=kv_u8
             )
-            self.send_json(cfg.to_dict())
+            self.send_json(cfg)
             return
 
         elif self.path in ("/api/intel/tune", "/api/intel/policy"):
@@ -6163,57 +6191,84 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({"status": "OK", "imported_results": imported_data})
             return
 
+        # ── API: Poslední Kmen Authoritative Duel Actions ──────────────
+        elif self.path in ("/api/game/action", "/api/duel/action", "/api/game/propose_action"):
+            from krystal_web_hub.economic_engine.posledni_kmen_authoritative_duel import GLOBAL_AUTHORITATIVE_DUEL_ENGINE
+            res = GLOBAL_AUTHORITATIVE_DUEL_ENGINE.propose_action(data)
+            self.send_json({"status": "OK" if res["success"] else "REJECTED", **res})
+            return
+
         # ── API: Poslední Kmen Game Actions (Duel / Mortar / Sapper) ──
         elif self.path in ("/api/game/duel_round", "/api/duel/round", "/api/duel/resolve_round"):
-            from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
+            from krystal_web_hub.economic_engine.game_service import MatchRegistry
+            t_start = time.perf_counter()
+            match_id = str(data.get("match_id") or self.headers.get("X-Match-ID") or "default").strip()
+            service = MatchRegistry.get_or_create(match_id)
             p_zone = str(data.get("player_attack_zone", data.get("attack_zone", "torso"))).lower()
             p_stance = str(data.get("player_dodge_stance", data.get("defense_stance", "stand_firm"))).lower()
             o_zone = data.get("opponent_attack_zone")
             o_stance = data.get("opponent_dodge_stance")
-            res = GLOBAL_POSLEDNI_KMEN_GAME.execute_duel_round(
+            res = service.execute_duel_round(
                 player_attack_zone=p_zone,
                 player_dodge_stance=p_stance,
                 opponent_attack_zone=str(o_zone).lower() if o_zone else None,
                 opponent_dodge_stance=str(o_stance).lower() if o_stance else None
             )
+            rtt_ms = (time.perf_counter() - t_start) * 1000.0
+            res["telemetry"] = service.generate_telemetry(action="DUEL_ROUND", api_rtt_ms=rtt_ms)
             self.send_json(res)
             return
 
         elif self.path in ("/api/game/mortar_strike", "/api/mortar/strike", "/api/game/mortar"):
-            from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
+            from krystal_web_hub.economic_engine.game_service import MatchRegistry
+            t_start = time.perf_counter()
+            match_id = str(data.get("match_id") or self.headers.get("X-Match-ID") or "default").strip()
+            service = MatchRegistry.get_or_create(match_id)
             t_hex = data.get("target_hex", [1, 1])
             a_hex = data.get("attacker_hex")
             s_count = int(data.get("salvo_count", 3))
             elev = float(data.get("elevation_angle_deg", 65.0))
-            res = GLOBAL_POSLEDNI_KMEN_GAME.execute_mortar_strike(
+            res = service.execute_mortar_strike(
                 target_hex=t_hex,
                 attacker_hex=a_hex,
                 salvo_count=s_count,
                 elevation_angle_deg=elev
             )
+            rtt_ms = (time.perf_counter() - t_start) * 1000.0
+            res["telemetry"] = service.generate_telemetry(action="MORTAR_STRIKE", api_rtt_ms=rtt_ms)
             self.send_json(res)
             return
 
         elif self.path in ("/api/game/sapper_trench", "/api/sapper/trench", "/api/sapper/dig_trench"):
-            from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
+            from krystal_web_hub.economic_engine.game_service import MatchRegistry
+            t_start = time.perf_counter()
+            match_id = str(data.get("match_id") or self.headers.get("X-Match-ID") or "default").strip()
+            service = MatchRegistry.get_or_create(match_id)
             h_coord = data.get("hex_coord", [0, 0])
             u_id = data.get("unit_id", "player_hero")
-            res = GLOBAL_POSLEDNI_KMEN_GAME.dig_sapper_trench(
+            res = service.dig_sapper_trench(
                 hex_coord=h_coord,
                 unit_id=u_id
             )
+            rtt_ms = (time.perf_counter() - t_start) * 1000.0
+            res["telemetry"] = service.generate_telemetry(action="DIG_TRENCH", api_rtt_ms=rtt_ms)
             self.send_json(res)
             return
 
         elif self.path in ("/api/game/reset", "/api/duel/reset"):
-            from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
+            from krystal_web_hub.economic_engine.posledni_kmen_authoritative_duel import GLOBAL_AUTHORITATIVE_DUEL_ENGINE
+            auth_state = GLOBAL_AUTHORITATIVE_DUEL_ENGINE.reset()
+            from krystal_web_hub.economic_engine.game_service import MatchRegistry
+            t_start = time.perf_counter()
+            match_id = str(data.get("match_id") or self.headers.get("X-Match-ID") or "default").strip()
             p_hero = data.get("player_hero_id", "m_oracle_01")
             p_help = int(data.get("player_helper_index", 1))
             p_race = data.get("player_race", "crystal")
             o_hero = data.get("opponent_hero_id", "m_witch_03")
             o_help = int(data.get("opponent_helper_index", 11))
             o_race = data.get("opponent_race", "toxic")
-            new_m = GLOBAL_POSLEDNI_KMEN_GAME.create_fresh_match(
+            service = MatchRegistry.reset_match(
+                match_id=match_id,
                 player_hero_id=p_hero,
                 player_helper_index=p_help,
                 player_race=p_race,
@@ -6221,7 +6276,17 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 opponent_helper_index=o_help,
                 opponent_race=o_race
             )
-            self.send_json({"status": "RESET", "match": new_m, "vital_max_hp": 6})
+            rtt_ms = (time.perf_counter() - t_start) * 1000.0
+            new_m = service.match_state
+            self.send_json({
+                "status": "RESET",
+                "match_id": match_id,
+                "match": new_m,
+                "authoritative_state": auth_state,
+                "vital_max_hp": 6,
+                "state_hash": service.compute_state_hash(),
+                "telemetry": service.generate_telemetry(action="RESET", api_rtt_ms=rtt_ms)
+            })
             return
 
         # ── API: Unified Verification Layer Experiments & Replays ─────
@@ -7962,7 +8027,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
     request_queue_size = 128  # default 5 refuses bursts of concurrent clients
 
-def start_server(host="127.0.0.1", port=8080):
+def start_server(host="127.0.0.1", port=8000):
     server = ThreadedHTTPServer((host, port), KrystalHubHandler)
     worker = threading.Thread(target=engine_worker_loop, daemon=True)
     worker.start()
@@ -7971,6 +8036,7 @@ def start_server(host="127.0.0.1", port=8080):
     print(" [KRYSTAL-STACK] PRODUCTION LOCALHOST MISSION CONTROL")
     print("="*70)
     print(f" >> Web UI Address:    http://{host}:{port}/")
+    print(f" >> Game Duel URL:     http://{host}:{port}/game")
     print(f" >> SSE Live Stream:   http://{host}:{port}/api/stream")
     print(f" >> JSON System State: http://{host}:{port}/api/status")
     print(f" >> Health Check:      http://{host}:{port}/api/health")
@@ -7992,7 +8058,7 @@ def start_server(host="127.0.0.1", port=8080):
         print("[HUB] Shutdown complete.")
 
 if __name__ == "__main__":
-    p = 8080
+    p = int(os.environ.get("PORT", 8000))
     if len(sys.argv) > 1:
         p = int(sys.argv[1])
     start_server(port=p)

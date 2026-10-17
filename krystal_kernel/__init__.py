@@ -458,6 +458,31 @@ from .hardware_input_driver import (  # noqa: F401
     GLOBAL_HARDWARE_INPUT_DRIVER
 )
 
+from .hardware_input_toolkit import (  # noqa: F401
+    HardwareDeviceInfo,
+    CalibrationProfile,
+    BenchmarkResult,
+    HardwareInputToolkit,
+    GLOBAL_HARDWARE_INPUT_TOOLKIT
+)
+
+from .hardware_input_hal import (  # noqa: F401
+    DeviceConnectionStatus,
+    FrameIntegrity,
+    FrameAuthenticity,
+    ReplayVerificationScope,
+    ClockCalibration,
+    HardwareInputEvent,
+    InputEvidenceEnvelope,
+    HalDeviceInfo,
+    AntiReplayFilter,
+    SPSCInputRingBuffer,
+    HardwareInputHAL,
+    compute_device_fingerprint,
+    compute_device_fingerprints,
+    GLOBAL_HARDWARE_INPUT_HAL
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -574,5 +599,12 @@ __all__ = [
     "InputSourceKind", "UserActivityState", "RawHardwarePacket", "NormalizedInputState",
     "InputReplayFrame", "LockFreeInputRingBuffer", "DeadzoneAndJitterFilter",
     "SerialTelemetryDecoder", "DeterministicInputJournal", "HardwareInputDriver",
-    "EpistemicInputBridge", "GLOBAL_HARDWARE_INPUT_DRIVER"
+    "EpistemicInputBridge", "GLOBAL_HARDWARE_INPUT_DRIVER",
+    "HardwareDeviceInfo", "CalibrationProfile", "BenchmarkResult",
+    "HardwareInputToolkit", "GLOBAL_HARDWARE_INPUT_TOOLKIT",
+    "DeviceConnectionStatus", "FrameIntegrity", "FrameAuthenticity",
+    "ReplayVerificationScope", "ClockCalibration", "HardwareInputEvent",
+    "InputEvidenceEnvelope", "HalDeviceInfo", "AntiReplayFilter",
+    "SPSCInputRingBuffer", "HardwareInputHAL", "compute_device_fingerprint",
+    "compute_device_fingerprints", "GLOBAL_HARDWARE_INPUT_HAL"
 ]

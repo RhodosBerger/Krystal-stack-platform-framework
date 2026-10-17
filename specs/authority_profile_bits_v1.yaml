@@ -1,0 +1,31 @@
+schema_version: "1.0"
+mask_semantics: "PROFILE_ELIGIBILITY"
+bitmask_width: 64
+reserved_bits:
+  - range: [6, 63]
+    status: RESERVED
+profiles:
+  KR_PROFILE_ULTRA_SAVER:
+    profile_id: ultra_saver
+    bit: 0
+    hex: "0x0000000000000001"
+  KR_PROFILE_SAVER_NPU:
+    profile_id: saver_npu
+    bit: 1
+    hex: "0x0000000000000002"
+  KR_PROFILE_BALANCED_NPU:
+    profile_id: balanced_npu
+    bit: 2
+    hex: "0x0000000000000004"
+  KR_PROFILE_BALANCED_HYBRID:
+    profile_id: balanced_hybrid
+    bit: 3
+    hex: "0x0000000000000008"
+  KR_PROFILE_PERFORMANCE_GPU:
+    profile_id: performance_gpu
+    bit: 4
+    hex: "0x0000000000000010"
+  KR_PROFILE_MAX_BURST:
+    profile_id: max_burst
+    bit: 5
+    hex: "0x0000000000000020"

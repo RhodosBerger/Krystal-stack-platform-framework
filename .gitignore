@@ -39,6 +39,7 @@ scratch/
 tmp/
 temp/
 *.log
+artifacts/cache/
 
 # OS & Editor Artifacts
 .DS_Store

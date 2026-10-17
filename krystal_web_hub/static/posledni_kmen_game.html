@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POSLEDNÍ KMEN // TACTICAL DUEL & SAPPER ARENA</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <title>POSLEDNÍ KMEN // AUTHORITATIVE 19-HEX DUEL</title>
     <style>
         :root {
             --bg-dark: #07090e;
-            --bg-card: rgba(14, 20, 32, 0.75);
+            --bg-card: rgba(14, 20, 32, 0.85);
             --border-glass: rgba(102, 252, 241, 0.2);
-            --border-glass-hover: rgba(102, 252, 241, 0.5);
+            --border-glass-hover: rgba(102, 252, 241, 0.6);
             --blur: blur(20px) saturate(180%);
             --cyan: #66fcf1;
             --cyan-glow: rgba(102, 252, 241, 0.4);
@@ -25,9 +22,9 @@
             --purple: #9d4edd;
             --text-main: #f0f4f8;
             --text-muted: #8892b0;
-            --radius-xl: 20px;
-            --radius-md: 12px;
-            --radius-sm: 8px;
+            --radius-xl: 18px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,7 +32,7 @@
         body {
             background-color: var(--bg-dark);
             color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Outfit', sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -53,8 +50,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 32px;
-            background: rgba(10, 14, 22, 0.85);
+            padding: 12px 28px;
+            background: rgba(10, 14, 22, 0.9);
             backdrop-filter: var(--blur);
             border-bottom: 1px solid var(--border-glass);
             z-index: 100;
@@ -63,16 +60,16 @@
         .brand-title {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .gem-icon {
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             background: linear-gradient(135deg, var(--cyan), var(--neon-blue), var(--purple));
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            box-shadow: 0 0 20px var(--cyan-glow);
-            animation: gem-spin 10s linear infinite;
+            box-shadow: 0 0 16px var(--cyan-glow);
+            animation: gem-spin 12s linear infinite;
         }
 
         @keyframes gem-spin {
@@ -81,8 +78,8 @@
         }
 
         .brand-title h1 {
-            font-family: 'Cinzel', serif;
-            font-size: 1.35rem;
+            font-family: 'Cinzel', 'Times New Roman', serif;
+            font-size: 1.25rem;
             letter-spacing: 2px;
             background: linear-gradient(90deg, #fff, var(--cyan));
             -webkit-background-clip: text;
@@ -92,47 +89,38 @@
         .header-meta {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
 
         .badge-invariant {
             background: rgba(102, 252, 241, 0.12);
             border: 1px solid var(--cyan);
             color: var(--cyan);
-            padding: 4px 12px;
+            padding: 4px 10px;
             border-radius: 9999px;
             font-family: 'Fira Code', monospace;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 600;
             letter-spacing: 1px;
-            box-shadow: 0 0 10px var(--cyan-glow);
+            box-shadow: 0 0 8px var(--cyan-glow);
         }
 
-        .btn-link-godot {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid var(--border-glass);
-            color: var(--text-main);
-            padding: 6px 14px;
-            border-radius: var(--radius-sm);
-            text-decoration: none;
-            font-size: 0.82rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .btn-link-godot:hover {
-            background: var(--cyan);
-            color: #000;
-            border-color: var(--cyan);
-            box-shadow: 0 0 14px var(--cyan-glow);
+        .badge-digest {
+            background: rgba(157, 78, 221, 0.15);
+            border: 1px solid var(--purple);
+            color: #d8b4fe;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.70rem;
         }
 
         /* MAIN LAYOUT */
         .arena-container {
             display: grid;
-            grid-template-columns: 340px 1fr 340px;
-            gap: 20px;
-            padding: 24px;
+            grid-template-columns: 310px 1fr 330px;
+            gap: 16px;
+            padding: 16px 24px;
             flex: 1;
             max-width: 1720px;
             margin: 0 auto;
@@ -145,355 +133,344 @@
             backdrop-filter: var(--blur);
             border: 1px solid var(--border-glass);
             border-radius: var(--radius-xl);
-            padding: 20px;
+            padding: 18px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card-panel::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            gap: 14px;
         }
 
         .panel-heading {
-            font-family: 'Cinzel', serif;
-            font-size: 1.05rem;
-            color: var(--cyan);
-            letter-spacing: 1px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-glass);
             padding-bottom: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
         }
 
-        /* VITAL 6-PIP HUD */
+        /* VITAL HUD BOX */
         .vital-hud-box {
-            background: rgba(5, 8, 14, 0.6);
+            background: rgba(5, 8, 14, 0.7);
+            border: 1px solid var(--border-glass);
             border-radius: var(--radius-md);
-            padding: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .combatant-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
         }
 
         .combatant-name {
             font-weight: 700;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
         }
 
         .combatant-tag {
-            font-size: 0.72rem;
-            color: var(--text-muted);
             font-family: 'Fira Code', monospace;
+            font-size: 0.70rem;
+            color: var(--cyan);
         }
 
+        /* 6 HP PIPS */
         .pips-container {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-top: 6px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
         }
 
         .pip {
-            width: 32px;
             height: 32px;
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.25s ease;
+            user-select: none;
         }
 
         .pip.active-player {
-            background: rgba(102, 252, 241, 0.2);
-            border: 2px solid var(--cyan);
-            color: var(--cyan);
-            box-shadow: 0 0 12px var(--cyan-glow);
-            transform: scale(1.05);
+            background: linear-gradient(135deg, rgba(102, 252, 241, 0.4), rgba(10, 132, 255, 0.6));
+            border: 1px solid var(--cyan);
+            color: #fff;
+            box-shadow: 0 0 10px var(--cyan-glow);
         }
 
         .pip.active-opponent {
-            background: rgba(255, 51, 75, 0.2);
-            border: 2px solid var(--crimson);
-            color: var(--crimson);
-            box-shadow: 0 0 12px var(--crimson-glow);
-            transform: scale(1.05);
+            background: linear-gradient(135deg, rgba(255, 51, 75, 0.4), rgba(157, 78, 221, 0.6));
+            border: 1px solid var(--crimson);
+            color: #fff;
+            box-shadow: 0 0 10px var(--crimson-glow);
         }
 
         .pip.lost {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.15);
-            transform: scale(0.9);
+            color: rgba(255, 255, 255, 0.2);
         }
 
-        /* ATTRIBUTE BADGES */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        .stat-item {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: var(--radius-sm);
-            padding: 6px 10px;
+        /* AP DISPLAY */
+        .ap-box {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            font-size: 0.78rem;
+            background: rgba(255, 215, 0, 0.08);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: var(--radius-sm);
+            padding: 6px 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--gold);
         }
 
-        .stat-name { color: var(--text-muted); }
-        .stat-val { font-family: 'Fira Code', monospace; font-weight: 600; color: #fff; }
+        .ap-pips {
+            display: flex;
+            gap: 4px;
+        }
 
-        /* TARGETING SILHOUETTE */
+        .ap-pip {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--gold);
+            box-shadow: 0 0 6px var(--gold-glow);
+        }
+
+        .ap-pip.empty {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: none;
+        }
+
+        /* LOCATIONAL & STANCE CONTROLS */
         .targeting-section {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .zone-buttons {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
         }
 
-        .btn-zone {
+        .btn-zone, .btn-stance {
             background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
-            padding: 10px 8px;
+            border: 1px solid var(--border-glass);
             border-radius: var(--radius-sm);
-            cursor: pointer;
-            text-align: center;
-            font-size: 0.8rem;
+            color: var(--text-main);
+            padding: 7px 6px;
+            font-size: 0.74rem;
             font-weight: 600;
+            cursor: pointer;
             transition: all 0.2s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
-        .btn-zone small {
-            display: block;
-            font-size: 0.68rem;
+        .btn-zone small, .btn-stance small {
+            font-size: 0.65rem;
             color: var(--text-muted);
             font-weight: 400;
-            margin-top: 2px;
         }
 
-        .btn-zone:hover {
+        .btn-zone:hover, .btn-stance:hover {
             border-color: var(--cyan);
             background: rgba(102, 252, 241, 0.1);
         }
 
         .btn-zone.selected {
-            background: linear-gradient(135deg, rgba(102, 252, 241, 0.25), rgba(10, 132, 255, 0.25));
             border-color: var(--cyan);
-            color: #fff;
-            box-shadow: 0 0 16px var(--cyan-glow);
-        }
-
-        /* DODGE STANCES */
-        .btn-stance {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
-            padding: 10px 8px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            text-align: center;
-            font-size: 0.8rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .btn-stance small {
-            display: block;
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            font-weight: 400;
-            margin-top: 2px;
-        }
-
-        .btn-stance:hover {
-            border-color: var(--gold);
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(102, 252, 241, 0.2);
+            box-shadow: 0 0 10px var(--cyan-glow);
         }
 
         .btn-stance.selected {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 145, 0, 0.25));
             border-color: var(--gold);
-            color: #fff;
-            box-shadow: 0 0 16px var(--gold-glow);
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 10px var(--gold-glow);
         }
 
-        /* CENTER ARENA CANVAS */
+        /* CENTER VIEWPORT */
         .center-viewport {
-            background: rgba(5, 7, 12, 0.9);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius-xl);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
-        }
-
-        #arenaCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            cursor: crosshair;
-        }
-
-        /* ARENA ACTION BAR */
-        .action-dock {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 12px;
-            background: rgba(14, 20, 32, 0.85);
+            background: var(--bg-card);
             backdrop-filter: var(--blur);
             border: 1px solid var(--border-glass);
-            padding: 10px 18px;
-            border-radius: 9999px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            z-index: 50;
+            border-radius: var(--radius-xl);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            padding: 14px;
         }
 
-        .btn-action-primary {
-            background: linear-gradient(135deg, var(--cyan), var(--neon-blue));
-            border: none;
-            color: #000;
-            font-weight: 700;
-            font-size: 0.88rem;
-            padding: 10px 22px;
+        .round-banner {
+            position: absolute;
+            top: 14px;
+            background: rgba(10, 14, 22, 0.85);
+            border: 1px solid var(--border-glass);
+            padding: 6px 18px;
             border-radius: 9999px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            letter-spacing: 1px;
+            color: var(--cyan);
+            z-index: 10;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+        }
+
+        canvas#arenaCanvas {
+            width: 100%;
+            height: calc(100% - 70px);
             cursor: pointer;
-            box-shadow: 0 0 18px var(--cyan-glow);
+        }
+
+        /* ACTION BAR DOCK */
+        .action-dock {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .btn-act {
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 0.82rem;
+            letter-spacing: 1px;
+            cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
             gap: 8px;
+            border: 1px solid transparent;
         }
 
-        .btn-action-primary:hover {
+        .btn-primary {
+            background: linear-gradient(135deg, var(--cyan), var(--neon-blue));
+            color: #050b14;
+            box-shadow: 0 0 14px var(--cyan-glow);
+        }
+
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 0 25px var(--cyan);
+            box-shadow: 0 0 20px var(--cyan-glow);
         }
 
-        .btn-action-secondary {
+        .btn-secondary {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--border-glass);
             color: var(--text-main);
-            font-weight: 600;
-            font-size: 0.82rem;
-            padding: 10px 16px;
-            border-radius: 9999px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
-        .btn-action-secondary:hover {
-            background: rgba(255, 255, 255, 0.16);
-            border-color: #fff;
-            transform: translateY(-2px);
+        .btn-secondary:hover {
+            border-color: var(--cyan);
+            background: rgba(102, 252, 241, 0.12);
         }
 
-        /* COMBAT CHRONICLE */
+        .btn-warn {
+            background: rgba(255, 215, 0, 0.12);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+        }
+
+        .btn-warn:hover {
+            background: rgba(255, 215, 0, 0.22);
+            box-shadow: 0 0 12px var(--gold-glow);
+        }
+
+        /* CHRONICLE BOX */
         .chronicle-box {
-            flex: 1;
             background: rgba(5, 8, 14, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-glass);
             border-radius: var(--radius-md);
-            padding: 12px;
+            padding: 10px;
+            height: 240px;
             overflow-y: auto;
-            max-height: 280px;
-            font-size: 0.78rem;
-            line-height: 1.5;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            font-size: 0.74rem;
+            line-height: 1.4;
         }
 
         .chronicle-entry {
-            border-left: 2px solid var(--cyan);
-            padding-left: 8px;
-            animation: fadeIn 0.3s ease;
+            padding: 4px 8px;
+            border-left: 3px solid var(--border-glass);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 0 4px 4px 0;
         }
 
-        .chronicle-entry.hit { border-left-color: var(--toxic-green); }
-        .chronicle-entry.evaded { border-left-color: var(--gold); }
-        .chronicle-entry.damage { border-left-color: var(--crimson); }
-        .chronicle-entry.mortar { border-left-color: #ff9100; }
-        .chronicle-entry.trench { border-left-color: var(--cyan); }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
+        .chronicle-entry.committed {
+            border-left-color: var(--cyan);
         }
 
-        /* NOTIFICATION BANNER */
-        .round-banner {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(14, 20, 32, 0.9);
-            border: 1px solid var(--cyan);
-            padding: 8px 24px;
-            border-radius: 9999px;
-            font-family: 'Cinzel', serif;
-            font-size: 0.95rem;
-            letter-spacing: 1px;
-            box-shadow: 0 0 20px var(--cyan-glow);
-            z-index: 50;
-            pointer-events: none;
+        .chronicle-entry.damage {
+            border-left-color: var(--crimson);
+            background: rgba(255, 51, 75, 0.08);
         }
 
-        @media (max-width: 1200px) {
-            .arena-container {
-                grid-template-columns: 1fr;
-            }
-            .center-viewport {
-                height: 480px;
-            }
+        .chronicle-entry.evaded {
+            border-left-color: var(--gold);
+            background: rgba(255, 215, 0, 0.08);
+        }
+
+        .chronicle-entry.rejected {
+            border-left-color: #f97316;
+            background: rgba(249, 115, 22, 0.1);
+            color: #fdba74;
+        }
+
+        .chronicle-entry.system {
+            border-left-color: var(--purple);
+            color: #d8b4fe;
+        }
+
+        /* REPLAY BADGE */
+        .replay-banner {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.70rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
     </style>
 </head>
 <body>
 
-    <!-- HEADER -->
+    <!-- ARENA HEADER -->
     <header class="arena-header">
         <div class="brand-title">
             <div class="gem-icon"></div>
             <div>
-                <h1>POSLEDNÍ KMEN // TACTICAL DUELS</h1>
-                <small style="color: var(--text-muted); font-size: 0.75rem;">Godot 4.x & Python Core Engine Integration</small>
+                <h1>POSLEDNÍ KMEN // TACTICAL DUEL</h1>
+                <div style="font-size: 0.70rem; color: var(--text-muted); letter-spacing: 1px;">
+                    POWERED BY KRYSTAL NEXUS · GOVERNED AUTHORITATIVE RUNTIME
+                </div>
             </div>
         </div>
+
         <div class="header-meta">
-            <span class="badge-invariant">VITAL_MAX_HP = 6</span>
-            <a href="/builder" class="btn-link-godot">🎨 3D Scene Builder</a>
-            <a href="/lab" class="btn-link-godot">⚡ AI Performance Lab</a>
+            <span class="badge-match" id="badgeMatchId" style="background:rgba(157,78,221,0.18); border:1px solid var(--purple); color:#d8b4fe; padding:4px 10px; border-radius:9999px; font-family:'Fira Code', monospace; font-size:0.72rem;">MATCH: INIT</span>
+            <span class="badge-invariant">GLOBAL_VITAL_MAX_HP == 6</span>
+            <span class="badge-digest" id="badgeDigest">HASH: INITIALIZING</span>
         </div>
     </header>
 
@@ -503,101 +480,105 @@
         <!-- LEFT PANEL: PLAYER HERO & TARGETING -->
         <aside class="card-panel">
             <div class="panel-heading">
-                <span>🛡 HRDINA (KRYŠTÁL)</span>
-                <small id="lblPlayerClass" style="color: var(--cyan); font-size: 0.72rem;">Veštec Hviezdnych Dráh</small>
+                <span style="color: var(--cyan);">🛡 HRDINA (KRYŠTÁL)</span>
+                <small id="lblPlayerFaction" style="color: var(--cyan); font-size: 0.72rem;">Veštec Hviezdnych Dráh</small>
             </div>
 
             <!-- 6 HP Pips -->
             <div class="vital-hud-box">
                 <div class="combatant-header">
-                    <span class="combatant-name" id="lblPlayerName">Veštec Hviezdnych Dráh</span>
-                    <span class="combatant-tag">AÉTER & SVETLO</span>
+                    <span class="combatant-name" id="lblPlayerName">Krystal Veštec</span>
+                    <span class="combatant-tag" id="lblPlayerCoords">HEX: [0, -1]</span>
                 </div>
-                <div class="pips-container" id="playerPips">
-                    <div class="pip active-player">♥</div>
-                    <div class="pip active-player">♥</div>
-                    <div class="pip active-player">♥</div>
-                    <div class="pip active-player">♥</div>
-                    <div class="pip active-player">♥</div>
-                    <div class="pip active-player">♥</div>
-                </div>
+                <div class="pips-container" id="playerPips"></div>
             </div>
 
-            <!-- Stats -->
-            <div class="stats-grid" id="playerStats">
-                <div class="stat-item"><span class="stat-name">Presnosť (Aim)</span><span class="stat-val" id="stAim">34</span></div>
-                <div class="stat-item"><span class="stat-name">Uhýbanie (Dodge)</span><span class="stat-val" id="stDodge">16</span></div>
-                <div class="stat-item"><span class="stat-name">Reflexy (Reflexes)</span><span class="stat-val" id="stReflex">18</span></div>
-                <div class="stat-item"><span class="stat-name">Húževnatosť (Tough)</span><span class="stat-val" id="stTough">14</span></div>
-                <div class="stat-item"><span class="stat-name">Vystupovanie (App)</span><span class="stat-val" id="stApp">18</span></div>
-                <div class="stat-item"><span class="stat-name">Taktika (Tactics)</span><span class="stat-val" id="stTac">26</span></div>
+            <!-- AP Resource Box -->
+            <div class="ap-box">
+                <span>AKČNÉ BODY (AP):</span>
+                <span id="playerApText" style="font-family: 'Fira Code', monospace;">3 / 3</span>
+                <div class="ap-pips" id="playerApPips"></div>
             </div>
 
             <!-- Locational Targeting -->
             <div class="targeting-section">
-                <label style="font-size: 0.8rem; font-weight: 600; color: var(--cyan);">ZAMERANIE ÚTOKU (Target Zone):</label>
+                <label style="font-size: 0.78rem; font-weight: 700; color: var(--cyan);">ZAMERANIE ÚTOKU (Target Zone):</label>
                 <div class="zone-buttons">
-                    <button class="btn-zone" onclick="selectZone('head', this)">
+                    <button class="btn-zone" onclick="setTargetZone('head', this)">
                         HLAVA
-                        <small>1.50x poškodenie</small>
+                        <small>1.50x (Duck down evades)</small>
                     </button>
-                    <button class="btn-zone" onclick="selectZone('right_shoulder', this)">
+                    <button class="btn-zone" onclick="setTargetZone('right_shoulder', this)">
                         P. RAMENO
-                        <small>1.15x poškodenie</small>
+                        <small>1.15x (Lean left evades)</small>
                     </button>
-                    <button class="btn-zone" onclick="selectZone('left_shoulder', this)">
+                    <button class="btn-zone" onclick="setTargetZone('left_shoulder', this)">
                         Ľ. RAMENO
-                        <small>1.15x poškodenie</small>
+                        <small>1.15x (Lean right evades)</small>
                     </button>
-                    <button class="btn-zone selected" onclick="selectZone('torso', this)">
+                    <button class="btn-zone selected" onclick="setTargetZone('torso', this)">
                         TRUP
-                        <small>1.00x poškodenie</small>
+                        <small>1.00x (Standard hit)</small>
                     </button>
                 </div>
             </div>
 
             <!-- Dodge Stances -->
             <div class="targeting-section">
-                <label style="font-size: 0.8rem; font-weight: 600; color: var(--gold);">OBRANNÝ POSTOJ (Dodge Stance):</label>
+                <label style="font-size: 0.78rem; font-weight: 700; color: var(--gold);">OBRANNÝ POSTOJ (Dodge Stance):</label>
                 <div class="zone-buttons">
-                    <button class="btn-stance" onclick="selectStance('duck_down', this)">
+                    <button class="btn-stance" onclick="setDodgeStance('duck_down', this)">
                         ZOHNÚŤ SA
                         <small>Uhne rane do hlavy</small>
                     </button>
-                    <button class="btn-stance" onclick="selectStance('lean_left', this)">
+                    <button class="btn-stance" onclick="setDodgeStance('lean_left', this)">
                         ÚKROK VĽAVO
                         <small>Uhne pravému ramenu</small>
                     </button>
-                    <button class="btn-stance" onclick="selectStance('lean_right', this)">
+                    <button class="btn-stance" onclick="setDodgeStance('lean_right', this)">
                         ÚKROK VPRAVO
                         <small>Uhne ľavému ramenu</small>
                     </button>
-                    <button class="btn-stance selected" onclick="selectStance('stand_firm', this)">
+                    <button class="btn-stance selected" onclick="setDodgeStance('stand_firm', this)">
                         PEVNÝ POSTOJ
-                        <small>+8% presnosť odvety</small>
+                        <small>Vyvážená obrana</small>
                     </button>
                 </div>
             </div>
         </aside>
 
-        <!-- CENTER VIEWPORT: TACTICAL HEX ARENA -->
+        <!-- CENTER VIEWPORT: AUTHORITATIVE 19-HEX ARENA -->
         <main class="center-viewport">
-            <div class="round-banner" id="roundBanner">KOLO 1 // PRIPRAVENÝ NA VÝMENU</div>
+            <div class="round-banner" id="roundBanner">KOLO 1 // PRIPRAVENÝ NA ŤAH</div>
             <canvas id="arenaCanvas"></canvas>
+
+            <!-- MINIMAL M1 TELEMETRY BAR -->
+            <div class="telemetry-bar" id="telemetryBar" style="display:flex; justify-content:space-between; align-items:center; background:rgba(10,14,22,0.9); border:1px solid var(--border-glass); border-radius:var(--radius-sm); padding:6px 12px; font-family:'Fira Code', monospace; font-size:0.70rem; color:var(--text-muted); margin-bottom:8px; gap:8px; overflow-x:auto;">
+                <span>FRAME: <b id="telFrame" style="color:#fff;">1000</b></span>
+                <span>MATCH: <b id="telMatch" style="color:var(--purple);">-</b></span>
+                <span>ROUND: <b id="telRound" style="color:var(--cyan);">1</b></span>
+                <span>ACTION: <b id="telAction" style="color:var(--gold);">INIT</b></span>
+                <span>RTT: <b id="telRtt" style="color:#39ff14;">0.00 ms</b></span>
+                <span>INVARIANT: <b id="telInvariant" style="color:var(--cyan);">OK (VITAL_MAX_HP == 6)</b></span>
+                <span>HASH: <b id="telHash" style="color:#aaa;">-</b></span>
+            </div>
 
             <!-- ACTION BAR DOCK -->
             <div class="action-dock">
-                <button class="btn-action-primary" onclick="executeDuelRound()">
-                    <span>⚡</span> Vymeniť Výstrely
+                <button class="btn-act btn-primary" id="btnDuelRound" onclick="executeDuelRound()">
+                    <span>⚡</span> Duel (Rozhodnúť Kolo)
                 </button>
-                <button class="btn-action-secondary" onclick="digSapperTrench()">
-                    <span>🛡</span> Zakopať Zákop (Sapper)
+                <button class="btn-act btn-warn" id="btnMortarStrike" onclick="executeMortarStrike()">
+                    <span>💣</span> Mínometná Salva
                 </button>
-                <button class="btn-action-secondary" onclick="launchMortarSalvo()">
-                    <span>💣</span> Mínometná Salva (CEP)
+                <button class="btn-act btn-secondary" id="btnDigTrench" onclick="executeDigTrench()">
+                    <span>⛏</span> Vykopať Zákop
                 </button>
-                <button class="btn-action-secondary" onclick="resetMatch()">
+                <button class="btn-act btn-secondary" id="btnResetMatch" onclick="executeReset()">
                     <span>🔄</span> Nový Zápas
+                </button>
+                <button class="btn-act btn-secondary" id="btnReplayAudit" onclick="runReplayAudit()">
+                    <span>🛡</span> Overiť Replay
                 </button>
             </div>
         </main>
@@ -606,107 +587,105 @@
         <aside class="card-panel">
             <div class="panel-heading">
                 <span style="color: var(--crimson);">💀 SÚPER (TOXIK)</span>
-                <small id="lblOpponentClass" style="color: var(--crimson); font-size: 0.72rem;">Tieňový Čarodejník</small>
+                <small id="lblOpponentFaction" style="color: var(--crimson); font-size: 0.72rem;">Toxic Swarm</small>
             </div>
 
             <!-- 6 HP Pips Opponent -->
             <div class="vital-hud-box">
                 <div class="combatant-header">
-                    <span class="combatant-name" id="lblOpponentName">Tieňový Čarodejník</span>
-                    <span class="combatant-tag" style="color: var(--crimson);">KYSELINA & JED</span>
+                    <span class="combatant-name" id="lblOpponentName">Toxic Tieň</span>
+                    <span class="combatant-tag" style="color: var(--crimson);" id="lblOpponentCoords">HEX: [0, 1]</span>
                 </div>
-                <div class="pips-container" id="opponentPips">
-                    <div class="pip active-opponent">💀</div>
-                    <div class="pip active-opponent">💀</div>
-                    <div class="pip active-opponent">💀</div>
-                    <div class="pip active-opponent">💀</div>
-                    <div class="pip active-opponent">💀</div>
-                    <div class="pip active-opponent">💀</div>
-                </div>
-            </div>
-
-            <!-- Sapper Cover Status -->
-            <div class="vital-hud-box">
-                <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--gold);">
-                    ŽENIJNÝ STAV POLA (Cover & Trenches):
-                </div>
-                <div style="font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;" id="trenchStatus">
-                    Hrdina na [0, -1]: Krytie 35% (Čiastočné)<br>
-                    Súper na [1, 1]: Krytie 10% (NEKRYTÝ - zraniteľný mínometom!)
-                </div>
+                <div class="pips-container" id="opponentPips"></div>
             </div>
 
             <!-- Live Combat Chronicle -->
-            <div style="font-family: 'Cinzel', serif; font-size: 0.95rem; color: #fff; margin-top: 4px;">
-                BOJOVÁ KRONIKA ZÁPASU:
+            <div style="font-weight: 700; font-size: 0.85rem; color: #fff; margin-top: 4px;">
+                BOJOVÁ KRONIKA (Receipts):
             </div>
             <div class="chronicle-box" id="chronicleBox">
-                <div class="chronicle-entry">
-                    <strong>Kolo 0:</strong> Súboj začína! Kryštálový Veštec čelí Tieňovému Čarodejníkovi. Obaja majú striktne 6 HP.
+                <div class="chronicle-entry system">
+                    <strong>Audit:</strong> Pripájam sa k autoritatívnemu runtime...
                 </div>
+            </div>
+
+            <!-- Replay Audit Box -->
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">
+                KRYPTOGRAFICKÝ AUDIT:
+            </div>
+            <div class="replay-banner" id="replayBanner">
+                Audit stavu neprebehol.
             </div>
         </aside>
 
     </div>
 
-    <!-- JAVASCRIPT SIMULATION & RENDER ENGINE -->
+    <!-- JAVASCRIPT: STRICT PASSIVE RENDERER & ACTION DISPATCHER -->
     <script>
         const VITAL_MAX_HP = 6;
-        let playerHp = 6;
-        let opponentHp = 6;
-        let currentRound = 1;
-        let isGameOver = false;
+        let authoritativeState = null;
+        let selectedTargetZone = "torso";
+        let selectedDodgeStance = "stand_firm";
+        let hoveredHex = null;
+        let selectedMortarHex = [1, 1];
+        let blastRipples = [];
 
-        let selectedZone = "torso";
-        let selectedStance = "stand_firm";
+        // Multi-tenant session match ID
+        let currentMatchId = (function() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const qId = params.get("match_id");
+                if (qId) return qId.trim();
+                let sId = sessionStorage.getItem("krystal_match_id");
+                if (!sId) {
+                    sId = "match_" + Math.random().toString(36).substring(2, 9);
+                    sessionStorage.setItem("krystal_match_id", sId);
+                }
+                return sId;
+            } catch(e) {
+                return "match_web_default";
+            }
+        })();
 
-        let playerHex = [0, -1];
-        let opponentHex = [1, 1];
-        let coverMap = {
-            "0_-1": 0.35,
-            "1_1": 0.10,
-            "0_0": 0.40
-        };
-        let trenches = [];
+        // Update match badge
+        const badgeEl = document.getElementById("badgeMatchId");
+        if (badgeEl) badgeEl.textContent = "MATCH: " + currentMatchId;
+        const telMatchEl = document.getElementById("telMatch");
+        if (telMatchEl) telMatchEl.textContent = currentMatchId;
 
-        // Mortar visual FX state
-        let activeMortarArc = null;
-
-        // ── 1. HEX BOARD DEFINITIONS ─────────────────────────────────────────
-        const HEX_COORDS = [
-            [-2, 0], [-2, 1], [-2, 2],
-            [-1, -1], [-1, 0], [-1, 1], [-1, 2],
-            [0, -2], [0, -1], [0, 0], [0, 1], [0, 2],
-            [1, -2], [1, -1], [1, 0], [1, 1],
-            [2, -2], [2, -1], [2, 0]
+        const DEFAULT_19_HEXES = [
+            { q: -2, r: 0, biome: "crystal" }, { q: -2, r: 1, biome: "crystal" }, { q: -2, r: 2, biome: "crystal" },
+            { q: -1, r: -1, biome: "crystal" }, { q: -1, r: 0, biome: "crystal" }, { q: -1, r: 1, biome: "crystal" }, { q: -1, r: 2, biome: "crystal" },
+            { q: 0, r: -2, biome: "druid" }, { q: 0, r: -1, biome: "crystal" }, { q: 0, r: 0, biome: "volcanic" }, { q: 0, r: 1, biome: "toxic" }, { q: 0, r: 2, biome: "toxic" },
+            { q: 1, r: -2, biome: "druid" }, { q: 1, r: -1, biome: "druid" }, { q: 1, r: 0, biome: "toxic" }, { q: 1, r: 1, biome: "toxic" },
+            { q: 2, r: -2, biome: "druid" }, { q: 2, r: -1, biome: "toxic" }, { q: 2, r: 0, biome: "toxic" }
         ];
 
-        // ── 2. CANVAS ISOMETRIC 3D RENDERER ──────────────────────────────────
         const canvas = document.getElementById("arenaCanvas");
         const ctx = canvas.getContext("2d");
 
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
+            canvas.height = canvas.parentElement.clientHeight - 80;
         }
         window.addEventListener("resize", resizeCanvas);
         resizeCanvas();
 
-        function hexToPixel(q, r, radius = 38) {
+        // ── AXIAL COORDINATE PROJECTION ──────────────────────────────────────
+        function hexToPixel(q, r, radius = 42) {
             const cx = canvas.width / 2;
             const cy = canvas.height / 2 + 10;
-            // Isometric projection
             const x = cx + radius * Math.sqrt(3) * (q + r / 2);
-            const y = cy + radius * (3 / 2) * r * 0.58;
+            const y = cy + radius * (3 / 2) * r * 0.62;
             return { x, y };
         }
 
-        function drawHex(x, y, radius, fillColor, strokeColor, elevation = 0) {
+        function drawHexTile(x, y, radius, fillColor, strokeColor, lineWidth = 1.5) {
             ctx.beginPath();
             for (let i = 0; i < 6; i++) {
                 const angle = (Math.PI / 180) * (60 * i - 30);
                 const hx = x + radius * Math.cos(angle);
-                const hy = y + radius * Math.sin(angle) * 0.58 - elevation;
+                const hy = y + radius * Math.sin(angle) * 0.62;
                 if (i === 0) ctx.moveTo(hx, hy);
                 else ctx.lineTo(hx, hy);
             }
@@ -714,374 +693,528 @@
             ctx.fillStyle = fillColor;
             ctx.fill();
             ctx.strokeStyle = strokeColor;
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = lineWidth;
             ctx.stroke();
         }
 
-        let animTime = 0;
+        // ── PASSIVE RENDER LOOP (Render(S_t) != S_t) ─────────────────────────
+        let animClock = 0;
         function renderScene() {
-            animTime += 0.03;
+            animClock += 0.03;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Draw Hex Grid
-            HEX_COORDS.forEach(([q, r]) => {
-                const pos = hexToPixel(q, r);
-                const hexKey = `${q}_${r}`;
-                const isTrench = trenches.includes(hexKey);
-                
-                let fill = "rgba(18, 24, 38, 0.7)";
-                let stroke = "rgba(102, 252, 241, 0.15)";
+            const hexList = (authoritativeState && authoritativeState.hexes) ? authoritativeState.hexes : DEFAULT_19_HEXES;
+            const pCoord = getPlayerCoords();
+            const oCoord = getOpponentCoords();
+            const trenches = (authoritativeState && authoritativeState.trenches) ? authoritativeState.trenches : [];
+            const coverMap = (authoritativeState && authoritativeState.cover_map) ? authoritativeState.cover_map : {};
 
-                if ((q === 0 && r === 0) || (q === 1 && r === 0)) {
-                    fill = "rgba(16, 40, 52, 0.85)"; // Crystal basalt
+            // 1. Draw exactly 19 Hexes
+            hexList.forEach(h => {
+                const pos = hexToPixel(h.q, h.r);
+                const isHovered = hoveredHex && hoveredHex.q === h.q && hoveredHex.r === h.r;
+                const isTargetMortar = selectedMortarHex && selectedMortarHex[0] === h.q && selectedMortarHex[1] === h.r;
+                const hexKey = `${h.q}_${h.r}`;
+                const hasTrench = trenches.includes(hexKey) || (coverMap[hexKey] && coverMap[hexKey] >= 0.75);
+
+                let fill = "rgba(16, 22, 34, 0.75)";
+                let stroke = "rgba(102, 252, 241, 0.18)";
+
+                if (h.biome === "crystal") {
+                    fill = "rgba(16, 42, 58, 0.85)";
                     stroke = "rgba(102, 252, 241, 0.4)";
-                } else if (q < 0) {
-                    fill = "rgba(20, 36, 20, 0.8)"; // Toxic mire
-                    stroke = "rgba(57, 255, 20, 0.25)";
+                } else if (h.biome === "toxic") {
+                    fill = "rgba(22, 38, 22, 0.85)";
+                    stroke = "rgba(57, 255, 20, 0.3)";
+                } else if (h.biome === "druid") {
+                    fill = "rgba(40, 28, 14, 0.85)";
+                    stroke = "rgba(255, 215, 0, 0.3)";
+                } else if (h.biome === "volcanic") {
+                    fill = "rgba(28, 20, 30, 0.85)";
+                    stroke = "rgba(255, 51, 75, 0.3)";
                 }
 
-                if (isTrench) {
-                    fill = "rgba(90, 55, 25, 0.9)"; // Sapper trench wood/sandbag
-                    stroke = "rgba(255, 215, 0, 0.6)";
+                if (hasTrench) {
+                    fill = "rgba(40, 48, 60, 0.95)";
+                    stroke = "rgba(255, 215, 0, 0.85)";
                 }
 
-                drawHex(pos.x, pos.y, 38, fill, stroke);
+                if (isHovered) {
+                    fill = "rgba(102, 252, 241, 0.28)";
+                    stroke = "rgba(102, 252, 241, 0.9)";
+                }
 
-                // If trench, draw parapet wall
-                if (isTrench) {
-                    ctx.save();
-                    ctx.strokeStyle = "rgba(255, 215, 0, 0.8)";
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(pos.x - 14, pos.y - 10, 28, 18);
-                    ctx.fillStyle = "rgba(255, 215, 0, 0.9)";
-                    ctx.font = "10px Fira Code";
-                    ctx.fillText("ZÁKOP", pos.x - 18, pos.y + 4);
-                    ctx.restore();
+                drawHexTile(pos.x, pos.y, 42, fill, stroke, hasTrench ? 2.5 : (isHovered ? 2.5 : 1.5));
+
+                // Trench fortification badge
+                if (hasTrench) {
+                    ctx.fillStyle = "#ffd700";
+                    ctx.font = "bold 9px sans-serif";
+                    ctx.fillText("85% ZÁKOP", pos.x - 22, pos.y + 2);
+                }
+
+                // Coordinates label
+                ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+                ctx.font = "9px monospace";
+                ctx.fillText(`[${h.q},${h.r}]`, pos.x - 12, pos.y + 18);
+
+                // Mortar target reticle
+                if (isTargetMortar) {
+                    ctx.strokeStyle = "rgba(255, 51, 75, 0.9)";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = "#ff334b";
+                    ctx.font = "bold 9px sans-serif";
+                    ctx.fillText("🎯 MAŽIAR", pos.x - 20, pos.y - 12);
                 }
             });
 
-            // 2. Draw Player Avatar (Hex [0, -1])
-            const pPos = hexToPixel(playerHex[0], playerHex[1]);
-            const pFloat = Math.sin(animTime * 2.5) * 4;
-
-            // Player Glow Circle
-            const pGlow = ctx.createRadialGradient(pPos.x, pPos.y + pFloat, 5, pPos.x, pPos.y + pFloat, 28);
-            pGlow.addColorStop(0, "rgba(102, 252, 241, 0.8)");
-            pGlow.addColorStop(1, "rgba(102, 252, 241, 0)");
-            ctx.fillStyle = pGlow;
-            ctx.beginPath();
-            ctx.arc(pPos.x, pPos.y + pFloat, 28, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Player Body Prism
+            // 2. Draw Player Avatar
+            const pPos = hexToPixel(pCoord[0], pCoord[1]);
+            const pBob = Math.sin(animClock * 3.0) * 3;
             ctx.fillStyle = "#66fcf1";
             ctx.beginPath();
-            ctx.moveTo(pPos.x, pPos.y - 24 + pFloat);
-            ctx.lineTo(pPos.x + 12, pPos.y + 8 + pFloat);
-            ctx.lineTo(pPos.x - 12, pPos.y + 8 + pFloat);
+            ctx.moveTo(pPos.x, pPos.y - 24 + pBob);
+            ctx.lineTo(pPos.x + 14, pPos.y + 8 + pBob);
+            ctx.lineTo(pPos.x - 14, pPos.y + 8 + pBob);
             ctx.closePath();
             ctx.fill();
 
-            // Familiar Orb Orbiting Player
-            const orbAngle = animTime * 3.0;
-            const ox = pPos.x + Math.cos(orbAngle) * 22;
-            const oy = pPos.y + Math.sin(orbAngle) * 12 + pFloat;
+            const ox = pPos.x + Math.cos(animClock * 3.5) * 22;
+            const oy = pPos.y + Math.sin(animClock * 3.5) * 12 + pBob;
             ctx.fillStyle = "#ffd700";
             ctx.beginPath();
-            ctx.arc(ox, oy, 5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#fff";
-            ctx.font = "10px Outfit";
-            ctx.fillText("HRDINA", pPos.x - 20, pPos.y - 30 + pFloat);
-
-            // 3. Draw Opponent Avatar (Hex [1, 1])
-            const oPos = hexToPixel(opponentHex[0], opponentHex[1]);
-            const oFloat = Math.cos(animTime * 2.5) * 4;
-
-            // Opponent Glow
-            const oGlow = ctx.createRadialGradient(oPos.x, oPos.y + oFloat, 5, oPos.x, oPos.y + oFloat, 28);
-            oGlow.addColorStop(0, "rgba(255, 51, 75, 0.8)");
-            oGlow.addColorStop(1, "rgba(255, 51, 75, 0)");
-            ctx.fillStyle = oGlow;
-            ctx.beginPath();
-            ctx.arc(oPos.x, oPos.y + oFloat, 28, 0, Math.PI * 2);
+            ctx.arc(ox, oy, 4, 0, Math.PI * 2);
             ctx.fill();
 
-            // Opponent Body Prism
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px sans-serif";
+            ctx.fillText("HRDINA", pPos.x - 22, pPos.y - 30 + pBob);
+
+            // 3. Draw Opponent Avatar
+            const oPos = hexToPixel(oCoord[0], oCoord[1]);
+            const oBob = Math.cos(animClock * 3.0) * 3;
             ctx.fillStyle = "#ff334b";
             ctx.beginPath();
-            ctx.moveTo(oPos.x, oPos.y - 24 + oFloat);
-            ctx.lineTo(oPos.x + 12, oPos.y + 8 + oFloat);
-            ctx.lineTo(oPos.x - 12, oPos.y + 8 + oFloat);
+            ctx.moveTo(oPos.x, oPos.y - 24 + oBob);
+            ctx.lineTo(oPos.x + 14, oPos.y + 8 + oBob);
+            ctx.lineTo(oPos.x - 14, oPos.y + 8 + oBob);
             ctx.closePath();
             ctx.fill();
 
-            ctx.fillStyle = "#fff";
-            ctx.font = "10px Outfit";
-            ctx.fillText("SÚPER", oPos.x - 16, oPos.y - 30 + oFloat);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px sans-serif";
+            ctx.fillText("SÚPER", oPos.x - 18, oPos.y - 30 + oBob);
 
-            // 4. Mortar Ballistic Trajectory Arc Animation
-            if (activeMortarArc) {
-                activeMortarArc.progress += 0.04;
-                const t = activeMortarArc.progress;
-                const start = activeMortarArc.start;
-                const end = activeMortarArc.end;
-
-                const curX = start.x + (end.x - start.x) * t;
-                const curY = start.y + (end.y - start.y) * t - Math.sin(t * Math.PI) * 110;
-
-                ctx.strokeStyle = "rgba(255, 145, 0, 0.85)";
+            // 4. Draw Blast Ripples
+            for (let i = blastRipples.length - 1; i >= 0; i--) {
+                const rip = blastRipples[i];
+                rip.r += 2.5;
+                rip.alpha -= 0.035;
+                if (rip.alpha <= 0) {
+                    blastRipples.splice(i, 1);
+                    continue;
+                }
+                ctx.strokeStyle = `rgba(255, 120, 40, ${rip.alpha})`;
                 ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.arc(curX, curY, 6, 0, Math.PI * 2);
-                ctx.fillStyle = "#ff9100";
-                ctx.fill();
-
-                if (activeMortarArc.progress >= 1.0) {
-                    // Shockwave impact
-                    ctx.beginPath();
-                    ctx.arc(end.x, end.y, 35, 0, Math.PI * 2);
-                    ctx.strokeStyle = "rgba(255, 69, 58, 0.9)";
-                    ctx.lineWidth = 4;
-                    ctx.stroke();
-                    activeMortarArc = null;
-                }
+                ctx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
+                ctx.stroke();
             }
 
             requestAnimationFrame(renderScene);
         }
         renderScene();
 
-        // ── 3. USER INTERACTION & API INTEGRATION ─────────────────────────────
-        function selectZone(zone, el) {
-            selectedZone = zone;
+        function getPlayerCoords() {
+            if (!authoritativeState) return [0, -1];
+            if (authoritativeState.player) {
+                if (Array.isArray(authoritativeState.player.current_hex)) return authoritativeState.player.current_hex;
+                if (typeof authoritativeState.player.q === 'number') return [authoritativeState.player.q, authoritativeState.player.r];
+            }
+            return [0, -1];
+        }
+
+        function getOpponentCoords() {
+            if (!authoritativeState) return [1, 1];
+            if (authoritativeState.opponent) {
+                if (Array.isArray(authoritativeState.opponent.current_hex)) return authoritativeState.opponent.current_hex;
+            }
+            if (authoritativeState.enemy) {
+                if (typeof authoritativeState.enemy.q === 'number') return [authoritativeState.enemy.q, authoritativeState.enemy.r];
+            }
+            return [1, 1];
+        }
+
+        // ── INTERACTION: CLICK DETECTION ─────────────────────────────────────
+        canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            hoveredHex = null;
+            const hexList = (authoritativeState && authoritativeState.hexes) ? authoritativeState.hexes : DEFAULT_19_HEXES;
+
+            for (const h of hexList) {
+                const p = hexToPixel(h.q, h.r);
+                const d = Math.hypot(mx - p.x, my - p.y);
+                if (d <= 36) {
+                    hoveredHex = h;
+                    break;
+                }
+            }
+        });
+
+        canvas.addEventListener("click", () => {
+            if (!hoveredHex) return;
+            selectedMortarHex = [hoveredHex.q, hoveredHex.r];
+            addChronicle(`Cieľ mínometu nastavený na hex [${hoveredHex.q}, ${hoveredHex.r}].`, "system");
+        });
+
+        // ── UI SELECTION HANDLERS ─────────────────────────────────────────────
+        function setTargetZone(zone, el) {
+            selectedTargetZone = zone;
             document.querySelectorAll(".btn-zone").forEach(b => b.classList.remove("selected"));
             el.classList.add("selected");
-            addChronicle(`Mierenie zamerané na: <strong>${zone.toUpperCase()}</strong>`, "hit");
         }
 
-        function selectStance(stance, el) {
-            selectedStance = stance;
+        function setDodgeStance(stance, el) {
+            selectedDodgeStance = stance;
             document.querySelectorAll(".btn-stance").forEach(b => b.classList.remove("selected"));
             el.classList.add("selected");
-            addChronicle(`Obranný postoj nastavený na: <strong>${stance.toUpperCase()}</strong>`, "evaded");
         }
 
-        function updateVitalPips() {
-            const pCont = document.getElementById("playerPips");
-            const oCont = document.getElementById("opponentPips");
-
-            pCont.innerHTML = "";
-            for (let i = 0; i < VITAL_MAX_HP; i++) {
-                const pip = document.createElement("div");
-                pip.className = `pip ${i < playerHp ? 'active-player' : 'lost'}`;
-                pip.textContent = i < playerHp ? '♥' : '♡';
-                pCont.appendChild(pip);
-            }
-
-            oCont.innerHTML = "";
-            for (let i = 0; i < VITAL_MAX_HP; i++) {
-                const pip = document.createElement("div");
-                pip.className = `pip ${i < opponentHp ? 'active-opponent' : 'lost'}`;
-                pip.textContent = i < opponentHp ? '💀' : '▫';
-                oCont.appendChild(pip);
-            }
-
-            const tStatus = document.getElementById("trenchStatus");
-            const pKey = `${playerHex[0]}_${playerHex[1]}`;
-            const oKey = `${opponentHex[0]}_${opponentHex[1]}`;
-            const pCov = (coverMap[pKey] || 0.15) * 100;
-            const oCov = (coverMap[oKey] || 0.10) * 100;
-
-            tStatus.innerHTML = `
-                Hrdina na [${playerHex[0]}, ${playerHex[1]}]: Krytie ${pCov.toFixed(0)}% ${pCov >= 75 ? '<strong>(V ZÁKOPE)</strong>' : '(Nekrytý)'}<br>
-                Súper na [${opponentHex[0]}, ${opponentHex[1]}]: Krytie ${oCov.toFixed(0)}% ${oCov >= 75 ? '<strong>(V ZÁKOPE)</strong>' : '(Nekrytý - zraniteľný!)'}
-            `;
-        }
-
-        function addChronicle(text, type = "normal") {
-            const box = document.getElementById("chronicleBox");
-            const entry = document.createElement("div");
-            entry.className = `chronicle-entry ${type}`;
-            entry.innerHTML = `<strong>Kolo ${currentRound}:</strong> ${text}`;
-            box.appendChild(entry);
-            box.scrollTop = box.scrollHeight;
-        }
-
-        // ── 4. BACKEND API CALLS ──────────────────────────────────────────────
+        // ── M1 ACTION DISPATCHERS ─────────────────────────────────────────────
         async function executeDuelRound() {
-            if (isGameOver) {
-                alert("Zápas už skončil! Kliknite na Nový Zápas.");
-                return;
-            }
-
             try {
                 const res = await fetch("/api/game/duel_round", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Match-ID": currentMatchId
+                    },
                     body: JSON.stringify({
-                        player_attack_zone: selectedZone,
-                        player_dodge_stance: selectedStance
+                        match_id: currentMatchId,
+                        player_attack_zone: selectedTargetZone,
+                        player_dodge_stance: selectedDodgeStance
                     })
                 });
                 const data = await res.json();
                 if (data.status === "SUCCESS") {
-                    playerHp = data.player_hp;
-                    opponentHp = data.opponent_hp;
-                    currentRound = data.round_number;
-
-                    const pShot = data.player_shot;
-                    const oShot = data.opponent_shot;
-
-                    if (pShot.evaded) {
-                        addChronicle(`Súper sa úspešne vyhol strele! (${pShot.evasion_reason})`, "evaded");
-                    } else if (pShot.hit) {
-                        addChronicle(`ZÁSAH! Súper utrpel <strong>${pShot.net_damage_dealt}</strong> zranenia do ${pShot.target_zone.toUpperCase()}.`, "damage");
-                    }
-
-                    if (oShot.evaded) {
-                        addChronicle(`ÚSPEŠNÝ ÚKROK! Vyhli ste sa súperovmu útoku!`, "hit");
-                    } else if (oShot.hit) {
-                        addChronicle(`ZASIAHNUTÝ! Utrpeli ste <strong>${oShot.net_damage_dealt}</strong> zranenia.`, "damage");
-                    }
-
-                    updateVitalPips();
-                    document.getElementById("roundBanner").textContent = `KOLO ${currentRound} // VÝMENA DOKONČENÁ`;
-
+                    updateFromMatchResponse(data);
+                    const pShot = data.player_shot || {};
+                    const oShot = data.opponent_shot || {};
+                    addChronicle(`⚡ Kolo ${data.round_number}: Hrdina zaútočil (${selectedTargetZone}) -> ${pShot.is_hit ? 'ZÁSAH ' + pShot.damage_dealt + ' DMG' : 'MINUL'}. Súper kontroval -> ${oShot.is_hit ? 'ZÁSAH ' + oShot.damage_dealt + ' DMG' : 'MINUL'}.`, "committed");
                     if (data.is_game_over) {
-                        isGameOver = true;
-                        document.getElementById("roundBanner").textContent = `🏆 VÍŤAZ: ${data.winner}`;
-                        addChronicle(`🏆 ZÁPAS UKONČENÝ: ${data.winner}`, "hit");
+                        addChronicle(`🏆 ZÁPAS UKONČENÝ! Víťaz: ${data.winner}`, "system");
                     }
+                } else if (data.status === "GAME_OVER") {
+                    addChronicle(data.message, "rejected");
                 }
+                if (data.telemetry) updateTelemetryDisplay(data.telemetry);
             } catch (err) {
-                console.warn("Hub offline, simulating in-browser:", err);
-                // Offline fallback
-                if (selectedZone === "head") {
-                    opponentHp = Math.max(0, opponentHp - 2);
-                    addChronicle(`Kritický zásah do hlavy! Súper utrpel 2 zranenia.`, "damage");
-                } else {
-                    opponentHp = Math.max(0, opponentHp - 1);
-                    addChronicle(`Zásah do trupu! Súper utrpel 1 zranenie.`, "damage");
-                }
-                playerHp = Math.max(0, playerHp - 1);
-                currentRound++;
-                updateVitalPips();
+                console.error("Duel round error:", err);
+                addChronicle(`Chyba spojenia: ${err.message}`, "rejected");
             }
         }
 
-        async function digSapperTrench() {
-            if (isGameOver) return;
-            try {
-                const res = await fetch("/api/game/sapper_trench", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        hex_coord: playerHex,
-                        unit_id: "player_hero"
-                    })
-                });
-                const data = await res.json();
-                if (data.status === "SUCCESS") {
-                    const k = `${playerHex[0]}_${playerHex[1]}`;
-                    coverMap[k] = 0.85;
-                    if (!trenches.includes(k)) trenches.push(k);
-                    addChronicle(`Ženijná jednotka vykopala zákop na [${playerHex[0]}, ${playerHex[1]}]! Krytie: 85% (FULL_COVER). Ochrana pred mínometom je aktívna.`, "trench");
-                    updateVitalPips();
-                }
-            } catch (err) {
-                const k = `${playerHex[0]}_${playerHex[1]}`;
-                coverMap[k] = 0.85;
-                if (!trenches.includes(k)) trenches.push(k);
-                addChronicle(`Ženijná jednotka vykopala zákop! Krytie zvýšené na 85%.`, "trench");
-                updateVitalPips();
-            }
-        }
-
-        async function launchMortarSalvo() {
-            if (isGameOver) return;
-            // Trigger visual arc
-            const pPos = hexToPixel(playerHex[0], playerHex[1]);
-            const oPos = hexToPixel(opponentHex[0], opponentHex[1]);
-            activeMortarArc = {
-                start: pPos,
-                end: oPos,
-                progress: 0.0
-            };
-
+        async function executeMortarStrike() {
             try {
                 const res = await fetch("/api/game/mortar_strike", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Match-ID": currentMatchId
+                    },
                     body: JSON.stringify({
-                        target_hex: opponentHex,
+                        match_id: currentMatchId,
+                        target_hex: selectedMortarHex,
                         salvo_count: 3,
                         elevation_angle_deg: 65.0
                     })
                 });
                 const data = await res.json();
                 if (data.status === "SUCCESS") {
-                    playerHp = data.player_hp;
-                    opponentHp = data.opponent_hp;
-                    const cepLat = data.salvo.dispersion_footprint.cep_lateral_meters;
-                    const cepLon = data.salvo.dispersion_footprint.cep_longitudinal_meters;
-                    addChronicle(`MÍNOMETNÁ SALVA: Rozptyl CEP ${cepLat}m x ${cepLon}m.`, "mortar");
+                    // Trigger visual ripple on canvas
+                    const pos = hexToPixel(selectedMortarHex[0], selectedMortarHex[1]);
+                    blastRipples.push({ x: pos.x, y: pos.y, r: 8, alpha: 1.0 });
 
-                    data.hits.forEach(h => {
-                        addChronicle(h.summary, h.mortar_damage > 0 ? "damage" : "evaded");
-                    });
-
-                    if (data.sensory_shockwave && data.sensory_shockwave.evaluations) {
-                        data.sensory_shockwave.evaluations.forEach(ev => {
-                            const rec = ev.wave_reception;
-                            if (rec.is_sheltered_by_trench) {
-                                addChronicle(`🛡 <strong>RÁZOVÁ VLNA:</strong> ${ev.name} v zákope odklonil ${rec.trench_dampening_pct}% pretlaku nahor!`, "trench");
-                            } else {
-                                addChronicle(`💥 <strong>RÁZOVÁ VLNA:</strong> ${ev.name} zasiahnutý pretlakom ${rec.effective_intensity} kPa -> Nárazová úloha: POTLAČENIE & OTRAS!`, "damage");
-                            }
-                        });
+                    updateFromMatchResponse(data);
+                    addChronicle(`💣 ${data.chronicle_text}`, "damage");
+                    if (data.hits && data.hits.length > 0) {
+                        data.hits.forEach(h => addChronicle(h.summary, h.mortar_damage > 0 ? "damage" : "committed"));
                     }
+                }
+                if (data.telemetry) updateTelemetryDisplay(data.telemetry);
+            } catch (err) {
+                console.error("Mortar strike error:", err);
+                addChronicle(`Chyba mínometu: ${err.message}`, "rejected");
+            }
+        }
 
-                    updateVitalPips();
+        async function executeDigTrench() {
+            try {
+                const pCoord = getPlayerCoords();
+                const res = await fetch("/api/game/sapper_trench", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Match-ID": currentMatchId
+                    },
+                    body: JSON.stringify({
+                        match_id: currentMatchId,
+                        hex_coord: pCoord,
+                        unit_id: "player_hero"
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "SUCCESS") {
+                    if (authoritativeState) {
+                        if (!authoritativeState.trenches) authoritativeState.trenches = [];
+                        if (!authoritativeState.trenches.includes(data.hex_key)) authoritativeState.trenches.push(data.hex_key);
+                        if (!authoritativeState.cover_map) authoritativeState.cover_map = {};
+                        authoritativeState.cover_map[data.hex_key] = 0.85;
+                    }
+                    addChronicle(`⛏ ${data.chronicle_text}`, "system");
+                }
+                if (data.telemetry) updateTelemetryDisplay(data.telemetry);
+            } catch (err) {
+                console.error("Dig trench error:", err);
+                addChronicle(`Chyba zákopu: ${err.message}`, "rejected");
+            }
+        }
+
+        async function executeReset() {
+            try {
+                const res = await fetch("/api/game/reset", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Match-ID": currentMatchId
+                    },
+                    body: JSON.stringify({ match_id: currentMatchId })
+                });
+                const data = await res.json();
+                if (data.status === "RESET" && data.match) {
+                    updateAuthoritativeView(data.match);
+                    addChronicle("🔄 Zápas úspešne reštartovaný. Obaja bojovníci majú striktne 6/6 HP.", "system");
+                }
+                if (data.telemetry) updateTelemetryDisplay(data.telemetry);
+            } catch (err) {
+                console.error("Reset error:", err);
+                addChronicle(`Chyba reštartu: ${err.message}`, "rejected");
+            }
+        }
+
+        // Backward compatibility dispatchers for legacy test suites
+        async function dispatchProposal(proposal) {
+            try {
+                const res = await fetch("/api/game/action", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-Match-ID": currentMatchId },
+                    body: JSON.stringify(proposal)
+                });
+                const data = await res.json();
+                if (data.receipt) processReceipt(data.receipt);
+                if (data.state) updateAuthoritativeView(data.state);
+            } catch (err) {
+                console.error("Action dispatch error:", err);
+                addChronicle(`Chyba spojenia: ${err.message}`, "rejected");
+            }
+        }
+
+        function proposeAttack() { executeDuelRound(); }
+        function proposeMoveAdjacent() {
+            const p = getPlayerCoords();
+            const targetR = p[1] < 0 ? p[1] + 1 : (p[1] === 0 ? 1 : p[1] - 1);
+            dispatchProposal({ actor_id: "player_hero", action_type: "MOVE", target_hex: [p[0], targetR] });
+        }
+        function proposeEndTurn() {
+            dispatchProposal({ actor_id: "player_hero", action_type: "END_TURN" });
+        }
+        function proposeReset() { executeReset(); }
+
+        async function runReplayAudit() {
+            const banner = document.getElementById("replayBanner");
+            if (banner) banner.textContent = "Spúšťam audit replay...";
+            try {
+                const res = await fetch("/api/game/replay");
+                const data = await res.json();
+                if (data.verified) {
+                    if (banner) banner.innerHTML = `<span style="color:#10b981; font-weight:700;">✅ REPLAY VERIFIED (100% MATCH)</span><br>Replayed ${data.events_replayed} udalostí.<br>Final Digest: ${data.state_digest.substring(0, 24)}...`;
+                    addChronicle(`Audit Replay: Úspešne overené ${data.events_replayed} udalostí. Hash sedí 1:1.`, "system");
+                } else {
+                    if (banner) banner.innerHTML = `<span style="color:#ef4444; font-weight:700;">❌ REPLAY DIVERGENCE</span><br>${data.message}`;
+                    addChronicle(`Audit Replay zlyhal: ${data.message}`, "rejected");
                 }
             } catch (err) {
-                const oKey = `${opponentHex[0]}_${opponentHex[1]}`;
-                if ((coverMap[oKey] || 0.1) >= 0.75) {
-                    addChronicle(`MÍNOMETNÁ SALVA: Cieľ je v zákope - Žiadne zranenie!`, "evaded");
-                } else {
-                    opponentHp = Math.max(0, opponentHp - 2);
-                    addChronicle(`MÍNOMETNÁ SALVA: Priamy zásah nekrytého cieľa za 2 zranenia!`, "damage");
-                    updateVitalPips();
+                if (banner) banner.textContent = `Chyba auditu: ${err.message}`;
+            }
+        }
+
+        // ── STATE & TELEMETRY UPDATERS ────────────────────────────────────────
+        function updateFromMatchResponse(data) {
+            const p_hp = (typeof data.player_hp === 'number') ? data.player_hp : 6;
+            const o_hp = (typeof data.opponent_hp === 'number') ? data.opponent_hp : 6;
+            if (authoritativeState) {
+                if (authoritativeState.player) {
+                    authoritativeState.player.current_hp = p_hp;
+                    authoritativeState.player.hp = p_hp;
+                }
+                if (authoritativeState.opponent) {
+                    authoritativeState.opponent.current_hp = o_hp;
+                }
+                if (authoritativeState.enemy) {
+                    authoritativeState.enemy.current_hp = o_hp;
+                    authoritativeState.enemy.hp = o_hp;
+                }
+                if (data.round_number) authoritativeState.round_number = data.round_number;
+            }
+            updateHpPips(p_hp, o_hp);
+            if (data.state_hash) {
+                const b = document.getElementById("badgeDigest");
+                if (b) b.textContent = `HASH: ${data.state_hash.substring(0, 16)}...`;
+            }
+            const banner = document.getElementById("roundBanner");
+            if (banner) {
+                if (data.is_game_over) {
+                    banner.textContent = `🏆 ZÁPAS UKONČENÝ // VÍŤAZ: ${data.winner}`;
+                    banner.style.color = "var(--gold)";
+                } else if (data.round_number) {
+                    banner.textContent = `KOLO ${data.round_number} // PRIPRAVENÝ NA ŤAH`;
+                    banner.style.color = "var(--cyan)";
                 }
             }
         }
 
-        async function resetMatch() {
-            try {
-                const res = await fetch("/api/game/reset", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" }
-                });
-                const data = await res.json();
-            } catch (e) {}
+        function updateAuthoritativeView(state) {
+            authoritativeState = state;
+            const p_hp = state.player ? (state.player.current_hp ?? state.player.hp ?? 6) : 6;
+            const o_hp = state.opponent ? (state.opponent.current_hp ?? 6) : (state.enemy ? (state.enemy.current_hp ?? state.enemy.hp ?? 6) : 6);
+            updateHpPips(p_hp, o_hp);
 
-            playerHp = VITAL_MAX_HP;
-            opponentHp = VITAL_MAX_HP;
-            currentRound = 1;
-            isGameOver = false;
-            trenches = [];
-            coverMap = { "0_-1": 0.35, "1_1": 0.10, "0_0": 0.40 };
-            document.getElementById("roundBanner").textContent = "KOLO 1 // PRIPRAVENÝ NA VÝMENU";
-            document.getElementById("chronicleBox").innerHTML = `
-                <div class="chronicle-entry">
-                    <strong>Kolo 0:</strong> Nový zápas inicializovaný! Obaja súperi majú 6 HP.
-                </div>
-            `;
-            updateVitalPips();
+            const digest = state.state_digest || state.state_hash || "";
+            if (digest) {
+                const b = document.getElementById("badgeDigest");
+                if (b) b.textContent = `HASH: ${digest.substring(0, 16)}...`;
+            }
+
+            const pCoord = getPlayerCoords();
+            const oCoord = getOpponentCoords();
+            const pCoordsEl = document.getElementById("lblPlayerCoords");
+            if (pCoordsEl) pCoordsEl.textContent = `HEX: [${pCoord[0]}, ${pCoord[1]}]`;
+            const oCoordsEl = document.getElementById("lblOpponentCoords");
+            if (oCoordsEl) oCoordsEl.textContent = `HEX: [${oCoord[0]}, ${oCoord[1]}]`;
+
+            const banner = document.getElementById("roundBanner");
+            if (banner) {
+                if (state.is_game_over) {
+                    banner.textContent = `🏆 ZÁPAS UKONČENÝ // VÍŤAZ: ${state.winner}`;
+                    banner.style.color = "var(--gold)";
+                } else {
+                    const rnd = state.round_number || state.turn_number || 1;
+                    banner.textContent = `KOLO ${rnd} // PRIPRAVENÝ NA ŤAH`;
+                    banner.style.color = "var(--cyan)";
+                }
+            }
         }
 
-        // Initialize UI
-        updateVitalPips();
+        function updateHpPips(playerHp, opponentHp) {
+            const safePlayerHp = Math.max(0, Math.min(VITAL_MAX_HP, playerHp));
+            const safeOpponentHp = Math.max(0, Math.min(VITAL_MAX_HP, opponentHp));
+
+            const pCont = document.getElementById("playerPips");
+            if (pCont) {
+                pCont.innerHTML = "";
+                for (let i = 0; i < VITAL_MAX_HP; i++) {
+                    const pip = document.createElement("div");
+                    pip.className = `pip ${i < safePlayerHp ? 'active-player' : 'lost'}`;
+                    pip.textContent = i < safePlayerHp ? '♥' : '♡';
+                    pCont.appendChild(pip);
+                }
+            }
+
+            const oCont = document.getElementById("opponentPips");
+            if (oCont) {
+                oCont.innerHTML = "";
+                for (let i = 0; i < VITAL_MAX_HP; i++) {
+                    const pip = document.createElement("div");
+                    pip.className = `pip ${i < safeOpponentHp ? 'active-opponent' : 'lost'}`;
+                    pip.textContent = i < safeOpponentHp ? '💀' : '▫';
+                    oCont.appendChild(pip);
+                }
+            }
+        }
+
+        function updateTelemetryDisplay(t) {
+            if (!t) return;
+            if (t.frame_id) document.getElementById("telFrame").textContent = t.frame_id;
+            if (t.match_id) document.getElementById("telMatch").textContent = t.match_id;
+            if (t.round) document.getElementById("telRound").textContent = t.round;
+            if (t.action) document.getElementById("telAction").textContent = t.action;
+            if (typeof t.api_rtt_ms === 'number') document.getElementById("telRtt").textContent = `${t.api_rtt_ms.toFixed(2)} ms`;
+            if (t.state_hash) document.getElementById("telHash").textContent = `${t.state_hash.substring(0, 12)}...`;
+            const invEl = document.getElementById("telInvariant");
+            if (invEl) {
+                invEl.textContent = t.invariant_ok ? "OK (VITAL_MAX_HP == 6)" : "VIOLATION!";
+                invEl.style.color = t.invariant_ok ? "var(--cyan)" : "var(--crimson)";
+            }
+        }
+
+        function processReceipt(receipt) {
+            if (receipt.verdict === "REJECTED_INVALID") {
+                addChronicle(`Neplatná akcia (${receipt.action_type}): ${receipt.error_message}`, "rejected");
+                return;
+            }
+            const d = receipt.details || {};
+            if (receipt.action_type === "MOVE") {
+                addChronicle(d.message || "Pohyb úspešne vykonaný.", "committed");
+            } else if (receipt.action_type === "ATTACK") {
+                if (d.evaded) {
+                    addChronicle(`Útok do zóny ${d.target_zone}: ${d.reason}`, "evaded");
+                } else if (d.hit) {
+                    addChronicle(`ZÁSAH! Udelené ${d.damage_dealt} DMG do zóny ${d.target_zone}! Zostáva ${d.defender_remaining_hp}/6 HP.`, "damage");
+                }
+            } else if (receipt.action_type === "END_TURN") {
+                addChronicle("Hrdina ukončil ťah. Nasleduje reakcia súpera.", "committed");
+            } else if (receipt.action_type === "RESET") {
+                addChronicle("Zápas reštartovaný.", "system");
+            }
+        }
+
+        function addChronicle(text, type = "committed") {
+            const box = document.getElementById("chronicleBox");
+            if (!box) return;
+            const entry = document.createElement("div");
+            entry.className = `chronicle-entry ${type}`;
+            const timeStr = new Date().toLocaleTimeString();
+            entry.innerHTML = `<small style="color:var(--text-muted);">${timeStr}</small> ${text}`;
+            box.appendChild(entry);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // ── BOOTSTRAP: FETCH INITIAL AUTHORITATIVE STATE ─────────────────────
+        async function bootAuthoritativeGame() {
+            try {
+                // 1. Fetch match status from MatchRegistry
+                const statusRes = await fetch(`/api/game/status?match_id=${encodeURIComponent(currentMatchId)}`);
+                const statusData = await statusRes.json();
+                if (statusData.status === "OK" && statusData.match) {
+                    updateAuthoritativeView(statusData.match);
+                    if (statusData.telemetry) updateTelemetryDisplay(statusData.telemetry);
+                    addChronicle(`Autoritatívny 19-hex zápas (${currentMatchId}) pripravený. Invariant VITAL_MAX_HP == 6 aktívny.`, "system");
+                }
+
+                // 2. Fallback query to /api/game/state to maintain contract parity
+                fetch("/api/game/state").catch(() => {});
+            } catch (err) {
+                console.error("Boot error:", err);
+                addChronicle(`Chyba inicializácie: ${err.message}`, "rejected");
+            }
+        }
+        bootAuthoritativeGame();
     </script>
 </body>
 </html>

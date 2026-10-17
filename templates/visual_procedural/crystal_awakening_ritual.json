@@ -1,0 +1,91 @@
+{
+  "template_id": "CRYSTAL_AWAKENING_RITUAL",
+  "title": "Posvätná Procedurálna Aréna: Prebudenie Aéterového Jadra",
+  "scene_identity": {
+    "scene_type": "sacred mirror chamber",
+    "core_theme": "crystal",
+    "narrative_role": "awakening"
+  },
+  "world_environment": {
+    "environment": "floating ritual platform suspended above a dark abyss",
+    "scale": "monumental",
+    "terrain_logic": "fractured crystalline plateaus, suspended stone fragments, glowing runic pathways"
+  },
+  "procedural_structure": {
+    "procedural_forms": [
+      "fractal crystal spires",
+      "recursive dihedral mirror folds",
+      "Voronoi fracture patterns",
+      "floating polyhedral debris",
+      "spiral rune orbits",
+      "volumetric fog bands"
+    ],
+    "fractal_dimension": 2.68,
+    "dihedral_folds": 6,
+    "octaves": 6
+  },
+  "texture_stack": {
+    "base_material": "translucent blue crystal and polished obsidian",
+    "secondary_material": "gold alchemical engravings and luminous rune veins",
+    "micro_surface_detail": "fine scratches, tiny ice fractures, shimmering dust particles",
+    "edge_behavior": "chipped edges with glowing cyan highlights",
+    "reflectivity_roughness": "semi-gloss crystal, matte stone, sharp fresnel reflections on polished faces",
+    "emission": "internal cyan core glow and thin golden energy seams",
+    "atmospheric_particles": "drifting frost dust and slow holographic sparks"
+  },
+  "action_event": {
+    "primary_event": "an ancient crystal core is awakening",
+    "cause": "a sacred alchemical rune sequence has been completed",
+    "visible_transformation": "the central crystal rotates, fractures open across the platform, expanding internal light pulses",
+    "environmental_response": "fog is pushed outward in concentric waves, floating shards rise into the air, golden runes light up in sequence",
+    "motion_cues": "rotating particles, pulsing beams, drifting debris, light distortion in the air",
+    "narrative_traces": "scorched ritual marks, fractured seals, abandoned offerings, traces of previous failed activations"
+  },
+  "temporal_layer": {
+    "before": "the ritual chamber remained dormant for centuries beneath frozen stone.",
+    "during": "the crystal core is now awakening, cracking the platform and releasing light through the runic seams.",
+    "after": "the expanding energy field suggests the portal will fully open and reshape the surrounding biome."
+  },
+  "atmosphere": {
+    "atmosphere": "mystical, tense, sacred and computational",
+    "mood": "awe, latent danger, revelation",
+    "weather_medium": "cold vapor haze, suspended glittering particles",
+    "depth_effects": "layered volumetric fog, distant silhouette fading, atmospheric scattering"
+  },
+  "lighting": {
+    "primary_light": "soft cyan glow from the crystal core",
+    "secondary_light": "warm golden rune reflections across the platform",
+    "accent_light": "magenta spectral highlights in the mirror recursion",
+    "shadow_behavior": "deep cinematic shadows, sharp silhouette contrast, subtle volumetric shafts"
+  },
+  "camera_composition": {
+    "camera_angle": "slightly low cinematic perspective",
+    "framing": "wide shot with strong central focus",
+    "primary_focal_point": "the awakening crystal core",
+    "secondary_focal_points": "floating debris, ritual rings, distant portal glow",
+    "scale_references": "tiny shrine pillars and fractured statues",
+    "composition": "asymmetrical editorial composition with large negative space and dramatic center lighting"
+  },
+  "style_render_mode": {
+    "render_mode": "procedural cinematic concept art for Krystal-Stack",
+    "surface_style": "ultra-detailed textured fantasy-tech hybrid"
+  },
+  "quality_detail": {
+    "detail_level": "very high",
+    "texture_richness": "layered and premium",
+    "world_coherence": "physically believable but mythic",
+    "visual_density": "rich focal detail, controlled peripheral softness"
+  },
+  "negative_constraints": [
+    "generic game UI",
+    "flat empty surfaces",
+    "random unmotivated objects",
+    "oversaturated cartoon look",
+    "cheap fantasy cliché",
+    "blurry undefined texture work",
+    "chaotic unreadable composition",
+    "too many equal focal points"
+  ],
+  "schema_version": "1.0",
+  "vital_max_hp_rule": 6
+}

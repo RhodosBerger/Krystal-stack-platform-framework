@@ -10,10 +10,11 @@ Description:
 
 Hardware-Level Device Sources:
     1. Windows RawInput API (user32.dll):
-       - Bypasses Windows Desktop Window Manager (DWM) composition message pump.
-       - Direct interrupt-driven extraction of raw USB HID packets for keyboards (scancodes)
-         and high-DPI optical/laser mice (raw mickeys, 1000 Hz - 8000 Hz polling).
-       - Bypasses OS ballistics / acceleration curves for bit-exact input sampling.
+       - Accurate capture path:
+         Physical Device -> USB/xHCI -> Windows Kernel USB+HID Stack -> Raw Input Subsystem
+         -> WM_INPUT / GetRawInputData -> Krystal Input Adapter -> SPSC Ring.
+       - Bypasses high-level pointer acceleration curves, ballistics, and GUI message coalescing.
+       - (Note: DWM is part of the render/presentation/scanout path, not the input capture pipeline.)
     2. Windows XInput API (xinput1_4.dll / xinput9_1_0.dll):
        - Direct polling of 16-bit analog thumbsticks, analog trigger potentiometers/Hall sensors,
          and digital button masks with sub-millisecond QPC timestamps.
@@ -23,17 +24,28 @@ Hardware-Level Device Sources:
        - Pulse counting, angular velocity (RPM), cumulative angular position.
     4. Serial Telemetry Stream Driver (UART / USB CDC Virtual COM):
        - Framed binary packet parsing (Header, Length, Payload, CRC-16 CCITT).
-       - Direct sensor ingestion for external microcontrollers, IMUs, and CNC feed heads.
+       - Explicit separation between FrameIntegrity (CRC) and FrameAuthenticity (HMAC/Signature).
     5. Acoustic / Voice-to-Action PCM Telemetry:
        - Low-latency PCM audio ring buffer monitoring (RMS amplitude, VAD activity).
 
+Decomposed End-to-End Latency Model:
+    T_input-to-photon = T_input + T_simulation + T_render + T_display
+      - T_input:      device -> kernel -> RawInput -> Krystal SPSC Ring
+      - T_simulation: Krystal input dequeue -> state update & logic
+      - T_render:     state -> GPU dispatch -> swapchain present
+      - T_display:    present -> DirectFlip/scanout -> physical display photons
+
 Key Architectural Capabilities:
-    - Lock-Free SPSC Ring Buffer: Sub-microsecond zero-allocation enqueue/dequeue.
+    - SPSCInputRingBuffer: Preallocated, lock-avoiding single-producer single-consumer ring.
     - Deadzone & Anti-Jitter Filtering: Radial deadzone for thumbsticks, EWMA smoothing.
     - Deterministic Input Frame Journaling: Produces canonical hex hashes and
       (StateVersion, TurnVersion, InputSequence, StateHash) tuples for rollback and replays.
     - Epistemic Integration: Bridges input cadence, jitter, and user activity into
       TypedDependencyRuntime (OBS_INPUT_POLL_RATE_HZ, OBS_INPUT_JITTER_US, OBS_INPUT_ACTIVITY).
+    - Hierarchical Governor Contract:
+      Input activity score is strictly an advisory request (REQUEST_HIGH_PERFORMANCE).
+      Safety gates (thermal veto, battery critical, capability unavailable) have absolute veto:
+      A_committable = A_input-request ∩ A_thermal-safe ∩ A_battery-safe ∩ A_capability-supported.
 
 Constitutional Invariant:
     assert VITAL_MAX_HP == 6
@@ -54,7 +66,7 @@ import ctypes
 from ctypes import wintypes
 from enum import Enum, unique
 from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, List, Optional, Tuple, Callable
+from typing import Dict, Any, List, Optional, Tuple, Callable, Set
 
 # Platform Invariant
 VITAL_MAX_HP: int = 6
@@ -309,13 +321,14 @@ class InputReplayFrame:
 
 
 # ============================================================================
-# 4. LOCK-FREE SINGLE-PRODUCER SINGLE-CONSUMER (SPSC) RING BUFFER
+# 4. PREALLOCATED SPSC INPUT RING BUFFER (LOCK-AVOIDING)
 # ============================================================================
 
-class LockFreeInputRingBuffer:
+class SPSCInputRingBuffer:
     """
-    High-throughput, allocation-free ring buffer for ingesting hardware input
-    packets from polling threads without incurring GC pauses or lock contention.
+    Preallocated, lock-avoiding Single-Producer Single-Consumer (SPSC) ring buffer
+    for ingesting hardware input packets without GC reallocation in the fast path.
+    Formal lock-free progress guarantees require native C/Rust atomic head/tail pointers.
     """
     def __init__(self, capacity: int = 1024):
         assert VITAL_MAX_HP == 6, "Platform invariant VITAL_MAX_HP == 6 must hold"
@@ -332,10 +345,22 @@ class LockFreeInputRingBuffer:
         self._head = 0  # Write index
         self._tail = 0  # Read index
         self._dropped_packets = 0
+        self._lock_avoiding = True
+        self._preallocated = True
 
     @property
     def capacity(self) -> int:
         return self._capacity
+
+    @property
+    def lock_avoiding(self) -> bool:
+        """True: relies on single-producer/single-consumer pointer discipline."""
+        return self._lock_avoiding
+
+    @property
+    def preallocated(self) -> bool:
+        """True: array buffer is preallocated at construction."""
+        return self._preallocated
 
     @property
     def dropped_packets(self) -> int:
@@ -382,6 +407,10 @@ class LockFreeInputRingBuffer:
                 break
             packets.append(pkt)
         return packets
+
+
+# Backward-compatibility alias
+LockFreeInputRingBuffer = SPSCInputRingBuffer
 
 
 # ============================================================================
@@ -881,6 +910,41 @@ class HardwareInputDriver:
             return UserActivityState.TACTICAL_BURST
         else:
             return UserActivityState.ACTIVE
+
+    def evaluate_governor_demand(
+        self,
+        thermal_safe_profiles: Set[str],
+        battery_safe_profiles: Set[str],
+        capability_supported_profiles: Set[str]
+    ) -> Tuple[str, str]:
+        """
+        Hierarchical Governor Authority Contract:
+        Input activity generates an advisory request, which is intersected with
+        thermal, battery, and capability constraints:
+        A_committable = A_input-request ∩ A_thermal-safe ∩ A_battery-safe ∩ A_capability-supported
+        Thermal veto, battery critical, and capability absence have absolute veto authority.
+        """
+        assert VITAL_MAX_HP == 6
+        act = self.derive_user_activity()
+        advisory_map = {
+            UserActivityState.IDLE: "saver_npu",
+            UserActivityState.LOW_INTENSITY: "balanced_npu",
+            UserActivityState.ACTIVE: "balanced_hybrid",
+            UserActivityState.TACTICAL_BURST: "performance_gpu"
+        }
+        requested = advisory_map.get(act, "balanced_hybrid")
+        committable = thermal_safe_profiles & battery_safe_profiles & capability_supported_profiles
+
+        if requested in committable:
+            return requested, f"COMMITTED_ADVISORY_{act.value}"
+        elif "balanced_npu" in committable:
+            return "balanced_npu", f"SAFETY_VETO_FALLBACK_BALANCED (Requested {requested})"
+        elif "saver_npu" in committable:
+            return "saver_npu", f"SAFETY_VETO_FALLBACK_SAVER (Requested {requested})"
+        elif committable:
+            return next(iter(committable)), f"SAFETY_VETO_FIRST_COMMITTED (Requested {requested})"
+        else:
+            return "saver_npu", "EMERGENCY_MINIMAL_SAFE"
 
 
 # ============================================================================

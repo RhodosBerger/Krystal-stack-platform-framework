@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krystal-Stack // Audiovisual Runtime Diagnostics & Architecture Hub</title>
+  <style>
+    :root {
+      --bg-dark: #0a0c10;
+      --card-bg: rgba(22, 27, 34, 0.85);
+      --card-border: #30363d;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-cyan: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-amber: #d29922;
+      --accent-red: #f85149;
+      --accent-purple: #bc8cff;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 24px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+    }
+    .badge-green {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--accent-green);
+      border-color: rgba(63, 185, 80, 0.3);
+    }
+    .badge-amber {
+      background: rgba(210, 153, 34, 0.15);
+      color: var(--accent-amber);
+      border-color: rgba(210, 153, 34, 0.3);
+    }
+    .badge-red {
+      background: rgba(248, 81, 73, 0.15);
+      color: var(--accent-red);
+      border-color: rgba(248, 81, 73, 0.3);
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--accent-cyan);
+    }
+    .metric-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    .metric-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    svg.chart-canvas {
+      width: 100%;
+      height: 220px;
+      background: rgba(10, 12, 16, 0.6);
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+    .log-terminal {
+      background: #050608;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      height: 280px;
+      overflow-y: auto;
+      color: #c9d1d9;
+    }
+    .log-line {
+      margin-bottom: 4px;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    .log-line:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .log-crit { color: var(--accent-red); font-weight: 600; }
+    .log-warn { color: var(--accent-amber); }
+    .log-info { color: var(--accent-cyan); }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-right: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+    }
+    .explainer-box {
+      line-height: 1.6;
+      font-size: 14px;
+      color: #c9d1d9;
+    }
+    .explainer-box h4 {
+      color: var(--accent-purple);
+      margin: 14px 0 6px 0;
+    }
+    .explainer-box code {
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>Krystal-Stack // Audiovisual Telemetry & Core Diagnostics</h1>
+      <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">
+        Dual-Domain Architecture · Intel Core & OpenVINO Micro-Engine · Governed Runtime
+      </p>
+    </div>
+    <div style="text-align: right;">
+      <span class="badge badge-green" id="invariantBadge">VITAL_MAX_HP == 6 [INVIOLABLE]</span>
+      <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
+        Milestone: V-AUDIOVISUAL-WEB-PANEL-01
+      </div>
+    </div>
+  </header>
+
+  <!-- Key Metrics Bar -->
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">System Health Score <span>🛡️</span></div>
+      <div class="metric-value" id="healthScoreVal" style="color: var(--accent-green);">55.0%</div>
+      <div class="metric-sub">Analyzed 30 frames with 0 unmitigated collisions</div>
+    </div>
+    <div class="card">
+      <div class="card-title">UMA Bus Status <span>⚡</span></div>
+      <div class="metric-value" id="umaPeakVal" style="color: var(--accent-amber);">56.0 GB/s</div>
+      <div class="metric-sub">Peak 82.4% saturation (Arbiter threshold: 78.0%)</div>
+    </div>
+    <div class="card">
+      <div class="card-title">120 Hz VSync Integrity <span>🎯</span></div>
+      <div class="metric-value" id="frameTimeVal" style="color: var(--accent-cyan);">7.2 ms</div>
+      <div class="metric-sub">Target budget 8.33 ms · 0 frame drops</div>
+    </div>
+  </div>
+
+  <!-- Primary Interactive Graph Panels -->
+  <div class="grid-2">
+    <!-- Visual Time-Series Charts -->
+    <div class="card">
+      <div class="card-title">
+        <span>Dual-Domain Telemetry Waveform: Latency & UMA Saturation</span>
+        <div>
+          <button class="tab-btn active" id="btnWaveform">Timeline Waveform</button>
+          <button class="tab-btn" id="btnPhaseSpace">Phase-Space Hysteresis</button>
+        </div>
+      </div>
+      <div id="chartContainer">
+        <svg id="svgChart" class="chart-canvas" viewBox="0 0 600 220"></svg>
+      </div>
+      <div style="display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+        <span><span style="color: var(--accent-cyan);">■</span> Frame Latency (ms)</span>
+        <span><span style="color: var(--accent-red);">---</span> 120Hz Budget (8.33ms)</span>
+        <span><span style="color: var(--accent-amber);">■</span> UMA Saturation</span>
+        <span><span style="color: var(--accent-purple);">◆</span> Hysteresis Lock [HELD]</span>
+        <span><span style="color: var(--accent-green);">●</span> Token Pacing [PACED]</span>
+      </div>
+    </div>
+
+    <!-- LLM Diagnostic Synthesis Box -->
+    <div class="card">
+      <div class="card-title">LLM Root Cause Synthesis <span>🧠</span></div>
+      <div style="font-size: 13px; line-height: 1.5; color: #d0d7de;">
+        <p style="margin-bottom: 12px;"><strong style="color: var(--accent-cyan);">Root Cause Analysis:</strong><br>Root Cause: Controlled memory bus contention observed and successfully managed. UmaBandwidthArbiter engaged pacing in response to memory spikes, preserving 120 Hz VSync. RenderHysteresisFilter prevented profile oscillation.</p>
+        <p style="margin-bottom: 12px;"><strong style="color: var(--accent-green);">Invariant Assurance:</strong><br>CONFIRMED_UNBROKEN (VITAL_MAX_HP == 6)</p>
+        <p><strong style="color: var(--accent-amber);">Prescriptive Tuning Strategy:</strong><br>Prescriptive Tuning: Telemetry demonstrates optimal convergence. Recommend maintaining current 12-frame dwell window and 0.78 saturation threshold. Ensure KV-cache defragmentation before long-context reasoning sessions.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lower Pane: Anomaly Chronolog & OpenVINO / Intel Core Architectural Explainer -->
+  <div class="grid-2">
+    <!-- Log & Anomaly Explorer -->
+    <div class="card">
+      <div class="card-title">Diagnostic Chronolog & Collision Events <span>📋</span></div>
+      <div class="log-terminal" id="logTerminal"></div>
+    </div>
+
+    <!-- OpenVINO & Intel Core Explainer for Sprint Teams -->
+    <div class="card">
+      <div class="card-title">Architecture Explainer: Intel Core & OpenVINO <span>💡</span></div>
+      <div class="explainer-box">
+        <h4>1. Čo OpenVINO skutočne robí</h4>
+        <p>OpenVINO nie je len runtime, ale kompilátor výpočtových grafov. Konvertuje modely do <code>.xml + .bin</code>, optimalizuje vrstvy (fusion konvolúcií, batch-norm folding) a nasadzuje vektorizované 8-bitové inštrukcie <code>DP4A</code> na Intel Iris Xe iGPU a <code>VNNI</code> na P-cores.</p>
+
+        <h4>2. Odhalené mikroarchitektonické hrdlo (UMA Contention)</h4>
+        <p>Na architektúrach s unifikovanou pamäťou (LPDDR4x/5) zdieľajú Iris Xe a CPU jedno spoločné pamäťové rozhranie (68 GB/s). Ak reasoning model alokuje lookahead pamäť počas 120 Hz scanoutu grafiky, dochádza k saturácii zbernice nad 78%, čo vedie k tvrdému prepadu snímkov. Krystal Stack to rieši <strong>VSync blanking micro-slicingom</strong> a dynamickým <strong>token pacingom</strong>.</p>
+
+        <h4>3. Asymetrický Schmitt-Trigger (Hysteréza)</h4>
+        <p>Prepínanie profilov rozlíšenia (1080p -> 540p) využíva 12-snímkové dwell okno pre upscale a okamžitý downscale, čím sa eliminuje vizuálne "dýchanie" ostrosti obrazu.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const bundleData = {
+  "metadata": {
+    "generated_at_utc": "2026-10-16T16:14:36Z",
+    "total_frames": 30,
+    "vital_max_hp": 6,
+    "framework": "Krystal-Stack Governed Runtime",
+    "milestone": "V-AUDIOVISUAL-WEB-PANEL-01"
+  },
+  "timeline": [
+    {
+      "frame": 0,
+      "frame_time_ms": 6.4,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.52,
+      "gpu_bw_gb_s": 22.0,
+      "llm_bw_gb_s": 14.0,
+      "profile": "QUALITY",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 1,
+      "frame_time_ms": 6.48,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.535,
+      "gpu_bw_gb_s": 22.0,
+      "llm_bw_gb_s": 14.0,
+      "profile": "QUALITY",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 2,
+      "frame_time_ms": 6.56,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.55,
+      "gpu_bw_gb_s": 22.0,
+      "llm_bw_gb_s": 14.0,
+      "profile": "QUALITY",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 3,
+      "frame_time_ms": 6.64,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.565,
+      "gpu_bw_gb_s": 22.0,
+      "llm_bw_gb_s": 14.0,
+      "profile": "QUALITY",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 4,
+      "frame_time_ms": 6.72,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.58,
+      "gpu_bw_gb_s": 22.0,
+      "llm_bw_gb_s": 14.0,
+      "profile": "QUALITY",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 5,
+      "frame_time_ms": 6.8,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.595,
+      "gpu_bw_gb_s": 22.0,
+      "llm_bw_gb_s": 14.0,
+      "profile": "QUALITY",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 6,
+      "frame_time_ms": 6.88,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.61,
+      "gpu_bw_gb_s": 22.0,
+      "llm_bw_gb_s": 14.0,
+      "profile": "QUALITY",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 7,
+      "frame_time_ms": 6.96,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.625,
+      "gpu_bw_gb_s": 22.0,
+      "llm_bw_gb_s": 14.0,
+      "profile": "QUALITY",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 8,
+      "frame_time_ms": 7.04,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.64,
+      "gpu_bw_gb_s": 22.0,
+      "llm_bw_gb_s": 14.0,
+      "profile": "QUALITY",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 9,
+      "frame_time_ms": 7.12,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.655,
+      "gpu_bw_gb_s": 22.0,
+      "llm_bw_gb_s": 14.0,
+      "profile": "QUALITY",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 10,
+      "frame_time_ms": 7.1,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.81,
+      "gpu_bw_gb_s": 28.0,
+      "llm_bw_gb_s": 28.0,
+      "profile": "BALANCED",
+      "is_paced": true,
+      "pacing_ms": 6.5,
+      "speculative_slots": 2,
+      "was_held": false
+    },
+    {
+      "frame": 11,
+      "frame_time_ms": 7.22,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.82,
+      "gpu_bw_gb_s": 28.0,
+      "llm_bw_gb_s": 28.0,
+      "profile": "BALANCED",
+      "is_paced": true,
+      "pacing_ms": 7.3,
+      "speculative_slots": 2,
+      "was_held": false
+    },
+    {
+      "frame": 12,
+      "frame_time_ms": 7.34,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.83,
+      "gpu_bw_gb_s": 28.0,
+      "llm_bw_gb_s": 28.0,
+      "profile": "BALANCED",
+      "is_paced": true,
+      "pacing_ms": 8.1,
+      "speculative_slots": 2,
+      "was_held": false
+    },
+    {
+      "frame": 13,
+      "frame_time_ms": 7.46,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.84,
+      "gpu_bw_gb_s": 28.0,
+      "llm_bw_gb_s": 28.0,
+      "profile": "BALANCED",
+      "is_paced": true,
+      "pacing_ms": 8.9,
+      "speculative_slots": 2,
+      "was_held": false
+    },
+    {
+      "frame": 14,
+      "frame_time_ms": 7.58,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.85,
+      "gpu_bw_gb_s": 28.0,
+      "llm_bw_gb_s": 28.0,
+      "profile": "BALANCED",
+      "is_paced": true,
+      "pacing_ms": 9.7,
+      "speculative_slots": 2,
+      "was_held": false
+    },
+    {
+      "frame": 15,
+      "frame_time_ms": 7.7,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.86,
+      "gpu_bw_gb_s": 28.0,
+      "llm_bw_gb_s": 28.0,
+      "profile": "BALANCED",
+      "is_paced": true,
+      "pacing_ms": 10.5,
+      "speculative_slots": 2,
+      "was_held": false
+    },
+    {
+      "frame": 16,
+      "frame_time_ms": 7.82,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.87,
+      "gpu_bw_gb_s": 28.0,
+      "llm_bw_gb_s": 28.0,
+      "profile": "BALANCED",
+      "is_paced": true,
+      "pacing_ms": 11.3,
+      "speculative_slots": 2,
+      "was_held": false
+    },
+    {
+      "frame": 17,
+      "frame_time_ms": 7.94,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.88,
+      "gpu_bw_gb_s": 28.0,
+      "llm_bw_gb_s": 28.0,
+      "profile": "BALANCED",
+      "is_paced": true,
+      "pacing_ms": 12.1,
+      "speculative_slots": 2,
+      "was_held": false
+    },
+    {
+      "frame": 18,
+      "frame_time_ms": 8.06,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.89,
+      "gpu_bw_gb_s": 28.0,
+      "llm_bw_gb_s": 28.0,
+      "profile": "BALANCED",
+      "is_paced": true,
+      "pacing_ms": 12.9,
+      "speculative_slots": 2,
+      "was_held": false
+    },
+    {
+      "frame": 19,
+      "frame_time_ms": 8.15,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.68,
+      "gpu_bw_gb_s": 25.0,
+      "llm_bw_gb_s": 18.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 20,
+      "frame_time_ms": 7.9,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.68,
+      "gpu_bw_gb_s": 25.0,
+      "llm_bw_gb_s": 18.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 21,
+      "frame_time_ms": 7.65,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.68,
+      "gpu_bw_gb_s": 25.0,
+      "llm_bw_gb_s": 18.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 22,
+      "frame_time_ms": 7.4,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.68,
+      "gpu_bw_gb_s": 25.0,
+      "llm_bw_gb_s": 18.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 23,
+      "frame_time_ms": 7.15,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.68,
+      "gpu_bw_gb_s": 25.0,
+      "llm_bw_gb_s": 18.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 24,
+      "frame_time_ms": 6.9,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.68,
+      "gpu_bw_gb_s": 25.0,
+      "llm_bw_gb_s": 18.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": false
+    },
+    {
+      "frame": 25,
+      "frame_time_ms": 5.8,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.58,
+      "gpu_bw_gb_s": 23.0,
+      "llm_bw_gb_s": 16.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": true
+    },
+    {
+      "frame": 26,
+      "frame_time_ms": 5.9,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.58,
+      "gpu_bw_gb_s": 23.0,
+      "llm_bw_gb_s": 16.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": true
+    },
+    {
+      "frame": 27,
+      "frame_time_ms": 6.0,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.58,
+      "gpu_bw_gb_s": 23.0,
+      "llm_bw_gb_s": 16.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": true
+    },
+    {
+      "frame": 28,
+      "frame_time_ms": 6.1,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.58,
+      "gpu_bw_gb_s": 23.0,
+      "llm_bw_gb_s": 16.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": true
+    },
+    {
+      "frame": 29,
+      "frame_time_ms": 6.2,
+      "latency_budget_ms": 8.333,
+      "uma_saturation": 0.58,
+      "gpu_bw_gb_s": 23.0,
+      "llm_bw_gb_s": 16.0,
+      "profile": "PERFORMANCE",
+      "is_paced": false,
+      "pacing_ms": 0.0,
+      "speculative_slots": 8,
+      "was_held": true
+    }
+  ],
+  "diagnostic_report": {
+    "report_id": "DIAG-RPT-85400FF0",
+    "total_frames_analyzed": 30,
+    "health_score_pct": 55.0,
+    "anomaly_count": 9,
+    "has_critical_failures": false,
+    "anomalies": [
+      {
+        "code": "ANOMALY_UMA_BUS_COLLISION_CONTAINED",
+        "severity": "WARNING",
+        "description": "UMA bus contention detected (0.810), active pacing successfully engaged (6.5ms delay).",
+        "frame": 10,
+        "observed": 0.81,
+        "threshold": 0.78
+      },
+      {
+        "code": "ANOMALY_UMA_BUS_COLLISION_CONTAINED",
+        "severity": "WARNING",
+        "description": "UMA bus contention detected (0.820), active pacing successfully engaged (7.3ms delay).",
+        "frame": 11,
+        "observed": 0.82,
+        "threshold": 0.78
+      },
+      {
+        "code": "ANOMALY_UMA_BUS_COLLISION_CONTAINED",
+        "severity": "WARNING",
+        "description": "UMA bus contention detected (0.830), active pacing successfully engaged (8.1ms delay).",
+        "frame": 12,
+        "observed": 0.83,
+        "threshold": 0.78
+      },
+      {
+        "code": "ANOMALY_UMA_BUS_COLLISION_CONTAINED",
+        "severity": "WARNING",
+        "description": "UMA bus contention detected (0.840), active pacing successfully engaged (8.9ms delay).",
+        "frame": 13,
+        "observed": 0.84,
+        "threshold": 0.78
+      },
+      {
+        "code": "ANOMALY_UMA_BUS_COLLISION_CONTAINED",
+        "severity": "WARNING",
+        "description": "UMA bus contention detected (0.850), active pacing successfully engaged (9.7ms delay).",
+        "frame": 14,
+        "observed": 0.85,
+        "threshold": 0.78
+      },
+      {
+        "code": "ANOMALY_UMA_BUS_COLLISION_CONTAINED",
+        "severity": "WARNING",
+        "description": "UMA bus contention detected (0.860), active pacing successfully engaged (10.5ms delay).",
+        "frame": 15,
+        "observed": 0.86,
+        "threshold": 0.78
+      },
+      {
+        "code": "ANOMALY_UMA_BUS_COLLISION_CONTAINED",
+        "severity": "WARNING",
+        "description": "UMA bus contention detected (0.870), active pacing successfully engaged (11.3ms delay).",
+        "frame": 16,
+        "observed": 0.87,
+        "threshold": 0.78
+      },
+      {
+        "code": "ANOMALY_UMA_BUS_COLLISION_CONTAINED",
+        "severity": "WARNING",
+        "description": "UMA bus contention detected (0.880), active pacing successfully engaged (12.1ms delay).",
+        "frame": 17,
+        "observed": 0.88,
+        "threshold": 0.78
+      },
+      {
+        "code": "ANOMALY_UMA_BUS_COLLISION_CONTAINED",
+        "severity": "WARNING",
+        "description": "UMA bus contention detected (0.890), active pacing successfully engaged (12.9ms delay).",
+        "frame": 18,
+        "observed": 0.89,
+        "threshold": 0.78
+      }
+    ],
+    "summary": "Analyzed 30 frames. Health Score: 55.0%. Anomalies: 9 (Critical: 0, Warnings: 9).",
+    "vital_max_hp": 6,
+    "timestamp_ns": 1792167276052917800
+  },
+  "llm_synthesis": {
+    "synthesis_id": "LLM-SYN-6F5C0552",
+    "root_cause_analysis": "Root Cause: Controlled memory bus contention observed and successfully managed. UmaBandwidthArbiter engaged pacing in response to memory spikes, preserving 120 Hz VSync. RenderHysteresisFilter prevented profile oscillation.",
+    "invariant_status": "CONFIRMED_UNBROKEN (VITAL_MAX_HP == 6)",
+    "prescriptive_strategy": "Prescriptive Tuning: Telemetry demonstrates optimal convergence. Recommend maintaining current 12-frame dwell window and 0.78 saturation threshold. Ensure KV-cache defragmentation before long-context reasoning sessions.",
+    "confidence_score": 0.98,
+    "vital_max_hp": 6,
+    "timestamp_ns": 1792167276053056100
+  },
+  "topology": {
+    "graph_id": "GRAPH-TOPOLOGY-A7BBA1E7",
+    "nodes": [
+      {
+        "id": "PLANE_ACTUATION",
+        "tier": 0,
+        "frequency_hz": 1000.0,
+        "type": "Deterministic"
+      },
+      {
+        "id": "INTERNAL_ENGINE_RENDERER",
+        "tier": 1,
+        "target_fps": 120.0,
+        "type": "Scanout"
+      },
+      {
+        "id": "UMA_MEMORY_BUS",
+        "tier": 2,
+        "bandwidth_cap_gb_s": 68.0,
+        "type": "HardwareContention"
+      },
+      {
+        "id": "DEEP_REASONING_PIPELINE",
+        "tier": 3,
+        "speculative_slots": 8,
+        "type": "EpistemicAsynchronous"
+      }
+    ],
+    "edges": [
+      {
+        "source": "INTERNAL_ENGINE_RENDERER",
+        "target": "UMA_MEMORY_BUS",
+        "relation": "TEXTURE_FETCH_AND_SCANOUT",
+        "priority": "HIGH"
+      },
+      {
+        "source": "DEEP_REASONING_PIPELINE",
+        "target": "UMA_MEMORY_BUS",
+        "relation": "KV_CACHE_STREAMING",
+        "priority": "ELASTIC_PACED",
+        "contention_weight": 0.683
+      },
+      {
+        "source": "UMA_MEMORY_BUS",
+        "target": "DEEP_REASONING_PIPELINE",
+        "relation": "FEEDBACK_PACING_THROTTLE",
+        "events_triggered": 9
+      }
+    ],
+    "total_snapshots": 30,
+    "vital_max_hp": 6
+  }
+};
+
+    function renderTimelineWaveform() {
+      const svg = document.getElementById("svgChart");
+      const timeline = bundleData.timeline;
+      if (!timeline || timeline.length === 0) return;
+
+      const w = 600, h = 220, padL = 40, padR = 20, padT = 20, padB = 30;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      let html = '';
+      // Grid lines
+      html += `<line x1="${padL}" y1="${padT}" x2="${w - padR}" y2="${padT}" stroke="#21262d" stroke-dasharray="3,3" />`;
+      html += `<line x1="${padL}" y1="${padT + plotH / 2}" x2="${w - padR}" y2="${padT + plotH / 2}" stroke="#21262d" stroke-dasharray="3,3" />`;
+      html += `<line x1="${padL}" y1="${padT + plotH}" x2="${w - padR}" y2="${padT + plotH}" stroke="#30363d" />`;
+
+      // 8.33ms budget line (scale 0-12ms)
+      const budgetY = padT + plotH - (8.333 / 12.0) * plotH;
+      html += `<line x1="${padL}" y1="${budgetY}" x2="${w - padR}" y2="${budgetY}" stroke="#f85149" stroke-width="1.5" stroke-dasharray="4,4" />`;
+      html += `<text x="${padL - 35}" y="${budgetY + 4}" fill="#f85149" font-size="10" font-family="monospace">8.33</text>`;
+
+      // Latency polyline
+      const n = timeline.length;
+      const ptsLat = [];
+      const ptsSat = [];
+
+      timeline.forEach((pt, i) => {
+        const x = padL + (i / (n - 1)) * plotW;
+        const yLat = padT + plotH - Math.min(plotH, (pt.frame_time_ms / 12.0) * plotH);
+        const ySat = padT + plotH - (pt.uma_saturation * plotH);
+        ptsLat.push(`${x.toFixed(1)},${yLat.toFixed(1)}`);
+        ptsSat.push(`${x.toFixed(1)},${ySat.toFixed(1)}`);
+
+        // Held marker
+        if (pt.was_held) {
+          html += `<polygon points="${x},${yLat - 8} ${x + 4},${yLat} ${x},${yLat + 8} ${x - 4},${yLat}" fill="#bc8cff" />`;
+        }
+        // Paced marker
+        if (pt.is_paced) {
+          html += `<circle cx="${x}" cy="${ySat}" r="3.5" fill="#3fb950" />`;
+        }
+      });
+
+      // Draw UMA Saturation line
+      html += `<polyline points="${ptsSat.join(" ")}" fill="none" stroke="#d29922" stroke-width="2" />`;
+      // Draw Latency line
+      html += `<polyline points="${ptsLat.join(" ")}" fill="none" stroke="#58a6ff" stroke-width="2.5" />`;
+
+      svg.innerHTML = html;
+    }
+
+    function renderPhaseSpacePortrait() {
+      const svg = document.getElementById("svgChart");
+      const timeline = bundleData.timeline;
+      if (!timeline) return;
+
+      const w = 600, h = 220, padL = 50, padR = 30, padT = 30, padB = 35;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      const rankMap = { "ULTRA_PERFORMANCE": 0, "PERFORMANCE": 1, "BALANCED": 2, "QUALITY": 3, "ULTRA_QUALITY": 4 };
+
+      let html = '<text x="20" y="20" fill="#58a6ff" font-size="12" font-family="monospace">Phase Space: Frame Latency (X) vs. Quality Profile Rank (Y)</text>';
+
+      // Axes
+      html += `<line x1="${padL}" y1="${padT + plotH}" x2="${w - padR}" y2="${padT + plotH}" stroke="#30363d" stroke-width="1.5" />`;
+      html += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + plotH}" stroke="#30363d" stroke-width="1.5" />`;
+
+      // Hysteresis Downscale boundary (0.90 * 8.33 = 7.50ms)
+      const xDown = padL + (7.50 / 12.0) * plotW;
+      html += `<line x1="${xDown}" y1="${padT}" x2="${xDown}" y2="${padT + plotH}" stroke="#f85149" stroke-dasharray="3,3" />`;
+      html += `<text x="${xDown - 25}" y="${padT - 6}" fill="#f85149" font-size="10" font-family="monospace">Down (7.5ms)</text>`;
+
+      // Hysteresis Upscale boundary (0.70 * 8.33 = 5.83ms)
+      const xUp = padL + (5.83 / 12.0) * plotW;
+      html += `<line x1="${xUp}" y1="${padT}" x2="${xUp}" y2="${padT + plotH}" stroke="#3fb950" stroke-dasharray="3,3" />`;
+      html += `<text x="${xUp - 20}" y="${padT - 6}" fill="#3fb950" font-size="10" font-family="monospace">Up (5.8ms)</text>`;
+
+      // Plot trajectory
+      timeline.forEach((pt, i) => {
+        const r = rankMap[pt.profile] !== undefined ? rankMap[pt.profile] : 2;
+        const x = padL + Math.min(plotW, (pt.frame_time_ms / 12.0) * plotW);
+        const y = padT + plotH - (r / 4.0) * plotH;
+
+        const color = pt.was_held ? "#bc8cff" : (pt.is_paced ? "#d29922" : "#58a6ff");
+        html += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${color}" opacity="0.85" />`;
+        if (i > 0) {
+          const prev = timeline[i - 1];
+          const prevR = rankMap[prev.profile] !== undefined ? rankMap[prev.profile] : 2;
+          const prevX = padL + Math.min(plotW, (prev.frame_time_ms / 12.0) * plotW);
+          const prevY = padT + plotH - (prevR / 4.0) * plotH;
+          html += `<line x1="${prevX.toFixed(1)}" y1="${prevY.toFixed(1)}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${color}" stroke-width="1" opacity="0.4" />`;
+        }
+      });
+
+      svg.innerHTML = html;
+    }
+
+    function populateLogs() {
+      const term = document.getElementById("logTerminal");
+      const report = bundleData.diagnostic_report;
+      const timeline = bundleData.timeline;
+
+      let logHtml = '';
+      logHtml += `<div class="log-line log-info">[INFO] Telemetry chronolog initialized. Total samples: ${timeline.length}</div>`;
+
+      if (report && report.anomalies) {
+        report.anomalies.forEach(a => {
+          const cls = a.severity === 'CRITICAL' ? 'log-crit' : (a.severity === 'WARNING' ? 'log-warn' : 'log-info');
+          logHtml += `<div class="log-line ${cls}">[${a.severity}] Frame ${a.frame}: ${a.code} - ${a.description}</div>`;
+        });
+      }
+
+      timeline.forEach(pt => {
+        if (pt.is_paced) {
+          logHtml += `<div class="log-line log-warn">[PACING] Frame ${pt.frame}: Saturation ${pt.uma_saturation} >= 0.78. LLM Pacing Delay: ${pt.pacing_ms}ms (Slots: ${pt.speculative_slots})</div>`;
+        }
+        if (pt.was_held) {
+          logHtml += `<div class="log-line log-info">[HYSTERESIS] Frame ${pt.frame}: Latency ${pt.frame_time_ms}ms < 5.83ms. Upscale suppressed by 12-frame dwell counter.</div>`;
+        }
+      });
+
+      term.innerHTML = logHtml;
+    }
+
+    document.getElementById("btnWaveform").addEventListener("click", () => {
+      document.getElementById("btnWaveform").classList.add("active");
+      document.getElementById("btnPhaseSpace").classList.remove("active");
+      renderTimelineWaveform();
+    });
+
+    document.getElementById("btnPhaseSpace").addEventListener("click", () => {
+      document.getElementById("btnPhaseSpace").classList.add("active");
+      document.getElementById("btnWaveform").classList.remove("active");
+      renderPhaseSpacePortrait();
+    });
+
+    // Initialize
+    renderTimelineWaveform();
+    populateLogs();
+  </script>
+</body>
+</html>

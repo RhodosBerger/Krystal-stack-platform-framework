@@ -1,0 +1,89 @@
+{
+  "template_id": "BIOMECHANICAL_XENOBIOTIC_HIVE",
+  "title": "Xenobiotické Hniezdo: Gigerovský Biomechanický Labyrint",
+  "scene_identity": {
+    "scene_type": "biome world",
+    "core_theme": "biomechanical",
+    "narrative_role": "invasion"
+  },
+  "world_environment": {
+    "environment": "alien hive interior constructed from ribbed chitin and fused pneumatic bone arches",
+    "scale": "monumental",
+    "terrain_logic": "ribbed tubular corridors, biomechanical valves, translucent incubation sacs"
+  },
+  "procedural_structure": {
+    "procedural_forms": [
+      "hyperbolic gyroid bio-surfaces",
+      "recursive spinal vertebrae columns",
+      "biomechanical tendon cables",
+      "periodic ventilation sphincters"
+    ],
+    "fractal_dimension": 2.92,
+    "dihedral_folds": 8,
+    "octaves": 6
+  },
+  "texture_stack": {
+    "base_material": "burnished black chitin, biomechanical bone resin, and cold blued steel",
+    "secondary_material": "translucent amniotic slime, bronze hydraulic pipes, and pulsating neural cords",
+    "micro_surface_detail": "fingerprint-like ridge patterns, glistening mucus films, microscopic respiratory pores",
+    "edge_behavior": "segmented carapace overlaps with razor-thin chitinous flanges",
+    "reflectivity_roughness": "high gloss wet slime coating over satin dark chitin",
+    "emission": "faint ghostly bioluminescent orange pulses running along neural pipelines",
+    "atmospheric_particles": "suspended condensation mist, drifting chitinous husks, pulsating spore puffs"
+  },
+  "action_event": {
+    "primary_event": "the hive intelligence initiates a synchronized gestation cycle",
+    "cause": "an organic telemetry signal was broadcast from an encroaching surface scout",
+    "visible_transformation": "incubation pods twitch and inflate, wall tendons contract, opening ribbed airlocks",
+    "environmental_response": "a low-frequency sub-bass vibration shakes the floor; amniotic fluid cascades down wall conduits",
+    "motion_cues": "rhythmic breathing peristalsis of the walls, sliding tendon cables, rising vapor puffs",
+    "narrative_traces": "fused cybernetic implants of fallen explorers, calcified cocoons, disconnected data cables"
+  },
+  "temporal_layer": {
+    "before": "the hive slumbered in anaerobic stasis inside deep subterranean basalt crevices.",
+    "during": "thousands of bio-mechanical pods hum to life as neural cables flush with glowing nutrient fluid.",
+    "after": "swarms of xenobiotic drones will deploy through ventilation shafts toward the surface sectors."
+  },
+  "atmosphere": {
+    "atmosphere": "claustrophobic, alien, relentless, and synthetic-organic",
+    "mood": "visceral horror, dark elegance, hypnotic biomechanical order",
+    "weather_medium": "warm humid bio-mist smelling of ozone and sweet amniotic fluid",
+    "depth_effects": "endless repeating spinal ribs fading into dark vanishing points"
+  },
+  "lighting": {
+    "primary_light": "cold surgical white back-light filtering through ribbed wall slits",
+    "secondary_light": "pulsing internal amber glow from incubation membranes",
+    "accent_light": "slight green specular reflection on wet chitinous crests",
+    "shadow_behavior": "deep pitch-black shadows concealing intricate mechanical crevasses"
+  },
+  "camera_composition": {
+    "camera_angle": "first-person exploratory corridor angle with slight camera tilt",
+    "framing": "claustrophobic interior framing emphasizing enclosing rib arches",
+    "primary_focal_point": "a massive translucent queen incubation membrane at the corridor terminus",
+    "secondary_focal_points": "hanging hydraulic cables, wall-mounted biomechanical sentries",
+    "scale_references": "humanoid bio-armor suits fused into wall resin",
+    "composition": "intense one-point perspective tunnel composition creating overwhelming depth"
+  },
+  "style_render_mode": {
+    "render_mode": "procedural cinematic concept art for Krystal-Stack",
+    "surface_style": "hyper-detailed Giger-esque biomechanical surrealism"
+  },
+  "quality_detail": {
+    "detail_level": "very high",
+    "texture_richness": "layered and premium",
+    "world_coherence": "physically believable but mythic",
+    "visual_density": "rich focal detail, controlled peripheral softness"
+  },
+  "negative_constraints": [
+    "generic game UI",
+    "flat empty surfaces",
+    "random unmotivated objects",
+    "oversaturated cartoon look",
+    "cheap fantasy cliché",
+    "blurry undefined texture work",
+    "chaotic unreadable composition",
+    "too many equal focal points"
+  ],
+  "schema_version": "1.0",
+  "vital_max_hp_rule": 6
+}

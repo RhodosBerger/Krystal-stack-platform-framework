@@ -43,6 +43,7 @@ Constitutional Invariant:
 ==============================================================================
 """
 
+from __future__ import annotations
 import os
 import sys
 import time
@@ -51,7 +52,7 @@ import json
 import threading
 from enum import Enum, unique
 from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, List, Optional, Tuple, Callable
+from typing import Dict, Any, List, Optional, Tuple, Callable, Union
 
 WORKSPACE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if WORKSPACE_ROOT not in sys.path:

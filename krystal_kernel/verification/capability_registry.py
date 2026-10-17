@@ -25,10 +25,11 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 import platform
 from enum import Enum
 from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
 
@@ -92,6 +93,20 @@ class BackendCapability:
         return d
 
 
+@dataclass(frozen=True)
+class CapabilitySnapshot:
+    """Immutable, generation-tracked capability snapshot for TOCTOU protection."""
+    generation: int
+    detected_at_ns: int
+    valid_until_ns: int
+    capability_mask: int
+    verified_backends: Tuple[str, ...]
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def is_valid_at(self, current_ns: int, current_generation: int) -> bool:
+        return self.generation == current_generation and current_ns <= self.valid_until_ns
+
+
 class CapabilityRegistry:
     """
     Authoritative catalog of host execution capabilities.
@@ -102,9 +117,15 @@ class CapabilityRegistry:
         assert VITAL_MAX_HP == 6, "VITAL_MAX_HP must equal 6"
         self.vital_max_hp = VITAL_MAX_HP
         self._capabilities: Dict[HardwareBackend, BackendCapability] = {}
+        self._generation: int = 1
+        self._cached_snapshot: Optional[CapabilitySnapshot] = None
         self._init_defaults()
         if auto_detect:
             self.auto_detect()
+
+    @property
+    def generation(self) -> int:
+        return self._generation
 
     def _init_defaults(self) -> None:
         # Scalar CPU is always guaranteed and deterministic
@@ -190,6 +211,42 @@ class CapabilityRegistry:
         if notes:
             cap.notes = notes
         self._capabilities[backend] = cap
+        self._generation += 1
+        self._cached_snapshot = None
+
+    def get_snapshot(self, current_ns: Optional[int] = None, ttl_ns: int = 1_000_000_000) -> CapabilitySnapshot:
+        """
+        Retrieves a cached, generation-tracked CapabilitySnapshot.
+        If cache is expired or generation changed, a new immutable snapshot is minted.
+        """
+        now = time.time_ns() if current_ns is None else current_ns
+        if self._cached_snapshot is not None and self._cached_snapshot.is_valid_at(now, self._generation):
+            return self._cached_snapshot
+
+        from .authority_bits import set_to_mask
+        verified = tuple(b.value for b, c in self._capabilities.items() if c.is_verified)
+
+        # Map verified backends to eligible profiles
+        supported_profiles: Set[str] = {"ultra_saver", "saver_npu"}
+        if HardwareBackend.OPENVINO_CPU.value in verified or HardwareBackend.NPU.value in verified:
+            supported_profiles.add("balanced_npu")
+        if HardwareBackend.CPU_AVX2.value in verified or HardwareBackend.CPU_SIMD_DETERMINISTIC.value in verified:
+            supported_profiles.add("balanced_hybrid")
+        if HardwareBackend.OPENVINO_GPU.value in verified:
+            supported_profiles.add("performance_gpu")
+            supported_profiles.add("max_burst")
+
+        cap_mask = set_to_mask(supported_profiles)
+        snap = CapabilitySnapshot(
+            generation=self._generation,
+            detected_at_ns=now,
+            valid_until_ns=now + ttl_ns,
+            capability_mask=cap_mask,
+            verified_backends=verified,
+            vital_max_hp=self.vital_max_hp
+        )
+        self._cached_snapshot = snap
+        return snap
 
     def resolve_backend(
         self,

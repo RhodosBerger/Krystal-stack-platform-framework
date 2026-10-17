@@ -1,0 +1,89 @@
+{
+  "template_id": "SUBTERRANEAN_OBSIDIAN_FORGE",
+  "title": "Vulkanická Huta: Kováčňa Magmatického Jadra",
+  "scene_identity": {
+    "scene_type": "procedural arena",
+    "core_theme": "volcanic",
+    "narrative_role": "collapse"
+  },
+  "world_environment": {
+    "environment": "cavernous volcanic caldera bridged by black basalt arches over molten lava",
+    "scale": "monumental",
+    "terrain_logic": "solidified obsidian crust over churning magma, columnar basalt pillars"
+  },
+  "procedural_structure": {
+    "procedural_forms": [
+      "columnar basalt hex prisms",
+      "fluid dynamic lava convection cells",
+      "cooling crack networks",
+      "volcanic ash billows"
+    ],
+    "fractal_dimension": 2.4,
+    "dihedral_folds": 6,
+    "octaves": 5
+  },
+  "texture_stack": {
+    "base_material": "glassy black obsidian, porous volcanic scoria, and incandescent slag",
+    "secondary_material": "white-hot basalt crust, sulfur seams, and forged blackened iron rivets",
+    "micro_surface_detail": "cooling fissures glowing red, conchoidal fractures on obsidian, gritty ash layers",
+    "edge_behavior": "razor-sharp fractured glass rims with orange thermal glow",
+    "reflectivity_roughness": "mirror-smooth glassy obsidian faces contrasted with rough matte slag",
+    "emission": "intense magma glow (1200°C) ranging from brilliant yellow-white to deep crimson",
+    "atmospheric_particles": "rising sparks, swirling soot devils, sulfur fumes"
+  },
+  "action_event": {
+    "primary_event": "a tectonic surge destabilizes the cooling magma floor",
+    "cause": "the geothermal pressure taps were overloaded by the automated defense forge",
+    "visible_transformation": "columnar basalt bridges buckle and plunge into molten rock; geysers of liquid fire erupt",
+    "environmental_response": "dense ash clouds blacken the cavern ceiling, heat tremors crack the forge anvils",
+    "motion_cues": "surging lava waves, falling columnar pillars, violent steam bursts",
+    "narrative_traces": "half-forged titanium war-hammers abandoned on anvils, scorched protective golems"
+  },
+  "temporal_layer": {
+    "before": "the forge operated at peak efficiency, casting siege weapons for the citadel.",
+    "during": "a sudden thermal surge ruptures the retaining dam, flooding the lower staging arenas.",
+    "after": "the entire lower complex will cool into a jagged maze of sharp volcanic glass."
+  },
+  "atmosphere": {
+    "atmosphere": "oppressive, scorching, cataclysmic, and raw",
+    "mood": "immediate peril, brutal power, volcanic majesty",
+    "weather_medium": "suffocating heat haze and heavy falling black cinders",
+    "depth_effects": "silhouette pillars fading through glowing orange thermal haze"
+  },
+  "lighting": {
+    "primary_light": "blinding under-lighting from the lava sea",
+    "secondary_light": "cool blue skylight from a fractured ceiling chimney far above",
+    "accent_light": "crimson rim reflections on glossy obsidian columns",
+    "shadow_behavior": "stark upward-cast shadows accentuating jagged architectural edges"
+  },
+  "camera_composition": {
+    "camera_angle": "dramatic low-angle shot from the edge of the collapsing walkway",
+    "framing": "wide expansive view showcasing the colossal vertical drop",
+    "primary_focal_point": "the collapsing central forge bridge",
+    "secondary_focal_points": "bubbling lava whirlpool, intact hanging observation cages",
+    "scale_references": "giant industrial chains and human-scaled maintenance ladders",
+    "composition": "strong vertical and diagonal lines emphasizing collapse and kinetic power"
+  },
+  "style_render_mode": {
+    "render_mode": "procedural cinematic concept art for Krystal-Stack",
+    "surface_style": "dark atmospheric industrial fantasy"
+  },
+  "quality_detail": {
+    "detail_level": "very high",
+    "texture_richness": "layered and premium",
+    "world_coherence": "physically believable but mythic",
+    "visual_density": "rich focal detail, controlled peripheral softness"
+  },
+  "negative_constraints": [
+    "generic game UI",
+    "flat empty surfaces",
+    "random unmotivated objects",
+    "oversaturated cartoon look",
+    "cheap fantasy cliché",
+    "blurry undefined texture work",
+    "chaotic unreadable composition",
+    "too many equal focal points"
+  ],
+  "schema_version": "1.0",
+  "vital_max_hp_rule": 6
+}

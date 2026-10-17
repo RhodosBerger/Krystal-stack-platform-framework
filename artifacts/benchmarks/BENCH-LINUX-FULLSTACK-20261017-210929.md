@@ -1,0 +1,25 @@
+# Krystal Stack Benchmark Report: BENCH-LINUX-FULLSTACK-20261017-210929
+- **Timestamp:** 2026-10-17T19:09:29Z
+- **Environment:** 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz (8 cores, 11809MB RAM, Linux 6.18.33.2-microsoft-standard-WSL2 x86_64)
+
+### 1. CPU Stress Capacity
+- **Metric:** 2737.39 events/sec
+
+### 2. GPU Capacity (GLMark2)
+- **Status:** EXECUTED
+- **Score:** 4200
+
+### 3. OpenVINO AEP Inference Workload
+```json
+{"status": "OK", "total_inferences": 100, "committed": 100, "total_duration_ms": 12.3, "throughput_tps": 8128.7, "latency_p50_us": 98.3, "latency_p95_us": 217.0, "latency_p99_us": 734.4, "backend": "OpenVINO-DirectSim-Intel-NPU"}
+```
+
+### 4. AEP Candidate State Machine Integrity
+```json
+{"total_transactions": 500, "committed": 333, "discarded_with_zero_mutation": 167, "duration_ms": 10.73, "transactions_per_sec": 46613.3, "final_state_hp": 0, "integrity_verified": true}
+```
+
+### 5. Zero-Copy Fastpath & UMA Bandwidth Arbitration
+```json
+{"zerocopy_fastpath": {"total_frames": 50, "committed": 50, "duration_ms": 8.26, "avg_latency_us": 165.2, "zero_alloc_integrity": true}, "uma_bandwidth_arbitration": {"saturation_threshold": 0.78, "nominal_case": {"saturation": 0.45, "should_pace": false, "throttle_pct": 0.0, "verdict": "ARBITRATION_BANDWIDTH_OK"}, "contention_case": {"saturation": 0.88, "should_pace": true, "throttle_pct": 0.5722, "verdict": "ARBITRATION_PACE_REASONING_PRESERVE_120HZ"}, "pacing_active": true, "graphics_precedence_preserved": true}}
+```

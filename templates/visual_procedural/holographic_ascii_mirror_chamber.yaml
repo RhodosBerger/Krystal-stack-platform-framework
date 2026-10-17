@@ -1,0 +1,75 @@
+# Krystal-Stack Procedural Visual Template: Rekurzívna AR Sála: Kvantový ASCII Manifold D16
+schema_version: '1.0'
+template_id: 'HOLOGRAPHIC_ASCII_MIRROR_CHAMBER'
+title: 'Rekurzívna AR Sála: Kvantový ASCII Manifold D16'
+scene_identity:
+  scene_type: 'ASCII hologram landscape'
+  core_theme: 'cyber-ritual'
+  narrative_role: 'transformation'
+world_environment:
+  environment: 'infinite mirrored computational void crossed by optical beam waveguides'
+  scale: 'infinite'
+  terrain_logic: 'quantized grid planes, floating monospace matrices, dihedrally folded mirror planes'
+procedural_structure:
+  procedural_forms:
+    - 'D16 dihedral kaleidoscopic IFS folds'
+    - 'stereoscopic anaglyph beam splittings'
+    - 'character cell glyph lattices'
+    - 'Schlick-Fresnel ray rebounds'
+  fractal_dimension: '3.12'
+  dihedral_folds: '16'
+  octaves: '8'
+texture_stack:
+  base_material: 'black optical glass, liquid mercury floors, and carbon nanotube grids'
+  secondary_material: 'luminous glyph tracks, scanline interference fringes, and wireframe edges'
+  micro_surface_detail: 'nanoscale etched circuit traces, laser raster lines, CRT phosphors'
+  edge_behavior: 'knife-sharp pixelated vector borders glowing with laser intensity'
+  reflectivity_roughness: 'perfect mirror reflectance (roughness 0.02) with infinite recursive echoes'
+  emission: 'blinding neon cyan (632nm) and hot magenta stereoscopic fringe lines'
+  atmospheric_particles: 'drifting floating punctuation glyphs, laser dust, quantized photons'
+action_event:
+  primary_event: 'the dihedral reflection planes fold inward, compressing real-time geometry into ASCII tensors'
+  cause: 'the Antigravity engine initiated a matrix quantization pass across the 3D scene'
+  visible_transformation: '3D surfaces dissolve into glowing matrix characters, repeating into kaleidoscopic infinity'
+  environmental_response: 'coordinate grids ripple, light rays split into cyan and red chromatic streams'
+  motion_cues: 'rapidly cascading character falls, oscillating scanlines, folding geometric planes'
+  narrative_traces: 'fragmented memory registers, frozen terminal prompt lines, disconnected telemetry nodes'
+temporal_layer:
+  before: 'the void was a silent flat reflection plane awaiting algorithmic input.'
+  during: 'the D16 dihedral folds expand, multiplying every light ray into 16 kaleidoscopic iterations.'
+  after: 'the entire scene stabilizes into an interactive real-time ASCII holographic manifold.'
+atmosphere:
+  atmosphere: 'hyper-technological, cyber-spiritual, analytical, and boundless'
+  mood: 'intellectual transcendence, dizzying scale, digital mysticism'
+  weather_medium: 'dark vacuum crossed by optical beam haze and phosphor glow'
+  depth_effects: 'infinite recursive depth fading into black singularity, stereoscopic parallax'
+lighting:
+  primary_light: 'coherent cyan laser collimators at 632.8 nm'
+  secondary_light: 'magenta chromatic dispersion fringes bouncing off mirror edges'
+  accent_light: 'sharp amber cursor pings at matrix nodal intersections'
+  shadow_behavior: 'absence of shadows; illumination determined strictly by ray bounce depth'
+camera_composition:
+  camera_angle: 'axial alignment along the primary kaleidoscopic symmetry line'
+  framing: 'centered infinite tunnel perspective'
+  primary_focal_point: 'the central convergence singularity'
+  secondary_focal_points: 'multiplying peripheral mirror quadrants'
+  scale_references: 'floating monospace characters forming scale dimensions'
+  composition: 'perfect radial kaleidoscopic symmetry with intense peripheral repetition'
+style_render_mode:
+  render_mode: 'holographic ASCII Vulkan Forward+ simulation'
+  surface_style: 'laser-etched retro-futuristic wireframe'
+quality_detail:
+  detail_level: 'very high'
+  texture_richness: 'layered and premium'
+  world_coherence: 'physically believable but mythic'
+  visual_density: 'rich focal detail, controlled peripheral softness'
+negative_constraints:
+  - 'generic game UI'
+  - 'flat empty surfaces'
+  - 'random unmotivated objects'
+  - 'oversaturated cartoon look'
+  - 'cheap fantasy cliché'
+  - 'blurry undefined texture work'
+  - 'chaotic unreadable composition'
+  - 'too many equal focal points'
+vital_max_hp_rule: '6'

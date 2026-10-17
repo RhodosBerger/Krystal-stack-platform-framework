@@ -1,0 +1,152 @@
+name: Krystal Verification & Cross-ISA Publication CI
+
+on:
+  push:
+    branches: [main, develop, phase-q-full-path, 'claude/*']
+  pull_request:
+    branches: [main, develop, phase-q-full-path]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  PYTHON_VERSION: "3.11"
+  PYTHONPATH: "."
+
+jobs:
+  # ============================================================
+  # Python 58-Test Suite (Governance, Memory Model, Research Cycle)
+  # ============================================================
+  python-test-suite:
+    name: Python Integration & Invariants Suite
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pytest
+
+      - name: Run Core 58 Integration & Memory Model Tests
+        run: |
+          set -o pipefail
+          python -m pytest \
+            tests/test_v_zerocopy_memory_model_02.py \
+            tests/test_v_universal_engine_interposer.py \
+            tests/test_v_perf_zerocopy_01.py \
+            tests/test_v_autonomous_research_cycle.py \
+            tests/test_v_os_coordination_policy_engine.py \
+            tests/test_v_os_coordination_resilience.py \
+            --import-mode=importlib \
+            -v --tb=short 2>&1 | tee pytest_output.log
+
+      - name: Publish Pytest Report to Job Summary
+        if: always()
+        run: |
+          if [ -f pytest_output.log ]; then
+            echo "## Core 58 Integration & Memory Model Tests Summary" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            cat pytest_output.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Test Output Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-execution-log
+          path: pytest_output.log
+          if-no-files-found: ignore
+
+      - name: Push Log to ci-debug-log Branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B ci-debug-log
+          git add -f pytest_output.log
+          git commit -m "ci: capture pytest output log" || true
+          git push -u origin ci-debug-log --force || true
+
+
+
+  # ============================================================
+  # C11 Cross-ISA ABI & Hardware SPSC Benchmark
+  # ============================================================
+  cross-isa-c11-verification:
+    name: Cross-ISA C11 ABI & SPSC Benchmark
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install C/C++ Toolchains & Cross-Compilers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            gcc \
+            g++ \
+            clang \
+            gcc-aarch64-linux-gnu \
+            gcc-riscv64-linux-gnu
+
+      - name: Verify C11 ABI Smoke TU (x86_64 GCC)
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c 2>&1 | tee -a abi_smoke.log
+
+      - name: Verify C11 ABI Smoke TU (x86_64 Clang)
+        run: |
+          clang -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c 2>&1 | tee -a abi_smoke.log
+
+      - name: Verify C++20 ABI Smoke TU (x86_64 G++)
+        run: |
+          g++ -std=c++20 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke_cpp.cpp 2>&1 | tee -a abi_smoke.log
+
+      - name: Verify C++20 ABI Smoke TU (x86_64 Clang++)
+        run: |
+          clang++ -std=c++20 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke_cpp.cpp 2>&1 | tee -a abi_smoke.log
+
+      - name: Verify C11 ABI Smoke TU (ARM64 Cross-Compiler)
+        run: |
+          aarch64-linux-gnu-gcc -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c 2>&1 | tee -a abi_smoke.log
+
+      - name: Verify C11 ABI Smoke TU (RISC-V 64 Cross-Compiler)
+        run: |
+          riscv64-linux-gnu-gcc -std=c11 -march=rv64gc -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c 2>&1 | tee -a abi_smoke.log
+
+      - name: Build & Run Native SPSC Benchmark (x86_64 GCC)
+        run: |
+          gcc -std=c11 -O3 -Wall -Wextra -Werror -Iinclude -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_gcc
+          ./krystal_spsc_bench_gcc
+
+      - name: Build & Run Native SPSC Benchmark (x86_64 Clang)
+        run: |
+          clang -std=c11 -O3 -Wall -Wextra -Werror -Iinclude -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_clang
+          ./krystal_spsc_bench_clang
+
+      - name: Cross-Compile SPSC Benchmark for ARM64
+        run: |
+          aarch64-linux-gnu-gcc -std=c11 -O3 -Wall -Wextra -Werror -Iinclude -c src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_arm64.o
+          file krystal_spsc_bench_arm64.o
+
+      - name: Cross-Compile SPSC Benchmark for RISC-V 64
+        run: |
+          riscv64-linux-gnu-gcc -std=c11 -march=rv64gc -O3 -Wall -Wextra -Werror -Iinclude -c src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_riscv64.o
+          file krystal_spsc_bench_riscv64.o
+
+      - name: Push Build & Smoke Logs on Failure
+        if: failure()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B ci-debug-log
+          git add -f *.log || true
+          git commit -m "ci: capture cross-isa failure logs" || true
+          git push -u origin ci-debug-log --force || true

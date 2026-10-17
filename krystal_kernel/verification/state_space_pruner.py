@@ -21,6 +21,7 @@ Description:
       5. Committable Candidate Set (A_committable)
 ==============================================================================
 """
+from __future__ import annotations
 
 import time
 from enum import Enum
@@ -28,6 +29,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional, Tuple, Set
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
+from krystal_kernel.runtime.prediction_error_ledger import ContextualRiskRegistry
 from krystal_kernel.verification.state_version import StateVersion
 from krystal_kernel.verification.resource_evidence_envelope import (
     ResourceVector,

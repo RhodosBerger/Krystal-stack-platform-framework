@@ -1,0 +1,298 @@
+{
+  "$schema": "../schemas/benchmark_evidence_record.schema.json",
+  "schema_version": "1.0",
+  "registry_title": "KRYSTAL-STACK BENCHMARK EVIDENCE REGISTRY (V1.0)",
+  "status": "VALIDATED_LOCAL",
+  "measurement_class": "LOCAL-TEST-MEASURED",
+  "git": {
+    "commit": "7f283959bd3c5863c19e26ad0454d09131bbf7d3",
+    "branch_integration_target": "phase-q-full-path",
+    "dirty": true,
+    "uncommitted_files": [
+      "krystal_kernel/hardware_input_hal.py",
+      "krystal_kernel/hardware_input_toolkit.py",
+      "krystal_kernel/custom_governor.py",
+      "specs/authority_profile_bits_v1.yaml",
+      "krystal_kernel/verification/authority_bits.py",
+      "krystal_kernel/verification/capability_registry.py",
+      "krystal_kernel/verification/phase_q_authority.py",
+      "scripts/generate_authority_bits.py",
+      "scripts/run_khi_e2e_002_phase_p.py",
+      "scripts/run_khi_e2e_phase_q_fullpath.py",
+      "tests/test_mimicry_compositor.py",
+      "tests/test_krystal_rag_llm_trainer.py",
+      "tests/test_phase_q_authority.py"
+    ]
+  },
+  "host": {
+    "fingerprint": "SHA256-HOST-TIGERLAKE-I5-IRIS-XE",
+    "os": "Windows 11",
+    "cpu": "Intel64 Family 6 Model 140 Stepping 1",
+    "cores_physical": 4,
+    "cores_logical": 8,
+    "smt_active": true
+  },
+  "phase_p_micro_reduction": {
+    "benchmark_id": "KHI-E2E-002",
+    "phase": "PHASE_P_PYTHON_HOTPATH",
+    "status": "VALIDATED_LOCAL",
+    "sample_design": {
+      "design_kind": "RANDOMIZED_BLOCK_DESIGN",
+      "blocks": 30,
+      "events_per_block": 10000,
+      "warmup_events": 5000,
+      "total_evaluations_per_variant": 300000,
+      "total_evaluations": 1200000,
+      "duration_seconds": 11.22
+    },
+    "variants": {
+      "B0": {
+        "name": "Baseline Python (String Sets + Dynamic Criteria)",
+        "p50_us": 1.30,
+        "p95_us": 2.50,
+        "p99_us": 2.70,
+        "p99_ci95": [2.70, 2.70],
+        "max_us": 247.20
+      },
+      "A": {
+        "name": "B0 + Bitmask CriteriaSet (uint64_t Mask Reduction)",
+        "p50_us": 1.70,
+        "p95_us": 3.30,
+        "p99_us": 3.60,
+        "p99_ci95": [3.40, 3.60],
+        "max_us": 129.10
+      },
+      "B": {
+        "name": "B0 + Cached CapabilitySnapshot (Generation Counter)",
+        "p50_us": 3.80,
+        "p95_us": 7.30,
+        "p99_us": 8.00,
+        "p99_ci95": [7.90, 8.10],
+        "max_us": 873.00
+      },
+      "AB": {
+        "name": "B0 + A + B (Bitmask Criteria + Snapshot Cache)",
+        "p50_us": 0.50,
+        "p95_us": 1.00,
+        "p99_us": 1.10,
+        "p99_ci95": [1.10, 1.20],
+        "max_us": 133.80
+      }
+    },
+    "hypotheses": {
+      "h1_python": {
+        "target_p99_us": 500.0,
+        "measured_p99_us": 1.10,
+        "verdict": "SUPPORTED"
+      },
+      "h2_target": {
+        "target_p99_us": 200.0,
+        "measured_p99_us": 1.10,
+        "verdict": "SUPPORTED"
+      }
+    }
+  },
+  "phase_q_macro_full_path": {
+    "benchmark_id": "KHI-E2E-002-PHASE-Q",
+    "phase": "PHASE_Q_FULL_PATH_E2E",
+    "status": "VALIDATED_LOCAL",
+    "sample_design": {
+      "design_kind": "RANDOMIZED_BLOCK_DESIGN",
+      "blocks": 30,
+      "traces_per_block": 500,
+      "warmup_traces": 500,
+      "traces_per_variant": 15000,
+      "paired_comparisons": 15000,
+      "total_traces": 30000,
+      "duration_seconds": 6.96
+    },
+    "macro_stages_comparison_us": {
+      "ring": {
+        "q0_p50": 0.60, "q0_p99": 1.30,
+        "q_ab_p50": 0.60, "q_ab_p99": 1.30,
+        "speedup_p99": 1.00
+      },
+      "norm": {
+        "q0_p50": 2.50, "q0_p99": 7.10,
+        "q_ab_p50": 2.50, "q_ab_p99": 6.90,
+        "speedup_p99": 1.03
+      },
+      "evid": {
+        "q0_p50": 14.60, "q0_p99": 33.70,
+        "q_ab_p50": 14.70, "q_ab_p99": 34.00,
+        "speedup_p99": 0.99
+      },
+      "gov": {
+        "q0_p50": 86.00, "q0_p99": 246.20,
+        "q_ab_p50": 74.00, "q_ab_p99": 217.80,
+        "speedup_p99": 1.13,
+        "direct_phase_q_delta": {
+          "p50_reduction_pct": 13.95,
+          "p99_reduction_pct": 11.53,
+          "p99_reduction_us": 28.40
+        }
+      },
+      "plan": {
+        "q0_p50": 16.80, "q0_p99": 50.10,
+        "q_ab_p50": 17.00, "q_ab_p99": 50.50,
+        "speedup_p99": 0.99
+      },
+      "total_software_path": {
+        "q0_p50": 120.40, "q0_p99": 347.90,
+        "q_ab_p50": 108.80, "q_ab_p99": 317.40,
+        "p99_ci95": [295.40, 346.90],
+        "speedup_p99": 1.10,
+        "direct_phase_q_delta": {
+          "p50_reduction_pct": 9.63,
+          "p99_reduction_pct": 8.77,
+          "p99_reduction_us": 30.50
+        },
+        "cumulative_vs_e2e_001": {
+          "baseline_e2e_001_p99_us": 1566.50,
+          "cumulative_reduction_pct": 79.74
+        }
+      }
+    },
+    "quantum_analysis_8khz": {
+      "nominal_quantum_us": 125.0,
+      "single_period_p50": {
+        "measured_us": 108.80,
+        "quantum_utilization_pct": 87.04,
+        "headroom_us": 16.20,
+        "compatible": true
+      },
+      "single_period_p99": {
+        "measured_us": 317.40,
+        "quantum_multiplier": 2.54,
+        "hard_realtime_supported": false
+      },
+      "h3_software_target_sub_500us": "PASS"
+    },
+    "hypotheses": {
+      "h3_system": {
+        "target_p99_us": 500.0,
+        "measured_p99_us": 317.40,
+        "ci95_us": [295.40, 346.90],
+        "verdict": "SUPPORTED"
+      }
+    },
+    "correctness": {
+      "paired_semantic_mismatches": "0 / 15,000",
+      "total_evaluations": 30000,
+      "invariant_checks_passed": "30,000 / 30,000",
+      "vital_max_hp_invariant": 6,
+      "capability_generation_tracked": true
+    },
+    "test_suite_verification": {
+      "total_tests_passed": 91,
+      "subtests_passed": 6,
+      "breakdown": {
+        "tests/test_authority_bits_contract.py": 7,
+        "tests/test_phase_q_authority_safety.py": 9,
+        "tests/test_phase_q_authority.py": 6,
+        "tests/test_custom_governor_and_planner.py": 9,
+        "tests/test_hardware_input_hal.py": 11,
+        "tests/test_hardware_input_toolkit.py": 8,
+        "tests/test_khi_e2e_benchmark.py": 1,
+        "tests/test_khi_e2e_003_queue_contract.py": 8,
+        "tests/test_khi_e2e_queue_stability.py": 4,
+        "tests/test_khi_e2e_004_fault_matrix.py": 11,
+        "tests/test_mimicry_compositor.py": 6,
+        "tests/test_krystal_rag_llm_trainer.py": 11
+      }
+    },
+    "engineering_verdict": "H3-SYSTEM SUPPORTED: Phase Q znížila p99 celej Ring→Plan cesty o 8.8 % (−30.5 µs vs Q0 baseline 347.9 µs), pričom H3-SYSTEM bolo splnené s Q-AB p99 = 317.40 µs, 95 % CI [295.40, 346.90]. Kumulatívny pokles vs pôvodný KHI-E2E-001 tail je −79.7 % (1566.5 µs → 317.4 µs). Single-period 8 kHz budget (125 µs) je splnený na mediáne (p50 = 108.8 µs, 87.0 % budgetu), ale na p99 vyžaduje ~2.54 intervalu (317.4 µs > 125 µs). Hard-real-time deadline na p99 nie je splnená; queue stability benchmark KHI-E2E-003 vyhodnocuje dlhodobé správanie frontu."
+  },
+  "khi_e2e_003_queue_stability": {
+    "benchmark_id": "KHI-E2E-003",
+    "title": "Sustained 8 kHz Input Queue Stability & Service Rate (λ vs μ)",
+    "status": "VALIDATED_LOCAL",
+    "measurement_class": "LOCAL-TEST-MEASURED",
+    "macro_pipeline": "8 kHz Input -> SPSC Ring (4096) -> Normalize -> Evidence -> Governor Q-AB -> Planner",
+    "input_arrival_rate_hz": 8000.0,
+    "nominal_period_us": 125.0,
+    "critical_control_ratio_boundary": {
+      "k_star": 1.36,
+      "max_control_tick_hz_for_stability": 5882.35,
+      "rule": "Analytical stability boundary: control rate < 5.88 kHz. For integer decimation of an 8 kHz stream, the first empirically supported stable operating point is K=2, i.e. 4 kHz."
+    },
+    "workload_regimes": {
+      "regime_k1_unthrottled_stress": {
+        "description": "Full Ring -> Normalize -> Evidence -> Governor Q-AB -> Planner on EVERY single event (K=1, 8 kHz replan)",
+        "sample_count": 10000,
+        "service_capacity_hz": 5626.70,
+        "traffic_intensity_rho": 1.4218,
+        "stability_verdict": "UNSTABLE_OVERFLOW_INFINITE_HORIZON",
+        "backlog_slope": 0.06544686,
+        "queue_depth_p50": 1934.0,
+        "queue_depth_max": 3110.0,
+        "transit_age_p50_us": 319393.30,
+        "drops": 0,
+        "note": "Median raw processing is 137.9 µs, but mean is 177.7 µs due to GC/allocations; rho > 1 causes monotonic backlog accumulation."
+      },
+      "regime_k2_boundary_stable": {
+        "description": "HAL Ring Pop + Normalize + Evidence at 8 kHz; Governor Q-AB + Planner at 4 kHz (K=2, alternate ticks)",
+        "sample_count": 20000,
+        "service_capacity_hz": 12391.00,
+        "traffic_intensity_rho": 0.6456,
+        "stability_verdict": "STABLE_SUSTAINED",
+        "backlog_slope": -0.00003568,
+        "queue_depth_p50": 1.0,
+        "queue_depth_p95": 5.0,
+        "queue_depth_p99": 10.0,
+        "queue_depth_max": 16.0,
+        "transit_age_p50_us": 100.80,
+        "transit_age_p99_us": 1349.90,
+        "drops": 0,
+        "note": "Strictly bounded queue depth (max 16 / 4096), zero drops, transit age median 100.8 µs (< 125.0 µs quantum)."
+      },
+      "regime_k8_production_gaming": {
+        "description": "HAL Ring Pop + Normalize + Evidence at 8 kHz; Governor Q-AB + Planner at 1 kHz (K=8, 1 ms tick)",
+        "sample_count": 80000,
+        "duration_sim_s": 10.0,
+        "service_capacity_hz": 21163.10,
+        "traffic_intensity_rho": 0.3780,
+        "stability_verdict": "STABLE_SUSTAINED",
+        "backlog_slope": 0.00009047,
+        "queue_depth_p50": 1.0,
+        "queue_depth_p90": 4.0,
+        "queue_depth_p95": 24.0,
+        "queue_depth_max": 404.0,
+        "transit_age_p50_us": 18.30,
+        "raw_processing_p50_us": 18.10,
+        "drops": 0,
+        "note": "Zero dropped frames across 80,000 events, 62.2% service headroom (rho=0.378), median transit latency 18.3 µs."
+      }
+    },
+    "key_architectural_takeaway": "8 kHz throughput is fully sustainable with zero drops when separating raw event ingestion (8 kHz, 26 µs) from control re-evaluation (<= 4 kHz). Full replan on every single packet without decimation exceeds mean capacity (rho=1.42)."
+  },
+  "khi_e2e_004_fault_matrix": {
+    "benchmark_id": "KHI-E2E-004",
+    "title": "Adverse Fault & Stress Matrix Under Degradation & Overload",
+    "status": "VALIDATED_LOCAL",
+    "measurement_class": "LOCAL-TEST-MEASURED",
+    "acceptance_criteria_results": {
+      "authority_bypasses": 0,
+      "stale_candidate_commits": 0,
+      "silent_evidence_acceptance": 0,
+      "bounded_recovery_time_verified": true,
+      "known_drop_policy_enforced": true,
+      "queue_returns_to_steady_state": true,
+      "vital_max_hp_invariant": 6
+    },
+    "scenarios_evaluated": [
+      {"id": "FAULT-01", "name": "GC spike injection (15 ms pause)", "result": "ABSORBED_AND_RECOVERED", "max_depth": 121, "drops": 0},
+      {"id": "FAULT-02", "name": "1 ms scheduler stall (8 input periods)", "result": "BUFFERED_AND_DRAINED", "max_depth": 9, "drops": 0},
+      {"id": "FAULT-03", "name": "5 ms scheduler stall (40 input periods)", "result": "BUFFERED_AND_DRAINED", "max_depth": 41, "drops": 0},
+      {"id": "FAULT-04", "name": "capability_generation change mid-plan (TOCTOU)", "result": "STALE_COMMIT_REJECTED", "envelope_mismatch_detected": true},
+      {"id": "FAULT-05", "name": "Stale evidence injection (out-of-order)", "result": "EXPLICIT_PROVENANCE_TAGGED", "silent_acceptance": 0},
+      {"id": "FAULT-06", "name": "Thermal veto during queue backlog", "result": "AUTHORITY_ENFORCED", "forced_profile": "ultra_saver", "authority_bypasses": 0},
+      {"id": "FAULT-07", "name": "Ring capacity sweep (32/128/1024/4096)", "result": "FIFO_DROP_PRESERVES_FRESHNESS", "capacity_32_drops": 68, "capacity_128_drops": 0},
+      {"id": "FAULT-08", "name": "Burst 16 kHz -> settle to 8 kHz", "result": "RECOVERED_TO_STEADY_STATE", "burst_expansion": true, "steady_depth": 1},
+      {"id": "FAULT-09", "name": "Malformed serial frames (CRC_BAD)", "result": "CORRUPTION_CAPTURED", "malformed_actuation": 0},
+      {"id": "FAULT-10", "name": "Replayed authenticated frames", "result": "SLIDING_WINDOW_REJECTED", "replay_bypasses": 0},
+      {"id": "FAULT-11", "name": "Planner slowdown (x4 synthetic compute load)", "result": "INVARIANT_PRESERVED", "vital_max_hp": 6}
+    ],
+    "cyber_physical_verdict": "RESILIENT: System maintains strict fail-safe invariants (0 authority bypasses, 0 stale commits, known drop policy, VITAL_MAX_HP == 6) across all 11 fault injection regimes."
+  }
+}
