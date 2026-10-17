@@ -20,6 +20,7 @@ from krystal_kernel.aep_engine import (
 from krystal_kernel.openvino_aep_runtime import (
     OpenVinoAepRuntime,
     OpenVinoInferenceInvariantRule,
+    HardwareCrossoverPolicy,
     GLOBAL_OPENVINO_AEP_RUNTIME,
     VITAL_MAX_HP,
 )
@@ -249,4 +250,41 @@ class TestOpenVinoAepRuntime:
         assert out_ring.available_count() == iterations
         # Fast-path SPSC memory processing should be well below 600 µs in interpreted Python (and sub-100ns in C11)
         assert avg_us < 600.0, f"Average zero-copy inference latency {avg_us:.1f}us exceeded 600us target"
+
+    def test_hardware_crossover_policy_micro_tensor_routes_to_cpu(self):
+        # 128B micro-tensor with low pressure should route to CPU
+        device, rationale = HardwareCrossoverPolicy.select_device(
+            payload_bytes=128,
+            current_bus_pressure=0.20,
+            available_devices=["CPU", "GPU"],
+        )
+        assert device == "CPU"
+        assert "MICRO_TENSOR" in rationale
+
+    def test_hardware_crossover_policy_dense_tensor_routes_to_gpu(self):
+        # 64 KB dense tensor with low pressure should route to GPU when available
+        device, rationale = HardwareCrossoverPolicy.select_device(
+            payload_bytes=65536,
+            current_bus_pressure=0.20,
+            available_devices=["CPU", "GPU"],
+        )
+        assert device == "GPU"
+        assert "DENSE_TENSOR" in rationale
+
+    def test_hardware_crossover_policy_uma_pressure_overrides_to_cpu(self):
+        # Even a dense tensor must fall back to CPU if bus pressure >= 0.78
+        device, rationale = HardwareCrossoverPolicy.select_device(
+            payload_bytes=65536,
+            current_bus_pressure=0.85,
+            available_devices=["CPU", "GPU"],
+        )
+        assert device == "CPU"
+        assert "UMA_PRESSURE_OVERRUN" in rationale
+
+    def test_persistent_cache_dir_configured(self):
+        status = GLOBAL_OPENVINO_AEP_RUNTIME.get_runtime_status()
+        assert "cache_dir" in status
+        assert "openvino_blobs" in status["cache_dir"]
+        assert status["crossover_threshold_bytes"] == 16384
+
 

@@ -91,6 +91,36 @@ class OpenVinoInferenceInvariantRule(InvariantRule):
         return True, "OPENVINO_INVARIANTS_SATISFIED"
 
 
+class HardwareCrossoverPolicy:
+    """
+    AEP Layer 4 (Policy Processor) hardware routing policy.
+    Arbitrates between CPU (Willow Cove VNNI) and iGPU (Iris Xe 96 EU)
+    based on tensor payload size, dispatch overhead, and UMA bus pressure.
+    """
+    CROSSOVER_THRESHOLD_BYTES: int = 16384  # 16 KB
+
+    @classmethod
+    def select_device(
+        cls,
+        payload_bytes: int,
+        current_bus_pressure: float,
+        available_devices: List[str],
+    ) -> Tuple[str, str]:
+        # 1. Inviolable graphics precedence rule: if bus pressure >= 0.78, force CPU
+        if current_bus_pressure >= 0.78:
+            return "CPU", "UMA_PRESSURE_OVERRUN_FORCE_CPU_PRESERVE_120HZ"
+
+        # 2. Micro-tensor rule: if payload < 16 KB, CPU has lower queue dispatch latency (85µs vs 403µs)
+        if payload_bytes < cls.CROSSOVER_THRESHOLD_BYTES:
+            return "CPU", "MICRO_TENSOR_FAVORS_LOW_LATENCY_CPU"
+
+        # 3. Dense matrix rule: if GPU available, utilize Iris Xe 96 EUs with GPU_USM_MEMORY
+        if "GPU" in available_devices:
+            return "GPU", "DENSE_TENSOR_DISPATCH_TO_IRIS_XE_IGPU"
+
+        return "CPU", "GPU_UNAVAILABLE_FALLBACK_TO_CPU"
+
+
 class OpenVinoAepRuntime:
     """
     Authoritative OpenVINO runtime implementing the AEP L0–L8 execution cycle.
@@ -102,6 +132,16 @@ class OpenVinoAepRuntime:
             max_pressure_threshold=max_bus_pressure,
         )
         self.governor = GLOBAL_OPENVINO_GOVERNOR
+        self.cache_dir = os.path.abspath(os.path.join(os.getcwd(), "artifacts", "cache", "openvino_blobs"))
+        os.makedirs(self.cache_dir, exist_ok=True)
+        self.available_devices: List[str] = ["CPU"]
+        try:
+            import openvino as ov
+            self._ov_core = ov.Core()
+            self._ov_core.set_property({"CACHE_DIR": self.cache_dir})
+            self.available_devices = list(self._ov_core.available_devices)
+        except Exception:
+            self._ov_core = None
 
     def infer_process(
         self,
@@ -148,6 +188,14 @@ class OpenVinoAepRuntime:
             state_dict["status"] = "INFERRED"
             return state_dict
 
+        # AEP Layer 4: Dynamic Hardware Crossover Policy
+        payload_bytes = len(f) * 4 if f else 32
+        target_device, routing_rationale = HardwareCrossoverPolicy.select_device(
+            payload_bytes=payload_bytes,
+            current_bus_pressure=current_bus_pressure,
+            available_devices=self.available_devices,
+        )
+
         tx_result = self.aep_engine.execute_transition(
             runtime_id=runtime_id,
             workload=WorkloadType.INFERENCE,
@@ -155,11 +203,11 @@ class OpenVinoAepRuntime:
             current_state=initial_state,
             transition_fn=transition_inference,
             action_payload=f,
-            policy_id="openvino-dp4a-heterogeneous",
+            policy_id=f"openvino-crossover-{target_device.lower()}",
             policy_revision=1,
             execution_lane=ExecutionLane.COMPUTE,
             backend="openvino-neural-engine",
-            device=getattr(self.governor, "preferred_device", "CPU"),
+            device=target_device,
             current_bus_pressure=current_bus_pressure,
             deadline_budget_us=20000,
         )
@@ -254,6 +302,13 @@ class OpenVinoAepRuntime:
             state_dict["status"] = "INFERRED"
             return state_dict
 
+        # AEP Layer 4: Zero-Copy 128B SPSC frame is a micro-tensor (128 bytes)
+        target_device, routing_rationale = HardwareCrossoverPolicy.select_device(
+            payload_bytes=128,
+            current_bus_pressure=current_bus_pressure,
+            available_devices=self.available_devices,
+        )
+
         tx_result = self.aep_engine.execute_transition(
             runtime_id=f"ring-slot-seq-{in_frame.sequence_id}",
             workload=WorkloadType.INFERENCE,
@@ -261,11 +316,11 @@ class OpenVinoAepRuntime:
             current_state=initial_state,
             transition_fn=transition_inference,
             action_payload={"seq": in_frame.sequence_id, "cap_scope": in_frame.capability_scope},
-            policy_id="openvino-zerocopy-fastpath",
+            policy_id=f"openvino-zerocopy-{target_device.lower()}",
             policy_revision=1,
             execution_lane=ExecutionLane.COMPUTE,
             backend="openvino-neural-engine",
-            device=getattr(self.governor, "preferred_device", "CPU"),
+            device=target_device,
             current_bus_pressure=current_bus_pressure,
             deadline_budget_us=20000,
         )
@@ -332,6 +387,9 @@ class OpenVinoAepRuntime:
             "device": getattr(self.governor, "preferred_device", "CPU"),
             "backend": getattr(self.governor, "backend_name", "OpenVINO-DirectSim"),
             "openvino_version": "2026.4.1-LTS",
+            "available_devices": self.available_devices,
+            "cache_dir": self.cache_dir,
+            "crossover_threshold_bytes": HardwareCrossoverPolicy.CROSSOVER_THRESHOLD_BYTES,
             "dp4a_accelerated": True,
             "vital_max_hp": VITAL_MAX_HP,
             "hardware_bypass": unblocker_status,
