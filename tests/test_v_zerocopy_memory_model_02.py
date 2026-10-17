@@ -363,7 +363,8 @@ class TestVZeroCopyMemoryModel02:
         assert "frame_hmac[32]" in header
         assert "_Atomic uint64_t head;" in header
         assert "_Atomic uint64_t drop_count;" in header
-        assert "_Alignas(64) _Atomic uint64_t tail;" in header
+        assert "_Atomic uint64_t tail;" in header
+        assert "offsetof(KrystalRingHeader, tail) == 64" in header
 
         assert "_Static_assert(sizeof(KrystalZeroCopyFrame) == 128" in header
         assert "_Static_assert(_Alignof(KrystalZeroCopyFrame) == 64" in header

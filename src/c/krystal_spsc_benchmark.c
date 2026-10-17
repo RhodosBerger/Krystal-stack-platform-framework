@@ -19,7 +19,11 @@
 #include <stdatomic.h>
 #include <inttypes.h>
 
+#if defined(__has_include) && __has_include("krystal_nexus_api.h")
+#include "krystal_nexus_api.h"
+#else
 #include "../../include/krystal_nexus_api.h"
+#endif
 
 #define BENCHMARK_CAPACITY   2048
 #define BENCHMARK_WARMUP     10000

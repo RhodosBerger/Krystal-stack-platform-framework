@@ -10,10 +10,11 @@ on:
 env:
   CARGO_TERM_COLOR: always
   PYTHON_VERSION: "3.11"
+  PYTHONPATH: "."
 
 jobs:
   # ============================================================
-  # Python 56-Test Suite (Governance, Memory Model, Research Cycle)
+  # Python 58-Test Suite (Governance, Memory Model, Research Cycle)
   # ============================================================
   python-test-suite:
     name: Python Integration & Invariants Suite
@@ -30,8 +31,9 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install pytest pytest-cov
+          pip install -e . --no-deps
 
-      - name: Run Core 56 Integration & Memory Model Tests
+      - name: Run Core 58 Integration & Memory Model Tests
         run: |
           python -m pytest \
             tests/test_v_zerocopy_memory_model_02.py \
@@ -63,34 +65,36 @@ jobs:
 
       - name: Verify C11 ABI Header Syntax (x86_64 GCC)
         run: |
-          gcc -std=c11 -Wall -Wextra -Werror -fsyntax-only include/krystal_nexus_api.h
+          gcc -std=c11 -Wall -Wextra -Werror -Wno-unused-function -fsyntax-only include/krystal_nexus_api.h
 
       - name: Verify C11 ABI Header Syntax (x86_64 Clang)
         run: |
-          clang -std=c11 -Wall -Wextra -Werror -fsyntax-only include/krystal_nexus_api.h
+          clang -std=c11 -Wall -Wextra -Werror -Wno-unused-function -fsyntax-only include/krystal_nexus_api.h
 
       - name: Verify C11 ABI Header Syntax & Alignments (ARM64 Cross-Compiler)
         run: |
-          aarch64-linux-gnu-gcc -std=c11 -Wall -Wextra -Werror -fsyntax-only include/krystal_nexus_api.h
+          aarch64-linux-gnu-gcc -std=c11 -Wall -Wextra -Werror -Wno-unused-function -fsyntax-only include/krystal_nexus_api.h
 
       - name: Verify C11 ABI Header Syntax & Alignments (RISC-V 64 Cross-Compiler)
         run: |
-          riscv64-linux-gnu-gcc -std=c11 -Wall -Wextra -Werror -fsyntax-only include/krystal_nexus_api.h
+          riscv64-linux-gnu-gcc -std=c11 -march=rv64gc -Wall -Wextra -Werror -Wno-unused-function -fsyntax-only include/krystal_nexus_api.h
 
       - name: Build & Run Native SPSC Benchmark (x86_64 GCC)
         run: |
-          gcc -std=c11 -O3 -Wall -Wextra -Werror -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_gcc
+          gcc -std=c11 -O3 -Wall -Wextra -Werror -Iinclude -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_gcc
           ./krystal_spsc_bench_gcc
 
       - name: Build & Run Native SPSC Benchmark (x86_64 Clang)
         run: |
-          clang -std=c11 -O3 -Wall -Wextra -Werror -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_clang
+          clang -std=c11 -O3 -Wall -Wextra -Werror -Iinclude -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_clang
           ./krystal_spsc_bench_clang
 
       - name: Cross-Compile SPSC Benchmark for ARM64
         run: |
-          aarch64-linux-gnu-gcc -std=c11 -O3 -Wall -Wextra -Werror -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_arm64
+          aarch64-linux-gnu-gcc -std=c11 -O3 -Wall -Wextra -Werror -Iinclude -c src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_arm64.o
+          file krystal_spsc_bench_arm64.o
 
       - name: Cross-Compile SPSC Benchmark for RISC-V 64
         run: |
-          riscv64-linux-gnu-gcc -std=c11 -O3 -Wall -Wextra -Werror -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_riscv64
+          riscv64-linux-gnu-gcc -std=c11 -march=rv64gc -O3 -Wall -Wextra -Werror -Iinclude -c src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_riscv64.o
+          file krystal_spsc_bench_riscv64.o

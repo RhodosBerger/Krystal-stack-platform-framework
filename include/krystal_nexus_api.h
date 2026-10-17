@@ -22,6 +22,12 @@
 extern "C" {
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#define KRYSTAL_API_INLINE static inline __attribute__((unused))
+#else
+#define KRYSTAL_API_INLINE static inline
+#endif
+
 #define KRYSTAL_MAGIC             0x4B525953  /* "KRYS" */
 #define KRYSTAL_PROTOCOL_VERSION  2
 #define KRYSTAL_FRAME_SIZE_BYTES  128
@@ -93,9 +99,9 @@ typedef struct {
 
     /* CL1: Consumer cache line (bytes 64..127) - Exclusively written by Consumer */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-    _Alignas(64) _Atomic uint64_t tail; /* 64..71: Consumer atomic tail pointer */
+    _Atomic uint64_t tail;         /* 64..71: Consumer atomic tail pointer (CL1 offset 64) */
 #else
-    _Alignas(64) uint64_t tail;
+    uint64_t tail;
 #endif
     uint8_t  _reserved[56];        /* 72..127: Padding to complete CL1 */
 } KrystalRingHeader;
@@ -112,7 +118,7 @@ _Static_assert(offsetof(KrystalRingHeader, tail) == 64, "Tail pointer must be in
  * Slot address calculation helper:
  * Guarantees Addr(Slot_n) % 64 == 0 and Addr(Slot_n) % 128 == 0 when ring base is 64-byte aligned.
  */
-static inline KrystalZeroCopyFrame* krystal_ring_get_slot(void* ring_base, uint64_t slot_idx, uint32_t capacity) {
+KRYSTAL_API_INLINE KrystalZeroCopyFrame* krystal_ring_get_slot(void* ring_base, uint64_t slot_idx, uint32_t capacity) {
     uint8_t* base_ptr = (uint8_t*)ring_base;
     uint8_t* slots_start = base_ptr + KRYSTAL_RING_HEADER_BYTES;
     uint64_t wrapped_idx = slot_idx % capacity;
@@ -127,7 +133,7 @@ static inline KrystalZeroCopyFrame* krystal_ring_get_slot(void* ring_base, uint6
  * RISC-V: fence rw,w
  * x86_64: MOV with compiler barrier
  */
-static inline bool krystal_ring_publish(KrystalRingHeader* hdr, void* ring_base, const KrystalZeroCopyFrame* frame) {
+KRYSTAL_API_INLINE bool krystal_ring_publish(KrystalRingHeader* hdr, void* ring_base, const KrystalZeroCopyFrame* frame) {
     uint64_t head = atomic_load_explicit(&hdr->head, memory_order_relaxed);
     uint64_t tail = atomic_load_explicit(&hdr->tail, memory_order_acquire);
 
@@ -153,7 +159,7 @@ static inline bool krystal_ring_publish(KrystalRingHeader* hdr, void* ring_base,
  * RISC-V: fence r,rw
  * x86_64: MOV with compiler barrier
  */
-static inline bool krystal_ring_consume(KrystalRingHeader* hdr, void* ring_base, KrystalZeroCopyFrame* out_frame) {
+KRYSTAL_API_INLINE bool krystal_ring_consume(KrystalRingHeader* hdr, void* ring_base, KrystalZeroCopyFrame* out_frame) {
     uint64_t head = atomic_load_explicit(&hdr->head, memory_order_acquire);
     uint64_t tail = atomic_load_explicit(&hdr->tail, memory_order_relaxed);
 

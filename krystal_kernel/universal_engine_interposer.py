@@ -588,9 +588,9 @@ typedef struct {
 
     /* CL1: Consumer cache line (bytes 64..127) - Exclusively written by Consumer */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-    _Alignas(64) _Atomic uint64_t tail; /* 64..71: Consumer atomic tail (64-bit) */
+    _Atomic uint64_t tail;         /* 64..71: Consumer atomic tail pointer (CL1 offset 64) */
 #else
-    _Alignas(64) uint64_t tail;
+    uint64_t tail;
 #endif
     uint8_t  _reserved[56];        /* 72..127: Padding to complete 64B CL1 */
 } KrystalRingHeader;
