@@ -99,27 +99,27 @@ jobs:
 
       - name: Verify C11 ABI Smoke TU (x86_64 GCC)
         run: |
-          gcc -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c
+          gcc -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c 2>&1 | tee -a abi_smoke.log
 
       - name: Verify C11 ABI Smoke TU (x86_64 Clang)
         run: |
-          clang -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c
+          clang -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c 2>&1 | tee -a abi_smoke.log
 
       - name: Verify C++20 ABI Smoke TU (x86_64 G++)
         run: |
-          g++ -std=c++20 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke_cpp.cpp
+          g++ -std=c++20 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke_cpp.cpp 2>&1 | tee -a abi_smoke.log
 
       - name: Verify C++20 ABI Smoke TU (x86_64 Clang++)
         run: |
-          clang++ -std=c++20 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke_cpp.cpp
+          clang++ -std=c++20 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke_cpp.cpp 2>&1 | tee -a abi_smoke.log
 
       - name: Verify C11 ABI Smoke TU (ARM64 Cross-Compiler)
         run: |
-          aarch64-linux-gnu-gcc -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c
+          aarch64-linux-gnu-gcc -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c 2>&1 | tee -a abi_smoke.log
 
       - name: Verify C11 ABI Smoke TU (RISC-V 64 Cross-Compiler)
         run: |
-          riscv64-linux-gnu-gcc -std=c11 -march=rv64gc -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c
+          riscv64-linux-gnu-gcc -std=c11 -march=rv64gc -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c 2>&1 | tee -a abi_smoke.log
 
       - name: Build & Run Native SPSC Benchmark (x86_64 GCC)
         run: |
@@ -140,3 +140,13 @@ jobs:
         run: |
           riscv64-linux-gnu-gcc -std=c11 -march=rv64gc -O3 -Wall -Wextra -Werror -Iinclude -c src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_riscv64.o
           file krystal_spsc_bench_riscv64.o
+
+      - name: Push Build & Smoke Logs on Failure
+        if: failure()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B ci-debug-log
+          git add -f *.log || true
+          git commit -m "ci: capture cross-isa failure logs" || true
+          git push -u origin ci-debug-log --force || true

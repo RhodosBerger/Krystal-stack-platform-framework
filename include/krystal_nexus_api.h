@@ -34,6 +34,16 @@
 #ifndef _Static_assert
 #define _Static_assert(cond, msg) static_assert(cond, msg)
 #endif
+
+#define KRYSTAL_LOAD_RELAXED(a)         ((a).load(std::memory_order_relaxed))
+#define KRYSTAL_LOAD_ACQUIRE(a)         ((a).load(std::memory_order_acquire))
+#define KRYSTAL_STORE_RELEASE(a, v)     ((a).store((v), std::memory_order_release))
+#define KRYSTAL_FETCH_ADD_RELAXED(a, v) ((a).fetch_add((v), std::memory_order_relaxed))
+#else
+#define KRYSTAL_LOAD_RELAXED(a)         atomic_load_explicit(&(a), memory_order_relaxed)
+#define KRYSTAL_LOAD_ACQUIRE(a)         atomic_load_explicit(&(a), memory_order_acquire)
+#define KRYSTAL_STORE_RELEASE(a, v)     atomic_store_explicit(&(a), (v), memory_order_release)
+#define KRYSTAL_FETCH_ADD_RELAXED(a, v) atomic_fetch_add_explicit(&(a), (v), memory_order_relaxed)
 #endif
 
 #ifdef __cplusplus
@@ -129,12 +139,15 @@ typedef struct {
     uint8_t  _reserved[56];        /* 72..127: Padding to complete CL1 */
 } KrystalRingHeader;
 
-#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || defined(__cplusplus)
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 _Static_assert(sizeof(KrystalRingHeader) == 128, "Ring header must be exactly 128B (2 cache lines)");
 _Static_assert(_Alignof(KrystalRingHeader) == 64, "Ring header must be 64B cache-line aligned");
 _Static_assert(offsetof(KrystalRingHeader, head) == 16, "Head pointer must be in CL0 at offset 16");
 _Static_assert(offsetof(KrystalRingHeader, drop_count) == 24, "Drop counter must be in CL0 at offset 24");
 _Static_assert(offsetof(KrystalRingHeader, tail) == 64, "Tail pointer must be in CL1 at offset 64");
+#elif defined(__cplusplus)
+static_assert(sizeof(KrystalRingHeader) == 128, "Ring header must be exactly 128B (2 cache lines)");
+static_assert(alignof(KrystalRingHeader) == 64, "Ring header must be 64B cache-line aligned");
 #endif
 
 /*
@@ -153,17 +166,6 @@ KRYSTAL_API_INLINE KrystalZeroCopyFrame* krystal_ring_get_slot(void* ring_base, 
 }
 
 #if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || defined(__cplusplus)
-#ifdef __cplusplus
-} /* Close extern "C" temporarily for using std declarations */
-using std::atomic_load_explicit;
-using std::atomic_store_explicit;
-using std::atomic_fetch_add_explicit;
-using std::memory_order_relaxed;
-using std::memory_order_acquire;
-using std::memory_order_release;
-extern "C" {
-#endif
-
 /*
  * Native C11/C++20 SPSC Publication Protocol (memory_order_release).
  * Guarantees all writes to CL0 and CL1 of slot_n happen-before consumer observes head increment.
@@ -172,12 +174,12 @@ extern "C" {
  * x86_64: MOV with compiler barrier
  */
 KRYSTAL_API_INLINE bool krystal_ring_publish(KrystalRingHeader* hdr, void* ring_base, const KrystalZeroCopyFrame* frame) {
-    uint64_t head = atomic_load_explicit(&hdr->head, memory_order_relaxed);
-    uint64_t tail = atomic_load_explicit(&hdr->tail, memory_order_acquire);
+    uint64_t head = KRYSTAL_LOAD_RELAXED(hdr->head);
+    uint64_t tail = KRYSTAL_LOAD_ACQUIRE(hdr->tail);
 
     if ((head - tail) >= hdr->capacity) {
         /* Ring full: record drop in producer's own CL0 */
-        atomic_fetch_add_explicit(&hdr->drop_count, 1, memory_order_relaxed);
+        KRYSTAL_FETCH_ADD_RELAXED(hdr->drop_count, 1);
         return false;
     }
 
@@ -186,7 +188,7 @@ KRYSTAL_API_INLINE bool krystal_ring_publish(KrystalRingHeader* hdr, void* ring_
     memcpy(slot, frame, sizeof(KrystalZeroCopyFrame));
 
     /* Release publication store */
-    atomic_store_explicit(&hdr->head, head + 1, memory_order_release);
+    KRYSTAL_STORE_RELEASE(hdr->head, head + 1);
     return true;
 }
 
@@ -198,8 +200,8 @@ KRYSTAL_API_INLINE bool krystal_ring_publish(KrystalRingHeader* hdr, void* ring_
  * x86_64: MOV with compiler barrier
  */
 KRYSTAL_API_INLINE bool krystal_ring_consume(KrystalRingHeader* hdr, void* ring_base, KrystalZeroCopyFrame* out_frame) {
-    uint64_t head = atomic_load_explicit(&hdr->head, memory_order_acquire);
-    uint64_t tail = atomic_load_explicit(&hdr->tail, memory_order_relaxed);
+    uint64_t head = KRYSTAL_LOAD_ACQUIRE(hdr->head);
+    uint64_t tail = KRYSTAL_LOAD_RELAXED(hdr->tail);
 
     if (head == tail) {
         return false; /* Ring empty */
@@ -209,7 +211,7 @@ KRYSTAL_API_INLINE bool krystal_ring_consume(KrystalRingHeader* hdr, void* ring_
     memcpy(out_frame, slot, sizeof(KrystalZeroCopyFrame));
 
     /* Release tail store so producer can reclaim slot */
-    atomic_store_explicit(&hdr->tail, tail + 1, memory_order_release);
+    KRYSTAL_STORE_RELEASE(hdr->tail, tail + 1);
     return true;
 }
 #endif

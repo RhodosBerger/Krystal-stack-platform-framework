@@ -22,7 +22,8 @@ int main() {
     static_assert(sizeof(KrystalRingHeader) == 128, "RingHeader must be 128B in C++");
     static_assert(alignof(KrystalRingHeader) == 64, "RingHeader must be 64B aligned in C++");
 
-    KrystalZeroCopyFrame frame{};
+    KrystalZeroCopyFrame frame;
+    std::memset(&frame, 0, sizeof(frame));
     frame.magic = KRYSTAL_MAGIC;
     frame.version = KRYSTAL_PROTOCOL_VERSION;
     frame.vital_hp = KRYSTAL_VITAL_MAX_HP;
@@ -31,7 +32,8 @@ int main() {
     frame.gpu_render_ms = 8.33f;
     frame.drs_scale_factor = 1.0f;
 
-    KrystalRingHeader hdr{};
+    KrystalRingHeader hdr;
+    std::memset(&hdr, 0, sizeof(hdr));
     hdr.magic = KRYSTAL_MAGIC;
     hdr.vital_hp = KRYSTAL_VITAL_MAX_HP;
     hdr.capacity = 16;
@@ -56,7 +58,8 @@ int main() {
         return 2;
     }
 
-    KrystalZeroCopyFrame out_frame{};
+    KrystalZeroCopyFrame out_frame;
+    std::memset(&out_frame, 0, sizeof(out_frame));
     bool con_ok = krystal_ring_consume(&hdr, ring_mem, &out_frame);
     if (!con_ok) {
         return 3;
