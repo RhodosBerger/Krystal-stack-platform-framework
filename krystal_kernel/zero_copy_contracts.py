@@ -315,7 +315,7 @@ def contract_to_zerocopy(contract: Any) -> ZeroCopyContractFrame:
         version=KRYSTAL_PROTOCOL_VERSION,
         vital_hp=contract.vital_max_hp,
         contract_type=c_type,
-        payload_size=108,
+        payload_size=16,
         flags=0,
         sequence_id=h.sequence_id,
         generation_id=h.generation_id,

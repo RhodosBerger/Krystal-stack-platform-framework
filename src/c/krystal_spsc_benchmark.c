@@ -145,44 +145,37 @@ static void* producer_thread(void* arg) {
     }
 
     uint64_t start_cycles = read_hw_cycles();
+    KrystalZeroCopyFrame frame;
+
     for (uint32_t i = 0; i < ctx->num_operations; i++) {
-        uint32_t head = atomic_load_explicit(&hdr->head, memory_order_relaxed);
-        uint32_t tail = atomic_load_explicit(&hdr->tail, memory_order_acquire);
-
-        while ((head - tail) >= ctx->capacity) {
-            /* Ring is full: spin / backpressure */
-            tail = atomic_load_explicit(&hdr->tail, memory_order_acquire);
-        }
-
-        KrystalZeroCopyFrame* slot = krystal_ring_get_slot(ctx->ring_base, head, ctx->capacity);
-
-        /* Populate 96-byte prefix */
-        slot->magic = KRYSTAL_MAGIC;
-        slot->version = KRYSTAL_PROTOCOL_VERSION;
-        slot->vital_hp = KRYSTAL_VITAL_MAX_HP;
-        slot->contract_type = 1;
-        slot->payload_size = 16;
-        slot->flags = 0x0001;
-        slot->sequence = i;
-        slot->generation = 1;
-        slot->cap_scope = 0x0003;
-        slot->timestamp_ns = 1792181862000ULL + i;
-        slot->nonce = (uint64_t)i * 2ULL;
+        frame.magic = KRYSTAL_MAGIC;
+        frame.version = KRYSTAL_PROTOCOL_VERSION;
+        frame.vital_hp = KRYSTAL_VITAL_MAX_HP;
+        frame.contract_type = 1;
+        frame.payload_size = 16;
+        frame.flags = 0x0001;
+        frame.sequence = i;
+        frame.generation = 1;
+        frame.cap_scope = 0x0003;
+        frame.timestamp_ns = 1792181862000ULL + i;
+        frame.nonce = (uint64_t)i * 2ULL;
 
         /* Write split predecessor_hash (spans CL0 & CL1) */
-        memset(slot->predecessor_hash, (uint8_t)(i & 0xFF), 32);
+        memset(frame.predecessor_hash, (uint8_t)(i & 0xFF), 32);
 
-        slot->profile_id = 1;
-        slot->verdict_id = 2;
-        slot->mask = 0xF;
-        slot->gpu_render_ms = 8.33f;
-        slot->drs_scale_factor = 1.0f;
+        frame.profile_id = 1;
+        frame.verdict_id = 2;
+        frame.mask = 0xF;
+        frame.gpu_render_ms = 8.33f;
+        frame.drs_scale_factor = 1.0f;
 
         /* Compute 96-byte digest */
-        fast_sha256_96b((const uint8_t*)slot, slot->frame_hmac);
+        fast_sha256_96b((const uint8_t*)&frame, frame.frame_hmac);
 
-        /* Release publication: STLR / fence ensures CL0 + CL1 are visible before head increments */
-        atomic_store_explicit(&hdr->head, head + 1, memory_order_release);
+        /* Native Release publication: STLR / fence ensures CL0 + CL1 are visible before head increments */
+        while (!krystal_ring_publish(hdr, ctx->ring_base, &frame)) {
+            /* Spin backpressure when ring is full */
+        }
     }
     ctx->total_push_cycles = read_hw_cycles() - start_cycles;
     return NULL;
@@ -199,31 +192,26 @@ static void* consumer_thread(void* arg) {
     uint64_t start_cycles = read_hw_cycles();
     uint32_t received = 0;
     uint8_t digest_check[32];
+    KrystalZeroCopyFrame frame;
 
     while (received < ctx->num_operations) {
-        uint32_t head = atomic_load_explicit(&hdr->head, memory_order_acquire);
-        uint32_t tail = atomic_load_explicit(&hdr->tail, memory_order_relaxed);
-
-        if (head == tail) {
-            /* Ring is empty: spin */
+        /* Native Acquire consumption: LDAR / fence ensures head read happens-before slot payload read */
+        if (!krystal_ring_consume(hdr, ctx->ring_base, &frame)) {
+            /* Ring empty: spin */
             continue;
         }
 
-        KrystalZeroCopyFrame* slot = krystal_ring_get_slot(ctx->ring_base, tail, ctx->capacity);
-
         /* Verify invariant vital_hp == 6 */
-        if (slot->vital_hp != KRYSTAL_VITAL_MAX_HP) {
+        if (frame.vital_hp != KRYSTAL_VITAL_MAX_HP) {
             ctx->torn_reads_detected++;
         }
 
-        /* Check HMAC/digest for torn read detection */
-        fast_sha256_96b((const uint8_t*)slot, digest_check);
-        if (memcmp(slot->frame_hmac, digest_check, 32) != 0) {
+        /* Check HMAC/digest for torn read detection across CL0/CL1 */
+        fast_sha256_96b((const uint8_t*)&frame, digest_check);
+        if (memcmp(frame.frame_hmac, digest_check, 32) != 0) {
             ctx->torn_reads_detected++;
         }
 
-        /* Consume slot and advance tail with release */
-        atomic_store_explicit(&hdr->tail, tail + 1, memory_order_release);
         received++;
     }
     ctx->total_pop_cycles = read_hw_cycles() - start_cycles;

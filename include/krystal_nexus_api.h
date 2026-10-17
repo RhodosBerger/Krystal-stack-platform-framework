@@ -2,7 +2,7 @@
  * KRYSTAL-NEXUS COEXISTENCE C-ABI INTERFACE
  * ============================================================================
  * Zero-copy shared memory frame protocol for external graphics & AI engines.
- * Milestone: V-ZEROCOPY-MEMORY-MODEL-02 (Cross-ISA Publication Semantics)
+ * Milestone: V-ZEROCOPY-MEMORY-MODEL-03 (Native Atomic Publication & ABI Compile Proof)
  * Platform invariant: KRYSTAL_VITAL_MAX_HP == 6
  */
 
@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 #include <stdatomic.h>
@@ -31,14 +32,17 @@ extern "C" {
  * 128-byte cache-line aligned zero-copy contract frame.
  * Occupies exactly two 64-byte CPU cache lines (CL0 = 0..63, CL1 = 64..127).
  * Natural scalar alignment ensures zero padding across x86_64, ARM64, and RISC-V.
+ *
+ * C11 syntax: _Alignas(64) on the first member elevates the struct alignment to 64 bytes
+ * without non-standard struct attributes.
  */
-typedef struct _Alignas(64) {
-    /* CL0: 0..63 (Naturally aligned scalars) */
-    uint32_t magic;                /* 0..3   */
+typedef struct {
+    /* CL0: 0..63 (Naturally aligned scalars with 64B base alignment) */
+    _Alignas(64) uint32_t magic;   /* 0..3   */
     uint32_t version;              /* 4..7   */
     uint16_t vital_hp;             /* 8..9   (Invariant == 6) */
     uint16_t contract_type;        /* 10..11 */
-    uint32_t payload_size;         /* 12..15 */
+    uint32_t payload_size;         /* 12..15 (CL1 Application Payload = 16 bytes) */
     uint32_t flags;                /* 16..19 */
     uint32_t sequence;             /* 20..23 */
     uint32_t generation;           /* 24..27 */
@@ -67,52 +71,104 @@ _Static_assert(offsetof(KrystalZeroCopyFrame, frame_hmac) == 96, "HMAC digest of
 
 /*
  * 128-byte cache-line isolated SPSC ring buffer header.
- * Eliminates false-sharing: Producer exclusively writes to CL0, Consumer exclusively writes to CL1.
+ * Eliminates false-sharing:
+ * - Producer exclusively writes to CL0: head (offset 16) and drop_count (offset 24).
+ * - Consumer exclusively writes to CL1: tail (offset 64).
+ * - 64-bit uint64 atomics prevent 32-bit rollover after 4 billion frames.
  */
-typedef struct _Alignas(64) {
-    /* CL0: Producer cache line (bytes 0..63) */
-    uint32_t magic;          /* 0..3: 0x4B525953 */
-    uint32_t vital_hp;       /* 4..7: Must equal 6 */
-    uint32_t capacity;       /* 8..11: Number of 128B slots */
-    uint32_t slot_size;      /* 12..15: 128 bytes */
+typedef struct {
+    /* CL0: Producer cache line (bytes 0..63) - Exclusively written by Producer */
+    _Alignas(64) uint32_t magic;   /* 0..3: 0x4B525953 */
+    uint32_t vital_hp;             /* 4..7: Must equal 6 */
+    uint32_t capacity;             /* 8..11: Number of 128B slots */
+    uint32_t slot_size;            /* 12..15: 128 bytes */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-    _Atomic uint32_t head;   /* 16..19: Producer atomic head pointer */
+    _Atomic uint64_t head;         /* 16..23: Producer atomic head pointer */
+    _Atomic uint64_t drop_count;   /* 24..31: Producer drop counter (on Producer CL0!) */
 #else
-    volatile uint32_t head;
+    uint64_t head;
+    uint64_t drop_count;
 #endif
-    uint8_t  _pad0[44];      /* 20..63: Padding to complete CL0 */
+    uint8_t  _pad0[32];            /* 32..63: Padding to complete CL0 */
 
-    /* CL1: Consumer cache line (bytes 64..127) */
+    /* CL1: Consumer cache line (bytes 64..127) - Exclusively written by Consumer */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-    _Atomic uint32_t tail;   /* 64..67: Consumer atomic tail pointer */
-    uint8_t  _pad1[4];       /* 68..71 */
-    _Atomic uint64_t drop_count; /* 72..79: Dropped / rejected frame counter */
+    _Alignas(64) _Atomic uint64_t tail; /* 64..71: Consumer atomic tail pointer */
 #else
-    volatile uint32_t tail;
-    uint8_t  _pad1[4];
-    volatile uint64_t drop_count;
+    _Alignas(64) uint64_t tail;
 #endif
-    uint8_t  _reserved[48];  /* 80..127: Padding to complete CL1 */
+    uint8_t  _reserved[56];        /* 72..127: Padding to complete CL1 */
 } KrystalRingHeader;
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 _Static_assert(sizeof(KrystalRingHeader) == 128, "Ring header must be exactly 128B (2 cache lines)");
 _Static_assert(_Alignof(KrystalRingHeader) == 64, "Ring header must be 64B cache-line aligned");
 _Static_assert(offsetof(KrystalRingHeader, head) == 16, "Head pointer must be in CL0 at offset 16");
+_Static_assert(offsetof(KrystalRingHeader, drop_count) == 24, "Drop counter must be in CL0 at offset 24");
 _Static_assert(offsetof(KrystalRingHeader, tail) == 64, "Tail pointer must be in CL1 at offset 64");
-_Static_assert(offsetof(KrystalRingHeader, drop_count) == 72, "Drop counter must be in CL1 at offset 72");
 #endif
 
 /*
  * Slot address calculation helper:
- * Guarantees Addr(Slot_n) % 64 == 0 and Addr(Slot_n) % 128 == 0 when base is aligned.
+ * Guarantees Addr(Slot_n) % 64 == 0 and Addr(Slot_n) % 128 == 0 when ring base is 64-byte aligned.
  */
-static inline KrystalZeroCopyFrame* krystal_ring_get_slot(void* ring_base, uint32_t slot_idx, uint32_t capacity) {
+static inline KrystalZeroCopyFrame* krystal_ring_get_slot(void* ring_base, uint64_t slot_idx, uint32_t capacity) {
     uint8_t* base_ptr = (uint8_t*)ring_base;
     uint8_t* slots_start = base_ptr + KRYSTAL_RING_HEADER_BYTES;
-    uint32_t wrapped_idx = slot_idx % capacity;
+    uint64_t wrapped_idx = slot_idx % capacity;
     return (KrystalZeroCopyFrame*)(slots_start + (wrapped_idx * KRYSTAL_FRAME_SIZE_BYTES));
 }
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+/*
+ * Native C11 SPSC Publication Protocol (memory_order_release).
+ * Guarantees all writes to CL0 and CL1 of slot_n happen-before consumer observes head increment.
+ * ARM64: STLR instruction
+ * RISC-V: fence rw,w
+ * x86_64: MOV with compiler barrier
+ */
+static inline bool krystal_ring_publish(KrystalRingHeader* hdr, void* ring_base, const KrystalZeroCopyFrame* frame) {
+    uint64_t head = atomic_load_explicit(&hdr->head, memory_order_relaxed);
+    uint64_t tail = atomic_load_explicit(&hdr->tail, memory_order_acquire);
+
+    if ((head - tail) >= hdr->capacity) {
+        /* Ring full: record drop in producer's own CL0 */
+        atomic_fetch_add_explicit(&hdr->drop_count, 1, memory_order_relaxed);
+        return false;
+    }
+
+    KrystalZeroCopyFrame* slot = krystal_ring_get_slot(ring_base, head, hdr->capacity);
+    /* Direct 128-byte memcpy into slot (CL0 + CL1) */
+    memcpy(slot, frame, sizeof(KrystalZeroCopyFrame));
+
+    /* Release publication store */
+    atomic_store_explicit(&hdr->head, head + 1, memory_order_release);
+    return true;
+}
+
+/*
+ * Native C11 SPSC Consumption Protocol (memory_order_acquire).
+ * Guarantees read of head happens-before reading slot content, preventing speculative reads of old cache lines.
+ * ARM64: LDAR instruction
+ * RISC-V: fence r,rw
+ * x86_64: MOV with compiler barrier
+ */
+static inline bool krystal_ring_consume(KrystalRingHeader* hdr, void* ring_base, KrystalZeroCopyFrame* out_frame) {
+    uint64_t head = atomic_load_explicit(&hdr->head, memory_order_acquire);
+    uint64_t tail = atomic_load_explicit(&hdr->tail, memory_order_relaxed);
+
+    if (head == tail) {
+        return false; /* Ring empty */
+    }
+
+    KrystalZeroCopyFrame* slot = krystal_ring_get_slot(ring_base, tail, hdr->capacity);
+    memcpy(out_frame, slot, sizeof(KrystalZeroCopyFrame));
+
+    /* Release tail store so producer can reclaim slot */
+    atomic_store_explicit(&hdr->tail, tail + 1, memory_order_release);
+    return true;
+}
+#endif
 
 #ifdef __cplusplus
 }

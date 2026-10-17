@@ -109,17 +109,27 @@ class TestVZeroCopyMemoryModel02:
 
     def test_02_base_alignment_and_cache_line_stride_64b_128b(self):
         """
-        Validates that RingHeaderSize == 128B and every slot offset is a multiple of 64B and 128B.
-        Addr(Slot_n) = RingBaseAddress + HeaderSize_128B + 128 * n => Addr(Slot_n) % 64 == 0.
+        Validates that RingHeaderSize == 128B, physical ring.base_address % 64 == 0,
+        and every slot address satisfies Addr(Slot_n) % 64 == 0 and % 128 == 0.
         """
         assert RING_HEADER_SIZE == 128
         ring = ZeroCopyContractRing(capacity=64)
+
+        # 1. Physical base pointer alignment (not just relative offset)
+        assert ring.base_address != 0
+        assert ring.base_address % 64 == 0, f"Ring base address {ring.base_address} must be 64B aligned"
 
         for slot_idx in range(64):
             offset = ring.get_slot_offset(slot_idx)
             assert offset >= 128
             assert offset % 64 == 0, f"Slot {slot_idx} offset {offset} must be 64B aligned"
             assert offset % 128 == 0, f"Slot {slot_idx} offset {offset} must be 128B aligned"
+
+            # Actual physical pointer address of slot
+            phys_addr = ring.get_slot_address(slot_idx)
+            assert phys_addr == ring.base_address + offset
+            assert phys_addr % 64 == 0
+            assert phys_addr % 128 == 0
 
     def test_03_elimination_of_pragma_pack_natural_scalar_offsets(self):
         """
@@ -174,27 +184,39 @@ class TestVZeroCopyMemoryModel02:
 
     def test_04_ring_header_cl0_cl1_separation_eliminates_false_sharing(self):
         """
-        Verifies ring header isolates producer head (offset 16 in CL0: 0..63)
-        and consumer tail (offset 64 in CL1: 64..127) onto separate cache lines.
+        Verifies ring header isolates producer head (offset 16, uint64) and drop_count
+        (offset 24, uint64) onto CL0 (0..63), while consumer tail (offset 64, uint64)
+        is isolated on CL1 (64..127). Producer never writes to CL1.
+        Also validates 64-bit rollover immunity.
         """
         assert RING_HEADER_SIZE == 128
         ring = ZeroCopyContractRing(capacity=16)
 
-        # Head is at offset 16 (0..63 is CL0)
-        # Tail is at offset 64 (64..127 is CL1)
+        # Producer writes to CL0
         ring._set_head(42)
+        ring._increment_drop_count()
+        # Consumer writes to CL1
         ring._set_tail(17)
 
         head, tail, drops = ring._get_head_tail()
         assert head == 42
         assert tail == 17
-        assert drops == 0
+        assert drops == 1
 
-        # Direct memory inspection of offsets
-        unpacked_head = struct.unpack_from("<I", ring._buf, 16)[0]
-        unpacked_tail = struct.unpack_from("<I", ring._buf, 64)[0]
+        # Direct memory inspection of 64-bit uint64 offsets
+        unpacked_head = struct.unpack_from("<Q", ring._buf, 16)[0]
+        unpacked_drops = struct.unpack_from("<Q", ring._buf, 24)[0]
+        unpacked_tail = struct.unpack_from("<Q", ring._buf, 64)[0]
         assert unpacked_head == 42
+        assert unpacked_drops == 1
         assert unpacked_tail == 17
+
+        # 64-bit Rollover immunity test: head > 2**32
+        huge_head = (1 << 33) + 777
+        ring._set_head(huge_head)
+        h, t, _ = ring._get_head_tail()
+        assert h == huge_head
+        assert (h - t) == huge_head - 17
 
     def test_05_float_canonicalization_and_nan_inf_rejection(self):
         """
@@ -324,17 +346,24 @@ class TestVZeroCopyMemoryModel02:
     def test_11_c_header_export_alignas64_and_static_asserts(self):
         """
         Validates that export_c_header_interface generates the exact C-ABI contract:
-        - _Alignas(64) cache-line anchoring
+        - _Alignas(64) on first member (standard ISO C11 syntax)
+        - No non-standard struct _Alignas(64) syntax
         - No #pragma pack(1)
         - frame_hmac[32]
+        - 64-bit uint64 atomics for head, tail, and drop_count
         - Compile-time _Static_asserts for size, alignment, and offsets.
         """
         header = UniversalEngineInterposer.export_c_header_interface()
 
         assert "KRYSTAL_NEXUS_API_H" in header
-        assert "_Alignas(64)" in header
+        # Standard C11 struct alignment: _Alignas(64) on first member
+        assert "_Alignas(64) uint32_t magic;" in header
+        assert "struct _Alignas" not in header  # Eliminated non-standard struct attribute syntax!
         assert "#pragma pack" not in header  # Eliminated!
         assert "frame_hmac[32]" in header
+        assert "_Atomic uint64_t head;" in header
+        assert "_Atomic uint64_t drop_count;" in header
+        assert "_Alignas(64) _Atomic uint64_t tail;" in header
 
         assert "_Static_assert(sizeof(KrystalZeroCopyFrame) == 128" in header
         assert "_Static_assert(_Alignof(KrystalZeroCopyFrame) == 64" in header
@@ -428,4 +457,38 @@ class TestVZeroCopyMemoryModel02:
         assert "cross-isa-c11-verification" in ci_content
         assert "gcc-aarch64-linux-gnu" in ci_content
         assert "gcc-riscv64-linux-gnu" in ci_content
+
+    def test_14_abi_payload_size_consistency(self):
+        """
+        Verifies ABI payload_size consistency:
+        - Application payload on CL1 (profile_id, verdict_id, mask, gpu_render_ms, drs_scale_factor)
+          is exactly 16 bytes (offsets 80..95).
+        - contract_to_zerocopy() sets payload_size == 16 (eliminating the legacy 108 discrepancy).
+        """
+        from krystal_kernel.zero_copy_contracts import contract_to_zerocopy
+        from krystal_kernel.contracts import StateContract, ContractHeader, CapabilityToken
+
+        header = ContractHeader(
+            contract_id="c_test_01",
+            contract_version=1,
+            sequence_id=1,
+            capability_scope=int(CapabilityToken.CAN_OBSERVE),
+            generation_id=1,
+            timestamp_ns=1000,
+            predecessor_hash="00" * 32,
+            principal_id="node_obs",
+            nonce="0x1234",
+        )
+        state_c = StateContract(
+            header=header,
+            cpu_utilization=0.5,
+            gpu_utilization=0.4,
+            uma_pressure=0.3,
+            temperature_c=45.0,
+            queue_depth=1,
+        )
+        zc_frame = contract_to_zerocopy(state_c)
+        assert zc_frame.payload_size == 16
+        assert zc_frame.vital_hp == 6
+
 

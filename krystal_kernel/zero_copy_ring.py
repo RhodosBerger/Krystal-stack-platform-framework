@@ -31,11 +31,19 @@ class TornFrameDetectedError(ContractViolation):
     pass
 
 
+import ctypes
+
 # Ring Header Layout (128 bytes = 2 x 64B cache lines):
-# CL0 (0..63, Producer cache line): <I(magic) I(vital_hp) I(capacity) I(slot_size) I(head) 44s(pad0)
-# CL1 (64..127, Consumer cache line): <I(tail) 4s(pad1) Q(drop_count) 48s(reserved)
-# Separating head (offset 16) and tail (offset 64) onto distinct cache lines eliminates false-sharing.
-RING_HEADER_FORMAT = "<IIIII44sI4sQ48s"
+# CL0 (0..63, Producer cache line - Exclusively written by Producer):
+#   <I(magic) I(vital_hp) I(capacity) I(slot_size) Q(head) Q(drop_count) 32s(_pad0)
+# CL1 (64..127, Consumer cache line - Exclusively written by Consumer):
+#   <Q(tail) 56s(_reserved)
+#
+# False-sharing elimination:
+# - Producer writes exclusively to CL0 (head @ 16, drop_count @ 24)
+# - Consumer writes exclusively to CL1 (tail @ 64)
+# - 64-bit uint64 head and tail prevent 32-bit rollover after 4B frames.
+RING_HEADER_FORMAT = "<IIIIQQ32sQ56s"
 RING_HEADER_SIZE = 128
 assert struct.calcsize(RING_HEADER_FORMAT) == RING_HEADER_SIZE, "Ring header must be exactly 128 bytes (2 cache lines)"
 
@@ -59,27 +67,43 @@ class ZeroCopyContractRing:
         self.shm_name = shm_name
         self.is_owner = create
         self._shm: Optional[shared_memory.SharedMemory] = None
-        self._buf: bytearray | memoryview
+        self._buf: memoryview
+        self._raw_buf: Optional[bytearray] = None
+        self.base_address: int = 0
 
         if shm_name:
             if create:
                 try:
                     self._shm = shared_memory.SharedMemory(name=shm_name, create=True, size=self.total_size)
-                    self._buf = self._shm.buf
+                    self._buf = memoryview(self._shm.buf)
+                    c_arr = (ctypes.c_char * len(self._buf)).from_buffer(self._buf)
+                    self.base_address = ctypes.addressof(c_arr)
                     self._init_header()
                 except FileExistsError:
                     # Attach existing
                     self._shm = shared_memory.SharedMemory(name=shm_name)
-                    self._buf = self._shm.buf
+                    self._buf = memoryview(self._shm.buf)
+                    c_arr = (ctypes.c_char * len(self._buf)).from_buffer(self._buf)
+                    self.base_address = ctypes.addressof(c_arr)
                     self.is_owner = False
             else:
                 self._shm = shared_memory.SharedMemory(name=shm_name)
-                self._buf = self._shm.buf
+                self._buf = memoryview(self._shm.buf)
+                c_arr = (ctypes.c_char * len(self._buf)).from_buffer(self._buf)
+                self.base_address = ctypes.addressof(c_arr)
         else:
-            # Standalone in-memory fallback
-            self._buf = bytearray(self.total_size)
+            # Standalone in-memory fallback with guaranteed 128-byte base address alignment
+            raw_buf = bytearray(self.total_size + 128)
+            c_arr = (ctypes.c_char * len(raw_buf)).from_buffer(raw_buf)
+            raw_addr = ctypes.addressof(c_arr)
+            align_offset = (128 - (raw_addr % 128)) % 128
+            self._buf = memoryview(raw_buf)[align_offset : align_offset + self.total_size]
+            self._raw_buf = raw_buf
+            self.base_address = raw_addr + align_offset
             self._init_header()
 
+        assert self.base_address % 64 == 0, f"Ring base address {self.base_address} must be 64-byte aligned"
+        assert self.base_address % 128 == 0, f"Ring base address {self.base_address} must be 128-byte aligned"
         self._validate_header()
 
     def _init_header(self):
@@ -90,18 +114,17 @@ class ZeroCopyContractRing:
             VITAL_MAX_HP,
             self.capacity,
             self.slot_size,
-            0,  # head (CL0, offset 16)
-            b"\x00" * 44,  # pad0 to complete 64B CL0
-            0,  # tail (CL1, offset 64)
-            b"\x00" * 4,   # pad1
-            0,  # drop_count (CL1, offset 72)
-            b"\x00" * 48,  # reserved to complete 64B CL1
+            0,  # head (CL0, offset 16, uint64)
+            0,  # drop_count (CL0, offset 24, uint64 - Producer writes here!)
+            b"\x00" * 32,  # _pad0 to complete 64B CL0
+            0,  # tail (CL1, offset 64, uint64 - Consumer writes here!)
+            b"\x00" * 56,  # _reserved to complete 64B CL1
         )
         self._buf[:RING_HEADER_SIZE] = header_bytes
 
     def _validate_header(self):
         """Checks invariants on the ring header."""
-        magic, vital_hp, cap, slot_sz, _, _, _, _, _, _ = struct.unpack_from(RING_HEADER_FORMAT, self._buf, 0)
+        magic, vital_hp, cap, slot_sz, _, _, _, _, _ = struct.unpack_from(RING_HEADER_FORMAT, self._buf, 0)
         if magic != KRYSTAL_MAGIC:
             raise ContractViolation(f"Invalid ring buffer magic: {hex(magic)}")
         if vital_hp != 6:
@@ -110,19 +133,19 @@ class ZeroCopyContractRing:
             raise ContractViolation(f"Unexpected slot size in ring: {slot_sz}")
 
     def _get_head_tail(self) -> Tuple[int, int, int]:
-        """Reads head (CL0, offset 16), tail (CL1, offset 64), and drop_count (CL1, offset 72)."""
-        _, _, _, _, head, _, tail, _, drops, _ = struct.unpack_from(RING_HEADER_FORMAT, self._buf, 0)
+        """Reads head (CL0, offset 16), tail (CL1, offset 64), and drop_count (CL0, offset 24)."""
+        _, _, _, _, head, drops, _, tail, _ = struct.unpack_from(RING_HEADER_FORMAT, self._buf, 0)
         return head, tail, drops
 
     def _set_head(self, head: int):
-        struct.pack_into("<I", self._buf, 16, head)
+        struct.pack_into("<Q", self._buf, 16, head)
 
     def _set_tail(self, tail: int):
-        struct.pack_into("<I", self._buf, 64, tail)
+        struct.pack_into("<Q", self._buf, 64, tail)
 
     def _increment_drop_count(self):
-        drops = struct.unpack_from("<Q", self._buf, 72)[0]
-        struct.pack_into("<Q", self._buf, 72, drops + 1)
+        drops = struct.unpack_from("<Q", self._buf, 24)[0]
+        struct.pack_into("<Q", self._buf, 24, drops + 1)
 
     def get_slot_offset(self, slot_idx: int) -> int:
         """Returns the byte offset of a slot. Guaranteed to be a multiple of 64 and 128."""
@@ -130,6 +153,13 @@ class ZeroCopyContractRing:
         assert offset % 64 == 0, f"Slot offset {offset} must be 64-byte cache-line aligned"
         assert offset % 128 == 0, f"Slot offset {offset} must be 128-byte frame aligned"
         return offset
+
+    def get_slot_address(self, slot_idx: int) -> int:
+        """Returns the physical memory pointer of a slot. Guaranteed to satisfy Addr % 64 == 0."""
+        addr = self.base_address + self.get_slot_offset(slot_idx)
+        assert addr % 64 == 0, f"Actual physical slot address {addr} is not 64-byte aligned"
+        assert addr % 128 == 0, f"Actual physical slot address {addr} is not 128-byte aligned"
+        return addr
 
     def push_frame(self, frame: ZeroCopyContractFrame) -> bool:
         """Pushes a frame into the circular ring. Returns False if buffer is full."""

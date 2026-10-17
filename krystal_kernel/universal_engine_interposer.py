@@ -536,14 +536,15 @@ class UniversalEngineInterposer:
 #define KRYSTAL_PROTOCOL_VERSION  2
 #define KRYSTAL_FRAME_SIZE_BYTES  128
 #define KRYSTAL_VITAL_MAX_HP      6
+#define KRYSTAL_RING_HEADER_BYTES 128
 
-typedef struct _Alignas(64) {
-    /* CL0: 0..63 (Naturally aligned scalars) */
-    uint32_t magic;                /* 0..3   */
+typedef struct {
+    /* CL0: 0..63 (Naturally aligned scalars with 64B base alignment) */
+    _Alignas(64) uint32_t magic;   /* 0..3   */
     uint32_t version;              /* 4..7   */
     uint16_t vital_hp;             /* 8..9   (Invariant == 6) */
     uint16_t contract_type;        /* 10..11 */
-    uint32_t payload_size;         /* 12..15 */
+    uint32_t payload_size;         /* 12..15 (CL1 Application Payload = 16 bytes) */
     uint32_t flags;                /* 16..19 */
     uint32_t sequence;             /* 20..23 */
     uint32_t generation;           /* 24..27 */
@@ -569,6 +570,45 @@ _Static_assert(offsetof(KrystalZeroCopyFrame, nonce) == 40, "nonce offset drift"
 _Static_assert(offsetof(KrystalZeroCopyFrame, profile_id) == 80, "CL1 payload offset drift");
 _Static_assert(offsetof(KrystalZeroCopyFrame, frame_hmac) == 96, "HMAC digest offset drift");
 #endif
+
+typedef struct {
+    /* CL0: Producer cache line (bytes 0..63) - Exclusively written by Producer */
+    _Alignas(64) uint32_t magic;   /* 0..3: 0x4B525953 */
+    uint32_t vital_hp;             /* 4..7: Must equal 6 */
+    uint32_t capacity;             /* 8..11: Number of 128B slots */
+    uint32_t slot_size;            /* 12..15: 128 bytes */
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+    _Atomic uint64_t head;         /* 16..23: Producer atomic head (64-bit rollover-free) */
+    _Atomic uint64_t drop_count;   /* 24..31: Producer drop counter (on Producer CL0!) */
+#else
+    uint64_t head;
+    uint64_t drop_count;
+#endif
+    uint8_t  _pad0[32];            /* 32..63: Padding to complete 64B CL0 */
+
+    /* CL1: Consumer cache line (bytes 64..127) - Exclusively written by Consumer */
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+    _Alignas(64) _Atomic uint64_t tail; /* 64..71: Consumer atomic tail (64-bit) */
+#else
+    _Alignas(64) uint64_t tail;
+#endif
+    uint8_t  _reserved[56];        /* 72..127: Padding to complete 64B CL1 */
+} KrystalRingHeader;
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+_Static_assert(sizeof(KrystalRingHeader) == 128, "Ring header must be exactly 128B (2 cache lines)");
+_Static_assert(_Alignof(KrystalRingHeader) == 64, "Ring header must be 64B cache-line aligned");
+_Static_assert(offsetof(KrystalRingHeader, head) == 16, "Head pointer must be in CL0 at offset 16");
+_Static_assert(offsetof(KrystalRingHeader, drop_count) == 24, "Drop counter must be in CL0 at offset 24");
+_Static_assert(offsetof(KrystalRingHeader, tail) == 64, "Tail pointer must be in CL1 at offset 64");
+#endif
+
+static inline KrystalZeroCopyFrame* krystal_ring_get_slot(void* ring_base, uint64_t slot_idx, uint32_t capacity) {
+    uint8_t* base_ptr = (uint8_t*)ring_base;
+    uint8_t* slots_start = base_ptr + KRYSTAL_RING_HEADER_BYTES;
+    uint64_t wrapped_idx = slot_idx % capacity;
+    return (KrystalZeroCopyFrame*)(slots_start + (wrapped_idx * KRYSTAL_FRAME_SIZE_BYTES));
+}
 
 #endif /* KRYSTAL_NEXUS_API_H */
 """

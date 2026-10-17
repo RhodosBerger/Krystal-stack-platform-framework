@@ -108,13 +108,13 @@ Communication between the injected graphics layer, the central arbiter daemon, a
 #include <stdint.h>
 #include <stddef.h>
 
-typedef struct _Alignas(64) {
-    /* CL0: 0..63 */
-    uint32_t magic;                /* 0..3   */
+typedef struct {
+    /* CL0: 0..63 (Naturally aligned scalars with 64B base alignment) */
+    _Alignas(64) uint32_t magic;   /* 0..3   */
     uint32_t version;              /* 4..7   */
     uint16_t vital_hp;             /* 8..9   (Invariant == 6) */
     uint16_t contract_type;        /* 10..11 */
-    uint32_t payload_size;         /* 12..15 */
+    uint32_t payload_size;         /* 12..15 (CL1 Application Payload = 16 bytes) */
     uint32_t flags;                /* 16..19 */
     uint32_t sequence;             /* 20..23 */
     uint32_t generation;           /* 24..27 */
@@ -166,68 +166,75 @@ When $\mu > 0.78$ and rendering is active:
 
 ---
 
-## Milestone V-ZEROCOPY-MEMORY-MODEL-02: Cross-ISA Publication Semantics & Hardware Contract
+## Milestone V-ZEROCOPY-MEMORY-MODEL-03: Native Atomic Publication & ABI Compile Proof
 
-The transition from a logical serialization structure to a hardware-grounded memory contract requires formal publication semantics across weakly ordered architectures (ARM64, RISC-V RVWMO) and strong ordering (x86_64 TSO). Commit `b3439414` proved field layout invariance ([STRUCTURALLY-PROVEN]); milestone `V-ZEROCOPY-MEMORY-MODEL-02` seals base alignment, cache-line separation, full cryptographic binding, and torn-read prevention.
+Following the architectural audit of `V-ZEROCOPY-MEMORY-MODEL-02`, Milestone `V-ZEROCOPY-MEMORY-MODEL-03` hardens the boundary between the high-level Python model/testing harness and the native hardware publication contract.
 
-### 1. Base Alignment and `#pragma pack(1)` Elimination
+### 1. ISO C11 Alignment Syntax Compliance
+In ISO C11 (§6.7.5), placing `_Alignas(64)` between `struct` and `{` is invalid syntax. The standard C11 pattern specifies `_Alignas(64)` on the first member (`_Alignas(64) uint32_t magic;`). This elevates `alignof(KrystalZeroCopyFrame) == 64` cleanly under `gcc -std=c11 -Wall -Wextra -Werror` and `clang -std=c11 -Wall -Wextra -Werror` with zero compiler warnings or attribute extensions.
 
-In C/C++, `#pragma pack(push, 1)` forces `alignof(KrystalZeroCopyFrame) == 1`. When allocated on the stack or in an array without compiler attributes, base address alignment ($\text{Addr} \bmod 8 = 0$) is unconstrained, risking hardware alignment faults on ARM64 and RISC-V when accessing 64-bit scalars (`timestamp_ns` at offset 32, `nonce` at offset 40).
+### 2. 64-Bit Atomic Pointers and Elimination of 32-Bit Rollover
+Head and tail pointers are elevated to 64-bit unsigned integers (`uint64_t` in C11 `<stdatomic.h>`, `AtomicU64` in Rust, `<Q` in Python ring buffers):
+* Eliminates the 32-bit integer rollover that occurs after 4.29 billion frames (~49.7 days at 1 kHz, or under 24 hours at 50,000 frames/sec).
+* Head and tail distance arithmetic $(\text{head} - \text{tail})$ remains monotonically valid for millennia.
 
-Because all fields in `KrystalZeroCopyFrame` are naturally aligned (offset % size == 0) with zero padding:
-$$\text{alignof}(\text{KrystalZeroCopyFrame}) = 64 \quad (\text{\_Alignas}(64) \text{ in C11}, \text{\#[repr(C, align(64))]} \text{ in Rust})$$
+### 3. Asymmetric Cache-Line Ownership: Producer CL0 vs. Consumer CL1
+The 128-byte `KrystalRingHeader` strictly segregates memory writes:
+* **CL0 (Bytes 0..63 - Producer Exclusive Writes):**
+  * `magic` (4B), `vital_hp` (4B), `capacity` (4B), `slot_size` (4B).
+  * `head` (8B @ offset 16..23): Producer writes new publications.
+  * `drop_count` (8B @ offset 24..31): Producer increments drops upon buffer saturation. Moving `drop_count` from CL1 to CL0 guarantees that producer overflow writes never dirty the consumer's L1 cache line!
+  * `_pad0` (32B @ offset 32..63): Completes the 64-byte CL0 line.
+* **CL1 (Bytes 64..127 - Consumer Exclusive Writes):**
+  * `tail` (8B @ offset 64..71): Consumer advances tail upon slot completion.
+  * `_reserved` (56B @ offset 72..127): Completes the 64-byte CL1 line.
 
-For the shared SPSC ring buffer (page-aligned at $4096\text{ B}$ via `mmap` or virtual memory allocation):
-$$\text{Addr}(\text{Slot}_n) = \text{RingBaseAddress} + \text{HeaderSize}_{128\text{B}} + 128 \cdot (n \bmod N_{\text{slots}}) \implies \text{Addr}(\text{Slot}_n) \bmod 64 = 0$$
+Producer only writes CL0; consumer only writes CL1. Read-only invalidations across cores occur strictly on state updates, with zero write-collision false sharing.
 
-### 2. Elimination of Cache Line Bouncing (Ring Header CL0/CL1 Split)
+### 4. Physical Base Pointer Alignment
+`ZeroCopyContractRing` enforces physical pointer alignment via `ctypes.addressof`:
+$$\text{RingBaseAddress} \bmod 128 = 0 \implies \text{Addr}(\text{Slot}_n) \bmod 64 = 0 \land \text{Addr}(\text{Slot}_n) \bmod 128 = 0$$
+This proves not merely that slot offsets are multiples of 64/128, but that the physical memory address in virtual memory is guaranteed 128-byte aligned.
 
-To eliminate false sharing between producer and consumer threads:
-* `RING_HEADER_SIZE` is upgraded to exactly 128 bytes (two 64B cache lines).
-* **CL0 (Bytes 0..63):** Producer-owned fields (`magic`, `version`, `capacity`, `slot_size`, `head` pointer at offset 16).
-* **CL1 (Bytes 64..127):** Consumer-owned fields (`tail` pointer at offset 64, `drop_count` at offset 72).
-
-Producer stores to `head` and consumer stores to `tail` execute on completely independent L1 cache lines with zero cache-line invalidation traffic.
-
-### 3. Full 96-Byte Cryptographic Binding (`frame_hmac`) & Float Canonicalization
-
-Legacy partial hashing covered only 4 fields (leaving 78 bytes unprotected). An adversary or memory corruption could tamper with `cap_scope` (escalating permissions from `CAN_PROPOSE` to `CAN_EXECUTE`), `generation`, or `verdict_id` without invalidating the digest.
-
-Milestone `V-ZEROCOPY-MEMORY-MODEL-02` binds the entire 96-byte semantic prefix:
-$$\text{frame\_hmac}[0..31] = \text{HMAC-SHA256}_{K_{\text{session}}}\big(\text{FrameBytes}[0..95]\big)$$
-
-* **Float Canonicalization:** Prior to serialization, float32 fields (`gpu_render_ms`, `drs_scale_factor`) are normalized to $+0.0\text{f}$ (rejecting $-0.0\text{f}$) and validated against IEEE-754 `NaN`/$\pm\infty$ to prevent bitwise divergence in the HMAC digest.
-* In unkeyed telemetric modes, SHA-256 over `FrameBytes[0..95]` produces `integrity_digest`.
-
-### 4. Cross-ISA Publication Protocol and Split `predecessor_hash`
-
-Because `predecessor_hash[32]` spans CL0 [48..63] (16B) and CL1 [64..79] (16B), weak memory ordering could allow a consumer to read a new CL0 with an old CL1, creating a torn frame. Publication is therefore gated by atomic acquire/release synchronization on `ring->head`:
+### 5. Happen-Before Publication Causality
+The formal native publication protocol guarantees:
+$$\text{Publish}(\text{slot}_n) \Rightarrow \text{Writes}(\text{slot}_n) \;\text{happen-before}\; \text{Read}(\text{slot}_n)$$
 
 ```text
-PRODUCER (Writer)                                  CONSUMER (Reader)
--------------------------------------------------  -------------------------------------------------
-1. slot = &ring->slots[head & mask]                1. pub_head = atomic_load_explicit(
-2. Write bytes 0..63   (CL0: header + hash[0..15])      &ring->head, memory_order_acquire)
-3. Write bytes 64..95  (CL1: hash[16..31] + data)     [x86: MOV | ARM64: LDAR | RISC-V: lw + fence r,rw]
-4. Write bytes 96..127 (CL1: HMAC(bytes 0..95))    2. if (pub_head == tail) -> RING_EMPTY
-5. atomic_store_explicit(                          3. slot = &ring->slots[tail & mask]
-     &ring->head, head + 1,                        4. Copy/read 128B (CL0 + CL1 are guaranteed visible!)
-     memory_order_release)                         5. Verify vital_hp == 6 && HMAC(slot[0..95])
-   [x86: MOV | ARM64: STLR | RISC-V: fence rw,w]   6. atomic_store_explicit(&ring->tail, tail + 1, release)
+Producer Thread                                     Consumer Thread
+-------------------------------------------------   -------------------------------------------------
+1. slot = krystal_ring_get_slot(base, head, cap)
+2. write slot[0..127] (CL0 + CL1)
+3. atomic_store_explicit(
+       &hdr->head, head + 1, memory_order_release)
+   [x86: MOV + barrier | ARM64: STLR | RISC-V: fence rw,w]
+                                                    4. pub_head = atomic_load_explicit(
+                                                           &hdr->head, memory_order_acquire)
+                                                       [x86: MOV + barrier | ARM64: LDAR | RISC-V: fence r,rw]
+                                                    5. if (pub_head == tail) -> RING_EMPTY
+                                                    6. slot = krystal_ring_get_slot(base, tail, cap)
+                                                    7. read immutable slot (CL0 + CL1 guaranteed visible)
+                                                    8. verify HMAC-SHA256(slot[0..95])
+                                                    9. atomic_store_explicit(
+                                                           &hdr->tail, tail + 1, memory_order_release)
 ```
 
-In non-cooperative seqlock/sampling modes, computing `HMAC-SHA256(FrameBytes[0..95])` detects any torn read between CL0 and CL1 with collision probability $2^{-256}$.
+### 6. Semantic ABI Normalization (`payload_size == 16`)
+The CL1 payload fields (`profile_id`, `verdict_id`, `mask`, `gpu_render_ms`, `drs_scale_factor`) occupy exactly 16 bytes (offsets 80..95). `contract_to_zerocopy()` was updated from legacy `108` to exact `16`, aligning the C struct, Python dataclass, and binary specification.
 
 ---
 
-### Taxonómia verifikačných stavov pre audit a CI
+### Taxonómia verifikačných stavov (Audit Matrix)
 
-| Kategória | Verifikačný štítok | Reálne dokázané v b3439414 | Implementované a overené v V-ZEROCOPY-MEMORY-MODEL-02 |
+| Kategória | Predchádzajúci stav | Nový stav (V-ZEROCOPY-MEMORY-MODEL-03) | Súčasné obmedzenie / Podmienka |
 |---|---|---|---|
-| **Štruktúra & ABI** | `[STRUCTURALLY-PROVEN]` | Veľkosť 128B, prirodzené offsety polí (`timestamp_ns` @ 32, `nonce` @ 40), zhoda Python `struct` a C definície. | Eliminácia `#pragma pack(1)` v prospech `_Alignas(64)` / `#[repr(C, align(64))]`, garancia `base_addr % 64 == 0` a stride == 128. |
-| **Pamäťový model** | `[MODEL-TESTED]` vs. `[SILICON-VERIFIED]` | Logická serializácia v jednom vlákne. | Multi-thread SPSC stress test s garanciou 0 drops, detekcia torn-reads cez rozštiepený `predecessor_hash` (48..79) a Acquire/Release bariéry. *(ARM64/RISC-V HW beh vyžaduje kremík).* |
-| **Kryptografia** | `[PARTIAL-HASH]` vs. `[FULL-FRAME-AUTHENTICATED]` | SHA-256 nad 4 vybranými poľami (78B nechránených). | HMAC-SHA256 nad kompletným blokom `FrameBytes[0..95]` vrátane `cap_scope`, `nonce`, `flags` a `predecessor_hash`. |
-| **Výkonnosť & CI** | `[LOCAL-REPORTED]` vs. `[REMOTE-CI-VERIFIED]` | Lokálne nameraných 44 testov; odhad latencie < 45 ns analytický. | 56/56 lokálnych testov prechádza (vrátane 12 nových v `test_v_zerocopy_memory_model_02.py`). Oddelenie `[ANALYTICAL-ESTIMATE]` od `[HARDWARE-MEASURED]`. |
+| **C11 Deklarácia** | `[C11-SYNTAX-ERROR]` | **`[C11-VALID-SYNTAX]`** | `_Alignas(64) uint32_t magic;` overené GCC a Clang kompatibilné v `include/krystal_nexus_api.h`. |
+| **Bázové zarovnanie** | `[OFFSET-PROVEN-POINTER-UNTESTED]` | **`[PHYSICAL-BASE-ALIGNED]`** | `base_address % 128 == 0` fyzicky vynútené cez `ctypes.addressof` a overené v `test_02`. |
+| **Rollover odolnosť** | `[32BIT-ROLLOVER-RISK]` | **`[64BIT-ROLLOVER-FREE]`** | 64-bit uint64 atomics (`<Q`) overené pri `head > 2**32` v `test_04`. |
+| **Cache Line Zápisy** | `[FALSE-SHARING-ON-DROP]` | **`[PRODUCER-CL0-EXCLUSIVE-WRITES]`** | `drop_count` presunutý na offset 24 (CL0); producer nikdy nezapisuje do CL1. |
+| **Dátová cesta** | `[ZERO-COPY-CLAIMED]` | **`[ZERO-COPY-ABI-DESIGN]`** | Python vrstva kopíruje bytes pri deserializácii; natívna C/Rust cesta operuje cez priame pointre. |
+| **Acquire/Release** | `[PYTHON-SIMULATED]` | **`[ACQUIRE-RELEASE-NATIVE-C11]`** | Natívny C11 kód (`src/c/krystal_spsc_benchmark.c`, `include/krystal_nexus_api.h`) používa `memory_order_release` / `memory_order_acquire`. |
+| **Kryptografia** | `[FULL-FRAME-AUTHENTICATED]` | **`[FULL-FRAME-AUTHENTICATED-SESSION-BOUND]`** | 96B HMAC krytie platí za predpokladu bezpečného lifecycle symetrického session kľúča. |
 
 ---
 
@@ -235,39 +242,41 @@ In non-cooperative seqlock/sampling modes, computing `HMAC-SHA256(FrameBytes[0..
 
 The uniform interposition engine and memory model are verified in:
 * `tests/test_v_universal_engine_interposer.py` (6 integration tests)
-* `tests/test_v_zerocopy_memory_model_02.py` (13-point memory model test suite):
+* `tests/test_v_zerocopy_memory_model_02.py` (14-point memory model test suite):
   * **Test 01:** Constitutional invariant `VITAL_MAX_HP == 6` strictly verified.
-  * **Test 02:** Base alignment $\text{Addr} \bmod 64 == 0$ and cache line stride $128\text{B}$.
+  * **Test 02:** Physical base pointer alignment $\text{base\_address} \bmod 128 == 0$ and slot address $\text{Addr} \bmod 128 == 0$.
   * **Test 03:** Natural scalar offsets identical with and without `#pragma pack(1)`.
-  * **Test 04:** Ring buffer header CL0/CL1 separation (`head` @ 16, `tail` @ 64).
+  * **Test 04:** Ring buffer header CL0/CL1 separation (`head` @ 16 uint64, `drop_count` @ 24 uint64, `tail` @ 64 uint64), rollover immunity.
   * **Test 05:** Float canonicalization ($-0.0 \to +0.0$) and `NaN`/$\pm\infty$ rejection.
   * **Test 06:** Full 96-byte HMAC coverage vs. partial hash.
   * **Test 07:** Exhaustive tamper detection across every field in bytes 0..95.
   * **Test 08:** Split `predecessor_hash` cross-cache-line boundary integrity.
   * **Test 09:** Cross-ISA Acquire/Release publication simulation.
   * **Test 10:** Torn-read detection under asynchronous mutation.
-  * **Test 11:** C-ABI header export with `_Alignas(64)` and C11 `_Static_assert`s.
+  * **Test 11:** C-ABI header export with standard C11 `_Alignas(64)` and compile-time assertions.
   * **Test 12:** Multi-threaded concurrent SPSC stress test with 0 drops and 0 tears.
   * **Test 13:** CI workflow, standalone C11 header (`krystal_nexus_api.h`), and benchmark harness artifact integrity.
+  * **Test 14:** ABI payload_size consistency (`payload_size == 16`) across dataclasses and binary contracts.
 
 ---
 
 ## Milestone V-CI-MATRIX-01 & V-HARDWARE-BENCHMARK-01: Multi-Platform CI and Native Hardware Measurement
 
-To elevate the verification status from `[LOCAL-REPORTED]` and `[MODEL-TESTED]` to `[REMOTE-CI-VERIFIED]` and `[HARDWARE-MEASURED]`, two core infrastructure components are introduced:
+To elevate the verification status to `[REMOTE-CI-VERIFIED]` and `[HARDWARE-MEASURED]`:
 
 ### 1. GitHub Actions CI Matrix (`.github/workflows/krystal_verification.yml`)
 * Automatically triggers on every `push` and `pull_request` targeting `phase-q-full-path`, `main`, or `develop`.
-* **Job 1 (Python Invariants Suite):** Executes the full 57 integration tests across governance, memory model, and closed-loop research engines.
+* **Job 1 (Python Invariants Suite):** Executes the full 58 integration tests across governance, memory model, and closed-loop research engines.
 * **Job 2 (Cross-ISA C11 Verification):**
   * Compiles `include/krystal_nexus_api.h` under **GCC** and **Clang** (`-std=c11 -Wall -Wextra -Werror -fsyntax-only`).
-  * Cross-compiles under **`aarch64-linux-gnu-gcc`** and **`riscv64-linux-gnu-gcc`**, rigorously checking all six `_Static_assert` conditions across differing ABI targets.
+  * Cross-compiles under **`aarch64-linux-gnu-gcc`** and **`riscv64-linux-gnu-gcc`**, rigorously checking all `_Static_assert` conditions across differing ABI targets.
   * Compiles and executes the native SPSC benchmark under x86_64 GCC and Clang, and cross-compiles release binaries for ARM64 and RISC-V 64.
 
 ### 2. Native C11 SPSC Benchmark Harness (`src/c/krystal_spsc_benchmark.c`)
 * Implements direct hardware cycle counting via `__builtin_ia32_rdtscp` (x86_64), `cntvct_el0` (ARM64), or `rdcycle` (RISC-V).
 * Allocates a 4096-byte page-aligned ring buffer holding a 128-byte `KrystalRingHeader` and 2048 slots.
-* Benchmarks 500,000 multi-threaded frame handoffs between concurrent producer and consumer threads using C11 `<stdatomic.h>` with `memory_order_release` publication and `memory_order_acquire` consumption.
+* Benchmarks 500,000 multi-threaded frame handoffs between concurrent producer and consumer threads using C11 `<stdatomic.h>` with `memory_order_release` publication and `memory_order_acquire` consumption via `krystal_ring_publish()` and `krystal_ring_consume()`.
 * Validates zero drops, zero torn reads across the CL0/CL1 `predecessor_hash` boundary, and 100% cryptographic SHA-256 digest continuity.
+
 
 
