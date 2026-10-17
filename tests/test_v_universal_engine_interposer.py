@@ -168,7 +168,8 @@ class TestVUniversalEngineInterposer:
         assert "KRYSTAL_NEXUS_API_H" in header
         assert "KRYSTAL_VITAL_MAX_HP      6" in header
         assert "KrystalZeroCopyFrame" in header
-        assert "uint8_t  signature_digest[32];" in header
+        assert "_Alignas(64)" in header
+        assert "uint8_t  frame_hmac[32];" in header
         # Verify natural alignment order: cap_scope (offset 28) precedes timestamp_ns (offset 32)
         cap_pos = header.find("uint32_t cap_scope;")
         time_pos = header.find("uint64_t timestamp_ns;")

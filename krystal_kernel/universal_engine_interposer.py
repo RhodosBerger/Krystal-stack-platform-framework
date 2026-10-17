@@ -37,6 +37,7 @@ from __future__ import annotations
 import dataclasses
 import enum
 import hashlib
+import hmac
 import json
 import math
 import os
@@ -56,6 +57,7 @@ from krystal_kernel.zero_copy_contracts import (
     FRAME_STRUCT_FORMAT,
     BinaryContractType,
     ZeroCopyContractFrame,
+    canonicalize_float32,
 )
 from krystal_kernel.predictive_render_profiler import (
     NssQualityProfile,
@@ -199,10 +201,13 @@ class GraphicsInterceptionHook:
         self,
         sequence: int,
         nonce: int = 1,
+        session_key: Optional[bytes] = None,
     ) -> bytes:
         """
         Packs frame telemetry into the 128-byte cache-line zero-copy binary format
         for consumption via shared memory ring buffer.
+        Applies IEEE-754 float canonicalization and full 96-byte HMAC-SHA256 authentication
+        (V-ZEROCOPY-MEMORY-MODEL-02) covering all semantic fields.
         """
         magic = KRYSTAL_MAGIC
         version = KRYSTAL_PROTOCOL_VERSION
@@ -217,15 +222,11 @@ class GraphicsInterceptionHook:
         profile_id = 1
         verdict_id = 1
         mask = 0xFFFFFFFF
-        gpu_render_ms = float(self.current_render_duration_ms)
-        drs_scale = float(self.drs_scale_factor)
+        gpu_render_ms = canonicalize_float32(self.current_render_duration_ms)
+        drs_scale = canonicalize_float32(self.drs_scale_factor)
 
-        # Signature input
-        sig_input = f"{sequence}:{vital_hp}:{gpu_render_ms}:{drs_scale}".encode("utf-8")
-        sig_digest = hashlib.sha256(sig_input).digest()
-
-        raw_bytes = struct.pack(
-            FRAME_STRUCT_FORMAT,
+        prefix_96 = struct.pack(
+            "<IIHHII IIIQQ 32s HHIff",
             magic,
             version,
             vital_hp,
@@ -243,10 +244,30 @@ class GraphicsInterceptionHook:
             mask,
             gpu_render_ms,
             drs_scale,
-            sig_digest,
         )
-        assert len(raw_bytes) == ZERO_COPY_FRAME_SIZE, "Binary frame must be 128 bytes"
+        assert len(prefix_96) == 96, f"Frame prefix must be 96 bytes, got {len(prefix_96)}"
+
+        if session_key:
+            auth_digest = hmac.new(session_key, prefix_96, hashlib.sha256).digest()
+        else:
+            auth_digest = hashlib.sha256(prefix_96).digest()
+
+        raw_bytes = prefix_96 + auth_digest
+        assert len(raw_bytes) == ZERO_COPY_FRAME_SIZE == 128, "Binary frame must be 128 bytes"
         return raw_bytes
+
+    @staticmethod
+    def verify_frame_authenticity(frame_bytes: bytes, session_key: Optional[bytes] = None) -> bool:
+        """Verifies full 96-byte HMAC-SHA256 (or SHA-256) cryptographic integrity of a 128-byte frame."""
+        if len(frame_bytes) != ZERO_COPY_FRAME_SIZE:
+            return False
+        prefix_96 = frame_bytes[:96]
+        tag_32 = frame_bytes[96:]
+        if session_key:
+            expected = hmac.new(session_key, prefix_96, hashlib.sha256).digest()
+        else:
+            expected = hashlib.sha256(prefix_96).digest()
+        return hmac.compare_digest(tag_32, expected)
 
 
 @dataclass
@@ -494,11 +515,14 @@ class UniversalEngineInterposer:
         """
         Exports the zero-copy C-ABI header definition (`krystal_nexus_api.h`)
         for developers who want optional direct compile-time integration.
+        Milestone: V-ZEROCOPY-MEMORY-MODEL-02 (Cross-ISA Publication Semantics)
+        Natural scalar alignment with _Alignas(64) cache-line anchoring and zero padding.
         """
         return """/*
  * KRYSTAL-NEXUS COEXISTENCE C-ABI INTERFACE
  * ============================================================================
  * Zero-copy shared memory frame protocol for external graphics & AI engines.
+ * Milestone: V-ZEROCOPY-MEMORY-MODEL-02 (Cross-ISA Publication Semantics)
  * Platform invariant: KRYSTAL_VITAL_MAX_HP == 6
  */
 
@@ -506,43 +530,45 @@ class UniversalEngineInterposer:
 #define KRYSTAL_NEXUS_API_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define KRYSTAL_MAGIC             0x4B525953  /* "KRYS" */
 #define KRYSTAL_PROTOCOL_VERSION  2
 #define KRYSTAL_FRAME_SIZE_BYTES  128
 #define KRYSTAL_VITAL_MAX_HP      6
 
-#pragma pack(push, 1)
-typedef struct {
-    /* 20-byte Header */
-    uint32_t magic;
-    uint32_t version;
-    uint16_t vital_hp;       /* Must equal KRYSTAL_VITAL_MAX_HP (6) */
-    uint16_t contract_type;
-    uint32_t payload_size;
-    uint32_t flags;
+typedef struct _Alignas(64) {
+    /* CL0: 0..63 (Naturally aligned scalars) */
+    uint32_t magic;                /* 0..3   */
+    uint32_t version;              /* 4..7   */
+    uint16_t vital_hp;             /* 8..9   (Invariant == 6) */
+    uint16_t contract_type;        /* 10..11 */
+    uint32_t payload_size;         /* 12..15 */
+    uint32_t flags;                /* 16..19 */
+    uint32_t sequence;             /* 20..23 */
+    uint32_t generation;           /* 24..27 */
+    uint32_t cap_scope;            /* 28..31 */
+    uint64_t timestamp_ns;         /* 32..39 */
+    uint64_t nonce;                /* 40..47 */
+    uint8_t  predecessor_hash[32]; /* 48..79 (Spans CL0 [48..63] & CL1 [64..79]) */
 
-    /* 28-byte Identity (Naturally aligned scalars) */
-    uint32_t sequence;       /* Offset 20..23 (4B naturally aligned) */
-    uint32_t generation;     /* Offset 24..27 (4B naturally aligned) */
-    uint32_t cap_scope;      /* Offset 28..31 (4B naturally aligned) */
-    uint64_t timestamp_ns;   /* Offset 32..39 (8B naturally aligned at 32 % 8 == 0) */
-    uint64_t nonce;          /* Offset 40..47 (8B naturally aligned at 40 % 8 == 0) */
-
-    /* 32-byte Predecessor Hash */
-    uint8_t  predecessor_hash[32];
-
-    /* 16-byte Payload */
-    uint16_t profile_id;
-    uint16_t verdict_id;
-    uint32_t mask;
-    float    gpu_render_ms;
-    float    drs_scale_factor;
-
-    /* 32-byte Cryptographic Digest */
-    uint8_t  signature_digest[32];
+    /* CL1: 64..127 */
+    uint16_t profile_id;           /* 80..81 */
+    uint16_t verdict_id;           /* 82..83 */
+    uint32_t mask;                 /* 84..87 */
+    float    gpu_render_ms;        /* 88..91 */
+    float    drs_scale_factor;     /* 92..95 */
+    uint8_t  frame_hmac[32];       /* 96..127 (HMAC-SHA256 over bytes 0..95) */
 } KrystalZeroCopyFrame;
-#pragma pack(pop)
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+_Static_assert(sizeof(KrystalZeroCopyFrame) == 128, "Frame size must be exactly 128B (2 cache lines)");
+_Static_assert(_Alignof(KrystalZeroCopyFrame) == 64, "Frame must be 64B cache-line aligned");
+_Static_assert(offsetof(KrystalZeroCopyFrame, timestamp_ns) == 32, "timestamp_ns offset drift");
+_Static_assert(offsetof(KrystalZeroCopyFrame, nonce) == 40, "nonce offset drift");
+_Static_assert(offsetof(KrystalZeroCopyFrame, profile_id) == 80, "CL1 payload offset drift");
+_Static_assert(offsetof(KrystalZeroCopyFrame, frame_hmac) == 96, "HMAC digest offset drift");
+#endif
 
 #endif /* KRYSTAL_NEXUS_API_H */
 """

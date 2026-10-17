@@ -17,6 +17,8 @@ Invariants:
 
 import struct
 import hashlib
+import hmac
+import math
 import dataclasses
 from enum import IntEnum
 from typing import Tuple, Optional, Any, Dict
@@ -79,6 +81,20 @@ FRAME_STRUCT_FORMAT = "<IIHHII IIIQQ 32s HHIff 32s"
 assert struct.calcsize(FRAME_STRUCT_FORMAT) == ZERO_COPY_FRAME_SIZE, "Frame struct must be exactly 128 bytes!"
 
 
+def canonicalize_float32(val: float) -> float:
+    """
+    Normalizes 32-bit float to prevent bit-pattern ambiguities:
+    - Normalizes -0.0 to +0.0
+    - Rejects non-finite values (NaN, +Inf, -Inf)
+    """
+    f = float(val)
+    if math.isnan(f) or math.isinf(f):
+        raise ValueError(f"Non-finite float value not permitted in ZeroCopyFrame: {val}")
+    if f == 0.0:
+        return +0.0
+    return f
+
+
 @dataclasses.dataclass(frozen=True)
 class ZeroCopyContractFrame:
     """Immutable view over a 128-byte binary contract frame."""
@@ -118,7 +134,7 @@ class ZeroCopyContractFrame:
         return ID_TO_VERDICT.get(self.verdict_id, "UNKNOWN")
 
     def to_bytes(self) -> bytes:
-        """Serializes frame into 128-byte buffer without string allocation."""
+        """Serializes frame into 128-byte buffer without string allocation with canonicalized floats."""
         return struct.pack(
             FRAME_STRUCT_FORMAT,
             self.magic,
@@ -136,15 +152,28 @@ class ZeroCopyContractFrame:
             self.profile_id,
             self.verdict_id,
             self.approved_authority_mask,
-            self.metric1,
-            self.metric2,
+            canonicalize_float32(self.metric1),
+            canonicalize_float32(self.metric2),
             self.signature_or_digest_raw.ljust(32, b"\x00")[:32],
         )
 
     def compute_binary_digest(self) -> bytes:
-        """Computes raw SHA-256 digest of the 96-byte frame prefix (excluding signature)."""
+        """Computes raw SHA-256 digest of the exact 96-byte frame prefix (bytes 0..95)."""
         body_bytes = self.to_bytes()[:96]
         return hashlib.sha256(body_bytes).digest()
+
+    def compute_frame_hmac(self, session_key: bytes) -> bytes:
+        """Computes 32-byte HMAC-SHA256 over exact 96-byte prefix (bytes 0..95)."""
+        body_96 = self.to_bytes()[:96]
+        return hmac.new(session_key, body_96, hashlib.sha256).digest()
+
+    def verify_frame_integrity(self, session_key: Optional[bytes] = None) -> bool:
+        """Verifies that signature_or_digest_raw matches HMAC-SHA256 (if session_key) or SHA256 over bytes 0..95."""
+        if session_key is not None:
+            expected = self.compute_frame_hmac(session_key)
+        else:
+            expected = self.compute_binary_digest()
+        return hmac.compare_digest(self.signature_or_digest_raw, expected)
 
     @classmethod
     def from_bytes(cls, buf: bytes | memoryview, offset: int = 0) -> "ZeroCopyContractFrame":

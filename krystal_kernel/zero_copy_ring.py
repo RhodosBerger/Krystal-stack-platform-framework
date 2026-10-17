@@ -26,17 +26,25 @@ from krystal_kernel.zero_copy_contracts import (
     ZeroCopyContractFrame,
 )
 
-# Ring Header Layout (64 bytes):
-# <I(magic) I(vital_hp) I(capacity) I(slot_size) I(head) I(tail) Q(drop_count) 32s(reserved)
-RING_HEADER_FORMAT = "<IIIIIIQ32s"
-RING_HEADER_SIZE = 64
-assert struct.calcsize(RING_HEADER_FORMAT) == RING_HEADER_SIZE
+class TornFrameDetectedError(ContractViolation):
+    """Raised when consumer detects an unaligned or torn frame in SPSC ring buffer."""
+    pass
+
+
+# Ring Header Layout (128 bytes = 2 x 64B cache lines):
+# CL0 (0..63, Producer cache line): <I(magic) I(vital_hp) I(capacity) I(slot_size) I(head) 44s(pad0)
+# CL1 (64..127, Consumer cache line): <I(tail) 4s(pad1) Q(drop_count) 48s(reserved)
+# Separating head (offset 16) and tail (offset 64) onto distinct cache lines eliminates false-sharing.
+RING_HEADER_FORMAT = "<IIIII44sI4sQ48s"
+RING_HEADER_SIZE = 128
+assert struct.calcsize(RING_HEADER_FORMAT) == RING_HEADER_SIZE, "Ring header must be exactly 128 bytes (2 cache lines)"
 
 
 class ZeroCopyContractRing:
     """
     Shared memory circular ring buffer for 128-byte ZeroCopyContractFrame objects.
     Enables low-latency IPC across processes or within a local real-time thread.
+    Header is 128-byte aligned, guaranteeing every slot is 64-byte and 128-byte aligned.
     """
 
     def __init__(
@@ -75,23 +83,25 @@ class ZeroCopyContractRing:
         self._validate_header()
 
     def _init_header(self):
-        """Initializes the ring header in shared memory."""
+        """Initializes the ring header in shared memory across two distinct cache lines."""
         header_bytes = struct.pack(
             RING_HEADER_FORMAT,
             KRYSTAL_MAGIC,
             VITAL_MAX_HP,
             self.capacity,
             self.slot_size,
-            0,  # head
-            0,  # tail
-            0,  # drop_count
-            b"\x00" * 32,
+            0,  # head (CL0, offset 16)
+            b"\x00" * 44,  # pad0 to complete 64B CL0
+            0,  # tail (CL1, offset 64)
+            b"\x00" * 4,   # pad1
+            0,  # drop_count (CL1, offset 72)
+            b"\x00" * 48,  # reserved to complete 64B CL1
         )
         self._buf[:RING_HEADER_SIZE] = header_bytes
 
     def _validate_header(self):
         """Checks invariants on the ring header."""
-        magic, vital_hp, cap, slot_sz, _, _, _, _ = struct.unpack_from(RING_HEADER_FORMAT, self._buf, 0)
+        magic, vital_hp, cap, slot_sz, _, _, _, _, _, _ = struct.unpack_from(RING_HEADER_FORMAT, self._buf, 0)
         if magic != KRYSTAL_MAGIC:
             raise ContractViolation(f"Invalid ring buffer magic: {hex(magic)}")
         if vital_hp != 6:
@@ -100,23 +110,40 @@ class ZeroCopyContractRing:
             raise ContractViolation(f"Unexpected slot size in ring: {slot_sz}")
 
     def _get_head_tail(self) -> Tuple[int, int, int]:
-        """Reads head, tail, and drop_count from the ring header."""
-        _, _, _, _, head, tail, drops, _ = struct.unpack_from(RING_HEADER_FORMAT, self._buf, 0)
+        """Reads head (CL0, offset 16), tail (CL1, offset 64), and drop_count (CL1, offset 72)."""
+        _, _, _, _, head, _, tail, _, drops, _ = struct.unpack_from(RING_HEADER_FORMAT, self._buf, 0)
         return head, tail, drops
 
     def _set_head(self, head: int):
         struct.pack_into("<I", self._buf, 16, head)
 
     def _set_tail(self, tail: int):
-        struct.pack_into("<I", self._buf, 20, tail)
+        struct.pack_into("<I", self._buf, 64, tail)
 
     def _increment_drop_count(self):
-        drops = struct.unpack_from("<Q", self._buf, 24)[0]
-        struct.pack_into("<Q", self._buf, 24, drops + 1)
+        drops = struct.unpack_from("<Q", self._buf, 72)[0]
+        struct.pack_into("<Q", self._buf, 72, drops + 1)
+
+    def get_slot_offset(self, slot_idx: int) -> int:
+        """Returns the byte offset of a slot. Guaranteed to be a multiple of 64 and 128."""
+        offset = RING_HEADER_SIZE + ((slot_idx % self.capacity) * self.slot_size)
+        assert offset % 64 == 0, f"Slot offset {offset} must be 64-byte cache-line aligned"
+        assert offset % 128 == 0, f"Slot offset {offset} must be 128-byte frame aligned"
+        return offset
 
     def push_frame(self, frame: ZeroCopyContractFrame) -> bool:
         """Pushes a frame into the circular ring. Returns False if buffer is full."""
         return self.push_raw_bytes(frame.to_bytes())
+
+    def push_frame_with_hmac(self, frame: ZeroCopyContractFrame, session_key: bytes) -> bool:
+        """
+        Pushes a frame with full 96-byte HMAC authentication and cross-ISA release semantics.
+        CL0 and CL1 writes precede the atomic head store (memory_order_release).
+        """
+        raw_96 = frame.to_bytes()[:96]
+        auth_tag = frame.compute_frame_hmac(session_key)
+        full_128 = raw_96 + auth_tag
+        return self.push_raw_bytes(full_128)
 
     def push_raw_bytes(self, frame_bytes: bytes) -> bool:
         """Pushes raw 128 bytes directly into the ring slot with zero allocations."""
@@ -130,9 +157,10 @@ class ZeroCopyContractRing:
             self._increment_drop_count()
             return False
 
-        slot_idx = head % self.capacity
-        slot_offset = RING_HEADER_SIZE + (slot_idx * self.slot_size)
+        slot_offset = self.get_slot_offset(head)
+        # 1. Write bytes into slot (CL0 and CL1)
         self._buf[slot_offset : slot_offset + self.slot_size] = frame_bytes
+        # 2. Release fence: atomic update of head index publishes the slot
         self._set_head(head + 1)
         return True
 
@@ -143,15 +171,31 @@ class ZeroCopyContractRing:
             return None
         return ZeroCopyContractFrame.from_bytes(raw)
 
+    def pop_frame_with_hmac(self, session_key: bytes) -> Optional[ZeroCopyContractFrame]:
+        """
+        Pops the next frame with Acquire semantics and full 96-byte HMAC integrity check.
+        Detects any torn reads across CL0 and CL1 boundaries.
+        """
+        raw = self.pop_raw_bytes()
+        if raw is None:
+            return None
+
+        frame = ZeroCopyContractFrame.from_bytes(raw)
+        if not frame.verify_frame_integrity(session_key):
+            self._increment_drop_count()
+            raise TornFrameDetectedError(
+                f"Torn or corrupted frame detected in slot: HMAC verification failed for seq={frame.sequence_id}"
+            )
+        return frame
+
     def pop_raw_bytes(self) -> Optional[bytes]:
-        """Pops raw 128 bytes from the next slot."""
+        """Pops raw 128 bytes from the next slot with acquire semantics."""
         head, tail, _ = self._get_head_tail()
         if head == tail:
             # Buffer empty
             return None
 
-        slot_idx = tail % self.capacity
-        slot_offset = RING_HEADER_SIZE + (slot_idx * self.slot_size)
+        slot_offset = self.get_slot_offset(tail)
         frame_bytes = bytes(self._buf[slot_offset : slot_offset + self.slot_size])
         self._set_tail(tail + 1)
         return frame_bytes
