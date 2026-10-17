@@ -29,7 +29,7 @@ import time
 import platform
 from enum import Enum
 from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
 

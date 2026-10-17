@@ -66,7 +66,7 @@ import ctypes
 from ctypes import wintypes
 from enum import Enum, unique
 from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, List, Optional, Tuple, Callable
+from typing import Dict, Any, List, Optional, Tuple, Callable, Set
 
 # Platform Invariant
 VITAL_MAX_HP: int = 6

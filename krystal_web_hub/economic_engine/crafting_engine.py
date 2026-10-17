@@ -5,11 +5,13 @@
 # elemental polarity validation, power budget caps, and double-entry ledger deduction.
 # ==============================================================================
 
+from __future__ import annotations
+
 from typing import Dict, List, Any, Optional, Set
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 
-from .models import Tribe, ResourceType, ResourceCost
+from .models import Tribe, ResourceType, ResourceCost, CombatantState
 from .economic_rules import EconomicLedger
 
 
