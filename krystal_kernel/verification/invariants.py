@@ -18,6 +18,7 @@ Any violation:
 =============================================================================
 """
 
+from __future__ import annotations
 import os
 import sys
 import time
@@ -25,7 +26,7 @@ import uuid
 import hashlib
 from enum import Enum
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, Any, List, Optional, Callable, Tuple
 
 WORKSPACE_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if WORKSPACE_ROOT not in sys.path:
