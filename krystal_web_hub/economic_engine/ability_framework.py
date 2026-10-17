@@ -5,7 +5,8 @@
 # status ailments, and multi-tier escalation ultimates.
 # ==============================================================================
 
-from typing import Dict, List, Tuple, Optional
+from __future__ import annotations
+from typing import Any, Dict, List, Tuple, Optional
 from .models import (
     Tribe, AbilityType, AttackType, AbilitySpec, ResourceCost, CombatantState,
     EscalationStage, LedgerEntry
