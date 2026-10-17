@@ -1,0 +1,75 @@
+# Krystal-Stack Procedural Visual Template: Kvantová Singularita: Calabi-Yau 6D Dimenzionálny Portál
+schema_version: '1.0'
+template_id: 'CALABI_YAU_QUANTUM_PORTAL'
+title: 'Kvantová Singularita: Calabi-Yau 6D Dimenzionálny Portál'
+scene_identity:
+  scene_type: 'sacred mirror chamber'
+  core_theme: 'quantum'
+  narrative_role: 'portal activation'
+world_environment:
+  environment: 'spherical zero-gravity containment dome floating in hyper-dimensional space'
+  scale: 'monumental'
+  terrain_logic: 'curving magnetic containment rings, floating geometric anchors, spacetime ripples'
+procedural_structure:
+  procedural_forms:
+    - 'Calabi-Yau 6D cross-section manifolds'
+    - 'gravitational lensing event horizons'
+    - 'hyperbolic Riemann sheets'
+    - 'Planck-scale particle torrents'
+  fractal_dimension: '3.4'
+  dihedral_folds: '16'
+  octaves: '8'
+texture_stack:
+  base_material: 'superconducting dark titanium, polarized diamond windows, and magnetic liquid flux'
+  secondary_material: 'gold quantum stabilization filaments, laser interferometry grids'
+  micro_surface_detail: 'spacetime distortion ripples, micro-gravitational lensing rings, atomic lattice burns'
+  edge_behavior: 'visually bent curved edges warped by intense gravitational refraction'
+  reflectivity_roughness: 'specular polarized mirrors with complex anti-reflective multi-layer coatings'
+  emission: 'brilliant violet-white singularity glow and rainbow synchrotron radiation rings'
+  atmospheric_particles: 'high-energy Cherenkov sparks, tachyon trails, subatomic particle bursts'
+action_event:
+  primary_event: 'the 6-dimensional Calabi-Yau manifold unfolds into observable three-dimensional space'
+  cause: 'the singularity containment harmonics achieved absolute zero resonance'
+  visible_transformation: 'the center of the portal twists into an impossible multi-dimensional geometric knot; space curves around it'
+  environmental_response: 'magnetic containment rings glow red-hot; sparks arc across superconducting pylons as gravity reverses'
+  motion_cues: 'violent twisting dimensional folds, orbiting particle halos, light bending into rings'
+  narrative_traces: 'overloaded sensor arrays, melted calibration rods, warning runes inscribed into shielding'
+temporal_layer:
+  before: 'containment magnetic fields strained against the micro-singularity's pull for months.'
+  during: 'the manifold fully blooms into 3D spacetime, bending light and tearing the fabric of reality.'
+  after: 'the dimensional wormhole will link the Krystal-Stack universe to distant parallel realms.'
+atmosphere:
+  atmosphere: 'mind-bending, mathematically sublime, dangerous, and epochal'
+  mood: 'existential awe, technological triumph, dimensional vertigo'
+  weather_medium: 'vacuum distortion wave with intense gravitational lens shimmer'
+  depth_effects: 'infinite warped background reflections, Doppler-shifted distant stars'
+lighting:
+  primary_light: 'blinding ultraviolet-white radiance from the manifold core'
+  secondary_light: 'sapphire Cherenkov radiation washing over the containment hull'
+  accent_light: 'orange warning strobes pulsing rhythmically along the containment perimeter'
+  shadow_behavior: 'gravitationally bent shadows wrapping around curved space'
+camera_composition:
+  camera_angle: 'centered axial view looking directly into the singularity aperture'
+  framing: 'monumental symmetrical circular composition'
+  primary_focal_point: 'the undulating 6D Calabi-Yau manifold core'
+  secondary_focal_points: 'glowing magnetic containment pylons, warping background grid'
+  scale_references: 'tiny observation platforms with safety railings on the outer ring'
+  composition: 'concentric circular composition drawing the eye relentlessly into the center'
+style_render_mode:
+  render_mode: 'procedural cinematic concept art for Krystal-Stack'
+  surface_style: 'hard sci-fi quantum physics visualization blended with cosmic myth'
+quality_detail:
+  detail_level: 'very high'
+  texture_richness: 'layered and premium'
+  world_coherence: 'physically believable but mythic'
+  visual_density: 'rich focal detail, controlled peripheral softness'
+negative_constraints:
+  - 'generic game UI'
+  - 'flat empty surfaces'
+  - 'random unmotivated objects'
+  - 'oversaturated cartoon look'
+  - 'cheap fantasy cliché'
+  - 'blurry undefined texture work'
+  - 'chaotic unreadable composition'
+  - 'too many equal focal points'
+vital_max_hp_rule: '6'

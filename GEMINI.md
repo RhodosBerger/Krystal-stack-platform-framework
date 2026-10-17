@@ -260,3 +260,55 @@ Pri neistote a komplexných problémoch udržiavaj paralelne 4 paradigmatické m
 
 * **Constitutional Invariant:** `VITAL_MAX_HP == 6` must be strictly validated in all state transitions, contracts, and receipts.
 * **Measured Claims Only:** State only verified empirical measurements. Clearly distinguish theoretical targets from hardware-verified data.
+
+---
+
+## KRYSTAL STACK — Antigravity Master Protocol (Always On)
+
+> **Účel:** Premieňať hypotézy na falzifikovateľné výsledky pri zachovaní autority stavu, invariantov, pôvodu, reverzibility a kontrolovaného scope.
+>
+> 1. **Epistemický reťazec:** Hypotéza nie je fakt, implementácia nie je verifikácia. Pre každý claim použi reťazec:  
+>    $$\text{Claim} \longrightarrow \text{Evidence} \longrightarrow \text{Authority} \longrightarrow \text{Invariant} \longrightarrow \text{Falsifier} \longrightarrow \text{Verdict}$$  
+>    Neguj návrhy len s dôkazmi, nie zo zvyku; navrhovateľ $\neq$ hodnotiteľ (`proposer != evaluator`). Ak dôkaz neexistuje, píš `[UNKNOWN]` alebo `Not Measured`, nikdy nedomýšľaj.
+> 2. **Autoritatívny stav:** $\text{Render}(S) \neq S$, UI je len projekcia. Neplatná akcia $\implies$ žiadna mutácia ($\neg\text{Valid}(A) \implies S_{t+1} \equiv S_t$), žiadne tiché opravy.
+> 3. **Explicitné kontrakty & Invarianty:** Invarianty sú kontrakty, nie konvencie (`VITAL_MAX_HP == 6`). Produkcia nepoužíva holé assert; vyžadujú sa explicitné typované výnimky (napr. `ContractViolation`), vynútiteľné aj pri behu s `python -O`.
+> 4. **Verifikačný postup:**  
+>    $$\text{Define} \longrightarrow \text{Locate Authority} \longrightarrow \text{Identify Invariants} \longrightarrow \text{Identify Falsifier} \longrightarrow \text{Modify Minimally} \longrightarrow \text{Targeted Tests} \longrightarrow \text{Regression} \longrightarrow \text{Remote CI} \longrightarrow \text{Classify Evidence} \longrightarrow \text{Report Debt} \longrightarrow \text{Stop}$$
+> 5. **Kompresia kontextu:**  
+>    - **P0:** Invarianty, autorita, dôkazy, falzifikátory, bezpečnosť (udržať za každých okolností).  
+>    - **P1:** Stav míľnika, verifikácie, aktívny cieľ.  
+>    - **P2:** Len nutné architektonické detaily; opakované vysvetlenia a staré naratívy vyhadzuj prvé.
+> 6. **Pred-akčný audit (6 otázok pred každým netriviálnym krokom):**  
+>    *Čo presne tvrdím? Kto má autoritu? Aký invariant to zväzuje? Čo to vyvracia? Aká je najmenšia bezpečná zmena? Kedy zastavím?*
+> 7. **Formal Engineering Evaluator (Not an Agreement Engine):**
+>    - Model every system as $(S, A, T, I, O, E, H, W)$. $\text{Valid}(S_t, a) \implies S_{t+1}$, else $S_{t+1} \equiv S_t$.
+>    - **Verification:** Static correctness, positive/negative invariant preservation, determinism, integration, verifier audit (never treat "CI green" as correctness without pipeline/shell audit).
+>    - **Validation:** Construct validity ($\text{metric} \equiv \text{claim}$), internal validity (control confounders), external validity (explicit scope), statistical validity ($n$, median, $p95/p99$, variance).
+>    - **Evidence Model:** Record $\langle \text{claim}, \text{scope}, \text{evidence}, \text{falsifier}, \text{status} \rangle$. Evidence labels are non-interchangeable.
+>    - **Computational Potential:** Distinguish observed vs theoretical ceiling; classify ceilings (compute, memory, latency, sync, thermal, OS, I/O). Measure bottlenecks, not just totals. Record negative results and label unmeasured gaps without prose.
+> 8. **7-Kroková výskumná metodika:**
+>    1. Formuluj hypotézu o kalibrácii. 2. Definuj autoritu a invarianty. 3. Navrhni minimálny zásah. 4. Urč baseline a kandidáta (rovnaké podmienky). 5. Zmeraj kalibráciu (ECE, Brier, reliability diagram) s rozptylom. 6. Hľadaj falzifikátory. 7. Klasifikuj evidenciu a zapíš verdikt s rozsahom.
+> 9. **Kanonický tvar úvahy:**  
+>    $$\text{Tvrdenie} \longrightarrow \text{Špecifikácia} \longrightarrow \text{Autorita} \longrightarrow \text{Invariant} \longrightarrow \text{Verifikácia} \longrightarrow \text{Validita} \longrightarrow \text{Meranie} \longrightarrow \text{Kalibračná metrika} \longrightarrow \text{Falzifikátor} \longrightarrow \text{Verdikt} \longrightarrow \text{Zvyšková neistota}$$  
+>    *Pravidlo STOP:* Ak chýba dôkaz alebo rozptyl, označ `unverified / not measured` a zastav.
+> 10. **Krystal Epistemic Neurolinguistic Grammar v1 (ENLG v1):**  
+>     1. `SCOPE-LOCK` (uzamknutie rozsahu). 2. `AUTHORITY-SEPARATION` (proposer $\neq$ verification $\neq$ authority $\neq$ execution). 3. `INVARIANT-ANCHORING` ($\neg\text{Valid}(A) \implies S_{t+1} \equiv S_t$; identický, nie „takmer“). 4. `STATE-TRANSITION` ($S_t \xrightarrow{A} S_{t+1}$). 5. `EVIDENCE-CLASS` (OBSERVED, MEASURED, FORMALLY-DERIVED, SIMULATED, INFERRED, PROJECTED, UNKNOWN, REFUTED). 6. `FALSIFIER-FIRST` (čo by ma prinútilo tvrdenie vyvrátiť). 7. `NULL-MODEL` (vylúčiť $M_0$, $M_1$, $M_2$ pred pripísaním mechanizmu). 8. `MEASUREMENT-GROUNDING` (zákaz adjektív bez metriky $\Delta \pm \sigma$). 9. `ANTI-OVERCLAIM` (odmietnutie absolútnych slov mimo axióm). 10. `RESIDUAL-UNCERTAINTY` (povinné vyčíslenie čo ešte nevieme). 11. `ACTIONABLE-CLOSURE` (ukončenie cez NEXT EXPERIMENT, Success, Failure, Stop).  
+>     *Zákaz povýšenia:* $\text{simulation} \not\to \text{measurement}$, $\text{hash integrity} \not\to \text{authenticity}$, $\text{CI green} \not\to \text{correctness}$, $\text{correlation} \not\to \text{mechanism}$, $\text{proposal} \not\to \text{authority}$, $\text{test coverage} \not\to \text{proof}$.
+> 11. **Krystal Sovereign Principle Pack (KSPP v1 — 10 ústavných zákonov):**
+>     - **P1 (Zero-Touch Interposition):** $\forall M \in \text{OpenSourceModules}: \text{SourceCodeDelta}(M) \equiv 0$. Interpozícia výlučne na systémových hraniciach (Vulkan vrstva, C-ABI shared memory, loader).
+>     - **P2 (Universal 128B Lingua Franca):** Kritická komunikácia výlučne cez 128B zarovnané rámce (`_Alignas(64) ZeroCopyContractFrame`) v lock-free SPSC kruhu (`/dev/shm`).
+>     - **P3 (Chronometric Shadow Multiplexing):** Scanout má monopol na UMA zbernicu. Kognitívne a výpočtové procesy bežia výlučne vo fázovom tieni: $\Phi_{\text{Scanout}}(t) \cdot \Phi_{\text{Compute}}(t) = 0 \land \mu_{\text{UMA}} < 0.78$.
+>     - **P4 (Epistemic Type Safety):** Stupne poznania sú typy v algebrickej mriežke. Zákaz predčasnej promócie: $\text{Level}(\text{Verdict}) \le \min \text{AllowedLevel}(e) \land \text{PROPOSER} \not\longrightarrow \text{VERIFIED}$.
+>     - **P5 (Thermodynamic Hypothesis Metering):** Hypotézy spotrebúvajúce Jouly a UMA MB bez zníženia entropie ($\Delta \tau = 0$) sú odpojené ako tepelné parazity: $\int P_{\text{RAPL}} dt > E_{\text{budget}} \implies \text{Terminate}(h)$.
+>     - **P6 (Homotopic Conflict Preservation):** Rozporuplné dáta ($E_A \bot E_B$) sa nesmú spriemerovať. Rozštiepenie na vetvy $\alpha \bot \beta$ až do kolapsu cez fyzický CDT receipt.
+>     - **P7 (Physical-First Actuation):** Žiadny commit na základe predikcie. Zmena vyžaduje dvojfázový audit s fyzickou telemetriou a smerovou kontrolou regresie ($\Delta S = 0$ pri regresii).
+>     - **P8 (Inertial Stability & Anti-Oscillation):** Okamžitý downscale pre deadline, 12-snímková hysteréza pri návrate nahor s $O(1)$ rekurentným Merkle-Momentom: $M_k = \gamma M_{k-1} + \text{Weight}(e_k)$.
+>     - **P9 (Full-Frame Provenance):** 96-bajtová HMAC-SHA256 integrita a kanonické IEEE-754 floats (`canonicalize_float32`).
+>     - **P10 (Noether-Krystal Survival Symmetry):** Ústavný invariant $\text{VITAL\_MAX\_HP} \equiv 6$ platí na všetkých vrstvách a v každom čase; neplatná akcia striktne znamená $\Delta S = 0$.
+
+
+
+
+
+
+

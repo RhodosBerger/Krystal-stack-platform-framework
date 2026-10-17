@@ -1,0 +1,75 @@
+# Krystal-Stack Procedural Visual Template: Nebeská Citadela: Levitujúce Aéterové Veže
+schema_version: '1.0'
+template_id: 'AERIAL_FLOATING_SPIRE_CITADEL'
+title: 'Nebeská Citadela: Levitujúce Aéterové Veže'
+scene_identity:
+  scene_type: 'citadel bastion'
+  core_theme: 'astral'
+  narrative_role: 'stabilization'
+world_environment:
+  environment: 'sky archipelago of inverted limestone islands floating above a cloud sea'
+  scale: 'cathedral-scale'
+  terrain_logic: 'inverted conical rock masses, arched aether bridges, cascading zero-g waterfalls'
+procedural_structure:
+  procedural_forms:
+    - 'inverted signed distance field gravity cones'
+    - 'catenary hanging chain networks'
+    - 'streamline aerodynamic spires'
+    - 'cloud turbulence vortexes'
+  fractal_dimension: '2.6'
+  dihedral_folds: '8'
+  octaves: '6'
+texture_stack:
+  base_material: 'sun-bleached marble, blue slate roof shingles, and magnetic aetherite ore'
+  secondary_material: 'polished brass aeronautical compasses, woven silk banners, and sapphire glass'
+  micro_surface_detail: 'wind-scoured stone channels, delicate filigree railings, cloud moisture beads'
+  edge_behavior: 'crisp architectural moldings, sheer vertical cliff drop-offs'
+  reflectivity_roughness: 'smooth reflective marble pavements, soft diffuse clouds, gleaming metal domes'
+  emission: 'soft azure gravity-repulsion fields under each floating island keel'
+  atmospheric_particles: 'drifting cloud wisps, fluttering fabric ribbons, floating dandelion fluff'
+action_event:
+  primary_event: 'the celestial alignment stabilizes the magnetic keels of the sky citadel'
+  cause: 'the central aether reactor was re-ignited after an aerial siege'
+  visible_transformation: 'the floating islands align into a fortified defensive ring; gravitational bridges lock together'
+  environmental_response: 'wind shear calms into gentle updrafts, clouds form a protective barrier below'
+  motion_cues: 'graceful island bobbing, rotating observation rings, rushing water breaking into spray'
+  narrative_traces: 'docked aerial skiffs, patched ballista battlements, fluttering victor pennants'
+temporal_layer:
+  before: 'the archipelago drifted aimlessly during a catastrophic gravity core failure.'
+  during: 'the blue repulsion coils fire up, locking the massive rock islands into a defensive lattice.'
+  after: 'the citadel will serve as an unassailable bastion overlooking the lower biomes.'
+atmosphere:
+  atmosphere: 'weightless, triumphant, ethereal, and pristine'
+  mood: 'liberation, serene vigilance, boundless horizon'
+  weather_medium: 'crystal-clear thin stratosphere with fast-moving cirrus clouds'
+  depth_effects: 'distant floating islands fading into brilliant atmospheric aerial perspective'
+lighting:
+  primary_light: 'brilliant golden hour sunlight streaming across the cloud tops'
+  secondary_light: 'cool blue sky dome fill light'
+  accent_light: 'azure emission from the anti-gravity rings underneath the islands'
+  shadow_behavior: 'sharp clean shadows cast across cloud banks far below'
+camera_composition:
+  camera_angle: 'wide aerial panorama from a flying perspective'
+  framing: 'epic panoramic establishing shot with open horizon'
+  primary_focal_point: 'the central grand spire and its glowing keel'
+  secondary_focal_points: 'connecting sky bridges, smaller satellite outposts'
+  scale_references: 'circling winged scouts and tiny wind turbine sails'
+  composition: 'rule-of-thirds composition balancing solid island mass with infinite sky'
+style_render_mode:
+  render_mode: 'procedural cinematic concept art for Krystal-Stack'
+  surface_style: 'clean luminous high fantasy with hard-surface sci-fi precision'
+quality_detail:
+  detail_level: 'very high'
+  texture_richness: 'layered and premium'
+  world_coherence: 'physically believable but mythic'
+  visual_density: 'rich focal detail, controlled peripheral softness'
+negative_constraints:
+  - 'generic game UI'
+  - 'flat empty surfaces'
+  - 'random unmotivated objects'
+  - 'oversaturated cartoon look'
+  - 'cheap fantasy cliché'
+  - 'blurry undefined texture work'
+  - 'chaotic unreadable composition'
+  - 'too many equal focal points'
+vital_max_hp_rule: '6'

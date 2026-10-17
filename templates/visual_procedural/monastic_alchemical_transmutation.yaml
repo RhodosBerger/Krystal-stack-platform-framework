@@ -1,0 +1,75 @@
+# Krystal-Stack Procedural Visual Template: Alchymistické Laboratórium: Zlatý Rez & Dihedrálny Kruh
+schema_version: '1.0'
+template_id: 'MONASTIC_ALCHEMICAL_TRANSMUTATION'
+title: 'Alchymistické Laboratórium: Zlatý Rez & Dihedrálny Kruh'
+scene_identity:
+  scene_type: 'ancient ritual'
+  core_theme: 'alchemy'
+  narrative_role: 'transformation'
+world_environment:
+  environment: 'subterranean vaulted cloister with concentric brass alchemical rings'
+  scale: 'cathedral-scale'
+  terrain_logic: 'concentric stone rings inlayed with golden molten canals, rotating planetary dials'
+procedural_structure:
+  procedural_forms:
+    - 'D12 dodecahedral symmetry plates'
+    - 'nested Archimedean spirals'
+    - 'golden ratio interlocking gears'
+    - 'flowing liquid gold troughs'
+  fractal_dimension: '2.5'
+  dihedral_folds: '12'
+  octaves: '6'
+texture_stack:
+  base_material: 'hewn basalt blocks, oxidized dark bronze, and carved Carrara marble'
+  secondary_material: 'heavy 24k gold inlays, quicksilver channels, and cinnabar powder'
+  micro_surface_detail: 'chiseled latin inscriptions, chisel marks, oil stains, powdered sulfur dust'
+  edge_behavior: 'smoothly burnished gold-filled bevels, worn stone steps'
+  reflectivity_roughness: 'deep luster on polished brass, matte absorbent sandstone, liquid mercury sheen'
+  emission: 'molten golden incandescent glow from floor channels, faint emerald crucible flames'
+  atmospheric_particles: 'curling incense smoke, glowing amber embers, vaporized mercury fumes'
+action_event:
+  primary_event: 'the planetary gears lock into alignment, initiating the Great Alchemical Work'
+  cause: 'the philosopher's tincture was poured into the central mercury crucible'
+  visible_transformation: 'base lead slabs begin recrystallizing into brilliant faceted gold along runic seams'
+  environmental_response: 'rotating brass rings accelerate, humming in harmonic fifths, heat waves warp the air'
+  motion_cues: 'smooth mechanical ring rotation, bubbling molten metals, rising smoke spirals'
+  narrative_traces: 'wax-sealed grimoires, discarded glass alembics, failed blackened transmutation ingots'
+temporal_layer:
+  before: 'monks chanted for three days while tending the coal fires beneath the dials.'
+  during: 'the alignment clicks into place, and golden veins rapidly spread through solid rock.'
+  after: 'the entire chamber will stabilize as an indestructible golden celestial observatory.'
+atmosphere:
+  atmosphere: 'reverent, scholastic, heavy, and incandescent'
+  mood: 'illumination, sacred order, profound secrecy'
+  weather_medium: 'warm indoor atmosphere thick with frankincense and ozone'
+  depth_effects: 'vaulted archways receding into amber candlelight, deep atmospheric shadows'
+lighting:
+  primary_light: 'radiant golden luminescence from the central transmutation pit'
+  secondary_light: 'flickering tallow candles lining the tiered stone gallery'
+  accent_light: 'green reflection off alchemical glass alembics'
+  shadow_behavior: 'dramatic chiaroscuro with sharp architectural shadow silhouettes'
+camera_composition:
+  camera_angle: 'elevated balcony three-quarter isometric overview'
+  framing: 'comprehensive geometric composition showing all concentric rings'
+  primary_focal_point: 'the central golden crucible and aligning dials'
+  secondary_focal_points: 'scholastic scriptorium niches, steam exhaust vents'
+  scale_references: 'human-sized lecterns and tiered amphitheater seating'
+  composition: 'harmonious Fibonacci spiral composition following the golden ratio'
+style_render_mode:
+  render_mode: 'procedural cinematic concept art for Krystal-Stack'
+  surface_style: 'Renaissance dark fantasy with hyper-precise mechanical detailing'
+quality_detail:
+  detail_level: 'very high'
+  texture_richness: 'layered and premium'
+  world_coherence: 'physically believable but mythic'
+  visual_density: 'rich focal detail, controlled peripheral softness'
+negative_constraints:
+  - 'generic game UI'
+  - 'flat empty surfaces'
+  - 'random unmotivated objects'
+  - 'oversaturated cartoon look'
+  - 'cheap fantasy cliché'
+  - 'blurry undefined texture work'
+  - 'chaotic unreadable composition'
+  - 'too many equal focal points'
+vital_max_hp_rule: '6'

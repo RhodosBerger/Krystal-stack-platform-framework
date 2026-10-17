@@ -1,0 +1,75 @@
+# Krystal-Stack Procedural Visual Template: Hnijúca Slatina: Erupcia Slizového Gejzíru
+schema_version: '1.0'
+template_id: 'TOXIC_BLOOM_RUPTURE'
+title: 'Hnijúca Slatina: Erupcia Slizového Gejzíru'
+scene_identity:
+  scene_type: 'biome world'
+  core_theme: 'toxic'
+  narrative_role: 'emergence'
+world_environment:
+  environment: 'corroded basalt marshland and bubbling acid vents'
+  scale: 'monumental'
+  terrain_logic: 'honeycomb rock dissolution, subterranean acid channels, floating fungal crusts'
+procedural_structure:
+  procedural_forms:
+    - 'Voronoi slime cavities'
+    - 'spiral spore geysers'
+    - 'branching miasma tendrils'
+    - 'cellular foam membranes'
+  fractal_dimension: '2.32'
+  dihedral_folds: '4'
+  octaves: '5'
+texture_stack:
+  base_material: 'wet pitted basalt, corroded verdigris bronze, and glistening acid jelly'
+  secondary_material: 'fluorescent emerald mold, chitinous scales, and sulfurous crust'
+  micro_surface_detail: 'bursting micro-bubbles, etched corrosion pits, oily iridescent slick'
+  edge_behavior: 'dissolving ragged stone rims with dripping toxic dew'
+  reflectivity_roughness: 'variable wet gloss on slime, porous ultra-matte on dead volcanic rock'
+  emission: 'bioluminescent lime-green fungal veins and sickly violet bubbling spots'
+  atmospheric_particles: 'drifting toxic pollen, boiling sulfuric steam plumes, flickering spore fireflies'
+action_event:
+  primary_event: 'a pressurized subterranean toxic vein ruptures through the stone crust'
+  cause: 'the drainage wards of the old citadel failed under tectonic stress'
+  visible_transformation: 'viscous emerald sludge fountains erupt upwards, dissolving surrounding basalt spires'
+  environmental_response: 'acid mist floods the lowlands, nearby fungal totems swell and release blinding spore bursts'
+  motion_cues: 'violent fluid splashes, billowing green vapor spirals, quivering gelatinous sacs'
+  narrative_traces: 'half-melted iron warding stakes, corroded skeletons of armored sentries, etched acidic runoff gullies'
+temporal_layer:
+  before: 'pressure built silently beneath calcified sediment and abandoned drainage canals.'
+  during: 'a massive emerald eruption blasts through the floor, shattering bedrock into dissolving fragments.'
+  after: 'the acid marsh will submerge the low ground, transforming the sector into an uninhabitable miasma swamp.'
+atmosphere:
+  atmosphere: 'oppressive, noxious, primeval, and predatory'
+  mood: 'dread, claustrophobia, toxic beauty'
+  weather_medium: 'thick yellowish sulfur smog and steady acid drizzle'
+  depth_effects: 'heavy green depth fog obscuring horizon, silhouetted dead monoliths'
+lighting:
+  primary_light: 'intense lime-green glow emanating from the erupting fissure'
+  secondary_light: 'deep violet bioluminescence from surrounding fungal nodes'
+  accent_light: ' sickly yellow rim light cutting through the sulfurous smoke'
+  shadow_behavior: 'murky diffused shadows softened by dense atmospheric haze'
+camera_composition:
+  camera_angle: 'ground-level upward tilt'
+  framing: 'dramatic medium-wide framing capturing the volcanic plume'
+  primary_focal_point: 'the geyser eruption apex'
+  secondary_focal_points: 'corroded watchtower ruins, expanding acid ring'
+  scale_references: 'decayed wooden barricades and broken iron siege shields'
+  composition: 'dynamic diagonal energy vector with bubbling foreground details'
+style_render_mode:
+  render_mode: 'procedural cinematic concept art for Krystal-Stack'
+  surface_style: 'gritty bio-industrial dark fantasy'
+quality_detail:
+  detail_level: 'very high'
+  texture_richness: 'layered and premium'
+  world_coherence: 'physically believable but mythic'
+  visual_density: 'rich focal detail, controlled peripheral softness'
+negative_constraints:
+  - 'generic game UI'
+  - 'flat empty surfaces'
+  - 'random unmotivated objects'
+  - 'oversaturated cartoon look'
+  - 'cheap fantasy cliché'
+  - 'blurry undefined texture work'
+  - 'chaotic unreadable composition'
+  - 'too many equal focal points'
+vital_max_hp_rule: '6'

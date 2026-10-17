@@ -1,0 +1,89 @@
+{
+  "template_id": "FROST_GLACIAL_FRACTURE_CHASM",
+  "title": "Severné Štíty: Ľadovcová Trhlina Kryštálového Kmeňa",
+  "scene_identity": {
+    "scene_type": "biome world",
+    "core_theme": "frost",
+    "narrative_role": "transformation"
+  },
+  "world_environment": {
+    "environment": "abyssal glacial canyon flanked by translucent ice cliffs and frozen water needles",
+    "scale": "monumental",
+    "terrain_logic": "crevasse step walls, shear stress fractures, hanging blue seracs, frozen waterfalls"
+  },
+  "procedural_structure": {
+    "procedural_forms": [
+      "ridged mountain manifolds",
+      "stress tensor brittle fractures",
+      "hexagonal columnar ice needles",
+      "volumetric katabatic wind flows"
+    ],
+    "fractal_dimension": 2.55,
+    "dihedral_folds": 6,
+    "octaves": 6
+  },
+  "texture_stack": {
+    "base_material": "dense cyan glacial ice, compacted firn snow, and dark frozen shale",
+    "secondary_material": "rhomboid frost crystals, pure silver rune engravings, and frozen air bubbles",
+    "micro_surface_detail": "hairline internal thermal stress cracks, frosted feathery dendritic patterns",
+    "edge_behavior": "jagged razor ice edges with internal total reflection glow",
+    "reflectivity_roughness": "subsurface scattering translucent ice (roughness 0.08), powdery snow (roughness 0.8)",
+    "emission": "deep cyan subsurface volumetric scattering and pale violet frost runes",
+    "atmospheric_particles": "rushing snow spindrift, glittering diamond dust, howling gale vapor"
+  },
+  "action_event": {
+    "primary_event": "a massive glacial rift cleaves the valley under the weight of an aether strike",
+    "cause": "the Crystal Tribe channeled their orbital hyper-lance to repel an invading column",
+    "visible_transformation": "a sheer 200-meter ice cliff shears away, collapsing into the chasm with thunderous resonance",
+    "environmental_response": "shockwaves fling blinding snow sheets into the air; exposed deep ice begins glowing with latent mana",
+    "motion_cues": "tumbling ice blocks, billowing snow powder avalanches, shimmering refraction waves",
+    "narrative_traces": "half-frozen siege catapults trapped in ice, ancient tribal banners encased in clear frost"
+  },
+  "temporal_layer": {
+    "before": "the glacier stood motionless for millennia, acting as an impassable defensive rampart.",
+    "during": "the orbital beam shatters the ice shelf, opening a yawning chasm that exposes ancient subterranean caverns.",
+    "after": "the rift will become a fortified icy canyon defended by crystal frost wards."
+  },
+  "atmosphere": {
+    "atmosphere": "bone-chilling, vast, crystalline, and lethal",
+    "mood": "monumental solitude, primal cold, razor clarity",
+    "weather_medium": "blinding blizzard squall transitioning into clear frozen air",
+    "depth_effects": "deep atmospheric indigo Rayleigh scattering across endless snowy peaks"
+  },
+  "lighting": {
+    "primary_light": "brilliant low-angle arctic sun reflecting blindingly off snow crests",
+    "secondary_light": "deep blue sky dome illumination filling the deep chasm shadows",
+    "accent_light": "turquoise subsurface glow radiating from within the thick ice walls",
+    "shadow_behavior": "crisp cobalt-blue shadows stretching across the fractured snow fields"
+  },
+  "camera_composition": {
+    "camera_angle": "dramatic edge-of-the-abyss high perspective looking down into the fissure",
+    "framing": "vertically dominant composition emphasizing sheer verticality",
+    "primary_focal_point": "the glowing exposed aether core at the bottom of the chasm",
+    "secondary_focal_points": "collapsing serac towers, distant razor mountain ridges",
+    "scale_references": "tiny fortified ice observation towers on the cliff crest",
+    "composition": "stark diagonal cleavage line dividing the frame into light and shadow halves"
+  },
+  "style_render_mode": {
+    "render_mode": "procedural cinematic concept art for Krystal-Stack",
+    "surface_style": "hyper-realistic cold climate physical rendering"
+  },
+  "quality_detail": {
+    "detail_level": "very high",
+    "texture_richness": "layered and premium",
+    "world_coherence": "physically believable but mythic",
+    "visual_density": "rich focal detail, controlled peripheral softness"
+  },
+  "negative_constraints": [
+    "generic game UI",
+    "flat empty surfaces",
+    "random unmotivated objects",
+    "oversaturated cartoon look",
+    "cheap fantasy cliché",
+    "blurry undefined texture work",
+    "chaotic unreadable composition",
+    "too many equal focal points"
+  ],
+  "schema_version": "1.0",
+  "vital_max_hp_rule": 6
+}

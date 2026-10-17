@@ -1,0 +1,89 @@
+{
+  "template_id": "DRUID_WORLD_TREE_RESONANCE",
+  "title": "Pradávny Les: Rezonancia Prvotného Stromu Sveta",
+  "scene_identity": {
+    "scene_type": "holographic shrine",
+    "core_theme": "druid",
+    "narrative_role": "resonance"
+  },
+  "world_environment": {
+    "environment": "primeval monolithic forest clearing centered on colossal gnarled roots",
+    "scale": "cathedral-scale",
+    "terrain_logic": "ancient moss-covered flagstones lifted by spiraling heartwood roots, sunken springs"
+  },
+  "procedural_structure": {
+    "procedural_forms": [
+      "L-system recursive root lattices",
+      "golden ratio phyllotaxis leaf spirals",
+      "volumetric amber canopy godrays",
+      "mycorrhizal energy pulses"
+    ],
+    "fractal_dimension": 2.85,
+    "dihedral_folds": 8,
+    "octaves": 7
+  },
+  "texture_stack": {
+    "base_material": "ancient ironwood bark, dark river silt, and petrified moss",
+    "secondary_material": "golden sap inlays, glowing mycelial filaments, and carved oak runes",
+    "micro_surface_detail": "deep fibrous bark furrows, dew-laden lichen fronds, micro-spore clusters",
+    "edge_behavior": "overgrown organic softness with trailing vine tendrils",
+    "reflectivity_roughness": "velvety matte moss, damp reflective wood grain, glass-like amber droplets",
+    "emission": "warm golden amber sap currents and pulsing cyan mycorrhizal networks",
+    "atmospheric_particles": "floating luminescent spores, descending autumn needles, drifting pollen haze"
+  },
+  "action_event": {
+    "primary_event": "the heart of the World Tree beats with a harmonic restoration pulse",
+    "cause": "the seasonal alignment of celestial constellations has converged at zenith",
+    "visible_transformation": "ancient bark splits open to reveal an undulating amber heart; dormant roots surge with emerald light",
+    "environmental_response": "withered flora instantly rejuvenates, stone monoliths right themselves, spring water rises in crystal pools",
+    "motion_cues": "pulsing root veins, floating spores orbiting in harmonic circles, leaves shivering with energy",
+    "narrative_traces": "abandoned druidic carved bells, worn stone prayer circles, root-entangled tribal crests"
+  },
+  "temporal_layer": {
+    "before": "the grove lay silent in petrified slumber, waiting for the equinox alignment.",
+    "during": "a massive pulse of vital amber energy radiates from the trunk, reversing centuries of decay.",
+    "after": "the awakened forest network will spread new growth across adjacent sectors, binding the earth."
+  },
+  "atmosphere": {
+    "atmosphere": "serene, ancient, awe-inspiring, and vital",
+    "mood": "reverence, renewal, spiritual power",
+    "weather_medium": "warm vapor mist sparkling with bioluminescent motes",
+    "depth_effects": "dense tree trunk silhouettes receding into golden atmospheric glow"
+  },
+  "lighting": {
+    "primary_light": "warm golden amber glow from the central tree heart",
+    "secondary_light": "diffuse cyan radiance from the ground root network",
+    "accent_light": "sunlit godrays filtering through the towering canopy",
+    "shadow_behavior": "soft organic dappled shadows with high micro-contrast"
+  },
+  "camera_composition": {
+    "camera_angle": "sweeping low-angle upward perspective",
+    "framing": "majestic vertical composition capturing the tree trunk ascension",
+    "primary_focal_point": "the glowing amber heartwood core",
+    "secondary_focal_points": "radiating surface roots, ancient standing stones",
+    "scale_references": "tiny carved offerings, human-scale shrine steps",
+    "composition": "symmetrical cathedral framing balanced by natural organic asymmetry"
+  },
+  "style_render_mode": {
+    "render_mode": "procedural cinematic concept art for Krystal-Stack",
+    "surface_style": "richly textured mythic realism"
+  },
+  "quality_detail": {
+    "detail_level": "very high",
+    "texture_richness": "layered and premium",
+    "world_coherence": "physically believable but mythic",
+    "visual_density": "rich focal detail, controlled peripheral softness"
+  },
+  "negative_constraints": [
+    "generic game UI",
+    "flat empty surfaces",
+    "random unmotivated objects",
+    "oversaturated cartoon look",
+    "cheap fantasy cliché",
+    "blurry undefined texture work",
+    "chaotic unreadable composition",
+    "too many equal focal points"
+  ],
+  "schema_version": "1.0",
+  "vital_max_hp_rule": 6
+}
