@@ -228,13 +228,14 @@ The CL1 payload fields (`profile_id`, `verdict_id`, `mask`, `gpu_render_ms`, `dr
 
 | Kategória | Predchádzajúci stav | Nový stav (V-ZEROCOPY-MEMORY-MODEL-03) | Súčasné obmedzenie / Podmienka |
 |---|---|---|---|
-| **C11 Deklarácia** | `[C11-SYNTAX-ERROR]` | **`[C11-VALID-SYNTAX]`** | `_Alignas(64) uint32_t magic;` overené GCC a Clang kompatibilné v `include/krystal_nexus_api.h`. |
-| **Bázové zarovnanie** | `[OFFSET-PROVEN-POINTER-UNTESTED]` | **`[PHYSICAL-BASE-ALIGNED]`** | `base_address % 128 == 0` fyzicky vynútené cez `ctypes.addressof` a overené v `test_02`. |
+| **C11/C++20 Deklarácia** | `[C11-SYNTAX-ERROR]` | **`[C11-CPP20-VALID-SYNTAX]`** | `_Alignas(64) uint32_t magic;` a atomic pointers overené v `tests/c/abi_smoke.c` (C11) a `tests/c/abi_smoke_cpp.cpp` (C++20). |
+| **Bázové zarovnanie** | `[OFFSET-PROVEN-POINTER-UNTESTED]` | **`[VIRTUAL-BASE-ALIGNED]`** | `base_address % 128 == 0` virtuálne vynútené cez `ctypes.addressof` a overené v `test_02`. |
 | **Rollover odolnosť** | `[32BIT-ROLLOVER-RISK]` | **`[64BIT-ROLLOVER-FREE]`** | 64-bit uint64 atomics (`<Q`) overené pri `head > 2**32` v `test_04`. |
 | **Cache Line Zápisy** | `[FALSE-SHARING-ON-DROP]` | **`[PRODUCER-CL0-EXCLUSIVE-WRITES]`** | `drop_count` presunutý na offset 24 (CL0); producer nikdy nezapisuje do CL1. |
 | **Dátová cesta** | `[ZERO-COPY-CLAIMED]` | **`[ZERO-COPY-ABI-DESIGN]`** | Python vrstva kopíruje bytes pri deserializácii; natívna C/Rust cesta operuje cez priame pointre. |
 | **Acquire/Release** | `[PYTHON-SIMULATED]` | **`[ACQUIRE-RELEASE-NATIVE-C11]`** | Natívny C11 kód (`src/c/krystal_spsc_benchmark.c`, `include/krystal_nexus_api.h`) používa `memory_order_release` / `memory_order_acquire`. |
-| **Kryptografia** | `[FULL-FRAME-AUTHENTICATED]` | **`[FULL-FRAME-AUTHENTICATED-SESSION-BOUND]`** | 96B HMAC krytie platí za predpokladu bezpečného lifecycle symetrického session kľúča. |
+| **Kryptografia (Python)** | `[FULL-FRAME-AUTHENTICATED]` | **`[FULL-FRAME-AUTHENTICATED-SESSION-BOUND]`** | 96B HMAC krytie platí za predpokladu bezpečného lifecycle symetrického session kľúča. |
+| **Integrita (Native)** | `[UNVERIFIED-TEAR]` | **`[FULL-PREFIX-INTEGRITY-VERIFIED]`** | Natívny C benchmark testuje integritu prefixu (SHA-256 nad 96B) pre sub-mikrosekundovú detekciu torn-readov bez session tajomstva. |
 
 ---
 

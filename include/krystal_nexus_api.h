@@ -19,6 +19,24 @@
 #endif
 
 #ifdef __cplusplus
+#include <atomic>
+#include <cstdint>
+#include <cstddef>
+#include <cstring>
+
+/* C++ compatibility aliases for C11 keywords */
+#ifndef _Alignas
+#define _Alignas(n) alignas(n)
+#endif
+#ifndef _Alignof
+#define _Alignof(t) alignof(t)
+#endif
+#ifndef _Static_assert
+#define _Static_assert(cond, msg) static_assert(cond, msg)
+#endif
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -66,7 +84,7 @@ typedef struct {
     uint8_t  frame_hmac[32];       /* 96..127 (HMAC-SHA256 over bytes 0..95) */
 } KrystalZeroCopyFrame;
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || defined(__cplusplus)
 _Static_assert(sizeof(KrystalZeroCopyFrame) == 128, "Frame size must be exactly 128B (2 cache lines)");
 _Static_assert(_Alignof(KrystalZeroCopyFrame) == 64, "Frame must be 64B cache-line aligned");
 _Static_assert(offsetof(KrystalZeroCopyFrame, timestamp_ns) == 32, "timestamp_ns offset drift");
@@ -91,6 +109,9 @@ typedef struct {
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
     _Atomic uint64_t head;         /* 16..23: Producer atomic head pointer */
     _Atomic uint64_t drop_count;   /* 24..31: Producer drop counter (on Producer CL0!) */
+#elif defined(__cplusplus)
+    std::atomic<uint64_t> head;    /* 16..23: Producer atomic head pointer */
+    std::atomic<uint64_t> drop_count; /* 24..31: Producer drop counter (on Producer CL0!) */
 #else
     uint64_t head;
     uint64_t drop_count;
@@ -100,13 +121,15 @@ typedef struct {
     /* CL1: Consumer cache line (bytes 64..127) - Exclusively written by Consumer */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
     _Atomic uint64_t tail;         /* 64..71: Consumer atomic tail pointer (CL1 offset 64) */
+#elif defined(__cplusplus)
+    std::atomic<uint64_t> tail;    /* 64..71: Consumer atomic tail pointer (CL1 offset 64) */
 #else
     uint64_t tail;
 #endif
     uint8_t  _reserved[56];        /* 72..127: Padding to complete CL1 */
 } KrystalRingHeader;
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || defined(__cplusplus)
 _Static_assert(sizeof(KrystalRingHeader) == 128, "Ring header must be exactly 128B (2 cache lines)");
 _Static_assert(_Alignof(KrystalRingHeader) == 64, "Ring header must be 64B cache-line aligned");
 _Static_assert(offsetof(KrystalRingHeader, head) == 16, "Head pointer must be in CL0 at offset 16");
@@ -116,7 +139,11 @@ _Static_assert(offsetof(KrystalRingHeader, tail) == 64, "Tail pointer must be in
 
 /*
  * Slot address calculation helper:
- * Guarantees Addr(Slot_n) % 64 == 0 and Addr(Slot_n) % 128 == 0 when ring base is 64-byte aligned.
+ * Precondition: RingBaseAddress % 128 == 0 (128-byte aligned virtual base address).
+ * Because RingHeader is 128 bytes and each slot is 128 bytes:
+ *   Addr(Slot_n) = RingBaseAddress + 128 + (wrapped_idx * 128)
+ *   Addr(Slot_n) % 128 == (RingBaseAddress % 128) == 0.
+ * Guarantees Addr(Slot_n) % 64 == 0 and Addr(Slot_n) % 128 == 0 for all slots.
  */
 KRYSTAL_API_INLINE KrystalZeroCopyFrame* krystal_ring_get_slot(void* ring_base, uint64_t slot_idx, uint32_t capacity) {
     uint8_t* base_ptr = (uint8_t*)ring_base;
@@ -125,9 +152,20 @@ KRYSTAL_API_INLINE KrystalZeroCopyFrame* krystal_ring_get_slot(void* ring_base, 
     return (KrystalZeroCopyFrame*)(slots_start + (wrapped_idx * KRYSTAL_FRAME_SIZE_BYTES));
 }
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) || defined(__cplusplus)
+#ifdef __cplusplus
+} /* Close extern "C" temporarily for using std declarations */
+using std::atomic_load_explicit;
+using std::atomic_store_explicit;
+using std::atomic_fetch_add_explicit;
+using std::memory_order_relaxed;
+using std::memory_order_acquire;
+using std::memory_order_release;
+extern "C" {
+#endif
+
 /*
- * Native C11 SPSC Publication Protocol (memory_order_release).
+ * Native C11/C++20 SPSC Publication Protocol (memory_order_release).
  * Guarantees all writes to CL0 and CL1 of slot_n happen-before consumer observes head increment.
  * ARM64: STLR instruction
  * RISC-V: fence rw,w
@@ -153,7 +191,7 @@ KRYSTAL_API_INLINE bool krystal_ring_publish(KrystalRingHeader* hdr, void* ring_
 }
 
 /*
- * Native C11 SPSC Consumption Protocol (memory_order_acquire).
+ * Native C11/C++20 SPSC Consumption Protocol (memory_order_acquire).
  * Guarantees read of head happens-before reading slot content, preventing speculative reads of old cache lines.
  * ARM64: LDAR instruction
  * RISC-V: fence r,rw

@@ -86,31 +86,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install C Toolchains & Cross-Compilers
+      - name: Install C/C++ Toolchains & Cross-Compilers
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
             gcc \
+            g++ \
             clang \
             gcc-aarch64-linux-gnu \
             gcc-riscv64-linux-gnu
 
-      - name: Verify C11 ABI Header Syntax (x86_64 GCC)
+      - name: Verify C11 ABI Smoke TU (x86_64 GCC)
         run: |
-          gcc -std=c11 -Wall -Wextra -Werror -Wno-unused-function -fsyntax-only include/krystal_nexus_api.h
+          gcc -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c
 
-      - name: Verify C11 ABI Header Syntax (x86_64 Clang)
+      - name: Verify C11 ABI Smoke TU (x86_64 Clang)
         run: |
-          clang -std=c11 -Wall -Wextra -Werror -Wno-unused-function -fsyntax-only include/krystal_nexus_api.h
+          clang -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c
 
-      - name: Verify C11 ABI Header Syntax & Alignments (ARM64 Cross-Compiler)
+      - name: Verify C++20 ABI Smoke TU (x86_64 G++)
         run: |
-          aarch64-linux-gnu-gcc -std=c11 -Wall -Wextra -Werror -Wno-unused-function -fsyntax-only include/krystal_nexus_api.h
+          g++ -std=c++20 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke_cpp.cpp
 
-      - name: Verify C11 ABI Header Syntax & Alignments (RISC-V 64 Cross-Compiler)
+      - name: Verify C++20 ABI Smoke TU (x86_64 Clang++)
         run: |
-          riscv64-linux-gnu-gcc -std=c11 -march=rv64gc -Wall -Wextra -Werror -Wno-unused-function -fsyntax-only include/krystal_nexus_api.h
+          clang++ -std=c++20 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke_cpp.cpp
+
+      - name: Verify C11 ABI Smoke TU (ARM64 Cross-Compiler)
+        run: |
+          aarch64-linux-gnu-gcc -std=c11 -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c
+
+      - name: Verify C11 ABI Smoke TU (RISC-V 64 Cross-Compiler)
+        run: |
+          riscv64-linux-gnu-gcc -std=c11 -march=rv64gc -Wall -Wextra -Werror -Iinclude -fsyntax-only tests/c/abi_smoke.c
 
       - name: Build & Run Native SPSC Benchmark (x86_64 GCC)
         run: |

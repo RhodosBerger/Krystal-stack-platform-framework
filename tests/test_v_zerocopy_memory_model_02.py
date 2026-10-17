@@ -109,15 +109,16 @@ class TestVZeroCopyMemoryModel02:
 
     def test_02_base_alignment_and_cache_line_stride_64b_128b(self):
         """
-        Validates that RingHeaderSize == 128B, physical ring.base_address % 64 == 0,
-        and every slot address satisfies Addr(Slot_n) % 64 == 0 and % 128 == 0.
+        Validates that RingHeaderSize == 128B, virtual base address ring.base_address % 128 == 0 [VIRTUAL-BASE-ALIGNED],
+        and every slot virtual address satisfies Addr(Slot_n) % 64 == 0 and % 128 == 0.
         """
         assert RING_HEADER_SIZE == 128
         ring = ZeroCopyContractRing(capacity=64)
 
-        # 1. Physical base pointer alignment (not just relative offset)
+        # 1. Virtual base pointer alignment [VIRTUAL-BASE-ALIGNED] (not physical RAM address)
         assert ring.base_address != 0
         assert ring.base_address % 64 == 0, f"Ring base address {ring.base_address} must be 64B aligned"
+        assert ring.base_address % 128 == 0, f"Ring base address {ring.base_address} must be 128B aligned [VIRTUAL-BASE-ALIGNED]"
 
         for slot_idx in range(64):
             offset = ring.get_slot_offset(slot_idx)
@@ -125,11 +126,11 @@ class TestVZeroCopyMemoryModel02:
             assert offset % 64 == 0, f"Slot {slot_idx} offset {offset} must be 64B aligned"
             assert offset % 128 == 0, f"Slot {slot_idx} offset {offset} must be 128B aligned"
 
-            # Actual physical pointer address of slot
-            phys_addr = ring.get_slot_address(slot_idx)
-            assert phys_addr == ring.base_address + offset
-            assert phys_addr % 64 == 0
-            assert phys_addr % 128 == 0
+            # Actual virtual pointer address of slot
+            virt_addr = ring.get_slot_address(slot_idx)
+            assert virt_addr == ring.base_address + offset
+            assert virt_addr % 64 == 0
+            assert virt_addr % 128 == 0
 
     def test_03_elimination_of_pragma_pack_natural_scalar_offsets(self):
         """
@@ -458,6 +459,12 @@ class TestVZeroCopyMemoryModel02:
         assert "cross-isa-c11-verification" in ci_content
         assert "gcc-aarch64-linux-gnu" in ci_content
         assert "gcc-riscv64-linux-gnu" in ci_content
+
+        # 4. C11 and C++20 Smoke Test Translation Units
+        c_smoke_path = os.path.join(base_dir, "tests", "c", "abi_smoke.c")
+        assert os.path.isfile(c_smoke_path), f"Missing C smoke test at {c_smoke_path}"
+        cpp_smoke_path = os.path.join(base_dir, "tests", "c", "abi_smoke_cpp.cpp")
+        assert os.path.isfile(cpp_smoke_path), f"Missing C++ smoke test at {cpp_smoke_path}"
 
     def test_14_abi_payload_size_consistency(self):
         """
