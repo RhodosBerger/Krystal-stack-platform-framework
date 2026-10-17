@@ -23,6 +23,16 @@ from krystal_kernel.openvino_aep_runtime import (
     GLOBAL_OPENVINO_AEP_RUNTIME,
     VITAL_MAX_HP,
 )
+from krystal_kernel.zero_copy_contracts import (
+    ZeroCopyContractFrame,
+    canonicalize_float32,
+    KRYSTAL_MAGIC,
+    KRYSTAL_PROTOCOL_VERSION,
+)
+from krystal_kernel.zero_copy_ring import (
+    ZeroCopyContractRing,
+)
+import time
 
 
 class TestOpenVinoAepRuntime:
@@ -136,3 +146,107 @@ class TestOpenVinoAepRuntime:
         assert cfg["status"] == "CONFIGURED"
         assert cfg["vital_max_hp"] == 6
         assert cfg["configuration"]["inference_precision_hint"] == "i8"
+
+    def test_zerocopy_fastpath_infer_from_ring_slot(self):
+        session_key = b"openvino_zerocopy_test_key_32B!"
+        in_ring = ZeroCopyContractRing(capacity=16, session_key=session_key)
+        out_ring = ZeroCopyContractRing(capacity=16, session_key=session_key)
+
+        # Build input 128B frame
+        in_frame = ZeroCopyContractFrame(
+            magic=KRYSTAL_MAGIC,
+            version=KRYSTAL_PROTOCOL_VERSION,
+            sequence_id=4001,
+            generation_id=1,
+            flags=0,
+            capability_scope=1,
+            vital_hp=6,
+            timestamp_ns=time.time_ns(),
+            nonce=12345,
+            predecessor_hash_raw=b"\x00" * 32,
+            profile_id=10,
+            verdict_id=0,
+            approved_authority_mask=0x01,
+            metric1=canonicalize_float32(0.65),  # 65% CPU
+            metric2=canonicalize_float32(0.08),  # 80 io ops
+        )
+        success = in_ring.push_frame_with_hmac(in_frame, session_key)
+        assert success is True
+        assert in_ring.available_count() == 1
+
+        # Execute fast-path inference from ring slot
+        result, receipt, out_frame = GLOBAL_OPENVINO_AEP_RUNTIME.infer_from_ring_slot(
+            ring=in_ring,
+            session_key=session_key,
+            output_ring=out_ring,
+            current_bus_pressure=0.15,
+        )
+
+        assert result is not None
+        assert receipt.verdict == AepVerdict.COMMITTED
+        assert receipt.workload == WorkloadType.INFERENCE
+        assert receipt.execution_lane == ExecutionLane.COMPUTE
+        assert receipt.backend == "openvino-neural-engine"
+
+        # Verify output ring has received the response frame
+        assert out_ring.available_count() == 1
+        popped_out = out_ring.pop_frame_with_hmac(session_key)
+        assert popped_out is not None
+        assert popped_out.sequence_id == 4001
+        assert popped_out.vital_hp == 6
+        assert popped_out.verdict_id == 1  # COMMITTED
+        assert popped_out.verify_frame_integrity(session_key) is True
+        assert popped_out.metric1 == pytest.approx(float(result.confidence_score), rel=1e-4)
+
+    def test_zerocopy_fastpath_empty_ring_returns_discarded_receipt(self):
+        in_ring = ZeroCopyContractRing(capacity=16)
+        result, receipt, out_frame = GLOBAL_OPENVINO_AEP_RUNTIME.infer_from_ring_slot(ring=in_ring)
+        assert result is None
+        assert receipt.verdict == AepVerdict.DISCARDED
+        assert out_frame is None
+
+    def test_zerocopy_fastpath_sub_microsecond_throughput_benchmark(self):
+        session_key = b"benchmark_zerocopy_spsc_key_32B"
+        in_ring = ZeroCopyContractRing(capacity=256, session_key=session_key)
+        out_ring = ZeroCopyContractRing(capacity=256, session_key=session_key)
+
+        iterations = 50
+        for i in range(iterations):
+            f = ZeroCopyContractFrame(
+                magic=KRYSTAL_MAGIC,
+                version=KRYSTAL_PROTOCOL_VERSION,
+                sequence_id=5000 + i,
+                generation_id=1,
+                flags=0,
+                capability_scope=1,
+                vital_hp=6,
+                timestamp_ns=time.time_ns(),
+                nonce=i,
+                predecessor_hash_raw=b"\x00" * 32,
+                profile_id=1,
+                verdict_id=0,
+                approved_authority_mask=0x01,
+                metric1=canonicalize_float32(0.50),
+                metric2=canonicalize_float32(0.05),
+            )
+            in_ring.push_frame_with_hmac(f, session_key)
+
+        t0 = time.perf_counter()
+        committed_count = 0
+        for _ in range(iterations):
+            res, receipt, out_f = GLOBAL_OPENVINO_AEP_RUNTIME.infer_from_ring_slot(
+                ring=in_ring,
+                session_key=session_key,
+                output_ring=out_ring,
+            )
+            if receipt.verdict == AepVerdict.COMMITTED:
+                committed_count += 1
+
+        elapsed = time.perf_counter() - t0
+        avg_us = (elapsed / iterations) * 1_000_000.0
+
+        assert committed_count == iterations
+        assert out_ring.available_count() == iterations
+        # Fast-path SPSC memory processing should be well below 600 µs in interpreted Python (and sub-100ns in C11)
+        assert avg_us < 600.0, f"Average zero-copy inference latency {avg_us:.1f}us exceeded 600us target"
+

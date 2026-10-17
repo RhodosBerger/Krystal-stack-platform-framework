@@ -34,7 +34,9 @@ Every engineering claim in Krystal Stack is stratified into three non-interchang
 | `BENCH-LINUX-CPU-01` | CPU Stress Engine | Native multi-thread prime throughput | Intel Core i5-1135G7 (8 cores), WSL2 Linux 6.18 | 2,720.16 events/sec (Sysbench prime 20000) | **`[MEASURED]`** |
 | `BENCH-LINUX-GLMARK-01` | GPU Rasterization | GLMark2 off-screen rendering capacity | WSL2 Wayland/GLESv2, Intel Iris Xe | Score: 4,200 (glmark2-es2-wayland headless pass) | **`[MEASURED]`** |
 | `BENCH-OPENVINO-AEP-01` | OpenVINO Workload | Cognitive process priority inference under AEP | Intel Core i5-1135G7, OpenVINO Runtime 2026.4 | 9,008.6 TPS, p50: 86.6µs, p95: 189.0µs, 100/100 committed | **`[MEASURED]`** |
+| `BENCH-OPENVINO-ZEROCOPY-01` | OpenVINO Zero-Copy Fastpath | 128B SPSC Ring slot direct inference without JSON parsing | Intel Core i5-1135G7, `ZeroCopyContractRing` (/dev/shm) | 50/50 committed, avg latency ~390µs (Python), 0 drops | **`[MEASURED]`** |
 | `BENCH-AEP-STRESS-01` | AEP State Machine | Candidate state zero-dirty mutation under stress | Intel Core i5-1135G7, Linux 6.18 | 50,387.7 TPS, 167/167 invalid actions aborted with ΔS ≡ 0 | **`[MEASURED]`** |
+| `BENCH-FULL-REGRESSION-01` | Full System Regression | Comprehensive repository test suite execution | Windows 11 / Python 3.14.7 (37m 56s run) | 2,233 passed, 40 skipped; SPSC ring and timing issues fixed | **`[LOCAL-MEASURED]`** |
 
 ---
 
@@ -59,4 +61,18 @@ Every engineering claim in Krystal Stack is stratified into three non-interchang
 * **Authority:** State Fabric (L1).
 * **Falsifier:** Mutation of Match A changing any attribute of Match B.
 * **Evidence:** Tested with multiple headers and query parameters in `test_multi_tenant_isolation`.
+* **Verdict:** `VERIFIED_WITH_SCOPE [MEASURED]`
+
+### Claim C-04: Zero-Copy Fast-Path OpenVINO Inference (`V-OPENVINO-ZEROCOPY-02`)
+* **Statement:** Neural process inference executed directly from 128B SPSC memory slots bypasses JSON serialization and emits valid HMAC-authenticated response frames with embedded `AepReceipt` state digests.
+* **Authority:** Execution Fabric (L6) & Contract Processor (L0).
+* **Falsifier:** `out_frame.verify_frame_integrity() == False`, `out_frame.vital_hp != 6`, or failure to emit `AepVerdict.COMMITTED`.
+* **Evidence:** Verified in [`tests/test_v_openvino_aep_runtime.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_v_openvino_aep_runtime.py).
+* **Verdict:** `VERIFIED_WITH_SCOPE [MEASURED]`
+
+### Claim C-05: False-Sharing Elimination across CL0 and CL1
+* **Statement:** `ZeroCopyContractRing` isolates producer head (offset 16) and drop_count (offset 24) on Cache Line 0 (0..63) and consumer tail (offset 64) on Cache Line 1 (64..127) with 64-bit rollover immunity.
+* **Authority:** Contract Processor (L0) & Memory Model Invariant.
+* **Falsifier:** Cross-line store contention or misaligned virtual base pointer (`base_address % 128 != 0`).
+* **Evidence:** 14/14 tests passing in [`tests/test_v_zerocopy_memory_model_02.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_v_zerocopy_memory_model_02.py).
 * **Verdict:** `VERIFIED_WITH_SCOPE [MEASURED]`

@@ -41,6 +41,16 @@ from krystal_kernel.openvino_hardware_acceleration_pack import (
     OpenVinoIrisXeDP4APack,
     TigerLakeTurboUnblocker,
 )
+from krystal_kernel.zero_copy_contracts import (
+    ZeroCopyContractFrame,
+    canonicalize_float32,
+    KRYSTAL_MAGIC,
+    KRYSTAL_PROTOCOL_VERSION,
+)
+from krystal_kernel.zero_copy_ring import (
+    ZeroCopyContractRing,
+    TornFrameDetectedError,
+)
 
 VITAL_MAX_HP: int = 6
 
@@ -172,6 +182,146 @@ class OpenVinoAepRuntime:
             return inference_obj, tx_result.receipt
         else:
             return None, tx_result.receipt
+
+    def infer_from_ring_slot(
+        self,
+        ring: ZeroCopyContractRing,
+        session_key: Optional[bytes] = None,
+        output_ring: Optional[ZeroCopyContractRing] = None,
+        current_bus_pressure: float = 0.10,
+    ) -> Tuple[Optional[OpenVINOInferenceResult], AepReceipt, Optional[ZeroCopyContractFrame]]:
+        """
+        Fast-Path Zero-Copy OpenVINO inference (Milestone V-OPENVINO-ZEROCOPY-02).
+        Pops a 128B naturally aligned frame directly from SPSC shared memory,
+        executes INT8 neural inference with zero JSON serialization overhead,
+        computes an AepReceipt, and optionally publishes a signed 128B response frame
+        with the receipt digest embedded into predecessor_hash.
+        """
+        if session_key:
+            in_frame = ring.pop_frame_with_hmac(session_key)
+        else:
+            in_frame = ring.pop_frame()
+
+        if in_frame is None:
+            empty_receipt = AepReceipt(
+                operation_id="OPENVINO-NOOP-EMPTY",
+                runtime_id="ring-slot-empty",
+                workload=WorkloadType.INFERENCE,
+                action="OPENVINO_ZEROCOPY_SLOT_EMPTY",
+                state_before="sha256:0",
+                state_after="sha256:0",
+                policy_id="openvino-zerocopy-fastpath",
+                policy_revision=1,
+                execution_lane=ExecutionLane.COMPUTE,
+                backend="spsc-ring",
+                device="SHM",
+                execution_us=0,
+                bus_pressure=current_bus_pressure,
+                deadline_slack_us=20000,
+                verdict=AepVerdict.DISCARDED,
+                timestamp_ns=time.time_ns(),
+            )
+            return None, empty_receipt, None
+
+        # Extract neural features directly from binary frame (zero JSON parsing)
+        pid = in_frame.sequence_id if in_frame.sequence_id > 0 else 1000
+        cpu_pct = float(in_frame.metric1 * 100.0) if in_frame.metric1 != 0.0 else 50.0
+        cs_rate = float(in_frame.metric2 * 1000.0) if in_frame.metric2 != 0.0 else 6500.0
+
+        initial_state = {
+            "pid": pid,
+            "name": f"task_{pid}.bin",
+            "metric1": in_frame.metric1,
+            "metric2": in_frame.metric2,
+            "vital_max_hp": VITAL_MAX_HP,
+            "status": "INITIALIZED",
+        }
+
+        def transition_inference(state: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
+            res = self.governor.infer_process_priority(
+                pid=pid,
+                name=state.get("name", "task.bin"),
+                cpu_pct=cpu_pct,
+                cs_rate=cs_rate,
+                page_faults_per_sec=120.0,
+                working_set_mb=256.0,
+                thread_count=8,
+                io_ops_per_sec=50.0,
+                kernel_time_ratio=0.15,
+                thrashing_index=1.1,
+            )
+            state_dict = res.to_dict()
+            state_dict["status"] = "INFERRED"
+            return state_dict
+
+        tx_result = self.aep_engine.execute_transition(
+            runtime_id=f"ring-slot-seq-{in_frame.sequence_id}",
+            workload=WorkloadType.INFERENCE,
+            action="OPENVINO_ZEROCOPY_SLOT_INFERENCE",
+            current_state=initial_state,
+            transition_fn=transition_inference,
+            action_payload={"seq": in_frame.sequence_id, "cap_scope": in_frame.capability_scope},
+            policy_id="openvino-zerocopy-fastpath",
+            policy_revision=1,
+            execution_lane=ExecutionLane.COMPUTE,
+            backend="openvino-neural-engine",
+            device=getattr(self.governor, "preferred_device", "CPU"),
+            current_bus_pressure=current_bus_pressure,
+            deadline_budget_us=20000,
+        )
+
+        out_frame: Optional[ZeroCopyContractFrame] = None
+        inference_obj: Optional[OpenVINOInferenceResult] = None
+
+        if tx_result.committed and isinstance(tx_result.state, dict):
+            inference_obj = OpenVINOInferenceResult(
+                target_pid=tx_result.state.get("target_pid", pid),
+                process_name=tx_result.state.get("process_name", "task.bin"),
+                input_feature_vector=tx_result.state.get("input_feature_vector", []),
+                predicted_priority_class=tx_result.state.get("predicted_priority_class", "NORMAL"),
+                win32_priority_code=tx_result.state.get("win32_priority_code", 32),
+                confidence_score=tx_result.state.get("confidence_score", 0.5),
+                class_probabilities=tx_result.state.get("class_probabilities", {}),
+                inference_device=tx_result.state.get("inference_device", "CPU-OpenVINO"),
+                inference_latency_us=tx_result.state.get("inference_latency_us", 50.0),
+                openvino_backend=tx_result.state.get("openvino_backend", "OPENVINO_DP4A_ZEROCOPY"),
+                vital_max_hp=VITAL_MAX_HP,
+            )
+
+            state_hex = tx_result.receipt.state_after.split(":")[-1]
+            try:
+                pred_hash_bytes = bytes.fromhex(state_hex)[:32]
+            except Exception:
+                pred_hash_bytes = b"\x00" * 32
+
+            out_frame = ZeroCopyContractFrame(
+                magic=KRYSTAL_MAGIC,
+                version=KRYSTAL_PROTOCOL_VERSION,
+                sequence_id=in_frame.sequence_id,
+                generation_id=in_frame.generation_id + 1,
+                flags=in_frame.flags,
+                capability_scope=in_frame.capability_scope,
+                vital_hp=VITAL_MAX_HP,
+                timestamp_ns=time.time_ns(),
+                nonce=in_frame.nonce + 1,
+                predecessor_hash_raw=pred_hash_bytes,
+                profile_id=inference_obj.win32_priority_code,
+                verdict_id=1,
+                approved_authority_mask=0x01,
+                metric1=canonicalize_float32(float(inference_obj.confidence_score)),
+                metric2=canonicalize_float32(float(inference_obj.inference_latency_us)),
+            )
+
+            if session_key:
+                out_frame.signature_or_digest_raw = out_frame.compute_frame_hmac(session_key)
+
+            if output_ring is not None:
+                if session_key:
+                    output_ring.push_frame_with_hmac(out_frame, session_key)
+                else:
+                    output_ring.push_frame(out_frame)
+
+        return inference_obj, tx_result.receipt, out_frame
 
     def get_runtime_status(self) -> Dict[str, Any]:
         """Returns comprehensive OpenVINO device and hardware topology status."""
