@@ -15,11 +15,12 @@ Constitutional Invariant:
 ==============================================================================
 """
 
+from __future__ import annotations
 import hashlib
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, Generic, List, Optional, Set, Tuple, TypeVar
+from typing import Any, Callable, Dict, Generic, List, Optional, Set, Tuple, TypeVar, Union
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
 

@@ -13,8 +13,9 @@ Invariants:
      forall tau, Phi_Binary(tau) == Phi_JSON(tau)
 """
 
+from __future__ import annotations
 import time
-from typing import List, Tuple, Optional
+from typing import Any, List, Tuple, Optional
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
 from krystal_kernel.contracts import CapabilityToken

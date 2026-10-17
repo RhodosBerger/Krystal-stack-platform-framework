@@ -13,10 +13,11 @@ Description:
 ==============================================================================
 """
 
+from __future__ import annotations
 import os
 import re
 import json
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
 from krystal_kernel.karaf.algorithm_template import AlgorithmTemplate

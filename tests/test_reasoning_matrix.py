@@ -4,8 +4,9 @@ Unit and integration tests for Epistemic Reasoning Matrix, Selection Funnel,
 and Polymorphic Dynamic Workspace (V-PLAN-02).
 """
 
+from __future__ import annotations
 import unittest
-from typing import List
+from typing import List, Optional, Tuple, Dict, Any
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
 from krystal_kernel.reasoning_matrix import (
