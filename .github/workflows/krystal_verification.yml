@@ -1,0 +1,96 @@
+name: Krystal Verification & Cross-ISA Publication CI
+
+on:
+  push:
+    branches: [main, develop, phase-q-full-path, 'claude/*']
+  pull_request:
+    branches: [main, develop, phase-q-full-path]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # ============================================================
+  # Python 56-Test Suite (Governance, Memory Model, Research Cycle)
+  # ============================================================
+  python-test-suite:
+    name: Python Integration & Invariants Suite
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pytest pytest-cov
+
+      - name: Run Core 56 Integration & Memory Model Tests
+        run: |
+          python -m pytest \
+            tests/test_v_zerocopy_memory_model_02.py \
+            tests/test_v_universal_engine_interposer.py \
+            tests/test_v_perf_zerocopy_01.py \
+            tests/test_v_autonomous_research_cycle.py \
+            tests/test_v_os_coordination_policy_engine.py \
+            tests/test_v_os_coordination_resilience.py \
+            -v
+
+  # ============================================================
+  # C11 Cross-ISA ABI & Hardware SPSC Benchmark
+  # ============================================================
+  cross-isa-c11-verification:
+    name: Cross-ISA C11 ABI & SPSC Benchmark
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install C Toolchains & Cross-Compilers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            gcc \
+            clang \
+            gcc-aarch64-linux-gnu \
+            gcc-riscv64-linux-gnu
+
+      - name: Verify C11 ABI Header Syntax (x86_64 GCC)
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -fsyntax-only include/krystal_nexus_api.h
+
+      - name: Verify C11 ABI Header Syntax (x86_64 Clang)
+        run: |
+          clang -std=c11 -Wall -Wextra -Werror -fsyntax-only include/krystal_nexus_api.h
+
+      - name: Verify C11 ABI Header Syntax & Alignments (ARM64 Cross-Compiler)
+        run: |
+          aarch64-linux-gnu-gcc -std=c11 -Wall -Wextra -Werror -fsyntax-only include/krystal_nexus_api.h
+
+      - name: Verify C11 ABI Header Syntax & Alignments (RISC-V 64 Cross-Compiler)
+        run: |
+          riscv64-linux-gnu-gcc -std=c11 -Wall -Wextra -Werror -fsyntax-only include/krystal_nexus_api.h
+
+      - name: Build & Run Native SPSC Benchmark (x86_64 GCC)
+        run: |
+          gcc -std=c11 -O3 -Wall -Wextra -Werror -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_gcc
+          ./krystal_spsc_bench_gcc
+
+      - name: Build & Run Native SPSC Benchmark (x86_64 Clang)
+        run: |
+          clang -std=c11 -O3 -Wall -Wextra -Werror -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_clang
+          ./krystal_spsc_bench_clang
+
+      - name: Cross-Compile SPSC Benchmark for ARM64
+        run: |
+          aarch64-linux-gnu-gcc -std=c11 -O3 -Wall -Wextra -Werror -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_arm64
+
+      - name: Cross-Compile SPSC Benchmark for RISC-V 64
+        run: |
+          riscv64-linux-gnu-gcc -std=c11 -O3 -Wall -Wextra -Werror -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_riscv64

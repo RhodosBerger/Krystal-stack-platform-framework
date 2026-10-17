@@ -235,7 +235,7 @@ In non-cooperative seqlock/sampling modes, computing `HMAC-SHA256(FrameBytes[0..
 
 The uniform interposition engine and memory model are verified in:
 * `tests/test_v_universal_engine_interposer.py` (6 integration tests)
-* `tests/test_v_zerocopy_memory_model_02.py` (12-point memory model test suite):
+* `tests/test_v_zerocopy_memory_model_02.py` (13-point memory model test suite):
   * **Test 01:** Constitutional invariant `VITAL_MAX_HP == 6` strictly verified.
   * **Test 02:** Base alignment $\text{Addr} \bmod 64 == 0$ and cache line stride $128\text{B}$.
   * **Test 03:** Natural scalar offsets identical with and without `#pragma pack(1)`.
@@ -248,4 +248,26 @@ The uniform interposition engine and memory model are verified in:
   * **Test 10:** Torn-read detection under asynchronous mutation.
   * **Test 11:** C-ABI header export with `_Alignas(64)` and C11 `_Static_assert`s.
   * **Test 12:** Multi-threaded concurrent SPSC stress test with 0 drops and 0 tears.
+  * **Test 13:** CI workflow, standalone C11 header (`krystal_nexus_api.h`), and benchmark harness artifact integrity.
+
+---
+
+## Milestone V-CI-MATRIX-01 & V-HARDWARE-BENCHMARK-01: Multi-Platform CI and Native Hardware Measurement
+
+To elevate the verification status from `[LOCAL-REPORTED]` and `[MODEL-TESTED]` to `[REMOTE-CI-VERIFIED]` and `[HARDWARE-MEASURED]`, two core infrastructure components are introduced:
+
+### 1. GitHub Actions CI Matrix (`.github/workflows/krystal_verification.yml`)
+* Automatically triggers on every `push` and `pull_request` targeting `phase-q-full-path`, `main`, or `develop`.
+* **Job 1 (Python Invariants Suite):** Executes the full 57 integration tests across governance, memory model, and closed-loop research engines.
+* **Job 2 (Cross-ISA C11 Verification):**
+  * Compiles `include/krystal_nexus_api.h` under **GCC** and **Clang** (`-std=c11 -Wall -Wextra -Werror -fsyntax-only`).
+  * Cross-compiles under **`aarch64-linux-gnu-gcc`** and **`riscv64-linux-gnu-gcc`**, rigorously checking all six `_Static_assert` conditions across differing ABI targets.
+  * Compiles and executes the native SPSC benchmark under x86_64 GCC and Clang, and cross-compiles release binaries for ARM64 and RISC-V 64.
+
+### 2. Native C11 SPSC Benchmark Harness (`src/c/krystal_spsc_benchmark.c`)
+* Implements direct hardware cycle counting via `__builtin_ia32_rdtscp` (x86_64), `cntvct_el0` (ARM64), or `rdcycle` (RISC-V).
+* Allocates a 4096-byte page-aligned ring buffer holding a 128-byte `KrystalRingHeader` and 2048 slots.
+* Benchmarks 500,000 multi-threaded frame handoffs between concurrent producer and consumer threads using C11 `<stdatomic.h>` with `memory_order_release` publication and `memory_order_acquire` consumption.
+* Validates zero drops, zero torn reads across the CL0/CL1 `predecessor_hash` boundary, and 100% cryptographic SHA-256 digest continuity.
+
 

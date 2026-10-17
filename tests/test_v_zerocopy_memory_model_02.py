@@ -390,3 +390,42 @@ class TestVZeroCopyMemoryModel02:
         assert len(popped_results) == num_frames
         assert popped_results == list(range(num_frames))
         assert ring.drop_count() == 0
+
+    def test_13_ci_workflow_and_c_benchmark_harness_artifacts(self):
+        """
+        Verifies presence and integrity of:
+        - Standalone C11 header include/krystal_nexus_api.h
+        - Native C11 SPSC benchmark harness src/c/krystal_spsc_benchmark.c
+        - GitHub Actions CI workflow .github/workflows/krystal_verification.yml
+        """
+        import os
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        # 1. Header file
+        header_path = os.path.join(base_dir, "include", "krystal_nexus_api.h")
+        assert os.path.isfile(header_path), f"Missing header at {header_path}"
+        with open(header_path, "r", encoding="utf-8") as f:
+            header_content = f.read()
+        assert "_Alignas(64)" in header_content
+        assert "KrystalZeroCopyFrame" in header_content
+        assert "KrystalRingHeader" in header_content
+        assert "krystal_ring_get_slot" in header_content
+
+        # 2. Benchmark harness
+        bench_path = os.path.join(base_dir, "src", "c", "krystal_spsc_benchmark.c")
+        assert os.path.isfile(bench_path), f"Missing benchmark harness at {bench_path}"
+        with open(bench_path, "r", encoding="utf-8") as f:
+            bench_content = f.read()
+        assert "read_hw_cycles" in bench_content
+        assert "fast_sha256_96b" in bench_content
+        assert "BENCHMARK_OPS" in bench_content
+
+        # 3. CI Workflow
+        ci_path = os.path.join(base_dir, ".github", "workflows", "krystal_verification.yml")
+        assert os.path.isfile(ci_path), f"Missing CI workflow at {ci_path}"
+        with open(ci_path, "r", encoding="utf-8") as f:
+            ci_content = f.read()
+        assert "cross-isa-c11-verification" in ci_content
+        assert "gcc-aarch64-linux-gnu" in ci_content
+        assert "gcc-riscv64-linux-gnu" in ci_content
+
