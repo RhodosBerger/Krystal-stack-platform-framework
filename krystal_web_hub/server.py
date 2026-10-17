@@ -3481,6 +3481,27 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({"status": "OK", **GLOBAL_POSLEDNI_KMEN_GAME.get_catalog()})
             return
 
+        elif norm_path in ("/api/game/state", "/api/game/authoritative_state", "/api/duel/state"):
+            from krystal_web_hub.economic_engine.posledni_kmen_authoritative_duel import GLOBAL_AUTHORITATIVE_DUEL_ENGINE
+            self.send_json({"status": "OK", "state": GLOBAL_AUTHORITATIVE_DUEL_ENGINE.get_full_state()})
+            return
+
+        elif norm_path in ("/api/game/replay", "/api/duel/replay"):
+            from krystal_web_hub.economic_engine.posledni_kmen_authoritative_duel import (
+                GLOBAL_AUTHORITATIVE_DUEL_ENGINE,
+                DeterministicAuthoritativeDuelEngine
+            )
+            events = [r.to_dict() for r in GLOBAL_AUTHORITATIVE_DUEL_ENGINE.state.event_log if r.verdict == "COMMITTED"]
+            ok, msg, final_state = DeterministicAuthoritativeDuelEngine.replay(GLOBAL_AUTHORITATIVE_DUEL_ENGINE.rng_seed, events)
+            self.send_json({
+                "status": "OK" if ok else "ERROR",
+                "verified": ok,
+                "message": msg,
+                "events_replayed": len(events),
+                "state_digest": final_state.get("state_digest", "")
+            })
+            return
+
         elif norm_path in ("/api/game/status", "/api/game/match", "/api/duel/status"):
             from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
             self.send_json({"status": "OK", "match": GLOBAL_POSLEDNI_KMEN_GAME.match_state, "vital_max_hp": 6})
@@ -6163,6 +6184,13 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json({"status": "OK", "imported_results": imported_data})
             return
 
+        # ── API: Poslední Kmen Authoritative Duel Actions ──────────────
+        elif self.path in ("/api/game/action", "/api/duel/action", "/api/game/propose_action"):
+            from krystal_web_hub.economic_engine.posledni_kmen_authoritative_duel import GLOBAL_AUTHORITATIVE_DUEL_ENGINE
+            res = GLOBAL_AUTHORITATIVE_DUEL_ENGINE.propose_action(data)
+            self.send_json({"status": "OK" if res["success"] else "REJECTED", **res})
+            return
+
         # ── API: Poslední Kmen Game Actions (Duel / Mortar / Sapper) ──
         elif self.path in ("/api/game/duel_round", "/api/duel/round", "/api/duel/resolve_round"):
             from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
@@ -6206,6 +6234,8 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             return
 
         elif self.path in ("/api/game/reset", "/api/duel/reset"):
+            from krystal_web_hub.economic_engine.posledni_kmen_authoritative_duel import GLOBAL_AUTHORITATIVE_DUEL_ENGINE
+            auth_state = GLOBAL_AUTHORITATIVE_DUEL_ENGINE.reset()
             from krystal_web_hub.economic_engine.game_service import GLOBAL_POSLEDNI_KMEN_GAME
             p_hero = data.get("player_hero_id", "m_oracle_01")
             p_help = int(data.get("player_helper_index", 1))
@@ -6221,7 +6251,7 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 opponent_helper_index=o_help,
                 opponent_race=o_race
             )
-            self.send_json({"status": "RESET", "match": new_m, "vital_max_hp": 6})
+            self.send_json({"status": "RESET", "match": new_m, "authoritative_state": auth_state, "vital_max_hp": 6})
             return
 
         # ── API: Unified Verification Layer Experiments & Replays ─────
@@ -7962,7 +7992,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
     request_queue_size = 128  # default 5 refuses bursts of concurrent clients
 
-def start_server(host="127.0.0.1", port=8080):
+def start_server(host="127.0.0.1", port=8000):
     server = ThreadedHTTPServer((host, port), KrystalHubHandler)
     worker = threading.Thread(target=engine_worker_loop, daemon=True)
     worker.start()
@@ -7971,6 +8001,7 @@ def start_server(host="127.0.0.1", port=8080):
     print(" [KRYSTAL-STACK] PRODUCTION LOCALHOST MISSION CONTROL")
     print("="*70)
     print(f" >> Web UI Address:    http://{host}:{port}/")
+    print(f" >> Game Duel URL:     http://{host}:{port}/game")
     print(f" >> SSE Live Stream:   http://{host}:{port}/api/stream")
     print(f" >> JSON System State: http://{host}:{port}/api/status")
     print(f" >> Health Check:      http://{host}:{port}/api/health")
@@ -7992,7 +8023,7 @@ def start_server(host="127.0.0.1", port=8080):
         print("[HUB] Shutdown complete.")
 
 if __name__ == "__main__":
-    p = 8080
+    p = int(os.environ.get("PORT", 8000))
     if len(sys.argv) > 1:
         p = int(sys.argv[1])
     start_server(port=p)
