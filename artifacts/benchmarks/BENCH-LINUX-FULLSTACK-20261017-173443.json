@@ -1,0 +1,17 @@
+{
+  "benchmark_id": "BENCH-LINUX-FULLSTACK-20261017-173443",
+  "timestamp_iso": "2026-10-17T15:34:43Z",
+  "environment": {
+    "cpu_model": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+    "cpu_cores": 8,
+    "total_ram_mb": 11809,
+    "kernel": "Linux 6.18.33.2-microsoft-standard-WSL2 x86_64"
+  },
+  "results": {
+    "cpu_events_per_sec": "2720.16",
+    "glmark_status": "EXECUTED",
+    "glmark_score": "4200",
+    "openvino_workload": {"status": "OK", "total_inferences": 100, "committed": 100, "total_duration_ms": 11.1, "throughput_tps": 9008.6, "latency_p50_us": 86.6, "latency_p95_us": 189.0, "latency_p99_us": 436.6, "backend": "OpenVINO-DirectSim-Intel-NPU"},
+    "aep_stress": {"total_transactions": 500, "committed": 333, "discarded_with_zero_mutation": 167, "duration_ms": 9.92, "transactions_per_sec": 50387.7, "final_state_hp": 0, "integrity_verified": true}
+  }
+}

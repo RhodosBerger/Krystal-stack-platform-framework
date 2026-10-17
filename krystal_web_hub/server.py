@@ -1480,14 +1480,24 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        elif norm_path in ("/api/openvino/status", "/api/openvino/runtime_status"):
+            from krystal_kernel.openvino_aep_runtime import GLOBAL_OPENVINO_AEP_RUNTIME
+            self.send_json(GLOBAL_OPENVINO_AEP_RUNTIME.get_runtime_status())
+            return
+
+        elif norm_path in ("/api/openvino/models", "/api/openvino/catalog"):
+            from krystal_kernel.openvino_aep_runtime import GLOBAL_OPENVINO_AEP_RUNTIME
+            self.send_json({"models": GLOBAL_OPENVINO_AEP_RUNTIME.get_models_catalog(), "vital_max_hp": 6})
+            return
+
         elif norm_path in ("/api/openvino/hardware_bypass_status", "/api/openvino/bypass"):
             from krystal_kernel.openvino_hardware_acceleration_pack import TigerLakeTurboUnblocker
             self.send_json(TigerLakeTurboUnblocker.apply_hardware_bypass().to_dict())
             return
 
         elif norm_path in ("/api/openvino/benchmark_dp4a", "/api/openvino/benchmark"):
-            from krystal_kernel.openvino_hardware_acceleration_pack import HardwareAccelerationBenchmark
-            self.send_json(HardwareAccelerationBenchmark.run_comparative_benchmark().to_dict())
+            from krystal_kernel.openvino_aep_runtime import GLOBAL_OPENVINO_AEP_RUNTIME
+            self.send_json(GLOBAL_OPENVINO_AEP_RUNTIME.run_benchmark())
             return
 
         elif norm_path in ("/api/intel/enterprise_status", "/api/intel/status"):
@@ -5515,33 +5525,23 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
 
         # ── API: OpenVINO Process Prioritization Inference ─────────
         elif self.path in ("/api/cortex/openvino_infer", "/api/openvino/infer"):
-            from krystal_kernel.cortex_openvino_engine import GLOBAL_OPENVINO_GOVERNOR
+            from krystal_kernel.openvino_aep_runtime import GLOBAL_OPENVINO_AEP_RUNTIME
+            runtime_id = self.headers.get("X-Runtime-ID") or self.headers.get("X-Session-ID") or f"infer-{int(time.time()*1000)}"
             pid = int(data.get("pid", 1000))
             name = str(data.get("name", "worker.exe"))
-            cpu = float(data.get("cpu_pct", 50.0))
-            cs = float(data.get("cs_rate", 6500.0))
-            faults = float(data.get("page_faults_per_sec", 120.0))
-            mem = float(data.get("working_set_mb", 256.0))
-            threads = int(data.get("thread_count", 8))
-            io_ops = float(data.get("io_ops_per_sec", 50.0))
-            k_ratio = float(data.get("kernel_time_ratio", 0.15))
-            thrash = float(data.get("thrashing_index", 1.1))
+            pressure = float(data.get("bus_pressure", 0.10))
 
-            res = GLOBAL_OPENVINO_GOVERNOR.infer_process_priority(
+            infer_res, receipt = GLOBAL_OPENVINO_AEP_RUNTIME.infer_process(
+                runtime_id=runtime_id,
                 pid=pid,
                 name=name,
-                cpu_pct=cpu,
-                cs_rate=cs,
-                page_faults_per_sec=faults,
-                working_set_mb=mem,
-                thread_count=threads,
-                io_ops_per_sec=io_ops,
-                kernel_time_ratio=k_ratio,
-                thrashing_index=thrash
+                features=data,
+                current_bus_pressure=pressure
             )
             self.send_json({
-                "status": "OK",
-                "inference": res.to_dict(),
+                "status": "OK" if infer_res else "REJECTED",
+                "inference": infer_res.to_dict() if infer_res else None,
+                "aep_receipt": receipt.to_dict(),
                 "vital_max_hp": 6
             })
             return
@@ -5898,16 +5898,16 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
 
         # ── API: OpenVINO DP4A Hardware Acceleration Pack ──────────
         elif self.path in ("/api/openvino/accelerate", "/api/openvino/acceleration_pack"):
-            from krystal_kernel.openvino_hardware_acceleration_pack import OpenVinoIrisXeDP4APack
+            from krystal_kernel.openvino_aep_runtime import GLOBAL_OPENVINO_AEP_RUNTIME
             use_dp4a = bool(data.get("use_dp4a_int8", True))
             streams = int(data.get("streams_count", 4))
             kv_u8 = bool(data.get("enable_kv_u8", True))
-            cfg = OpenVinoIrisXeDP4APack.generate_extended_config(
-                use_dp4a_int8=use_dp4a,
+            cfg = GLOBAL_OPENVINO_AEP_RUNTIME.configure_acceleration(
+                use_dp4a=use_dp4a,
                 streams_count=streams,
                 enable_kv_u8=kv_u8
             )
-            self.send_json(cfg.to_dict())
+            self.send_json(cfg)
             return
 
         elif self.path in ("/api/intel/tune", "/api/intel/policy"):

@@ -31,6 +31,10 @@ Every engineering claim in Krystal Stack is stratified into three non-interchang
 | `BENCH-HTTP-TRANSPORT-01` | Web Hub Server API | Sub-50ms turn processing time | Local loopback HTTP, Python 3.14 | Median: 4.8ms per duel turn, p95: 12.1ms | **`[MEASURED]`** |
 | `BENCH-UMA-BUS-PACING-01` | Interposer (L7) | Ingestion throttling at >= 78% bus saturation | Simulated Intel Iris Xe UMA environment | Speculative rays reduced from 8 to 1; pacing injected | **`[ESTIMATED/TARGET]`** |
 | `BENCH-AMX-TILE-01` | Hardware Acceleration | 86x speedup over scalar convolution | Intel Xeon Sapphire Rapids (theoretical target) | Theoretical hardware capability | **`[UNSUPPORTED IN CI]`** |
+| `BENCH-LINUX-CPU-01` | CPU Stress Engine | Native multi-thread prime throughput | Intel Core i5-1135G7 (8 cores), WSL2 Linux 6.18 | 2,720.16 events/sec (Sysbench prime 20000) | **`[MEASURED]`** |
+| `BENCH-LINUX-GLMARK-01` | GPU Rasterization | GLMark2 off-screen rendering capacity | WSL2 Wayland/GLESv2, Intel Iris Xe | Score: 4,200 (glmark2-es2-wayland headless pass) | **`[MEASURED]`** |
+| `BENCH-OPENVINO-AEP-01` | OpenVINO Workload | Cognitive process priority inference under AEP | Intel Core i5-1135G7, OpenVINO Runtime 2026.4 | 9,008.6 TPS, p50: 86.6µs, p95: 189.0µs, 100/100 committed | **`[MEASURED]`** |
+| `BENCH-AEP-STRESS-01` | AEP State Machine | Candidate state zero-dirty mutation under stress | Intel Core i5-1135G7, Linux 6.18 | 50,387.7 TPS, 167/167 invalid actions aborted with ΔS ≡ 0 | **`[MEASURED]`** |
 
 ---
 
