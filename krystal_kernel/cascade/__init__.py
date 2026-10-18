@@ -15,6 +15,7 @@ Constitutional Invariant:
 
 from krystal_kernel.scene_constructor_presets import VITAL_MAX_HP
 from krystal_kernel.cascade.cascade_trace import (
+    MetricProvenance,
     CascadeNodeResult,
     CascadeExecutionTrace,
     CascadeTraceEvent,
@@ -32,7 +33,8 @@ from krystal_kernel.cascade.model_node import (
     FinalSynthesisNode,
     EmbeddingModelNode,
     ToolNode,
-    CustomExtensionNode
+    CustomExtensionNode,
+    SlovakLLMNode,
 )
 from krystal_kernel.cascade.model_router import (
     ModelRouter,
@@ -55,6 +57,7 @@ from krystal_kernel.cascade.cascade_runtime import ModelCascadeRuntime, GLOBAL_M
 
 __all__ = [
     "VITAL_MAX_HP",
+    "MetricProvenance",
     "CascadeNodeResult",
     "CascadeExecutionTrace",
     "CascadeTraceEvent",
@@ -62,6 +65,7 @@ __all__ = [
     "NodeExecutionClass",
     "ModelNode",
     "ModelNodeSpec",
+    "SlovakLLMNode",
     "IntentClassifierNode",
     "CoreRagNode",
     "ReasoningNode",

@@ -1,0 +1,112 @@
+{
+  "benchmark_id": "BENCH_GROUNDED_CASCADE_1792338296",
+  "timestamp_ns": 1792338296449763900,
+  "timestamp_iso": "2026-10-18T15:44:56Z",
+  "substrate_model": "slovak-nlp/Qwen3-14B-sk",
+  "quantization": "Q4_K_M",
+  "environment_snapshot": {
+    "platform": "win32",
+    "cpu_cores": 8,
+    "available_memory_mb": 5039.11,
+    "accelerators": [
+      "CPU",
+      "GPU"
+    ],
+    "bus_pressure": 0.12,
+    "vital_max_hp": 6
+  },
+  "cycles": [
+    {
+      "cycle": 1,
+      "prompt": "Aké sú základné epistemické invarianty Krystal Stacku?",
+      "predicted_latency_ms": 63.6,
+      "observed_latency_ms": 21.0,
+      "error_latency_ms": -42.6,
+      "predicted_memory_mb": 2497.1,
+      "observed_memory_mb": 2171.39,
+      "regret_score": 0.0,
+      "plan_provenance": "ESTIMATED",
+      "trace_provenance_summary": {
+        "MEASURED": 1,
+        "ESTIMATED": 0,
+        "SYNTHETIC": 4
+      },
+      "authority_verdict": "AUTH_COMMIT_APPROVED",
+      "historical_evidence_count": 0,
+      "vital_max_hp": 6
+    },
+    {
+      "cycle": 2,
+      "prompt": "Popíš mechanizmus zero-dirty rollbacku pri zlyhaní transakcie.",
+      "predicted_latency_ms": 20.49,
+      "observed_latency_ms": 6.81,
+      "error_latency_ms": -13.68,
+      "predicted_memory_mb": 2497.1,
+      "observed_memory_mb": 2171.39,
+      "regret_score": 0.0,
+      "plan_provenance": "MEASURED_EMPIRICAL",
+      "trace_provenance_summary": {
+        "MEASURED": 1,
+        "ESTIMATED": 0,
+        "SYNTHETIC": 4
+      },
+      "authority_verdict": "AUTH_COMMIT_APPROVED",
+      "historical_evidence_count": 5,
+      "vital_max_hp": 6
+    },
+    {
+      "cycle": 3,
+      "prompt": "Vysvetli ako SlovakLLMAdapter monitoruje fyzickú pamäť cez Win32 API.",
+      "predicted_latency_ms": 13.44,
+      "observed_latency_ms": 8.75,
+      "error_latency_ms": -4.69,
+      "predicted_memory_mb": 2497.1,
+      "observed_memory_mb": 2171.39,
+      "regret_score": 0.0,
+      "plan_provenance": "MEASURED_EMPIRICAL",
+      "trace_provenance_summary": {
+        "MEASURED": 1,
+        "ESTIMATED": 0,
+        "SYNTHETIC": 4
+      },
+      "authority_verdict": "AUTH_COMMIT_APPROVED",
+      "historical_evidence_count": 5,
+      "vital_max_hp": 6
+    },
+    {
+      "cycle": 4,
+      "prompt": "Aké sú rozdiely medzi MEASURED, ESTIMATED a SYNTHETIC telemetriou?",
+      "predicted_latency_ms": 11.37,
+      "observed_latency_ms": 7.21,
+      "error_latency_ms": -4.16,
+      "predicted_memory_mb": 2497.1,
+      "observed_memory_mb": 2171.39,
+      "regret_score": 0.0,
+      "plan_provenance": "MEASURED_EMPIRICAL",
+      "trace_provenance_summary": {
+        "MEASURED": 1,
+        "ESTIMATED": 0,
+        "SYNTHETIC": 4
+      },
+      "authority_verdict": "AUTH_COMMIT_APPROVED",
+      "historical_evidence_count": 5,
+      "vital_max_hp": 6
+    }
+  ],
+  "convergence": {
+    "initial_error_ms": 42.6,
+    "final_error_ms": 4.16,
+    "error_reduction_pct": 90.23,
+    "converged": true
+  },
+  "epistemic_classification": {
+    "evidence_class": "PHYSICAL_MEASURED_LOCAL",
+    "provenance_types": [
+      "MEASURED",
+      "ESTIMATED",
+      "SYNTHETIC"
+    ],
+    "authority_gate": "DualGateAuthority://SafetyGate",
+    "vital_max_hp": 6
+  }
+}

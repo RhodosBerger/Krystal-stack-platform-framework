@@ -297,6 +297,9 @@ class ClosedLoopCascadeFeedback:
                 metric_delta=error_lat_ms
             )
 
+        has_measured = any(getattr(nr, "provenance", "SYNTHETIC") == "MEASURED" for nr in trace.node_results)
+        provenance_tag = "MEASURED" if has_measured else "SYNTHETIC"
+
         return {
             "expected_latency_ms": round(exp_lat, 2),
             "actual_latency_ms": round(act_lat, 2),
@@ -305,6 +308,8 @@ class ClosedLoopCascadeFeedback:
             "actual_memory_mb": round(act_mem, 2),
             "error_memory_mb": round(error_mem_mb, 2),
             "regret_score": round(regret, 4),
+            "provenance": provenance_tag,
+            "epistemic_tags": ["// [PHYSICAL-LOCAL-TIMING]"] if has_measured else ["// [SIMULATED]"],
             "feedback_applied": True,
             "active_hypotheses_count": len(self.hypotheses),
             "vital_max_hp": VITAL_MAX_HP

@@ -17,6 +17,7 @@ Constitutional Invariant:
 import time
 import uuid
 from dataclasses import dataclass, field, asdict
+from enum import Enum
 from typing import List, Dict, Any, Optional
 
 VITAL_MAX_HP: int = 6
@@ -53,6 +54,13 @@ class CascadeTraceEvent:
         return asdict(self)
 
 
+class MetricProvenance(str, Enum):
+    """Rigorous epistemic classification of telemetry origins."""
+    MEASURED  = "MEASURED"   # Physical timer, Win32 API, physical token stream
+    ESTIMATED = "ESTIMATED"  # Algorithmic prediction, moving average, statistical curve
+    SYNTHETIC = "SYNTHETIC"  # Heuristic mock, hardcoded constant, string split count
+
+
 @dataclass
 class CascadeNodeResult:
     """Atomic execution result produced by a single ModelNode."""
@@ -69,6 +77,7 @@ class CascadeNodeResult:
     error: Optional[str] = None
     next_route: Optional[str] = None
     epistemic_verdict: str = "PRED_MODEL_ANSWER"  # PRED_MODEL_ANSWER, EPI_VALIDATED, EPI_CONTRADICTORY, SAFE_BREACH, AUTH_VETOED
+    provenance: str = "SYNTHETIC"  # MEASURED, ESTIMATED, SYNTHETIC
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self):
@@ -82,6 +91,7 @@ class CascadeNodeResult:
         d = asdict(self)
         d["memory_used"] = self.memory_used or self.memory_mb
         d["memory_mb"] = self.memory_mb or self.memory_used
+        d["provenance"] = self.provenance
         return d
 
 
@@ -103,6 +113,7 @@ class CascadeFinalResult:
     authority_status: str = "AUTH_COMMIT_APPROVED"  # e.g. AUTH_COMMIT_APPROVED, AUTH_VETOED, SAFE_BREACH, WOULD_COMMIT
     trace_events: List[CascadeTraceEvent] = field(default_factory=list)
     shadow_mode: bool = False
+    provenance_summary: Dict[str, int] = field(default_factory=lambda: {"MEASURED": 0, "ESTIMATED": 0, "SYNTHETIC": 0})
     vital_max_hp: int = VITAL_MAX_HP
     timestamp_ns: int = field(default_factory=time.time_ns)
 
@@ -110,6 +121,11 @@ class CascadeFinalResult:
         assert self.vital_max_hp == 6, f"Invariant violation: vital_max_hp must be 6, got {self.vital_max_hp}"
         if not self.request_id:
             self.request_id = f"REQ_{uuid.uuid4().hex[:12].upper()}"
+        if not self.provenance_summary or sum(self.provenance_summary.values()) == 0:
+            self.provenance_summary = {"MEASURED": 0, "ESTIMATED": 0, "SYNTHETIC": 0}
+            for nr in self.node_results:
+                prov = getattr(nr, "provenance", "SYNTHETIC")
+                self.provenance_summary[prov] = self.provenance_summary.get(prov, 0) + 1
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -124,6 +140,7 @@ class CascadeFinalResult:
             "evidence_summary": self.evidence_summary,
             "authority_status": self.authority_status,
             "shadow_mode": self.shadow_mode,
+            "provenance_summary": self.provenance_summary,
             "trace_events": [te.to_dict() for te in self.trace_events],
             "vital_max_hp": self.vital_max_hp,
             "timestamp_ns": self.timestamp_ns
