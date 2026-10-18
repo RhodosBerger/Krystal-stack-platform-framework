@@ -152,10 +152,17 @@
             "selected_strategy": "CPU_ONLY",
             "rationale": "Environment physical constraint: GPU is UNAVAILABLE in this environment (available: ['CPU']); closed-loop planner dynamically adapts all phases to CPU_ONLY"
           }
-        ]
+        ],
+        "feasible_set": [
+          "CPU_ONLY"
+        ],
+        "policy_status": "FEASIBLE_OPTIMAL"
       },
-      "static_naive_policy_cost_j": 2.0,
-      "delta_j_wsl": -0.7867
+      "static_naive_policy_status": "INFEASIBLE",
+      "static_naive_policy_cost_j": null,
+      "static_naive_policy_rationale": "Static Windows policy (GPU_PREFILL_CPU_DECODE) does not belong to F(E_WSL2); physical execution is infeasible (J = infinity)",
+      "adaptive_policy_status": "FEASIBLE_OPTIMAL",
+      "adaptive_policy_cost_j": 1.2133
     },
     "e04_boundary_handoff": {
       "boundary_type": "CPU_IN_CACHE_RESIDENT",

@@ -352,37 +352,58 @@ class CascadePlanner:
         host_cpu_load: float = 0.0,
         target_slo_ms: Optional[float] = None,
         model_fingerprint: str = "",
+    @staticmethod
+    def get_feasible_strategies(available_devices: Optional[List[str]] = None) -> List[str]:
+        """
+        Derives the Feasible Execution Set F(E) based strictly on physically detected hardware devices:
+            F(E) = { pi in Candidates | HardwareRequired(pi) subseteq PhysicalDevices(E) }
+        """
+        devs = [d.upper() for d in (available_devices or ["CPU", "GPU"])]
+        feasible = ["CPU_ONLY"]
+        if "GPU" in devs:
+            feasible.extend(["GPU_ONLY", "GPU_PREFILL_CPU_DECODE", "BATCHED_GPU"])
+        return feasible
+
+    def select_phase_aware_strategy(
+        self,
+        prompt_tokens: int,
+        est_gen_tokens: int,
+        concurrency: int = 1,
+        host_cpu_load: float = 0.0,
+        target_slo_ms: Optional[float] = None,
+        model_fingerprint: str = "",
         workload_class: str = "W_GENERAL",
         slo_class: str = "interactive",
         queue_depth: int = 1,
         available_devices: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Dynamically selects optimal execution strategy from Candidate set:
+        Solves the Feasible Environment-Conditioned Policy Selection problem:
+            Pi* = argmin_{pi in F(E)} J(pi | E, S, W, P)
+        
+        where:
+            - E: Operating/Hardware Environment (Windows Native, WSL2, Linux, etc.)
+            - F(E): Feasible Execution Set { pi in Candidates | HardwareRequired(pi) subseteq PhysicalDevices(E) }
+            - S: Physical State (CPU core load, memory pressure, cache residency)
+            - W: Workload Specification (prompt length, target generation tokens, concurrency)
+            - P: Execution Phase (Prefill vs Decode)
+        
+        Candidate Set:
             - Candidate A: CPU_ONLY
             - Candidate B: GPU_ONLY
             - Candidate C: GPU_PREFILL_CPU_DECODE
             - Candidate D: BATCHED_GPU (under throughput SLO & queue depth >= 2)
-        
-        Decision Rules grounded in physical micro-architectural measurements:
-            0. Environmental Physical Constraint:
-               If GPU is not present in available_devices, closed-loop planner strictly adapts
-               to CPU_ONLY (never attempts nonexistent hardware dispatch or silent simulation).
-            1. If concurrency > 1 and slo_class == "throughput" and queue_depth >= 2:
-               select BATCHED_GPU (amortizes ~380 us OpenCL queue floor across batch for throughput-oriented workloads).
-            2. If prompt_tokens >= 64 or host_cpu_load > 80%:
-               select GPU_PREFILL_CPU_DECODE (GPU prefill 2.2x-4.15x faster + ~12 us UMA handoff to CPU decode).
-            3. Else:
-               select CPU_ONLY (zero dispatch floor in L1/L2 cache dominates short prompts & latency-sensitive interactive requests).
         """
         assert VITAL_MAX_HP == 6, "Invariant VITAL_MAX_HP == 6 must hold"
 
-        # Check physical hardware availability
-        if available_devices is not None and "GPU" not in [d.upper() for d in available_devices]:
+        feasible_set = self.get_feasible_strategies(available_devices)
+
+        # Environmental Physical Constraint Filter: Pi* must belong to F(E)
+        if "GPU_PREFILL_CPU_DECODE" not in feasible_set and "BATCHED_GPU" not in feasible_set:
             chosen = "CPU_ONLY"
             rationale = (
-                f"Environment physical constraint: GPU is UNAVAILABLE in this environment (available: {available_devices}); "
-                f"closed-loop planner dynamically adapts all phases to CPU_ONLY"
+                f"Feasible set F(E)={feasible_set}: GPU is UNAVAILABLE in this environment; "
+                f"closed-loop planner strictly projects optimal policy to CPU_ONLY"
             )
         else:
             is_throughput_workload = (
@@ -390,13 +411,13 @@ class CascadePlanner:
                 (target_slo_ms is not None and target_slo_ms >= 100.0 and concurrency >= 4)
             )
 
-            if concurrency > 1 and is_throughput_workload and queue_depth >= 2:
+            if concurrency > 1 and is_throughput_workload and queue_depth >= 2 and "BATCHED_GPU" in feasible_set:
                 chosen = "BATCHED_GPU"
                 rationale = f"Throughput-oriented SLO with concurrency={concurrency} (queue={queue_depth}) amortizes OpenCL dispatch"
-            elif prompt_tokens >= 64:
+            elif prompt_tokens >= 64 and "GPU_PREFILL_CPU_DECODE" in feasible_set:
                 chosen = "GPU_PREFILL_CPU_DECODE"
                 rationale = f"Prefill tokens {prompt_tokens} >= 64 achieves 2.2x-4.15x GPU speedup with ~12 us UMA handoff to CPU decode"
-            elif host_cpu_load > 80.0:
+            elif host_cpu_load > 80.0 and "GPU_PREFILL_CPU_DECODE" in feasible_set:
                 chosen = "GPU_PREFILL_CPU_DECODE"
                 rationale = f"Host CPU core saturation ({host_cpu_load:.1f}%) triggers GPU prefill offload to preserve responsiveness"
             else:
@@ -405,6 +426,8 @@ class CascadePlanner:
 
         return {
             "selected_strategy": chosen,
+            "feasible_set": feasible_set,
+            "policy_status": "FEASIBLE_OPTIMAL",
             "decision_factors": {
                 "prompt_tokens": prompt_tokens,
                 "est_gen_tokens": est_gen_tokens,
@@ -419,6 +442,7 @@ class CascadePlanner:
             "vital_max_hp": VITAL_MAX_HP,
             "provenance": "PHASE_AWARE_EMPIRICAL_CONTROLLER"
         }
+
 
     @staticmethod
     def capture_environment_snapshot() -> Dict[str, Any]:

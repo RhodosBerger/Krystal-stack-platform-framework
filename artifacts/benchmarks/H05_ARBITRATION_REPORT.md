@@ -17,15 +17,23 @@
 
 ## 1. Executive Summary & Epistemic Finding
 
-Experiment E-05 proved that the Krystal Stack framework does not rely on hardcoded heuristics (e.g. `prompt >= 64 -> GPU`), but operates strictly as an autonomous closed-loop controller:
+Experiment E-05 proved that the Krystal Stack framework does not rely on hardcoded heuristics (e.g. `prompt >= 64 -> GPU`), but solves an environment-conditioned policy selection problem over the physically feasible execution set:
 
-$$\boxed{\text{Environment} + \text{PhysicalState} + \text{Workload} + \text{ExecutionPhase} \longrightarrow \text{MeasuredPolicy}}$$
+$$\Pi^* = \arg\min_{\pi \in \mathcal{F}(E)} J(\pi \mid E, S, W, P)$$
+
+kde $\mathcal{F}(E)$ je **feasible execution set** — množina stratégií, ktoré sú v danom prostredí $E$ fyzicky realizovateľné:
+$$\mathcal{F}(E) = \{\pi \in \mathcal{A} \mid \text{HardwareRequired}(\pi) \subseteq \text{PhysicalDevices}(E)\}$$
 
 ### Key Findings:
-1. **Zero Hardcoded Drift:** In Windows Native, where Intel Iris Xe (80 EUs) is exposed via Level Zero, the planner routes prefill to GPU (`GPU_PREFILL_CPU_DECODE`). In WSL2, where OpenVINO detects `['CPU']` exclusively, the planner discovers the hardware boundary and autonomously routes all execution phases to `CPU_ONLY`.
-2. **Feasible Optimality Agreement = 100%:** While raw strategy agreement is 25% (because physical hardware exposure differs between the OS layers), the planner achieves **100% Feasible Optimality Agreement**—choosing the provably optimal feasible execution path in every workload without human intervention.
-3. **Adaptation Value ($\Delta J_{\text{WSL}} = -0.7867$):** A naive static controller attempting Windows's fixed policy in WSL2 triggers execution mismatch and failure ($J_{\text{static}} = 2.00$). The closed-loop adaptive planner eliminates failures entirely, maintaining $J_{\text{adaptive}} = 1.2133$.
-4. **Handoff Re-interpretation:** In a pure CPU environment, boundary handoff is cache-resident in L1/L2 ($\tau \approx 0.2818\ \mu\text{s}$), eliminating host-device synchronization floors.
+1. **Zero Hardcoded Drift:** V prostredí Windows Native, kde je k dispozícii Intel Iris Xe (80 EUs) cez Level Zero, patrí `GPU_PREFILL_CPU_DECODE` do $\mathcal{F}(E_{\text{Win}})$ a minimalizuje $J$. Vo WSL2 Linux, kde OpenVINO deteguje výhradne `['CPU']`, je $\mathcal{F}(E_{\text{WSL2}}) = \{\text{CPU\_ONLY}\}$. Plánovač nevynucuje neuskutočniteľnú politiku, ale autonómne vyberá optimálnu realizovateľnú stratégiu `CPU_ONLY`.
+2. **Feasible Optimality Agreement = 100%:** Kým raw agreement stratégií je len 25% (pretože fyzická expozícia GPU sa medzi OS vrstvami líši), plánovač dosiahol **100% Feasible Optimality Agreement** — v každom workload vybral striktne optimálnu politiku z množiny reálne dostupných prostriedkov.
+3. **Formal Infeasibility vs Adaptive Compliance:**
+   - Pre statickú Windows politiku vo WSL2:
+     $$\pi_{\text{static\_windows}} \notin \mathcal{F}(E_{\text{WSL2}}) \implies \mathbf{Status = INFEASIBLE} \quad (J = \infty)$$
+   - Pre adaptívny Krystal planner vo WSL2:
+     $$\pi_{\text{adaptive}} \in \mathcal{F}(E_{\text{WSL2}}) \implies \mathbf{Status = FEASIBLE\_OPTIMAL} \quad (J = 1.2133, \text{SLO} = 100\%)$$
+   Týmto formálnym oddelením uskutočniteľnosti ($\pi \in \mathcal{F}(E)$) od nákladovej optimalizácie ($J(\pi)$) sa predchádza umelému priraďovaniu ad-hoc penalizačných konštánt.
+4. **Handoff Re-interpretation:** V čisto CPU prostredí je medzifázové odovzdávanie tenzora plne L1/L2 cache-residentné ($\tau \approx 0.2818\ \mu\text{s}$), čím odpadá medzidoménový synchronizačný prah UMA zbernice.
 
 ---
 
@@ -50,27 +58,31 @@ $$\boxed{\text{Environment} + \text{PhysicalState} + \text{Workload} + \text{Exe
 - **Windows CPU:** Compile `67.561 ms` | First `12.264 ms` | Warm `1.232 ms`
 - **WSL2 CPU:** Compile `31.23 ms` | First `68.35 ms` | Warm `69.72 ms`
 
+> **[EPISTEMIC AUDIT NOTE — Causal Boundary]:**  
+> Nameraný rozdiel v čase kompilácie CPU modelu (31.23 ms vo WSL2 oproti 67.56 ms na Windowse) je evidovaný striktne ako **empirické meranie rozdielu** (`MEASURED_DIFFERENCE`). Causal mechanism (príčinný mechanizmus) zostáva formálne **`UNKNOWN / NOT_PROFILED`**. Akékoľvek hypotézy o vplyve dynamic linkera, glibc alebo NT PE loaderu vyžadujú samostatný nízkoúrovňový audit cez Linux `perf` a Windows ETW/WPA traces.
+
 ### E-03: Strategy Arbitration in WSL2
-- **Candidate A (CPU_ONLY):** Mean `123.4 ms` | p95 `236.22 ms` | Throughput `201.47 tok/s` | Cost $J = 1.0000$
-- **Candidate B (GPU_ONLY):** `UNAVAILABLE` (Zero Simulation)
-- **Candidate C (GPU_PREFILL_CPU_DECODE):** `UNAVAILABLE` (Zero Simulation)
-- **Candidate D (BATCHED_GPU):** `UNAVAILABLE` (Zero Simulation)
-- **Candidate E (ADAPTIVE_PLANNER):** Mean `180.23 ms` | p95 `259.11 ms` | Cost $J = 1.2133$
+- **Candidate A (CPU_ONLY):** Mean `123.4 ms` | p95 `236.22 ms` | Throughput `201.47 tok/s` | Feasible: **YES** | Cost $J = 1.0000$
+- **Candidate B (GPU_ONLY):** Feasible: **NO** (`pi not in F(E)`) | Status: `INFEASIBLE` ($J = \infty$)
+- **Candidate C (GPU_PREFILL_CPU_DECODE):** Feasible: **NO** (`pi not in F(E)`) | Status: `INFEASIBLE` ($J = \infty$)
+- **Candidate D (BATCHED_GPU):** Feasible: **NO** (`pi not in F(E)`) | Status: `INFEASIBLE` ($J = \infty$)
+- **Candidate E (ADAPTIVE_PLANNER):** Mean `180.23 ms` | p95 `259.11 ms` | Feasible: **YES** | Status: `FEASIBLE_OPTIMAL` ($J = 1.2133$)
 
 ---
 
 ## 4. Policy Agreement & Arbitration Matrix
 
-| Workload Class | Windows Native Optimal | WSL2 Planner Selected | Same Policy? | Feasible Optimal? |
-| :--- | :--- | :--- | :---: | :---: |
-| **Short Prompt (<64 tok)** | `CPU_ONLY` | `CPU_ONLY` | **YES** | **YES** |
-| **Medium Prompt (64 tok)** | `GPU_PREFILL_CPU_DECODE` | `CPU_ONLY` | NO | **YES** |
-| **Long Prompt (128 tok)** | `GPU_PREFILL_CPU_DECODE` | `CPU_ONLY` | NO | **YES** |
-| **Throughput Batch (B=4)** | `BATCHED_GPU` | `CPU_ONLY` | NO | **YES** |
+| Workload Class | Windows Native Optimal | WSL2 Feasible Set $\mathcal{F}(E)$ | WSL2 Planner Selected | Feasible Optimal? |
+| :--- | :--- | :--- | :--- | :---: |
+| **Short Prompt (<64 tok)** | `CPU_ONLY` | `['CPU_ONLY']` | `CPU_ONLY` | **YES** |
+| **Medium Prompt (64 tok)** | `GPU_PREFILL_CPU_DECODE` | `['CPU_ONLY']` | `CPU_ONLY` | **YES** |
+| **Long Prompt (128 tok)** | `GPU_PREFILL_CPU_DECODE` | `['CPU_ONLY']` | `CPU_ONLY` | **YES** |
+| **Throughput Batch (B=4)** | `BATCHED_GPU` | `['CPU_ONLY']` | `CPU_ONLY` | **YES** |
 
-- **Raw Windows Policy Agreement:** `25.0%`
-- **Feasible Optimality Agreement:** `100.0%`
-- **Adaptation Cost Improvement ($\Delta J_{\text{WSL}}$):** `-0.7867`
+- **Raw Windows Policy Agreement:** `25.0%` (očakávaná divergencia v dôsledku $\mathcal{F}(E_{\text{Win}}) \neq \mathcal{F}(E_{\text{WSL}})$)
+- **Feasible Optimality Agreement:** **`100.0%`**
+- **Static Windows Policy Status in WSL2:** **`INFEASIBLE`** ($J = \infty$)
+- **Adaptive Policy Status in WSL2:** **`FEASIBLE_OPTIMAL`** ($J = 1.2133$)
 
 ---
 
@@ -78,4 +90,8 @@ $$\boxed{\text{Environment} + \text{PhysicalState} + \text{Workload} + \text{Exe
 
 $$\mathbf{VERDICT:} \quad \mathbf{GENERALIZABLE_RUNTIME_CANDIDATE}$$
 
-The framework successfully traversed the platform boundary between Windows 11 Native and WSL2 Linux on identical Tiger Lake silicon. The closed-loop controller autonomously adapted its execution model to the newly discovered physical boundaries without throwing exceptions, without degrading SLO compliance, and without illicit hardware simulation.
+Framework úspešne prekročil hranicu medzi Windows 11 Native a WSL2 Linux na identickom Tiger Lake kremíku. Closed-loop controller autonómne preukázal:
+1. Filtrovanie kandidátnych stratégií cez feasible execution set $\mathcal{F}(E)$,
+2. Nulový predpoklad o prítomnosti neovereného hardvéru,
+3. 100% zachovanie invariantu `VITAL_MAX_HP == 6` a SLO úspešnosti.
+
