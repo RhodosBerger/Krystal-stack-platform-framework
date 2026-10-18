@@ -470,5 +470,31 @@
       "artifacts/benchmarks/H06A_PERTURBATION_EVIDENCE.json",
       "artifacts/benchmarks/H06A_ARBITRATION_REPORT.md"
     ]
+  },
+  "experiment_e06a1_policy_boundary_mapping": {
+    "benchmark_id": "E-06A.1-POLICY-BOUNDARY-MAPPING",
+    "title": "Dense Policy Boundary Mapping & Long-Prompt Inversion Analysis",
+    "status": "APPROVED_FACT",
+    "measurement_class": "LOCAL-PHYSICAL-HARDWARE-MEASURED",
+    "arbitration_verdict": "POLICY_BOUNDARY_MAPPED_AND_GENERALIZED",
+    "target_hardware": "Intel Core i5-1135G7 Tiger Lake (Core 0 pinned, 1 thread) + Iris Xe Gen12",
+    "dense_prompt_grid": [64, 80, 96, 112, 128, 160],
+    "generation_lengths": [16, 32],
+    "inversion_observed": "Hybrid re-takes lead at P=160 (G=32) and dominates at G=16 due to OpenCL dispatch overhead and UMA KV cache pressure",
+    "policy_equivalent_regions": [
+      "P=96, G=32: GPU=191.48 ms, Hybrid=191.06 ms (delta 0.22%)",
+      "P=160, G=16: GPU=368.55 ms, Hybrid=367.68 ms (delta 0.23%)",
+      "Desktop P=64: GPU=162.80 ms, Hybrid=163.85 ms (delta 0.64%)"
+    ],
+    "governing_inversion_formula": "P*_inversion(G, E) = ceil((G * (tau_decode,CPU - tau_decode,GPU) + tau_handoff) / (tau_prefill,CPU - tau_prefill,GPU))",
+    "zero_hardcoding_verified": true,
+    "vital_max_hp": 6,
+    "delta_s": 0,
+    "artifacts": [
+      "artifacts/benchmarks/H06A1_BOUNDARY_MAPPING_SPEC.md",
+      "artifacts/benchmarks/H06A1_BOUNDARY_SURFACE.csv",
+      "artifacts/benchmarks/H06A1_BOUNDARY_EVIDENCE.json",
+      "artifacts/benchmarks/H06A1_ARBITRATION_REPORT.md"
+    ]
   }
 }
