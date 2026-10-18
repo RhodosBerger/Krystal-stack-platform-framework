@@ -77,10 +77,13 @@ class OpenVINOInferenceResult:
     win32_priority_code: int
     confidence_score: float
     class_probabilities: Dict[str, float]
-    inference_device: str              # e.g., "Intel-NPU", "Intel-Iris-Xe", "CPU-OpenVINO"
+    inference_device: str              # e.g., "Intel-NPU", "Intel-Iris-Xe", "CPU-OpenVINO", "CPU", "GPU"
     inference_latency_us: float        # Latency in microseconds
     openvino_backend: str
     vital_max_hp: int = VITAL_MAX_HP
+    requested_device: str = "CPU"
+    actual_device: str = "CPU"
+    fallback_reason: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -248,7 +251,8 @@ class OpenVINOProcessGovernor:
         thread_count: int = 8,
         io_ops_per_sec: float = 45.0,
         kernel_time_ratio: float = 0.15,
-        thrashing_index: float = 1.05
+        thrashing_index: float = 1.05,
+        requested_device: str = "CPU",
     ) -> OpenVINOInferenceResult:
         """
         Executes OpenVINO neural network forward pass on process telemetry vector.
@@ -297,6 +301,10 @@ class OpenVINOProcessGovernor:
         t_end_ns = time.time_ns()
         latency_us = round((t_end_ns - t_start_ns) / 1000.0, 2)
 
+        # Anti-Self-Certification: this governor forward pass executes Python arithmetic on CPU.
+        actual_dev = "CPU"
+        fallback = "GPU_BACKEND_NOT_EXECUTED" if requested_device.upper() == "GPU" else None
+
         return OpenVINOInferenceResult(
             target_pid=pid,
             process_name=name,
@@ -305,10 +313,13 @@ class OpenVINOProcessGovernor:
             win32_priority_code=WIN32_PRIORITY_CLASSES[best_class],
             confidence_score=best_conf,
             class_probabilities=prob_dict,
-            inference_device=self.preferred_device,
+            inference_device=actual_dev,
             inference_latency_us=latency_us,
             openvino_backend=self.backend_name,
-            vital_max_hp=VITAL_MAX_HP
+            vital_max_hp=VITAL_MAX_HP,
+            requested_device=requested_device,
+            actual_device=actual_dev,
+            fallback_reason=fallback,
         )
 
 

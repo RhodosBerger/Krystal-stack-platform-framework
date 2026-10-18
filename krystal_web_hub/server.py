@@ -6183,9 +6183,11 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
 
         # ── API: Sovereign Subsystems Unified Efficiency Benchmark ─
         elif self.path in ("/api/benchmark/sovereign", "/api/benchmark/run_sovereign"):
-            from scripts.benchmark_sovereign_efficiency import run_sovereign_efficiency_benchmark
+            import importlib
+            import scripts.benchmark_sovereign_efficiency as s_bench
+            importlib.reload(s_bench)
             scale = int(data.get("scale", 1))
-            res = run_sovereign_efficiency_benchmark(iterations_scale=scale)
+            res = s_bench.run_sovereign_efficiency_benchmark(iterations_scale=scale)
             self.send_json(res)
             return
 

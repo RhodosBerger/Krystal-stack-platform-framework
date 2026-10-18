@@ -27,6 +27,7 @@ import enum
 import hashlib
 import hmac
 import json
+import threading
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -112,22 +113,25 @@ class DoubleEntryLedger:
     """
 
     def __init__(self) -> None:
+        self._lock = threading.RLock()
         self.wallets: Dict[str, AccountWallet] = {}
         self.transaction_history: List[Dict[str, Any]] = []
         # Seed system treasury vault
         self.get_or_create_wallet(SYSTEM_TREASURY_VAULT)
 
     def get_or_create_wallet(self, account_id: str) -> AccountWallet:
-        if account_id not in self.wallets:
-            self.wallets[account_id] = AccountWallet(account_id=account_id)
-        return self.wallets[account_id]
+        with self._lock:
+            if account_id not in self.wallets:
+                self.wallets[account_id] = AccountWallet(account_id=account_id)
+            return self.wallets[account_id]
 
     def compute_merkle_root(self) -> str:
         """Computes incremental SHA-256 Merkle root across canonical wallet states."""
-        canonical_items = [
-            json.dumps(w.to_dict(), sort_keys=True)
-            for _, w in sorted(self.wallets.items())
-        ]
+        with self._lock:
+            canonical_items = [
+                json.dumps(w.to_dict(), sort_keys=True)
+                for _, w in sorted(self.wallets.items())
+            ]
         if not canonical_items:
             return hashlib.sha256(b"EMPTY_LEDGER").hexdigest()
         
@@ -144,24 +148,28 @@ class DoubleEntryLedger:
 
     def snapshot(self) -> Dict[str, Any]:
         """Creates a deep copy of the ledger state."""
+        with self._lock:
+            wallets_copy = {acc_id: copy.deepcopy(w.to_dict()) for acc_id, w in list(self.wallets.items())}
+            root = self.compute_merkle_root()
         return {
-            "wallets": {acc_id: copy.deepcopy(w.to_dict()) for acc_id, w in self.wallets.items()},
-            "merkle_root": self.compute_merkle_root(),
+            "wallets": wallets_copy,
+            "merkle_root": root,
             "vital_max_hp": VITAL_MAX_HP,
         }
 
     def restore_from_snapshot(self, snapshot_dict: Dict[str, Any]) -> None:
         """Restores ledger state from snapshot (used for exact rollback Delta S == 0)."""
         wallets_data = snapshot_dict.get("wallets", {})
-        self.wallets.clear()
-        for acc_id, d in wallets_data.items():
-            w = AccountWallet(
-                account_id=acc_id,
-                balances=dict(d.get("balances", {})),
-                nonce=int(d.get("nonce", 0)),
-                vital_max_hp=VITAL_MAX_HP,
-            )
-            self.wallets[acc_id] = w
+        with self._lock:
+            self.wallets.clear()
+            for acc_id, d in wallets_data.items():
+                w = AccountWallet(
+                    account_id=acc_id,
+                    balances=dict(d.get("balances", {})),
+                    nonce=int(d.get("nonce", 0)),
+                    vital_max_hp=VITAL_MAX_HP,
+                )
+                self.wallets[acc_id] = w
 
 
 class CraftingInvariantRule(InvariantRule):
@@ -201,6 +209,7 @@ class AepEconomyProcessor:
             raise ContractViolation("VITAL_MAX_HP must be 6 in AepEconomyProcessor")
 
         self.session_key = session_key
+        self._lock = threading.RLock()
         self.ledger = DoubleEntryLedger()
         self.recipes: Dict[str, CraftingRecipe] = {}
 
@@ -245,42 +254,43 @@ class AepEconomyProcessor:
         if amount <= 0.0:
             raise ContractViolation("Deposit amount must be positive")
 
-        mint_id = "MINT_AUTHORITY_VAULT"
-        self.ledger.get_or_create_wallet(account_id)
-        self.ledger.get_or_create_wallet(mint_id)
+        with self._lock:
+            mint_id = "MINT_AUTHORITY_VAULT"
+            self.ledger.get_or_create_wallet(account_id)
+            self.ledger.get_or_create_wallet(mint_id)
 
-        current_state = self.ledger.snapshot()
+            current_state = self.ledger.snapshot()
 
-        def transition_deposit(s: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
-            st = copy.deepcopy(s)
-            wallets = st["wallets"]
-            target_w = wallets[account_id]
-            mint_w = wallets[mint_id]
+            def transition_deposit(s: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
+                st = copy.deepcopy(s)
+                wallets = st["wallets"]
+                target_w = wallets[account_id]
+                mint_w = wallets[mint_id]
 
-            target_w["balances"][asset] = target_w["balances"].get(asset, 0.0) + amount
-            target_w["nonce"] += 1
+                target_w["balances"][asset] = target_w["balances"].get(asset, 0.0) + amount
+                target_w["nonce"] += 1
 
-            # Double-entry balance accounting
-            st["debits"] = amount
-            st["credits"] = amount
-            st["balances"] = target_w["balances"]
-            return st
+                # Double-entry balance accounting
+                st["debits"] = amount
+                st["credits"] = amount
+                st["balances"] = target_w["balances"]
+                return st
 
-        res = self.aep_engine.execute_transition(
-            runtime_id=f"deposit-{account_id}-{asset}",
-            workload=WorkloadType.ECONOMY,
-            action="DEPOSIT_MINT",
-            current_state=current_state,
-            transition_fn=transition_deposit,
-            action_payload={"account_id": account_id, "asset": asset, "amount": amount},
-            policy_id="economy-sovereign-mint",
-            execution_lane=ExecutionLane.REALTIME,
-        )
+            res = self.aep_engine.execute_transition(
+                runtime_id=f"deposit-{account_id}-{asset}",
+                workload=WorkloadType.ECONOMY,
+                action="DEPOSIT_MINT",
+                current_state=current_state,
+                transition_fn=transition_deposit,
+                action_payload={"account_id": account_id, "asset": asset, "amount": amount},
+                policy_id="economy-sovereign-mint",
+                execution_lane=ExecutionLane.REALTIME,
+            )
 
-        if res.committed and isinstance(res.state, dict):
-            self.ledger.restore_from_snapshot(res.state)
+            if res.committed and isinstance(res.state, dict):
+                self.ledger.restore_from_snapshot(res.state)
 
-        return res.receipt
+            return res.receipt
 
     def transfer(
         self,
@@ -298,57 +308,58 @@ class AepEconomyProcessor:
         if amount <= 0.0:
             raise ContractViolation("Transfer amount must be strictly positive")
 
-        self.ledger.get_or_create_wallet(from_account)
-        self.ledger.get_or_create_wallet(to_account)
-        self.ledger.get_or_create_wallet(SYSTEM_TREASURY_VAULT)
+        with self._lock:
+            self.ledger.get_or_create_wallet(from_account)
+            self.ledger.get_or_create_wallet(to_account)
+            self.ledger.get_or_create_wallet(SYSTEM_TREASURY_VAULT)
 
-        current_state = self.ledger.snapshot()
+            current_state = self.ledger.snapshot()
 
-        def transition_transfer(s: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
-            st = copy.deepcopy(s)
-            wallets = st["wallets"]
-            src = wallets[from_account]
-            dst = wallets[to_account]
-            treasury = wallets[SYSTEM_TREASURY_VAULT]
+            def transition_transfer(s: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
+                st = copy.deepcopy(s)
+                wallets = st["wallets"]
+                src = wallets[from_account]
+                dst = wallets[to_account]
+                treasury = wallets[SYSTEM_TREASURY_VAULT]
 
-            total_deduction = amount + system_fee
-            curr_src_bal = src["balances"].get(asset, 0.0)
+                total_deduction = amount + system_fee
+                curr_src_bal = src["balances"].get(asset, 0.0)
 
-            # Solvency check
-            if curr_src_bal < total_deduction:
-                # Deliberate breach to trigger NonNegativeBalanceRule and Delta S == 0
-                src["balances"][asset] = curr_src_bal - total_deduction
-            else:
-                src["balances"][asset] = curr_src_bal - total_deduction
-                dst["balances"][asset] = dst["balances"].get(asset, 0.0) + amount
-                if system_fee > 0.0:
-                    treasury["balances"][asset] = treasury["balances"].get(asset, 0.0) + system_fee
+                # Solvency check
+                if curr_src_bal < total_deduction:
+                    # Deliberate breach to trigger NonNegativeBalanceRule and Delta S == 0
+                    src["balances"][asset] = curr_src_bal - total_deduction
+                else:
+                    src["balances"][asset] = curr_src_bal - total_deduction
+                    dst["balances"][asset] = dst["balances"].get(asset, 0.0) + amount
+                    if system_fee > 0.0:
+                        treasury["balances"][asset] = treasury["balances"].get(asset, 0.0) + system_fee
 
-            src["nonce"] += 1
-            dst["nonce"] += 1
+                src["nonce"] += 1
+                dst["nonce"] += 1
 
-            # Double-entry exact debit == credit
-            st["debits"] = total_deduction
-            st["credits"] = amount + system_fee
-            st["balances"] = src["balances"]
-            return st
+                # Double-entry exact debit == credit
+                st["debits"] = total_deduction
+                st["credits"] = amount + system_fee
+                st["balances"] = src["balances"]
+                return st
 
-        res = self.aep_engine.execute_transition(
-            runtime_id=f"tx-{from_account}-{to_account}",
-            workload=WorkloadType.ECONOMY,
-            action="TRANSFER_ASSET",
-            current_state=current_state,
-            transition_fn=transition_transfer,
-            action_payload={"from": from_account, "to": to_account, "asset": asset, "amount": amount, "fee": system_fee},
-            policy_id="economy-double-entry-transfer",
-            execution_lane=ExecutionLane.REALTIME,
-            current_bus_pressure=current_bus_pressure,
-        )
+            res = self.aep_engine.execute_transition(
+                runtime_id=f"tx-{from_account}-{to_account}",
+                workload=WorkloadType.ECONOMY,
+                action="TRANSFER_ASSET",
+                current_state=current_state,
+                transition_fn=transition_transfer,
+                action_payload={"from": from_account, "to": to_account, "asset": asset, "amount": amount, "fee": system_fee},
+                policy_id="economy-double-entry-transfer",
+                execution_lane=ExecutionLane.REALTIME,
+                current_bus_pressure=current_bus_pressure,
+            )
 
-        if res.committed and isinstance(res.state, dict):
-            self.ledger.restore_from_snapshot(res.state)
+            if res.committed and isinstance(res.state, dict):
+                self.ledger.restore_from_snapshot(res.state)
 
-        return res
+            return res
 
     def craft(
         self,
@@ -364,55 +375,56 @@ class AepEconomyProcessor:
         if not recipe:
             raise ContractViolation(f"Unregistered crafting recipe: {recipe_id}")
 
-        self.ledger.get_or_create_wallet(account_id)
-        self.ledger.get_or_create_wallet(SYSTEM_TREASURY_VAULT)
-        current_state = self.ledger.snapshot()
+        with self._lock:
+            self.ledger.get_or_create_wallet(account_id)
+            self.ledger.get_or_create_wallet(SYSTEM_TREASURY_VAULT)
+            current_state = self.ledger.snapshot()
 
-        def transition_craft(s: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
-            st = copy.deepcopy(s)
-            wallets = st["wallets"]
-            crafter = wallets[account_id]
-            treasury = wallets[SYSTEM_TREASURY_VAULT]
+            def transition_craft(s: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
+                st = copy.deepcopy(s)
+                wallets = st["wallets"]
+                crafter = wallets[account_id]
+                treasury = wallets[SYSTEM_TREASURY_VAULT]
 
-            # 1. Deduct inputs
-            for in_asset, in_qty in recipe.inputs.items():
-                cur = crafter["balances"].get(in_asset, 0.0)
-                crafter["balances"][in_asset] = cur - in_qty
+                # 1. Deduct inputs
+                for in_asset, in_qty in recipe.inputs.items():
+                    cur = crafter["balances"].get(in_asset, 0.0)
+                    crafter["balances"][in_asset] = cur - in_qty
 
-            # 2. Deduct fee in CREDIT
-            if recipe.system_fee_credit > 0.0:
-                cur_credit = crafter["balances"].get(AssetType.CREDIT.value, 0.0)
-                crafter["balances"][AssetType.CREDIT.value] = cur_credit - recipe.system_fee_credit
-                treasury["balances"][AssetType.CREDIT.value] = treasury["balances"].get(AssetType.CREDIT.value, 0.0) + recipe.system_fee_credit
+                # 2. Deduct fee in CREDIT
+                if recipe.system_fee_credit > 0.0:
+                    cur_credit = crafter["balances"].get(AssetType.CREDIT.value, 0.0)
+                    crafter["balances"][AssetType.CREDIT.value] = cur_credit - recipe.system_fee_credit
+                    treasury["balances"][AssetType.CREDIT.value] = treasury["balances"].get(AssetType.CREDIT.value, 0.0) + recipe.system_fee_credit
 
-            # 3. Add outputs
-            for out_asset, out_qty in recipe.outputs.items():
-                crafter["balances"][out_asset] = crafter["balances"].get(out_asset, 0.0) + out_qty
+                # 3. Add outputs
+                for out_asset, out_qty in recipe.outputs.items():
+                    crafter["balances"][out_asset] = crafter["balances"].get(out_asset, 0.0) + out_qty
 
-            crafter["nonce"] += 1
+                crafter["nonce"] += 1
 
-            # Balanced debits & credits representation
-            total_input_units = sum(recipe.inputs.values()) + recipe.system_fee_credit
-            total_output_units = sum(recipe.outputs.values()) + recipe.system_fee_credit
+                # Balanced debits & credits representation
+                total_input_units = sum(recipe.inputs.values()) + recipe.system_fee_credit
+                total_output_units = sum(recipe.outputs.values()) + recipe.system_fee_credit
 
-            st["debits"] = total_input_units
-            st["credits"] = total_input_units  # Formally conserved
-            st["balances"] = crafter["balances"]
-            return st
+                st["debits"] = total_input_units
+                st["credits"] = total_input_units  # Formally conserved
+                st["balances"] = crafter["balances"]
+                return st
 
-        res = self.aep_engine.execute_transition(
-            runtime_id=f"craft-{account_id}-{recipe_id}",
-            workload=WorkloadType.ECONOMY,
-            action="CRAFT_RECIPE",
-            current_state=current_state,
-            transition_fn=transition_craft,
-            action_payload={"account_id": account_id, "recipe_id": recipe_id},
-            policy_id="economy-stoichiometric-craft",
-            execution_lane=ExecutionLane.REALTIME,
-            current_bus_pressure=current_bus_pressure,
-        )
+            res = self.aep_engine.execute_transition(
+                runtime_id=f"craft-{account_id}-{recipe_id}",
+                workload=WorkloadType.ECONOMY,
+                action="CRAFT_RECIPE",
+                current_state=current_state,
+                transition_fn=transition_craft,
+                action_payload={"account_id": account_id, "recipe_id": recipe_id},
+                policy_id="economy-stoichiometric-craft",
+                execution_lane=ExecutionLane.REALTIME,
+                current_bus_pressure=current_bus_pressure,
+            )
 
-        if res.committed and isinstance(res.state, dict):
-            self.ledger.restore_from_snapshot(res.state)
+            if res.committed and isinstance(res.state, dict):
+                self.ledger.restore_from_snapshot(res.state)
 
-        return res
+            return res

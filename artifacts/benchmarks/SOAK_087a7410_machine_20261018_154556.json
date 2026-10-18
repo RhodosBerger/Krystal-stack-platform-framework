@@ -1,0 +1,598 @@
+{
+  "suite": "SOVEREIGN_FABRIC_HETEROGENEOUS_SOAK_TEST_V1",
+  "git_commit": "087a7410",
+  "hostname": "machine",
+  "timestamp_iso": "2026-10-18T13:45:56Z",
+  "config": {
+    "duration_s": 60.0,
+    "warmup_s": 10.0,
+    "sample_period_s": 5.0,
+    "workers": 4,
+    "wallet_cardinality": 1000
+  },
+  "summary": {
+    "total_duration_s": 62.36,
+    "warmup_s": 10.0,
+    "workers": 4,
+    "wallet_cardinality": 1000,
+    "total_ops_executed": 1170,
+    "sustained_overall_tps": 18.76,
+    "final_rss_mb": 149.35,
+    "peak_python_heap_mb": 3.81,
+    "post_warmup_rss_slope_mb_per_s": 0.02383,
+    "memory_leak_verdict": "PASS_ZERO_LEAK_STABLE",
+    "routing_summary": {
+      "requested_gpu": 119,
+      "requested_cpu": 123,
+      "actual_gpu": 119,
+      "actual_cpu": 123,
+      "fallbacks": 0
+    },
+    "state_invariant_failures": 0,
+    "constitutional_invariant": "VITAL_MAX_HP == 6"
+  },
+  "samples": [
+    {
+      "sample_idx": 0,
+      "elapsed_s": 5.0,
+      "is_warmup": true,
+      "window_tps": 19.2,
+      "cumulative_tps": 19.2,
+      "total_ops": 105,
+      "rss_mb": 148.31,
+      "heap_mb": 1.53,
+      "cpu_util_pct": 98.1,
+      "merkle_latency_us": 257938.5,
+      "latencies_us": {
+        "economy": {
+          "p50": 592412.6,
+          "p95": 949995.7,
+          "p99": 1135854.4,
+          "mean": 642748.55
+        },
+        "plea": {
+          "p50": 446.4,
+          "p95": 687.4,
+          "p99": 697.7,
+          "mean": 410.41
+        },
+        "inference": {
+          "p50": 80024.8,
+          "p95": 141833.6,
+          "p99": 239420.6,
+          "mean": 85551.07
+        },
+        "research": {
+          "p50": 645.1,
+          "p95": 54355.7,
+          "p99": 54355.7,
+          "mean": 3523.98
+        },
+        "render_usm": {
+          "p50": 375.8,
+          "p95": 756.0,
+          "p99": 756.0,
+          "mean": 483.71
+        }
+      },
+      "routing": {
+        "requested_gpu": 10,
+        "requested_cpu": 10,
+        "actual_gpu": 10,
+        "actual_cpu": 10,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 1,
+      "elapsed_s": 10.4,
+      "is_warmup": false,
+      "window_tps": 13.5,
+      "cumulative_tps": 16.2,
+      "total_ops": 172,
+      "rss_mb": 148.95,
+      "heap_mb": 2.09,
+      "cpu_util_pct": 94.4,
+      "merkle_latency_us": 234673.5,
+      "latencies_us": {
+        "economy": {
+          "p50": 555119.7,
+          "p95": 782910.4,
+          "p99": 799633.4,
+          "mean": 567664.49
+        },
+        "plea": {
+          "p50": 321.1,
+          "p95": 589.2,
+          "p99": 589.2,
+          "mean": 383.15
+        },
+        "inference": {
+          "p50": 88158.4,
+          "p95": 231435.1,
+          "p99": 349991.2,
+          "mean": 120028.3
+        },
+        "research": {
+          "p50": 646.5,
+          "p95": 1734.7,
+          "p99": 1734.7,
+          "mean": 744.88
+        },
+        "render_usm": {
+          "p50": 562.7,
+          "p95": 790.1,
+          "p99": 790.1,
+          "mean": 615.67
+        }
+      },
+      "routing": {
+        "requested_gpu": 21,
+        "requested_cpu": 19,
+        "actual_gpu": 21,
+        "actual_cpu": 19,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 2,
+      "elapsed_s": 15.6,
+      "is_warmup": false,
+      "window_tps": 19.7,
+      "cumulative_tps": 17.4,
+      "total_ops": 273,
+      "rss_mb": 147.95,
+      "heap_mb": 1.69,
+      "cpu_util_pct": 96.3,
+      "merkle_latency_us": 140168.2,
+      "latencies_us": {
+        "economy": {
+          "p50": 655905.6,
+          "p95": 775826.9,
+          "p99": 923819.7,
+          "mean": 607877.37
+        },
+        "plea": {
+          "p50": 405.1,
+          "p95": 649.0,
+          "p99": 707.9,
+          "mean": 405.06
+        },
+        "inference": {
+          "p50": 66870.3,
+          "p95": 228145.7,
+          "p99": 246353.1,
+          "mean": 91740.01
+        },
+        "research": {
+          "p50": 684.6,
+          "p95": 33285.9,
+          "p99": 33285.9,
+          "mean": 2651.81
+        },
+        "render_usm": {
+          "p50": 564.0,
+          "p95": 852.7,
+          "p99": 852.7,
+          "mean": 580.33
+        }
+      },
+      "routing": {
+        "requested_gpu": 33,
+        "requested_cpu": 35,
+        "actual_gpu": 33,
+        "actual_cpu": 35,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 3,
+      "elapsed_s": 20.8,
+      "is_warmup": false,
+      "window_tps": 21.2,
+      "cumulative_tps": 18.3,
+      "total_ops": 386,
+      "rss_mb": 148.36,
+      "heap_mb": 1.81,
+      "cpu_util_pct": 98.0,
+      "merkle_latency_us": 216192.8,
+      "latencies_us": {
+        "economy": {
+          "p50": 354509.8,
+          "p95": 610969.4,
+          "p99": 614273.5,
+          "mean": 395306.19
+        },
+        "plea": {
+          "p50": 328.9,
+          "p95": 653.4,
+          "p99": 1191.7,
+          "mean": 391.69
+        },
+        "inference": {
+          "p50": 49423.6,
+          "p95": 142759.6,
+          "p99": 176494.5,
+          "mean": 71560.92
+        },
+        "research": {
+          "p50": 642.5,
+          "p95": 1206.4,
+          "p99": 2435.3,
+          "mean": 755.9
+        },
+        "render_usm": {
+          "p50": 422.4,
+          "p95": 693.2,
+          "p99": 693.2,
+          "mean": 449.12
+        }
+      },
+      "routing": {
+        "requested_gpu": 47,
+        "requested_cpu": 46,
+        "actual_gpu": 47,
+        "actual_cpu": 46,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 4,
+      "elapsed_s": 26.1,
+      "is_warmup": false,
+      "window_tps": 18.4,
+      "cumulative_tps": 18.3,
+      "total_ops": 478,
+      "rss_mb": 148.77,
+      "heap_mb": 1.84,
+      "cpu_util_pct": 97.4,
+      "merkle_latency_us": 148180.9,
+      "latencies_us": {
+        "economy": {
+          "p50": 318209.2,
+          "p95": 464485.7,
+          "p99": 482851.0,
+          "mean": 323053.04
+        },
+        "plea": {
+          "p50": 316.9,
+          "p95": 441.7,
+          "p99": 609.4,
+          "mean": 324.87
+        },
+        "inference": {
+          "p50": 40699.6,
+          "p95": 70298.2,
+          "p99": 70298.2,
+          "mean": 39995.98
+        },
+        "research": {
+          "p50": 529.6,
+          "p95": 908.5,
+          "p99": 908.5,
+          "mean": 596.58
+        },
+        "render_usm": {
+          "p50": 406.7,
+          "p95": 501.5,
+          "p99": 501.5,
+          "mean": 400.35
+        }
+      },
+      "routing": {
+        "requested_gpu": 55,
+        "requested_cpu": 52,
+        "actual_gpu": 55,
+        "actual_cpu": 52,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 5,
+      "elapsed_s": 31.2,
+      "is_warmup": false,
+      "window_tps": 17.9,
+      "cumulative_tps": 18.3,
+      "total_ops": 579,
+      "rss_mb": 148.91,
+      "heap_mb": 1.98,
+      "cpu_util_pct": 99.0,
+      "merkle_latency_us": 176298.4,
+      "latencies_us": {
+        "economy": {
+          "p50": 324196.6,
+          "p95": 396183.4,
+          "p99": 440230.8,
+          "mean": 328298.79
+        },
+        "plea": {
+          "p50": 356.6,
+          "p95": 529.3,
+          "p99": 623.6,
+          "mean": 349.9
+        },
+        "inference": {
+          "p50": 29679.0,
+          "p95": 62461.3,
+          "p99": 62461.3,
+          "mean": 28464.69
+        },
+        "research": {
+          "p50": 554.2,
+          "p95": 741.6,
+          "p99": 741.6,
+          "mean": 559.53
+        },
+        "render_usm": {
+          "p50": 464.3,
+          "p95": 570.5,
+          "p99": 570.5,
+          "mean": 451.1
+        }
+      },
+      "routing": {
+        "requested_gpu": 64,
+        "requested_cpu": 62,
+        "actual_gpu": 64,
+        "actual_cpu": 62,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 6,
+      "elapsed_s": 36.4,
+      "is_warmup": false,
+      "window_tps": 19.5,
+      "cumulative_tps": 18.4,
+      "total_ops": 672,
+      "rss_mb": 150.32,
+      "heap_mb": 2.0,
+      "cpu_util_pct": 97.6,
+      "merkle_latency_us": 177828.8,
+      "latencies_us": {
+        "economy": {
+          "p50": 308323.1,
+          "p95": 367447.9,
+          "p99": 369933.7,
+          "mean": 306242.95
+        },
+        "plea": {
+          "p50": 264.1,
+          "p95": 524.3,
+          "p99": 588.5,
+          "mean": 298.36
+        },
+        "inference": {
+          "p50": 41100.7,
+          "p95": 64647.5,
+          "p99": 68551.6,
+          "mean": 36040.73
+        },
+        "research": {
+          "p50": 544.5,
+          "p95": 871.8,
+          "p99": 871.8,
+          "mean": 588.66
+        },
+        "render_usm": {
+          "p50": 471.2,
+          "p95": 655.2,
+          "p99": 655.2,
+          "mean": 499.91
+        }
+      },
+      "routing": {
+        "requested_gpu": 71,
+        "requested_cpu": 76,
+        "actual_gpu": 71,
+        "actual_cpu": 76,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 7,
+      "elapsed_s": 41.6,
+      "is_warmup": false,
+      "window_tps": 23.2,
+      "cumulative_tps": 19.0,
+      "total_ops": 793,
+      "rss_mb": 149.25,
+      "heap_mb": 1.49,
+      "cpu_util_pct": 101.0,
+      "merkle_latency_us": 132594.0,
+      "latencies_us": {
+        "economy": {
+          "p50": 297139.0,
+          "p95": 374303.4,
+          "p99": 406423.9,
+          "mean": 284553.54
+        },
+        "plea": {
+          "p50": 289.4,
+          "p95": 526.6,
+          "p99": 528.4,
+          "mean": 304.85
+        },
+        "inference": {
+          "p50": 42614.8,
+          "p95": 64672.9,
+          "p99": 67023.0,
+          "mean": 36937.76
+        },
+        "research": {
+          "p50": 587.1,
+          "p95": 794.5,
+          "p99": 948.7,
+          "mean": 570.68
+        },
+        "render_usm": {
+          "p50": 357.7,
+          "p95": 509.1,
+          "p99": 509.1,
+          "mean": 387.73
+        }
+      },
+      "routing": {
+        "requested_gpu": 84,
+        "requested_cpu": 92,
+        "actual_gpu": 84,
+        "actual_cpu": 92,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 8,
+      "elapsed_s": 46.8,
+      "is_warmup": false,
+      "window_tps": 18.3,
+      "cumulative_tps": 19.0,
+      "total_ops": 887,
+      "rss_mb": 149.29,
+      "heap_mb": 1.26,
+      "cpu_util_pct": 99.4,
+      "merkle_latency_us": 118935.2,
+      "latencies_us": {
+        "economy": {
+          "p50": 162154.0,
+          "p95": 174588.8,
+          "p99": 226887.4,
+          "mean": 164501.46
+        },
+        "plea": {
+          "p50": 288.8,
+          "p95": 438.8,
+          "p99": 790.2,
+          "mean": 321.79
+        },
+        "inference": {
+          "p50": 1645.1,
+          "p95": 2488.4,
+          "p99": 3046.0,
+          "mean": 1704.48
+        },
+        "research": {
+          "p50": 581.8,
+          "p95": 838.1,
+          "p99": 838.1,
+          "mean": 565.42
+        },
+        "render_usm": {
+          "p50": 504.2,
+          "p95": 658.2,
+          "p99": 658.2,
+          "mean": 499.83
+        }
+      },
+      "routing": {
+        "requested_gpu": 96,
+        "requested_cpu": 101,
+        "actual_gpu": 96,
+        "actual_cpu": 101,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 9,
+      "elapsed_s": 51.9,
+      "is_warmup": false,
+      "window_tps": 19.8,
+      "cumulative_tps": 19.0,
+      "total_ops": 989,
+      "rss_mb": 149.29,
+      "heap_mb": 1.71,
+      "cpu_util_pct": 96.8,
+      "merkle_latency_us": 118140.8,
+      "latencies_us": {
+        "economy": {
+          "p50": 161799.7,
+          "p95": 176705.7,
+          "p99": 219368.6,
+          "mean": 165261.54
+        },
+        "plea": {
+          "p50": 272.3,
+          "p95": 508.7,
+          "p99": 724.7,
+          "mean": 302.78
+        },
+        "inference": {
+          "p50": 1400.1,
+          "p95": 2593.8,
+          "p99": 2715.5,
+          "mean": 1574.6
+        },
+        "research": {
+          "p50": 491.3,
+          "p95": 821.1,
+          "p99": 821.1,
+          "mean": 576.19
+        },
+        "render_usm": {
+          "p50": 330.0,
+          "p95": 527.5,
+          "p99": 527.5,
+          "mean": 364.85
+        }
+      },
+      "routing": {
+        "requested_gpu": 106,
+        "requested_cpu": 113,
+        "actual_gpu": 106,
+        "actual_cpu": 113,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 10,
+      "elapsed_s": 57.1,
+      "is_warmup": false,
+      "window_tps": 19.1,
+      "cumulative_tps": 19.0,
+      "total_ops": 1087,
+      "rss_mb": 149.34,
+      "heap_mb": 1.65,
+      "cpu_util_pct": 97.6,
+      "merkle_latency_us": 131768.9,
+      "latencies_us": {
+        "economy": {
+          "p50": 164646.3,
+          "p95": 211658.7,
+          "p99": 247654.9,
+          "mean": 171385.59
+        },
+        "plea": {
+          "p50": 270.9,
+          "p95": 405.6,
+          "p99": 407.5,
+          "mean": 271.58
+        },
+        "inference": {
+          "p50": 1869.6,
+          "p95": 2853.8,
+          "p99": 2853.8,
+          "mean": 1779.32
+        },
+        "research": {
+          "p50": 506.0,
+          "p95": 926.6,
+          "p99": 926.6,
+          "mean": 524.18
+        },
+        "render_usm": {
+          "p50": 344.4,
+          "p95": 654.6,
+          "p99": 654.6,
+          "mean": 401.77
+        }
+      },
+      "routing": {
+        "requested_gpu": 117,
+        "requested_cpu": 120,
+        "actual_gpu": 117,
+        "actual_cpu": 120,
+        "fallbacks": 0
+      }
+    }
+  ],
+  "immutable_artifact_path": "artifacts/benchmarks/SOAK_087a7410_machine_20261018_154556.json"
+}

@@ -165,7 +165,9 @@ def test_get_sovereign_benchmark_latest():
     assert res["suite"] == "SOVEREIGN_FABRIC_EFFICIENCY_BENCHMARK"
     assert res["vital_max_hp"] == VITAL_MAX_HP
     assert "summary" in res
-    assert res["summary"]["usm_latency_speedup_factor"] > 1.0
+    assert res["summary"]["usm_descriptor_proxy_speedup_factor"] > 1.0
+    assert "theoretical_avoided_copy_mib_s" in res["summary"]
+    assert "estimated_avoided_energy_model_joules" in res["summary"]
 
 
 def test_post_run_sovereign_benchmark():

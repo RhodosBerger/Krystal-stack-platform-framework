@@ -1,0 +1,241 @@
+{
+  "suite": "SOVEREIGN_FABRIC_HETEROGENEOUS_SOAK_TEST_V1",
+  "git_commit": "087a7410",
+  "hostname": "machine",
+  "timestamp_iso": "2026-10-18T13:39:15Z",
+  "config": {
+    "duration_s": 15.0,
+    "warmup_s": 5.0,
+    "sample_period_s": 3.0,
+    "workers": 2,
+    "wallet_cardinality": 1000
+  },
+  "summary": {
+    "total_duration_s": 16.76,
+    "warmup_s": 5.0,
+    "workers": 2,
+    "wallet_cardinality": 1000,
+    "total_ops_executed": 199,
+    "sustained_overall_tps": 11.87,
+    "final_rss_mb": 0.0,
+    "peak_python_heap_mb": 2.47,
+    "post_warmup_rss_slope_mb_per_s": 0.0,
+    "memory_leak_verdict": "PASS_ZERO_LEAK_STABLE",
+    "routing_summary": {
+      "requested_gpu": 24,
+      "requested_cpu": 20,
+      "actual_gpu": 24,
+      "actual_cpu": 20,
+      "fallbacks": 0
+    },
+    "state_invariant_failures": 0,
+    "constitutional_invariant": "VITAL_MAX_HP == 6"
+  },
+  "samples": [
+    {
+      "sample_idx": 0,
+      "elapsed_s": 3.0,
+      "is_warmup": true,
+      "window_tps": 9.3,
+      "cumulative_tps": 9.3,
+      "total_ops": 29,
+      "rss_mb": 0.0,
+      "heap_mb": 1.25,
+      "cpu_util_pct": 76.8,
+      "merkle_latency_us": 330778.8,
+      "latencies_us": {
+        "economy": {
+          "p50": 495681.1,
+          "p95": 1097966.4,
+          "p99": 1097966.4,
+          "mean": 609594.17
+        },
+        "plea": {
+          "p50": 426.3,
+          "p95": 643.8,
+          "p99": 643.8,
+          "mean": 480.62
+        },
+        "inference": {
+          "p50": 40397.2,
+          "p95": 78572.5,
+          "p99": 78572.5,
+          "mean": 41043.33
+        },
+        "research": {
+          "p50": 606.6,
+          "p95": 612.2,
+          "p99": 612.2,
+          "mean": 593.67
+        },
+        "render_usm": {
+          "p50": 734.1,
+          "p95": 734.1,
+          "p99": 734.1,
+          "mean": 734.1
+        }
+      },
+      "routing": {
+        "requested_gpu": 3,
+        "requested_cpu": 4,
+        "actual_gpu": 3,
+        "actual_cpu": 4,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 1,
+      "elapsed_s": 6.5,
+      "is_warmup": false,
+      "window_tps": 14.0,
+      "cumulative_tps": 11.8,
+      "total_ops": 81,
+      "rss_mb": 0.0,
+      "heap_mb": 1.87,
+      "cpu_util_pct": 92.2,
+      "merkle_latency_us": 364423.5,
+      "latencies_us": {
+        "economy": {
+          "p50": 445099.5,
+          "p95": 681010.7,
+          "p99": 681010.7,
+          "mean": 432953.79
+        },
+        "plea": {
+          "p50": 401.1,
+          "p95": 779.5,
+          "p99": 779.5,
+          "mean": 401.4
+        },
+        "inference": {
+          "p50": 47797.6,
+          "p95": 94019.5,
+          "p99": 94019.5,
+          "mean": 48884.74
+        },
+        "research": {
+          "p50": 612.3,
+          "p95": 1293.8,
+          "p99": 1293.8,
+          "mean": 618.19
+        },
+        "render_usm": {
+          "p50": 338.0,
+          "p95": 624.5,
+          "p99": 624.5,
+          "mean": 456.45
+        }
+      },
+      "routing": {
+        "requested_gpu": 6,
+        "requested_cpu": 8,
+        "actual_gpu": 6,
+        "actual_cpu": 8,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 2,
+      "elapsed_s": 9.9,
+      "is_warmup": false,
+      "window_tps": 8.2,
+      "cumulative_tps": 10.6,
+      "total_ops": 106,
+      "rss_mb": 0.0,
+      "heap_mb": 1.91,
+      "cpu_util_pct": 80.4,
+      "merkle_latency_us": 332990.9,
+      "latencies_us": {
+        "economy": {
+          "p50": 500686.1,
+          "p95": 867706.9,
+          "p99": 867706.9,
+          "mean": 585973.97
+        },
+        "plea": {
+          "p50": 601.9,
+          "p95": 7884.5,
+          "p99": 7884.5,
+          "mean": 2133.32
+        },
+        "inference": {
+          "p50": 63012.3,
+          "p95": 132514.7,
+          "p99": 132514.7,
+          "mean": 73856.8
+        },
+        "research": {
+          "p50": 545.2,
+          "p95": 645.2,
+          "p99": 645.2,
+          "mean": 567.7
+        },
+        "render_usm": {
+          "p50": 907.5,
+          "p95": 907.5,
+          "p99": 907.5,
+          "mean": 907.5
+        }
+      },
+      "routing": {
+        "requested_gpu": 11,
+        "requested_cpu": 10,
+        "actual_gpu": 11,
+        "actual_cpu": 10,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 3,
+      "elapsed_s": 13.3,
+      "is_warmup": false,
+      "window_tps": 14.6,
+      "cumulative_tps": 11.6,
+      "total_ops": 154,
+      "rss_mb": 0.0,
+      "heap_mb": 1.67,
+      "cpu_util_pct": 86.6,
+      "merkle_latency_us": 311374.7,
+      "latencies_us": {
+        "economy": {
+          "p50": 505278.4,
+          "p95": 677447.7,
+          "p99": 677447.7,
+          "mean": 534081.56
+        },
+        "plea": {
+          "p50": 428.8,
+          "p95": 768.9,
+          "p99": 768.9,
+          "mean": 436.12
+        },
+        "inference": {
+          "p50": 39810.5,
+          "p95": 148419.8,
+          "p99": 148419.8,
+          "mean": 51853.07
+        },
+        "research": {
+          "p50": 705.6,
+          "p95": 1146.5,
+          "p99": 1146.5,
+          "mean": 784.69
+        },
+        "render_usm": {
+          "p50": 496.6,
+          "p95": 59792.0,
+          "p99": 59792.0,
+          "mean": 15369.08
+        }
+      },
+      "routing": {
+        "requested_gpu": 16,
+        "requested_cpu": 16,
+        "actual_gpu": 16,
+        "actual_cpu": 16,
+        "fallbacks": 0
+      }
+    }
+  ],
+  "immutable_artifact_path": "artifacts/benchmarks/SOAK_087a7410_machine_20261018_153915.json"
+}

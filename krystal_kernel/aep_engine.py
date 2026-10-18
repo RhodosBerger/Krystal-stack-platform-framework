@@ -81,6 +81,7 @@ class AepReceipt:
     deadline_slack_us: int
     verdict: AepVerdict
     plea_telemetry: Optional[Dict[str, Any]] = None
+    routing: Optional[Dict[str, Any]] = None
     timestamp_ns: int = field(default_factory=time.time_ns)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -110,6 +111,12 @@ class AepReceipt:
         }
         if self.plea_telemetry is not None:
             d["plea"] = self.plea_telemetry
+        if self.routing is not None:
+            d["routing"] = self.routing
+            d["telemetry"]["requested_device"] = self.routing.get("requested_device")
+            d["telemetry"]["actual_device"] = self.routing.get("actual_device")
+            if self.routing.get("fallback_reason") is not None:
+                d["telemetry"]["fallback_reason"] = self.routing.get("fallback_reason")
         return d
 
     def to_json(self, indent: int = 2) -> str:
@@ -351,6 +358,18 @@ class AepTransactionalEngine:
         # 4. Commit Gate (L8): St+1 = S'
         state_after_digest = compute_state_digest(candidate_state)
         t_exec_us = max(1, (time.perf_counter_ns() - t_start) // 1000)
+
+        # Determine actual execution device from candidate state if provided
+        actual_device = device
+        routing_info: Optional[Dict[str, Any]] = None
+        if isinstance(candidate_state, dict) and "actual_device" in candidate_state:
+            actual_device = str(candidate_state["actual_device"])
+            routing_info = {
+                "requested_device": str(candidate_state.get("requested_device", device)),
+                "actual_device": actual_device,
+                "fallback_reason": candidate_state.get("fallback_reason"),
+            }
+
         receipt = AepReceipt(
             operation_id=op_id,
             runtime_id=runtime_id,
@@ -362,11 +381,12 @@ class AepTransactionalEngine:
             policy_revision=policy_revision,
             execution_lane=execution_lane,
             backend=backend,
-            device=device,
+            device=actual_device,
             execution_us=t_exec_us,
             bus_pressure=current_bus_pressure,
             deadline_slack_us=max(0, deadline_budget_us - t_exec_us),
             verdict=AepVerdict.COMMITTED,
+            routing=routing_info,
         )
         self.receipt_ledger.append(receipt)
 

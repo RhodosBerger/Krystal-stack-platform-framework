@@ -639,24 +639,28 @@ pipeline KernelToOut { from: ProcessKernel, to: OutRaster, action: PASS }</texta
         </div>
         <div class="triad-list" style="margin-top: 6px;">
           <div class="triad-item">
-            <span class="triad-name">🚀 USM SPEEDUP vs MEMCPY:</span>
-            <span class="triad-status green" id="sovUsmSpeedup" style="font-weight: bold; color: #00ff88;">10.58x</span>
+            <span class="triad-name">🚀 USM DESCRIPTOR PROXY SPEEDUP:</span>
+            <span class="triad-status green" id="sovUsmSpeedup" style="font-weight: bold; color: #00ff88;">10.09x [PROXY-MEASURED]</span>
           </div>
           <div class="triad-item">
-            <span class="triad-name">🌊 UMA BANDWIDTH SAVED:</span>
-            <span class="triad-status cyan" id="sovUmaSaved">474.61 MB/s</span>
+            <span class="triad-name">🌊 AVOIDED COPY TRAFFIC:</span>
+            <span class="triad-status cyan" id="sovUmaSaved">474.61 MiB/s [MODEL-ESTIMATED]</span>
           </div>
           <div class="triad-item">
             <span class="triad-name">💎 ECONOMY SUSTAINED TPS:</span>
-            <span class="triad-status green" id="sovEconomyTps">3 417.63 TPS</span>
+            <span class="triad-status green" id="sovEconomyTps">2 668.73 TPS [PHYSICAL-TIMING]</span>
           </div>
           <div class="triad-item">
             <span class="triad-name">🛡️ PLEA PARASITE REJECTION:</span>
-            <span class="triad-status cyan" id="sovPleaRejection">28.20 μs (0.500 J)</span>
+            <span class="triad-status cyan" id="sovPleaRejection">28.10 μs (0.500 J est) [LOCAL-MEASURED]</span>
           </div>
           <div class="triad-item">
-            <span class="triad-name">🔬 RESEARCH ROLLBACK (ΔS=0):</span>
-            <span class="triad-status green" id="sovResearchLoop">83.05 μs · 100% AUDITED</span>
+            <span class="triad-name">🔬 RESEARCH CONTROL-PLANE (ΔS=0):</span>
+            <span class="triad-status green" id="sovResearchLoop">88.65 μs · 100% AUDITED [LOCAL-MEASURED]</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">⚡ V-PHYSICAL-ROUTING-01:</span>
+            <span class="triad-status cyan" id="sovRoutingStatus" style="font-size: 0.85em; color: #00f0ff;">Iris Xe GPU PROVEN [PHYSICAL-TIMING]</span>
           </div>
           <div class="triad-item">
             <span class="triad-name">👑 CONSTITUTIONAL INVARIANT:</span>

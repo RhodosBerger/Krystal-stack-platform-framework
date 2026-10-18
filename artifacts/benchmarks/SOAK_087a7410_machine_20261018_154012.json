@@ -1,0 +1,190 @@
+{
+  "suite": "SOVEREIGN_FABRIC_HETEROGENEOUS_SOAK_TEST_V1",
+  "git_commit": "087a7410",
+  "hostname": "machine",
+  "timestamp_iso": "2026-10-18T13:40:12Z",
+  "config": {
+    "duration_s": 12.0,
+    "warmup_s": 4.0,
+    "sample_period_s": 3.0,
+    "workers": 2,
+    "wallet_cardinality": 1000
+  },
+  "summary": {
+    "total_duration_s": 13.31,
+    "warmup_s": 4.0,
+    "workers": 2,
+    "wallet_cardinality": 1000,
+    "total_ops_executed": 265,
+    "sustained_overall_tps": 19.91,
+    "final_rss_mb": 144.51,
+    "peak_python_heap_mb": 2.52,
+    "post_warmup_rss_slope_mb_per_s": 0.01875,
+    "memory_leak_verdict": "PASS_ZERO_LEAK_STABLE",
+    "routing_summary": {
+      "requested_gpu": 38,
+      "requested_cpu": 34,
+      "actual_gpu": 38,
+      "actual_cpu": 34,
+      "fallbacks": 0
+    },
+    "state_invariant_failures": 0,
+    "constitutional_invariant": "VITAL_MAX_HP == 6"
+  },
+  "samples": [
+    {
+      "sample_idx": 0,
+      "elapsed_s": 3.0,
+      "is_warmup": true,
+      "window_tps": 20.2,
+      "cumulative_tps": 20.2,
+      "total_ops": 61,
+      "rss_mb": 143.71,
+      "heap_mb": 1.46,
+      "cpu_util_pct": 95.7,
+      "merkle_latency_us": 281082.4,
+      "latencies_us": {
+        "economy": {
+          "p50": 410628.3,
+          "p95": 538637.2,
+          "p99": 538637.2,
+          "mean": 411420.88
+        },
+        "plea": {
+          "p50": 297.5,
+          "p95": 602.2,
+          "p99": 602.2,
+          "mean": 340.75
+        },
+        "inference": {
+          "p50": 44562.9,
+          "p95": 80522.2,
+          "p99": 80522.2,
+          "mean": 42217.41
+        },
+        "research": {
+          "p50": 624.4,
+          "p95": 1253.1,
+          "p99": 1253.1,
+          "mean": 719.68
+        },
+        "render_usm": {
+          "p50": 477.5,
+          "p95": 670.5,
+          "p99": 670.5,
+          "mean": 516.93
+        }
+      },
+      "routing": {
+        "requested_gpu": 6,
+        "requested_cpu": 8,
+        "actual_gpu": 6,
+        "actual_cpu": 8,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 1,
+      "elapsed_s": 6.4,
+      "is_warmup": false,
+      "window_tps": 18.0,
+      "cumulative_tps": 19.0,
+      "total_ops": 122,
+      "rss_mb": 144.25,
+      "heap_mb": 1.47,
+      "cpu_util_pct": 96.0,
+      "merkle_latency_us": 236190.9,
+      "latencies_us": {
+        "economy": {
+          "p50": 383238.2,
+          "p95": 636270.1,
+          "p99": 636270.1,
+          "mean": 411450.93
+        },
+        "plea": {
+          "p50": 324.5,
+          "p95": 629.0,
+          "p99": 629.0,
+          "mean": 353.6
+        },
+        "inference": {
+          "p50": 43831.0,
+          "p95": 59556.9,
+          "p99": 59556.9,
+          "mean": 42090.78
+        },
+        "research": {
+          "p50": 610.8,
+          "p95": 1852.3,
+          "p99": 1852.3,
+          "mean": 700.24
+        },
+        "render_usm": {
+          "p50": 480.3,
+          "p95": 530.7,
+          "p99": 530.7,
+          "mean": 465.45
+        }
+      },
+      "routing": {
+        "requested_gpu": 13,
+        "requested_cpu": 12,
+        "actual_gpu": 13,
+        "actual_cpu": 12,
+        "fallbacks": 0
+      }
+    },
+    {
+      "sample_idx": 2,
+      "elapsed_s": 9.6,
+      "is_warmup": false,
+      "window_tps": 33.9,
+      "cumulative_tps": 24.1,
+      "total_ops": 231,
+      "rss_mb": 144.31,
+      "heap_mb": 1.54,
+      "cpu_util_pct": 101.0,
+      "merkle_latency_us": 335327.0,
+      "latencies_us": {
+        "economy": {
+          "p50": 315811.1,
+          "p95": 523586.1,
+          "p99": 523586.1,
+          "mean": 348647.53
+        },
+        "plea": {
+          "p50": 345.6,
+          "p95": 735.2,
+          "p99": 2786.1,
+          "mean": 486.93
+        },
+        "inference": {
+          "p50": 35894.2,
+          "p95": 69573.9,
+          "p99": 95359.3,
+          "mean": 33520.03
+        },
+        "research": {
+          "p50": 630.8,
+          "p95": 1279.5,
+          "p99": 1329.8,
+          "mean": 754.46
+        },
+        "render_usm": {
+          "p50": 439.9,
+          "p95": 1190.7,
+          "p99": 1190.7,
+          "mean": 533.99
+        }
+      },
+      "routing": {
+        "requested_gpu": 32,
+        "requested_cpu": 29,
+        "actual_gpu": 32,
+        "actual_cpu": 29,
+        "fallbacks": 0
+      }
+    }
+  ],
+  "immutable_artifact_path": "artifacts/benchmarks/SOAK_087a7410_machine_20261018_154012.json"
+}

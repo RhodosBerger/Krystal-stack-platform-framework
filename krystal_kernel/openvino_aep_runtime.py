@@ -35,6 +35,7 @@ from krystal_kernel.cortex_openvino_engine import (
     GLOBAL_OPENVINO_GOVERNOR,
     OpenVINOInferenceResult,
     WIN32_PRIORITY_CLASSES,
+    PRIORITY_CLASS_ORDER,
 )
 from krystal_kernel.openvino_hardware_acceleration_pack import (
     HardwareAccelerationBenchmark,
@@ -135,13 +136,70 @@ class OpenVinoAepRuntime:
         self.cache_dir = os.path.abspath(os.path.join(os.getcwd(), "artifacts", "cache", "openvino_blobs"))
         os.makedirs(self.cache_dir, exist_ok=True)
         self.available_devices: List[str] = ["CPU"]
+        self._compiled_models: Dict[str, Any] = {}
+        self._ov_model: Optional[Any] = None
         try:
             import openvino as ov
             self._ov_core = ov.Core()
             self._ov_core.set_property({"CACHE_DIR": self.cache_dir})
             self.available_devices = list(self._ov_core.available_devices)
+            self._init_compiled_models()
         except Exception:
             self._ov_core = None
+
+    def _init_compiled_models(self) -> None:
+        """Initializes and compiles the Cortex neural prioritizer for available OpenVINO backends."""
+        if self._ov_core is None:
+            return
+        try:
+            import numpy as np
+            import openvino as ov
+            ops = ov.opset13
+
+            gov = self.governor
+            w1 = np.array(gov.w1, dtype=np.float32)  # (12, 8)
+            b1 = np.array(gov.b1, dtype=np.float32).reshape(1, 12)
+            w2 = np.array(gov.w2, dtype=np.float32)  # (6, 12)
+            b2 = np.array(gov.b2, dtype=np.float32).reshape(1, 6)
+
+            param = ops.parameter([1, 8], ov.Type.f32, name="features")
+            mm1 = ops.matmul(param, ops.constant(w1.T), False, False)
+            add1 = ops.add(mm1, ops.constant(b1))
+            relu1 = ops.relu(add1)
+
+            mm2 = ops.matmul(relu1, ops.constant(w2.T), False, False)
+            add2 = ops.add(mm2, ops.constant(b2))
+            softmax = ops.softmax(add2, axis=1)
+            res = ops.result(softmax, name="probabilities")
+
+            self._ov_model = ov.Model([res], [param], "cortex_process_prioritizer")
+
+            for dev in ["CPU", "GPU"]:
+                if dev in self.available_devices:
+                    try:
+                        self._compiled_models[dev] = self._ov_core.compile_model(self._ov_model, dev)
+                    except Exception:
+                        self._compiled_models[dev] = None
+        except Exception:
+            pass
+
+    def _get_compiled_model(self, device: str) -> Optional[Any]:
+        """Retrieves or lazily compiles model for requested device if supported by hardware."""
+        dev_upper = device.upper()
+        if hasattr(self, "_compiled_models") and dev_upper in self._compiled_models and self._compiled_models[dev_upper] is not None:
+            return self._compiled_models[dev_upper]
+        if self._ov_core is not None:
+            try:
+                if not hasattr(self, "_ov_model") or self._ov_model is None:
+                    self._init_compiled_models()
+                core_devs = list(getattr(self._ov_core, "available_devices", []))
+                if hasattr(self, "_ov_model") and self._ov_model is not None and dev_upper in core_devs and dev_upper in self.available_devices:
+                    compiled = self._ov_core.compile_model(self._ov_model, dev_upper)
+                    self._compiled_models[dev_upper] = compiled
+                    return compiled
+            except Exception:
+                self._compiled_models[dev_upper] = None
+        return None
 
     def infer_process(
         self,
@@ -153,6 +211,7 @@ class OpenVinoAepRuntime:
     ) -> Tuple[Optional[OpenVINOInferenceResult], AepReceipt]:
         """
         Executes a process prioritization neural inference under the AEP L0–L8 cycle.
+        Adheres to V-PHYSICAL-ROUTING-01: Requested Device must equal Proven Execution Device.
         """
         f = features or {}
         cpu_pct = float(f.get("cpu_pct", 50.0))
@@ -179,22 +238,104 @@ class OpenVinoAepRuntime:
             available_devices=self.available_devices,
         )
 
+        x_vec = [
+            (cpu_pct - 50.0) / 50.0,
+            (cs_rate - 6500.0) / 25000.0,
+            (faults - 100.0) / 500.0,
+            (mem - 256.0) / 1024.0,
+            (threads - 16.0) / 32.0,
+            (io_ops - 100.0) / 500.0,
+            (k_ratio - 0.20) / 0.30,
+            (thrash - 1.2) / 2.0
+        ]
+
         def transition_inference(state: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
-            res = self.governor.infer_process_priority(
-                pid=pid,
-                name=name,
-                cpu_pct=cpu_pct,
-                cs_rate=cs_rate,
-                page_faults_per_sec=faults,
-                working_set_mb=mem,
-                thread_count=threads,
-                io_ops_per_sec=io_ops,
-                kernel_time_ratio=k_ratio,
-                thrashing_index=thrash,
-            )
+            requested_device = target_device
+            compiled_model = self._get_compiled_model(target_device)
+
+            if compiled_model is not None:
+                try:
+                    import numpy as np
+                    x_arr = np.array([x_vec], dtype=np.float32)
+                    req = compiled_model.create_infer_request()
+                    t0_inf = time.perf_counter_ns()
+                    out = req.infer([x_arr])
+                    dt_inf_us = (time.perf_counter_ns() - t0_inf) / 1000.0
+
+                    probs_raw = list(out.values())[0][0]
+                    probs = [round(float(p), 4) for p in probs_raw]
+                    best_idx = int(probs.index(max(probs)))
+                    best_class = PRIORITY_CLASS_ORDER[best_idx]
+                    best_conf = probs[best_idx]
+                    prob_dict = {PRIORITY_CLASS_ORDER[i]: probs[i] for i in range(6)}
+
+                    actual_device = target_device
+                    fallback_reason = None
+                    openvino_backend = f"OPENVINO_COMPILED_{target_device}"
+
+                    res = OpenVINOInferenceResult(
+                        target_pid=pid,
+                        process_name=name,
+                        input_feature_vector=[round(float(v), 3) for v in x_vec],
+                        predicted_priority_class=best_class,
+                        win32_priority_code=WIN32_PRIORITY_CLASSES[best_class],
+                        confidence_score=best_conf,
+                        class_probabilities=prob_dict,
+                        inference_device=actual_device,
+                        inference_latency_us=round(dt_inf_us, 2),
+                        openvino_backend=openvino_backend,
+                        vital_max_hp=VITAL_MAX_HP,
+                        requested_device=requested_device,
+                        actual_device=actual_device,
+                        fallback_reason=fallback_reason,
+                    )
+                except Exception as e:
+                    # Fallback to CPU governor on dispatch exception
+                    actual_device = "CPU"
+                    fallback_reason = f"GPU_DISPATCH_EXCEPTION_{type(e).__name__}"
+                    res = self.governor.infer_process_priority(
+                        pid=pid,
+                        name=name,
+                        cpu_pct=cpu_pct,
+                        cs_rate=cs_rate,
+                        page_faults_per_sec=faults,
+                        working_set_mb=mem,
+                        thread_count=threads,
+                        io_ops_per_sec=io_ops,
+                        kernel_time_ratio=k_ratio,
+                        thrashing_index=thrash,
+                        requested_device=requested_device,
+                    )
+                    res.actual_device = "CPU"
+                    res.inference_device = "CPU"
+                    res.fallback_reason = fallback_reason
+            else:
+                # Backend was not compiled or not executed on requested hardware (fallback to CPU)
+                actual_device = "CPU"
+                fallback_reason = "GPU_BACKEND_NOT_EXECUTED" if requested_device.upper() == "GPU" else None
+                res = self.governor.infer_process_priority(
+                    pid=pid,
+                    name=name,
+                    cpu_pct=cpu_pct,
+                    cs_rate=cs_rate,
+                    page_faults_per_sec=faults,
+                    working_set_mb=mem,
+                    thread_count=threads,
+                    io_ops_per_sec=io_ops,
+                    kernel_time_ratio=k_ratio,
+                    thrashing_index=thrash,
+                    requested_device=requested_device,
+                )
+                res.actual_device = "CPU"
+                res.inference_device = "CPU"
+                res.fallback_reason = fallback_reason
+
             state_dict = res.to_dict()
             state_dict["status"] = "INFERRED"
-            state_dict["inference_device"] = target_device
+            state_dict["requested_device"] = requested_device
+            state_dict["actual_device"] = res.actual_device
+            state_dict["fallback_reason"] = res.fallback_reason
+            state_dict["inference_device"] = res.actual_device
             return state_dict
 
         tx_result = self.aep_engine.execute_transition(
@@ -215,6 +356,7 @@ class OpenVinoAepRuntime:
 
         if tx_result.committed and isinstance(tx_result.state, dict):
             # Reconstruct result object
+            actual_dev = tx_result.state.get("actual_device", tx_result.state.get("inference_device", "CPU"))
             inference_obj = OpenVINOInferenceResult(
                 target_pid=tx_result.state.get("target_pid", pid),
                 process_name=tx_result.state.get("process_name", name),
@@ -223,10 +365,13 @@ class OpenVinoAepRuntime:
                 win32_priority_code=tx_result.state.get("win32_priority_code", 32),
                 confidence_score=tx_result.state.get("confidence_score", 0.5),
                 class_probabilities=tx_result.state.get("class_probabilities", {}),
-                inference_device=tx_result.state.get("inference_device", target_device),
+                inference_device=actual_dev,
                 inference_latency_us=tx_result.state.get("inference_latency_us", 100.0),
                 openvino_backend=tx_result.state.get("openvino_backend", "OPENVINO_DP4A"),
                 vital_max_hp=VITAL_MAX_HP,
+                requested_device=tx_result.state.get("requested_device", target_device),
+                actual_device=actual_dev,
+                fallback_reason=tx_result.state.get("fallback_reason"),
             )
             return inference_obj, tx_result.receipt
         else:
@@ -305,10 +450,14 @@ class OpenVinoAepRuntime:
                 io_ops_per_sec=50.0,
                 kernel_time_ratio=0.15,
                 thrashing_index=1.1,
+                requested_device=target_device,
             )
             state_dict = res.to_dict()
             state_dict["status"] = "INFERRED"
-            state_dict["inference_device"] = target_device
+            state_dict["requested_device"] = target_device
+            state_dict["actual_device"] = res.actual_device
+            state_dict["fallback_reason"] = res.fallback_reason
+            state_dict["inference_device"] = res.actual_device
             return state_dict
 
         tx_result = self.aep_engine.execute_transition(
@@ -331,6 +480,7 @@ class OpenVinoAepRuntime:
         inference_obj: Optional[OpenVINOInferenceResult] = None
 
         if tx_result.committed and isinstance(tx_result.state, dict):
+            actual_dev = tx_result.state.get("actual_device", "CPU")
             inference_obj = OpenVINOInferenceResult(
                 target_pid=tx_result.state.get("target_pid", pid),
                 process_name=tx_result.state.get("process_name", "task.bin"),
@@ -339,10 +489,13 @@ class OpenVinoAepRuntime:
                 win32_priority_code=tx_result.state.get("win32_priority_code", 32),
                 confidence_score=tx_result.state.get("confidence_score", 0.5),
                 class_probabilities=tx_result.state.get("class_probabilities", {}),
-                inference_device=tx_result.state.get("inference_device", target_device),
+                inference_device=actual_dev,
                 inference_latency_us=tx_result.state.get("inference_latency_us", 50.0),
                 openvino_backend=tx_result.state.get("openvino_backend", "OPENVINO_DP4A_ZEROCOPY"),
                 vital_max_hp=VITAL_MAX_HP,
+                requested_device=tx_result.state.get("requested_device", target_device),
+                actual_device=actual_dev,
+                fallback_reason=tx_result.state.get("fallback_reason"),
             )
 
             state_hex = tx_result.receipt.state_after.split(":")[-1]

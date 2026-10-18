@@ -1,0 +1,280 @@
+{
+  "suite": "SOVEREIGN_FABRIC_EFFICIENCY_BENCHMARK",
+  "git_commit": "087a7410",
+  "hostname": "machine",
+  "timestamp_iso": "2026-10-18T13:51:23Z",
+  "timestamp_ns": 1792331483436210800,
+  "platform": "win32",
+  "python_version": "3.14.7",
+  "vital_max_hp": 6,
+  "evidence_stratification": {
+    "[PHYSICAL-LOCAL-TIMING]": [
+      "plea_filtering.valid_transition_us",
+      "economy_throughput.transfer_latency_us",
+      "merkle_cardinality_scaling (O(N log N) empirical curve)",
+      "research_closed_loop.control_plane_commit_latency_us",
+      "openvino_physical_routing (Iris Xe GPU and Willow Cove CPU execution)"
+    ],
+    "[PROXY-MEASURED]": [
+      "usm_descriptor_proxy_speedup_factor (bytearray memcpy vs USM descriptor reconstruction path)"
+    ],
+    "[MODEL-ESTIMATED]": [
+      "theoretical_avoided_copy_mib_s (474.61 MiB/s / 497.66 MB/s at 60 FPS)",
+      "estimated_avoided_energy_model_joules (0.005 J per rejected parasite)"
+    ],
+    "[POLICY-VERIFIED]": [
+      "HardwareCrossoverPolicy payload crossover threshold (16 KiB)",
+      "Anti-self-certification contract: requested_device vs actual_device vs fallback_reason"
+    ],
+    "[NOT-YET-PHYSICAL]": [
+      "Vulkan <-> OpenVINO true zero-copy unified external-memory GPU buffer dispatch",
+      "Physical VBlank display-scanout frame-lock synchronization",
+      "Hardware RAPL Joules counter readings",
+      "15-minute heterogeneous soak stability"
+    ]
+  },
+  "results": {
+    "plea_filtering": {
+      "benchmark": "PLEA_EPISTEMIC_FILTERING",
+      "iterations": 100,
+      "valid_transition_us": {
+        "mean": 49.194,
+        "median": 45.8,
+        "p95": 58.4,
+        "p99": 97.6,
+        "stdev": 19.347,
+        "cv": 0.3933
+      },
+      "parasitic_rejection_us": {
+        "mean": 28.294,
+        "median": 27.0,
+        "p95": 31.9,
+        "p99": 43.3,
+        "stdev": 6.954,
+        "cv": 0.2458
+      },
+      "estimated_avoided_energy_model_joules": 0.5,
+      "timing_evidence_class": "[LOCAL-MEASURED]",
+      "energy_evidence_class": "[MODEL-ESTIMATED]",
+      "parasite_rejection_rate_pct": 100.0,
+      "vital_max_hp": 6
+    },
+    "vulkan_usm_zero_copy": {
+      "benchmark": "VULKAN_OPENVINO_USM_ZERO_COPY",
+      "iterations": 100,
+      "frame_size_bytes": 8294400,
+      "legacy_memcpy_us": {
+        "mean": 2776.418,
+        "median": 2613.6,
+        "p95": 3437.2,
+        "p99": 3841.9,
+        "stdev": 384.055,
+        "cv": 0.1383
+      },
+      "usm_descriptor_path_us": {
+        "mean": 248.941,
+        "median": 213.3,
+        "p95": 386.7,
+        "p99": 444.3,
+        "stdev": 110.359,
+        "cv": 0.4433
+      },
+      "usm_descriptor_proxy_speedup_factor": 12.25,
+      "theoretical_avoided_copy_mib_s": 474.61,
+      "theoretical_avoided_copy_mb_s": 497.66,
+      "speedup_evidence_class": "[PROXY-MEASURED_DESCRIPTOR_PATH_VS_MEMCPY]",
+      "bandwidth_evidence_class": "[MODEL-ESTIMATED_THEORETICAL_AVOIDED_COPY]",
+      "vital_max_hp": 6
+    },
+    "economy_throughput": {
+      "benchmark": "AEP_ECONOMY_DOUBLE_ENTRY",
+      "iterations": 200,
+      "sustained_tps": 3263.22,
+      "transfer_latency_us": {
+        "mean": 296.797,
+        "median": 241.95,
+        "p95": 473.5,
+        "p99": 870.9,
+        "stdev": 281.326,
+        "cv": 0.9479
+      },
+      "merkle_root_latency_us": {
+        "mean": 86.425,
+        "median": 72.45,
+        "p95": 126.0,
+        "p99": 174.8,
+        "stdev": 28.701,
+        "cv": 0.3321
+      },
+      "final_merkle_root": "1855353ed8ed97a95c71557ba15d73584ce3a973332c9a048cbf146e9cc36d9b",
+      "evidence_class": "[PHYSICAL-LOCAL-TIMING]",
+      "vital_max_hp": 6
+    },
+    "merkle_cardinality_scaling": {
+      "benchmark": "MERKLE_CARDINALITY_SCALING",
+      "cardinalities_tested": [
+        10,
+        100,
+        1000,
+        10000
+      ],
+      "results_by_cardinality": {
+        "N_10": {
+          "wallet_count": 10,
+          "full_root_build_us": {
+            "mean": 113.6,
+            "median": 111.3,
+            "p95": 123.0,
+            "p99": 123.0,
+            "stdev": 7.24,
+            "cv": 0.0637
+          },
+          "single_tx_and_root_recalc_us": {
+            "mean": 110.037,
+            "median": 108.75,
+            "p95": 117.0,
+            "p99": 134.7,
+            "stdev": 5.183,
+            "cv": 0.0471
+          },
+          "asymptotic_curve": "O(N log N) sort + O(N) leaves",
+          "evidence_class": "[PHYSICAL-LOCAL-TIMING]"
+        },
+        "N_100": {
+          "wallet_count": 100,
+          "full_root_build_us": {
+            "mean": 1318.92,
+            "median": 1505.7,
+            "p95": 1615.4,
+            "p99": 1615.4,
+            "stdev": 350.495,
+            "cv": 0.2657
+          },
+          "single_tx_and_root_recalc_us": {
+            "mean": 1057.397,
+            "median": 947.3,
+            "p95": 1604.8,
+            "p99": 1765.6,
+            "stdev": 239.23,
+            "cv": 0.2262
+          },
+          "asymptotic_curve": "O(N log N) sort + O(N) leaves",
+          "evidence_class": "[PHYSICAL-LOCAL-TIMING]"
+        },
+        "N_1000": {
+          "wallet_count": 1000,
+          "full_root_build_us": {
+            "mean": 10350.92,
+            "median": 10342.7,
+            "p95": 12203.3,
+            "p99": 12203.3,
+            "stdev": 1139.754,
+            "cv": 0.1101
+          },
+          "single_tx_and_root_recalc_us": {
+            "mean": 10240.64,
+            "median": 9884.8,
+            "p95": 12576.2,
+            "p99": 12576.2,
+            "stdev": 1363.046,
+            "cv": 0.1331
+          },
+          "asymptotic_curve": "O(N log N) sort + O(N) leaves",
+          "evidence_class": "[PHYSICAL-LOCAL-TIMING]"
+        },
+        "N_10000": {
+          "wallet_count": 10000,
+          "full_root_build_us": {
+            "mean": 100057.88,
+            "median": 99546.0,
+            "p95": 109828.5,
+            "p99": 109828.5,
+            "stdev": 6841.859,
+            "cv": 0.0684
+          },
+          "single_tx_and_root_recalc_us": {
+            "mean": 93227.66,
+            "median": 93088.9,
+            "p95": 95762.0,
+            "p99": 95762.0,
+            "stdev": 2472.776,
+            "cv": 0.0265
+          },
+          "asymptotic_curve": "O(N log N) sort + O(N) leaves",
+          "evidence_class": "[PHYSICAL-LOCAL-TIMING]"
+        }
+      },
+      "vital_max_hp": 6
+    },
+    "research_closed_loop": {
+      "benchmark": "AEP_RESEARCH_ACTUATOR_CLOSED_LOOP",
+      "iterations": 60,
+      "control_plane_commit_latency_us": {
+        "mean": 116.57,
+        "median": 98.25,
+        "p95": 260.3,
+        "p99": 351.2,
+        "stdev": 62.114,
+        "cv": 0.5328
+      },
+      "control_plane_rollback_latency_us": {
+        "mean": 126.017,
+        "median": 89.65,
+        "p95": 299.2,
+        "p99": 380.4,
+        "stdev": 75.359,
+        "cv": 0.598
+      },
+      "delta_s_zero_adherence_pct": 100.0,
+      "timing_scope": "transactional research-control-loop software overhead (simulated telemetry, require_vblank=False)",
+      "evidence_class": "[PHYSICAL-LOCAL-TIMING_SOFTWARE_CONTROL_PLANE]",
+      "vital_max_hp": 6
+    },
+    "openvino_physical_routing": {
+      "benchmark": "OPENVINO_PHYSICAL_ROUTING",
+      "milestone": "V-PHYSICAL-ROUTING-01",
+      "dense_payload": {
+        "payload_bytes": 65536,
+        "requested_device": "GPU",
+        "actual_device": "GPU",
+        "fallback_reason": null,
+        "receipt_device": "GPU",
+        "openvino_backend": "OPENVINO_COMPILED_GPU",
+        "latency_us": 3474.4,
+        "evidence_class": "[PHYSICAL-LOCAL-TIMING]"
+      },
+      "micro_payload": {
+        "payload_bytes": 128,
+        "requested_device": "CPU",
+        "actual_device": "CPU",
+        "fallback_reason": null,
+        "receipt_device": "CPU",
+        "openvino_backend": "OPENVINO_COMPILED_CPU",
+        "latency_us": 383.7,
+        "evidence_class": "[PHYSICAL-LOCAL-TIMING]"
+      },
+      "vital_max_hp": 6
+    }
+  },
+  "summary": {
+    "total_benchmark_duration_s": 1.624,
+    "plea_valid_p50_us": 45.8,
+    "plea_valid_p99_us": 97.6,
+    "plea_parasite_rejection_p50_us": 27.0,
+    "estimated_avoided_energy_model_joules": 0.5,
+    "usm_descriptor_proxy_speedup_factor": 12.25,
+    "theoretical_avoided_copy_mib_s": 474.61,
+    "theoretical_avoided_copy_mb_s": 497.66,
+    "economy_sustained_tps": 3263.22,
+    "economy_tx_p50_us": 241.95,
+    "merkle_10k_recalc_p50_us": 93088.9,
+    "research_control_plane_p50_us": 98.25,
+    "openvino_dense_requested": "GPU",
+    "openvino_dense_actual": "GPU",
+    "openvino_dense_backend": "OPENVINO_COMPILED_GPU",
+    "openvino_dense_latency_us": 3474.4,
+    "delta_s_zero_verified": true,
+    "vital_max_hp": 6
+  },
+  "immutable_artifact_path": "artifacts/benchmarks/BENCH_087a7410_machine_20261018_155121.json"
+}
