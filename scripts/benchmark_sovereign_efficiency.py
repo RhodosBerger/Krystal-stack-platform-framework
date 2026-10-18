@@ -368,11 +368,16 @@ def run_sovereign_efficiency_benchmark(iterations_scale: int = 1) -> Dict[str, A
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Krystal Stack Sovereign Efficiency Benchmark Harness")
+    parser.add_argument("--scale", type=int, default=1, help="Scale multiplier for iteration counts (e.g. 10, 50)")
+    args = parser.parse_args()
+
     print("=" * 80)
     print(" KRYSTAL STACK // SOVEREIGN EFFICIENCY BENCHMARK")
-    print(" Constitutional Invariant: VITAL_MAX_HP == 6")
+    print(f" Scale Factor: {args.scale}x | Constitutional Invariant: VITAL_MAX_HP == 6")
     print("=" * 80)
-    rep = run_sovereign_efficiency_benchmark(iterations_scale=1)
+    rep = run_sovereign_efficiency_benchmark(iterations_scale=args.scale)
     s = rep["summary"]
     print(f"\n[BENCHMARK COMPLETE in {s['total_benchmark_duration_s']} s]")
     print(f"  * PLEA Valid Transition p50:        {s['plea_valid_p50_us']} us")

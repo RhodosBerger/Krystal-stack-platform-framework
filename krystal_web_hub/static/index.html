@@ -631,6 +631,44 @@ pipeline KernelToOut { from: ProcessKernel, to: OutRaster, action: PASS }</texta
         <div class="triad-list" id="intelExpertise" style="margin-top: 4px;"></div>
       </div>
 
+      <!-- Sovereign Subsystems Efficiency Live Telemetry (PLEA, USM, Economy, Research) -->
+      <div class="card-telemetry" id="cardSovereignEfficiency" style="border: 2px solid #00f0ff; background: rgba(0, 240, 255, 0.08); box-shadow: 0 0 16px rgba(0, 240, 255, 0.25);">
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #00f0ff; font-weight: bold;">⚡ SOVEREIGN EFFICIENCY FABRIC</span>
+          <span class="badge-mini" id="sovBadge" style="background: rgba(0, 255, 136, 0.2); color: #00ff88; border-color: #00ff88;">AEP L0–L8 ONLINE</span>
+        </div>
+        <div class="triad-list" style="margin-top: 6px;">
+          <div class="triad-item">
+            <span class="triad-name">🚀 USM SPEEDUP vs MEMCPY:</span>
+            <span class="triad-status green" id="sovUsmSpeedup" style="font-weight: bold; color: #00ff88;">10.58x</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">🌊 UMA BANDWIDTH SAVED:</span>
+            <span class="triad-status cyan" id="sovUmaSaved">474.61 MB/s</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">💎 ECONOMY SUSTAINED TPS:</span>
+            <span class="triad-status green" id="sovEconomyTps">3 417.63 TPS</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">🛡️ PLEA PARASITE REJECTION:</span>
+            <span class="triad-status cyan" id="sovPleaRejection">28.20 μs (0.500 J)</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">🔬 RESEARCH ROLLBACK (ΔS=0):</span>
+            <span class="triad-status green" id="sovResearchLoop">83.05 μs · 100% AUDITED</span>
+          </div>
+          <div class="triad-item">
+            <span class="triad-name">👑 CONSTITUTIONAL INVARIANT:</span>
+            <span class="triad-status gold" style="color: #ffd700;">VITAL_MAX_HP == 6</span>
+          </div>
+        </div>
+        <div class="governor-buttons" style="margin-top: 8px; display: flex; gap: 6px;">
+          <button class="gov-action-btn" id="btnRunSovBench" onclick="triggerSovereignBenchmark()" style="flex: 1; background: rgba(0, 240, 255, 0.2); border-color: #00f0ff;">RUN LIVE BENCHMARK</button>
+          <button class="gov-action-btn" id="btnRefreshSovBench" onclick="fetchSovereignTelemetry()" style="flex: 1;">REFRESH METRICS</button>
+        </div>
+      </div>
+
       <!-- Gauge 3: Hardware Triad Allocator -->
       <div class="card-telemetry">
         <div class="card-title">HARDWARE TRIAD ORCHESTRATION</div>

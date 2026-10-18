@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initKrystalWorker();
   initEventSource();
   fetchVulkanStatus();
+  fetchSovereignTelemetry();
   loadIntel("score");
   setInterval(() => loadIntel(intelSort), 60000);
 });
@@ -804,3 +805,63 @@ function updateVulkanUI(enabled, t) {
     readbackEl.textContent = `${Number(t.readback_mb_s).toFixed(1)} MB/s`;
   }
 }
+
+// ── 1c. Sovereign Subsystems Efficiency Telemetry ───────────────────────
+
+async function fetchSovereignTelemetry() {
+  const badge = document.getElementById("sovBadge");
+  const usmSpeedup = document.getElementById("sovUsmSpeedup");
+  const umaSaved = document.getElementById("sovUmaSaved");
+  const economyTps = document.getElementById("sovEconomyTps");
+  const pleaRejection = document.getElementById("sovPleaRejection");
+  const researchLoop = document.getElementById("sovResearchLoop");
+
+  try {
+    const res = await fetch("/api/benchmark/sovereign");
+    const data = await res.json();
+    if (data && data.summary) {
+      const s = data.summary;
+      if (usmSpeedup) usmSpeedup.textContent = `${s.usm_latency_speedup_factor}x`;
+      if (umaSaved) umaSaved.textContent = `${s.uma_bus_bandwidth_saved_mb_s} MB/s`;
+      if (economyTps) economyTps.textContent = `${s.economy_sustained_tps.toLocaleString()} TPS`;
+      if (pleaRejection) pleaRejection.textContent = `${s.plea_parasite_rejection_p50_us} μs (${s.joules_protected_est} J)`;
+      if (researchLoop) researchLoop.textContent = `${s.research_loop_p50_us} μs · 100% AUDITED`;
+      if (badge) {
+        badge.textContent = "SYNCHRONIZED";
+        badge.style.color = "#00ff88";
+        badge.style.borderColor = "#00ff88";
+      }
+    }
+  } catch (e) {
+    console.warn("Could not fetch sovereign telemetry:", e);
+    if (badge) badge.textContent = "OFFLINE";
+  }
+}
+
+async function triggerSovereignBenchmark() {
+  const btn = document.getElementById("btnRunSovBench");
+  const badge = document.getElementById("sovBadge");
+  if (btn) btn.textContent = "RUNNING BENCHMARK...";
+  if (badge) {
+    badge.textContent = "BENCHMARKING...";
+    badge.style.color = "#00f0ff";
+    badge.style.borderColor = "#00f0ff";
+  }
+  try {
+    const res = await fetch("/api/benchmark/sovereign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scale: 1 })
+    });
+    const data = await res.json();
+    await fetchSovereignTelemetry();
+    if (typeof appendLog === "function" && data && data.summary) {
+      appendLog("Sovereign benchmark completed: USM speedup " + data.summary.usm_latency_speedup_factor + "x, " + data.summary.economy_sustained_tps + " TPS");
+    }
+  } catch (err) {
+    console.error("Benchmark execution error:", err);
+  } finally {
+    if (btn) btn.textContent = "RUN LIVE BENCHMARK";
+  }
+}
+

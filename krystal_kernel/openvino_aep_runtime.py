@@ -171,6 +171,14 @@ class OpenVinoAepRuntime:
             "vital_max_hp": VITAL_MAX_HP,
         }
 
+        # AEP Layer 4: Dynamic Hardware Crossover Policy
+        payload_bytes = int(f.get("payload_bytes", len(f.get("inputs", [])) * 4 if "inputs" in f else (len(f) * 4 if f else 32)))
+        target_device, routing_rationale = HardwareCrossoverPolicy.select_device(
+            payload_bytes=payload_bytes,
+            current_bus_pressure=current_bus_pressure,
+            available_devices=self.available_devices,
+        )
+
         def transition_inference(state: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
             res = self.governor.infer_process_priority(
                 pid=pid,
@@ -186,15 +194,8 @@ class OpenVinoAepRuntime:
             )
             state_dict = res.to_dict()
             state_dict["status"] = "INFERRED"
+            state_dict["inference_device"] = target_device
             return state_dict
-
-        # AEP Layer 4: Dynamic Hardware Crossover Policy
-        payload_bytes = int(f.get("payload_bytes", len(f.get("inputs", [])) * 4 if "inputs" in f else (len(f) * 4 if f else 32)))
-        target_device, routing_rationale = HardwareCrossoverPolicy.select_device(
-            payload_bytes=payload_bytes,
-            current_bus_pressure=current_bus_pressure,
-            available_devices=self.available_devices,
-        )
 
         tx_result = self.aep_engine.execute_transition(
             runtime_id=runtime_id,
@@ -222,7 +223,7 @@ class OpenVinoAepRuntime:
                 win32_priority_code=tx_result.state.get("win32_priority_code", 32),
                 confidence_score=tx_result.state.get("confidence_score", 0.5),
                 class_probabilities=tx_result.state.get("class_probabilities", {}),
-                inference_device=tx_result.state.get("inference_device", "CPU-OpenVINO"),
+                inference_device=tx_result.state.get("inference_device", target_device),
                 inference_latency_us=tx_result.state.get("inference_latency_us", 100.0),
                 openvino_backend=tx_result.state.get("openvino_backend", "OPENVINO_DP4A"),
                 vital_max_hp=VITAL_MAX_HP,
@@ -285,6 +286,13 @@ class OpenVinoAepRuntime:
             "status": "INITIALIZED",
         }
 
+        # AEP Layer 4: Zero-Copy 128B SPSC frame is a micro-tensor (128 bytes)
+        target_device, routing_rationale = HardwareCrossoverPolicy.select_device(
+            payload_bytes=128,
+            current_bus_pressure=current_bus_pressure,
+            available_devices=self.available_devices,
+        )
+
         def transition_inference(state: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
             res = self.governor.infer_process_priority(
                 pid=pid,
@@ -300,14 +308,8 @@ class OpenVinoAepRuntime:
             )
             state_dict = res.to_dict()
             state_dict["status"] = "INFERRED"
+            state_dict["inference_device"] = target_device
             return state_dict
-
-        # AEP Layer 4: Zero-Copy 128B SPSC frame is a micro-tensor (128 bytes)
-        target_device, routing_rationale = HardwareCrossoverPolicy.select_device(
-            payload_bytes=128,
-            current_bus_pressure=current_bus_pressure,
-            available_devices=self.available_devices,
-        )
 
         tx_result = self.aep_engine.execute_transition(
             runtime_id=f"ring-slot-seq-{in_frame.sequence_id}",
@@ -337,7 +339,7 @@ class OpenVinoAepRuntime:
                 win32_priority_code=tx_result.state.get("win32_priority_code", 32),
                 confidence_score=tx_result.state.get("confidence_score", 0.5),
                 class_probabilities=tx_result.state.get("class_probabilities", {}),
-                inference_device=tx_result.state.get("inference_device", "CPU-OpenVINO"),
+                inference_device=tx_result.state.get("inference_device", target_device),
                 inference_latency_us=tx_result.state.get("inference_latency_us", 50.0),
                 openvino_backend=tx_result.state.get("openvino_backend", "OPENVINO_DP4A_ZEROCOPY"),
                 vital_max_hp=VITAL_MAX_HP,

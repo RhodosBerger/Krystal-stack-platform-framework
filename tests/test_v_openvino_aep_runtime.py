@@ -287,4 +287,28 @@ class TestOpenVinoAepRuntime:
         assert "openvino_blobs" in status["cache_dir"]
         assert status["crossover_threshold_bytes"] == 16384
 
+    def test_dense_tensor_propagates_gpu_device_to_result(self):
+        # Temporarily ensure GPU is among available devices to test crossover propagation
+        orig_devices = GLOBAL_OPENVINO_AEP_RUNTIME.available_devices
+        try:
+            GLOBAL_OPENVINO_AEP_RUNTIME.available_devices = ["CPU", "GPU"]
+            dense_features = {
+                "payload_bytes": 65536,
+                "cpu_pct": 80.0,
+                "cs_rate": 8000.0,
+            }
+            res, receipt = GLOBAL_OPENVINO_AEP_RUNTIME.infer_process(
+                runtime_id="rt-dense-test",
+                pid=9999,
+                name="dense_worker.exe",
+                features=dense_features,
+                current_bus_pressure=0.15,
+            )
+            assert res is not None
+            assert receipt.verdict == AepVerdict.COMMITTED
+            assert receipt.device == "GPU"
+            assert res.inference_device == "GPU"
+        finally:
+            GLOBAL_OPENVINO_AEP_RUNTIME.available_devices = orig_devices
+
 

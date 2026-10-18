@@ -1,6 +1,6 @@
 {
   "suite": "SOVEREIGN_FABRIC_EFFICIENCY_BENCHMARK",
-  "timestamp_ns": 1792327066529198800,
+  "timestamp_ns": 1792330040690373000,
   "platform": "win32",
   "python_version": "3.14.7",
   "vital_max_hp": 6,
@@ -9,20 +9,20 @@
       "benchmark": "PLEA_EPISTEMIC_FILTERING",
       "iterations": 100,
       "valid_transition_us": {
-        "mean": 43.704,
-        "median": 40.6,
-        "p95": 54.6,
-        "p99": 121.8,
-        "stdev": 13.949,
-        "cv": 0.3192
+        "mean": 68.961,
+        "median": 67.35,
+        "p95": 110.7,
+        "p99": 121.0,
+        "stdev": 27.954,
+        "cv": 0.4054
       },
       "parasitic_rejection_us": {
-        "mean": 24.943,
-        "median": 24.1,
-        "p95": 28.7,
-        "p99": 42.8,
-        "stdev": 3.968,
-        "cv": 0.1591
+        "mean": 40.315,
+        "median": 40.75,
+        "p95": 61.2,
+        "p99": 76.3,
+        "stdev": 11.602,
+        "cv": 0.2878
       },
       "joules_protected_est": 0.5,
       "parasite_rejection_rate_pct": 100.0,
@@ -33,81 +33,81 @@
       "iterations": 100,
       "frame_size_bytes": 8294400,
       "legacy_memcpy_us": {
-        "mean": 2827.972,
-        "median": 2561.55,
-        "p95": 3610.3,
-        "p99": 5755.9,
-        "stdev": 813.319,
-        "cv": 0.2876
+        "mean": 4303.014,
+        "median": 4090.85,
+        "p95": 5924.5,
+        "p99": 8462.1,
+        "stdev": 1068.285,
+        "cv": 0.2483
       },
       "usm_zero_copy_us": {
-        "mean": 280.921,
-        "median": 252.25,
-        "p95": 463.0,
-        "p99": 601.9,
-        "stdev": 99.901,
-        "cv": 0.3556
+        "mean": 275.955,
+        "median": 259.55,
+        "p95": 381.9,
+        "p99": 532.2,
+        "stdev": 80.067,
+        "cv": 0.2901
       },
-      "latency_speedup_factor": 10.15,
+      "latency_speedup_factor": 15.76,
       "uma_bus_bandwidth_saved_mb_s": 474.61,
       "vital_max_hp": 6
     },
     "economy_throughput": {
       "benchmark": "AEP_ECONOMY_DOUBLE_ENTRY",
       "iterations": 200,
-      "sustained_tps": 3314.39,
+      "sustained_tps": 2338.32,
       "transfer_latency_us": {
-        "mean": 292.986,
-        "median": 223.65,
-        "p95": 399.9,
-        "p99": 684.8,
-        "stdev": 436.038,
-        "cv": 1.4883
+        "mean": 414.269,
+        "median": 387.95,
+        "p95": 569.3,
+        "p99": 724.5,
+        "stdev": 439.981,
+        "cv": 1.0621
       },
       "merkle_root_latency_us": {
-        "mean": 78.635,
-        "median": 67.5,
-        "p95": 123.4,
-        "p99": 146.9,
-        "stdev": 24.132,
-        "cv": 0.3069
+        "mean": 119.85,
+        "median": 126.0,
+        "p95": 149.6,
+        "p99": 338.0,
+        "stdev": 58.302,
+        "cv": 0.4865
       },
-      "final_merkle_root": "f4ff14c4ed6a8e115f5fab88b750b9a216007106988c34d0f39494fa5878f0f4",
+      "final_merkle_root": "dd521eb512a564600419f23a6b45fc6d4e779d5c7185698a1564fda21422c105",
       "vital_max_hp": 6
     },
     "research_closed_loop": {
       "benchmark": "AEP_RESEARCH_ACTUATOR_CLOSED_LOOP",
       "iterations": 60,
       "commit_latency_us": {
-        "mean": 159.87,
-        "median": 86.7,
-        "p95": 565.6,
-        "p99": 1129.6,
-        "stdev": 209.909,
-        "cv": 1.313
+        "mean": 158.697,
+        "median": 153.2,
+        "p95": 277.8,
+        "p99": 278.1,
+        "stdev": 46.046,
+        "cv": 0.2902
       },
       "rollback_latency_us": {
-        "mean": 130.473,
-        "median": 85.15,
-        "p95": 298.5,
-        "p99": 852.3,
-        "stdev": 143.736,
-        "cv": 1.1016
+        "mean": 191.23,
+        "median": 159.35,
+        "p95": 203.0,
+        "p99": 1371.0,
+        "stdev": 224.74,
+        "cv": 1.1752
       },
       "delta_s_zero_adherence_pct": 100.0,
       "vital_max_hp": 6
     }
   },
   "summary": {
-    "total_benchmark_duration_s": 0.399,
-    "plea_valid_p50_us": 40.6,
-    "plea_parasite_rejection_p50_us": 24.1,
+    "total_benchmark_duration_s": 0.584,
+    "plea_valid_p50_us": 67.35,
+    "plea_parasite_rejection_p50_us": 40.75,
     "joules_protected_est": 0.5,
-    "usm_latency_speedup_factor": 10.15,
+    "usm_latency_speedup_factor": 15.76,
     "uma_bus_bandwidth_saved_mb_s": 474.61,
-    "economy_sustained_tps": 3314.39,
-    "economy_tx_p50_us": 223.65,
-    "research_loop_p50_us": 86.7,
+    "economy_sustained_tps": 2338.32,
+    "economy_tx_p50_us": 387.95,
+    "research_loop_p50_us": 153.2,
     "delta_s_zero_verified": true,
     "vital_max_hp": 6
   }
