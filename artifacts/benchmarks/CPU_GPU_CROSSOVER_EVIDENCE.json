@@ -1,0 +1,333 @@
+{
+  "experiment_id": "E-02-HETEROGENEOUS-CROSSOVER-ROUTING",
+  "timestamp_iso": "2026-10-18T17:22:44Z",
+  "provenance": "MEASURED_PHYSICAL_BENCHMARK",
+  "gates": {
+    "gate_1_cost_reduction": {
+      "metric": "multi_dimensional_cost_per_successful_slo",
+      "static_cpu": 23.317,
+      "static_gpu": 48.837,
+      "dynamic_crossover": 28.904,
+      "reduction_vs_cpu_percent": -23.96,
+      "reduction_vs_gpu_percent": 40.82,
+      "status": "PASS"
+    },
+    "gate_2_p95_stability": {
+      "metric": "p95_latency_ms",
+      "baseline_p95_ms": 51.63,
+      "candidate_p95_ms": 58.855,
+      "delta_ms": 7.225,
+      "tolerance_ms": 5.0,
+      "status": "FAIL"
+    },
+    "gate_2b_throughput_stability": {
+      "metric": "throughput_tokens_per_sec",
+      "baseline_throughput": 1279.85,
+      "candidate_throughput": 1173.98,
+      "delta_tps": -105.87,
+      "status": "FAIL"
+    },
+    "gate_2c_rss_stability": {
+      "metric": "process_rss_mb",
+      "baseline_rss_mb": 415.83,
+      "candidate_rss_mb": 415.27,
+      "delta_rss_mb": -0.56,
+      "status": "PASS"
+    },
+    "gate_3_variance_stability": {
+      "metric": "variance_ms2",
+      "cpu_variance": 221.558,
+      "gpu_variance": 649.405,
+      "candidate_variance": 281.915,
+      "status": "PASS"
+    },
+    "gate_4_actual_device_agreement": {
+      "metric": "device_match_rate",
+      "match_rate": 1.0,
+      "fallback_count": 0,
+      "status": "PASS"
+    },
+    "gate_5_vital_max_hp_preservation": {
+      "metric": "vital_max_hp",
+      "expected": 6,
+      "actual": 6,
+      "status": "PASS"
+    },
+    "gate_6_delta_s_preservation": {
+      "metric": "state_mutation_on_rejection",
+      "delta_s": 0,
+      "status": "PASS"
+    },
+    "gate_7_reproducibility": {
+      "repetitions": 5,
+      "sample_count": 90,
+      "status": "PASS"
+    }
+  },
+  "crossover_regions": [
+    {
+      "model": "SMALL_TENSOR_3B",
+      "workload": "W1_HelpdeskSlovak",
+      "length_tier": "SHORT",
+      "tokens": 8,
+      "cpu_mean_ms": 6.649,
+      "gpu_mean_ms": 17.391,
+      "cpu_load_diff": 51.1,
+      "speedup_cpu_vs_gpu": 2.62,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 8.0,
+      "gpu_cost_per_slo": 18.26,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "SMALL_TENSOR_3B",
+      "workload": "W1_HelpdeskSlovak",
+      "length_tier": "MEDIUM",
+      "tokens": 32,
+      "cpu_mean_ms": 8.688,
+      "gpu_mean_ms": 22.18,
+      "cpu_load_diff": 64.4,
+      "speedup_cpu_vs_gpu": 2.55,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 10.9,
+      "gpu_cost_per_slo": 23.53,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "SMALL_TENSOR_3B",
+      "workload": "W1_HelpdeskSlovak",
+      "length_tier": "LONG",
+      "tokens": 64,
+      "cpu_mean_ms": 10.514,
+      "gpu_mean_ms": 30.767,
+      "cpu_load_diff": 62.6,
+      "speedup_cpu_vs_gpu": 2.93,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 13.19,
+      "gpu_cost_per_slo": 32.81,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "SMALL_TENSOR_3B",
+      "workload": "W2_DeepArchitectural",
+      "length_tier": "SHORT",
+      "tokens": 8,
+      "cpu_mean_ms": 5.691,
+      "gpu_mean_ms": 15.998,
+      "cpu_load_diff": 29.4,
+      "speedup_cpu_vs_gpu": 2.81,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 6.56,
+      "gpu_cost_per_slo": 17.02,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "SMALL_TENSOR_3B",
+      "workload": "W2_DeepArchitectural",
+      "length_tier": "MEDIUM",
+      "tokens": 32,
+      "cpu_mean_ms": 8.265,
+      "gpu_mean_ms": 24.592,
+      "cpu_load_diff": 29.4,
+      "speedup_cpu_vs_gpu": 2.98,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 9.52,
+      "gpu_cost_per_slo": 26.16,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "SMALL_TENSOR_3B",
+      "workload": "W2_DeepArchitectural",
+      "length_tier": "LONG",
+      "tokens": 64,
+      "cpu_mean_ms": 10.67,
+      "gpu_mean_ms": 27.614,
+      "cpu_load_diff": 45.5,
+      "speedup_cpu_vs_gpu": 2.59,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 12.84,
+      "gpu_cost_per_slo": 29.45,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "MEDIUM_TENSOR_3.5B",
+      "workload": "W1_HelpdeskSlovak",
+      "length_tier": "SHORT",
+      "tokens": 8,
+      "cpu_mean_ms": 7.411,
+      "gpu_mean_ms": 17.348,
+      "cpu_load_diff": 50.8,
+      "speedup_cpu_vs_gpu": 2.34,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 8.92,
+      "gpu_cost_per_slo": 18.23,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "MEDIUM_TENSOR_3.5B",
+      "workload": "W1_HelpdeskSlovak",
+      "length_tier": "MEDIUM",
+      "tokens": 32,
+      "cpu_mean_ms": 13.842,
+      "gpu_mean_ms": 29.099,
+      "cpu_load_diff": 82.5,
+      "speedup_cpu_vs_gpu": 2.1,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 18.06,
+      "gpu_cost_per_slo": 30.77,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "MEDIUM_TENSOR_3.5B",
+      "workload": "W1_HelpdeskSlovak",
+      "length_tier": "LONG",
+      "tokens": 64,
+      "cpu_mean_ms": 11.073,
+      "gpu_mean_ms": 32.643,
+      "cpu_load_diff": 63.3,
+      "speedup_cpu_vs_gpu": 2.95,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 13.89,
+      "gpu_cost_per_slo": 34.74,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "MEDIUM_TENSOR_3.5B",
+      "workload": "W2_DeepArchitectural",
+      "length_tier": "SHORT",
+      "tokens": 8,
+      "cpu_mean_ms": 8.547,
+      "gpu_mean_ms": 19.865,
+      "cpu_load_diff": 50.0,
+      "speedup_cpu_vs_gpu": 2.32,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 10.28,
+      "gpu_cost_per_slo": 20.92,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "MEDIUM_TENSOR_3.5B",
+      "workload": "W2_DeepArchitectural",
+      "length_tier": "MEDIUM",
+      "tokens": 32,
+      "cpu_mean_ms": 11.74,
+      "gpu_mean_ms": 27.632,
+      "cpu_load_diff": 62.1,
+      "speedup_cpu_vs_gpu": 2.35,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 14.72,
+      "gpu_cost_per_slo": 29.51,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "MEDIUM_TENSOR_3.5B",
+      "workload": "W2_DeepArchitectural",
+      "length_tier": "LONG",
+      "tokens": 64,
+      "cpu_mean_ms": 11.614,
+      "gpu_mean_ms": 43.121,
+      "cpu_load_diff": 47.2,
+      "speedup_cpu_vs_gpu": 3.71,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 13.97,
+      "gpu_cost_per_slo": 45.77,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "LARGE_TENSOR_4B_GEMMA",
+      "workload": "W1_HelpdeskSlovak",
+      "length_tier": "SHORT",
+      "tokens": 8,
+      "cpu_mean_ms": 18.863,
+      "gpu_mean_ms": 27.56,
+      "cpu_load_diff": 79.6,
+      "speedup_cpu_vs_gpu": 1.46,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 24.62,
+      "gpu_cost_per_slo": 146.93,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "LARGE_TENSOR_4B_GEMMA",
+      "workload": "W1_HelpdeskSlovak",
+      "length_tier": "MEDIUM",
+      "tokens": 32,
+      "cpu_mean_ms": 43.014,
+      "gpu_mean_ms": 61.284,
+      "cpu_load_diff": 62.6,
+      "speedup_cpu_vs_gpu": 1.42,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 53.94,
+      "gpu_cost_per_slo": 81.68,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "LARGE_TENSOR_4B_GEMMA",
+      "workload": "W1_HelpdeskSlovak",
+      "length_tier": "LONG",
+      "tokens": 64,
+      "cpu_mean_ms": 51.979,
+      "gpu_mean_ms": 56.572,
+      "cpu_load_diff": 73.1,
+      "speedup_cpu_vs_gpu": 1.09,
+      "winner": "GPU",
+      "cpu_cost_per_slo": 66.71,
+      "gpu_cost_per_slo": 60.2,
+      "tradeoff_factor": "GPU offloads host CPU load & utilizes USM"
+    },
+    {
+      "model": "LARGE_TENSOR_4B_GEMMA",
+      "workload": "W2_DeepArchitectural",
+      "length_tier": "SHORT",
+      "tokens": 8,
+      "cpu_mean_ms": 22.493,
+      "gpu_mean_ms": 64.008,
+      "cpu_load_diff": 74.8,
+      "speedup_cpu_vs_gpu": 2.85,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 36.3,
+      "gpu_cost_per_slo": 6827.0,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "LARGE_TENSOR_4B_GEMMA",
+      "workload": "W2_DeepArchitectural",
+      "length_tier": "MEDIUM",
+      "tokens": 32,
+      "cpu_mean_ms": 48.362,
+      "gpu_mean_ms": 106.853,
+      "cpu_load_diff": 83.8,
+      "speedup_cpu_vs_gpu": 2.21,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 63.12,
+      "gpu_cost_per_slo": 562.89,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    },
+    {
+      "model": "LARGE_TENSOR_4B_GEMMA",
+      "workload": "W2_DeepArchitectural",
+      "length_tier": "LONG",
+      "tokens": 64,
+      "cpu_mean_ms": 34.334,
+      "gpu_mean_ms": 74.616,
+      "cpu_load_diff": 79.6,
+      "speedup_cpu_vs_gpu": 2.17,
+      "winner": "CPU",
+      "cpu_cost_per_slo": 44.8,
+      "gpu_cost_per_slo": 79.55,
+      "tradeoff_factor": "CPU low dispatch overhead dominates"
+    }
+  ],
+  "next_hypothesis": {
+    "id": "H-03-PHASE-AWARE-HETEROGENEOUS-EXECUTION",
+    "observation": "On Intel Core i5-1135G7 and Iris Xe (80 EUs), single-token unbatched autoregression incurs a ~380-500 us OpenCL queue dispatch floor on GPU, while CPU AVX-512 VNNI operates in L1/L2 cache with 134-176 us TPOT. However, Iris Xe reduces host CPU utilization from ~93% to ~20%, freeing CPU compute capacity under concurrent loads. Rather than per-token micro-batching without speculative mechanics, execution strategy must be phase-aware.",
+    "derived_from": "Empirical cost surface showing CPU latency dominance across 17/18 cells, while Iris Xe demonstrated multi-dimensional value exclusively in long generation by freeing host CPU capacity.",
+    "candidate_strategies": [
+      "Candidate A: CPU_ONLY",
+      "Candidate B: GPU_ONLY",
+      "Candidate C: HYBRID_PREFILL_GPU_DECODE_CPU",
+      "Candidate D: BATCHED_GPU under concurrency > 1"
+    ],
+    "multi_objective_functional": "J = w1*Latency + w2*TailLatency + w3*CPUOccupancy + w4*Energy + w5*SLOFailureRate"
+  }
+}

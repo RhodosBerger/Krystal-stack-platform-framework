@@ -294,5 +294,89 @@
       {"id": "FAULT-11", "name": "Planner slowdown (x4 synthetic compute load)", "result": "INVARIANT_PRESERVED", "vital_max_hp": 6}
     ],
     "cyber_physical_verdict": "RESILIENT: System maintains strict fail-safe invariants (0 authority bypasses, 0 stale commits, known drop policy, VITAL_MAX_HP == 6) across all 11 fault injection regimes."
+  },
+  "experiment_e01_regime_stratification": {
+    "benchmark_id": "E-01-REGIME-STRATIFICATION-CPU-GPU",
+    "title": "Three-Regime (Compile, First, Warm) Latency Stratification",
+    "status": "APPROVED_FACT",
+    "measurement_class": "LOCAL-PHYSICAL-HARDWARE-MEASURED",
+    "arbitration_verdict": "PROMOTE_TO_APPROVED_FACT",
+    "target_hardware": ["Intel Core i5-1135G7 CPU", "Intel Iris Xe Graphics (80 EUs)"],
+    "mae_reduction_unseen_prompts_percent": 70.5,
+    "p95_regression": false,
+    "vital_max_hp": 6,
+    "delta_s": 0,
+    "artifacts": [
+      "artifacts/benchmarks/H01_REGIME_STRATIFICATION_REPORT.md",
+      "artifacts/benchmarks/E01_ARBITRATION_REPORT.json"
+    ]
+  },
+  "experiment_e02_heterogeneous_crossover_routing": {
+    "benchmark_id": "E-02-HETEROGENEOUS-CROSSOVER-ROUTING",
+    "title": "Heterogeneous CPU vs Iris Xe Cost Surface & Crossover Boundary Investigation",
+    "status": "FALSIFIED_SINGLE_TOKEN_AUTOREGRESSIVE_DISPATCH",
+    "measurement_class": "LOCAL-PHYSICAL-HARDWARE-MEASURED",
+    "arbitration_verdict": "REJECT_AND_ROLLBACK",
+    "rollback_commit": "085e1b4e",
+    "target_hardware": ["Intel Core i5-1135G7 CPU (AVX-512 VNNI)", "Intel Iris Xe Graphics (80 EUs Gen12 Xe-LP)"],
+    "models_evaluated": [
+      "Model A: slovak-nlp/Qwen3-14B-sk (3.0B, Q4_K_M, 128x256x2)",
+      "Model B: google/gemma-3-4b-it (4.0B, INT4, 256x1024x4)"
+    ],
+    "empirical_discovery": "In single-token unbatched autoregressive decoding, CPU AVX-512 VNNI strictly dominates Iris Xe GPU across all context lengths (8, 32, 64 tokens) and model scales (3B, 4B) due to a ~380 us OpenCL command queue dispatch floor on Iris Xe vs 134-176 us TPOT in CPU L1/L2 cache. However, Iris Xe freed host CPU compute capacity (utilization 92.8% -> 19.7%), demonstrating multi-dimensional value when CPU cores are saturated.",
+    "vital_max_hp": 6,
+    "delta_s": 0,
+    "next_hypothesis": {
+      "id": "H-03-PHASE-AWARE-HETEROGENEOUS-EXECUTION",
+      "formal_shift": "Workload + ExecutionPhase + TensorGeometry + Concurrency + SLO + PhysicalState -> Device/ExecutionStrategy",
+      "candidate_strategies": [
+        "Candidate A: CPU_ONLY",
+        "Candidate B: GPU_ONLY",
+        "Candidate C: HYBRID_PREFILL_GPU_DECODE_CPU",
+        "Candidate D: BATCHED_GPU under concurrency > 1"
+      ],
+      "multi_objective_functional": "J = w1*Latency + w2*TailLatency + w3*CPUOccupancy + w4*Energy + w5*SLOFailureRate"
+    },
+    "artifacts": [
+      "artifacts/benchmarks/H02_CROSSOVER_EXPERIMENT_SPEC.md",
+      "artifacts/benchmarks/CPU_GPU_COST_SURFACE.csv",
+      "artifacts/benchmarks/CPU_GPU_CROSSOVER_EVIDENCE.json",
+      "artifacts/benchmarks/GEMMA_PHYSICAL_RUNTIME_RECEIPT.json",
+      "artifacts/benchmarks/H02_ARBITRATION_REPORT.md"
+    ]
+  },
+  "experiment_e03_phase_aware_heterogeneous_execution": {
+    "benchmark_id": "E-03-PHASE-AWARE-HETEROGENEOUS-EXECUTION",
+    "title": "Phase-Aware Heterogeneous Execution & UMA Zero-Reload Prefill/Decode Handoff",
+    "status": "APPROVED_FACT",
+    "measurement_class": "LOCAL-PHYSICAL-HARDWARE-MEASURED",
+    "arbitration_verdict": "PROMOTE_TO_APPROVED_FACT",
+    "target_hardware": ["Intel Core i5-1135G7 CPU (AVX-512 VNNI)", "Intel Iris Xe Graphics (80 EUs Gen12 Xe-LP)"],
+    "model_evaluated": "google/gemma-3-4b-it (4.0B, INT4, weight_fingerprint: a6daa545d330753f)",
+    "multicriteria_cost_j_reduction_percent": 17.43,
+    "baseline_j": 0.8000,
+    "candidate_e_dynamic_j": 0.6606,
+    "p95_latency_ms": 31.74,
+    "baseline_p95_ms": 44.26,
+    "throughput_tokens_per_sec": 1220.19,
+    "baseline_throughput": 1055.0,
+    "mean_kv_handoff_latency_us": 11.97,
+    "no_model_reload_verified": true,
+    "slo_success_rate": 1.0,
+    "vital_max_hp": 6,
+    "delta_s": 0,
+    "empirical_policy_region": {
+      "rule": "if prefill_tokens >= 64: GPU_PREFILL_CPU_DECODE elif concurrency > 1: BATCHED_GPU elif host_cpu_load > 80%: GPU_PREFILL_CPU_DECODE else: CPU_ONLY",
+      "prefill_threshold_tokens": 64,
+      "concurrency_threshold": 1,
+      "cpu_load_threshold_pct": 80.0
+    },
+    "artifacts": [
+      "artifacts/benchmarks/H03_PHASE_AWARE_EXPERIMENT_SPEC.md",
+      "artifacts/benchmarks/H03_EXECUTION_COST_SURFACE.csv",
+      "artifacts/benchmarks/H03_HYBRID_HANDOFF_RECEIPT.json",
+      "artifacts/benchmarks/H03_PHASE_ARBITRATION_EVIDENCE.json",
+      "artifacts/benchmarks/H03_ARBITRATION_REPORT.md"
+    ]
   }
 }

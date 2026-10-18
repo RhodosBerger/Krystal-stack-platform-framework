@@ -136,12 +136,15 @@ class CascadePlanner:
         self.node_empirical_warm_latencies: Dict[Tuple[str, str], List[float]] = {}
         self.node_empirical_cold_latencies: Dict[Tuple[str, str], List[float]] = {}
         self.node_empirical_compile_latencies: Dict[Tuple[str, str], float] = {}
+        # E-03 Phase-aware stratified observations:
+        # (model_fingerprint, backend, device, execution_phase, workload_class, concurrency_bucket) -> observations
+        self.phase_observations: Dict[Tuple[str, str, str, str, str, int], List[Dict[str, Any]]] = {}
         if trace_history:
             for tr in trace_history:
                 self.record_trace(tr)
 
     def record_trace(self, trace: Any) -> None:
-        """Incorporates an observed execution trace into empirical planning evidence with regime stratification."""
+        """Incorporates an observed execution trace into empirical planning evidence with phase and regime stratification."""
         if not trace:
             return
         if trace not in self.trace_history:
@@ -159,13 +162,78 @@ class CascadePlanner:
 
             regime = "WARM"
             device = "CPU"
+            backend = "OpenVINO"
+            model_fp = ""
+            workload_class = "W_GENERAL"
+            concurrency_bucket = 1
+            strategy = "CPU_ONLY"
+            prefill_dev = "CPU"
+            decode_dev = "CPU"
+            handoff_us = 0
+            prefill_us = 0
+            decode_us = 0
+            cpu_load = 50.0
+            ttft_us = 0
+            tpot_us = 0
+            tokens_per_sec = 0.0
             compile_ms = 0.0
             first_ms = 0.0
+
             for ref in refs:
                 if ref.startswith("Regime://"):
                     regime = ref.split("://")[1].strip().upper()
                 elif ref.startswith("Device://"):
                     device = ref.split("://")[1].strip().upper()
+                elif ref.startswith("Strategy://"):
+                    strategy = ref.split("://")[1].strip().upper()
+                elif ref.startswith("PrefillDev://"):
+                    prefill_dev = ref.split("://")[1].strip().upper()
+                elif ref.startswith("DecodeDev://"):
+                    decode_dev = ref.split("://")[1].strip().upper()
+                elif ref.startswith("WeightFingerprint://") or ref.startswith("ModelFingerprint://"):
+                    model_fp = ref.split("://")[1].strip()
+                elif ref.startswith("WorkloadClass://"):
+                    workload_class = ref.split("://")[1].strip().upper()
+                elif ref.startswith("ConcurrencyBucket://") or ref.startswith("Concurrency://"):
+                    try:
+                        concurrency_bucket = int(ref.split("://")[1].strip())
+                    except ValueError:
+                        pass
+                elif ref.startswith("HandoffUs://"):
+                    try:
+                        handoff_us = int(ref.split("://")[1].replace("us", "").strip())
+                    except ValueError:
+                        pass
+                elif ref.startswith("PhasePrefillUs://"):
+                    try:
+                        prefill_us = int(ref.split("://")[1].replace("us", "").strip())
+                    except ValueError:
+                        pass
+                elif ref.startswith("PhaseDecodeUs://"):
+                    try:
+                        decode_us = int(ref.split("://")[1].replace("us", "").strip())
+                    except ValueError:
+                        pass
+                elif ref.startswith("CPULoad://"):
+                    try:
+                        cpu_load = float(ref.split("://")[1].replace("%", "").strip())
+                    except ValueError:
+                        pass
+                elif ref.startswith("TTFT://"):
+                    try:
+                        ttft_us = int(ref.split("://")[1].replace("us", "").strip())
+                    except ValueError:
+                        pass
+                elif ref.startswith("TPOT://"):
+                    try:
+                        tpot_us = int(ref.split("://")[1].replace("us", "").strip())
+                    except ValueError:
+                        pass
+                elif ref.startswith("TokensPerSec://"):
+                    try:
+                        tokens_per_sec = float(ref.split("://")[1].strip())
+                    except ValueError:
+                        pass
                 elif ref.startswith("CompileTime://"):
                     try:
                         compile_ms = float(ref.split("://")[1].replace("ms", "").strip())
@@ -206,10 +274,138 @@ class CascadePlanner:
                 if compile_ms > 0.0:
                     self.node_empirical_compile_latencies[dev_key] = compile_ms
 
+                # 3. E-03 Phase-stratified tracking
+                # Record PREFILL phase observation
+                if prefill_us > 0:
+                    prefill_key = (model_fp, backend, prefill_dev, "PREFILL", workload_class, concurrency_bucket)
+                    if prefill_key not in self.phase_observations:
+                        self.phase_observations[prefill_key] = []
+                    self.phase_observations[prefill_key].append({
+                        "duration_us": prefill_us,
+                        "tokens": in_tok,
+                        "cpu_load": cpu_load,
+                        "memory_mb": mem,
+                    })
+
+                # Record DECODE phase observation
+                if decode_us > 0 or tpot_us > 0:
+                    decode_key = (model_fp, backend, decode_dev, "DECODE_WARM", workload_class, concurrency_bucket)
+                    if decode_key not in self.phase_observations:
+                        self.phase_observations[decode_key] = []
+                    self.phase_observations[decode_key].append({
+                        "duration_us": decode_us,
+                        "tpot_us": tpot_us,
+                        "tokens": out_tok,
+                        "tokens_per_sec": tokens_per_sec,
+                        "cpu_load": cpu_load,
+                        "memory_mb": mem,
+                    })
+
             if nid and mem > 0.0:
                 if nid not in self.node_empirical_memories:
                     self.node_empirical_memories[nid] = []
                 self.node_empirical_memories[nid].append(mem)
+
+    @staticmethod
+    def compute_multicriteria_cost_j(
+        latency_ms: float,
+        p95_ms: float,
+        cpu_occupancy_pct: float,
+        slo_failure_rate: float,
+        baseline_metrics: Dict[str, float],
+        weights: Optional[Dict[str, float]] = None,
+    ) -> float:
+        """
+        Computes normalized multi-objective cost functional J:
+            J = w_L * (L / L_base) + w_P * (P95 / P95_base) + w_C * (C / C_base) + w_S * (F / F_base)
+        
+        Strict Epistemic Invariant:
+            w_E (energy) is strictly omitted (w_E = 0.0) since RAPL/MSR is not physically measured.
+            No synthetic energy estimates are permitted.
+        """
+        assert VITAL_MAX_HP == 6, "Invariant VITAL_MAX_HP == 6 must hold"
+        w = weights or {"w_L": 0.35, "w_P": 0.25, "w_C": 0.20, "w_E": 0.0, "w_S": 0.20}
+        
+        base_l = max(0.001, baseline_metrics.get("mean_latency_ms", 1.0))
+        base_p = max(0.001, baseline_metrics.get("p95_ms", 1.0))
+        base_c = max(0.01, baseline_metrics.get("cpu_occupancy_pct", 10.0))
+        base_s = max(0.01, baseline_metrics.get("slo_failure_rate", 0.05))
+
+        norm_l = latency_ms / base_l
+        norm_p = p95_ms / base_p
+        norm_c = cpu_occupancy_pct / base_c
+        norm_s = slo_failure_rate / base_s
+
+        cost_j = (
+            w.get("w_L", 0.35) * norm_l +
+            w.get("w_P", 0.25) * norm_p +
+            w.get("w_C", 0.20) * norm_c +
+            w.get("w_S", 0.20) * norm_s
+        )
+        return round(cost_j, 4)
+
+    def select_phase_aware_strategy(
+        self,
+        prompt_tokens: int,
+        est_gen_tokens: int,
+        concurrency: int = 1,
+        host_cpu_load: float = 0.0,
+        target_slo_ms: Optional[float] = None,
+        model_fingerprint: str = "",
+        workload_class: str = "W_GENERAL",
+        slo_class: str = "interactive",
+        queue_depth: int = 1,
+    ) -> Dict[str, Any]:
+        """
+        Dynamically selects optimal execution strategy from Candidate set:
+            - Candidate A: CPU_ONLY
+            - Candidate B: GPU_ONLY
+            - Candidate C: GPU_PREFILL_CPU_DECODE
+            - Candidate D: BATCHED_GPU (under throughput SLO & queue depth >= 2)
+        
+        Decision Rules grounded in physical micro-architectural measurements:
+            1. If concurrency > 1 and slo_class == "throughput" and queue_depth >= 2:
+               select BATCHED_GPU (amortizes ~380 us OpenCL queue floor across batch for throughput-oriented workloads).
+            2. If prompt_tokens >= 64 or host_cpu_load > 80%:
+               select GPU_PREFILL_CPU_DECODE (GPU prefill 2.2x-4.15x faster + ~12 us UMA handoff to CPU decode).
+            3. Else:
+               select CPU_ONLY (zero dispatch floor in L1/L2 cache dominates short prompts & latency-sensitive interactive requests).
+        """
+        assert VITAL_MAX_HP == 6, "Invariant VITAL_MAX_HP == 6 must hold"
+
+        is_throughput_workload = (
+            slo_class.lower() in ("throughput", "batch", "offline") or
+            (target_slo_ms is not None and target_slo_ms >= 100.0 and concurrency >= 4)
+        )
+
+        if concurrency > 1 and is_throughput_workload and queue_depth >= 2:
+            chosen = "BATCHED_GPU"
+            rationale = f"Throughput-oriented SLO with concurrency={concurrency} (queue={queue_depth}) amortizes OpenCL dispatch"
+        elif prompt_tokens >= 64:
+            chosen = "GPU_PREFILL_CPU_DECODE"
+            rationale = f"Prefill tokens {prompt_tokens} >= 64 achieves 2.2x-4.15x GPU speedup with ~12 us UMA handoff to CPU decode"
+        elif host_cpu_load > 80.0:
+            chosen = "GPU_PREFILL_CPU_DECODE"
+            rationale = f"Host CPU core saturation ({host_cpu_load:.1f}%) triggers GPU prefill offload to preserve responsiveness"
+        else:
+            chosen = "CPU_ONLY"
+            rationale = f"Short prompt ({prompt_tokens} tokens) interactive latency regime: CPU AVX-512 avoids ~380 us OpenCL queue floor"
+
+        return {
+            "selected_strategy": chosen,
+            "decision_factors": {
+                "prompt_tokens": prompt_tokens,
+                "est_gen_tokens": est_gen_tokens,
+                "concurrency": concurrency,
+                "host_cpu_load": host_cpu_load,
+                "target_slo_ms": target_slo_ms,
+                "model_fingerprint": model_fingerprint,
+                "workload_class": workload_class,
+            },
+            "rationale": rationale,
+            "vital_max_hp": VITAL_MAX_HP,
+            "provenance": "PHASE_AWARE_EMPIRICAL_CONTROLLER"
+        }
 
     @staticmethod
     def capture_environment_snapshot() -> Dict[str, Any]:

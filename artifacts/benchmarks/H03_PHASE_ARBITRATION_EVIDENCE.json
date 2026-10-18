@@ -1,0 +1,172 @@
+{
+  "experiment_id": "E-03-PHASE-AWARE-HETEROGENEOUS-EXECUTION",
+  "timestamp_iso": "2026-10-18T18:11:41Z",
+  "provenance": "MEASURED_PHYSICAL_BENCHMARK",
+  "baseline_strategy": "CANDIDATE_A_CPU_ONLY",
+  "baseline_cost_j": 0.8,
+  "strategy_evaluations": {
+    "CANDIDATE_A_CPU_ONLY": {
+      "metrics": {
+        "p50": 23.84,
+        "p95": 44.259,
+        "p99": 63.301,
+        "mean": 23.91,
+        "std": 11.561,
+        "var": 133.661,
+        "mean_tps": 1055.0,
+        "mean_rss": 317.31,
+        "mean_cpu_load": 93.1
+      },
+      "slo_success_rate": 1.0,
+      "slo_failure_rate": 0.0,
+      "cost_j": 0.8,
+      "sample_count": 120
+    },
+    "CANDIDATE_B_GPU_ONLY": {
+      "metrics": {
+        "p50": 31.155,
+        "p95": 39.173,
+        "p99": 46.154,
+        "mean": 28.537,
+        "std": 9.65,
+        "var": 93.127,
+        "mean_tps": 766.26,
+        "mean_rss": 318.25,
+        "mean_cpu_load": 20.4
+      },
+      "slo_success_rate": 1.0,
+      "slo_failure_rate": 0.0,
+      "cost_j": 0.6828,
+      "sample_count": 120
+    },
+    "CANDIDATE_C_HYBRID_PREFILL_GPU_DECODE_CPU": {
+      "metrics": {
+        "p50": 20.825,
+        "p95": 30.718,
+        "p99": 33.187,
+        "mean": 19.655,
+        "std": 7.367,
+        "var": 54.266,
+        "mean_tps": 1203.29,
+        "mean_rss": 318.07,
+        "mean_cpu_load": 87.9
+      },
+      "slo_success_rate": 1.0,
+      "slo_failure_rate": 0.0,
+      "cost_j": 0.6501,
+      "sample_count": 120
+    },
+    "CANDIDATE_D_BATCHED_GPU": {
+      "metrics": {
+        "p50": 63.497,
+        "p95": 541.747,
+        "p99": 541.747,
+        "mean": 95.494,
+        "std": 111.614,
+        "var": 12457.657,
+        "mean_tps": 467.44,
+        "mean_rss": 331.97,
+        "mean_cpu_load": 18.6
+      },
+      "slo_success_rate": 0.829,
+      "slo_failure_rate": 0.171,
+      "cost_j": 7.9265,
+      "sample_count": 140
+    },
+    "CANDIDATE_E_DYNAMIC_PHASE_POLICY": {
+      "metrics": {
+        "p50": 19.917,
+        "p95": 31.743,
+        "p99": 34.944,
+        "mean": 19.51,
+        "std": 7.473,
+        "var": 55.85,
+        "mean_tps": 1220.19,
+        "mean_rss": 317.98,
+        "mean_cpu_load": 91.1
+      },
+      "slo_success_rate": 1.0,
+      "slo_failure_rate": 0.0,
+      "cost_j": 0.6606,
+      "sample_count": 120
+    }
+  },
+  "gates": {
+    "gate_1_multicriteria_cost_reduction": {
+      "metric": "cost_functional_j",
+      "baseline_cpu_only_j": 0.8,
+      "hybrid_c_j": 0.6501,
+      "batched_gpu_d_j": 7.9265,
+      "dynamic_phase_policy_e_j": 0.6606,
+      "delta_vs_baseline_percent": 17.43,
+      "status": "PASS"
+    },
+    "gate_2_p95_stability": {
+      "metric": "p95_latency_ms",
+      "baseline_p95_ms": 44.259,
+      "hybrid_c_p95_ms": 30.718,
+      "dynamic_e_p95_ms": 31.743,
+      "delta_ms": -12.516,
+      "tolerance_ms": 5.0,
+      "status": "PASS"
+    },
+    "gate_2b_throughput_stability": {
+      "metric": "throughput_tokens_per_sec",
+      "baseline_throughput": 1055.0,
+      "candidate_throughput": 1220.19,
+      "status": "PASS"
+    },
+    "gate_2c_rss_stability": {
+      "metric": "process_rss_mb",
+      "baseline_rss_mb": 317.31,
+      "candidate_rss_mb": 317.98,
+      "status": "PASS"
+    },
+    "gate_3_slo_failure_rate": {
+      "metric": "slo_failure_rate",
+      "baseline_failure_rate": 0.0,
+      "candidate_failure_rate": 0.0,
+      "status": "PASS"
+    },
+    "gate_3b_variance_stability": {
+      "metric": "variance_ms2",
+      "baseline_variance": 133.661,
+      "candidate_variance": 55.85,
+      "variance_ratio": 0.42,
+      "status": "PASS"
+    },
+    "gate_4_proof_obligations_verified": {
+      "hybrid_prefill_device": "GPU",
+      "hybrid_decode_device": "CPU",
+      "mean_handoff_latency_us": 11.97,
+      "no_model_reload_verified": true,
+      "status": "PASS"
+    },
+    "gate_5_vital_max_hp_preservation": {
+      "expected": 6,
+      "actual": 6,
+      "status": "PASS"
+    },
+    "gate_6_delta_s_preservation": {
+      "delta_s": 0,
+      "status": "PASS"
+    },
+    "gate_7_reproducibility": {
+      "reps_per_cell": 10,
+      "total_evaluations": 620,
+      "status": "PASS"
+    }
+  },
+  "empirical_policy_region": {
+    "rule": "if prefill_tokens >= 64: GPU_PREFILL_CPU_DECODE elif concurrency > 1: BATCHED_GPU elif host_cpu_load > 80%: GPU_PREFILL_CPU_DECODE else: CPU_ONLY",
+    "prefill_threshold_tokens": 64,
+    "concurrency_threshold": 1,
+    "cpu_load_threshold_pct": 80.0
+  },
+  "arbitration_verdict": "PROMOTE_TO_APPROVED_FACT",
+  "next_hypothesis": {
+    "id": "H-04-ZERO-COPY-LEVEL-ZERO-RING-COMPOSITOR",
+    "observation": "KV handoff latency in UMA memory is measured at 1.9-16.0 us. Directly mapping Vulkan/Level Zero USM buffers into the C-ABI lock-free ring without intermediate NumPy arrays will reduce handoff overhead to sub-microsecond levels.",
+    "derived_from": "Empirical handoff latency measurements across 12 matrix cells in Candidate C."
+  }
+}

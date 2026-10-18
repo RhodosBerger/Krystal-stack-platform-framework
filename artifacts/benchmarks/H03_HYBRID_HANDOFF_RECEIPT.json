@@ -1,0 +1,239 @@
+{
+  "experiment_id": "E-03-PHASE-AWARE-HETEROGENEOUS-EXECUTION",
+  "timestamp_iso": "2026-10-18T18:11:41Z",
+  "model_id": "google/gemma-3-4b-it",
+  "weight_fingerprint": "a6daa545d330753f",
+  "uma_architecture": "Tiger Lake UMA zero-copy coherent ring",
+  "dual_resident_compilation": {
+    "cpu_backend": "OpenVINO AVX-512 Plugin",
+    "gpu_backend": "OpenVINO Level Zero Driver",
+    "no_model_reload_verified": true
+  },
+  "proof_obligations_summary": {
+    "prefill_device_gpu_verified": true,
+    "decode_device_cpu_verified": true,
+    "kv_handoff_occurred_all": true,
+    "mean_handoff_latency_us": 11.97,
+    "no_model_reload_all": true
+  },
+  "cell_proof_receipts": [
+    {
+      "cell": "SHORT_TOK_8",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 12.4,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 1571,
+        "KV_HANDOFF": 10,
+        "FIRST_TOKEN": 1581,
+        "DECODE_WARM": 5817,
+        "FINALIZE": 125
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "SHORT_TOK_32",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 10.7,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 1621,
+        "KV_HANDOFF": 9,
+        "FIRST_TOKEN": 1630,
+        "DECODE_WARM": 24251,
+        "FINALIZE": 145
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "SHORT_TOK_64",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 11.1,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 1697,
+        "KV_HANDOFF": 10,
+        "FIRST_TOKEN": 1707,
+        "DECODE_WARM": 18947,
+        "FINALIZE": 136
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "SHORT_TOK_128",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 19.2,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 1775,
+        "KV_HANDOFF": 9,
+        "FIRST_TOKEN": 1784,
+        "DECODE_WARM": 19584,
+        "FINALIZE": 122
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "MEDIUM_TOK_8",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 12.0,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 1693,
+        "KV_HANDOFF": 10,
+        "FIRST_TOKEN": 1703,
+        "DECODE_WARM": 4919,
+        "FINALIZE": 353
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "MEDIUM_TOK_32",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 10.4,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 2394,
+        "KV_HANDOFF": 13,
+        "FIRST_TOKEN": 2407,
+        "DECODE_WARM": 26777,
+        "FINALIZE": 252
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "MEDIUM_TOK_64",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 9.6,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 1769,
+        "KV_HANDOFF": 9,
+        "FIRST_TOKEN": 1778,
+        "DECODE_WARM": 23148,
+        "FINALIZE": 248
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "MEDIUM_TOK_128",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 10.4,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 1742,
+        "KV_HANDOFF": 9,
+        "FIRST_TOKEN": 1751,
+        "DECODE_WARM": 26991,
+        "FINALIZE": 212
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "LONG_TOK_8",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 14.6,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 2581,
+        "KV_HANDOFF": 11,
+        "FIRST_TOKEN": 2592,
+        "DECODE_WARM": 7206,
+        "FINALIZE": 723
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "LONG_TOK_32",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 11.0,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 2224,
+        "KV_HANDOFF": 9,
+        "FIRST_TOKEN": 2233,
+        "DECODE_WARM": 15946,
+        "FINALIZE": 405
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "LONG_TOK_64",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 10.7,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 2064,
+        "KV_HANDOFF": 10,
+        "FIRST_TOKEN": 2074,
+        "DECODE_WARM": 14703,
+        "FINALIZE": 480
+      },
+      "proof_passed": true
+    },
+    {
+      "cell": "LONG_TOK_128",
+      "prefill_actual_device": "GPU",
+      "decode_actual_device": "CPU",
+      "kv_handoff_occurred": true,
+      "handoff_latency_us_mean": 11.6,
+      "no_model_reload_verified": true,
+      "phase_breakdown_us": {
+        "MODEL_LOAD": 0,
+        "COMPILE": 454646,
+        "PREFILL": 2148,
+        "KV_HANDOFF": 10,
+        "FIRST_TOKEN": 2158,
+        "DECODE_WARM": 14852,
+        "FINALIZE": 724
+      },
+      "proof_passed": true
+    }
+  ],
+  "vital_max_hp": 6,
+  "epistemic_status": "MEASURED_PHYSICAL_HYBRID_RECEIPT"
+}

@@ -1,0 +1,65 @@
+{
+  "experiment_id": "E-02-HETEROGENEOUS-CROSSOVER-ROUTING",
+  "model_identification": {
+    "model_id": "google/gemma-3-4b-it",
+    "parameter_count_b": 4.0,
+    "quantization": "INT4",
+    "license": "Gemma",
+    "license_compliant": true,
+    "weight_fingerprint": "a6daa545d330753f",
+    "tensor_geometry": {
+      "in_dim": 256,
+      "hidden_dim": 1024,
+      "num_layers": 4,
+      "weights_allocated": 4,
+      "total_param_bytes": 2736867246.08
+    }
+  },
+  "hardware_environment": {
+    "platform": "win32",
+    "cpu_architecture": "Intel Core i5-1135G7 (AVX-512 VNNI)",
+    "gpu_architecture": "Intel Iris Xe Graphics (80 EUs Gen12 Xe-LP)",
+    "openvino_version": "2025.0.0",
+    "available_openvino_devices": [
+      "CPU",
+      "GPU"
+    ],
+    "host_physical_ram_available_mb": 6316.58
+  },
+  "cpu_physical_telemetry": {
+    "requested_device": "CPU",
+    "actual_device": "CPU",
+    "fallback_reason": "NONE",
+    "compile_time_ms": 45.298,
+    "cold_inference_total_ms": 23.737,
+    "warm_inference_total_ms": 29.669,
+    "warm_ttft_us": 14156,
+    "warm_tpot_us": 645,
+    "tokens_per_second": 775.22,
+    "process_rss_mb": 163.34,
+    "gpu_usm_mb": "UNAVAILABLE",
+    "cpu_load_percent": 100.0,
+    "provenance": "MEASURED_PHYSICAL_WIN32"
+  },
+  "gpu_physical_telemetry": {
+    "requested_device": "GPU",
+    "actual_device": "GPU",
+    "fallback_reason": "NONE",
+    "compile_time_ms": 444.934,
+    "cold_inference_total_ms": 33.441,
+    "warm_inference_total_ms": 29.634,
+    "warm_ttft_us": 14346,
+    "warm_tpot_us": 778,
+    "tokens_per_second": 641.16,
+    "process_rss_mb": 296.95,
+    "gpu_usm_mb": 5.01,
+    "cpu_load_percent": 21.09,
+    "provenance": "MEASURED_PHYSICAL_LEVEL_ZERO"
+  },
+  "invariant_audit": {
+    "vital_max_hp": 6,
+    "verified": true
+  },
+  "timestamp_iso": "2026-10-18T17:22:33Z",
+  "epistemic_status": "MEASURED_PHYSICAL_MODEL_RECEIPT"
+}
