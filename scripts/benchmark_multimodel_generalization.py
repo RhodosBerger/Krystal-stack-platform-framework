@@ -251,9 +251,9 @@ def run_full_cross_evaluation() -> Dict[str, Any]:
     all_mae_under_10 = all(exp["calibrated_adaptive"]["mae_ms"] < 10.0 for exp in all_experiments)
 
     if all_adapted and all_mae_under_10:
-        final_verdict = "MULTI_MODEL_ADAPTIVE_VALIDATED"
+        final_verdict = "MULTI_PROFILE_ADAPTIVE_VALIDATED"
     elif all_adapted:
-        final_verdict = "LOCALLY_CALIBRATED_CROSS_MODEL"
+        final_verdict = "LOCALLY_CALIBRATED_CROSS_PROFILE"
     else:
         final_verdict = "LOCAL_ONLY_OVERFITTING"
 

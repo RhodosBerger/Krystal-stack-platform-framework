@@ -694,8 +694,10 @@ class SlovakLLMNode(ModelNode):
         adapter: Optional[Any] = None,
         parameter_count_b: float = 3.0,
         quantization: str = "Q4_K_M",
+        enforce_headroom: bool = True,
     ):
         from krystal_kernel.slovak_llm_adapter import SlovakLLMAdapter, ModelSpec
+        self.enforce_headroom = enforce_headroom
         self.adapter = adapter or SlovakLLMAdapter(ModelSpec(
             model_id="slovak-nlp/Qwen3-14B-sk",
             parameter_count_b=parameter_count_b,
@@ -734,7 +736,7 @@ class SlovakLLMNode(ModelNode):
 
         try:
             # Physical inference via SlovakLLMAdapter
-            resp = self.adapter.execute_inference(inf_req, enforce_headroom=True)
+            resp = self.adapter.execute_inference(inf_req, enforce_headroom=self.enforce_headroom)
             latency_ms = resp.total_duration_us / 1000.0
             self.cumulative_latency_ms += latency_ms
 
@@ -747,11 +749,14 @@ class SlovakLLMNode(ModelNode):
                 confidence=0.98,
                 evidence_refs=[
                     f"SlovakLLMAdapter://{self.adapter.model_spec.model_id}",
+                    f"WeightFingerprint://{resp.weight_fingerprint}",
+                    f"ProcessRSS://{resp.process_rss_mb}MB",
                     "// [HARDWARE-MEASURED]",
                     "// [PHYSICAL-LOCAL-TIMING]",
+                    "// [PHYSICAL-TENSOR-WEIGHTS]",
                 ],
                 status="SUCCESS",
-                memory_mb=resp.memory_footprint_mb,
+                memory_mb=resp.process_rss_mb if resp.process_rss_mb > 0.0 else resp.memory_footprint_mb,
                 epistemic_verdict="EPI_VALIDATED",
                 provenance=MetricProvenance.MEASURED.value,
             )

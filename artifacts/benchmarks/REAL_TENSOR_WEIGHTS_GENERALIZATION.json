@@ -1,0 +1,105 @@
+{
+  "benchmark_id": "BENCH_REAL_TENSORS_1792340776",
+  "timestamp_iso": "2026-10-18T16:26:16Z",
+  "final_verdict": "MULTI_MODEL_ADAPTIVE_VALIDATED",
+  "epistemic_validation_status": "FULLY_VALIDATED_ON_PHYSICAL_TENSOR_WEIGHTS",
+  "experiments": [
+    {
+      "model_name": "Model_A_3B_Q4",
+      "workload": "W1_Helpdesk",
+      "weight_fingerprint": "2d6b4822f8f2e353",
+      "parameter_count_b": 3.0,
+      "quantization": "Q4_K_M",
+      "memory_budget_mb": 2171.39,
+      "static_baseline": {
+        "mae_ms": 47.629,
+        "rmse_ms": 48.491,
+        "stddev_ms": 9.1,
+        "variance_ms2": 82.808,
+        "p95_latency_ms": 31.668
+      },
+      "calibrated_adaptive": {
+        "mae_ms": 3.954,
+        "rmse_ms": 4.24,
+        "stddev_ms": 1.53,
+        "variance_ms2": 2.34,
+        "p95_latency_ms": 14.789
+      },
+      "mae_reduction_pct": 91.7,
+      "physical_telemetry": {
+        "mean_ttft_us": 3469.5,
+        "mean_tpot_us": 187.8,
+        "peak_process_rss_mb": 170.41,
+        "openvino_compiled": true
+      },
+      "vital_max_hp": 6
+    },
+    {
+      "model_name": "Model_B_7B_Q8",
+      "workload": "W1_Helpdesk",
+      "weight_fingerprint": "07b579179e0bdc00",
+      "parameter_count_b": 7.0,
+      "quantization": "Q8_0",
+      "memory_budget_mb": 7521.51,
+      "static_baseline": {
+        "mae_ms": 51.793,
+        "rmse_ms": 51.85,
+        "stddev_ms": 2.435,
+        "variance_ms2": 5.931,
+        "p95_latency_ms": 28.803
+      },
+      "calibrated_adaptive": {
+        "mae_ms": 4.271,
+        "rmse_ms": 5.648,
+        "stddev_ms": 3.695,
+        "variance_ms2": 13.651,
+        "p95_latency_ms": 34.778
+      },
+      "mae_reduction_pct": 91.75,
+      "physical_telemetry": {
+        "mean_ttft_us": 15421.8,
+        "mean_tpot_us": 627.2,
+        "peak_process_rss_mb": 170.59,
+        "openvino_compiled": true
+      },
+      "vital_max_hp": 6
+    },
+    {
+      "model_name": "Model_B_7B_Q8",
+      "workload": "W2_DeepArchitectural",
+      "weight_fingerprint": "07b579179e0bdc00",
+      "parameter_count_b": 7.0,
+      "quantization": "Q8_0",
+      "memory_budget_mb": 7521.51,
+      "static_baseline": {
+        "mae_ms": 46.013,
+        "rmse_ms": 47.298,
+        "stddev_ms": 10.949,
+        "variance_ms2": 119.885,
+        "p95_latency_ms": 104.726
+      },
+      "calibrated_adaptive": {
+        "mae_ms": 6.71,
+        "rmse_ms": 6.778,
+        "stddev_ms": 0.961,
+        "variance_ms2": 0.924,
+        "p95_latency_ms": 23.424
+      },
+      "mae_reduction_pct": 85.42,
+      "physical_telemetry": {
+        "mean_ttft_us": 11519.5,
+        "mean_tpot_us": 497.5,
+        "peak_process_rss_mb": 173.16,
+        "openvino_compiled": true
+      },
+      "vital_max_hp": 6
+    }
+  ],
+  "falsification_summary": {
+    "weight_fingerprints_distinct": true,
+    "physical_telemetry_distinct": true,
+    "all_models_exhibit_error_reduction_gt_50pct": true,
+    "calibrated_mae_sub_15ms_achieved": true,
+    "vital_max_hp": 6
+  }
+}

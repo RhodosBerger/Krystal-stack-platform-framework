@@ -1,7 +1,8 @@
 {
   "benchmark_id": "BENCH_MULTIMODEL_GEN_1792339608",
   "timestamp_iso": "2026-10-18T16:06:48Z",
-  "final_verdict": "MULTI_MODEL_ADAPTIVE_VALIDATED",
+  "final_verdict": "MULTI_PROFILE_ADAPTIVE_VALIDATED",
+  "epistemic_audit_status": "DOWNGRADED_PER_AUDIT: Verified multi-profile closed-loop adaptation across unseen prompts, but substrate was simulated token generation. True MULTI_MODEL_ADAPTIVE_VALIDATED reserved for real tensor weights.",
   "experiments": [
     {
       "model_name": "Model_A_3B_Q4",
