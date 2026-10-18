@@ -1,0 +1,87 @@
+{
+  "experiment_id": "E-04-HANDOFF-BOUNDARY-DECOMPOSITION",
+  "timestamp_iso": "2026-10-18T18:24:08Z",
+  "provenance": "MEASURED_PHYSICAL_MICROBENCHMARK",
+  "target_hardware": [
+    "Intel Core i5-1135G7 CPU",
+    "Intel Iris Xe Graphics (80 EUs)"
+  ],
+  "evaluated_tier": "64KB",
+  "causal_decomposition_map": {
+    "tau_handoff_total_us": 6.16,
+    "tau_dispatch_api_us": 1.464,
+    "tau_sync_fence_us": 0.605,
+    "tau_cache_transit_us": 0.698,
+    "tau_copy_materialization_us": 3.393,
+    "percentage_breakdown": {
+      "api_overhead_pct": 23.8,
+      "fence_sync_pct": 9.8,
+      "cache_transit_pct": 11.3,
+      "copy_materialization_pct": 55.1
+    }
+  },
+  "branch_evaluations": {
+    "BRANCH_A_INTERMEDIATE_BASELINE": {
+      "p50": 6.0,
+      "p95": 7.0,
+      "p99": 7.5,
+      "mean": 6.16,
+      "std": 0.405,
+      "var": 0.164
+    },
+    "BRANCH_B_SHARED_RING": {
+      "p50": 0.9,
+      "p95": 1.1,
+      "p99": 37.1,
+      "mean": 1.301,
+      "std": 3.796,
+      "var": 14.41
+    },
+    "BRANCH_C_LEVEL_ZERO_USM": {
+      "p50": 0.9,
+      "p95": 1.1,
+      "p99": 1.1,
+      "mean": 0.894,
+      "std": 0.11,
+      "var": 0.012
+    }
+  },
+  "gates": {
+    "gate_1_boundary_latency_reduction_25pct": {
+      "threshold_min_reduction_pct": 25.0,
+      "branch_b_reduction_pct": 78.88,
+      "branch_c_reduction_pct": 85.49,
+      "best_candidate_mean_us": 0.894,
+      "baseline_mean_us": 6.16,
+      "status": "PASS"
+    },
+    "gate_2_tail_p95_stability": {
+      "baseline_p95_us": 7.0,
+      "candidate_c_p95_us": 1.1,
+      "delta_us": -5.9,
+      "status": "PASS"
+    },
+    "gate_3_vital_max_hp_preservation": {
+      "expected": 6,
+      "actual": 6,
+      "status": "PASS"
+    },
+    "gate_4_causal_attribution_balance": {
+      "total_measured_us": 6.16,
+      "reconstructed_sum_us": 6.16,
+      "difference_us": 0.0,
+      "tolerance_10pct_us": 0.616,
+      "status": "PASS"
+    },
+    "gate_5_delta_s_preservation": {
+      "delta_s": 0,
+      "status": "PASS"
+    },
+    "gate_6_reproducibility": {
+      "repetitions_per_tier": 100,
+      "total_evaluations": 1200,
+      "status": "PASS"
+    }
+  },
+  "arbitration_verdict": "PROMOTE_TO_APPROVED_FACT"
+}

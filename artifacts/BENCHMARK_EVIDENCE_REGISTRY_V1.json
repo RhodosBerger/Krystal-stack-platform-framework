@@ -378,5 +378,42 @@
       "artifacts/benchmarks/H03_PHASE_ARBITRATION_EVIDENCE.json",
       "artifacts/benchmarks/H03_ARBITRATION_REPORT.md"
     ]
+  },
+  "experiment_e04_handoff_boundary_decomposition": {
+    "benchmark_id": "E-04-HANDOFF-BOUNDARY-DECOMPOSITION",
+    "title": "Physical Boundary Cost Decomposition (GPU Prefill -> CPU Decode across UMA)",
+    "status": "APPROVED_FACT",
+    "measurement_class": "LOCAL-PHYSICAL-HARDWARE-MEASURED",
+    "arbitration_verdict": "PROMOTE_TO_APPROVED_FACT",
+    "target_hardware": ["Intel Core i5-1135G7 CPU (AVX-512 VNNI)", "Intel Iris Xe Graphics (80 EUs Gen12 Xe-LP)"],
+    "branches_evaluated": [
+      "Branch A: Intermediate Host Representation (NumPy / copy)",
+      "Branch B: Mapped Shared Host Ring (ZeroCopyContractFrame)",
+      "Branch C: True Level Zero Shared USM (zeMemAllocShared)"
+    ],
+    "evaluated_tier": "64KB (256 prompt tokens)",
+    "baseline_handoff_mean_us": 6.160,
+    "candidate_c_handoff_mean_us": 0.894,
+    "reduction_percent": 85.49,
+    "causal_decomposition_us": {
+      "tau_dispatch_api_us": 1.464,
+      "tau_sync_fence_us": 0.605,
+      "tau_cache_transit_us": 0.698,
+      "tau_copy_materialization_us": 3.393
+    },
+    "causal_percentage_breakdown": {
+      "api_overhead_pct": 23.8,
+      "fence_sync_pct": 9.8,
+      "cache_transit_pct": 11.3,
+      "copy_materialization_pct": 55.1
+    },
+    "vital_max_hp": 6,
+    "delta_s": 0,
+    "artifacts": [
+      "artifacts/benchmarks/H04_HANDOFF_DECOMPOSITION_SPEC.md",
+      "artifacts/benchmarks/H04_BOUNDARY_DECOMPOSITION_SURFACE.csv",
+      "artifacts/benchmarks/H04_PHYSICAL_MICROPROBE_EVIDENCE.json",
+      "artifacts/benchmarks/H04_ARBITRATION_REPORT.md"
+    ]
   }
 }

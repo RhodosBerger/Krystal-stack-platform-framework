@@ -125,7 +125,8 @@ class ZeroCopyUsmTensorDescriptor:
         size_bytes = stride * height
 
         canonical_repr = f"{buffer_id}:{hex(aligned_addr)}:{size_bytes}:{width}:{height}:{format.value}:{usm_type.value}:HP{VITAL_MAX_HP}"
-        digest = hmac.new(session_key.encode("utf-8"), canonical_repr.encode("utf-8"), hashlib.sha256).hexdigest()
+        key_bytes = session_key if isinstance(session_key, bytes) else session_key.encode("utf-8")
+        digest = hmac.new(key_bytes, canonical_repr.encode("utf-8"), hashlib.sha256).hexdigest()
 
         return cls(
             buffer_id=buffer_id,
@@ -140,9 +141,10 @@ class ZeroCopyUsmTensorDescriptor:
             vital_max_hp=VITAL_MAX_HP,
         )
 
-    def verify_integrity(self, session_key: str = "krystal-usm-key") -> bool:
+    def verify_integrity(self, session_key: Any = "krystal-usm-key") -> bool:
         canonical_repr = f"{self.buffer_id}:{hex(self.virtual_address)}:{self.size_bytes}:{self.width}:{self.height}:{self.format.value}:{self.usm_type.value}:HP{self.vital_max_hp}"
-        expected = hmac.new(session_key.encode("utf-8"), canonical_repr.encode("utf-8"), hashlib.sha256).hexdigest()
+        key_bytes = session_key if isinstance(session_key, bytes) else session_key.encode("utf-8")
+        expected = hmac.new(key_bytes, canonical_repr.encode("utf-8"), hashlib.sha256).hexdigest()
         return hmac.compare_digest(self.hmac_digest, expected)
 
 
