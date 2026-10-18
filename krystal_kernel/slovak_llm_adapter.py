@@ -173,8 +173,10 @@ class SlovakLLMAdapter:
     Runs genuine physical tensor forward passes via compiled OpenVINO weights.
     """
 
-    def __init__(self, model_spec: Optional[ModelSpec] = None) -> None:
+    def __init__(self, model_spec: Optional[ModelSpec] = None, target_device: Optional[str] = None) -> None:
         self.model_spec = model_spec or ModelSpec()
+        if target_device:
+            self.model_spec.target_device = target_device
         self.target_device = (self.model_spec.target_device or "CPU").upper()
         self._openvino_core = None
         self._openvino_available = False
@@ -276,9 +278,9 @@ class SlovakLLMAdapter:
             if "GPU" in core.available_devices:
                 self._compiled_gpu_model = core.compile_model(ov_model, "GPU")
             else:
-                self._compiled_gpu_model = self._compiled_cpu_model
+                self._compiled_gpu_model = None
 
-            self._compiled_model = self._compiled_gpu_model if target_dev == "GPU" else self._compiled_cpu_model
+            self._compiled_model = self._compiled_gpu_model if (target_dev == "GPU" and self._compiled_gpu_model is not None) else self._compiled_cpu_model
             self.compile_time_ms = round((time.perf_counter_ns() - t_c0) / 1e6, 3)
             self._actual_device = target_dev
             self._openvino_available = True
@@ -352,13 +354,21 @@ class SlovakLLMAdapter:
     def get_physical_memory_available_mb(self) -> float:
         """
         Reads real-time physical host available memory in MiB.
-        Uses Win32 GlobalMemoryStatusEx for zero-overhead OS truth.
+        Uses Win32 GlobalMemoryStatusEx on Windows, and /proc/meminfo on Linux/WSL2.
         """
         if sys.platform == "win32":
             stat = MemoryStatusWin32()
             stat.dwLength = ctypes.sizeof(MemoryStatusWin32)
             if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
                 return round(stat.ullAvailPhys / (1024 * 1024), 2)
+        elif sys.platform.startswith("linux"):
+            try:
+                with open("/proc/meminfo", "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.startswith("MemAvailable:"):
+                            return round(int(line.split()[1]) / 1024.0, 2)
+            except Exception:
+                pass
         
         try:
             import psutil
@@ -369,7 +379,7 @@ class SlovakLLMAdapter:
     def get_process_rss_mb(self) -> float:
         """
         Reads real-time physical host WorkingSet (process RSS) in MiB.
-        Uses Win32 psapi.GetProcessMemoryInfo for OS kernel ground truth.
+        Uses Win32 psapi.GetProcessMemoryInfo on Windows, and /proc/self/statm on Linux/WSL2.
         """
         if sys.platform == "win32":
             try:
@@ -387,7 +397,21 @@ class SlovakLLMAdapter:
                     return round(counters.WorkingSetSize / (1024 * 1024), 2)
             except Exception:
                 pass
-        return 0.0
+        elif sys.platform.startswith("linux"):
+            try:
+                with open("/proc/self/statm", "r", encoding="utf-8") as f:
+                    fields = f.read().split()
+                    resident_pages = int(fields[1])
+                    page_size = os.sysconf("SC_PAGE_SIZE") if hasattr(os, "sysconf") else 4096
+                    return round((resident_pages * page_size) / (1024 * 1024), 2)
+            except Exception:
+                pass
+
+        try:
+            import psutil
+            return round(psutil.Process().memory_info().rss / (1024 * 1024), 2)
+        except Exception:
+            return 0.0
 
     def get_gpu_usm_mb(self) -> float:
         """
@@ -401,6 +425,18 @@ class SlovakLLMAdapter:
             except Exception:
                 return 0.0
         return 0.0
+
+    def get_available_devices(self) -> List[str]:
+        """
+        Queries and returns physical hardware devices detected by the OpenVINO runtime.
+        """
+        if self._openvino_available and self._openvino_core:
+            try:
+                return list(self._openvino_core.available_devices)
+            except Exception:
+                pass
+        return ["CPU"]
+
 
     def check_memory_headroom(self, quantization: Optional[str] = None) -> Tuple[bool, float, float]:
         """

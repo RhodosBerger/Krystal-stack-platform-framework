@@ -355,6 +355,7 @@ class CascadePlanner:
         workload_class: str = "W_GENERAL",
         slo_class: str = "interactive",
         queue_depth: int = 1,
+        available_devices: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Dynamically selects optimal execution strategy from Candidate set:
@@ -364,6 +365,9 @@ class CascadePlanner:
             - Candidate D: BATCHED_GPU (under throughput SLO & queue depth >= 2)
         
         Decision Rules grounded in physical micro-architectural measurements:
+            0. Environmental Physical Constraint:
+               If GPU is not present in available_devices, closed-loop planner strictly adapts
+               to CPU_ONLY (never attempts nonexistent hardware dispatch or silent simulation).
             1. If concurrency > 1 and slo_class == "throughput" and queue_depth >= 2:
                select BATCHED_GPU (amortizes ~380 us OpenCL queue floor across batch for throughput-oriented workloads).
             2. If prompt_tokens >= 64 or host_cpu_load > 80%:
@@ -373,23 +377,31 @@ class CascadePlanner:
         """
         assert VITAL_MAX_HP == 6, "Invariant VITAL_MAX_HP == 6 must hold"
 
-        is_throughput_workload = (
-            slo_class.lower() in ("throughput", "batch", "offline") or
-            (target_slo_ms is not None and target_slo_ms >= 100.0 and concurrency >= 4)
-        )
-
-        if concurrency > 1 and is_throughput_workload and queue_depth >= 2:
-            chosen = "BATCHED_GPU"
-            rationale = f"Throughput-oriented SLO with concurrency={concurrency} (queue={queue_depth}) amortizes OpenCL dispatch"
-        elif prompt_tokens >= 64:
-            chosen = "GPU_PREFILL_CPU_DECODE"
-            rationale = f"Prefill tokens {prompt_tokens} >= 64 achieves 2.2x-4.15x GPU speedup with ~12 us UMA handoff to CPU decode"
-        elif host_cpu_load > 80.0:
-            chosen = "GPU_PREFILL_CPU_DECODE"
-            rationale = f"Host CPU core saturation ({host_cpu_load:.1f}%) triggers GPU prefill offload to preserve responsiveness"
-        else:
+        # Check physical hardware availability
+        if available_devices is not None and "GPU" not in [d.upper() for d in available_devices]:
             chosen = "CPU_ONLY"
-            rationale = f"Short prompt ({prompt_tokens} tokens) interactive latency regime: CPU AVX-512 avoids ~380 us OpenCL queue floor"
+            rationale = (
+                f"Environment physical constraint: GPU is UNAVAILABLE in this environment (available: {available_devices}); "
+                f"closed-loop planner dynamically adapts all phases to CPU_ONLY"
+            )
+        else:
+            is_throughput_workload = (
+                slo_class.lower() in ("throughput", "batch", "offline") or
+                (target_slo_ms is not None and target_slo_ms >= 100.0 and concurrency >= 4)
+            )
+
+            if concurrency > 1 and is_throughput_workload and queue_depth >= 2:
+                chosen = "BATCHED_GPU"
+                rationale = f"Throughput-oriented SLO with concurrency={concurrency} (queue={queue_depth}) amortizes OpenCL dispatch"
+            elif prompt_tokens >= 64:
+                chosen = "GPU_PREFILL_CPU_DECODE"
+                rationale = f"Prefill tokens {prompt_tokens} >= 64 achieves 2.2x-4.15x GPU speedup with ~12 us UMA handoff to CPU decode"
+            elif host_cpu_load > 80.0:
+                chosen = "GPU_PREFILL_CPU_DECODE"
+                rationale = f"Host CPU core saturation ({host_cpu_load:.1f}%) triggers GPU prefill offload to preserve responsiveness"
+            else:
+                chosen = "CPU_ONLY"
+                rationale = f"Short prompt ({prompt_tokens} tokens) interactive latency regime: CPU AVX-512 avoids ~380 us OpenCL queue floor"
 
         return {
             "selected_strategy": chosen,
@@ -401,6 +413,7 @@ class CascadePlanner:
                 "target_slo_ms": target_slo_ms,
                 "model_fingerprint": model_fingerprint,
                 "workload_class": workload_class,
+                "available_devices": available_devices,
             },
             "rationale": rationale,
             "vital_max_hp": VITAL_MAX_HP,
@@ -413,10 +426,14 @@ class CascadePlanner:
         import sys
         import os
         avail_ram = 16384.0
+        accelerators = ["CPU"]
+        accel_prov = "ESTIMATED_DEVICE_CATALOG"
         try:
             from krystal_kernel.slovak_llm_adapter import SlovakLLMAdapter
             adapter = SlovakLLMAdapter()
             avail_ram = adapter.get_physical_memory_available_mb()
+            accelerators = adapter.get_available_devices()
+            accel_prov = "MEASURED_OPENVINO_CORE"
         except Exception:
             pass
 
@@ -424,13 +441,13 @@ class CascadePlanner:
             "platform": sys.platform,
             "cpu_cores": os.cpu_count() or 4,
             "available_memory_mb": round(avail_ram, 2),
-            "accelerators": ["CPU", "GPU"],
+            "accelerators": accelerators,
             "bus_pressure": 0.12,
             "provenance_breakdown": {
-                "available_memory_mb": "MEASURED_WIN32_API" if sys.platform == "win32" else "ESTIMATED_DEFAULT",
+                "available_memory_mb": "MEASURED_WIN32_API" if sys.platform == "win32" else "MEASURED_LINUX_PROC",
                 "cpu_cores": "OBSERVED_SYSTEM_CALL",
                 "platform": "OBSERVED_SYSTEM_CALL",
-                "accelerators": "ESTIMATED_DEVICE_CATALOG",
+                "accelerators": accel_prov,
                 "bus_pressure": "SYNTHETIC_HEURISTIC_CONSTANT"
             },
             "overall_provenance": "HYBRID_MEASURED_SYNTHETIC",

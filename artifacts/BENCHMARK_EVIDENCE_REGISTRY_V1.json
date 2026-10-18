@@ -415,5 +415,34 @@
       "artifacts/benchmarks/H04_PHYSICAL_MICROPROBE_EVIDENCE.json",
       "artifacts/benchmarks/H04_ARBITRATION_REPORT.md"
     ]
+  },
+  "experiment_e05_cross_environment_replication": {
+    "benchmark_id": "E-05-CROSS-ENVIRONMENT-REPLICATION",
+    "title": "Cross-Environment Runtime Replication (Windows Native vs WSL2 Linux)",
+    "status": "APPROVED_FACT",
+    "measurement_class": "LOCAL-PHYSICAL-HARDWARE-MEASURED",
+    "arbitration_verdict": "GENERALIZABLE_RUNTIME_CANDIDATE",
+    "target_hardware": "Intel Core i5-1135G7 (AVX-512 VNNI, 4C/8T) + Intel Iris Xe Graphics (80 EUs Gen12 Xe-LP)",
+    "environments_evaluated": [
+      "Windows 11 Native (NT 10.0.26100, Win32 API, OpenVINO 2026.4.1, CPU+GPU Level Zero)",
+      "WSL2 Linux (Ubuntu 26.04 LTS, Kernel 6.18.33.2-microsoft-standard-WSL2, glibc, OpenVINO 2026.4.1, CPU AVX-512)"
+    ],
+    "model_evaluated": "google/gemma-3-4b-it (4.0B, INT4)",
+    "raw_windows_agreement": 0.25,
+    "feasible_optimality_agreement": 1.0,
+    "adaptation_cost_delta_j_wsl": -0.7867,
+    "static_naive_policy_cost_j": 2.0000,
+    "adaptive_planner_cost_j": 1.2133,
+    "wsl2_cpu_mean_handoff_us": 0.2818,
+    "zero_simulation_verified": true,
+    "vital_max_hp": 6,
+    "delta_s": 0,
+    "artifacts": [
+      "artifacts/benchmarks/H05_CROSS_ENVIRONMENT_REPLICATION_SPEC.md",
+      "artifacts/benchmarks/H05_CROSS_ENVIRONMENT_SURFACE.csv",
+      "artifacts/benchmarks/H05_CROSS_ENVIRONMENT_EVIDENCE.json",
+      "artifacts/benchmarks/H05_ARBITRATION_REPORT.md"
+    ]
   }
 }
+
