@@ -37,6 +37,7 @@ class WorkloadType(str, enum.Enum):
     INFERENCE = "INFERENCE"
     RENDER = "RENDER"
     SYSTEM = "SYSTEM"
+    RESEARCH = "RESEARCH"
 
 
 class ExecutionLane(str, enum.Enum):
@@ -53,6 +54,9 @@ class AepVerdict(str, enum.Enum):
     DISCARDED_INVARIANT_VIOLATION = "DISCARDED_INVARIANT_VIOLATION"
     DISCARDED_BACKPRESSURE_REJECTED = "DISCARDED_BACKPRESSURE_REJECTED"
     DISCARDED_CONTRACT_INVALID = "DISCARDED_CONTRACT_INVALID"
+    DISCARDED_THERMAL_PARASITE = "DISCARDED_THERMAL_PARASITE"
+    DISCARDED_CAUSAL_DAMPENED = "DISCARDED_CAUSAL_DAMPENED"
+    DISCARDED_VBLANK_OVERRUN = "DISCARDED_VBLANK_OVERRUN"
 
 
 @dataclass(frozen=True)
@@ -76,10 +80,11 @@ class AepReceipt:
     bus_pressure: float        # Normalized pressure [0.0, 1.0]
     deadline_slack_us: int
     verdict: AepVerdict
+    plea_telemetry: Optional[Dict[str, Any]] = None
     timestamp_ns: int = field(default_factory=time.time_ns)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        d: Dict[str, Any] = {
             "operation_id": self.operation_id,
             "runtime_id": self.runtime_id,
             "workload": self.workload.value,
@@ -103,6 +108,9 @@ class AepReceipt:
             "verdict": self.verdict.value,
             "timestamp_ns": self.timestamp_ns,
         }
+        if self.plea_telemetry is not None:
+            d["plea"] = self.plea_telemetry
+        return d
 
     def to_json(self, indent: int = 2) -> str:
         return json.dumps(self.to_dict(), indent=indent)
@@ -134,6 +142,10 @@ class VitalHpInvariantRule(InvariantRule):
     def evaluate(self, candidate_state: Any) -> Tuple[bool, str]:
         hp_vals = []
         if isinstance(candidate_state, dict):
+            if "vital_hp" in candidate_state:
+                hp_vals.append(candidate_state["vital_hp"])
+            if "vital_max_hp" in candidate_state:
+                hp_vals.append(candidate_state["vital_max_hp"])
             if "player_hp" in candidate_state:
                 hp_vals.append(candidate_state["player_hp"])
             if "opponent_hp" in candidate_state:

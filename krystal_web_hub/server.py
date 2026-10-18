@@ -1500,6 +1500,69 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json(GLOBAL_OPENVINO_AEP_RUNTIME.run_benchmark())
             return
 
+        # ── API: Sovereign PLEA-AEP Telemetry ──────────────────────
+        elif norm_path in ("/api/plea/status", "/api/plea/telemetry"):
+            from krystal_kernel.sovereign_subsystems_registry import GLOBAL_AEP_PLEA_ENGINE
+            self.send_json({
+                "status": "ONLINE",
+                "engine": "AepPleaIntegratedEngine",
+                "vital_max_hp": 6,
+                "current_momentum": GLOBAL_AEP_PLEA_ENGINE.inertia_damper.current_momentum,
+                "active_meters_count": len(GLOBAL_AEP_PLEA_ENGINE.calorimeter.meters),
+            })
+            return
+
+        # ── API: Vulkan-OpenVINO USM Tensor Bridge Registry ─────────
+        elif norm_path in ("/api/vulkan_usm/status", "/api/usm/status"):
+            from krystal_kernel.sovereign_subsystems_registry import GLOBAL_VULKAN_USM_BRIDGE
+            bufs = [
+                {
+                    "buffer_id": d.buffer_id,
+                    "address_hex": hex(d.virtual_address),
+                    "size_bytes": d.size_bytes,
+                    "width": d.width,
+                    "height": d.height,
+                    "format": d.format.value,
+                    "usm_type": d.usm_type.value,
+                }
+                for d in GLOBAL_VULKAN_USM_BRIDGE.registered_buffers.values()
+            ]
+            self.send_json({
+                "status": "ONLINE",
+                "bridge": "VulkanOpenVinoUsmBridge",
+                "registered_buffers": bufs,
+                "vital_max_hp": 6,
+            })
+            return
+
+        # ── API: Double-Entry Economy Ledger & Wallets ─────────────
+        elif norm_path in ("/api/economy/ledger", "/api/economy/status"):
+            from krystal_kernel.sovereign_subsystems_registry import GLOBAL_AEP_ECONOMY_PROCESSOR
+            self.send_json({
+                "status": "ONLINE",
+                "engine": "AepEconomyProcessor",
+                "merkle_root": GLOBAL_AEP_ECONOMY_PROCESSOR.ledger.compute_merkle_root(),
+                "wallets": {
+                    acc_id: w.to_dict()
+                    for acc_id, w in GLOBAL_AEP_ECONOMY_PROCESSOR.ledger.wallets.items()
+                },
+                "recipes": list(GLOBAL_AEP_ECONOMY_PROCESSOR.recipes.keys()),
+                "vital_max_hp": 6,
+            })
+            return
+
+        # ── API: Autonomous Causal Research Status ─────────────────
+        elif norm_path in ("/api/research/status", "/api/research/telemetry"):
+            from krystal_kernel.sovereign_subsystems_registry import GLOBAL_AEP_RESEARCH_ACTUATOR
+            self.send_json({
+                "status": "ONLINE",
+                "actuator": "AepResearchActuator",
+                "tuning_state": GLOBAL_AEP_RESEARCH_ACTUATOR.system_tuning_state,
+                "receipts_count": len(GLOBAL_AEP_RESEARCH_ACTUATOR.receipts),
+                "vital_max_hp": 6,
+            })
+            return
+
         elif norm_path in ("/api/intel/enterprise_status", "/api/intel/status"):
             from krystal_kernel.intel_enterprise_performance_suite import GLOBAL_INTEL_ENTERPRISE_SUITE
             self.send_json(GLOBAL_INTEL_ENTERPRISE_SUITE.apply_optimizations().to_dict())
@@ -5908,6 +5971,204 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 enable_kv_u8=kv_u8
             )
             self.send_json(cfg)
+            return
+
+        # ── API: Sovereign PLEA-AEP Action Evaluation ─────────────
+        elif self.path in ("/api/plea/evaluate", "/api/plea/transition"):
+            from krystal_kernel.sovereign_subsystems_registry import GLOBAL_AEP_PLEA_ENGINE
+            from krystal_kernel.aep_engine import WorkloadType
+            from krystal_kernel.aep_plea_integrated_engine import PleaExecutionEnvelope
+            from krystal_kernel.epistemic_enlg_compiler import EnlgEvidenceClass, EnlgRole
+
+            action_name = data.get("action", "EVALUATE_HYPOTHESIS")
+            runtime_id = data.get("runtime_id", "rt-plea-eval-01")
+            workload_str = data.get("workload", "RESEARCH")
+            try:
+                workload = WorkloadType(workload_str)
+            except Exception:
+                workload = WorkloadType.RESEARCH
+
+            payload = data.get("payload", {})
+            current_state = data.get("current_state", {"status": "INITIAL", "vital_max_hp": 6})
+            delta_state = data.get("delta_state", {"status": "MUTATED", "vital_max_hp": 6})
+
+            def custom_transition(s, p):
+                res = dict(s)
+                res.update(delta_state)
+                res["vital_max_hp"] = 6
+                return res
+
+            envelope = PleaExecutionEnvelope(
+                require_vblank_shadow=bool(data.get("require_vblank_shadow", False)),
+                proposal_evidence=EnlgEvidenceClass.PHYSICAL_MEASURED,
+                proposal_role=EnlgRole.EXECUTOR,
+                expected_entropy_reduction=float(data.get("expected_entropy_reduction", 1.0)),
+                uma_bytes_estimated=int(data.get("uma_bytes_estimated", 1024)),
+            )
+
+            res = GLOBAL_AEP_PLEA_ENGINE.execute_plea_transition(
+                runtime_id=runtime_id,
+                workload=workload,
+                action=action_name,
+                current_state=current_state,
+                transition_fn=custom_transition,
+                action_payload=payload,
+                envelope=envelope,
+            )
+            self.send_json({
+                "status": "SUCCESS" if res.committed else "REJECTED",
+                "committed": res.committed,
+                "message": res.message,
+                "state": res.state,
+                "receipt": res.receipt.to_dict() if hasattr(res.receipt, "to_dict") else vars(res.receipt),
+                "vital_max_hp": 6,
+            })
+            return
+
+        # ── API: Vulkan-OpenVINO USM Neural Super-Sampling ──────────
+        elif self.path in ("/api/vulkan_usm/reconstruct", "/api/usm/reconstruct"):
+            from krystal_kernel.sovereign_subsystems_registry import GLOBAL_VULKAN_USM_BRIDGE
+            in_buf = data.get("input_buffer_id", "viewport_540p")
+            out_buf = data.get("output_buffer_id", "target_1080p")
+            bus_pressure = float(data.get("bus_pressure", 0.15))
+            frame_time_ms = float(data.get("frame_time_ms", 8.33))
+
+            if in_buf not in GLOBAL_VULKAN_USM_BRIDGE.registered_buffers:
+                GLOBAL_VULKAN_USM_BRIDGE.allocate_shared_tensor_buffer(in_buf, 960, 540)
+            if out_buf not in GLOBAL_VULKAN_USM_BRIDGE.registered_buffers:
+                GLOBAL_VULKAN_USM_BRIDGE.allocate_shared_tensor_buffer(out_buf, 1920, 1080)
+
+            committed, receipt, details = GLOBAL_VULKAN_USM_BRIDGE.execute_zero_copy_reconstruction(
+                input_buffer_id=in_buf,
+                output_buffer_id=out_buf,
+                current_bus_pressure=bus_pressure,
+                measured_frame_time_ms=frame_time_ms,
+            )
+            self.send_json({
+                "status": "COMMITTED" if committed else "REJECTED",
+                "committed": committed,
+                "receipt": receipt.to_dict() if hasattr(receipt, "to_dict") else vars(receipt),
+                "details": details,
+                "vital_max_hp": 6,
+            })
+            return
+
+        # ── API: Double-Entry Economy Asset Transfer ───────────────
+        elif self.path in ("/api/economy/transfer", "/api/economy/send"):
+            from krystal_kernel.sovereign_subsystems_registry import GLOBAL_AEP_ECONOMY_PROCESSOR
+            src = data.get("from_account", "alice")
+            dst = data.get("to_account", "miner_bob")
+            asset = data.get("asset", "CREDIT")
+            amount = float(data.get("amount", 10.0))
+            fee = float(data.get("system_fee", 0.1))
+            bus_pressure = float(data.get("bus_pressure", 0.10))
+
+            res = GLOBAL_AEP_ECONOMY_PROCESSOR.transfer(
+                from_account=src,
+                to_account=dst,
+                asset=asset,
+                amount=amount,
+                system_fee=fee,
+                current_bus_pressure=bus_pressure,
+            )
+            self.send_json({
+                "status": "COMMITTED" if res.committed else "REJECTED",
+                "committed": res.committed,
+                "message": res.message,
+                "merkle_root": GLOBAL_AEP_ECONOMY_PROCESSOR.ledger.compute_merkle_root(),
+                "receipt": res.receipt.to_dict() if hasattr(res.receipt, "to_dict") else vars(res.receipt),
+                "vital_max_hp": 6,
+            })
+            return
+
+        # ── API: Double-Entry Economy Stoichiometric Crafting ──────
+        elif self.path in ("/api/economy/craft", "/api/economy/synthesize"):
+            from krystal_kernel.sovereign_subsystems_registry import GLOBAL_AEP_ECONOMY_PROCESSOR
+            crafter = data.get("account_id", "miner_bob")
+            recipe_id = data.get("recipe_id", "recipe-alloy-synthesis")
+            bus_pressure = float(data.get("bus_pressure", 0.10))
+
+            res = GLOBAL_AEP_ECONOMY_PROCESSOR.craft(
+                account_id=crafter,
+                recipe_id=recipe_id,
+                current_bus_pressure=bus_pressure,
+            )
+            self.send_json({
+                "status": "COMMITTED" if res.committed else "REJECTED",
+                "committed": res.committed,
+                "message": res.message,
+                "merkle_root": GLOBAL_AEP_ECONOMY_PROCESSOR.ledger.compute_merkle_root(),
+                "receipt": res.receipt.to_dict() if hasattr(res.receipt, "to_dict") else vars(res.receipt),
+                "vital_max_hp": 6,
+            })
+            return
+
+        # ── API: Autonomous Closed-Loop Research Experiment ────────
+        elif self.path in ("/api/research/experiment", "/api/research/conduct"):
+            from krystal_kernel.sovereign_subsystems_registry import GLOBAL_AEP_RESEARCH_ACTUATOR
+            from krystal_kernel.aep_research_actuator import ResearchHypothesisSpec
+            from krystal_kernel.causal_research_orchestrator import MetricObjective
+
+            target_param = data.get("target_parameter", "pl1_power_watts")
+            baseline_val = float(GLOBAL_AEP_RESEARCH_ACTUATOR.system_tuning_state.get(target_param, 28.0))
+            candidate_val = float(data.get("candidate_value", 32.0))
+            obj_str = data.get("objective", "MINIMIZE")
+            obj = MetricObjective.MINIMIZE if obj_str == "MINIMIZE" else MetricObjective.MAXIMIZE
+
+            spec = ResearchHypothesisSpec(
+                hypothesis_id=data.get("hypothesis_id", f"hyp-{target_param}"),
+                target_parameter=target_param,
+                baseline_value=baseline_val,
+                candidate_value=candidate_val,
+                metric_name=data.get("metric_name", "p99_latency_us"),
+                objective=obj,
+                min_improvement_delta=float(data.get("min_improvement_delta", 1.0)),
+            )
+
+            simulated_gain = float(data.get("simulated_gain", 5.0))
+            force_commit = bool(data.get("force_commit", True))
+            measured_base = float(data.get("simulated_baseline_metric", 100.0))
+            if force_commit:
+                measured_post = measured_base - simulated_gain if obj == MetricObjective.MINIMIZE else measured_base + simulated_gain
+            else:
+                measured_post = measured_base
+
+            applied_tracker = {"is_actuated": False, "val": baseline_val}
+            def act_fn(val):
+                applied_tracker["is_actuated"] = True
+                applied_tracker["val"] = val
+
+            def meas_fn():
+                return measured_post if applied_tracker["is_actuated"] else measured_base
+
+            def roll_fn(val):
+                applied_tracker["is_actuated"] = False
+                applied_tracker["val"] = val
+
+            committed, causal_rcpt, aep_rcpt = GLOBAL_AEP_RESEARCH_ACTUATOR.execute_research_experiment(
+                spec=spec,
+                actuation_fn=act_fn,
+                measurement_fn=meas_fn,
+                rollback_fn=roll_fn,
+                require_vblank=bool(data.get("require_vblank", False)),
+            )
+
+            self.send_json({
+                "status": "COMMITTED" if committed else "ROLLED_BACK",
+                "committed": committed,
+                "causal_receipt": {
+                    "experiment_id": causal_rcpt.experiment_id,
+                    "state": causal_rcpt.state.name,
+                    "baseline_hex": causal_rcpt.baseline_hex,
+                    "post_hex": causal_rcpt.post_hex,
+                    "committed": causal_rcpt.committed,
+                    "origin_hmac": causal_rcpt.origin_hmac,
+                    "vital_hp": causal_rcpt.vital_hp,
+                },
+                "aep_receipt": aep_rcpt.to_dict() if hasattr(aep_rcpt, "to_dict") else vars(aep_rcpt),
+                "tuning_state": GLOBAL_AEP_RESEARCH_ACTUATOR.system_tuning_state,
+                "vital_max_hp": 6,
+            })
             return
 
         elif self.path in ("/api/intel/tune", "/api/intel/policy"):
