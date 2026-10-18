@@ -158,3 +158,19 @@ def test_post_research_experiment_rollback():
     # Value must remain unmutated (Delta S == 0)
     assert res["tuning_state"]["pl1_power_watts"] == 30.0
     assert res["vital_max_hp"] == VITAL_MAX_HP
+
+
+def test_get_sovereign_benchmark_latest():
+    res = make_request("/api/benchmark/sovereign")
+    assert res["suite"] == "SOVEREIGN_FABRIC_EFFICIENCY_BENCHMARK"
+    assert res["vital_max_hp"] == VITAL_MAX_HP
+    assert "summary" in res
+    assert res["summary"]["usm_latency_speedup_factor"] > 1.0
+
+
+def test_post_run_sovereign_benchmark():
+    res = make_request("/api/benchmark/sovereign", {"scale": 1})
+    assert res["suite"] == "SOVEREIGN_FABRIC_EFFICIENCY_BENCHMARK"
+    assert res["vital_max_hp"] == VITAL_MAX_HP
+    assert res["summary"]["economy_sustained_tps"] > 500.0
+    assert res["summary"]["delta_s_zero_verified"] is True

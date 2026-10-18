@@ -1500,6 +1500,16 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json(GLOBAL_OPENVINO_AEP_RUNTIME.run_benchmark())
             return
 
+        elif norm_path in ("/api/benchmark/sovereign", "/api/benchmark/sovereign/latest"):
+            artifacts_path = os.path.join(WORKSPACE_ROOT, "artifacts", "SOVEREIGN_EFFICIENCY_BENCHMARK_LATEST.json")
+            if os.path.exists(artifacts_path):
+                with open(artifacts_path, "r", encoding="utf-8") as f:
+                    self.send_json(json.load(f))
+            else:
+                from scripts.benchmark_sovereign_efficiency import run_sovereign_efficiency_benchmark
+                self.send_json(run_sovereign_efficiency_benchmark(iterations_scale=1))
+            return
+
         # ── API: Sovereign PLEA-AEP Telemetry ──────────────────────
         elif norm_path in ("/api/plea/status", "/api/plea/telemetry"):
             from krystal_kernel.sovereign_subsystems_registry import GLOBAL_AEP_PLEA_ENGINE
@@ -6169,6 +6179,14 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "tuning_state": GLOBAL_AEP_RESEARCH_ACTUATOR.system_tuning_state,
                 "vital_max_hp": 6,
             })
+            return
+
+        # ── API: Sovereign Subsystems Unified Efficiency Benchmark ─
+        elif self.path in ("/api/benchmark/sovereign", "/api/benchmark/run_sovereign"):
+            from scripts.benchmark_sovereign_efficiency import run_sovereign_efficiency_benchmark
+            scale = int(data.get("scale", 1))
+            res = run_sovereign_efficiency_benchmark(iterations_scale=scale)
+            self.send_json(res)
             return
 
         elif self.path in ("/api/intel/tune", "/api/intel/policy"):
