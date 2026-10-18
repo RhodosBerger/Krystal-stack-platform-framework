@@ -1,0 +1,453 @@
+{
+  "benchmark_id": "BENCH-LLM-1792336639",
+  "timestamp_iso": "2026-10-18T15:17:19Z",
+  "hardware_environment": {
+    "cpu": "Intel Core i5-1135G7 @ 2.40GHz (Tiger Lake, 4C/8T)",
+    "gpu": "Intel Iris Xe Graphics (80/96 EU)",
+    "total_ram_gb": 23.7,
+    "openvino_devices": [
+      "CPU",
+      "GPU"
+    ]
+  },
+  "static_baseline": {
+    "governor_mode": "STATIC_BASELINE",
+    "active_model": "slovak-nlp/Qwen3-14B-sk",
+    "quantization": "Q4_K_M",
+    "license": "Apache-2.0",
+    "vital_max_hp": 6,
+    "pressures": {
+      "bus_pressure_0.15": {
+        "bus_pressure": 0.15,
+        "trials": 15,
+        "committed": 15,
+        "rejected": 0,
+        "rejection_rate": 0.0,
+        "ttft_us_stats": {
+          "n": 15,
+          "mean": 5348.93,
+          "median": 5278.0,
+          "stddev": 257.55,
+          "p95": 6092.0,
+          "p99": 6092.0
+        },
+        "tpot_us_stats": {
+          "n": 15,
+          "mean": 7470.0,
+          "median": 7470.0,
+          "stddev": 0.0,
+          "p95": 7470.0,
+          "p99": 7470.0
+        },
+        "exec_us_stats": {
+          "n": 15,
+          "mean": 5458.67,
+          "median": 5373.0,
+          "stddev": 256.12,
+          "p95": 6173.0,
+          "p99": 6173.0
+        },
+        "tokens_stats": {
+          "n": 15,
+          "mean": 19.0,
+          "median": 19.0,
+          "stddev": 0.0,
+          "p95": 19.0,
+          "p99": 19.0
+        },
+        "tps_stats": {
+          "n": 15,
+          "mean": 3487.46,
+          "median": 3536.2,
+          "stddev": 154.63,
+          "p95": 3682.17,
+          "p99": 3682.17
+        },
+        "epistemic_evidence": [
+          "// [PHYSICAL-LOCAL-TIMING]: microsecond perf_counter_ns execution",
+          "// [MODEL-ESTIMATED]: Qwen3-14B-sk calibrated token emission",
+          "// [POLICY-VERIFIED]: AEP transactional zero-dirty invariant gate"
+        ]
+      },
+      "bus_pressure_0.50": {
+        "bus_pressure": 0.5,
+        "trials": 15,
+        "committed": 15,
+        "rejected": 0,
+        "rejection_rate": 0.0,
+        "ttft_us_stats": {
+          "n": 15,
+          "mean": 5393.27,
+          "median": 5321.0,
+          "stddev": 334.42,
+          "p95": 6525.0,
+          "p99": 6525.0
+        },
+        "tpot_us_stats": {
+          "n": 15,
+          "mean": 7470.0,
+          "median": 7470.0,
+          "stddev": 0.0,
+          "p95": 7470.0,
+          "p99": 7470.0
+        },
+        "exec_us_stats": {
+          "n": 15,
+          "mean": 5498.47,
+          "median": 5441.0,
+          "stddev": 352.59,
+          "p95": 6678.0,
+          "p99": 6678.0
+        },
+        "tokens_stats": {
+          "n": 15,
+          "mean": 19.0,
+          "median": 19.0,
+          "stddev": 0.0,
+          "p95": 19.0,
+          "p99": 19.0
+        },
+        "tps_stats": {
+          "n": 15,
+          "mean": 3467.0,
+          "median": 3492.01,
+          "stddev": 192.56,
+          "p95": 3692.91,
+          "p99": 3692.91
+        },
+        "epistemic_evidence": [
+          "// [PHYSICAL-LOCAL-TIMING]: microsecond perf_counter_ns execution",
+          "// [MODEL-ESTIMATED]: Qwen3-14B-sk calibrated token emission",
+          "// [POLICY-VERIFIED]: AEP transactional zero-dirty invariant gate"
+        ]
+      },
+      "bus_pressure_0.75": {
+        "bus_pressure": 0.75,
+        "trials": 15,
+        "committed": 15,
+        "rejected": 0,
+        "rejection_rate": 0.0,
+        "ttft_us_stats": {
+          "n": 15,
+          "mean": 5354.6,
+          "median": 5351.0,
+          "stddev": 211.71,
+          "p95": 5764.0,
+          "p99": 5764.0
+        },
+        "tpot_us_stats": {
+          "n": 15,
+          "mean": 7470.0,
+          "median": 7470.0,
+          "stddev": 0.0,
+          "p95": 7470.0,
+          "p99": 7470.0
+        },
+        "exec_us_stats": {
+          "n": 15,
+          "mean": 5447.4,
+          "median": 5447.0,
+          "stddev": 212.36,
+          "p95": 5840.0,
+          "p99": 5840.0
+        },
+        "tokens_stats": {
+          "n": 15,
+          "mean": 19.0,
+          "median": 19.0,
+          "stddev": 0.0,
+          "p95": 19.0,
+          "p99": 19.0
+        },
+        "tps_stats": {
+          "n": 15,
+          "mean": 3492.8,
+          "median": 3488.16,
+          "stddev": 134.83,
+          "p95": 3678.61,
+          "p99": 3678.61
+        },
+        "epistemic_evidence": [
+          "// [PHYSICAL-LOCAL-TIMING]: microsecond perf_counter_ns execution",
+          "// [MODEL-ESTIMATED]: Qwen3-14B-sk calibrated token emission",
+          "// [POLICY-VERIFIED]: AEP transactional zero-dirty invariant gate"
+        ]
+      },
+      "bus_pressure_0.90": {
+        "bus_pressure": 0.9,
+        "trials": 15,
+        "committed": 0,
+        "rejected": 15,
+        "rejection_rate": 1.0,
+        "ttft_us_stats": {
+          "n": 0,
+          "mean": 0.0,
+          "median": 0.0,
+          "stddev": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "tpot_us_stats": {
+          "n": 0,
+          "mean": 0.0,
+          "median": 0.0,
+          "stddev": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "exec_us_stats": {
+          "n": 0,
+          "mean": 0.0,
+          "median": 0.0,
+          "stddev": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "tokens_stats": {
+          "n": 0,
+          "mean": 0.0,
+          "median": 0.0,
+          "stddev": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "tps_stats": {
+          "n": 0,
+          "mean": 0.0,
+          "median": 0.0,
+          "stddev": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "epistemic_evidence": [
+          "// [PHYSICAL-LOCAL-TIMING]: microsecond perf_counter_ns execution",
+          "// [MODEL-ESTIMATED]: Qwen3-14B-sk calibrated token emission",
+          "// [POLICY-VERIFIED]: AEP transactional zero-dirty invariant gate"
+        ]
+      }
+    }
+  },
+  "adaptive_governor": {
+    "governor_mode": "ADAPTIVE_GOVERNOR",
+    "active_model": "slovak-nlp/Qwen3-14B-sk",
+    "quantization": "Q4_K_M",
+    "license": "Apache-2.0",
+    "vital_max_hp": 6,
+    "pressures": {
+      "bus_pressure_0.15": {
+        "bus_pressure": 0.15,
+        "trials": 15,
+        "committed": 15,
+        "rejected": 0,
+        "rejection_rate": 0.0,
+        "ttft_us_stats": {
+          "n": 15,
+          "mean": 5434.27,
+          "median": 5461.0,
+          "stddev": 176.34,
+          "p95": 5735.0,
+          "p99": 5735.0
+        },
+        "tpot_us_stats": {
+          "n": 15,
+          "mean": 7470.0,
+          "median": 7470.0,
+          "stddev": 0.0,
+          "p95": 7470.0,
+          "p99": 7470.0
+        },
+        "exec_us_stats": {
+          "n": 15,
+          "mean": 5526.27,
+          "median": 5540.0,
+          "stddev": 179.05,
+          "p95": 5829.0,
+          "p99": 5829.0
+        },
+        "tokens_stats": {
+          "n": 15,
+          "mean": 19.0,
+          "median": 19.0,
+          "stddev": 0.0,
+          "p95": 19.0,
+          "p99": 19.0
+        },
+        "tps_stats": {
+          "n": 15,
+          "mean": 3441.5,
+          "median": 3429.6,
+          "stddev": 111.8,
+          "p95": 3633.58,
+          "p99": 3633.58
+        },
+        "epistemic_evidence": [
+          "// [PHYSICAL-LOCAL-TIMING]: microsecond perf_counter_ns execution",
+          "// [MODEL-ESTIMATED]: Qwen3-14B-sk calibrated token emission",
+          "// [POLICY-VERIFIED]: AEP transactional zero-dirty invariant gate"
+        ]
+      },
+      "bus_pressure_0.50": {
+        "bus_pressure": 0.5,
+        "trials": 15,
+        "committed": 15,
+        "rejected": 0,
+        "rejection_rate": 0.0,
+        "ttft_us_stats": {
+          "n": 15,
+          "mean": 5373.87,
+          "median": 5352.0,
+          "stddev": 201.39,
+          "p95": 5739.0,
+          "p99": 5739.0
+        },
+        "tpot_us_stats": {
+          "n": 15,
+          "mean": 7470.0,
+          "median": 7470.0,
+          "stddev": 0.0,
+          "p95": 7470.0,
+          "p99": 7470.0
+        },
+        "exec_us_stats": {
+          "n": 15,
+          "mean": 5468.27,
+          "median": 5460.0,
+          "stddev": 194.51,
+          "p95": 5806.0,
+          "p99": 5806.0
+        },
+        "tokens_stats": {
+          "n": 15,
+          "mean": 19.0,
+          "median": 19.0,
+          "stddev": 0.0,
+          "p95": 19.0,
+          "p99": 19.0
+        },
+        "tps_stats": {
+          "n": 15,
+          "mean": 3478.69,
+          "median": 3479.85,
+          "stddev": 123.49,
+          "p95": 3670.79,
+          "p99": 3670.79
+        },
+        "epistemic_evidence": [
+          "// [PHYSICAL-LOCAL-TIMING]: microsecond perf_counter_ns execution",
+          "// [MODEL-ESTIMATED]: Qwen3-14B-sk calibrated token emission",
+          "// [POLICY-VERIFIED]: AEP transactional zero-dirty invariant gate"
+        ]
+      },
+      "bus_pressure_0.75": {
+        "bus_pressure": 0.75,
+        "trials": 15,
+        "committed": 15,
+        "rejected": 0,
+        "rejection_rate": 0.0,
+        "ttft_us_stats": {
+          "n": 15,
+          "mean": 5416.67,
+          "median": 5427.0,
+          "stddev": 114.38,
+          "p95": 5603.0,
+          "p99": 5603.0
+        },
+        "tpot_us_stats": {
+          "n": 15,
+          "mean": 12450.0,
+          "median": 12450.0,
+          "stddev": 0.0,
+          "p95": 12450.0,
+          "p99": 12450.0
+        },
+        "exec_us_stats": {
+          "n": 15,
+          "mean": 5497.8,
+          "median": 5494.0,
+          "stddev": 110.26,
+          "p95": 5711.0,
+          "p99": 5711.0
+        },
+        "tokens_stats": {
+          "n": 15,
+          "mean": 19.0,
+          "median": 19.0,
+          "stddev": 0.0,
+          "p95": 19.0,
+          "p99": 19.0
+        },
+        "tps_stats": {
+          "n": 15,
+          "mean": 3457.23,
+          "median": 3458.32,
+          "stddev": 69.34,
+          "p95": 3586.26,
+          "p99": 3586.26
+        },
+        "epistemic_evidence": [
+          "// [PHYSICAL-LOCAL-TIMING]: microsecond perf_counter_ns execution",
+          "// [MODEL-ESTIMATED]: Qwen3-14B-sk calibrated token emission",
+          "// [POLICY-VERIFIED]: AEP transactional zero-dirty invariant gate"
+        ]
+      },
+      "bus_pressure_0.90": {
+        "bus_pressure": 0.9,
+        "trials": 15,
+        "committed": 0,
+        "rejected": 15,
+        "rejection_rate": 1.0,
+        "ttft_us_stats": {
+          "n": 0,
+          "mean": 0.0,
+          "median": 0.0,
+          "stddev": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "tpot_us_stats": {
+          "n": 0,
+          "mean": 0.0,
+          "median": 0.0,
+          "stddev": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "exec_us_stats": {
+          "n": 0,
+          "mean": 0.0,
+          "median": 0.0,
+          "stddev": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "tokens_stats": {
+          "n": 0,
+          "mean": 0.0,
+          "median": 0.0,
+          "stddev": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "tps_stats": {
+          "n": 0,
+          "mean": 0.0,
+          "median": 0.0,
+          "stddev": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "epistemic_evidence": [
+          "// [PHYSICAL-LOCAL-TIMING]: microsecond perf_counter_ns execution",
+          "// [MODEL-ESTIMATED]: Qwen3-14B-sk calibrated token emission",
+          "// [POLICY-VERIFIED]: AEP transactional zero-dirty invariant gate"
+        ]
+      }
+    }
+  },
+  "epistemic_tags": [
+    "// [PHYSICAL-LOCAL-TIMING]",
+    "// [MODEL-ESTIMATED]",
+    "// [POLICY-VERIFIED]",
+    "// [HARDWARE-MEASURED]"
+  ]
+}

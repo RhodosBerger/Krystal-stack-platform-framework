@@ -82,6 +82,7 @@ class AepReceipt:
     verdict: AepVerdict
     plea_telemetry: Optional[Dict[str, Any]] = None
     routing: Optional[Dict[str, Any]] = None
+    inference_telemetry: Optional[Dict[str, Any]] = None
     timestamp_ns: int = field(default_factory=time.time_ns)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -117,6 +118,8 @@ class AepReceipt:
             d["telemetry"]["actual_device"] = self.routing.get("actual_device")
             if self.routing.get("fallback_reason") is not None:
                 d["telemetry"]["fallback_reason"] = self.routing.get("fallback_reason")
+        if self.inference_telemetry is not None:
+            d["inference"] = self.inference_telemetry
         return d
 
     def to_json(self, indent: int = 2) -> str:
@@ -370,6 +373,13 @@ class AepTransactionalEngine:
                 "fallback_reason": candidate_state.get("fallback_reason"),
             }
 
+        # Determine inference telemetry from candidate state or action payload if present
+        inference_info: Optional[Dict[str, Any]] = None
+        if isinstance(candidate_state, dict) and "inference_telemetry" in candidate_state:
+            inference_info = candidate_state["inference_telemetry"]
+        elif isinstance(action_payload, dict) and "inference_telemetry" in action_payload:
+            inference_info = action_payload["inference_telemetry"]
+
         receipt = AepReceipt(
             operation_id=op_id,
             runtime_id=runtime_id,
@@ -387,6 +397,7 @@ class AepTransactionalEngine:
             deadline_slack_us=max(0, deadline_budget_us - t_exec_us),
             verdict=AepVerdict.COMMITTED,
             routing=routing_info,
+            inference_telemetry=inference_info,
         )
         self.receipt_ledger.append(receipt)
 
