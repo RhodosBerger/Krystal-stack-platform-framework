@@ -173,11 +173,19 @@ class SlovakLLMAdapter:
     Runs genuine physical tensor forward passes via compiled OpenVINO weights.
     """
 
-    def __init__(self, model_spec: Optional[ModelSpec] = None, target_device: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        model_spec: Optional[ModelSpec] = None,
+        target_device: Optional[str] = None,
+        cpu_config: Optional[Dict[str, Any]] = None,
+        enforce_headroom: bool = False,
+    ) -> None:
         self.model_spec = model_spec or ModelSpec()
         if target_device:
             self.model_spec.target_device = target_device
         self.target_device = (self.model_spec.target_device or "CPU").upper()
+        self.cpu_config = cpu_config or {}
+        self.enforce_headroom_default = enforce_headroom
         self._openvino_core = None
         self._openvino_available = False
         self._compiled_model = None
@@ -274,7 +282,7 @@ class SlovakLLMAdapter:
 
             t_c0 = time.perf_counter_ns()
             # Dual-compilation to support zero-reload hybrid handoff between phases
-            self._compiled_cpu_model = core.compile_model(ov_model, "CPU")
+            self._compiled_cpu_model = core.compile_model(ov_model, "CPU", self.cpu_config)
             if "GPU" in core.available_devices:
                 self._compiled_gpu_model = core.compile_model(ov_model, "GPU")
             else:
@@ -469,7 +477,7 @@ class SlovakLLMAdapter:
     def execute_inference(
         self,
         request: InferenceRequest,
-        enforce_headroom: bool = True,
+        enforce_headroom: Optional[bool] = None,
         bus_pressure: float = 0.0,
     ) -> InferenceResponse:
         """
@@ -489,6 +497,8 @@ class SlovakLLMAdapter:
 
         # 2. Hardware Memory Check
         req_mb = self.estimate_memory_footprint_mb()
+        if enforce_headroom is None:
+            enforce_headroom = getattr(self, "enforce_headroom_default", False)
         fits, avail_mb, _ = self.check_memory_headroom()
         if enforce_headroom and not fits:
             raise MemoryError(

@@ -444,6 +444,31 @@
       "artifacts/benchmarks/H05_CROSS_ENVIRONMENT_EVIDENCE.json",
       "artifacts/benchmarks/H05_ARBITRATION_REPORT.md"
     ]
+  },
+  "experiment_e06a_cpu_capability_perturbation": {
+    "benchmark_id": "E-06A-CPU-CAPABILITY-PERTURBATION",
+    "title": "Autonomous Policy Re-derivation under CPU Capability Perturbation",
+    "status": "APPROVED_FACT",
+    "measurement_class": "LOCAL-PHYSICAL-HARDWARE-MEASURED",
+    "arbitration_verdict": "AUTONOMOUS_CAPABILITY_DISCOVERY_CONFIRMED",
+    "target_hardware": "Intel Core i5-1135G7 (AVX-512 VNNI) + Intel Iris Xe Graphics (80 EUs Gen12 Xe-LP)",
+    "profiles_evaluated": [
+      "Profile 0: Baseline Desktop (4C/8T unpinned, default OpenVINO threads, fast decode)",
+      "Profile 1: Perturbed Edge (Hard-pinned Core 0, INFERENCE_NUM_THREADS=1, throttled decode)"
+    ],
+    "model_evaluated": "google/gemma-3-4b-it (4.0B, INT4)",
+    "p_star_desktop": 3,
+    "p_star_edge": 1,
+    "topological_policy_shift": "HYBRID (GPU_PREFILL_CPU_DECODE) -> MONOLITHIC (GPU_ONLY)",
+    "governing_crossover_formula": "P*(E) = ceil((Delta tau_dispatch + tau_handoff) / (tau_tok,CPU - tau_tok,GPU))",
+    "zero_hardcoding_verified": true,
+    "vital_max_hp": 6,
+    "delta_s": 0,
+    "artifacts": [
+      "artifacts/benchmarks/H06A_CPU_PERTURBATION_SPEC.md",
+      "artifacts/benchmarks/H06A_PERTURBATION_SURFACE.csv",
+      "artifacts/benchmarks/H06A_PERTURBATION_EVIDENCE.json",
+      "artifacts/benchmarks/H06A_ARBITRATION_REPORT.md"
+    ]
   }
 }
-

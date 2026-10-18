@@ -15,6 +15,7 @@ Constitutional Invariant:
 ==============================================================================
 """
 
+import math
 import uuid
 from dataclasses import dataclass, field, asdict
 from typing import Dict, Any, List, Optional, Set, Tuple
@@ -344,14 +345,6 @@ class CascadePlanner:
         )
         return round(cost_j, 4)
 
-    def select_phase_aware_strategy(
-        self,
-        prompt_tokens: int,
-        est_gen_tokens: int,
-        concurrency: int = 1,
-        host_cpu_load: float = 0.0,
-        target_slo_ms: Optional[float] = None,
-        model_fingerprint: str = "",
     @staticmethod
     def get_feasible_strategies(available_devices: Optional[List[str]] = None) -> List[str]:
         """
@@ -363,6 +356,58 @@ class CascadePlanner:
         if "GPU" in devs:
             feasible.extend(["GPU_ONLY", "GPU_PREFILL_CPU_DECODE", "BATCHED_GPU"])
         return feasible
+
+    def calibrate_hardware_crossover(
+        self,
+        tau_dispatch_cpu_us: float = 0.0,
+        tau_dispatch_gpu_us: float = 380.0,
+        tau_handoff_us: float = 0.894,
+        tau_tok_cpu_prefill_us: float = 8.5,
+        tau_tok_gpu_prefill_us: float = 2.5,
+        tau_tok_cpu_decode_us: Optional[float] = None,
+        tau_tok_gpu_decode_us: Optional[float] = None,
+    ) -> int:
+        """
+        Analytically derives the optimal prefill crossover threshold P*(E) from physical telemetry:
+            P*(E) = ceil( (Delta tau_dispatch + tau_handoff) / (tau_tok_cpu - tau_tok_gpu) )
+        and identifies whether CPU decode is throttled relative to GPU decode.
+        """
+        slope_diff = tau_tok_cpu_prefill_us - tau_tok_gpu_prefill_us
+        if slope_diff <= 0:
+            self._dynamic_crossover_tokens = 999999
+        else:
+            delta_dispatch = max(0.0, tau_dispatch_gpu_us - tau_dispatch_cpu_us)
+            numerator = delta_dispatch + tau_handoff_us
+            p_star = math.ceil(numerator / slope_diff)
+            self._dynamic_crossover_tokens = max(1, p_star)
+
+        self._cpu_decode_throttled = (
+            tau_tok_cpu_decode_us is not None and
+            tau_tok_gpu_decode_us is not None and
+            tau_tok_cpu_decode_us > tau_tok_gpu_decode_us
+        )
+
+        self._last_crossover_calibration = {
+            "tau_dispatch_cpu_us": tau_dispatch_cpu_us,
+            "tau_dispatch_gpu_us": tau_dispatch_gpu_us,
+            "tau_handoff_us": tau_handoff_us,
+            "tau_tok_cpu_prefill_us": tau_tok_cpu_prefill_us,
+            "tau_tok_gpu_prefill_us": tau_tok_gpu_prefill_us,
+            "tau_tok_cpu_decode_us": tau_tok_cpu_decode_us,
+            "tau_tok_gpu_decode_us": tau_tok_gpu_decode_us,
+            "slope_diff": slope_diff,
+            "cpu_decode_throttled": self._cpu_decode_throttled,
+            "derived_p_star": self._dynamic_crossover_tokens,
+        }
+        return self._dynamic_crossover_tokens
+
+    def get_dynamic_crossover_threshold(self) -> int:
+        """Returns the active analytically derived crossover threshold P*(E), defaulting to 64 if uncalibrated."""
+        return getattr(self, "_dynamic_crossover_tokens", 64)
+
+    def is_cpu_decode_throttled(self) -> bool:
+        """Returns True if empirical calibration detected that CPU decode is slower than GPU decode."""
+        return getattr(self, "_cpu_decode_throttled", False)
 
     def select_phase_aware_strategy(
         self,
@@ -397,9 +442,11 @@ class CascadePlanner:
         assert VITAL_MAX_HP == 6, "Invariant VITAL_MAX_HP == 6 must hold"
 
         feasible_set = self.get_feasible_strategies(available_devices)
+        crossover_p = self.get_dynamic_crossover_threshold()
+        cpu_throttled = self.is_cpu_decode_throttled()
 
         # Environmental Physical Constraint Filter: Pi* must belong to F(E)
-        if "GPU_PREFILL_CPU_DECODE" not in feasible_set and "BATCHED_GPU" not in feasible_set:
+        if "GPU_PREFILL_CPU_DECODE" not in feasible_set and "BATCHED_GPU" not in feasible_set and "GPU_ONLY" not in feasible_set:
             chosen = "CPU_ONLY"
             rationale = (
                 f"Feasible set F(E)={feasible_set}: GPU is UNAVAILABLE in this environment; "
@@ -414,15 +461,26 @@ class CascadePlanner:
             if concurrency > 1 and is_throughput_workload and queue_depth >= 2 and "BATCHED_GPU" in feasible_set:
                 chosen = "BATCHED_GPU"
                 rationale = f"Throughput-oriented SLO with concurrency={concurrency} (queue={queue_depth}) amortizes OpenCL dispatch"
-            elif prompt_tokens >= 64 and "GPU_PREFILL_CPU_DECODE" in feasible_set:
-                chosen = "GPU_PREFILL_CPU_DECODE"
-                rationale = f"Prefill tokens {prompt_tokens} >= 64 achieves 2.2x-4.15x GPU speedup with ~12 us UMA handoff to CPU decode"
+            elif prompt_tokens >= crossover_p:
+                if cpu_throttled and "GPU_ONLY" in feasible_set:
+                    chosen = "GPU_ONLY"
+                    rationale = (
+                        f"Prefill tokens {prompt_tokens} >= P*(E)={crossover_p} and CPU decode is throttled "
+                        f"(tau_decode,CPU > tau_decode,GPU); selecting GPU_ONLY to avoid decode bottleneck"
+                    )
+                elif "GPU_PREFILL_CPU_DECODE" in feasible_set:
+                    chosen = "GPU_PREFILL_CPU_DECODE"
+                    rationale = f"Prefill tokens {prompt_tokens} >= dynamic threshold P*(E)={crossover_p} achieves GPU prefill speedup with handoff to fast CPU decode"
+                else:
+                    chosen = "GPU_ONLY" if "GPU_ONLY" in feasible_set else "CPU_ONLY"
+                    rationale = f"Fallback to {chosen} within feasible set F(E)={feasible_set}"
             elif host_cpu_load > 80.0 and "GPU_PREFILL_CPU_DECODE" in feasible_set:
                 chosen = "GPU_PREFILL_CPU_DECODE"
                 rationale = f"Host CPU core saturation ({host_cpu_load:.1f}%) triggers GPU prefill offload to preserve responsiveness"
             else:
                 chosen = "CPU_ONLY"
-                rationale = f"Short prompt ({prompt_tokens} tokens) interactive latency regime: CPU AVX-512 avoids ~380 us OpenCL queue floor"
+                rationale = f"Short prompt ({prompt_tokens} < dynamic threshold {crossover_p}) interactive latency regime: CPU AVX-512 avoids OpenCL queue floor"
+
 
         return {
             "selected_strategy": chosen,
@@ -437,11 +495,13 @@ class CascadePlanner:
                 "model_fingerprint": model_fingerprint,
                 "workload_class": workload_class,
                 "available_devices": available_devices,
+                "dynamic_crossover_threshold": crossover_p,
             },
             "rationale": rationale,
             "vital_max_hp": VITAL_MAX_HP,
             "provenance": "PHASE_AWARE_EMPIRICAL_CONTROLLER"
         }
+
 
 
     @staticmethod

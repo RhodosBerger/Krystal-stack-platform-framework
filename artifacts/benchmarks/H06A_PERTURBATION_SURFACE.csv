@@ -1,0 +1,9 @@
+profile,prompt_tier,prompt_tokens,gen_tokens,derived_p_star,tau_cpu_prefill_us,tau_gpu_prefill_us,tau_cpu_decode_us,tau_gpu_decode_us,cpu_decode_throttled,mean_cpu_only_ms,mean_gpu_only_ms,mean_hybrid_ms,planner_selected,physical_optimal,is_optimal
+Profile_0_Baseline_Desktop,P16_Short,16,16,3,160.354,23.222,6032.244,6011.4,True,96.75,90.53,81.97,GPU_ONLY,GPU_PREFILL_CPU_DECODE,False
+Profile_0_Baseline_Desktop,P32_Intermediate,32,32,3,160.354,23.222,6032.244,6011.4,True,171.86,251.06,163.24,GPU_ONLY,GPU_PREFILL_CPU_DECODE,False
+Profile_0_Baseline_Desktop,P64_Medium,64,32,3,160.354,23.222,6032.244,6011.4,True,176.32,162.8,163.85,GPU_ONLY,GPU_ONLY,True
+Profile_0_Baseline_Desktop,P128_Long,128,32,3,160.354,23.222,6032.244,6011.4,True,147.85,179.94,94.17,GPU_ONLY,GPU_PREFILL_CPU_DECODE,False
+Profile_1_Perturbed_Edge_Constrained,P16_Short,16,16,1,533.618,28.799,6653.667,5927.267,True,134.68,113.32,158.07,GPU_ONLY,GPU_ONLY,True
+Profile_1_Perturbed_Edge_Constrained,P32_Intermediate,32,32,1,533.618,28.799,6653.667,5927.267,True,226.11,187.4,345.18,GPU_ONLY,GPU_ONLY,True
+Profile_1_Perturbed_Edge_Constrained,P64_Medium,64,32,1,533.618,28.799,6653.667,5927.267,True,249.59,159.42,192.74,GPU_ONLY,GPU_ONLY,True
+Profile_1_Perturbed_Edge_Constrained,P128_Long,128,32,1,533.618,28.799,6653.667,5927.267,True,217.42,288.92,150.36,GPU_ONLY,GPU_PREFILL_CPU_DECODE,False

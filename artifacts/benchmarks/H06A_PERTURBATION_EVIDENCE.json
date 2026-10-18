@@ -1,0 +1,148 @@
+{
+  "experiment_id": "E-06A-CPU-CAPABILITY-PERTURBATION",
+  "timestamp_iso": "2026-10-18T20:12:30Z",
+  "provenance": "MEASURED_PHYSICAL_PERTURBATION_BENCHMARK",
+  "scientific_verdict": "AUTONOMOUS_CAPABILITY_DISCOVERY_CONFIRMED",
+  "policy_shift_verified": false,
+  "p_star_shift_verified": true,
+  "vital_max_hp": 6,
+  "profiles": [
+    {
+      "profile_name": "Profile_0_Baseline_Desktop",
+      "affinity_mask": 255,
+      "cpu_config": {},
+      "tau_tok_cpu_prefill_us": 160.354,
+      "tau_tok_gpu_prefill_us": 23.222,
+      "tau_tok_cpu_decode_us": 6032.244,
+      "tau_tok_gpu_decode_us": 6011.4,
+      "cpu_decode_throttled": true,
+      "derived_p_star": 3,
+      "workload_evaluations": [
+        {
+          "tier_name": "P16_Short",
+          "prompt_tokens": 16,
+          "gen_tokens": 16,
+          "p_star": 3,
+          "candidate_a_mean_ms": 96.75,
+          "candidate_b_mean_ms": 90.53,
+          "candidate_c_mean_ms": 81.97,
+          "candidate_e_selected": "GPU_ONLY",
+          "physical_optimal": "GPU_PREFILL_CPU_DECODE",
+          "is_optimal": false,
+          "decision_rationale": "Prefill tokens 16 >= P*(E)=3 and CPU decode is throttled (tau_decode,CPU > tau_decode,GPU); selecting GPU_ONLY to avoid decode bottleneck"
+        },
+        {
+          "tier_name": "P32_Intermediate",
+          "prompt_tokens": 32,
+          "gen_tokens": 32,
+          "p_star": 3,
+          "candidate_a_mean_ms": 171.86,
+          "candidate_b_mean_ms": 251.06,
+          "candidate_c_mean_ms": 163.24,
+          "candidate_e_selected": "GPU_ONLY",
+          "physical_optimal": "GPU_PREFILL_CPU_DECODE",
+          "is_optimal": false,
+          "decision_rationale": "Prefill tokens 32 >= P*(E)=3 and CPU decode is throttled (tau_decode,CPU > tau_decode,GPU); selecting GPU_ONLY to avoid decode bottleneck"
+        },
+        {
+          "tier_name": "P64_Medium",
+          "prompt_tokens": 64,
+          "gen_tokens": 32,
+          "p_star": 3,
+          "candidate_a_mean_ms": 176.32,
+          "candidate_b_mean_ms": 162.8,
+          "candidate_c_mean_ms": 163.85,
+          "candidate_e_selected": "GPU_ONLY",
+          "physical_optimal": "GPU_ONLY",
+          "is_optimal": true,
+          "decision_rationale": "Prefill tokens 64 >= P*(E)=3 and CPU decode is throttled (tau_decode,CPU > tau_decode,GPU); selecting GPU_ONLY to avoid decode bottleneck"
+        },
+        {
+          "tier_name": "P128_Long",
+          "prompt_tokens": 128,
+          "gen_tokens": 32,
+          "p_star": 3,
+          "candidate_a_mean_ms": 147.85,
+          "candidate_b_mean_ms": 179.94,
+          "candidate_c_mean_ms": 94.17,
+          "candidate_e_selected": "GPU_ONLY",
+          "physical_optimal": "GPU_PREFILL_CPU_DECODE",
+          "is_optimal": false,
+          "decision_rationale": "Prefill tokens 128 >= P*(E)=3 and CPU decode is throttled (tau_decode,CPU > tau_decode,GPU); selecting GPU_ONLY to avoid decode bottleneck"
+        }
+      ]
+    },
+    {
+      "profile_name": "Profile_1_Perturbed_Edge_Constrained",
+      "affinity_mask": 1,
+      "cpu_config": {
+        "INFERENCE_NUM_THREADS": 1
+      },
+      "tau_tok_cpu_prefill_us": 533.618,
+      "tau_tok_gpu_prefill_us": 28.799,
+      "tau_tok_cpu_decode_us": 6653.667,
+      "tau_tok_gpu_decode_us": 5927.267,
+      "cpu_decode_throttled": true,
+      "derived_p_star": 1,
+      "workload_evaluations": [
+        {
+          "tier_name": "P16_Short",
+          "prompt_tokens": 16,
+          "gen_tokens": 16,
+          "p_star": 1,
+          "candidate_a_mean_ms": 134.68,
+          "candidate_b_mean_ms": 113.32,
+          "candidate_c_mean_ms": 158.07,
+          "candidate_e_selected": "GPU_ONLY",
+          "physical_optimal": "GPU_ONLY",
+          "is_optimal": true,
+          "decision_rationale": "Prefill tokens 16 >= P*(E)=1 and CPU decode is throttled (tau_decode,CPU > tau_decode,GPU); selecting GPU_ONLY to avoid decode bottleneck"
+        },
+        {
+          "tier_name": "P32_Intermediate",
+          "prompt_tokens": 32,
+          "gen_tokens": 32,
+          "p_star": 1,
+          "candidate_a_mean_ms": 226.11,
+          "candidate_b_mean_ms": 187.4,
+          "candidate_c_mean_ms": 345.18,
+          "candidate_e_selected": "GPU_ONLY",
+          "physical_optimal": "GPU_ONLY",
+          "is_optimal": true,
+          "decision_rationale": "Prefill tokens 32 >= P*(E)=1 and CPU decode is throttled (tau_decode,CPU > tau_decode,GPU); selecting GPU_ONLY to avoid decode bottleneck"
+        },
+        {
+          "tier_name": "P64_Medium",
+          "prompt_tokens": 64,
+          "gen_tokens": 32,
+          "p_star": 1,
+          "candidate_a_mean_ms": 249.59,
+          "candidate_b_mean_ms": 159.42,
+          "candidate_c_mean_ms": 192.74,
+          "candidate_e_selected": "GPU_ONLY",
+          "physical_optimal": "GPU_ONLY",
+          "is_optimal": true,
+          "decision_rationale": "Prefill tokens 64 >= P*(E)=1 and CPU decode is throttled (tau_decode,CPU > tau_decode,GPU); selecting GPU_ONLY to avoid decode bottleneck"
+        },
+        {
+          "tier_name": "P128_Long",
+          "prompt_tokens": 128,
+          "gen_tokens": 32,
+          "p_star": 1,
+          "candidate_a_mean_ms": 217.42,
+          "candidate_b_mean_ms": 288.92,
+          "candidate_c_mean_ms": 150.36,
+          "candidate_e_selected": "GPU_ONLY",
+          "physical_optimal": "GPU_PREFILL_CPU_DECODE",
+          "is_optimal": false,
+          "decision_rationale": "Prefill tokens 128 >= P*(E)=1 and CPU decode is throttled (tau_decode,CPU > tau_decode,GPU); selecting GPU_ONLY to avoid decode bottleneck"
+        }
+      ]
+    }
+  ],
+  "analytical_formulation": {
+    "formula": "P*(E) = ceil((Delta tau_dispatch + tau_handoff) / (tau_tok,CPU - tau_tok,GPU))",
+    "tau_dispatch_gpu_us": 380.0,
+    "tau_handoff_us": 0.894
+  }
+}
