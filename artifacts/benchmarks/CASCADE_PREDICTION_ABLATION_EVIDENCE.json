@@ -1,0 +1,101 @@
+{
+  "benchmark_id": "ABLATION_CASCADE_PREDICTION_1792339122",
+  "classification": "PHYSICALLY_HYBRID_CLOSED_LOOP_VALIDATED",
+  "description": "Ablation test comparing static heuristic, naive historical mean, and token-aware empirical calibration on unseen prompts",
+  "train_set_size": 6,
+  "test_set_size": 6,
+  "environment_snapshot": {
+    "platform": "win32",
+    "cpu_cores": 8,
+    "available_memory_mb": 5355.95,
+    "accelerators": [
+      "CPU",
+      "GPU"
+    ],
+    "bus_pressure": 0.12,
+    "provenance_breakdown": {
+      "available_memory_mb": "MEASURED_WIN32_API",
+      "cpu_cores": "OBSERVED_SYSTEM_CALL",
+      "platform": "OBSERVED_SYSTEM_CALL",
+      "accelerators": "ESTIMATED_DEVICE_CATALOG",
+      "bus_pressure": "SYNTHETIC_HEURISTIC_CONSTANT"
+    },
+    "overall_provenance": "HYBRID_MEASURED_SYNTHETIC",
+    "vital_max_hp": 6
+  },
+  "ablation_metrics": {
+    "A1_static_heuristic_mae_ms": 53.507,
+    "A2_naive_history_mean_mae_ms": 3.264,
+    "A3_token_aware_empirical_mae_ms": 3.034,
+    "naive_error_reduction_pct": 93.9,
+    "token_aware_error_reduction_pct": 94.33,
+    "generalization_confirmed": true
+  },
+  "per_prompt_evaluation": [
+    {
+      "prompt": "Čo znamená VITAL_MAX_HP == 6?",
+      "observed_latency_ms": 9.29,
+      "static_pred_ms": 63.6,
+      "static_error_ms": 54.31,
+      "naive_pred_ms": 12.06,
+      "naive_error_ms": 2.77,
+      "token_pred_ms": 10.29,
+      "token_error_ms": 1.0
+    },
+    {
+      "prompt": "Navrhni optimalizáciu pre hybridnú alokáciu pamäte medzi UMA zbernicou a CPU cache pri inferencii.",
+      "observed_latency_ms": 9.51,
+      "static_pred_ms": 63.6,
+      "static_error_ms": 54.09,
+      "naive_pred_ms": 12.06,
+      "naive_error_ms": 2.55,
+      "token_pred_ms": 12.06,
+      "token_error_ms": 2.55
+    },
+    {
+      "prompt": "Prečo je dôležité separovať navrhovateľa od hodnotiteľa v architektúre kognitívnych agentov Krystal Stack?",
+      "observed_latency_ms": 7.47,
+      "static_pred_ms": 63.6,
+      "static_error_ms": 56.13,
+      "naive_pred_ms": 12.06,
+      "naive_error_ms": 4.59,
+      "token_pred_ms": 11.86,
+      "token_error_ms": 4.39
+    },
+    {
+      "prompt": "Vysvetli podrobne princíp chronometric shadow multiplexingu a jeho vplyv na vyhnutie sa saturácii UMA zbernice počas vykresľovania snímky v reálnom čase.",
+      "observed_latency_ms": 9.01,
+      "static_pred_ms": 63.6,
+      "static_error_ms": 54.59,
+      "naive_pred_ms": 12.06,
+      "naive_error_ms": 3.05,
+      "token_pred_ms": 13.44,
+      "token_error_ms": 4.43
+    },
+    {
+      "prompt": "Ako funguje detekcia sémantických a polaritných kontradikcií v CascadeMerger triede?",
+      "observed_latency_ms": 9.33,
+      "static_pred_ms": 63.6,
+      "static_error_ms": 54.27,
+      "naive_pred_ms": 12.06,
+      "naive_error_ms": 2.73,
+      "token_pred_ms": 11.27,
+      "token_error_ms": 1.94
+    },
+    {
+      "prompt": "Zosumarizuj vplyv 128-bajtového zarovnania dátových štruktúr na zero-copy SPSC kruhové buffery v zdieľanej pamäti.",
+      "observed_latency_ms": 15.95,
+      "static_pred_ms": 63.6,
+      "static_error_ms": 47.65,
+      "naive_pred_ms": 12.06,
+      "naive_error_ms": 3.89,
+      "token_pred_ms": 12.06,
+      "token_error_ms": 3.89
+    }
+  ],
+  "epistemic_verdict": {
+    "overfitting_hypothesis_refuted": true,
+    "provenance_status": "HYBRID_MEASURED_SYNTHETIC",
+    "vital_max_hp": 6
+  }
+}

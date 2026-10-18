@@ -129,6 +129,7 @@ class CascadePlanner:
         self.trace_history: List[Any] = []
         self.node_empirical_latencies: Dict[str, List[float]] = {}
         self.node_empirical_memories: Dict[str, List[float]] = {}
+        self.node_empirical_tokens: Dict[str, List[int]] = {}
         if trace_history:
             for tr in trace_history:
                 self.record_trace(tr)
@@ -145,10 +146,15 @@ class CascadePlanner:
             nid = getattr(nr, "node_id", "")
             lat = getattr(nr, "latency_ms", 0.0)
             mem = getattr(nr, "memory_mb", 0.0) or getattr(nr, "memory_used", 0.0)
+            in_tok = getattr(nr, "input_tokens", 0)
+            out_tok = getattr(nr, "output_tokens", 0)
+            total_tok = max(1, in_tok + out_tok)
             if nid and lat > 0.0:
                 if nid not in self.node_empirical_latencies:
                     self.node_empirical_latencies[nid] = []
+                    self.node_empirical_tokens[nid] = []
                 self.node_empirical_latencies[nid].append(lat)
+                self.node_empirical_tokens[nid].append(total_tok)
             if nid and mem > 0.0:
                 if nid not in self.node_empirical_memories:
                     self.node_empirical_memories[nid] = []
@@ -156,7 +162,7 @@ class CascadePlanner:
 
     @staticmethod
     def capture_environment_snapshot() -> Dict[str, Any]:
-        """Captures hardware and platform runtime telemetry."""
+        """Captures hardware and platform runtime telemetry with granular provenance."""
         import sys
         import os
         avail_ram = 16384.0
@@ -173,6 +179,14 @@ class CascadePlanner:
             "available_memory_mb": round(avail_ram, 2),
             "accelerators": ["CPU", "GPU"],
             "bus_pressure": 0.12,
+            "provenance_breakdown": {
+                "available_memory_mb": "MEASURED_WIN32_API" if sys.platform == "win32" else "ESTIMATED_DEFAULT",
+                "cpu_cores": "OBSERVED_SYSTEM_CALL",
+                "platform": "OBSERVED_SYSTEM_CALL",
+                "accelerators": "ESTIMATED_DEVICE_CATALOG",
+                "bus_pressure": "SYNTHETIC_HEURISTIC_CONSTANT"
+            },
+            "overall_provenance": "HYBRID_MEASURED_SYNTHETIC",
             "vital_max_hp": VITAL_MAX_HP
         }
 
@@ -338,7 +352,12 @@ class CascadePlanner:
             vital_max_hp=VITAL_MAX_HP
         )
 
-        plan.expected_latency_ms = self.estimate_latency(plan, available_nodes)
+        plan.expected_latency_ms = self.estimate_latency(
+            plan,
+            available_nodes,
+            request=request,
+            token_aware=bool(request.get("token_aware", False))
+        )
         plan.estimated_latency_ms = plan.expected_latency_ms
         plan.expected_memory_mb = self.estimate_memory(plan, available_nodes)
         plan.estimated_memory_mb = plan.expected_memory_mb
@@ -399,18 +418,34 @@ class CascadePlanner:
 
         return (len(errors) == 0, errors)
 
-    def estimate_latency(self, plan: CascadePlan, available_nodes: Optional[Dict[str, ModelNode]] = None) -> float:
+    def estimate_latency(
+        self,
+        plan: CascadePlan,
+        available_nodes: Optional[Dict[str, ModelNode]] = None,
+        request: Optional[Dict[str, Any]] = None,
+        token_aware: bool = False
+    ) -> float:
         """Estimates end-to-end latency according to plan strategy with empirical closed-loop grounding."""
         nodes_dict = available_nodes or {}
         latencies: List[float] = []
         empirical_node_count = 0
         plan.historical_evidence = []
+        req_dict = request or {}
+        prompt_str = req_dict.get("prompt", "")
+        est_req_tokens = max(16, len(prompt_str.split()) + 32) if prompt_str else 32
 
         for n in plan.nodes:
             nid = n.node_id
             if nid in self.node_empirical_latencies and len(self.node_empirical_latencies[nid]) > 0:
                 empirical_samples = self.node_empirical_latencies[nid]
-                lat = sum(empirical_samples) / len(empirical_samples)
+                sample_tokens = self.node_empirical_tokens.get(nid, [32] * len(empirical_samples))
+
+                if token_aware and sum(sample_tokens) > 0:
+                    slope_ms_per_tok = sum(empirical_samples) / float(sum(sample_tokens))
+                    lat = max(1.0, slope_ms_per_tok * est_req_tokens)
+                else:
+                    lat = sum(empirical_samples) / len(empirical_samples)
+
                 empirical_node_count += 1
                 plan.historical_evidence.append({
                     "node_id": nid,
