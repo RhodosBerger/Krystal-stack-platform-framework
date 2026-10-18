@@ -130,12 +130,18 @@ class CascadePlanner:
         self.node_empirical_latencies: Dict[str, List[float]] = {}
         self.node_empirical_memories: Dict[str, List[float]] = {}
         self.node_empirical_tokens: Dict[str, List[int]] = {}
+        # Stratified empirical tracking by (node_id, device, regime)
+        self.node_empirical_stratified_latencies: Dict[Tuple[str, str, str], List[float]] = {}
+        self.node_empirical_stratified_tokens: Dict[Tuple[str, str, str], List[int]] = {}
+        self.node_empirical_warm_latencies: Dict[Tuple[str, str], List[float]] = {}
+        self.node_empirical_cold_latencies: Dict[Tuple[str, str], List[float]] = {}
+        self.node_empirical_compile_latencies: Dict[Tuple[str, str], float] = {}
         if trace_history:
             for tr in trace_history:
                 self.record_trace(tr)
 
     def record_trace(self, trace: Any) -> None:
-        """Incorporates an observed execution trace into empirical planning evidence."""
+        """Incorporates an observed execution trace into empirical planning evidence with regime stratification."""
         if not trace:
             return
         if trace not in self.trace_history:
@@ -149,12 +155,57 @@ class CascadePlanner:
             in_tok = getattr(nr, "input_tokens", 0)
             out_tok = getattr(nr, "output_tokens", 0)
             total_tok = max(1, in_tok + out_tok)
+            refs = getattr(nr, "evidence_refs", [])
+
+            regime = "WARM"
+            device = "CPU"
+            compile_ms = 0.0
+            first_ms = 0.0
+            for ref in refs:
+                if ref.startswith("Regime://"):
+                    regime = ref.split("://")[1].strip().upper()
+                elif ref.startswith("Device://"):
+                    device = ref.split("://")[1].strip().upper()
+                elif ref.startswith("CompileTime://"):
+                    try:
+                        compile_ms = float(ref.split("://")[1].replace("ms", "").strip())
+                    except ValueError:
+                        pass
+                elif ref.startswith("FirstInfTime://"):
+                    try:
+                        first_ms = float(ref.split("://")[1].replace("ms", "").strip())
+                    except ValueError:
+                        pass
+
             if nid and lat > 0.0:
+                # 1. Global backward-compatible list
                 if nid not in self.node_empirical_latencies:
                     self.node_empirical_latencies[nid] = []
                     self.node_empirical_tokens[nid] = []
                 self.node_empirical_latencies[nid].append(lat)
                 self.node_empirical_tokens[nid].append(total_tok)
+
+                # 2. Stratified by (nid, device, regime)
+                strat_key = (nid, device, regime)
+                if strat_key not in self.node_empirical_stratified_latencies:
+                    self.node_empirical_stratified_latencies[strat_key] = []
+                    self.node_empirical_stratified_tokens[strat_key] = []
+                self.node_empirical_stratified_latencies[strat_key].append(lat)
+                self.node_empirical_stratified_tokens[strat_key].append(total_tok)
+
+                dev_key = (nid, device)
+                if regime == "WARM":
+                    if dev_key not in self.node_empirical_warm_latencies:
+                        self.node_empirical_warm_latencies[dev_key] = []
+                    self.node_empirical_warm_latencies[dev_key].append(lat)
+                elif regime == "COLD_START":
+                    if dev_key not in self.node_empirical_cold_latencies:
+                        self.node_empirical_cold_latencies[dev_key] = []
+                    self.node_empirical_cold_latencies[dev_key].append(lat)
+
+                if compile_ms > 0.0:
+                    self.node_empirical_compile_latencies[dev_key] = compile_ms
+
             if nid and mem > 0.0:
                 if nid not in self.node_empirical_memories:
                     self.node_empirical_memories[nid] = []
@@ -433,14 +484,29 @@ class CascadePlanner:
         req_dict = request or {}
         prompt_str = req_dict.get("prompt", "")
         est_req_tokens = max(16, len(prompt_str.split()) + 32) if prompt_str else 32
+        req_device = str(req_dict.get("target_device", "CPU")).upper()
+        req_regime = str(req_dict.get("execution_regime", "WARM")).upper()
 
         for n in plan.nodes:
             nid = n.node_id
-            if nid in self.node_empirical_latencies and len(self.node_empirical_latencies[nid]) > 0:
+            strat_key = (nid, req_device, req_regime)
+            dev_key = (nid, req_device)
+
+            empirical_samples = None
+            sample_tokens = None
+
+            if strat_key in self.node_empirical_stratified_latencies and len(self.node_empirical_stratified_latencies[strat_key]) > 0:
+                empirical_samples = self.node_empirical_stratified_latencies[strat_key]
+                sample_tokens = self.node_empirical_stratified_tokens.get(strat_key, [32] * len(empirical_samples))
+            elif req_regime == "WARM" and dev_key in self.node_empirical_warm_latencies and len(self.node_empirical_warm_latencies[dev_key]) > 0:
+                empirical_samples = self.node_empirical_warm_latencies[dev_key]
+                sample_tokens = [32] * len(empirical_samples)
+            elif nid in self.node_empirical_latencies and len(self.node_empirical_latencies[nid]) > 0:
                 empirical_samples = self.node_empirical_latencies[nid]
                 sample_tokens = self.node_empirical_tokens.get(nid, [32] * len(empirical_samples))
 
-                if token_aware and sum(sample_tokens) > 0:
+            if empirical_samples is not None:
+                if token_aware and sample_tokens and sum(sample_tokens) > 0:
                     slope_ms_per_tok = sum(empirical_samples) / float(sum(sample_tokens))
                     lat = max(1.0, slope_ms_per_tok * est_req_tokens)
                 else:
@@ -449,6 +515,8 @@ class CascadePlanner:
                 empirical_node_count += 1
                 plan.historical_evidence.append({
                     "node_id": nid,
+                    "target_device": req_device,
+                    "execution_regime": req_regime,
                     "empirical_samples": len(empirical_samples),
                     "mean_latency_ms": round(lat, 3),
                     "provenance": "MEASURED"

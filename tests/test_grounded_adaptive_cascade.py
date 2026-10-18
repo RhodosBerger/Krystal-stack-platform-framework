@@ -378,7 +378,8 @@ class TestGroundedAdaptiveCascade:
         # Calibration on training prompts
         for p_tr in [
             "Vysvetli mechanizmus adaptívneho plánovania v kaskáde.",
-            "Analyzuj telemetriu a pamäťovú zbernicu UMA."
+            "Analyzuj telemetriu a pamäťovú zbernicu UMA.",
+            "Definuj podmienky pre bezpečné vykonávanie modelu v kaskáde."
         ]:
             req_tr = {"prompt": p_tr, "strategy": "CASCADE_SEQUENTIAL", "execution_mode": "CASCADE_SEQUENTIAL"}
             plan_tr = planner.build_plan(req_tr, custom_nodes)

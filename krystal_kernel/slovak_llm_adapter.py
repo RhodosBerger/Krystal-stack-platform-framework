@@ -67,6 +67,7 @@ class ModelSpec:
     gguf_repo: str = "tomg42/Qwen3-14B-sk-Q6_K.gguf"
     weight_fingerprint: str = ""
     model_architecture: str = "TransformerProjection"
+    target_device: str = "CPU"
 
 
 @dataclass
@@ -105,6 +106,10 @@ class InferenceResponse:
     license_compliant: bool
     weight_fingerprint: str = ""
     process_rss_mb: float = 0.0
+    gpu_usm_mb: float = 0.0
+    compile_time_ms: float = 0.0
+    first_inference_ms: float = 0.0
+    execution_regime: str = "WARM"
     epistemic_tags: List[str] = field(default_factory=lambda: [
         "// [PHYSICAL-LOCAL-TIMING]",
         "// [OPENVINO-TENSOR-WEIGHTS]",
@@ -156,18 +161,30 @@ class SlovakLLMAdapter:
 
     def __init__(self, model_spec: Optional[ModelSpec] = None) -> None:
         self.model_spec = model_spec or ModelSpec()
+        self.target_device = (self.model_spec.target_device or "CPU").upper()
         self._openvino_core = None
         self._openvino_available = False
         self._compiled_model = None
         self._weights = []
         self.weight_fingerprint = ""
         self._last_response: Optional[InferenceResponse] = None
+        self.compile_time_ms: float = 0.0
+        self.first_inference_ms: float = 0.0
+        self.warmup_time_ms: float = 0.0
+        self._is_warmed_up: bool = False
+        self._actual_device: str = self.target_device
+        self.device_fallback_reason: Optional[str] = None
         self._init_openvino_runtime()
+
+    @property
+    def actual_device(self) -> str:
+        """Returns the active physical execution device (CPU or GPU)."""
+        return getattr(self, "_actual_device", self.target_device)
 
     def _init_openvino_runtime(self) -> None:
         """
         Initializes OpenVINO runtime if available and compiles real tensor weights
-        corresponding to the specified ModelSpec scale and quantization.
+        corresponding to the specified ModelSpec scale, quantization, and target device.
         Computes cryptographic SHA-256 fingerprint over physical weight tensors.
         """
         import hashlib
@@ -229,14 +246,23 @@ class SlovakLLMAdapter:
                 curr = ops.relu(add) if l < num_layers - 1 else add
 
             ov_model = ov.Model([curr], [param], f"ov_{self.weight_fingerprint}")
-            target_dev = "CPU"
+            target_dev = self.target_device
+            if target_dev == "GPU" and "GPU" not in core.available_devices:
+                target_dev = "CPU"
+                self.device_fallback_reason = "GPU_UNAVAILABLE"
+
+            t_c0 = time.perf_counter_ns()
             self._compiled_model = core.compile_model(ov_model, target_dev)
+            self.compile_time_ms = round((time.perf_counter_ns() - t_c0) / 1e6, 3)
+            self._actual_device = target_dev
             self._openvino_available = True
 
-            # JIT Warmup pass to prime OpenVINO CPU kernel compilation
+            # JIT Warmup pass to prime OpenVINO kernel compilation
+            t_w0 = time.perf_counter_ns()
             dummy = np.zeros((1, in_dim), dtype=np.float32)
             for _ in range(3):
                 self._compiled_model([dummy])
+            self.warmup_time_ms = round((time.perf_counter_ns() - t_w0) / 1e6, 3)
         except Exception:
             self._openvino_available = False
 
@@ -324,6 +350,19 @@ class SlovakLLMAdapter:
                 pass
         return 0.0
 
+    def get_gpu_usm_mb(self) -> float:
+        """
+        Reads real-time OpenVINO GPU memory allocation in MiB via Level Zero / OpenCL USM driver.
+        """
+        if self._openvino_available and self._openvino_core and "GPU" in self._openvino_core.available_devices:
+            try:
+                stats = self._openvino_core.get_property("GPU", "GPU_MEMORY_STATISTICS")
+                total_bytes = sum(v for v in stats.values() if isinstance(v, (int, float)))
+                return round(total_bytes / (1024 * 1024), 2)
+            except Exception:
+                return 0.0
+        return 0.0
+
     def check_memory_headroom(self, quantization: Optional[str] = None) -> Tuple[bool, float, float]:
         """
         Validates if model working set fits in physical RAM without disk thrashing.
@@ -384,10 +423,10 @@ class SlovakLLMAdapter:
 
         # 3. Device Selection & Routing Contract
         requested_dev = request.target_device.upper()
-        actual_dev = requested_dev
-        fallback_reason: Optional[str] = None
+        actual_dev = getattr(self, "_actual_device", self.target_device)
+        fallback_reason: Optional[str] = getattr(self, "device_fallback_reason", None)
 
-        if requested_dev == "GPU":
+        if requested_dev == "GPU" and actual_dev != "GPU":
             if self._openvino_available and self._openvino_core:
                 available_devices = self._openvino_core.available_devices
                 if "GPU" not in available_devices:
@@ -397,7 +436,11 @@ class SlovakLLMAdapter:
                 actual_dev = "CPU"
                 fallback_reason = "OPENVINO_NOT_INITIALIZED"
 
-        # 4. Physical Token Processing & Tensor Forward Passes
+        # 4. Regime Classification (Cold Start vs Steady-State Warm)
+        is_first = not self._is_warmed_up
+        current_regime = "COLD_START" if is_first else "WARM"
+
+        # 5. Physical Token Processing & Tensor Forward Passes
         t_start_ns = time.perf_counter_ns()
         input_tokens = self.tokenize_slovak(request.prompt)
         prompt_token_count = max(1, len(input_tokens))
@@ -461,6 +504,11 @@ class SlovakLLMAdapter:
 
         generated_text = " ".join(generated_tokens)
         rss_mb = self.get_process_rss_mb()
+        gpu_usm_mb = self.get_gpu_usm_mb()
+
+        if is_first:
+            self.first_inference_ms = round(total_duration_us / 1000.0, 3)
+            self._is_warmed_up = True
 
         resp = InferenceResponse(
             request_id=req_id,
@@ -483,11 +531,17 @@ class SlovakLLMAdapter:
             license_compliant=True,
             weight_fingerprint=self.weight_fingerprint,
             process_rss_mb=rss_mb,
+            gpu_usm_mb=gpu_usm_mb,
+            compile_time_ms=self.compile_time_ms,
+            first_inference_ms=self.first_inference_ms,
+            execution_regime=current_regime,
             epistemic_tags=[
                 "// [PHYSICAL-LOCAL-TIMING]",
                 "// [OPENVINO-TENSOR-WEIGHTS]",
                 "// [CRYPTOGRAPHIC-FINGERPRINT-VERIFIED]",
                 "// [POLICY-VERIFIED]",
+                f"// [REGIME-{current_regime}]",
+                f"// [DEVICE-{actual_dev}]",
             ],
             vital_max_hp=VITAL_MAX_HP,
         )

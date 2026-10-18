@@ -695,21 +695,24 @@ class SlovakLLMNode(ModelNode):
         parameter_count_b: float = 3.0,
         quantization: str = "Q4_K_M",
         enforce_headroom: bool = True,
+        target_device: str = "CPU",
     ):
         from krystal_kernel.slovak_llm_adapter import SlovakLLMAdapter, ModelSpec
         self.enforce_headroom = enforce_headroom
+        self.target_device = target_device
         self.adapter = adapter or SlovakLLMAdapter(ModelSpec(
             model_id="slovak-nlp/Qwen3-14B-sk",
             parameter_count_b=parameter_count_b,
             quantization=quantization,
-            license="Apache-2.0"
+            license="Apache-2.0",
+            target_device=target_device,
         ))
         footprint_mb = self.adapter.estimate_memory_footprint_mb(quantization)
         spec = ModelNodeSpec(
             node_id=node_id,
             model_id=self.adapter.model_spec.model_id,
             role="REASONER",
-            backend="CPU_SIMD",
+            backend="GPU_OPENCL" if target_device.upper() == "GPU" else "CPU_SIMD",
             context_limit=32768,
             quantization=quantization,
             memory_budget_mb=footprint_mb,
@@ -725,7 +728,7 @@ class SlovakLLMNode(ModelNode):
 
         prompt = str(request.get("prompt", ""))
         max_tokens = int(request.get("max_tokens", 32))
-        target_device = str(request.get("target_device", "CPU"))
+        target_device = str(request.get("target_device", self.target_device))
         self.total_invocations += 1
 
         inf_req = InferenceRequest(
@@ -751,6 +754,11 @@ class SlovakLLMNode(ModelNode):
                     f"SlovakLLMAdapter://{self.adapter.model_spec.model_id}",
                     f"WeightFingerprint://{resp.weight_fingerprint}",
                     f"ProcessRSS://{resp.process_rss_mb}MB",
+                    f"GPU_USM://{resp.gpu_usm_mb}MB",
+                    f"Device://{resp.actual_device}",
+                    f"Regime://{resp.execution_regime}",
+                    f"CompileTime://{resp.compile_time_ms}ms",
+                    f"FirstInfTime://{resp.first_inference_ms}ms",
                     "// [HARDWARE-MEASURED]",
                     "// [PHYSICAL-LOCAL-TIMING]",
                     "// [PHYSICAL-TENSOR-WEIGHTS]",
