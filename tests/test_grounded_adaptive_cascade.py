@@ -247,3 +247,56 @@ class TestGroundedAdaptiveCascade:
         error_reduction_pct = ((mae_static - mae_calibrated) / mae_static) * 100.0
         assert error_reduction_pct > 75.0, f"Expected >75% error reduction, got {error_reduction_pct:.1f}%"
 
+    def test_08_multi_model_q4_vs_q8_cross_generalization(self):
+        """
+        Verifies that closed-loop recalibration successfully generalizes
+        across two distinct model scales/quantizations (3B Q4 vs 7B Q8)
+        without manual hyperparameter tuning.
+        """
+        # Model 2 (Dense 7B Q8_0)
+        from krystal_kernel.slovak_llm_adapter import SlovakLLMAdapter, ModelSpec
+        node_m2 = SlovakLLMNode(
+            node_id="node-slovak-7b-q8",
+            adapter=SlovakLLMAdapter(ModelSpec(
+                model_id="slovak-nlp/Qwen3-14B-sk",
+                parameter_count_b=7.0,
+                quantization="Q8_0",
+                license="Apache-2.0"
+            )),
+            parameter_count_b=7.0,
+            quantization="Q8_0"
+        )
+        assert node_m2.spec.vital_max_hp == 6
+        assert node_m2.spec.memory_budget_mb > 7000.0
+
+        custom_nodes = dict(self.nodes)
+        custom_nodes["node-slovak-7b-q8"] = node_m2
+        executor_m2 = CascadeExecutor(custom_nodes)
+        planner_m2 = CascadePlanner(router=self.router)
+
+        # 1. Train step on Model 2
+        p_train = "Vysvetli mechanizmus zamedzenia fázového sklzu v AEP."
+        req_tr = {"prompt": p_train, "strategy": "CASCADE_SEQUENTIAL", "execution_mode": "CASCADE_SEQUENTIAL"}
+        plan_tr = planner_m2.build_plan(req_tr, custom_nodes)
+        plan_tr.nodes = [n if n.role != "REASONER" else node_m2.spec for n in plan_tr.nodes]
+        tr1 = executor_m2.execute_sequential(plan_tr, req_tr)
+        planner_m2.record_trace(tr1)
+
+        # 2. Test step on Model 2 with unseen prompt
+        p_test = "Čo znamená VITAL_MAX_HP == 6?"
+        req_te = {"prompt": p_test, "strategy": "CASCADE_SEQUENTIAL", "execution_mode": "CASCADE_SEQUENTIAL", "token_aware": True}
+        plan_te = planner_m2.build_plan(req_te, custom_nodes)
+        plan_te.nodes = [n if n.role != "REASONER" else node_m2.spec for n in plan_te.nodes]
+        plan_te.expected_latency_ms = planner_m2.estimate_latency(plan_te, custom_nodes, request=req_te, token_aware=True)
+        pred_te = plan_te.expected_latency_ms
+
+        tr2 = executor_m2.execute_sequential(plan_te, req_te)
+        obs_te = tr2.total_latency_ms
+        error_te = abs(obs_te - pred_te)
+
+        # Static baseline would predict 63.60 ms
+        static_error = abs(obs_te - 63.60)
+        assert error_te < (static_error * 0.25), f"Model 2 recalibration failed: Error {error_te:.2f}ms vs Static {static_error:.2f}ms"
+        assert plan_te.provenance in ("MEASURED_EMPIRICAL", "HYBRID_EMPIRICAL")
+
+

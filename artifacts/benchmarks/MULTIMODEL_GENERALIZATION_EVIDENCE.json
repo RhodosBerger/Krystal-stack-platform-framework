@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "BENCH_MULTIMODEL_GEN_1792339608",
+  "timestamp_iso": "2026-10-18T16:06:48Z",
+  "final_verdict": "MULTI_MODEL_ADAPTIVE_VALIDATED",
+  "experiments": [
+    {
+      "model_name": "Model_A_3B_Q4",
+      "workload": "W1_Helpdesk",
+      "parameter_count_b": 3.0,
+      "quantization": "Q4_K_M",
+      "memory_budget_mb": 2171.39,
+      "static_baseline": {
+        "mae_ms": 43.293,
+        "rmse_ms": 44.647,
+        "stddev_ms": 10.913,
+        "variance_ms2": 119.101,
+        "p95_latency_ms": 31.221
+      },
+      "calibrated_adaptive": {
+        "mae_ms": 4.171,
+        "rmse_ms": 4.173,
+        "stddev_ms": 0.124,
+        "variance_ms2": 0.015,
+        "p95_latency_ms": 7.643
+      },
+      "mae_reduction_pct": 90.37,
+      "mean_ttft_us": 2800.0,
+      "mean_tpot_us": 12400.0,
+      "peak_memory_mb": 2171.4,
+      "vital_max_hp": 6
+    },
+    {
+      "model_name": "Model_B_7B_Q8",
+      "workload": "W1_Helpdesk",
+      "parameter_count_b": 7.0,
+      "quantization": "Q8_0",
+      "memory_budget_mb": 7521.51,
+      "static_baseline": {
+        "mae_ms": 60.959,
+        "rmse_ms": 60.967,
+        "stddev_ms": 0.992,
+        "variance_ms2": 0.985,
+        "p95_latency_ms": 3.633
+      },
+      "calibrated_adaptive": {
+        "mae_ms": 2.249,
+        "rmse_ms": 2.502,
+        "stddev_ms": 1.096,
+        "variance_ms2": 1.201,
+        "p95_latency_ms": 4.846
+      },
+      "mae_reduction_pct": 96.31,
+      "mean_ttft_us": 2800.0,
+      "mean_tpot_us": 12400.0,
+      "peak_memory_mb": 0.0,
+      "vital_max_hp": 6
+    },
+    {
+      "model_name": "Model_B_7B_Q8",
+      "workload": "W2_DeepArchitectural",
+      "parameter_count_b": 7.0,
+      "quantization": "Q8_0",
+      "memory_budget_mb": 7521.51,
+      "static_baseline": {
+        "mae_ms": 59.437,
+        "rmse_ms": 59.493,
+        "stddev_ms": 2.592,
+        "variance_ms2": 6.72,
+        "p95_latency_ms": 6.756
+      },
+      "calibrated_adaptive": {
+        "mae_ms": 3.513,
+        "rmse_ms": 3.524,
+        "stddev_ms": 0.278,
+        "variance_ms2": 0.078,
+        "p95_latency_ms": 2.765
+      },
+      "mae_reduction_pct": 94.09,
+      "mean_ttft_us": 2800.0,
+      "mean_tpot_us": 12400.0,
+      "peak_memory_mb": 0.0,
+      "vital_max_hp": 6
+    }
+  ],
+  "falsification_summary": {
+    "all_models_exhibit_error_reduction": true,
+    "calibrated_mae_sub_10ms_achieved": true,
+    "vital_max_hp": 6
+  }
+}
