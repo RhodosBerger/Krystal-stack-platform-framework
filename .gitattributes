@@ -1,0 +1,13 @@
+# Ensure shell scripts always have LF line endings to avoid \r syntax errors in WSL/Linux
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Native C/Rust and Python sources
+*.c text eol=lf
+*.h text eol=lf
+*.rs text eol=lf
+*.py text eol=lf
+
+# Markdown and text
+*.md text
+*.txt text

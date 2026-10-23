@@ -14,9 +14,10 @@ echo "🔒 Constitutional Invariant: VITAL_MAX_HP == 6"
 echo "================================================================================"
 echo ""
 
-echo "▶ [KROK 1/5] Spúšťam 67/67 Unit & Regresných Testov (Hermetická sada vrátane E-07)..."
+echo "▶ [KROK 1/5] Spúšťam 82/82 Unit & Regresných Testov (Hermetická sada vrátane E-07 a Hybrid MCP)..."
 echo "--------------------------------------------------------------------------------"
-python3 -m unittest tests/test_native_pulse_logger.py \
+python3 -m unittest tests/test_hybrid_mcp_antigravity_connector.py \
+                   tests/test_native_pulse_logger.py \
                    tests/test_tri_phase_dosing_controller.py \
                    tests/test_vpp_grid_broker_fleet.py \
                    tests/test_household_edge_energy_node.py \
@@ -25,6 +26,7 @@ python3 -m unittest tests/test_native_pulse_logger.py \
                    tests/test_silicon_pipeline_orchestrator.py \
                    tests/test_silicon_telemetry_lexicon.py \
                    tests/test_investor_suite_integration.py
+
 
 echo ""
 echo "▶ [KROK 2/5] Spúšťam Experiment E-07: Natívny C11/Rust Pulse Logger (<50ns Benchmark)..."
