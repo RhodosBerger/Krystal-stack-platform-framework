@@ -1,0 +1,13 @@
+[package]
+name = "pulse_logger_core"
+version = "0.7.0"
+edition = "2021"
+authors = ["Krystal Stack Team"]
+description = "Native sub-50ns hot-path pulse sequence logger for OpenVINO / Level Zero / CPU telemetry"
+license = "Apache-2.0"
+
+[lib]
+name = "pulse_logger_core"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]

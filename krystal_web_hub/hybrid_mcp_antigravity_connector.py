@@ -649,6 +649,45 @@ class HybridMcpAntigravityConnector:
                     },
                     "required": ["action"]
                 }
+            },
+            # 15. Silicon Telemetry & OpenVINO Policy Arbiter (Model Solution H-07)
+            {
+                "name": "krystal-silicon-telemetry-arbitrate",
+                "description": (
+                    "Formálny orchestrátor telemetrie kremíka a OpenVINO arbitra (Model (S,A,T,I,O,E,H,W)): "
+                    "Vyhodnocuje fyzikálnu telemetriu (teplotu Tj, šum v decibeloch RL, UMA zbernicu, Arrhenius wear factor), "
+                    "zaznamenáva 8-bajtové pulzné rámce a arbitruje optimálnu politiku (HYBRID_PREFILL_DECODE, GPU_ONLY, DAMPENED_BATCH)."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "action_type": {
+                            "type": "string",
+                            "enum": ["DISPATCH_INFERENCE", "ARBITRATE_POLICY", "COMPENSATE_THERMAL"],
+                            "description": "Typ systémovej akcie."
+                        },
+                        "prompt_tokens": {
+                            "type": "integer",
+                            "description": "Dĺžka promptu v tokenoch P (predvolené: 32)."
+                        },
+                        "generation_tokens": {
+                            "type": "integer",
+                            "description": "Dĺžka generovania v tokenoch G (predvolené: 1)."
+                        },
+                        "simulated_time_s": {
+                            "type": "number",
+                            "description": "Simulovaný čas v sekundách pre Foster/Cauer termálny model (predvolené: 1.0)."
+                        },
+                        "load_power_w": {
+                            "type": "number",
+                            "description": "Stratový výkon čipu vo Wattoch (predvolené: 28.0)."
+                        },
+                        "target_pl1_watts": {
+                            "type": "number",
+                            "description": "Cieľový limit PL1 vo Wattoch (10.0 - 40.0)."
+                        }
+                    }
+                }
             }
         ]
 
@@ -1130,7 +1169,20 @@ class HybridMcpAntigravityConnector:
                 else:
                     return {"error": f"Unknown action '{action}' for {name}"}
 
-            # 15. Fallback to Krystal MCP Core Tools
+            # 15. Silicon Telemetry & OpenVINO Policy Arbiter (Model Solution H-07)
+            elif name == "krystal-silicon-telemetry-arbitrate":
+                from krystal_kernel.silicon_pipeline_orchestrator import GLOBAL_SILICON_PIPELINE_ORCHESTRATOR, SiliconAction
+                act = SiliconAction(
+                    action_type=arguments.get("action_type", "DISPATCH_INFERENCE"),
+                    prompt_tokens=int(arguments.get("prompt_tokens", 32)),
+                    generation_tokens=int(arguments.get("generation_tokens", 1)),
+                    target_pl1_watts=arguments.get("target_pl1_watts")
+                )
+                t_s = float(arguments.get("simulated_time_s", 1.0))
+                p_w = float(arguments.get("load_power_w", 28.0))
+                return GLOBAL_SILICON_PIPELINE_ORCHESTRATOR.step_pipeline(act, simulated_time_s=t_s, load_power_w=p_w)
+
+            # 16. Fallback to Krystal MCP Core Tools
             elif name in self.krystal_mcp.tool_registry:
                 return self.krystal_mcp.dispatch_call(name, arguments)
 

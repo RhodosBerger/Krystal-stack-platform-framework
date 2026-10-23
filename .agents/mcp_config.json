@@ -9,6 +9,9 @@
     },
     "krystal-antigravity-sse": {
       "serverUrl": "http://127.0.0.1:8080/api/mcp/sse"
+    },
+    "nabytok47-sk-nabytok47-%c2%b7-stolarsky-atelier-wordpress": {
+      "serverUrl": "https://nabytok47.sk/wp-json/mcp/mcp-adapter-default-server"
     }
   }
 }

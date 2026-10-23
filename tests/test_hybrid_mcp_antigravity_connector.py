@@ -372,6 +372,43 @@ class TestHybridMcpAntigravityConnector(unittest.TestCase):
         self.assertIn("hw_thermal", content_div["result_values"])
         self.assertEqual(content_div["vital_hp"], 6)
 
+    def test_15_krystal_silicon_telemetry_arbitrate_mcp_tool(self):
+        """Verifies krystal-silicon-telemetry-arbitrate tool execution and invariant."""
+        # 1. Direct tool execution
+        res = self.connector.execute_tool("krystal-silicon-telemetry-arbitrate", {
+            "action_type": "DISPATCH_INFERENCE",
+            "prompt_tokens": 32,
+            "generation_tokens": 1,
+            "simulated_time_s": 1.0,
+            "load_power_w": 25.0
+        })
+        self.assertEqual(res["status"], "TRANSITION_COMMITTED")
+        self.assertEqual(res["delta_s"], 1)
+        self.assertEqual(res["vital_max_hp"], 6)
+        self.assertIn("arbitration", res)
+        self.assertIn("openvino_runtime", res)
+
+        # 2. JSON-RPC tool call
+        rpc_req = {
+            "jsonrpc": "2.0",
+            "id": 114,
+            "method": "tools/call",
+            "params": {
+                "name": "krystal-silicon-telemetry-arbitrate",
+                "arguments": {
+                    "action_type": "DISPATCH_INFERENCE",
+                    "prompt_tokens": 128,
+                    "simulated_time_s": 180.0,
+                    "load_power_w": 45.0
+                }
+            }
+        }
+        rpc_res = self.connector.handle_jsonrpc_request(rpc_req)
+        content = json.loads(rpc_res["result"]["content"][0]["text"])
+        self.assertEqual(content["status"], "TRANSITION_COMMITTED")
+        self.assertEqual(content["arbitration"]["selected_policy"], "GPU_ONLY")
+        self.assertEqual(content["vital_max_hp"], 6)
+
 
 if __name__ == "__main__":
     unittest.main()
