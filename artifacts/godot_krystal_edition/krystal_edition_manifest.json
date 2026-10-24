@@ -1,0 +1,109 @@
+{
+  "edition_name": "Godot Krystal Edition",
+  "edition_version": "1.0.0-SOVEREIGN",
+  "target_godot_engine": "Godot 4.2+ Forward+ Vulkan",
+  "total_layers": 6,
+  "layers": [
+    {
+      "layer_id": "L0_SILICON_PDN",
+      "name": "Silicon PDN & Hardware Telemetry Bridge",
+      "script_rel_path": "scripts/GodotSiliconPDNBridge.gd",
+      "description": "Live Vdd, Tj, overshoot monitoring, and automatic workload shedding",
+      "stream_kind": "SILICON_PDN_TELEMETRY",
+      "primary_coordinator": "PDN_VOLTAGE_STABILITY_COORDINATOR",
+      "vital_max_hp": 6
+    },
+    {
+      "layer_id": "L1_CHRONOMETRIC",
+      "name": "Chronometric VBlank Shadow Compositor",
+      "script_rel_path": "scripts/GodotChronometricCompositor.gd",
+      "description": "VBlank shadow window scheduler (>= 3.5ms) enforcing KSPP P3",
+      "stream_kind": "CHRONOMETRIC_RENDER_STREAM",
+      "primary_coordinator": "VBLANK_SHADOW_TIMING_COORDINATOR",
+      "vital_max_hp": 6
+    },
+    {
+      "layer_id": "L2_SPATIAL_SYMPLECTIC",
+      "name": "Spatial Symplectic Integrator & Hex-HSL Manifold",
+      "script_rel_path": "scripts/GodotSymplecticIntegrator.gd",
+      "description": "Phase-space Leapfrog Verlet det(J)==1.0 and 3D Hex-HSL D6 color manifold",
+      "stream_kind": "SPATIAL_SYMPLECTIC_STREAM",
+      "primary_coordinator": "SYMPLECTIC_CFL_STEP_COORDINATOR",
+      "vital_max_hp": 6
+    },
+    {
+      "layer_id": "L3_COGNITIVE_CADENCE",
+      "name": "Cognitive Cadence & 12-Frame Dwell Governor",
+      "script_rel_path": "scripts/GodotInertialGovernor.gd",
+      "description": "Dynamic resolution scaling with 12-frame dwell hysteresis (P8) and 10Hz alpha pulse",
+      "stream_kind": "COGNITIVE_CADENCE_STREAM",
+      "primary_coordinator": "INERTIAL_HYSTERESIS_COORDINATOR",
+      "vital_max_hp": 6
+    },
+    {
+      "layer_id": "L4_SPSC_ZERO_COPY",
+      "name": "Universal 128B SPSC Zero-Copy Contract Framing",
+      "script_rel_path": "scripts/GodotZeroCopyContractBridge.gd",
+      "description": "Aligned 128B binary contract frames with HMAC-SHA256 integrity (P2, P9)",
+      "stream_kind": "SPSC_COORDINATION_STREAM",
+      "primary_coordinator": "CONSTITUTIONAL_ARTIFACT_GATE_COORDINATOR",
+      "vital_max_hp": 6
+    },
+    {
+      "layer_id": "L5_CONSTITUTIONAL_GATEKEEPER",
+      "name": "Constitutional Gatekeeper & Safe Real-Time Actuator Client",
+      "script_rel_path": "scripts/GodotRealtimeInterventionClient.gd",
+      "description": "Two-phase intervention client guaranteeing Delta S == 0 on any safety violation",
+      "stream_kind": "SPSC_COORDINATION_STREAM",
+      "primary_coordinator": "CONSTITUTIONAL_ARTIFACT_GATE_COORDINATOR",
+      "vital_max_hp": 6
+    }
+  ],
+  "packaged_scripts": [
+    "scripts/GodotSiliconPDNBridge.gd",
+    "scripts/GodotChronometricCompositor.gd",
+    "scripts/GodotSymplecticIntegrator.gd",
+    "scripts/GodotInertialGovernor.gd",
+    "scripts/GodotZeroCopyContractBridge.gd",
+    "scripts/GodotRealtimeInterventionClient.gd",
+    "scripts/GodotKrystalEdition.gd",
+    "scripts/GodotKrystalEditionStage.gd",
+    "scripts/GodotKrystalHeadlessTestRunner.gd",
+    "scripts/KrystalHoloBridge.gd"
+  ],
+  "packaged_scenes": [
+    "scenes/AnimatedModelShowcase.tscn",
+    "scenes/Compositor8KScalingArena.tscn",
+    "scenes/FloatingCitadelWellOfSouls.tscn",
+    "scenes/GodotKrystalEditionStage.tscn",
+    "scenes/HoloStage.tscn",
+    "scenes/MimicryCompositorStage.tscn",
+    "scenes/NativeProceduralAcceleratedArena.tscn",
+    "scenes/PhotorealisticRaymarchStage.tscn",
+    "scenes/RecursiveMirrorARStage.tscn",
+    "scenes/SCENE_ALIEN_HIVE_CHAMBER.tscn",
+    "scenes/SCENE_CYBERPUNK_DISTRICT.tscn",
+    "scenes/SCENE_DEEP_SPACE_HANGAR.tscn",
+    "scenes/SCENE_SACRED_ALCHEMICAL_RUINS.tscn",
+    "scenes/posledni_kmen_arena.tscn",
+    "scenes/procedural_city_metropolis.tscn"
+  ],
+  "packaged_shaders": [
+    "shaders/aetheric_vortex_swirl.gdshader",
+    "shaders/ascii_hologram.gdshader",
+    "shaders/crystal_ice_prism.gdshader",
+    "shaders/krystal_knss_godot_viewport.gdshader",
+    "shaders/mimicry_sdf_compositor.gdshader",
+    "shaders/minecraft_pbr_terrain.gdshader",
+    "shaders/minecraft_volumetric_fog_and_sky.gdshader",
+    "shaders/minecraft_water_ocean.gdshader",
+    "shaders/photorealistic_pbr_procedural.gdshader",
+    "shaders/photorealistic_raymarch_godot.gdshader",
+    "shaders/quadratic_oracle_shader.gdshader",
+    "shaders/recursive_ar_mirror.gdshader",
+    "shaders/toxic_caustic_slime.gdshader"
+  ],
+  "package_sha256": "4a998ff4209e570313b434a8ad1d78dfaf8a3b8d2fa4564abacb7a28907f8bf0",
+  "is_constitutionally_valid": true,
+  "vital_max_hp": 6
+}

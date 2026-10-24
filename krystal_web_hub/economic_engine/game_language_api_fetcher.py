@@ -53,6 +53,7 @@ class GameCommandType(str, Enum):
     SPAWN_ENTITY = "SPAWN_ENTITY"
     ENVIRONMENT_HAZARD = "ENVIRONMENT_HAZARD"
     MATCH_ESCALATION = "MATCH_ESCALATION"
+    MIMICRY_SYNTHESIS = "MIMICRY_SYNTHESIS"
     QUERY_STATUS = "QUERY_STATUS"
     UNKNOWN = "UNKNOWN"
 
@@ -341,7 +342,29 @@ class GameLanguageApiFetcher:
                 detected_entities=detected_entities
             )
 
-        # ── 7. Spawning 3D Entities ──
+        # ── 7. Procedural Mimicry Synthesis ──
+        if any(w in t_low for w in ["mimikr", "mimic", "vež", "vez", "turret", "walker", "chodec", "obelisk", "sonda", "probe", "procedur"]):
+            recipe = "CYBER_TURRET_MK4"
+            if any(w in t_low for w in ["walker", "robot", "chodec"]):
+                recipe = "MECH_WALKER_BIPED"
+            elif any(w in t_low for w in ["obelisk", "monolit"]):
+                recipe = "VOID_OBELISK_PULSE"
+            elif any(w in t_low for w in ["sonda", "probe", "dron"]):
+                recipe = "QUANTUM_PROBE_SENSOR"
+            
+            params["recipe_id"] = recipe
+            params["target_hex"] = target_hex
+            detected_entities.append(f"mimicry:{recipe}")
+            return LanguageCommandIntent(
+                raw_text=raw,
+                command_type=GameCommandType.MIMICRY_SYNTHESIS,
+                confidence=0.93,
+                parameters=params,
+                language=detected_lang,
+                detected_entities=detected_entities
+            )
+
+        # ── 7.5. Spawning 3D Entities ──
         model_found = None
         for mod_id, synonyms in self.known_models.items():
             if any(syn in t_low for syn in synonyms):
@@ -433,6 +456,19 @@ class GameLanguageApiFetcher:
             language=detected_lang,
             detected_entities=[]
         )
+
+    # Alias for prompt parsing
+    parse_prompt = parse_language_command
+
+    def execute_intent(self, intent: LanguageCommandIntent) -> Dict[str, Any]:
+        """Executes a parsed LanguageCommandIntent directly."""
+        res = self.execute_command(intent.raw_text, execute_api=False)
+        return {
+            "status": res.status,
+            "feedback": res.game_feedback,
+            "action": res.api_action_executed,
+            "diff": res.state_diff
+        }
 
     # ==========================================================================
     # 2. COMMAND EXECUTION & GAME API DISPATCH
@@ -544,6 +580,20 @@ class GameLanguageApiFetcher:
                 feedback_en = f"Spawned 3D model '{model_id}' at position {pos}."
                 feedback = feedback_sk if intent.language == "sk" else feedback_en
                 diff = {"entity_spawned": model_id, "position": pos}
+
+            elif intent.command_type == GameCommandType.MIMICRY_SYNTHESIS:
+                recipe_id = intent.parameters.get("recipe_id", "CYBER_TURRET_MK4")
+                pos = intent.parameters.get("target_hex", [0, 0])
+                api_endpoint = "POST /api/mimicry/spawn"
+                payload = {
+                    "recipe_id": recipe_id,
+                    "target_coords": pos,
+                    "vital_max_hp": VITAL_MAX_HP
+                }
+                feedback_sk = f"Procedurálny objekt mimikry '{recipe_id}' vygenerovaný na pozícii {pos}."
+                feedback_en = f"Procedural mimicry object '{recipe_id}' synthesized at position {pos}."
+                feedback = feedback_sk if intent.language == "sk" else feedback_en
+                diff = {"mimicry_synthesized": recipe_id, "position": pos}
 
             elif intent.command_type == GameCommandType.MATCH_ESCALATION:
                 api_endpoint = "POST /api/match/escalate"

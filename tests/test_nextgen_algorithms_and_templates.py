@@ -91,6 +91,7 @@ class TestNextGenAlgorithmsAndTemplates(unittest.TestCase):
     def test_03_symplectic_phase_space_governor(self):
         """Verify symplectic Leapfrog integration and Hamiltonian conservation."""
         gov = self.suite.symplectic_governor
+        gov.reset()
         q_init = 1.0
         p_init = 0.0
         h_0 = gov.calculate_hamiltonian(q_init, p_init)

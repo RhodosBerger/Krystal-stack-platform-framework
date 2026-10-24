@@ -483,6 +483,211 @@ from .hardware_input_hal import (  # noqa: F401
     GLOBAL_HARDWARE_INPUT_HAL
 )
 
+from .llm_hw_acceleration_bridge import (  # noqa: F401
+    HardwareInferenceReceipt,
+    LlmHardwareAccelerationBridge,
+    GLOBAL_LLM_HW_BRIDGE
+)
+
+from .procedural_sdf_hw_bridge import (  # noqa: F401
+    SdfEvaluationReceipt,
+    ProceduralSdfHwAccelerationBridge,
+    GLOBAL_PROCEDURAL_SDF_BRIDGE
+)
+
+from .uma_inductive_voltage_governor import (  # noqa: F401
+    TerminalChannel,
+    TerminalChokeState,
+    UmaVoltagePlan,
+    SafetyThresholdEnvelopes,
+    LatentHysteresisStateTracker,
+    InductiveChokeTerminalBlock,
+    UmaInductiveVoltageGovernor,
+    GLOBAL_UMA_INDUCTIVE_VOLTAGE_GOVERNOR
+)
+
+from .two_phase_reasoning_computing_alternator import (  # noqa: F401
+    AlternatorPhase,
+    EpistemicClaimStatus,
+    PatternEvidence6Tuple,
+    ReasoningHypothesisProposal,
+    VerificationAuditReceipt,
+    AlternatorCycleReceipt,
+    TwoPhaseVerifierGate,
+    TwoPhaseReasoningComputingAlternator,
+    GLOBAL_REASONING_COMPUTING_ALTERNATOR
+)
+
+from .verification.theory_dependency_graph import (  # noqa: F401
+    TheoryCategory,
+    TheoryEpistemicStatus,
+    TheoryNode,
+    ExperimentalTheoryDependencyGraph,
+    GLOBAL_THEORY_DEPENDENCY_GRAPH
+)
+
+from .verification.theory_harvesting_engine import (  # noqa: F401
+    HarvestedTheoryRecord,
+    TheoryHarvestSummary,
+    TheoryHarvestingEngine,
+    GLOBAL_THEORY_HARVESTING_ENGINE
+)
+
+from .matrix_algorithms_two_phase_bridge import (  # noqa: F401
+    MatrixExecutionReceipt,
+    MatrixAlgorithmsTwoPhaseBridge,
+    GLOBAL_MATRIX_ALGORITHMS_BRIDGE
+)
+
+from .cartesian_hex_hsl_grid import (  # noqa: F401
+    GridCoefficients3D,
+    CartesianGridPoint,
+    CartesianHexHslGrid,
+    GLOBAL_CARTESIAN_HEX_HSL_GRID
+)
+
+from .pattern_rhythm_cadence_calculator import (  # noqa: F401
+    PatternCadenceType,
+    CadenceAlignmentVerdict,
+    PatternRhythmSpec,
+    RhythmCalculationReport,
+    PatternRhythmCadenceCalculator,
+    GLOBAL_PATTERN_RHYTHM_CALCULATOR
+)
+
+from .chrono_symplectic_processor_architecture import (  # noqa: F401
+    CoreClusterRole,
+    ApplicationSpectrumKind,
+    ProcessorClusterSpec,
+    ApplicationSpectrumDescriptor,
+    WorkloadExecutionReceipt,
+    ChronoSymplecticProcessorSoC,
+    GLOBAL_CHRONO_SYMPLECTIC_SOC
+)
+
+from .future_theory_integrations_orchestrator import (  # noqa: F401
+    IntegrationTargetSubsystem,
+    SubsystemUpgradeReport,
+    FutureTheoryIntegrationsOrchestrator,
+    GLOBAL_FUTURE_THEORY_INTEGRATIONS_ORCHESTRATOR
+)
+
+from .redundant_epistemic_inference_engine import (  # noqa: F401
+    AspectCategory,
+    InferenceLens,
+    InferenceEpistemicStatus,
+    AspectDefinition,
+    EpistemicInferenceClaim,
+    RedundantInferenceSynthesis,
+    RedundantEpistemicInferenceEngine,
+    GLOBAL_REDUNDANT_INFERENCE_ENGINE
+)
+
+from .sovereign_runtime import (  # noqa: F401
+    SubsystemNodeId,
+    InterpolationMode,
+    SpatialHexHslInterpolationResult,
+    CadenceHarmonicInterpolationResult,
+    SymplecticVerletState,
+    VoltageImpedanceState,
+    CoordinationChannel,
+    RuntimeExecutionCycleReceipt,
+    SpatialHexHslInterpolator,
+    CadenceHarmonicInterpolator,
+    SymplecticPhaseSpaceInterpolator,
+    VoltageImpedanceInterpolator,
+    KrystalSovereignRuntime,
+    GLOBAL_SOVEREIGN_RUNTIME
+)
+
+from .sovereign_operations_compiler import (  # noqa: F401
+    CompilationStage,
+    StageExecutionResult,
+    SovereignOperationsReceipt,
+    SovereignOperationsCompiler,
+    GLOBAL_SOVEREIGN_OPERATIONS_COMPILER
+)
+
+from .textbook_inferable_patterns import (  # noqa: F401
+    InferablePatternId,
+    PatternEvidenceTuple,
+    ReasoningTrace11Tuple,
+    PhaseCrossoverInferenceResult,
+    ChronometricShadowInferenceResult,
+    SymplecticLeapfrogInferenceResult,
+    DwellHysteresisInferenceResult,
+    HexHslBijectionInferenceResult,
+    InductiveVoltageInferenceResult,
+    PulseTelemetryInferenceResult,
+    ArtifactGateInferenceResult,
+    TextbookPatternDescriptor,
+    TextbookInferablePatternsEngine,
+    infer_asymmetric_phase_crossover,
+    infer_chronometric_vblank_shadow,
+    infer_symplectic_leapfrog_step,
+    infer_12frame_dwell_hysteresis,
+    infer_hex_hsl_discrete_bijection,
+    infer_uma_inductive_voltage_clamping,
+    infer_sub50ns_pulse_telemetry,
+    infer_artifact_gate_commit,
+    GLOBAL_TEXTBOOK_PATTERNS_ENGINE
+)
+
+from .sovereign_bot_scale_dimensioner import (  # noqa: F401
+    ScaleDomain,
+    LayerSystemId,
+    ScaleProfile,
+    LayerGoverningVariable,
+    VariableTuningReceipt,
+    OptimalOperatingReceipt,
+    SovereignBotScaleDimensioner,
+    GLOBAL_SOVEREIGN_BOT_SCALE_DIMENSIONER
+)
+
+from .unified_dependency_coordinator import (  # noqa: F401
+    RuntimeStreamKind,
+    KeyDependencyCoordinatorId,
+    StreamElementMapping,
+    InterventionProposal,
+    RealtimeInterventionReceipt,
+    UnifiedStreamSyncReceipt,
+    SafeRealtimeInterventionActuator,
+    UnifiedCrossStreamDependencyCoordinator,
+    GLOBAL_UNIFIED_DEPENDENCY_COORDINATOR
+)
+
+from .godot_krystal_edition_packager import (  # noqa: F401
+    EngineLayerId,
+    EngineLayerSpec,
+    EditionPackageManifest,
+    EditionPackagingReceipt,
+    GodotKrystalEditionPackager,
+    GLOBAL_GODOT_KRYSTAL_EDITION_PACKAGER
+)
+
+from .sovereign_layer_optimizer import (  # noqa: F401
+    OptimizedPdnEvaluation,
+    OptimizedSiliconPdnGovernor,
+    OptimizedShadowWindowReport,
+    OptimizedChronometricShadowScheduler,
+    SymplecticParticleState,
+    SymplecticStepResult,
+    OptimizedSymplecticPhaseSpaceEngine,
+    CadenceGovernorEvaluation,
+    OptimizedCognitiveCadenceGovernor,
+    SerializedContractFrame,
+    OptimizedZeroCopyContractSerializer,
+    FastInterventionReceipt,
+    OptimizedConstitutionalSafetyActuator
+)
+
+from .sovereign_run_benchmark_harness import (  # noqa: F401
+    LayerRunBenchmarkMetrics,
+    FullSovereignRunReceipt,
+    SovereignRunBenchmarkHarness,
+    GLOBAL_SOVEREIGN_RUN_BENCHMARK_HARNESS
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -606,5 +811,82 @@ __all__ = [
     "ReplayVerificationScope", "ClockCalibration", "HardwareInputEvent",
     "InputEvidenceEnvelope", "HalDeviceInfo", "AntiReplayFilter",
     "SPSCInputRingBuffer", "HardwareInputHAL", "compute_device_fingerprint",
-    "compute_device_fingerprints", "GLOBAL_HARDWARE_INPUT_HAL"
+    "compute_device_fingerprints", "GLOBAL_HARDWARE_INPUT_HAL",
+    "HardwareInferenceReceipt", "LlmHardwareAccelerationBridge", "GLOBAL_LLM_HW_BRIDGE",
+    "SdfEvaluationReceipt", "ProceduralSdfHwAccelerationBridge", "GLOBAL_PROCEDURAL_SDF_BRIDGE",
+    "TerminalChannel", "TerminalChokeState", "UmaVoltagePlan",
+    "SafetyThresholdEnvelopes", "LatentHysteresisStateTracker",
+    "InductiveChokeTerminalBlock", "UmaInductiveVoltageGovernor",
+    "GLOBAL_UMA_INDUCTIVE_VOLTAGE_GOVERNOR",
+    "AlternatorPhase", "EpistemicClaimStatus", "PatternEvidence6Tuple",
+    "ReasoningHypothesisProposal", "VerificationAuditReceipt", "AlternatorCycleReceipt",
+    "TwoPhaseVerifierGate", "TwoPhaseReasoningComputingAlternator",
+    "GLOBAL_REASONING_COMPUTING_ALTERNATOR",
+    "TheoryCategory", "TheoryEpistemicStatus", "TheoryNode",
+    "ExperimentalTheoryDependencyGraph", "GLOBAL_THEORY_DEPENDENCY_GRAPH",
+    "HarvestedTheoryRecord", "TheoryHarvestSummary",
+    "TheoryHarvestingEngine", "GLOBAL_THEORY_HARVESTING_ENGINE",
+    "MatrixExecutionReceipt", "MatrixAlgorithmsTwoPhaseBridge",
+    "GLOBAL_MATRIX_ALGORITHMS_BRIDGE",
+    "GridCoefficients3D", "CartesianGridPoint",
+    "CartesianHexHslGrid", "GLOBAL_CARTESIAN_HEX_HSL_GRID",
+    "PatternCadenceType", "CadenceAlignmentVerdict",
+    "PatternRhythmSpec", "RhythmCalculationReport",
+    "PatternRhythmCadenceCalculator", "GLOBAL_PATTERN_RHYTHM_CALCULATOR",
+    "CoreClusterRole", "ApplicationSpectrumKind",
+    "ProcessorClusterSpec", "ApplicationSpectrumDescriptor",
+    "WorkloadExecutionReceipt", "ChronoSymplecticProcessorSoC",
+    "GLOBAL_CHRONO_SYMPLECTIC_SOC",
+    "IntegrationTargetSubsystem", "SubsystemUpgradeReport",
+    "FutureTheoryIntegrationsOrchestrator",
+    "GLOBAL_FUTURE_THEORY_INTEGRATIONS_ORCHESTRATOR",
+    "AspectCategory", "InferenceLens", "InferenceEpistemicStatus",
+    "AspectDefinition", "EpistemicInferenceClaim",
+    "RedundantInferenceSynthesis", "RedundantEpistemicInferenceEngine",
+    "GLOBAL_REDUNDANT_INFERENCE_ENGINE",
+    "SubsystemNodeId", "InterpolationMode",
+    "SpatialHexHslInterpolationResult", "CadenceHarmonicInterpolationResult",
+    "SymplecticVerletState", "VoltageImpedanceState",
+    "CoordinationChannel", "RuntimeExecutionCycleReceipt",
+    "SpatialHexHslInterpolator", "CadenceHarmonicInterpolator",
+    "SymplecticPhaseSpaceInterpolator", "VoltageImpedanceInterpolator",
+    "KrystalSovereignRuntime", "GLOBAL_SOVEREIGN_RUNTIME",
+    "CompilationStage", "StageExecutionResult",
+    "SovereignOperationsReceipt", "SovereignOperationsCompiler",
+    "GLOBAL_SOVEREIGN_OPERATIONS_COMPILER",
+    "InferablePatternId", "PatternEvidenceTuple", "ReasoningTrace11Tuple",
+    "PhaseCrossoverInferenceResult", "ChronometricShadowInferenceResult",
+    "SymplecticLeapfrogInferenceResult", "DwellHysteresisInferenceResult",
+    "HexHslBijectionInferenceResult", "InductiveVoltageInferenceResult",
+    "PulseTelemetryInferenceResult", "ArtifactGateInferenceResult",
+    "TextbookPatternDescriptor", "TextbookInferablePatternsEngine",
+    "infer_asymmetric_phase_crossover", "infer_chronometric_vblank_shadow",
+    "infer_symplectic_leapfrog_step", "infer_12frame_dwell_hysteresis",
+    "infer_hex_hsl_discrete_bijection", "infer_uma_inductive_voltage_clamping",
+    "infer_sub50ns_pulse_telemetry", "infer_artifact_gate_commit",
+    "GLOBAL_TEXTBOOK_PATTERNS_ENGINE",
+    "ScaleDomain", "LayerSystemId", "ScaleProfile",
+    "LayerGoverningVariable", "VariableTuningReceipt",
+    "OptimalOperatingReceipt", "SovereignBotScaleDimensioner",
+    "GLOBAL_SOVEREIGN_BOT_SCALE_DIMENSIONER",
+    "RuntimeStreamKind", "KeyDependencyCoordinatorId",
+    "StreamElementMapping", "InterventionProposal",
+    "RealtimeInterventionReceipt", "UnifiedStreamSyncReceipt",
+    "SafeRealtimeInterventionActuator",
+    "UnifiedCrossStreamDependencyCoordinator",
+    "GLOBAL_UNIFIED_DEPENDENCY_COORDINATOR",
+    "EngineLayerId", "EngineLayerSpec",
+    "EditionPackageManifest", "EditionPackagingReceipt",
+    "GodotKrystalEditionPackager",
+    "GLOBAL_GODOT_KRYSTAL_EDITION_PACKAGER",
+    "OptimizedPdnEvaluation", "OptimizedSiliconPdnGovernor",
+    "OptimizedShadowWindowReport", "OptimizedChronometricShadowScheduler",
+    "SymplecticParticleState", "SymplecticStepResult",
+    "OptimizedSymplecticPhaseSpaceEngine",
+    "CadenceGovernorEvaluation", "OptimizedCognitiveCadenceGovernor",
+    "SerializedContractFrame", "OptimizedZeroCopyContractSerializer",
+    "FastInterventionReceipt", "OptimizedConstitutionalSafetyActuator",
+    "LayerRunBenchmarkMetrics", "FullSovereignRunReceipt",
+    "SovereignRunBenchmarkHarness",
+    "GLOBAL_SOVEREIGN_RUN_BENCHMARK_HARNESS"
 ]

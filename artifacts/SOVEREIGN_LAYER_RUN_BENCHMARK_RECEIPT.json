@@ -1,0 +1,114 @@
+{
+  "run_id": "RUN-TEST-1792846504",
+  "timestamp_iso": "2026-10-24T12:55:04Z",
+  "total_layers_tested": 6,
+  "all_layers_passed": true,
+  "total_duration_ms": 114.794,
+  "layer_benchmarks": {
+    "L0_SILICON_PDN": {
+      "layer_name": "L0_SILICON_PDN",
+      "iterations": 2000,
+      "total_duration_ms": 9.943,
+      "throughput_ops_per_sec": 201154.6,
+      "latency_p50_us": 0.7,
+      "latency_p95_us": 1.4,
+      "latency_p99_us": 1.7,
+      "passed": true,
+      "empirical_indicators": {
+        "safe_evaluations": 2000,
+        "max_allowed_vdd": 1.0,
+        "attenuation_verified": true
+      },
+      "vital_max_hp": 6
+    },
+    "L1_CHRONOMETRIC_RENDER": {
+      "layer_name": "L1_CHRONOMETRIC_RENDER",
+      "iterations": 1500,
+      "total_duration_ms": 4.757,
+      "throughput_ops_per_sec": 315344.7,
+      "latency_p50_us": 0.4,
+      "latency_p95_us": 0.5,
+      "latency_p99_us": 0.5,
+      "passed": true,
+      "empirical_indicators": {
+        "safe_60hz_adherence": 750,
+        "unsafe_144hz_quarantined": 750,
+        "min_shadow_budget_ms": 3.5
+      },
+      "vital_max_hp": 6
+    },
+    "L2_SPATIAL_SYMPLECTIC": {
+      "layer_name": "L2_SPATIAL_SYMPLECTIC",
+      "iterations": 10000,
+      "total_duration_ms": 3.419,
+      "throughput_ops_per_sec": 2925002.9,
+      "latency_p50_us": 0.342,
+      "latency_p95_us": 0.41,
+      "latency_p99_us": 0.513,
+      "passed": true,
+      "empirical_indicators": {
+        "det_j_preservation": 1.0,
+        "initial_energy": 3.625,
+        "final_energy": 3.624896,
+        "max_energy_drift": 0.00010446,
+        "cfl_margin_adhered": true,
+        "sector_code": "0x60"
+      },
+      "vital_max_hp": 6
+    },
+    "L3_COGNITIVE_CADENCE": {
+      "layer_name": "L3_COGNITIVE_CADENCE",
+      "iterations": 1200,
+      "total_duration_ms": 3.369,
+      "throughput_ops_per_sec": 356209.9,
+      "latency_p50_us": 0.4,
+      "latency_p95_us": 0.5,
+      "latency_p99_us": 0.7,
+      "passed": true,
+      "empirical_indicators": {
+        "min_dwell_frames": 12,
+        "chattering_suppression_ratio": 0.8,
+        "is_chattering_suppressed_ge_80pct": true,
+        "final_merkle_momentum": 0.984248283155264
+      },
+      "vital_max_hp": 6
+    },
+    "L4_SPSC_ZERO_COPY": {
+      "layer_name": "L4_SPSC_ZERO_COPY",
+      "iterations": 15000,
+      "total_duration_ms": 89.865,
+      "throughput_ops_per_sec": 166916.5,
+      "latency_p50_us": 2.0,
+      "latency_p95_us": 2.3,
+      "latency_p99_us": 3.6,
+      "passed": true,
+      "empirical_indicators": {
+        "frame_size_bytes": 128,
+        "corrupted_frames": 0,
+        "integrity_rate": 1.0,
+        "vital_hp": 6
+      },
+      "vital_max_hp": 6
+    },
+    "L5_CONSTITUTIONAL_GATEKEEPER": {
+      "layer_name": "L5_CONSTITUTIONAL_GATEKEEPER",
+      "iterations": 1000,
+      "total_duration_ms": 2.144,
+      "throughput_ops_per_sec": 466396.2,
+      "latency_p50_us": 0.2,
+      "latency_p95_us": 0.3,
+      "latency_p99_us": 0.3,
+      "passed": true,
+      "empirical_indicators": {
+        "safe_commits": 334,
+        "bounds_quarantined": 333,
+        "soc_rejected": 333,
+        "delta_s_zero_violations": 0,
+        "delta_s_zero_guarantee": true
+      },
+      "vital_max_hp": 6
+    }
+  },
+  "receipt_hmac_digest": "3edff47f6d1d95cdd496c840ed6853b6d68aaefe7510e1d4286bf98d102389f6",
+  "vital_max_hp": 6
+}

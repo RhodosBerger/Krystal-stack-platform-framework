@@ -171,6 +171,10 @@ class SymplecticPhaseSpaceGovernorAlgorithm:
         self.tolerance = tolerance
         self.initial_hamiltonian: Optional[float] = None
 
+    def reset(self, initial_hamiltonian: Optional[float] = None) -> None:
+        """Resets the baseline Hamiltonian for a fresh integration sequence."""
+        self.initial_hamiltonian = initial_hamiltonian
+
     def calculate_hamiltonian(self, q: float, p: float) -> float:
         """H = (p^2)/(2*m) + 0.5 * k * q^2"""
         kinetic = (p ** 2) / (2.0 * self.mass)

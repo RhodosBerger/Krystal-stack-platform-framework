@@ -330,6 +330,18 @@ class PulseSequenceLogger:
         self._total_events += 1
         return frame
 
+    def log_event(self, code: TelemetryEventCode, raw_value: int = 0) -> bytes:
+        """Zapíše telemetrickú udalosť podľa enum kódu a surovej hodnoty."""
+        event_cls = EVENT_CLASS_MAP.get(code, BaseTelemetryEvent)
+        if event_cls is BaseTelemetryEvent:
+            ev = BaseTelemetryEvent(code=code, raw_value=raw_value)
+        else:
+            try:
+                ev = event_cls(raw_value=raw_value)
+            except Exception:
+                ev = BaseTelemetryEvent(code=code, raw_value=raw_value)
+        return self.log(ev)
+
     def read_all(self) -> List[BaseTelemetryEvent]:
         """Prečíta všetky aktuálne platné udalosti z kruhového buffera v chronologickom poradí."""
         count = min(self._total_events, self.capacity)
@@ -471,6 +483,27 @@ class OpenVinoSiliconPolicyArbiter:
                 "generation_tokens": generation_tokens
             },
             "vital_max_hp": VITAL_MAX_HP
+        }
+
+    def evaluate_current_state(self, prompt_tokens: int = 32, generation_tokens: int = 1) -> Dict[str, Any]:
+        """Vyhodnotí stav s predvolenými nominálnymi hodnotami telemetrie."""
+        res = self.evaluate_state(
+            temperature_c=52.0,
+            return_loss_db=26.5,
+            cache_transit_latency_us=2.1,
+            prompt_tokens=prompt_tokens,
+            generation_tokens=generation_tokens
+        )
+        return {
+            "temperature_c": 52.0,
+            "return_loss_db": 26.5,
+            "uma_transit_us": 2.1,
+            "decision": {
+                "throttle_guard_active": res["telemetry_snapshot"]["is_throttled"],
+                "uma_guard_active": res["telemetry_snapshot"]["high_contention"],
+                "selected_policy": res["selected_policy"]
+            },
+            "raw_result": res
         }
 
 

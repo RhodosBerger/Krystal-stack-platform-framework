@@ -27,6 +27,7 @@ from .rag import RagIndex, event_to_text, ingest_events, ingest_markdown_tree
 from .risk import KerasClient, RiskModel
 from .skills import Gateway, Pairing, Skill
 from .config_cheatsheet_expert import CONFIG_CHEATSHEET_EXPERT
+from .sovereign_layer_governor import SOVEREIGN_LAYER_GOVERNOR
 
 HEALTH_RANK = {"ok": 0, "degraded": 1, "critical": 2}
 HELP = """Commands:
@@ -36,6 +37,7 @@ HELP = """Commands:
 /template [list|get|dispatch]                 coordination templates & timer DAGs
 /cascade [list|run]                           multi-model cascade SLM runtime & routing
 /hw [summary|cpu|gpu|npu|power|storage...]    Linux hardware allocation monitor (8 categories)
+/layer [list|get|tune|optimal|scales]        layer governing variables & multi-scale bot dimensioning
 /search <text>                               retrieve from docs and logs, with citations
 /ask <question>                              answer from retrieval, configuration cheatsheet & cascade SLMs
 /art <scene> [palette] [seed]                 draw pixel art (scene: landscape | still_life)
@@ -246,6 +248,7 @@ class BotService:
         g.register(Skill("template", "Coordination templates & timer DAGs", ["/template", "/templates"]), lambda a, c: self._template_text(a))
         g.register(Skill("cascade", "Multi-model cascade SLM runtime & routing", ["/cascade", "/slm"]), lambda a, c: self._cascade_text(a))
         g.register(Skill("hw", "Linux hardware allocation monitor (8 categories)", ["/hw", "/hardware", "/sysmon"]), lambda a, c: self._hw_text(a))
+        g.register(Skill("layer", "Sovereign layer governing variables & multi-scale bot dimensioning", ["/layer", "/layers", "/scale", "/scales"]), lambda a, c: self._layer_text(a))
         g.register(Skill("search", "Retrieve from docs and logs", ["/search"]), lambda a, c: self._search_text(a))
         g.register(Skill("ask", "Answer from retrieval, configuration cheatsheet & cascade SLMs", ["/ask"]), lambda a, c: self._ask_text(a))
         g.register(Skill("art", "Draw pixel art", ["/art"]), lambda a, c: self._art_text(a))
@@ -265,7 +268,8 @@ class BotService:
             "realtime", "balanced", "eco", "shadow", "kiosk", "headless",
             "power", "bateria", "battery", "teplot", "thermal", "hardware", "hw",
             "cgroups", "affinity", "npu", "cascade", "kaskad", "vital_max_hp", "invariant",
-            "porovnaj", "odporuc", "odporúč", "ako", "co je", "recommend", "best"
+            "layer", "vrstv", "premenn", "dimension", "dimenz", "scale", "skal",
+            "optimal", "pareto", "governor", "porovnaj", "odporuc", "odporúč", "ako", "co je", "recommend", "best"
         ])
         fallback = "ask" if is_config_or_chat else "search"
         res = self.gateway.dispatch(text, channel, sender, fallback=fallback)
@@ -375,6 +379,25 @@ class BotService:
     def _hw_text(self, arg: str) -> str:
         cat = arg.strip().lower() if arg.strip() else None
         return CONFIG_CHEATSHEET_EXPERT.get_hardware_cheatsheet(cat)
+
+    def _layer_text(self, arg: str) -> str:
+        parts = arg.strip().split()
+        if not parts or parts[0].lower() in ("list", "all", "ls"):
+            sub_query = parts[1] if len(parts) > 1 else None
+            return SOVEREIGN_LAYER_GOVERNOR.list_variables_cheatsheet(sub_query)
+        cmd = parts[0].lower()
+        if cmd == "get" and len(parts) > 1:
+            return SOVEREIGN_LAYER_GOVERNOR.get_variable_details(parts[1])
+        if cmd == "tune" and len(parts) >= 3:
+            return SOVEREIGN_LAYER_GOVERNOR.tune_variable(parts[1], parts[2])
+        if cmd in ("optimal", "opt", "pareto"):
+            intensity = parts[1] if len(parts) > 1 else None
+            return SOVEREIGN_LAYER_GOVERNOR.format_optimal_operating_cheatsheet(intensity)
+        if cmd in ("scales", "scale", "dim", "dimension"):
+            return SOVEREIGN_LAYER_GOVERNOR.format_scales_cheatsheet()
+        if any(parts[0].upper().startswith(pfx) for pfx in ("VAR_", "L0_", "L1_", "L2_", "L3_", "L4_", "L5_")):
+            return SOVEREIGN_LAYER_GOVERNOR.get_variable_details(parts[0])
+        return SOVEREIGN_LAYER_GOVERNOR.list_variables_cheatsheet(parts[0])
 
     def _search_text(self, q: str) -> str:
         if not q:

@@ -1,0 +1,102 @@
+{
+  "receipt_id": "OPS-RECEIPT-1792846504-1b201352",
+  "timestamp_ns": 23021111324800,
+  "total_stages_run": 6,
+  "stages_passed": 6,
+  "is_fully_operational": true,
+  "total_duration_ms": 0.671,
+  "stage_results": [
+    {
+      "stage": "THEORY_DAG_AUDIT",
+      "passed": true,
+      "duration_ms": 0.048,
+      "details": {
+        "total_theory_nodes": 33,
+        "proven_theories_count": 24,
+        "dag_cycle_detected": false,
+        "vital_hp": 6
+      },
+      "error_message": null,
+      "vital_max_hp": 6
+    },
+    {
+      "stage": "CONTRACT_FRAME_COMPILATION",
+      "passed": true,
+      "duration_ms": 0.092,
+      "details": {
+        "channel_tested": "WSL_TO_CHRONO_SOC",
+        "frame_size_bytes": 128,
+        "frame_contract_type": 3,
+        "vital_hp": 6
+      },
+      "error_message": null,
+      "vital_max_hp": 6
+    },
+    {
+      "stage": "INTERPOLATOR_VALIDATION",
+      "passed": true,
+      "duration_ms": 0.119,
+      "details": {
+        "spatial_sector_code": "0x20",
+        "cadence_active_period_ms": 100.0,
+        "symplectic_det_jacobian": 1.0,
+        "voltage_settled_v": 1.035,
+        "vital_hp": 6
+      },
+      "error_message": null,
+      "vital_max_hp": 6
+    },
+    {
+      "stage": "SHADOW_CYCLE_RECONCILIATION",
+      "passed": true,
+      "duration_ms": 0.017,
+      "details": {
+        "cycle_index": 1,
+        "shadow_consumed_ms": 2.2,
+        "shadow_budget_ms": 3.5,
+        "uma_bus_pressure": 0.48,
+        "state_committed": true,
+        "hmac_signature_length": 64
+      },
+      "error_message": null,
+      "vital_max_hp": 6
+    },
+    {
+      "stage": "SUBSYSTEM_COORDINATION_POLL",
+      "passed": true,
+      "duration_ms": 0.128,
+      "details": {
+        "total_subsystems": 4,
+        "all_subsystems_verified": true,
+        "vital_hp": 6
+      },
+      "error_message": null,
+      "vital_max_hp": 6
+    },
+    {
+      "stage": "REDUNDANT_INFERENCE_SYNTHESIS",
+      "passed": true,
+      "duration_ms": 0.221,
+      "details": {
+        "total_aspects": 15,
+        "total_claims": 75,
+        "soundness_percentage": 100.0,
+        "cross_domain_links": 5
+      },
+      "error_message": null,
+      "vital_max_hp": 6
+    }
+  ],
+  "system_metrics": {
+    "runtime_name": "KrystalSovereignRuntime",
+    "coordination_channels_count": 6,
+    "vital_max_hp": 6,
+    "constitutional_invariant_intact": true,
+    "active_brainwave_cadence": "COGNITIVE_BRAINWAVE",
+    "bus_impedance_ohm": 50.0,
+    "shadow_window_budget_ms": 3.5,
+    "theory_nodes_total": 33
+  },
+  "hmac_digest": "1b201352a92e30dd688a181b5d658272ada406d680038e0d557467e28a83a365",
+  "vital_max_hp": 6
+}

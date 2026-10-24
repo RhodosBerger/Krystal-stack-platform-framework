@@ -23,3 +23,8 @@ window/vsync/vsync_mode=1
 renderer/rendering_method="forward_plus"
 textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.02, 0.03, 0.06, 1.0)
+
+[autoload]
+
+GodotKrystalEdition="*res://scripts/GodotKrystalEdition.gd"
+
