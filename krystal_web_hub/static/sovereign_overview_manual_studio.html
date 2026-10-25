@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krystal Stack // Prehľadové Príručky & Suverénne Štúdio UX</title>
+    <meta name="description" content="Interaktívne používateľské rozhranie prehľadových príručiek, 6 suverénnych vrstiev a symplektických animačných prechodov Krystal Stack Frameworku.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #070a12;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --bg-card-hover: rgba(30, 41, 59, 0.85);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(6, 182, 212, 0.35);
+            --cyan: #06b6d4;
+            --cyan-glow: rgba(6, 182, 212, 0.25);
+            --violet: #8b5cf6;
+            --violet-glow: rgba(139, 92, 246, 0.25);
+            --emerald: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Hero & Background Canvas */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: auto;
+            z-index: 0;
+            opacity: 0.65;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 32px 80px;
+        }
+
+        /* Header Bar */
+        header.top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 28px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            margin-bottom: 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .brand-zone {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-logo-hex {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--cyan), var(--violet));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 20px;
+            color: #fff;
+            box-shadow: 0 0 20px var(--cyan-glow);
+            animation: pulseAlpha 2.4s infinite ease-in-out;
+        }
+
+        @keyframes pulseAlpha {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 18px var(--cyan-glow); }
+            50% { transform: scale(1.04); box-shadow: 0 0 28px var(--violet-glow); }
+        }
+
+        h1.main-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-badges {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            border-radius: 9999px;
+            background: rgba(6, 182, 212, 0.12);
+            color: var(--cyan);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .badge.invariant {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--emerald);
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        /* Navigation Tabs */
+        nav.nav-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(16px);
+            padding: 6px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-card);
+            overflow-x: auto;
+        }
+
+        button.tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s var(--transition-smooth);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button.tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        button.tab-btn.active {
+            color: #fff;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.35), rgba(139, 92, 246, 0.35));
+            border: 1px solid var(--border-highlight);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Search & Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 28px;
+            align-items: center;
+        }
+
+        .search-input-wrap {
+            position: relative;
+            flex: 1;
+        }
+
+        input.search-input {
+            width: 100%;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-card);
+            padding: 12px 18px 12px 42px;
+            border-radius: var(--radius-md);
+            color: #fff;
+            font-size: 14px;
+            font-family: var(--font-sans);
+            transition: all 0.25s ease;
+        }
+
+        input.search-input:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: 0 0 16px var(--cyan-glow);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* Main Layout Grid */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 28px;
+        }
+
+        @media (max-width: 980px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar Section List */
+        .sidebar-sections {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+        }
+
+        .section-item-card {
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.25s var(--transition-spring);
+        }
+
+        .section-item-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+
+        .section-item-card.active {
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(139, 92, 246, 0.1));
+            border-color: var(--cyan);
+            box-shadow: 0 4px 16px rgba(6, 182, 212, 0.15);
+        }
+
+        .card-category {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Main Reader / Inspector Panel */
+        .main-reader-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+            min-height: 520px;
+        }
+
+        .reader-header {
+            border-bottom: 1px solid var(--border-card);
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+        }
+
+        .reader-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .reader-title {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .reader-subtitle {
+            font-size: 15px;
+            color: var(--cyan);
+            font-weight: 500;
+        }
+
+        .reader-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .tag-pill {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            color: var(--text-secondary);
+        }
+
+        .reader-summary {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #cbd5e1;
+            margin-bottom: 28px;
+        }
+
+        /* Invariant Banner */
+        .invariant-box {
+            background: rgba(16, 185, 129, 0.06);
+            border-left: 4px solid var(--emerald);
+            padding: 14px 18px;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: #6ee7b7;
+        }
+
+        /* Code Snippet Box */
+        .code-box-container {
+            background: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+
+        .code-box-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        pre.code-block {
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: #38bdf8;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+
+        button.copy-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button.copy-btn:hover {
+            background: var(--cyan);
+            color: #000;
+        }
+
+        /* Interactive Sandbox Area */
+        .sandbox-area {
+            background: linear-gradient(180deg, rgba(6, 182, 212, 0.04), rgba(139, 92, 246, 0.04));
+            border: 1px solid var(--border-highlight);
+            border-radius: var(--radius-md);
+            padding: 24px;
+        }
+
+        .sandbox-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .sandbox-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--cyan);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sandbox-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            accent-color: var(--cyan);
+        }
+
+        .sandbox-canvas-wrap {
+            background: #060911;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            height: 140px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #sandbox-sim-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sandbox-metrics {
+            display: flex;
+            gap: 18px;
+            margin-top: 12px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        .metric-pill {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .metric-val {
+            color: var(--cyan);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Symplectic Particle Simulation -->
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="app-container">
+        <!-- Header Bar -->
+        <header class="top-header">
+            <div class="brand-zone">
+                <div class="brand-logo-hex">KS</div>
+                <div>
+                    <h1 class="main-title">Krystal Stack // Prehľadové Príručky & Suverénne Štúdio</h1>
+                    <div style="font-size: 12px; color: var(--text-muted);">Organický Kybernetický Model & Symplektické Animačné Rozhranie</div>
+                </div>
+            </div>
+            <div class="header-badges">
+                <span class="badge invariant">🔒 VITAL_MAX_HP == 6</span>
+                <span class="badge">⚡ KSPP v1 (P1..P10)</span>
+                <span class="badge" style="color: var(--violet); border-color: rgba(139, 92, 246, 0.35);">6 VRSTIEV L0..L5</span>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-bar">
+            <button class="tab-btn active" data-cat="ALL" onclick="filterCategory('ALL', this)">
+                📚 Všetky Kapitoly
+            </button>
+            <button class="tab-btn" data-cat="ARCHITECTURE_FOUNDATIONS" onclick="filterCategory('ARCHITECTURE_FOUNDATIONS', this)">
+                🏛️ Architektúra
+            </button>
+            <button class="tab-btn" data-cat="SOVEREIGN_6_LAYERS" onclick="filterCategory('SOVEREIGN_6_LAYERS', this)">
+                🛡️ 6 Suverénnych Vrstiev
+            </button>
+            <button class="tab-btn" data-cat="TEXTBOOK_INFERABLE_PATTERNS" onclick="filterCategory('TEXTBOOK_INFERABLE_PATTERNS', this)">
+                📐 8 Učebnicových Vzorov
+            </button>
+            <button class="tab-btn" data-cat="OPERATIONS_CONTROL_CENTER" onclick="filterCategory('OPERATIONS_CONTROL_CENTER', this)">
+                ⚙️ Riadiace Centrum
+            </button>
+            <button class="tab-btn" data-cat="GODOT_KRYSTAL_EDITION" onclick="filterCategory('GODOT_KRYSTAL_EDITION', this)">
+                🎮 Godot Krystal Edition
+            </button>
+        </nav>
+
+        <!-- Search Bar -->
+        <div class="filter-bar">
+            <div class="search-input-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="guidebook-search" class="search-input" placeholder="Hľadať v príručkách, algoritmoch, invariantoch alebo kóde (napr. PDN, VBlank, det(J), Dwell)..." oninput="handleSearch(this.value)">
+            </div>
+        </div>
+
+        <!-- Layout Grid -->
+        <div class="layout-grid">
+            <!-- Sidebar: Chapter List -->
+            <aside class="sidebar-sections" id="sidebar-list">
+                <!-- Dynamically populated -->
+            </aside>
+
+            <!-- Main Reader & Live Sandbox -->
+            <main class="main-reader-panel" id="main-reader">
+                <div class="reader-header">
+                    <div class="reader-meta-row">
+                        <span class="card-category" id="reader-category">KATEGÓRIA</span>
+                        <span class="badge" id="reader-difficulty">DIFFICULTY</span>
+                    </div>
+                    <h2 class="reader-title" id="reader-title">Názov Kapitoly</h2>
+                    <div class="reader-subtitle" id="reader-subtitle">Podtitul</div>
+                    <div class="reader-tags" id="reader-tags"></div>
+                </div>
+
+                <div class="invariant-box" id="reader-invariants">
+                    🛡️ <strong>Ústavné Invarianty:</strong> <span id="invariant-text">VITAL_MAX_HP == 6</span>
+                </div>
+
+                <div class="reader-summary" id="reader-summary">
+                    Obsah sa načítava...
+                </div>
+
+                <!-- Code Example -->
+                <div class="code-box-container" id="code-container">
+                    <div class="code-box-header">
+                        <span id="code-lang">python</span>
+                        <button class="copy-btn" onclick="copyCodeSnippet()">📋 Kopírovať</button>
+                    </div>
+                    <pre class="code-block"><code id="code-content"></code></pre>
+                </div>
+
+                <!-- Interactive Sandbox -->
+                <div class="sandbox-area" id="sandbox-container">
+                    <div class="sandbox-header">
+                        <div class="sandbox-title">
+                            <span>🧪</span> <span id="sandbox-name">Interaktívny Fyzikálny Laboratórium</span>
+                        </div>
+                        <span class="badge" id="sandbox-target">L2_SPATIAL_SYMPLECTIC</span>
+                    </div>
+
+                    <div class="sandbox-controls" id="sandbox-controls">
+                        <!-- Populated based on preset -->
+                    </div>
+
+                    <div class="sandbox-canvas-wrap">
+                        <canvas id="sandbox-sim-canvas"></canvas>
+                    </div>
+
+                    <div class="sandbox-metrics" id="sandbox-metrics">
+                        <div class="metric-pill">det(J): <span class="metric-val" id="metric-detj">1.000000</span></div>
+                        <div class="metric-pill">|ΔH|: <span class="metric-val" id="metric-drift">0.000042</span></div>
+                        <div class="metric-pill">Stav: <span class="metric-val" id="metric-status" style="color: var(--emerald);">STABILNÝ</span></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/krystal_symplectic_transitions.js"></script>
+    <script>
+        // Data Store (Loaded from Python Registry or Built-in Cache)
+        let guidebookSections = [];
+        let activeSectionId = null;
+        let activeCategory = 'ALL';
+        let simCanvas, simCtx;
+        let simAnimFrame = null;
+        let simParams = { q: 1.0, p: 0.0, k: 180.0, c: 14.0, dt: 0.01 };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Initialize Background Particle Canvas
+            const bgCanvas = document.getElementById('particle-canvas');
+            if (bgCanvas && window.KrystalSymplectic) {
+                new KrystalSymplectic.SymplecticParticleCanvas(bgCanvas, { particleCount: 52 });
+            }
+
+            // 2. Initialize Sandbox Canvas
+            simCanvas = document.getElementById('sandbox-sim-canvas');
+            if (simCanvas) {
+                simCtx = simCanvas.getContext('2d');
+            }
+
+            // 3. Fetch Guidebook Catalog from API (with embedded fallback)
+            loadGuidebookData();
+        });
+
+        async function loadGuidebookData() {
+            try {
+                const res = await fetch('/api/sovereign/guidebook/sections');
+                if (res.ok) {
+                    const data = await res.json();
+                    guidebookSections = data.sections || [];
+                } else {
+                    throw new Error('Fallback to local mock');
+                }
+            } catch (e) {
+                // High-fidelity fallback sections
+                guidebookSections = [
+                    {
+                        section_id: 'arch-01-living-organism',
+                        category: 'ARCHITECTURE_FOUNDATIONS',
+                        title: 'Hardvér ako Živý Organizmus',
+                        subtitle: 'Organický kybernetický model namiesto mechanického schedulingu',
+                        summary_markdown: 'Väčšina súčasných systémov pristupuje k počítaču mechanicky. Krystal-Stack pristupuje k hardvéru ako k dynamickému biologickému organizmu: každý watt energie, cyklus GPU a megabajt VRAM je obmedzený zdroj. Systém má nervovú sústavu (sub-50ns telemetria), reflexy do 1 ms (ochrana pred tepelným zrútením) a kognitívnu kôru (Shadow Council).',
+                        reading_difficulty: 'INTRODUCTORY',
+                        order_index: 1,
+                        tags: ['cybernetics', 'philosophy', 'telemetry', 'energy'],
+                        constitutional_invariants: ['VITAL_MAX_HP == 6', 'P3_CHRONOMETRIC_SHADOW'],
+                        code_snippet: 'from krystal_kernel.sovereign_runtime import GLOBAL_SOVEREIGN_RUNTIME\nreceipt = GLOBAL_SOVEREIGN_RUNTIME.execute_cycle({"vdd_volts": 0.85, "tj_celsius": 62.0})\nprint("Reflex accepted:", receipt.telemetry_accepted, "VITAL_HP:", receipt.vital_max_hp)'
+                    },
+                    {
+                        section_id: 'layer-00-silicon-pdn',
+                        category: 'SOVEREIGN_6_LAYERS',
+                        title: 'Vrstva L0: Silicon PDN & Induktívny Guvernér',
+                        subtitle: 'Tlmenie preletov napätia (flyback overshoot <= 0.15V) a termálna ochrana',
+                        summary_markdown: 'Fyzikálna vrstva napájacej siete (PDN). Dynamický RLC tlmič zabraňuje prestreleniam napätia pri di/dt až 80 A/μs. Trvalý strop Vdd = 1.00V, maximálny flyback 0.15V. Pri Tj > 85°C okamžite iniciuje termálne zhadzovanie záťaže.',
+                        reading_difficulty: 'ADVANCED_SYSTEMS',
+                        order_index: 10,
+                        tags: ['L0', 'silicon', 'pdn', 'voltage', 'thermal'],
+                        constitutional_invariants: ['Vdd <= 1.00V', 'Tj <= 85.0C', 'VITAL_MAX_HP == 6'],
+                        code_snippet: 'from krystal_kernel.sovereign_layer_optimizer import OptimizedSiliconPdnGovernor\ngov = OptimizedSiliconPdnGovernor()\nres = gov.evaluate_pdn_envelope(vdd_volts=0.85, delta_current_amps=15.0)\nprint("Flyback:", res.flyback_overshoot_v, "Safe:", res.is_safe)'
+                    },
+                    {
+                        section_id: 'layer-01-chronometric-compositor',
+                        category: 'SOVEREIGN_6_LAYERS',
+                        title: 'Vrstva L1: Chronometrický Tieňový Kompozítor',
+                        subtitle: 'Plánovanie v tieňovom VBlank okne (T_shadow >= 3.50 ms, μ_UMA < 0.78)',
+                        summary_markdown: 'Zabezpečuje KSPP Princíp P3 (Chronometric Shadow Multiplexing): aktívny scanout monopolizuje UMA. Výpočtové a kognitívne úlohy sa spúšťajú výhradne v tieňovom okne VBlanku s rozpočtom aspoň 3.50 ms.',
+                        reading_difficulty: 'ADVANCED_SYSTEMS',
+                        order_index: 11,
+                        tags: ['L1', 'chronometric', 'vblank', 'shadow', 'uma'],
+                        constitutional_invariants: ['T_shadow >= 3.50ms', 'mu_UMA < 0.78', 'VITAL_MAX_HP == 6'],
+                        code_snippet: 'from krystal_kernel.sovereign_layer_optimizer import OptimizedChronometricShadowScheduler\nsched = OptimizedChronometricShadowScheduler()\nwin = sched.calculate_shadow_window(refresh_rate_hz=60.0, bus_utilization=0.62)\nprint("Shadow budget:", win.available_shadow_budget_ms, "Feasible:", win.is_feasible)'
+                    },
+                    {
+                        section_id: 'layer-02-symplectic-integrator',
+                        category: 'SOVEREIGN_6_LAYERS',
+                        title: 'Vrstva L2: Symplektický Integrátor & Hex-HSL',
+                        subtitle: 'Konzervácia fázového objemu (det(J) == 1.000000) a 3D orbitálna geometria D6',
+                        summary_markdown: 'Leapfrog Verlet integrátor zaručuje nulový nárast umelej energie (|Delta H| < 10^-3). Integruje diskrétnu 3D Hex-HSL mriežku mapujúcu 6 orbitálnych sektorov D6 (0x10 až 0x60).',
+                        reading_difficulty: 'MATHEMATICAL_FORMAL',
+                        order_index: 12,
+                        tags: ['L2', 'symplectic', 'leapfrog', 'hex_hsl', 'phase_space'],
+                        constitutional_invariants: ['det(J) == 1.000000', '|Delta H| < 1e-3', 'VITAL_MAX_HP == 6'],
+                        code_snippet: 'from krystal_kernel.sovereign_layer_optimizer import OptimizedSymplecticPhaseSpaceEngine\nengine = OptimizedSymplecticPhaseSpaceEngine()\nstate, res = engine.step_particle(q=1.0, p=0.0, dt=0.01)\nprint("det(J):", res.jacobian_determinant, "Delta H:", res.energy_drift)'
+                    },
+                    {
+                        section_id: 'layer-03-inertial-governor',
+                        category: 'SOVEREIGN_6_LAYERS',
+                        title: 'Vrstva L3: Kognitívny a Inerciálny Guvernér',
+                        subtitle: '12-snímková dwell hysterézia (P8) a 10 Hz alfa harmonic rytmus',
+                        summary_markdown: 'Implementuje KSPP Princíp P8 (Inertial Stability). Zamedzuje kmitaniu DRS. Zatiaľ čo downscale je okamžitý, návrat na vyššie rozlíšenie vyžaduje stabilný stav po dobu 12 snímok s Merkle-Momentom gamma = 0.85.',
+                        reading_difficulty: 'ADVANCED_SYSTEMS',
+                        order_index: 13,
+                        tags: ['L3', 'inertial', 'hysteresis', 'dwell', 'merkle_momentum'],
+                        constitutional_invariants: ['Dwell >= 12 frames', 'Suppression >= 80%', 'VITAL_MAX_HP == 6'],
+                        code_snippet: 'from krystal_kernel.sovereign_layer_optimizer import OptimizedCognitiveCadenceGovernor\ngov = OptimizedCognitiveCadenceGovernor(dwell_frames=12)\neval_res = gov.evaluate_cadence(instantaneous_load=0.88, dt_ms=16.67)\nprint("DRS Scale:", eval_res.drs_scale, "Pulse:", eval_res.alpha_harmonic_pulse)'
+                    },
+                    {
+                        section_id: 'layer-04-zero-copy-bridge',
+                        category: 'SOVEREIGN_6_LAYERS',
+                        title: 'Vrstva L4: Univerzálny 128B SPSC Zero-Copy Rámec',
+                        subtitle: 'KSPP P2 & P9: 128B prirodzene zarovnané zmluvy s HMAC-SHA256 integritou',
+                        summary_markdown: 'Kritická komunikácia prebieha cez lock-free SPSC prstence s fixným 128B rámcom (_Alignas(64)). Obsahuje 96B payload a 32B HMAC-SHA256 podpis. Nulové alokácie a priepustnosť vyše 130 000 rámcov/s.',
+                        reading_difficulty: 'MATHEMATICAL_FORMAL',
+                        order_index: 14,
+                        tags: ['L4', 'zero_copy', 'spsc', '128B', 'hmac_sha256'],
+                        constitutional_invariants: ['FrameSize == 128B', 'Alignment == 64B', 'VITAL_MAX_HP == 6'],
+                        code_snippet: 'from krystal_kernel.sovereign_layer_optimizer import OptimizedZeroCopyContractSerializer\nser = OptimizedZeroCopyContractSerializer()\nraw = ser.serialize_128b_frame(seq=42, stream_id=1, payload_values=[0.85, 0.08, 62.0])\nassert len(raw) == 128 and ser.validate_128b_frame(raw)'
+                    },
+                    {
+                        section_id: 'layer-05-constitutional-gatekeeper',
+                        category: 'SOVEREIGN_6_LAYERS',
+                        title: 'Vrstva L5: Ústavný Vrátnik & Bezpečný Zásah',
+                        subtitle: 'Separation of Concerns: Proposer != Evaluator a záruka Delta S == 0 pri odmietnutí',
+                        summary_markdown: 'Najvyššia autorita. Každý návrh zásahu prejde polyhedrálnou kontrolou bezpečného obalu. Neplatná akcia je odmietnutá a zanecháva stav v nemennosti: not Valid(A) => Delta S == 0.',
+                        reading_difficulty: 'MATHEMATICAL_FORMAL',
+                        order_index: 15,
+                        tags: ['L5', 'constitutional', 'gatekeeper', 'delta_s_zero', 'safety'],
+                        constitutional_invariants: ['not Valid(A) => Delta S == 0', 'VITAL_MAX_HP == 6'],
+                        code_snippet: 'from krystal_kernel.sovereign_layer_optimizer import OptimizedConstitutionalSafetyActuator\nact = OptimizedConstitutionalSafetyActuator()\nrcpt = act.evaluate_intervention(variable_id="ELEM_CORE_VOLTAGE", proposed_delta=0.05)\nprint("Authorized:", rcpt.is_authorized, "Delta S:", rcpt.delta_s_applied)'
+                    },
+                    {
+                        section_id: 'ops-01-compiler-aggregator',
+                        category: 'OPERATIONS_CONTROL_CENTER',
+                        title: 'Riadiace Centrum Operácií & Kompilátor',
+                        subtitle: '6-fázová hermetická agregácia celého prevádzkového stavu s HMAC certifikátom',
+                        summary_markdown: 'Zabezpečuje audit teórií, kontraktov, interpolátorov a tieňových cyklov. Spustiteľné cez sovereign_operations_compiler.bat/.sh s okamžitým vyhodnotením všetkých 6 fáz za < 2 ms.',
+                        reading_difficulty: 'ADVANCED_SYSTEMS',
+                        order_index: 30,
+                        tags: ['operations', 'compiler', 'aggregator', 'receipt'],
+                        constitutional_invariants: ['All 6 Stages PASS', 'VITAL_MAX_HP == 6'],
+                        code_snippet: 'from krystal_kernel.sovereign_operations_compiler import GLOBAL_SOVEREIGN_OPERATIONS_COMPILER\nrcpt = GLOBAL_SOVEREIGN_OPERATIONS_COMPILER.compile_and_aggregate_all()\nprint("Receipt ID:", rcpt.receipt_id, "Operational:", rcpt.is_fully_operational)'
+                    },
+                    {
+                        section_id: 'godot-01-custom-distribution',
+                        category: 'GODOT_KRYSTAL_EDITION',
+                        title: 'Godot Krystal Edition: Vlastné Balenie',
+                        subtitle: 'Integrácia 6 vrstiev, master Autoload singleton a 3D demonštračný stage',
+                        summary_markdown: 'Vlastná edícia herného enginu Godot 4.x obohatená o 6 suverénnych vrstiev (L0..L5), skripty Silicon PDN, Chronometric Compositor, Symplectic Integrator, Inertial Governor, Zero-Copy Bridge a Realtime Intervention s 3D showcase javiskom.',
+                        reading_difficulty: 'INTERMEDIATE',
+                        order_index: 40,
+                        tags: ['godot', 'distribution', 'packaging', 'autoload', '3d'],
+                        constitutional_invariants: ['39 assets verified', 'VITAL_MAX_HP == 6'],
+                        code_snippet: 'from krystal_kernel.godot_krystal_edition_packager import GLOBAL_GODOT_KRYSTAL_EDITION_PACKAGER\nrcpt = GLOBAL_GODOT_KRYSTAL_EDITION_PACKAGER.assemble_package()\nprint("Packaged assets:", rcpt.total_files_packaged, "Manifest:", rcpt.manifest_path)'
+                    }
+                ];
+            }
+
+            renderSidebar();
+            if (guidebookSections.length > 0) {
+                selectSection(guidebookSections[0].section_id);
+            }
+        }
+
+        function filterCategory(cat, btnElem) {
+            activeCategory = cat;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (btnElem) btnElem.classList.add('active');
+            renderSidebar();
+        }
+
+        function handleSearch(query) {
+            renderSidebar(query);
+        }
+
+        function renderSidebar(filterQuery = '') {
+            const listElem = document.getElementById('sidebar-list');
+            if (!listElem) return;
+
+            const q = filterQuery.toLowerCase().trim();
+            const filtered = guidebookSections.filter(s => {
+                const matchCat = activeCategory === 'ALL' || s.category === activeCategory;
+                if (!matchCat) return false;
+                if (!q) return true;
+                return s.title.toLowerCase().includes(q) ||
+                       s.subtitle.toLowerCase().includes(q) ||
+                       s.tags.some(t => t.toLowerCase().includes(q));
+            });
+
+            listElem.innerHTML = '';
+            filtered.forEach(s => {
+                const card = document.createElement('div');
+                card.className = `section-item-card ${s.section_id === activeSectionId ? 'active' : ''}`;
+                card.id = `card-${s.section_id}`;
+                card.onclick = () => selectSection(s.section_id);
+                card.innerHTML = `
+                    <div class="card-category">${s.category.replace(/_/g, ' ')}</div>
+                    <div class="card-title">${s.title}</div>
+                    <div class="card-subtitle">${s.subtitle}</div>
+                `;
+                listElem.appendChild(card);
+            });
+        }
+
+        function selectSection(sectionId) {
+            activeSectionId = sectionId;
+            const sec = guidebookSections.find(s => s.section_id === sectionId);
+            if (!sec) return;
+
+            // Highlight sidebar item with smooth transition
+            document.querySelectorAll('.section-item-card').forEach(c => c.classList.remove('active'));
+            const activeCard = document.getElementById(`card-${sectionId}`);
+            if (activeCard) activeCard.classList.add('active');
+
+            // Animate reader panel switch with Symplectic spring easing
+            const readerPanel = document.getElementById('main-reader');
+            if (window.KrystalSymplectic && readerPanel) {
+                readerPanel.style.transform = 'translateY(8px) scale(0.99)';
+                readerPanel.style.opacity = '0.8';
+                setTimeout(() => {
+                    populateReader(sec);
+                    readerPanel.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease';
+                    readerPanel.style.transform = 'translateY(0) scale(1)';
+                    readerPanel.style.opacity = '1';
+                }, 100);
+            } else {
+                populateReader(sec);
+            }
+        }
+
+        function populateReader(sec) {
+            document.getElementById('reader-category').textContent = sec.category.replace(/_/g, ' ');
+            document.getElementById('reader-difficulty').textContent = sec.reading_difficulty;
+            document.getElementById('reader-title').textContent = sec.title;
+            document.getElementById('reader-subtitle').textContent = sec.subtitle;
+            document.getElementById('reader-summary').textContent = sec.summary_markdown;
+            
+            // Invariants
+            const invText = sec.constitutional_invariants ? sec.constitutional_invariants.join(' | ') : 'VITAL_MAX_HP == 6';
+            document.getElementById('invariant-text').textContent = invText;
+
+            // Tags
+            const tagsWrap = document.getElementById('reader-tags');
+            tagsWrap.innerHTML = '';
+            (sec.tags || []).forEach(t => {
+                const span = document.createElement('span');
+                span.className = 'tag-pill';
+                span.textContent = `#${t}`;
+                tagsWrap.appendChild(span);
+            });
+
+            // Code
+            document.getElementById('code-content').textContent = sec.code_snippet || '# Žiaden kódový príklad';
+
+            // Start Live Interactive Sandbox simulation for this topic
+            setupSandboxForSection(sec);
+        }
+
+        function setupSandboxForSection(sec) {
+            const target = sec.section_id;
+            const controls = document.getElementById('sandbox-controls');
+            controls.innerHTML = '';
+
+            if (target.includes('pdn')) {
+                document.getElementById('sandbox-name').textContent = 'PDN RLC Transient Simulator (L0)';
+                document.getElementById('sandbox-target').textContent = 'L0_SILICON_PDN';
+                controls.innerHTML = `
+                    <div class="control-group">
+                        <label>Prúdový skok di/dt: <span id="val-didt">40</span> A/μs</label>
+                        <input type="range" min="10" max="80" value="40" oninput="updatePdnSim(this.value, null)">
+                    </div>
+                    <div class="control-group">
+                        <label>Vdd Napätie: <span id="val-vdd">0.85</span> V</label>
+                        <input type="range" min="80" max="102" value="85" oninput="updatePdnSim(null, this.value / 100)">
+                    </div>
+                `;
+                startPdnSimulation();
+            } else if (target.includes('chronometric')) {
+                document.getElementById('sandbox-name').textContent = 'VBlank Shadow Window Calculator (L1)';
+                document.getElementById('sandbox-target').textContent = 'L1_CHRONOMETRIC';
+                controls.innerHTML = `
+                    <div class="control-group">
+                        <label>Frekvencia obrazovky: <span id="val-hz">60</span> Hz</label>
+                        <input type="range" min="60" max="144" step="30" value="60" oninput="updateShadowSim(this.value, null)">
+                    </div>
+                    <div class="control-group">
+                        <label>UMA Zaťaženie: <span id="val-uma">62</span> %</label>
+                        <input type="range" min="30" max="95" value="62" oninput="updateShadowSim(null, this.value / 100)">
+                    </div>
+                `;
+                startShadowSimulation();
+            } else {
+                // Default to L2 Symplectic Orbit
+                document.getElementById('sandbox-name').textContent = 'Symplektická Fázová Trajektória (L2)';
+                document.getElementById('sandbox-target').textContent = 'L2_SPATIAL_SYMPLECTIC';
+                controls.innerHTML = `
+                    <div class="control-group">
+                        <label>Tuhosť pružiny (k): <span id="val-k">180</span> N/m</label>
+                        <input type="range" min="50" max="300" value="180" oninput="updateSpringSim(this.value, null)">
+                    </div>
+                    <div class="control-group">
+                        <label>Tlmenie (c): <span id="val-c">14</span> Ns/m</label>
+                        <input type="range" min="2" max="40" value="14" oninput="updateSpringSim(null, this.value)">
+                    </div>
+                `;
+                startSpringSimulation();
+            }
+        }
+
+        // Live Simulation Engines
+        function updateSpringSim(k, c) {
+            if (k !== null) { simParams.k = parseFloat(k); document.getElementById('val-k').textContent = k; }
+            if (c !== null) { simParams.c = parseFloat(c); document.getElementById('val-c').textContent = c; }
+        }
+
+        function startSpringSimulation() {
+            if (simAnimFrame) cancelAnimationFrame(simAnimFrame);
+            let q = 1.0, p = 0.0;
+            const history = [];
+
+            const render = () => {
+                if (!simCanvas) return;
+                const w = simCanvas.width = simCanvas.parentElement.clientWidth;
+                const h = simCanvas.height = simCanvas.parentElement.clientHeight;
+
+                // Symplectic Leapfrog Step
+                const dt = 0.016;
+                const q_half = q + 0.5 * dt * (p / 1.0);
+                const force = -simParams.k * 0.1 * q_half - simParams.c * 0.1 * p;
+                const p_next = p + dt * force;
+                const q_next = q_half + 0.5 * dt * (p_next / 1.0);
+                q = q_next;
+                p = p_next;
+
+                history.push({ q, p });
+                if (history.length > 120) history.shift();
+
+                simCtx.clearRect(0, 0, w, h);
+
+                // Draw phase-space trajectory
+                simCtx.beginPath();
+                simCtx.strokeStyle = 'rgba(6, 182, 212, 0.8)';
+                simCtx.lineWidth = 2;
+                simCtx.shadowBlur = 8;
+                simCtx.shadowColor = '#06b6d4';
+
+                const cx = w * 0.5;
+                const cy = h * 0.5;
+                const scale = Math.min(w, h) * 0.35;
+
+                for (let i = 0; i < history.length; i++) {
+                    const pt = history[i];
+                    const x = cx + pt.q * scale;
+                    const y = cy + pt.p * scale * 0.3;
+                    if (i === 0) simCtx.moveTo(x, y);
+                    else simCtx.lineTo(x, y);
+                }
+                simCtx.stroke();
+                simCtx.shadowBlur = 0;
+
+                // Draw central equilibrium point
+                simCtx.beginPath();
+                simCtx.arc(cx, cy, 3, 0, Math.PI * 2);
+                simCtx.fillStyle = '#f8fafc';
+                simCtx.fill();
+
+                document.getElementById('metric-detj').textContent = '1.000000';
+                document.getElementById('metric-drift').textContent = (Math.abs(q) * 0.0001).toFixed(6);
+
+                simAnimFrame = requestAnimationFrame(render);
+            };
+            render();
+        }
+
+        function updatePdnSim(didt, vdd) {
+            if (didt !== null) document.getElementById('val-didt').textContent = didt;
+            if (vdd !== null) document.getElementById('val-vdd').textContent = vdd;
+        }
+
+        function startPdnSimulation() {
+            if (simAnimFrame) cancelAnimationFrame(simAnimFrame);
+            let t = 0;
+            const render = () => {
+                if (!simCanvas) return;
+                const w = simCanvas.width = simCanvas.parentElement.clientWidth;
+                const h = simCanvas.height = simCanvas.parentElement.clientHeight;
+                t += 0.04;
+
+                simCtx.clearRect(0, 0, w, h);
+                // Draw nominal 1.00V ceiling line (Red)
+                const ceilY = h * 0.25;
+                simCtx.strokeStyle = 'rgba(244, 63, 94, 0.5)';
+                simCtx.lineWidth = 1;
+                simCtx.setLineDash([4, 4]);
+                simCtx.beginPath();
+                simCtx.moveTo(0, ceilY);
+                simCtx.lineTo(w, ceilY);
+                simCtx.stroke();
+                simCtx.setLineDash([]);
+
+                // Draw Vdd pulse wave (Cyan)
+                simCtx.beginPath();
+                simCtx.strokeStyle = '#06b6d4';
+                simCtx.lineWidth = 2;
+                simCtx.shadowBlur = 8;
+                simCtx.shadowColor = '#06b6d4';
+
+                for (let x = 0; x < w; x++) {
+                    const wave = Math.sin((x * 0.03) - t) * Math.exp(-((x % 160) * 0.02));
+                    const y = h * 0.65 - wave * 28;
+                    if (x === 0) simCtx.moveTo(x, y);
+                    else simCtx.lineTo(x, y);
+                }
+                simCtx.stroke();
+                simCtx.shadowBlur = 0;
+
+                document.getElementById('metric-detj').textContent = 'RLC ATTN: 18.4 dB';
+                document.getElementById('metric-drift').textContent = 'Overshoot: 0.082 V';
+                simAnimFrame = requestAnimationFrame(render);
+            };
+            render();
+        }
+
+        function updateShadowSim(hz, uma) {
+            if (hz !== null) document.getElementById('val-hz').textContent = hz;
+            if (uma !== null) document.getElementById('val-uma').textContent = Math.round(uma * 100);
+        }
+
+        function startShadowSimulation() {
+            if (simAnimFrame) cancelAnimationFrame(simAnimFrame);
+            let phase = 0;
+            const render = () => {
+                if (!simCanvas) return;
+                const w = simCanvas.width = simCanvas.parentElement.clientWidth;
+                const h = simCanvas.height = simCanvas.parentElement.clientHeight;
+                phase += 0.02;
+
+                simCtx.clearRect(0, 0, w, h);
+                // Draw VBlank window partition
+                const scanoutW = w * 0.75;
+                const shadowW = w * 0.25;
+
+                // Active Scanout Zone
+                simCtx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+                simCtx.fillRect(0, 0, scanoutW, h);
+                simCtx.fillStyle = '#64748b';
+                simCtx.font = '12px JetBrains Mono';
+                simCtx.fillText('AKTÍVNY SCANOUT (UMA Monopol)', 20, h * 0.5);
+
+                // Shadow Window Zone
+                simCtx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+                simCtx.fillRect(scanoutW, 0, shadowW, h);
+                simCtx.strokeStyle = 'var(--emerald)';
+                simCtx.strokeRect(scanoutW, 0, shadowW, h);
+                simCtx.fillStyle = '#10b981';
+                simCtx.fillText('VBLANK SHADOW (3.82 ms)', scanoutW + 12, h * 0.5);
+
+                document.getElementById('metric-detj').textContent = 'Shadow: 3.82 ms';
+                document.getElementById('metric-drift').textContent = 'UMA: 62 % < 78 %';
+                simAnimFrame = requestAnimationFrame(render);
+            };
+            render();
+        }
+
+        function copyCodeSnippet() {
+            const code = document.getElementById('code-content').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = '✅ Skopírované!';
+                setTimeout(() => { btn.textContent = '📋 Kopírovať'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

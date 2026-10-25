@@ -849,6 +849,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.serve_file(STATIC_DIR / "strand_npu_action_puzzle_studio.html", "text/html")
             return
         elif norm_path in (
+            "/guidebook", "/manual", "/sovereign-overview", "/sovereign-manual",
+            "/guidebook-studio", "/sovereign_overview_manual_studio.html", "/manual-studio"
+        ):
+            self.serve_file(STATIC_DIR / "sovereign_overview_manual_studio.html", "text/html")
+            return
+        elif norm_path in (
             "/slm-rag-studio", "/core-rag", "/small-model-ui",
             "/knowledge-copilot", "/small_model_core_rag_studio.html"
         ):
@@ -1147,6 +1153,24 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "status": "OK",
                 "samples": GLOBAL_TOPOLOGY_COMPARATOR.sample_profile(sample_count=36),
                 "vital_max_hp": 6
+            })
+            return
+
+        # ── API: Sovereign Guidebook & Overview Manual Registry ─────
+        elif norm_path in ("/api/sovereign/guidebook/sections", "/api/guidebook/sections"):
+            from krystal_kernel.sovereign_guidebook_registry import GLOBAL_SOVEREIGN_GUIDEBOOK_REGISTRY
+            self.send_json(GLOBAL_SOVEREIGN_GUIDEBOOK_REGISTRY.export_catalog_json())
+            return
+
+        elif norm_path in ("/api/sovereign/transitions/curve", "/api/transitions/curve"):
+            from krystal_kernel.symplectic_animation_transition_engine import GLOBAL_SYMPLECTIC_TRANSITION_ENGINE
+            traj = GLOBAL_SYMPLECTIC_TRANSITION_ENGINE.compute_spring_trajectory()
+            self.send_json({
+                "status": "OK",
+                "css_cubic_bezier": traj.css_cubic_bezier,
+                "duration_sec": traj.duration_sec,
+                "sample_count": traj.total_samples,
+                "vital_max_hp": traj.vital_max_hp
             })
             return
 

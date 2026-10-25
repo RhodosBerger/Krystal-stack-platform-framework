@@ -688,6 +688,24 @@ from .sovereign_run_benchmark_harness import (  # noqa: F401
     GLOBAL_SOVEREIGN_RUN_BENCHMARK_HARNESS
 )
 
+from .sovereign_guidebook_registry import (  # noqa: F401
+    GuidebookCategory,
+    ReadingDifficulty,
+    InteractiveSandboxPreset,
+    GuidebookSection,
+    SovereignGuidebookRegistry,
+    GLOBAL_SOVEREIGN_GUIDEBOOK_REGISTRY
+)
+
+from .symplectic_animation_transition_engine import (  # noqa: F401
+    TransitionCurvePreset,
+    PhaseSpacePoint,
+    SymplecticTransitionTrajectory,
+    HexHslColorKeyframe,
+    SymplecticAnimationTransitionEngine,
+    GLOBAL_SYMPLECTIC_TRANSITION_ENGINE
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -888,5 +906,13 @@ __all__ = [
     "FastInterventionReceipt", "OptimizedConstitutionalSafetyActuator",
     "LayerRunBenchmarkMetrics", "FullSovereignRunReceipt",
     "SovereignRunBenchmarkHarness",
-    "GLOBAL_SOVEREIGN_RUN_BENCHMARK_HARNESS"
+    "GLOBAL_SOVEREIGN_RUN_BENCHMARK_HARNESS",
+    "GuidebookCategory", "ReadingDifficulty",
+    "InteractiveSandboxPreset", "GuidebookSection",
+    "SovereignGuidebookRegistry",
+    "GLOBAL_SOVEREIGN_GUIDEBOOK_REGISTRY",
+    "TransitionCurvePreset", "PhaseSpacePoint",
+    "SymplecticTransitionTrajectory", "HexHslColorKeyframe",
+    "SymplecticAnimationTransitionEngine",
+    "GLOBAL_SYMPLECTIC_TRANSITION_ENGINE"
 ]

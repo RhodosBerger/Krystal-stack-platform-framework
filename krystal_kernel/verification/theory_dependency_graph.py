@@ -544,6 +544,26 @@ class ExperimentalTheoryDependencyGraph:
                 assumptions=("6 Layer Micro-benchmarks", "Vectorized Symplectic det(J)==1.0", "128B SPSC >= 100k fps", "VITAL_MAX_HP == 6"),
                 parent_theories=("THEORY-GODOT-KRYSTAL-EDITION-PACKAGING", "THEORY-UNIFIED-CROSS-STREAM-DEPENDENCY-COORDINATION"),
             ),
+            TheoryNode(
+                theory_id="THEORY-SOVEREIGN-GUIDEBOOK-REGISTRY",
+                title="Sovereign Overview Guidebook & Machine-Readable Architectural Manual Registry",
+                category=TheoryCategory.SILICON_ACCELERATION,
+                formal_ref="krystal_kernel/sovereign_guidebook_registry.py §SovereignGuidebookRegistry",
+                falsification_condition="Omission of core architectural chapters, unverified invariant claims, or non-deterministic catalog serialization",
+                epistemic_status=TheoryEpistemicStatus.DOKAZANE,
+                assumptions=("Structured GuidebookSection schema", "Categorical Partitioning", "Full-text Tag Indexing", "VITAL_MAX_HP == 6"),
+                parent_theories=("THEORY-SOVEREIGN-LAYER-OPTIMIZATION-AND-RUN-TESTING", "THEORY-GODOT-KRYSTAL-EDITION-PACKAGING"),
+            ),
+            TheoryNode(
+                theory_id="THEORY-SYMPLECTIC-ANIMATION-TRANSITIONS",
+                title="Phase-Space Symplectic UI Animation & Hex-HSL Chromatic Transition Dynamics",
+                category=TheoryCategory.CHRONOMETRIC_MULTIPLEX,
+                formal_ref="krystal_kernel/symplectic_animation_transition_engine.py §SymplecticAnimationTransitionEngine",
+                falsification_condition="Jacobian determinant det(J) != 1.0, artificial energy accumulation |Delta H| >= 1e-4, or chattering during card transitions",
+                epistemic_status=TheoryEpistemicStatus.DOKAZANE,
+                assumptions=("Leapfrog Half-Step Verlet", "Hamiltonian Phase-Space Conservation", "Hex-HSL D6 Manifold Orbit", "VITAL_MAX_HP == 6"),
+                parent_theories=("THEORY-SYMPLECTIC-HAMILTONIAN-CONSERVATION", "THEORY-CARTESIAN-HEX-HSL-GRID-COEFFICIENTS", "THEORY-SOVEREIGN-GUIDEBOOK-REGISTRY"),
+            ),
 
             # 9. Refuted & Corrected Historical Theories (Tracking from REGISTER_TVRDENI.md)
             TheoryNode(
