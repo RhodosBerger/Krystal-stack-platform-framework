@@ -10,7 +10,7 @@ Invariants: VITAL_MAX_HP == 6 | Proposer != Evaluator | Delta S == 0 on breach
 """
 
 import unittest
-from krystal_kernel.constants import VITAL_MAX_HP, ContractViolation
+from krystal_kernel.constants import VITAL_MAX_HP, ContractViolation, CapabilityScope
 from krystal_kernel.sovereign_runtime import SubsystemNodeId
 from krystal_kernel.sovereign_uma_inspector_governor import (
     HardwarePriorityLane,
@@ -21,6 +21,7 @@ from krystal_kernel.sovereign_uma_inspector_governor import (
     GovernorAdvice,
     MicroOperation,
     PlannedMicroOpBatch,
+    ResourceCapabilityToken,
     UmaInspectorHexGrid,
     HardwarePrioritizationTokenMonitor,
     SovereignGovernorAdvisor,
@@ -210,7 +211,7 @@ class TestMicroOperationAllocationBot(unittest.TestCase):
             MicroOperationAllocationBot(governor_advisor=self.advisor, vital_max_hp=5)
 
     def test_resource_packing_efficiency_and_zero_planned_overrun(self) -> None:
-        """Planned batch must compute valid RPE metrics and guarantee planned_overrun_rate == 0.0."""
+        """Planned batch must compute valid RPE metrics, guarantee planned_overrun_rate == 0.0, and represent unmeasured state as None."""
         ops = self._create_sample_micro_ops()
         batch = self.bot.plan_behavioral_batch(
             candidate_ops=ops,
@@ -219,11 +220,147 @@ class TestMicroOperationAllocationBot(unittest.TestCase):
             allocated_uma_bytes=2048
         )
         self.assertEqual(batch.planned_overrun_rate, 0.0)
+        self.assertEqual(batch.problem_formulation, "3D_MULTIDIMENSIONAL_KNAPSACK")
+        self.assertEqual(batch.solver_kind, "GREEDY_APPROXIMATION_HEURISTIC")
         self.assertGreater(batch.rpe_time, 0.0)
         self.assertGreater(batch.rpe_energy, 0.0)
         self.assertGreater(batch.rpe_memory, 0.0)
         self.assertGreater(batch.aggregate_rpe, 0.0)
-        self.assertEqual(batch.measured_overrun_rate, 0.0)
+        self.assertGreater(batch.resource_packing_balance, 0.0)
+        self.assertEqual(batch.rpe_vector, (batch.rpe_time, batch.rpe_energy, batch.rpe_memory))
+        self.assertGreater(batch.rpe_dominant, 0.0)
+        self.assertIn(batch.dominant_bottleneck_resource, ("TIME", "ENERGY", "MEMORY"))
+
+        # Epistemically NOT_MEASURED prior to reconciliation
+        self.assertIsNone(batch.measured_overrun_rate)
+        self.assertFalse(batch.is_measured)
+
+        # After reconciliation with actual measurements:
+        reconciled = batch.reconcile_measurements(
+            actual_time_ns=batch.total_planned_cycles_ns,
+            actual_energy_uj=batch.total_planned_energy_uj,
+            actual_uma_bytes=batch.total_planned_uma_bytes
+        )
+        self.assertEqual(reconciled.measured_overrun_rate, 0.0)
+        self.assertTrue(reconciled.is_measured)
+
+    def test_resource_capability_token_enforcement_gate(self) -> None:
+        """ResourceCapabilityToken enforces Cap(op) <= Cap(T), Region(op) <= Region(T), Cost(op) <= Budget(T), and expiry."""
+        token = ResourceCapabilityToken(
+            token_id="TOK-AUTH-01",
+            subsystem=SubsystemNodeId.CHRONO_SOC,
+            lane=HardwarePriorityLane.LANE_0_MICRO_SILICON,
+            uma_region_hex_start=0x00,
+            uma_region_hex_end=0x3F,
+            allocated_quantum_ns=500,
+            max_energy_budget_uj=2.0,
+            max_memory_footprint_bytes=1024,
+            granted_capabilities=CapabilityScope.CAN_EXECUTE | CapabilityScope.CAN_OBSERVE,
+            expires_at_ns=10_000_000_000
+        )
+
+        valid_op = MicroOperation(
+            micro_op_id="UOP-VALID",
+            kind=MicroOpKind.SAMPLE_SENSOR_PULSE,
+            target_subsystem=SubsystemNodeId.CHRONO_SOC,
+            cycle_cost_ns=200,
+            energy_cost_uj=1.0,
+            uma_footprint_bytes=256,
+            required_capability=CapabilityScope.CAN_EXECUTE
+        )
+        is_exec, reason = token.authorizes_micro_op(valid_op, now_ns=1_000_000_000)
+        self.assertTrue(is_exec)
+        self.assertEqual(reason, "AUTHORIZED")
+        self.assertTrue(token.is_executable(valid_op, now_ns=1_000_000_000))
+
+        # 1. Subsystem mismatch
+        alien_op = MicroOperation(
+            micro_op_id="UOP-ALIEN",
+            kind=MicroOpKind.SAMPLE_SENSOR_PULSE,
+            target_subsystem=SubsystemNodeId.WSL_BRIDGE,
+            cycle_cost_ns=200,
+            energy_cost_uj=1.0,
+            uma_footprint_bytes=256
+        )
+        is_exec, reason = token.authorizes_micro_op(alien_op, now_ns=1_000_000_000)
+        self.assertFalse(is_exec)
+        self.assertIn("Subsystem mismatch", reason)
+
+        # 2. Capability breach
+        admin_op = MicroOperation(
+            micro_op_id="UOP-ADMIN",
+            kind=MicroOpKind.SAMPLE_SENSOR_PULSE,
+            target_subsystem=SubsystemNodeId.CHRONO_SOC,
+            cycle_cost_ns=200,
+            energy_cost_uj=1.0,
+            uma_footprint_bytes=256,
+            required_capability=CapabilityScope.CAN_AUTHORIZE
+        )
+        is_exec, reason = token.authorizes_micro_op(admin_op, now_ns=1_000_000_000)
+        self.assertFalse(is_exec)
+        self.assertIn("Capability breach", reason)
+
+        # 3. Budget breach: time
+        slow_op = MicroOperation(
+            micro_op_id="UOP-SLOW",
+            kind=MicroOpKind.SAMPLE_SENSOR_PULSE,
+            target_subsystem=SubsystemNodeId.CHRONO_SOC,
+            cycle_cost_ns=800,  # > 500
+            energy_cost_uj=1.0,
+            uma_footprint_bytes=256
+        )
+        is_exec, reason = token.authorizes_micro_op(slow_op, now_ns=1_000_000_000)
+        self.assertFalse(is_exec)
+        self.assertIn("Time budget breach", reason)
+
+        # 4. Expired token
+        is_exec, reason = token.authorizes_micro_op(valid_op, now_ns=12_000_000_000)
+        self.assertFalse(is_exec)
+        self.assertIn("Token expired", reason)
+
+        # 5. Region bounds breach
+        is_exec, reason = token.authorizes_micro_op(
+            valid_op,
+            now_ns=1_000_000_000,
+            target_region_hex_start=0x40,
+            target_region_hex_end=0x50
+        )
+        self.assertFalse(is_exec)
+        self.assertIn("Region breach", reason)
+
+    def test_bot_planning_with_resource_capability_token_filter(self) -> None:
+        """MicroOperationAllocationBot enforces token limits and filters unauthorized micro-ops."""
+        token = ResourceCapabilityToken(
+            token_id="TOK-FILTER",
+            subsystem=SubsystemNodeId.CHRONO_SOC,
+            lane=HardwarePriorityLane.LANE_0_MICRO_SILICON,
+            uma_region_hex_start=0x00,
+            uma_region_hex_end=0x1F,
+            allocated_quantum_ns=400,
+            max_energy_budget_uj=2.0,
+            max_memory_footprint_bytes=512,
+            granted_capabilities=CapabilityScope.CAN_EXECUTE
+        )
+
+        ops = [
+            MicroOperation("OP-OK", MicroOpKind.SAMPLE_SENSOR_PULSE, SubsystemNodeId.CHRONO_SOC, 150, 0.5, 128),
+            MicroOperation("OP-WRONG-SUB", MicroOpKind.SAMPLE_SENSOR_PULSE, SubsystemNodeId.WSL_BRIDGE, 150, 0.5, 128),
+            MicroOperation("OP-TOO-EXPENSIVE", MicroOpKind.SAMPLE_SENSOR_PULSE, SubsystemNodeId.CHRONO_SOC, 600, 3.0, 1024),
+        ]
+
+        batch = self.bot.plan_behavioral_batch(
+            candidate_ops=ops,
+            allocated_cycles_ns=1000,
+            allocated_energy_uj=10.0,
+            allocated_uma_bytes=4096,
+            token=token
+        )
+        # Only OP-OK should be authorized and admitted
+        self.assertEqual(len(batch.operations), 1)
+        self.assertEqual(batch.operations[0].micro_op_id, "OP-OK")
+        self.assertLessEqual(batch.total_planned_cycles_ns, token.allocated_quantum_ns)
+        self.assertLessEqual(batch.total_planned_energy_uj, token.max_energy_budget_uj)
+        self.assertLessEqual(batch.total_planned_uma_bytes, token.max_memory_footprint_bytes)
 
 
 class TestPhysicalTimescaleAndContentionTopology(unittest.TestCase):
