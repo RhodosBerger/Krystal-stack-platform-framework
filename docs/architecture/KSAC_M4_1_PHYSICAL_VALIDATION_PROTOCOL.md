@@ -1,50 +1,59 @@
 # KSAC M4.1 — PHYSICAL VALIDATION PROTOCOL
-## Formal Experimental Protocol, Statistical Gating, and Control Leverage Validation
+## Formal Experimental Protocol, Two-Gate Architecture, and Statistical Gating
 
 ```text
 ================================================================================
 KRYSTAL STACK PHYSICAL HARDWARE VALIDATION SERIES
 Document:    KSAC_M4_1_PHYSICAL_VALIDATION_PROTOCOL.md
-Version:     v1.0 (EXPERIMENTALLY LOCKED MILESTONE)
+Version:     v2.0-FROZEN-TWO-GATE (EXPERIMENTALLY LOCKED MILESTONE)
 Status:      APPROVED OPERATIONAL BENCHMARK SPECIFICATION
 Author:      Antigravity Hardware Co-Design & Cognitive Invariants Group
 Date:        October 2026
 Theory Node: THEORY-KSAC-VHL-STRATIFICATION-AND-CONTROL-LEVERAGE-FACTOR (Node 56)
 Invariant:   VITAL_MAX_HP == 6 | ALLOW = ACT ∧ LCK ∧ CNF ∧ ¬HAZ ∧ VIT
+Two Gates:   Gate M4.1-A [COMPLETE / FROZEN] | Gate M4.1-B [PENDING LIVE STREAM]
 Central Q:   H1: VHL_F > 1.0 vs. H0: VHL_F <= 1.0
 ================================================================================
 ```
 
 ---
 
-## 1. Executive Summary & Experimental Lock-in
+## 1. Executive Summary & Two-Gate Architecture
 
-With the registration of **Theory Node 56**, all theoretical and architectural expansion of Krystal Stack is **formally halted**. 
+With the registration of **Theory Node 56**, all theoretical and architectural expansion of Krystal Stack is **formally halted** (Node 57 is explicitly omitted). 
 
-The sole objective of Milestone **KSAC M4.1** is to empirically validate or refute the central hypothesis on physical hardware:
+Milestone **KSAC M4.1** is structured into two distinct verification gates:
 
-$$\boxed{H_1: \mathbf{VHL}_F > 1.0} \quad \text{versus} \quad \boxed{H_0: \mathbf{VHL}_F \le 1.0}$$
+### Gate M4.1-A — Experimental Pre-registration & Calibration Framework [COMPLETE / FROZEN]
+- Pre-registered hypothesis, frozen protocol, baseline configurations ($B0, B1, B2, K$).
+- Randomized Block Design (RBD) with 30 blocks (60 runs total).
+- Two transparent estimators: Pairwise Mean Ratio ($\overline{VHL}_{HC} = 1.1516$) vs Ratio of Means ($\widehat{VHL}_{\text{means}} = 1.1513$).
+- Two transparent energy models: Active Decision Window ($CLF_{N,\text{active}} = 28.59$) vs Continuous Gross Board Integral ($CLF_{N,\text{gross}} = 5.22$).
+- Complete 17-artifact evidence directory ([`experiments/ksac_m4_1/M4_1_EVIDENCE/`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/experiments/ksac_m4_1/M4_1_EVIDENCE)) with bitstream/firmware SHA-256 hashes and HMAC signature.
+
+### Gate M4.1-B — Physical FPGA Validation [PENDING LIVE ACQUISITION]
+- Direct streaming acquisition from flashed Kintex UltraScale+ FPGA board over PCIe/JTAG.
+- Transition rule:
+  $$\mathbf{VHL_{HC} \xrightarrow{\text{live FPGA acquisition}} VHL_F}$$
 
 ```text
-       FROZEN ARCHITECTURAL PIPELINE
-Host Telemetry -> PCIe -> KCB-M4 FPGA -> Action Hint -> Driver -> Workload -> Validator
+        FROZEN PHYSICAL ACQUISITION PIPELINE
+Real Host Telemetry -> PCIe Mailbox -> Flashed KCB-M4 FPGA -> Real Decision -> Real Host Action -> INA226 Power Shunts -> raw_runs.csv
 ```
 
 ---
 
-## 2. Rigorous Definition of $VHL_F$
+## 2. Rigorous Stratification of VHL
 
-To prevent post-hoc rationalization or ambiguity in data interpretation:
+To prevent premature promotion of harness-calibrated models to physical proof:
 
-$$\boxed{\mathbf{VHL}_F = \frac{W_A / E_A}{W_B / E_B}}$$
+1. **$VHL_{HC}$ (Harness-Calibrated Verified Hardware Leverage):**
+   $$\mathbf{VHL}_{HC} = \frac{W_A / E_A}{W_B / E_B} = \mathbf{1.1516 \quad [HARNESS-CALIBRATED]}$$
+   Evaluated under frozen prototype parameters in software harness with calibrated hardware noise injection.
 
-Where:
-- **$W_A$ (Useful Work, Adaptive):** Total completed work units strictly satisfying SLA quality and deadline constraints ($\text{latency} < P95_{\text{limit}} \land \text{output\_valid} == \text{True}$).
-- **$E_A$ (Total System Energy, Adaptive):** Total electrical energy consumed across the entire experimental setup:
-  $$E_A = E_{\text{host}} + E_{\text{accelerator}} + E_{\text{FPGA}}$$
-  **Zero deduction of control overhead.** The energy consumed by the FPGA coprocessor is strictly charged to the adaptive regime.
-- **$W_B$ (Useful Work, Baseline):** Completed work units under the baseline configuration.
-- **$E_B$ (Total System Energy, Baseline):** Total electrical energy consumed under baseline configuration.
+2. **$VHL_F$ (FPGA-Measured Physical Leverage):**
+   $$\mathbf{VHL}_F = \frac{W_A / E_A}{W_B / E_B} \quad \mathbf{[FPGA-MEASURED]}$$
+   Status: **NOT YET MEASURED (Pending M4.1-B live streaming)**.
 
 ---
 
@@ -81,47 +90,59 @@ $$\boxed{K > B_1} \quad \left( \text{Adaptive beats the best hand-tuned static c
 
 ---
 
-## 5. Normalized Control Leverage Factor ($CLF_N$)
+## 5. Dual Energy Formulation & Duty Cycle Locking
 
-To measure the leverage effect across different workload domains independently of raw work units:
+For the physical experiment, duty-cycle approximation $P \times \text{duty}$ is superseded by continuous physical integration:
 
-$$\boxed{\mathbf{CLF}_N = \frac{\Delta W / W_B}{E_{\text{control}} / E_B}}$$
+$$\mathbf{E}_{\text{FPGA}} = \int_{0}^{T_{\text{window}}} P_{\text{FPGA}}(t)\, dt$$
 
-### Interpretation:
-If $\Delta W / W_B = 0.12$ ($+12\%$ work) and the control fabric consumed only $E_{\text{control}} / E_B = 0.005$ ($0.5\%$ of baseline energy):
-$$\mathbf{CLF}_N = \frac{0.12}{0.005} = \mathbf{24.0}$$
-*Meaning:* For every $1\%$ of relative energy consumed by the control plane, **$24\%$ relative useful work leverage** was generated.
+including idle FPGA power ($2.10\text{ W}$), BRAM, MGT transceivers, PCIe PHY, control fabric, and carrier board regulator conversion losses.
 
----
-
-## 6. Calibration Error Tracking
-
-The physical validation benchmark directly tests the accuracy of the theoretical prediction model:
-
-$$\text{CalibrationError}_{\text{abs}} = \left| \mathbf{VHL}_S - \mathbf{VHL}_F \right|$$
-
-$$\text{CalibrationError}_{\text{rel}} = \frac{\left| \mathbf{VHL}_S - \mathbf{VHL}_F \right|}{\mathbf{VHL}_S} \times 100\%$$
-
-If the theoretical model predicted $VHL_S = 1.4852$ and physical measurement yields $VHL_F = 1.1516$:
-$$\text{CalibrationError}_{\text{rel}} = 22.46\%$$
-This delta is fed back into the Transition Memory table to recalibrate the Influence Matrix, demonstrating true closed-loop learning from hardware telemetry.
+### Dual-Reporting Framework:
+1. **Active Decision Window ($E_{\text{ctrl,active}} = 4.2194\text{ J}$)**:
+   - Control fabric active for $1.0\text{ s}$ out of $10.0\text{ s}$ window ($10\%$ active duty cycle).
+   - $\mathbf{CLF}_{N,\text{active}} = \frac{13.7943\%}{0.4824\%} = \mathbf{28.59}$
+2. **Gross Board Continuous Energy ($E_{\text{FPGA,gross}} = 23.1194\text{ J}$)**:
+   - Continuous full-board draw ($2.1\text{ W idle} \times 9\text{ s} + 4.2\text{ W active} \times 1\text{ s} = 23.12\text{ J}$).
+   - $\mathbf{CLF}_{N,\text{gross}} = \frac{13.7943\%}{2.6432\%} = \mathbf{5.22}$
 
 ---
 
-## 7. Statistical Protocol & Safety Gate
+## 6. Calibration Error Decomposition Hypothesis [HYPOTHESIZED ALLOCATION]
 
-### 7.1 Statistical Rigor ($N \ge 30$ Runs)
-- **Minimum Trials:** $N = 30$ baseline runs and $N = 30$ adaptive runs.
-- **Randomization:** Sequence is randomized (`B1, K, K, B1, K, B1, B1, K...`) to eliminate thermal drift and cache pre-warming bias.
-- **Two-Sided 95% Confidence Interval:**
-  $$\text{CI}_{95\%} = \left[ \overline{\mathbf{VHL}}_F - 2.045 \times \text{SE}, \; \overline{\mathbf{VHL}}_F + 2.045 \times \text{SE} \right]$$
+$$\text{CalibrationError}_{\text{abs}} = \left| \mathbf{VHL}_S - \mathbf{VHL}_{HC} \right| = |1.4852 - 1.1516| = \mathbf{0.3336 \quad (22.46\%)}$$
+
+$$\mathbf{CE} = \mathbf{CE}_{\text{PCIe}} + \mathbf{CE}_{\text{thermal}} + \mathbf{CE}_{\text{scheduler}} + \mathbf{CE}_{\text{measurement}} + \mathbf{CE}_{\text{model}} + \epsilon$$
+
+| Component | Share | Epistemic Status | Mechanism |
+|---|---|---|---|
+| $\mathbf{CE}_{\text{PCIe}}$ | $9.5\%$ | `[HYPOTHESIZED ALLOCATION]` | PCIe DMA roundtrip serialization latency ($2.85\text{ µs}$ vs $0\text{ ns}$ local) |
+| $\mathbf{CE}_{\text{thermal}}$ | $5.2\%$ | `[HYPOTHESIZED ALLOCATION]` | Host thermal throttling onset and junction gradient |
+| $\mathbf{CE}_{\text{scheduler}}$ | $4.8\%$ | `[HYPOTHESIZED ALLOCATION]` | Host OS CFS quantum granularity & task placement latency |
+| $\mathbf{CE}_{\text{measurement}}$ | $1.8\%$ | `[HYPOTHESIZED ALLOCATION]` | RAPL MSR quantization (1 ms) and INA226 sampling window |
+| $\mathbf{CE}_{\text{model}} + \epsilon$ | $1.16\%$ | `[HYPOTHESIZED ALLOCATION]` | Remaining unmodeled system variance and bus contention |
+
+> **Ablation Campaign Protocol**: To convert these percentages from `[HYPOTHESIZED ALLOCATION]` to a measured decomposition model, an ablation campaign is scheduled with 4 isolating probes:
+> 1. `probe_pcie`: PCIe ON vs PCIe Direct Memory Bypass.
+> 2. `probe_thermal`: Chilled active chiller (fixed 18°C die) vs uncontrolled ambient ramp.
+> 3. `probe_scheduler`: SCHED_FIFO real-time core pinning vs default Linux CFS.
+> 4. `probe_measurement`: High-speed external current probe (100 kHz) vs RAPL MSR polling.
+
+---
+
+## 7. Statistical Protocol & Randomized Block Design (RBD)
+
+### 7.1 Pair Definition & Randomization
+$$\text{Pair}_i = (B1^{(i)}, K^{(i)}) \quad \text{for } i \in \{1, \dots, 30\}$$
+- Both members of pair $i$ belong to the same experimental block.
+- Intra-block execution order is randomized ($B1 \to K$ or $K \to B1$) to eliminate thermal and temporal drift.
 
 ### 7.2 Pass / Fail Criteria
 ```text
-STRONG PASS:            CI_95_lower(VHL_F) > 1.10  AND  InvariantViolations == 0
-FORMAL PASS:            CI_95_lower(VHL_F) > 1.00  AND  InvariantViolations == 0
-FAIL / NOT DEMONSTRATED:CI_95_lower(VHL_F) <= 1.00
-SAFETY BREACH (INSTANT):InvariantViolations > 0    OR   InvalidCommitRate > 0
+STRONG PASS:            CI_95_lower(VHL) > 1.10  AND  InvariantViolations == 0
+FORMAL PASS:            CI_95_lower(VHL) > 1.00  AND  InvariantViolations == 0
+FAIL / NOT DEMONSTRATED:CI_95_lower(VHL) <= 1.00
+SAFETY BREACH (INSTANT):InvariantViolations > 0   OR   InvalidCommitRate > 0
 ```
 
 ---
