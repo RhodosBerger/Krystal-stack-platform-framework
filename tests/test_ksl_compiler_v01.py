@@ -171,6 +171,40 @@ class TestKslCompilerV01(unittest.TestCase):
         with self.assertRaises(ContractViolation):
             KslCompiler(vital_max_hp=7)
 
+    def test_six_canonical_compiler_passes_execution_and_audit(self) -> None:
+        """Verifies that compiling CANONICAL_KSL_PROGRAM executes and audits all 6 compiler passes."""
+        res = self.compiler.compile(CANONICAL_KSL_PROGRAM)
+        self.assertTrue(res.success)
+        self.assertEqual(len(res.passes_executed), 6)
+        expected_passes = [
+            "Pass 1: Epistemic Type Checking",
+            "Pass 2: Resource Budget Verification",
+            "Pass 3: Capability & Authority Gate",
+            "Pass 4: Temporal & Domain Scheduling",
+            "Pass 5: Transition Verification & Oracle",
+            "Pass 6: Machine Lowering & Code Generation",
+        ]
+        self.assertEqual(res.passes_executed, expected_passes)
+
+        # Audit checks
+        self.assertIn("Pass 1: Epistemic Type Checking", res.pass_audit)
+        self.assertTrue(res.pass_audit["Pass 1: Epistemic Type Checking"]["epistemic_safety"])
+
+        self.assertIn("Pass 2: Resource Budget Verification", res.pass_audit)
+        self.assertEqual(res.pass_audit["Pass 2: Resource Budget Verification"]["constraints_budgeted"], 2)
+
+        self.assertIn("Pass 3: Capability & Authority Gate", res.pass_audit)
+        self.assertEqual(res.pass_audit["Pass 3: Capability & Authority Gate"]["authority_boundary"], "Proposal != Authority")
+
+        self.assertIn("Pass 4: Temporal & Domain Scheduling", res.pass_audit)
+        self.assertTrue(res.pass_audit["Pass 4: Temporal & Domain Scheduling"]["domain_isolation"])
+
+        self.assertIn("Pass 5: Transition Verification & Oracle", res.pass_audit)
+        self.assertEqual(res.pass_audit["Pass 5: Transition Verification & Oracle"]["invariant_preservation"], "VITAL_MAX_HP == 6")
+
+        self.assertIn("Pass 6: Machine Lowering & Code Generation", res.pass_audit)
+        self.assertEqual(res.pass_audit["Pass 6: Machine Lowering & Code Generation"]["c11_frame_alignment_bytes"], 128)
+
 
 if __name__ == "__main__":
     unittest.main()
