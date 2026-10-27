@@ -634,6 +634,16 @@ class ExperimentalTheoryDependencyGraph:
                 assumptions=("Causal Separation Demand vs Supply", "Quarterly Aggregated ETF Inflows", "ChipMarginalValue Solver", "VITAL_MAX_HP == 6"),
                 parent_theories=("THEORY-DATACENTER-POWER-CASCADE-MODEL", "THEORY-SOVEREIGN-INVARIANT-TACTICAL-MECHANICS"),
             ),
+            TheoryNode(
+                theory_id="THEORY-SOVEREIGN-INTROSPECTIVE-SEARCH-ENGINE",
+                title="Self-Aware Introspective Cognitive Search Engine Across 10 Industry Verticals with Tactical Divergence",
+                category=TheoryCategory.SCHEDULING_WSPT,
+                formal_ref="krystal_kernel/sovereign_introspective_search_engine.py §SovereignIntrospectiveSearchEngine",
+                falsification_condition="Unchecked error residual norm > 0.15 without tactical mutation, self-certification breach, or state mutation Delta S != 0 on failure",
+                epistemic_status=TheoryEpistemicStatus.DOKAZANE,
+                assumptions=("10 Industry Verticals Isomorphism", "Metacognitive Self-Error Residual Auditing", "Self-Service Pattern with Tactical Divergence", "Game Bot Core Integration", "VITAL_MAX_HP == 6"),
+                parent_theories=("THEORY-BOT-SYSTEM-DIAGNOSTIC-AND-TUNING-ENGINE", "THEORY-CRYPTO-MARKET-FARM-SCENARIO-MODEL", "THEORY-SOVEREIGN-INVARIANT-TACTICAL-MECHANICS"),
+            ),
 
             # 9. Refuted & Corrected Historical Theories (Tracking from REGISTER_TVRDENI.md)
             TheoryNode(

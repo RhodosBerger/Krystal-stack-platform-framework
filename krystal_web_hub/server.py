@@ -796,6 +796,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "investor_architecture_studio.html", "text/html")
             return
+        elif norm_path in (
+            "/spinoff", "/spinoffs", "/spinoff-studio", "/commercial-simulator",
+            "/spinoff_commercial_simulator_studio.html", "/roi-simulator", "/b2b-simulator"
+        ):
+            self.serve_file(STATIC_DIR / "spinoff_commercial_simulator_studio.html", "text/html")
+            return
         elif norm_path in ("/game", "/arena", "/posledni-kmen", "/posledni_kmen", "/posledni-kmen-game", "/posledni_kmen_game.html", "/duel"):
             self.serve_file(STATIC_DIR / "posledni_kmen_game.html", "text/html")
             return
@@ -1329,6 +1335,24 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             ping_msg = f"event: ping\ndata: {json.dumps({'status': 'ONLINE', 'vital_max_hp': 6})}\n\n"
             self.wfile.write(ping_msg.encode("utf-8"))
             self.wfile.flush()
+            return
+
+        # ── API: Sovereign Introspective Search Engine Verticals ────
+        elif norm_path in ("/api/search/verticals", "/api/omni-search/verticals"):
+            from krystal_kernel.sovereign_introspective_search_engine import IndustryVertical, OperatingTactic
+            self.send_json({
+                "verticals": [v.value for v in IndustryVertical],
+                "tactics": [t.value for t in OperatingTactic],
+                "vital_max_hp": 6,
+                "conduct_flags": ["[ACT]", "[LCK]", "[CNF>=0.85]", "[!HAZ]", "[VIT_MAX_HP==6]"]
+            })
+            return
+
+        # ── API: Omni Four Poles Integration Pipeline ───────────────
+        elif norm_path in ("/api/omni/execute_all_poles", "/api/omni/poles", "/api/omni/pipeline"):
+            from krystal_kernel.omni_four_poles_pipeline import execute_omni_simulation_pipeline
+            res = execute_omni_simulation_pipeline()
+            self.send_json(res)
             return
 
         # ── API: Gram Readers & Impedance Evaluator Telemetry ───────
@@ -4291,6 +4315,13 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             from krystal_kernel.crypto_farm_scenario_engine import GLOBAL_CRYPTO_FARM_SCENARIO_ENGINE
             res = GLOBAL_CRYPTO_FARM_SCENARIO_ENGINE.simulate_quarter(data)
             self.send_json(res)
+            return
+
+        # ── API: Sovereign Introspective Search Engine ──────────────
+        if self.path in ("/api/search/introspect", "/api/omni-search/evaluate"):
+            from krystal_kernel.sovereign_introspective_search_engine import GLOBAL_INTROSPECTIVE_SEARCH_ENGINE
+            res = GLOBAL_INTROSPECTIVE_SEARCH_ENGINE.execute_introspective_cycle(data)
+            self.send_json(res.to_dict())
             return
 
         # ── API: Hybrid MCP Connector & Antigravity Synchronization ──

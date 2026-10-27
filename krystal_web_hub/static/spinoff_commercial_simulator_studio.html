@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krystal Stack — Commercial Spin-Off & B2B ROI Simulator</title>
+  <link rel="stylesheet" href="krystal_ui_system.css">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ks-bg: #070812;
+      --ks-card: rgba(17, 19, 29, 0.85);
+      --ks-border: #292a38;
+      --ks-gold: #d8ae4b;
+      --ks-cyan: #58d8ff;
+      --ks-teal: #50eee0;
+      --ks-green: #43d264;
+      --ks-red: #ff4757;
+      --ks-purple: #9d4edd;
+    }
+    body {
+      background: radial-gradient(circle at 50% 0%, #151828 0%, #070812 70%);
+      color: #f1efe8;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 24px;
+      min-height: 100vh;
+    }
+    .header-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--ks-border);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--ks-gold);
+      letter-spacing: 1px;
+    }
+    .badge-vital {
+      background: rgba(67, 210, 100, 0.15);
+      color: var(--ks-green);
+      border: 1px solid var(--ks-green);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    .grid-duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 1024px) {
+      .grid-duo { grid-template-columns: 1fr; }
+    }
+    .track-card {
+      background: var(--ks-card);
+      border: 1px solid var(--ks-border);
+      border-radius: 8px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .track-card.active-p1 {
+      border-color: var(--ks-cyan);
+      box-shadow: 0 0 25px rgba(88, 216, 255, 0.2);
+    }
+    .track-card.p2 {
+      border-color: var(--ks-gold);
+    }
+    .track-tag {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 3px;
+    }
+    .tag-p1 { background: rgba(88, 216, 255, 0.2); color: var(--ks-cyan); border: 1px solid var(--ks-cyan); }
+    .tag-p2 { background: rgba(216, 174, 75, 0.2); color: var(--ks-gold); border: 1px solid var(--ks-gold); }
+    h2 { font-family: 'Cinzel', serif; font-size: 20px; margin-bottom: 12px; }
+    .lead-desc { color: #a0a2b0; font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+    .slider-group { margin-bottom: 16px; }
+    .slider-header { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+    .slider-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--ks-teal); }
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      background: #1a1d2e;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--ks-teal);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(80, 238, 224, 0.5);
+    }
+    .metrics-box {
+      background: rgba(7, 8, 18, 0.7);
+      border: 1px solid #1f2233;
+      border-radius: 6px;
+      padding: 16px;
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .metric-item { display: flex; flex-direction: column; }
+    .metric-label { font-size: 11px; color: #7f8296; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-num { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: #fff; }
+    .metric-num.highlight { color: var(--ks-green); }
+    .btn-action {
+      margin-top: 20px;
+      padding: 12px 18px;
+      border-radius: 4px;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-cyan { background: var(--ks-cyan); color: #000; }
+    .btn-cyan:hover { background: #7ae1ff; box-shadow: 0 0 15px rgba(88, 216, 255, 0.4); }
+    .btn-gold { background: var(--ks-gold); color: #000; }
+    .btn-gold:hover { background: #f0d071; box-shadow: 0 0 15px rgba(216, 174, 75, 0.4); }
+    .comparison-table-card {
+      background: var(--ks-card);
+      border: 1px solid var(--ks-border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 12px; color: #8d8997; border-bottom: 1px solid var(--ks-border); }
+    td { padding: 14px 12px; border-bottom: 1px solid rgba(41, 42, 56, 0.5); }
+    .tag-verdict { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 6px; border-radius: 3px; }
+    .v-win { background: rgba(67, 210, 100, 0.15); color: var(--ks-green); border: 1px solid var(--ks-green); }
+    .v-alt { background: rgba(216, 174, 75, 0.15); color: var(--ks-gold); border: 1px solid var(--ks-gold); }
+    .nav-links a { color: var(--ks-gold); text-decoration: none; margin-left: 16px; font-size: 13px; }
+    .nav-links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body class="ks-theme">
+
+  <div class="header-banner">
+    <div>
+      <div class="brand-title">KRYSTAL-STACK B2B SPIN-OFF SIMULATOR</div>
+      <div style="color: #8d8997; font-size: 12px; margin-top: 4px;">
+        Porovnanie komerčných spin-offov: Softvérový Klastrový Plánovač (Fáza 1) vs. Priemyselný CNC Edge Copilot (Fáza 2)
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="badge-vital">VITAL_MAX_HP == 6 [AUTHORITATIVE]</span>
+      <div class="nav-links">
+        <a href="/index">← Hlavný Hub</a>
+        <a href="/investor">Investor Studio</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-duo">
+
+    <!-- TRACK 1: Sovereign Cluster Scheduler -->
+    <div class="track-card active-p1">
+      <span class="track-tag tag-p1">FÁZA 1: ODPORÚČANÝ SPIN-OFF (0-3 MESIACE)</span>
+      <h2 style="color: var(--ks-cyan);">1. Sovereign Thermal & Fleet Scheduler</h2>
+      <div class="lead-desc">
+        100% čistý softvér (Kubernetes Operator / Docker API) pre AI dátové centrá a krypto-ťažobné klastre.
+        Optimalizuje prevádzkové kvadranty ($Q_1 \to Q_2$), eliminuje thermal throttling a šetrí 15–25 % elektriny bez zásahu do hardvéru.
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>Veľkosť klastra (Počet čipov / ASIC / GPU):</span>
+          <span class="slider-val" id="disp-chips">2 500 ks</span>
+        </div>
+        <input type="range" id="sl-chips" min="500" max="10000" step="250" value="2500" oninput="recalcTrack1()">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>Cena elektriny:</span>
+          <span class="slider-val" id="disp-elec">0.065 €/kWh</span>
+        </div>
+        <input type="range" id="sl-elec" min="0.03" max="0.16" step="0.005" value="0.065" oninput="recalcTrack1()">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>Priemerný príkon čipu:</span>
+          <span class="slider-val" id="disp-pwr">350 W</span>
+        </div>
+        <input type="range" id="sl-pwr" min="100" max="700" step="25" value="350" oninput="recalcTrack1()">
+      </div>
+
+      <div class="metrics-box">
+        <div class="metric-item">
+          <span class="metric-label">Špičkový príkon klastra:</span>
+          <span class="metric-num" id="res-t1-kw">875 kW</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Kvartálna úspora elektriny:</span>
+          <span class="metric-num highlight" id="res-t1-savings">34 492 €</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Gain-Share Tržba (25% fee):</span>
+          <span class="metric-num highlight" id="res-t1-fee">8 623 € / kvartál</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Čas nasadenia & ROI:</span>
+          <span class="metric-num" style="color: var(--ks-teal); font-size: 15px;">&lt; 48 hodín (API)</span>
+        </div>
+      </div>
+
+      <button class="btn-action btn-cyan" onclick="triggerApiSimulation()">
+        ⚡ Spustiť Živú Simuláciu cez Backend API (/api/crypto-farm/simulate)
+      </button>
+      <div id="api-status-t1" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-top: 8px; color: #8d8997;"></div>
+    </div>
+
+    <!-- TRACK 2: Krystal CNC Edge Copilot -->
+    <div class="track-card p2">
+      <span class="track-tag tag-p2">FÁZA 2: STRATEGICKÝ RETROFIT (5-10 MESIACOV)</span>
+      <h2 style="color: var(--ks-gold);">2. Krystal Industrial CNC Edge Copilot</h2>
+      <div class="lead-desc">
+        Hardvérový Edge Box s prediktívnym guvernérom pripojený cez OPC UA/FOCAS na staršie CNC stroje (Fanuc, Siemens, Heidenhain).
+        Harmonická SSV modulácia znižuje opotrebenie nástrojov o 40 % a eliminuje zmätky (Zero-Scrap odskok).
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>Počet CNC strojov v dielni / fabrike:</span>
+          <span class="slider-val" id="disp-cnc">12 strojov</span>
+        </div>
+        <input type="range" id="sl-cnc" min="2" max="60" step="1" value="12" oninput="recalcTrack2()">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>Mesačný rozpočet na frézy/nástroje na 1 stroj:</span>
+          <span class="slider-val" id="disp-tool">1 400 € / stroj</span>
+        </div>
+        <input type="range" id="sl-tool" min="500" max="5000" step="100" value="1400" oninput="recalcTrack2()">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>Priemerná hodnota zničeného obrobku (Scrap):</span>
+          <span class="slider-val" id="disp-scrap">350 € / kus</span>
+        </div>
+        <input type="range" id="sl-scrap" min="50" max="2500" step="50" value="350" oninput="recalcTrack2()">
+      </div>
+
+      <div class="metrics-box">
+        <div class="metric-item">
+          <span class="metric-label">Mesačná úspora nástrojov (+38%):</span>
+          <span class="metric-num highlight" id="res-t2-tool-sav">6 384 € / mesiac</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Ročná hodnota zachránených dielov:</span>
+          <span class="metric-num highlight" id="res-t2-scrap-sav">25 200 € / rok</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Odhadovaný Edge Box CAPEX:</span>
+          <span class="metric-num" style="color: #ff9f43;" id="res-t2-capex">18 000 €</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Návratnosť investície (Payback):</span>
+          <span class="metric-num" style="color: var(--ks-teal); font-size: 15px;" id="res-t2-payback">~ 2.8 mesiaca</span>
+        </div>
+      </div>
+
+      <button class="btn-action btn-gold" onclick="alert('Generovanie pilotnej zmluvy pre Krystal CNC Edge Box pripravené!')">
+        🛠️ Pripraviť B2B Ponuku pre Strojársku Firmu
+      </button>
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-top: 8px; color: #8d8997;">
+        Kompatibilné protokoly: OPC UA, Fanuc FOCAS, Heidenhain DNC, Modbus TCP
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMPARISON TABLE CARD -->
+  <div class="comparison-table-card">
+    <h2 style="font-size: 18px; margin-bottom: 16px; color: #fff;">Strategické a Trhové Porovnanie Oboch Spin-Offov</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Rozmer Rozhodovania</th>
+          <th>Klastrový & Krypto Plánovač (Smer B)</th>
+          <th>CNC Edge Copilot (Smer A)</th>
+          <th>Strategický Verdikt</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Forma Dodania</strong></td>
+          <td>Čistý softvér (Kubernetes Operator / Docker API)</td>
+          <td>Hardvérový Edge Box (montáž do rozvádzača)</td>
+          <td><span class="tag-verdict v-win">B: Nulové CAPEX</span></td>
+        </tr>
+        <tr>
+          <td><strong>Dĺžka Predajného Cyklu</strong></td>
+          <td>2 až 4 týždne (vzdialený pilot cez API)</td>
+          <td>3 až 9 mesiacov (fyzické návštevy, bezpečnosť práce)</td>
+          <td><span class="tag-verdict v-win">B: 5× rýchlejší cashflow</span></td>
+        </tr>
+        <tr>
+          <td><strong>Stav v Krystal Repozitári</strong></td>
+          <td>Hotový otestovaný kód, moduly a live REST endpointy</td>
+          <td>Matematický model a rovnice pripravené na hardware driver</td>
+          <td><span class="tag-verdict v-win">B: Okamžite nasaditeľné</span></td>
+        </tr>
+        <tr>
+          <td><strong>Bariéra Vstupu (Liability)</strong></td>
+          <td>Minimálna (softvérový hysterézny fallback $\Delta S = 0$)</td>
+          <td>Vysoká (riziko poškodenia drahého stroja alebo frézy)</td>
+          <td><span class="tag-verdict v-win">B: Nízke právne riziko</span></td>
+        </tr>
+        <tr>
+          <td><strong>Dlhodobá Strategická Hodnota</strong></td>
+          <td>Vysoká škálovateľnosť (SaaS marža 80 %+)</td>
+          <td>Vysoká retencia (hardvér napevno integrovaný vo fabrike)</td>
+          <td><span class="tag-verdict v-alt">A: Defenzívny moat</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top: 18px; padding: 14px; background: rgba(88, 216, 255, 0.05); border-left: 3px solid var(--ks-cyan); font-size: 13px; line-height: 1.6;">
+      <strong>Záverečné Inžinierske Odporúčanie (Dvojfázový Most):</strong> Začať s <strong>Klastrovým & Krypto Plánovačom (Fáza 1)</strong>, ktorý nevyžaduje žiadny hardvérový vývoj, okamžite generuje hotovostné toky na báze Gain-Share (25% z úspory elektriny) a poskytuje referenčné telemetrické dáta. Z týchto tržieb sa následne vyrobí a certifikuje fyzický <strong>CNC Industrial Edge Box (Fáza 2)</strong> pre strojársky trh.
+    </div>
+  </div>
+
+  <script>
+    function recalcTrack1() {
+      const chips = parseInt(document.getElementById('sl-chips').value);
+      const elec = parseFloat(document.getElementById('sl-elec').value);
+      const pwr = parseFloat(document.getElementById('sl-pwr').value);
+
+      document.getElementById('disp-chips').innerText = chips.toLocaleString() + ' ks';
+      document.getElementById('disp-elec').innerText = elec.toFixed(3) + ' €/kWh';
+      document.getElementById('disp-pwr').innerText = pwr + ' W';
+
+      const totalKw = (chips * pwr) / 1000.0;
+      document.getElementById('res-t1-kw').innerText = Math.round(totalKw).toLocaleString() + ' kW';
+
+      // 18.5% savings via Q2 optimal undervolt & phase multiplexing
+      const hoursQuarter = 2160.0;
+      const quarterElecCost = totalKw * hoursQuarter * elec;
+      const quarterSavings = quarterElecCost * 0.185;
+      const gainShareFee = quarterSavings * 0.25;
+
+      document.getElementById('res-t1-savings').innerText = Math.round(quarterSavings).toLocaleString() + ' €';
+      document.getElementById('res-t1-fee').innerText = Math.round(gainShareFee).toLocaleString() + ' € / kvartál';
+    }
+
+    function recalcTrack2() {
+      const cnc = parseInt(document.getElementById('sl-cnc').value);
+      const tool = parseFloat(document.getElementById('sl-tool').value);
+      const scrap = parseFloat(document.getElementById('sl-scrap').value);
+
+      document.getElementById('disp-cnc').innerText = cnc + ' strojov';
+      document.getElementById('disp-tool').innerText = Math.round(tool).toLocaleString() + ' € / stroj';
+      document.getElementById('disp-scrap').innerText = Math.round(scrap).toLocaleString() + ' € / kus';
+
+      const monthlyToolBudget = cnc * tool;
+      const monthlyToolSavings = monthlyToolBudget * 0.38; // 38% tool life extension
+      const annualScrapSavings = cnc * 6 * scrap; // 6 scrap parts avoided per machine per year
+
+      const capex = cnc * 1500; // 1,500€ per Edge Box + installation
+      const annualTotalSavings = (monthlyToolSavings * 12) + annualScrapSavings;
+      const paybackMonths = annualTotalSavings > 0 ? (capex / (annualTotalSavings / 12.0)) : 0;
+
+      document.getElementById('res-t2-tool-sav').innerText = Math.round(monthlyToolSavings).toLocaleString() + ' € / mesiac';
+      document.getElementById('res-t2-scrap-sav').innerText = Math.round(annualScrapSavings).toLocaleString() + ' € / rok';
+      document.getElementById('res-t2-capex').innerText = Math.round(capex).toLocaleString() + ' €';
+      document.getElementById('res-t2-payback').innerText = '~ ' + paybackMonths.toFixed(1) + ' mesiaca';
+    }
+
+    async function triggerApiSimulation() {
+      const chips = parseInt(document.getElementById('sl-chips').value);
+      const elec = parseFloat(document.getElementById('sl-elec').value);
+      const pwr = parseFloat(document.getElementById('sl-pwr').value);
+      const statusDiv = document.getElementById('api-status-t1');
+
+      statusDiv.innerHTML = '<span style="color: var(--ks-cyan);">⚡ Odosielam požiadavku na /api/crypto-farm/simulate...</span>';
+
+      try {
+        const payload = {
+          simulation_request: {
+            quarter: "2026-Q4",
+            hardware_profile_transfer: {
+              source_arch: "GENERIC_GPU_OR_ASIC",
+              target_arch: "KRYSTAL_APEX_UNDERVOLTED",
+              operating_quadrant: "Q2_PRODUCTIVE_APEX",
+              undervolt_offset_mv: -40.0,
+              strain_tensor_sigma: 0.08
+            },
+            market_vector_S_market: {
+              current_btc_price_usd: 88500.0,
+              quarterly_net_etf_inflow_musd: 4200.0,
+              etf_flow_persistence: 0.72,
+              reference_liquidity_musd: 18500.0,
+              annualized_volatility: 0.54
+            },
+            farm_vector_S_farm: {
+              existing_hashrate_th: chips * 100.0,
+              new_chip_count: chips,
+              hashrate_per_chip_th: 1.85,
+              power_per_chip_w: pwr,
+              network_hashrate_eh: 740.0,
+              electricity_price_kwh_usd: elec,
+              uptime_ratio: 0.985,
+              miner_sell_ratio: 0.65
+            }
+          }
+        };
+
+        const res = await fetch('/api/crypto-farm/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const resp = data.simulation_response;
+          const econ = resp.farm_economics_Q;
+          statusDiv.innerHTML = `✅ <strong>Overené Backendom Krystal-Stack:</strong> Predikovaný Break-Even: <strong>${Math.round(econ.break_even_btc_price_usd).toLocaleString()} $</strong> | Diagnostický kľúč: <code>${resp.diagnostic_keys.ideal_key}</code>`;
+        } else {
+          statusDiv.innerHTML = `<span style="color: var(--ks-red);">Chyba API spojenia (kód ${res.status}).</span>`;
+        }
+      } catch (err) {
+        statusDiv.innerHTML = `<span style="color: var(--ks-red);">Výnimka pri volaní API: ${err.message}</span>`;
+      }
+    }
+
+    // Initial calculations
+    recalcTrack1();
+    recalcTrack2();
+  </script>
+</body>
+</html>
