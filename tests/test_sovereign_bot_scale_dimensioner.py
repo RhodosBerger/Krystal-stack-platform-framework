@@ -51,13 +51,13 @@ class TestSovereignBotScaleDimensioner(unittest.TestCase):
         self.assertEqual(micro.max_latency_budget_ms, 0.00005)
 
     def test_governing_variables_registry_and_layer_coverage(self) -> None:
-        """Verifies presence and valid bounds of all 28 governing variables across L0..L5."""
+        """Verifies presence and valid bounds of all 40 governing variables across L0..L8."""
         variables = self.dimensioner.list_variables_by_layer()
-        self.assertEqual(len(variables), 28)
+        self.assertEqual(len(variables), 40)
 
-        # Verify all 6 layers are represented
+        # Verify all 9 layers are represented
         layers_present = {v.layer_id for v in variables}
-        self.assertEqual(len(layers_present), 6)
+        self.assertEqual(len(layers_present), 9)
 
         for v in variables:
             self.assertEqual(v.vital_max_hp, VITAL_MAX_HP)

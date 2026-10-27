@@ -706,6 +706,82 @@ from .symplectic_animation_transition_engine import (  # noqa: F401
     GLOBAL_SYMPLECTIC_TRANSITION_ENGINE
 )
 
+from krystal_janet.sovereign_janet_api_bridge import (  # noqa: F401
+    JanetCommandKind,
+    JanetCommandReceipt,
+    SovereignJanetSystemBridge,
+    GLOBAL_SOVEREIGN_JANET_SYSTEM_BRIDGE
+)
+
+from .goniometric_proposer_kernel import (  # noqa: F401
+    GoniometricProposalCategory,
+    GoniometricRadiusProfile,
+    GoniometricActionProposal,
+    GoniometricComputingBackend,
+    GoniometricProposerKernel,
+    get_goniometric_proposer_kernel,
+    reset_goniometric_proposer_kernel
+)
+
+from .bot_diagnostic_and_tuning_toolkit import (  # noqa: F401
+    TuningProfile,
+    BottleneckSeverity,
+    ScaleDomainProbeResult,
+    CrossLayerCouplingAudit,
+    BotDiagnosticReport,
+    BotTuningAction,
+    BotPerformanceTuningPlan,
+    BotTuningExecutionReceipt,
+    SovereignBotDiagnosticToolkit,
+    get_bot_diagnostic_toolkit,
+    reset_bot_diagnostic_toolkit
+)
+
+from .sovereign_extended_layers import (  # noqa: F401
+    BackpressureState,
+    ExecutionDispatchReceipt,
+    BackpressureAuditReceipt,
+    TransactionRecord,
+    MerkleAuditReceipt,
+    NineLayerSystemAuditReceipt,
+    ExecutionFabricL6,
+    BackpressureControllerL7,
+    TransactionalCommitLedgerL8,
+    SovereignExtendedNineLayerHypervisor,
+    GLOBAL_SOVEREIGN_EXTENDED_NINE_LAYER_HYPERVISOR
+)
+
+from .datacenter_power_cascade_simulator import (  # noqa: F401
+    PowerRegime,
+    PhaseType,
+    DatacenterTopology,
+    RegimeParameters,
+    DatacenterPowerMetrics,
+    DatacenterEconomicReceipt,
+    DatacenterPowerCascadeSimulator,
+    GLOBAL_DATACENTER_POWER_CASCADE_SIMULATOR
+)
+
+from .kphp_protocol import (  # noqa: F401
+    KPHP_MAGIC,
+    KPHP_VERSION,
+    KPHP_FRAME_SIZE_BYTES,
+    OperationalStateVector,
+    KphpHintFrame,
+    KphpCodec
+)
+
+from .scenario_market_farm_engine import (  # noqa: F401
+    ScenarioKind,
+    MarketState,
+    FarmState,
+    NetworkState,
+    ScenarioOutcome,
+    FarmExpansionReport,
+    CryptoMarketFarmScenarioEngine,
+    GLOBAL_CRYPTO_MARKET_FARM_ENGINE
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -914,5 +990,31 @@ __all__ = [
     "TransitionCurvePreset", "PhaseSpacePoint",
     "SymplecticTransitionTrajectory", "HexHslColorKeyframe",
     "SymplecticAnimationTransitionEngine",
-    "GLOBAL_SYMPLECTIC_TRANSITION_ENGINE"
+    "GLOBAL_SYMPLECTIC_TRANSITION_ENGINE",
+    "JanetCommandKind", "JanetCommandReceipt",
+    "SovereignJanetSystemBridge",
+    "GoniometricProposalCategory", "GoniometricRadiusProfile",
+    "GoniometricActionProposal", "GoniometricComputingBackend",
+    "GoniometricProposerKernel", "get_goniometric_proposer_kernel",
+    "reset_goniometric_proposer_kernel",
+    "TuningProfile", "BottleneckSeverity",
+    "ScaleDomainProbeResult", "CrossLayerCouplingAudit",
+    "BotDiagnosticReport", "BotTuningAction",
+    "BotPerformanceTuningPlan", "BotTuningExecutionReceipt",
+    "SovereignBotDiagnosticToolkit", "get_bot_diagnostic_toolkit",
+    "reset_bot_diagnostic_toolkit",
+    "BackpressureState", "ExecutionDispatchReceipt",
+    "BackpressureAuditReceipt", "TransactionRecord",
+    "MerkleAuditReceipt", "NineLayerSystemAuditReceipt",
+    "ExecutionFabricL6", "BackpressureControllerL7",
+    "TransactionalCommitLedgerL8", "SovereignExtendedNineLayerHypervisor",
+    "GLOBAL_SOVEREIGN_EXTENDED_NINE_LAYER_HYPERVISOR",
+    "PowerRegime", "PhaseType", "DatacenterTopology",
+    "RegimeParameters", "DatacenterPowerMetrics", "DatacenterEconomicReceipt",
+    "DatacenterPowerCascadeSimulator", "GLOBAL_DATACENTER_POWER_CASCADE_SIMULATOR",
+    "KPHP_MAGIC", "KPHP_VERSION", "KPHP_FRAME_SIZE_BYTES",
+    "OperationalStateVector", "KphpHintFrame", "KphpCodec",
+    "ScenarioKind", "MarketState", "FarmState", "NetworkState",
+    "ScenarioOutcome", "FarmExpansionReport",
+    "CryptoMarketFarmScenarioEngine", "GLOBAL_CRYPTO_MARKET_FARM_ENGINE"
 ]

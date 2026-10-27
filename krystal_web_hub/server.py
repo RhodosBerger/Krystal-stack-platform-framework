@@ -899,6 +899,12 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         ):
             self.serve_file(STATIC_DIR / "unified_verification_studio.html", "text/html")
             return
+        elif norm_path in (
+            "/bot-diagnostics", "/bot-diagnostic", "/bot-studio",
+            "/bot_systems_diagnostic_studio.html", "/bot-tuning", "/bot-tuning-studio"
+        ):
+            self.serve_file(STATIC_DIR / "bot_systems_diagnostic_studio.html", "text/html")
+            return
         elif norm_path in ("/game-showcase", "/live-duel", "/duel-engine", "/game-engine-showcase", "/posledni_kmen_game_engine_showcase.html"):
             self.serve_file(STATIC_DIR / "posledni_kmen_game_engine_showcase.html", "text/html")
             return
@@ -969,6 +975,27 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
         # ── API: Health ────────────────────────────────────────────
         elif norm_path in ("/api/health", "/health"):
             self.send_json({"status": "HEALTHY", "uptime_sec": time.time()})
+            return
+
+        # ── API: Bot System Diagnostics & Tuning Toolkit ───────────
+        elif norm_path in ("/api/bot/diagnostics", "/api/bot/diagnostic"):
+            from krystal_kernel.bot_diagnostic_and_tuning_toolkit import get_bot_diagnostic_toolkit
+            toolkit = get_bot_diagnostic_toolkit()
+            report = toolkit.run_full_system_diagnostic()
+            self.send_json(report.to_dict())
+            return
+
+        elif norm_path in ("/api/bot/tune", "/api/bot/tuning-plan"):
+            from krystal_kernel.bot_diagnostic_and_tuning_toolkit import get_bot_diagnostic_toolkit, TuningProfile
+            toolkit = get_bot_diagnostic_toolkit()
+            params = parse_qs(parsed.query)
+            profile_name = params.get("profile", ["BALANCED"])[0].upper()
+            try:
+                profile = TuningProfile[profile_name]
+            except KeyError:
+                profile = TuningProfile.BALANCED
+            plan = toolkit.generate_tuning_plan(profile)
+            self.send_json(plan.to_dict())
             return
 
         # ── API: Polymorphic Shape & Accelerated Telemetry Benchmark ─
@@ -1171,6 +1198,43 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
                 "duration_sec": traj.duration_sec,
                 "sample_count": traj.total_samples,
                 "vital_max_hp": traj.vital_max_hp
+            })
+            return
+
+        # ── API: Sovereign Janet System API & Bridge Status ─────────
+        elif norm_path in ("/api/janet/status", "/api/sovereign/janet/status"):
+            from krystal_janet.sovereign_janet_api_bridge import GLOBAL_SOVEREIGN_JANET_SYSTEM_BRIDGE, JanetCommandKind
+            self.send_json({
+                "status": "OK",
+                "janet_dsl": "sovereign_system_api.janet",
+                "available_commands": [k.value for k in JanetCommandKind],
+                "vital_max_hp": GLOBAL_SOVEREIGN_JANET_SYSTEM_BRIDGE.vital_max_hp
+            })
+            return
+
+        # ── API: Sovereign Goniometric Proposer Kernel & Backend ─────
+        elif norm_path in ("/api/goniometric/status", "/api/sovereign/goniometric/status"):
+            from krystal_kernel.goniometric_proposer_kernel import get_goniometric_proposer_kernel
+            kernel = get_goniometric_proposer_kernel()
+            self.send_json({
+                "status": "OK",
+                "proposer": kernel.get_status(),
+                "vital_max_hp": 6
+            })
+            return
+
+        elif norm_path in ("/api/goniometric/sample_proposals", "/api/sovereign/goniometric/proposals"):
+            from krystal_kernel.goniometric_proposer_kernel import get_goniometric_proposer_kernel
+            kernel = get_goniometric_proposer_kernel()
+            if not kernel.get_proposal_history():
+                kernel.propose_trajectory_motion((1.0, 0.0, 0.0), 1.570796, 1.5)
+                kernel.propose_camera_dolly_zoom(10.0, 60.0, 5.0)
+                kernel.propose_ballistic_solution(120.0, 45.0, prefer_mortar_arc=True)
+                kernel.propose_state_intervention("ELEM_CORE_VOLTAGE", 0.85, 1, 0.05, "PDN load compensation")
+            self.send_json({
+                "status": "OK",
+                "proposals": [p.to_dict() for p in kernel.get_proposal_history()],
+                "vital_max_hp": 6
             })
             return
 
@@ -4176,6 +4240,51 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             data = json.loads(body) if body else {}
         except Exception:
             data = {}
+
+        # ── API: Sovereign Janet System API Evaluator ──────────────
+        if self.path in ("/api/janet/eval", "/api/sovereign/janet/eval"):
+            from krystal_janet.sovereign_janet_api_bridge import GLOBAL_SOVEREIGN_JANET_SYSTEM_BRIDGE
+            cmd = data.get("command")
+            args_payload = data.get("args", {})
+            sexp = data.get("sexp")
+            if sexp:
+                rcpt = GLOBAL_SOVEREIGN_JANET_SYSTEM_BRIDGE.eval_sexp_string(sexp)
+            elif cmd:
+                rcpt = GLOBAL_SOVEREIGN_JANET_SYSTEM_BRIDGE.dispatch_janet_command(cmd, args_payload)
+            else:
+                self.send_json({"error": "Missing 'command' or 'sexp' in request payload"}, status=400)
+                return
+            self.send_json({
+                "command": rcpt.command,
+                "is_success": rcpt.is_success,
+                "status_code": rcpt.status_code,
+                "output_payload": rcpt.output_payload,
+                "state_mutated": rcpt.state_mutated,
+                "delta_s": rcpt.delta_s,
+                "execution_time_us": rcpt.execution_time_us,
+                "vital_max_hp": rcpt.vital_max_hp
+            })
+            return
+
+        # ── API: Bot System Diagnostics & Autonomic Tuning ──────────
+        if self.path in ("/api/bot/tune", "/api/bot/tuning/execute", "/api/bot/autotune"):
+            from krystal_kernel.bot_diagnostic_and_tuning_toolkit import get_bot_diagnostic_toolkit, TuningProfile
+            toolkit = get_bot_diagnostic_toolkit()
+            profile_name = str(data.get("profile", "BALANCED")).upper()
+            try:
+                profile = TuningProfile[profile_name]
+            except KeyError:
+                profile = TuningProfile.BALANCED
+            receipt = toolkit.execute_autonomic_tuning(profile)
+            self.send_json(receipt.to_dict())
+            return
+
+        if self.path in ("/api/bot/diagnostics", "/api/bot/diagnostic"):
+            from krystal_kernel.bot_diagnostic_and_tuning_toolkit import get_bot_diagnostic_toolkit
+            toolkit = get_bot_diagnostic_toolkit()
+            report = toolkit.run_full_system_diagnostic()
+            self.send_json(report.to_dict())
+            return
 
         # ── API: Hybrid MCP Connector & Antigravity Synchronization ──
         if self.path.startswith("/api/mcp/messages") or self.path == "/api/mcp/rpc":

@@ -49,6 +49,9 @@ class LayerSystemId(str, Enum):
     L3_COGNITIVE_CADENCE = "L3_COGNITIVE_CADENCE"     # Inertial hysteresis, cadence rhythms, crossovers
     L4_COORDINATION_FABRIC = "L4_COORDINATION_FABRIC" # SPSC 128B channels, cross-subsystem transport
     L5_CONSTITUTIONAL_GATE = "L5_CONSTITUTIONAL_GATE" # ArtifactGate, Noether-Krystal invariant VITAL_MAX_HP=6
+    L6_EXECUTION_FABRIC = "L6_EXECUTION_FABRIC"       # Native coprocessors, P/E affinity, OpenVINO NPU, SIMD
+    L7_BACKPRESSURE_CONTROLLER = "L7_BACKPRESSURE_CONTROLLER" # Fluid throttle, raymarch LOD, thermal clamp
+    L8_TRANSACTIONAL_COMMIT_LEDGER = "L8_TRANSACTIONAL_COMMIT_LEDGER" # 2PC commit gate, Merkle tree, double-entry
 
 
 @dataclass(frozen=True)
@@ -835,6 +838,198 @@ class SovereignBotScaleDimensioner:
                 is_constitutional_immutable=False,
                 governing_equation="integral(P_RAPL dt) <= E_budget",
                 description="Maximum allowable energy dissipation per inferenced token",
+                vital_max_hp=self.vital_max_hp
+            ),
+
+            # -----------------------------------------------------------------
+            # L6: Execution Fabric & Polyglot Driver Layer
+            # -----------------------------------------------------------------
+            LayerGoverningVariable(
+                variable_id="VAR_EXECUTION_CORE_AFFINITY_MASK",
+                layer_id=LayerSystemId.L6_EXECUTION_FABRIC,
+                name="Heterogeneous CPU Core Affinity Bitmask",
+                scale_domain=ScaleDomain.MICRO_SILICON_NS,
+                current_value=255.0,  # 0x00FF (8 P-Cores enabled by default)
+                nominal_value=255.0,
+                min_value=1.0,
+                max_value=65535.0,    # Up to 16 threads
+                unit="bitmask",
+                is_constitutional_immutable=False,
+                governing_equation="SetProcessAffinityMask(P_Cores | E_Cores)",
+                description="Process core binding mask distinguishing high-IPC P-cores from low-power E-cores",
+                vital_max_hp=self.vital_max_hp
+            ),
+            LayerGoverningVariable(
+                variable_id="VAR_NPU_CONCURRENT_STREAMS",
+                layer_id=LayerSystemId.L6_EXECUTION_FABRIC,
+                name="OpenVINO NPU Concurrent Execution Streams",
+                scale_domain=ScaleDomain.MESO_VBLANK_MS,
+                current_value=4.0,
+                nominal_value=4.0,
+                min_value=1.0,
+                max_value=8.0,
+                unit="streams",
+                is_constitutional_immutable=False,
+                governing_equation="Streams = min(N_infer_threads, 8)",
+                description="Parallel asynchronous inference request stream depth in OpenVINO runtime",
+                vital_max_hp=self.vital_max_hp
+            ),
+            LayerGoverningVariable(
+                variable_id="VAR_GPU_COMPUTE_QUEUE_DEPTH",
+                layer_id=LayerSystemId.L6_EXECUTION_FABRIC,
+                name="Iris Xe Level Zero Compute Command Queue Depth",
+                scale_domain=ScaleDomain.MESO_VBLANK_MS,
+                current_value=16.0,
+                nominal_value=16.0,
+                min_value=4.0,
+                max_value=64.0,
+                unit="slots",
+                is_constitutional_immutable=False,
+                governing_equation="QueueDepth = 2^N (Level Zero command list slots)",
+                description="Hardware compute command queue depth for asynchronous shader dispatch",
+                vital_max_hp=self.vital_max_hp
+            ),
+            LayerGoverningVariable(
+                variable_id="VAR_SIMD_VECTOR_WIDTH_BITS",
+                layer_id=LayerSystemId.L6_EXECUTION_FABRIC,
+                name="SIMD Vector Register Width",
+                scale_domain=ScaleDomain.MICRO_SILICON_NS,
+                current_value=256.0,  # AVX2 256-bit
+                nominal_value=256.0,
+                min_value=128.0,
+                max_value=512.0,
+                unit="bits",
+                is_constitutional_immutable=True,
+                governing_equation="AVX2 = 256b, AVX-512 = 512b, SSE = 128b",
+                description="Hardware SIMD register width binding vector math primitives",
+                vital_max_hp=self.vital_max_hp
+            ),
+
+            # -----------------------------------------------------------------
+            # L7: Backpressure Controller & Fluid Throttle Layer
+            # -----------------------------------------------------------------
+            LayerGoverningVariable(
+                variable_id="VAR_RAYMARCH_LOD_DOWNSCALE_RATIO",
+                layer_id=LayerSystemId.L7_BACKPRESSURE_CONTROLLER,
+                name="Continuous Raymarching LOD Downscale Factor",
+                scale_domain=ScaleDomain.MESO_VBLANK_MS,
+                current_value=1.0,
+                nominal_value=1.0,
+                min_value=0.25,
+                max_value=1.0,
+                unit="ratio",
+                is_constitutional_immutable=False,
+                governing_equation="StepScale = clamp(1.0 - Backpressure, 0.25, 1.00)",
+                description="Dynamic resolution and step scaler alleviating GPU thermal/latency pressure",
+                vital_max_hp=self.vital_max_hp
+            ),
+            LayerGoverningVariable(
+                variable_id="VAR_BACKPRESSURE_DEADLINE_MARGIN_MS",
+                layer_id=LayerSystemId.L7_BACKPRESSURE_CONTROLLER,
+                name="Realtime Turnaround Deadline Safety Margin",
+                scale_domain=ScaleDomain.MESO_VBLANK_MS,
+                current_value=1.50,
+                nominal_value=1.50,
+                min_value=0.50,
+                max_value=5.00,
+                unit="ms",
+                is_constitutional_immutable=False,
+                governing_equation="Margin = T_deadline - T_elapsed >= 1.50 ms",
+                description="Minimum lead time margin before activating graceful frame pacing backpressure",
+                vital_max_hp=self.vital_max_hp
+            ),
+            LayerGoverningVariable(
+                variable_id="VAR_FLUID_THROTTLE_HYSTERESIS_FACTOR",
+                layer_id=LayerSystemId.L7_BACKPRESSURE_CONTROLLER,
+                name="Fluid Dynamic Throttle Smoothing Factor",
+                scale_domain=ScaleDomain.MACRO_CADENCE_MS,
+                current_value=0.80,
+                nominal_value=0.80,
+                min_value=0.10,
+                max_value=0.95,
+                unit="factor",
+                is_constitutional_immutable=False,
+                governing_equation="SmoothThrottle = alpha * Prev + (1 - alpha) * InstantPressure",
+                description="Exponential smoothing parameter avoiding oscillating backpressure state flips",
+                vital_max_hp=self.vital_max_hp
+            ),
+            LayerGoverningVariable(
+                variable_id="VAR_QUEUE_DROPPED_EVENT_THRESHOLD",
+                layer_id=LayerSystemId.L7_BACKPRESSURE_CONTROLLER,
+                name="Permissible Dropped Telemetry Events Threshold",
+                scale_domain=ScaleDomain.MACRO_CADENCE_MS,
+                current_value=0.0,
+                nominal_value=0.0,
+                min_value=0.0,
+                max_value=10.0,
+                unit="events",
+                is_constitutional_immutable=False,
+                governing_equation="DroppedEvents <= MaxTolerance (Strict 0 in Lossless Mode)",
+                description="Hard limit on non-critical telemetry drops during sustained bus saturation",
+                vital_max_hp=self.vital_max_hp
+            ),
+
+            # -----------------------------------------------------------------
+            # L8: Transactional Commit Ledger & Cryptographic State Layer
+            # -----------------------------------------------------------------
+            LayerGoverningVariable(
+                variable_id="VAR_TWO_PHASE_COMMIT_TIMEOUT_MS",
+                layer_id=LayerSystemId.L8_TRANSACTIONAL_COMMIT_LEDGER,
+                name="Two-Phase Commit (2PC) Consensus Timeout",
+                scale_domain=ScaleDomain.MESO_VBLANK_MS,
+                current_value=2.50,
+                nominal_value=2.50,
+                min_value=1.00,
+                max_value=10.00,
+                unit="ms",
+                is_constitutional_immutable=False,
+                governing_equation="tau_2PC <= 2.50 ms (Prepare -> Commit / Abort)",
+                description="Maximum allowable wait for all multi-tenant state machines before commit abort",
+                vital_max_hp=self.vital_max_hp
+            ),
+            LayerGoverningVariable(
+                variable_id="VAR_MERKLE_TREE_BATCH_SIZE",
+                layer_id=LayerSystemId.L8_TRANSACTIONAL_COMMIT_LEDGER,
+                name="Merkle Tree Transaction Leaf Batching Size",
+                scale_domain=ScaleDomain.MACRO_CADENCE_MS,
+                current_value=32.0,
+                nominal_value=32.0,
+                min_value=8.0,
+                max_value=128.0,
+                unit="leaves",
+                is_constitutional_immutable=False,
+                governing_equation="MerkleRoot = HashTree(Leaf_1 .. Leaf_N)",
+                description="Number of committed transactions bundled into a single cryptographic Merkle root",
+                vital_max_hp=self.vital_max_hp
+            ),
+            LayerGoverningVariable(
+                variable_id="VAR_LEDGER_CONSERVATION_AUDIT_INTERVAL_S",
+                layer_id=LayerSystemId.L8_TRANSACTIONAL_COMMIT_LEDGER,
+                name="Double-Entry Conservation Audit Interval",
+                scale_domain=ScaleDomain.EPOCH_GOVERNANCE_S,
+                current_value=5.0,
+                nominal_value=5.0,
+                min_value=1.0,
+                max_value=60.0,
+                unit="s",
+                is_constitutional_immutable=False,
+                governing_equation="Sum(Debits) == Sum(Credits) verified every T_audit",
+                description="Epoch-level interval for full cryptographic double-entry zero-sum reconciliation",
+                vital_max_hp=self.vital_max_hp
+            ),
+            LayerGoverningVariable(
+                variable_id="VAR_IMMUTABLE_HASH_CHAIN_DEPTH",
+                layer_id=LayerSystemId.L8_TRANSACTIONAL_COMMIT_LEDGER,
+                name="Cryptographic Block Header Hash Chain Depth",
+                scale_domain=ScaleDomain.EPOCH_GOVERNANCE_S,
+                current_value=256.0,
+                nominal_value=256.0,
+                min_value=64.0,
+                max_value=1024.0,
+                unit="blocks",
+                is_constitutional_immutable=True,
+                governing_equation="Block_k.prev_hash == SHA256(Block_{k-1}) (Immutable Provenance P9)",
+                description="Guaranteed retrospective verification window depth of historical state hashes",
                 vital_max_hp=self.vital_max_hp
             ),
         ]

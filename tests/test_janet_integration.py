@@ -33,7 +33,8 @@ class TestJanetIntegration(unittest.TestCase):
             "topological_vm.janet",
             "antigravity_peg.janet",
             "openworld_chunk.janet",
-            "main.janet"
+            "main.janet",
+            "sovereign_system_api.janet"
         ]
         for fname in target_files:
             fpath = os.path.join(self.janet_dir, fname)

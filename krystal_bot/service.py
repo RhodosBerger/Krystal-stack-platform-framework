@@ -37,7 +37,9 @@ HELP = """Commands:
 /template [list|get|dispatch]                 coordination templates & timer DAGs
 /cascade [list|run]                           multi-model cascade SLM runtime & routing
 /hw [summary|cpu|gpu|npu|power|storage...]    Linux hardware allocation monitor (8 categories)
-/layer [list|get|tune|optimal|scales]        layer governing variables & multi-scale bot dimensioning
+/layer [list|get|tune|optimal|scales|diag|autotune] layer governing variables & multi-scale bot dimensioning
+/bot-diag                                    run multi-scale bot diagnostic matrix
+/bot-tune [profile]                          autonomic bot performance auto-tuner
 /search <text>                               retrieve from docs and logs, with citations
 /ask <question>                              answer from retrieval, configuration cheatsheet & cascade SLMs
 /art <scene> [palette] [seed]                 draw pixel art (scene: landscape | still_life)
@@ -249,6 +251,8 @@ class BotService:
         g.register(Skill("cascade", "Multi-model cascade SLM runtime & routing", ["/cascade", "/slm"]), lambda a, c: self._cascade_text(a))
         g.register(Skill("hw", "Linux hardware allocation monitor (8 categories)", ["/hw", "/hardware", "/sysmon"]), lambda a, c: self._hw_text(a))
         g.register(Skill("layer", "Sovereign layer governing variables & multi-scale bot dimensioning", ["/layer", "/layers", "/scale", "/scales"]), lambda a, c: self._layer_text(a))
+        g.register(Skill("bot-diag", "Sovereign bot multi-scale diagnostic and health matrix", ["/bot-diag", "/bot-health"]), lambda a, c: SOVEREIGN_LAYER_GOVERNOR.format_diagnostic_cheatsheet())
+        g.register(Skill("bot-tune", "Autonomic bot performance tuning engine", ["/bot-tune", "/auto-tune"]), lambda a, c: SOVEREIGN_LAYER_GOVERNOR.format_autonomic_tuning_cheatsheet(a))
         g.register(Skill("search", "Retrieve from docs and logs", ["/search"]), lambda a, c: self._search_text(a))
         g.register(Skill("ask", "Answer from retrieval, configuration cheatsheet & cascade SLMs", ["/ask"]), lambda a, c: self._ask_text(a))
         g.register(Skill("art", "Draw pixel art", ["/art"]), lambda a, c: self._art_text(a))
@@ -395,6 +399,11 @@ class BotService:
             return SOVEREIGN_LAYER_GOVERNOR.format_optimal_operating_cheatsheet(intensity)
         if cmd in ("scales", "scale", "dim", "dimension"):
             return SOVEREIGN_LAYER_GOVERNOR.format_scales_cheatsheet()
+        if cmd in ("diag", "diagnose", "health"):
+            return SOVEREIGN_LAYER_GOVERNOR.format_diagnostic_cheatsheet()
+        if cmd in ("autotune", "tune-all", "auto-tune"):
+            profile = parts[1] if len(parts) > 1 else None
+            return SOVEREIGN_LAYER_GOVERNOR.format_autonomic_tuning_cheatsheet(profile)
         if any(parts[0].upper().startswith(pfx) for pfx in ("VAR_", "L0_", "L1_", "L2_", "L3_", "L4_", "L5_")):
             return SOVEREIGN_LAYER_GOVERNOR.get_variable_details(parts[0])
         return SOVEREIGN_LAYER_GOVERNOR.list_variables_cheatsheet(parts[0])

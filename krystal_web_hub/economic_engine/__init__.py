@@ -637,6 +637,25 @@ from .polymorphic_shape_blender_platform import (
     GLOBAL_SHAPE_PLATFORM
 )
 
+from .sovereign_invariant_mechanics import (
+    TacticalAttackType,
+    PhaseShiftResult,
+    CurvedTrajectoryResult,
+    DwellArmorState,
+    SeismicReleaseResult,
+    VertigoPeriscopeResult,
+    ConstitutionalActionResult,
+    VBlankPhaseShiftResolver,
+    SymplecticLensCurvingResolver,
+    DwellArmorMerkleAccumulator,
+    VertigoPeriscopeDispersionResolver,
+    ConstitutionalQuarantineResolver,
+    AutonomicStanceResolver,
+    SovereignInvariantGameplayEngine,
+    GLOBAL_SOVEREIGN_INVARIANT_GAMEPLAY_ENGINE
+)
+
+
 
 
 

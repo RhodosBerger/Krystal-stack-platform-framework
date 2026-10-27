@@ -34,7 +34,7 @@ class TestKrystalBotLayerGovernor(unittest.TestCase):
         self.assertIn("VAR_VITAL_MAX_HP", text)
         self.assertIn("VAR_VBLANK_SHADOW_BUDGET_MS", text)
         self.assertIn("VAR_PDN_INDUCTANCE_NH", text)
-        self.assertIn("Celkom registrovaných riadiacich premenných: 28", text)
+        self.assertIn("Celkom registrovaných riadiacich premenných: 40", text)
 
     def test_get_variable_details(self) -> None:
         """Verifies detailed output for an individual variable."""

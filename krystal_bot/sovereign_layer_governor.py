@@ -23,14 +23,24 @@ from krystal_kernel.sovereign_bot_scale_dimensioner import (
     SovereignBotScaleDimensioner,
     GLOBAL_SOVEREIGN_BOT_SCALE_DIMENSIONER
 )
+from krystal_kernel.bot_diagnostic_and_tuning_toolkit import (
+    TuningProfile,
+    SovereignBotDiagnosticToolkit,
+    get_bot_diagnostic_toolkit
+)
 from krystal_kernel.constants import VITAL_MAX_HP
 
 
 class SovereignLayerGovernor:
     """Expert helper integrating multi-layer variable governance into krystal_bot."""
 
-    def __init__(self, dimensioner: Optional[SovereignBotScaleDimensioner] = None):
+    def __init__(
+        self,
+        dimensioner: Optional[SovereignBotScaleDimensioner] = None,
+        diagnostic_toolkit: Optional[SovereignBotDiagnosticToolkit] = None
+    ):
         self.dimensioner = dimensioner or GLOBAL_SOVEREIGN_BOT_SCALE_DIMENSIONER
+        self.diagnostic_toolkit = diagnostic_toolkit or get_bot_diagnostic_toolkit()
 
     def list_variables_cheatsheet(self, layer_query: Optional[str] = None) -> str:
         """Formats all 28 governing variables grouped by layer."""
@@ -202,6 +212,93 @@ class SovereignLayerGovernor:
             "  • MESO_VBLANK_MS:     3.5ms VBlank tieň, Level Zero USM (0.748us), UMA zbernica < 78%",
             "  • MACRO_CADENCE_MS:   12-rámcová dwell hysterézia (200ms), 100ms kognitívne vlny, DVFS PL1",
             "  • EPOCH_GOVERNANCE_S: VPP energetická arbitráž, kaskády modelov, HMAC blockchain ledger",
+            "=" * 78
+        ])
+        return "\n".join(lines)
+
+    def format_diagnostic_cheatsheet(self) -> str:
+        """Executes full multi-scale diagnostic and formats health report."""
+        rep = self.diagnostic_toolkit.run_full_system_diagnostic()
+        lines = [
+            "=" * 78,
+            "🔍 SOVEREIGN BOT MULTI-SCALE DIAGNOSTIC & HEALTH MATRIX",
+            f"🔒 Ústavný Invariant: VITAL_MAX_HP == {rep.vital_max_hp} | Skóre Zdravia: {rep.overall_health_score:.1f}%",
+            "=" * 78,
+            f"ID Správy:       {rep.report_id}",
+            f"Tepelná rezerva: {rep.thermal_headroom_c:.1f} °C (Tj < 95.0 °C)",
+            f"Príkonová rezerva:{rep.power_headroom_w:.1f} W (PL1 <= 28.0 W)",
+            f"UMA rezerva:     {rep.uma_headroom_ratio * 100:.1f} % (Strop < 78.0 %)",
+            "-" * 78,
+            f"{'ŠKÁLOVACIA DOMÉNA':<22} | {'PRIEPUSTNOSŤ':<14} | {'JITTER':<12} | {'STATUS'}",
+            "-" * 78
+        ]
+
+        for dom_key, p in rep.scale_domain_probes.items():
+            thru_str = f"{p.observed_throughput_eps:,.0f} ev/s" if p.observed_throughput_eps >= 100 else f"{p.observed_throughput_eps:.1f} ev/s"
+            jit_unit = "ns" if "SILICON" in dom_key else "ms"
+            jit_str = f"{p.observed_jitter_ns_or_ms:.2f} {jit_unit}"
+            lines.append(f"{p.domain.name:<22} | {thru_str:<14} | {jit_str:<12} | {p.status}")
+
+        lines.extend([
+            "-" * 78,
+            "🔗 KRÍŽOVÉ VÄZBY MEDZI VRSTVAMI (CROSS-LAYER COUPLING):"
+        ])
+        for a in rep.cross_layer_audits:
+            stat_icon = "✅" if not a.is_bottleneck else "⚠️"
+            lines.append(f"  {stat_icon} [{a.coupling_id:<32}] {a.diagnostic_message}")
+
+        if rep.active_bottlenecks:
+            lines.extend([
+                "-" * 78,
+                "⚠️ AKTÍVNE ÚZKE MIESTA (BOTTLENECKS):"
+            ])
+            for b in rep.active_bottlenecks:
+                lines.append(f"  • {b}")
+        else:
+            lines.append("\n  ✅ Žiadne aktívne systémové úzke miesta neboli detegované.")
+
+        lines.extend([
+            "=" * 78,
+            "Príkazy: /layer autotune [profile] | /layer optimal | /layer list",
+            "=" * 78
+        ])
+        return "\n".join(lines)
+
+    def format_autonomic_tuning_cheatsheet(self, profile_str: Optional[str] = None) -> str:
+        """Executes autonomic performance tuning across layer variables."""
+        target_prof = TuningProfile.BALANCED
+        if profile_str:
+            p_upper = profile_str.strip().upper()
+            for tp in TuningProfile:
+                if p_upper in tp.value or p_upper in tp.name:
+                    target_prof = tp
+                    break
+
+        receipt = self.diagnostic_toolkit.execute_autonomic_tuning(target_prof)
+        lines = [
+            "=" * 78,
+            f"⚡ AUTONÓMNE LADENIE VÝKONU BOTA: PROFIL [{receipt.target_profile}]",
+            f"🔒 Ústavný Invariant: VITAL_MAX_HP == {receipt.vital_max_hp} | Delta S == 0 pri porušení",
+            "=" * 78,
+            f"ID Potvrdenky:         {receipt.receipt_id}",
+            f"Celkový počet zásahov: {receipt.total_attempted_actions}",
+            f"Úspešne aplikované:    {receipt.total_committed_actions}",
+            f"Odmietnuté zákonom:    {receipt.total_rejected_actions}",
+            f"Stavová bezpečnosť:    {'✅ GARANTOVANÁ (Delta S == 0)' if receipt.state_safety_guaranteed else '❌ PORUŠENÁ'}",
+            "-" * 78,
+            f"{'PREMENNÁ':<32} | {'PÔVODNÁ':<10} | {'NOVÁ':<10} | {'VÝSLEDOK'}",
+            "-" * 78
+        ]
+
+        for tr in receipt.tuning_receipts:
+            status_tag = "✅ ZAPÍSANÉ" if tr.success else "❌ ODMIETNUTÉ"
+            lines.append(
+                f"{tr.variable_id:<32} | {tr.old_value:<10.3f} | {tr.committed_value:<10.3f} | {status_tag}"
+            )
+
+        lines.extend([
+            "-" * 78,
+            f"HMAC-SHA256 podpis auditu: {receipt.audit_hmac[:32]}...",
             "=" * 78
         ])
         return "\n".join(lines)

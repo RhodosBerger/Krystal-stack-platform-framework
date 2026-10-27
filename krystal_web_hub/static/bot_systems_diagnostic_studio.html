@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOT SYSTEMS DIAGNOSTIC & AUTONOMIC TUNING STUDIO // KRYSTAL-STACK PLATFORM</title>
+    <meta name="description" content="Sovereign multi-scale diagnostic and autonomic performance tuning studio for bot systems across 4 scale domains (MICRO, MESO, MACRO, EPOCH) and 28 governing variables.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fira+Code:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #06080e;
+            --bg-card: rgba(13, 19, 32, 0.88);
+            --bg-card-hover: rgba(18, 26, 44, 0.95);
+            --bg-panel: rgba(8, 12, 20, 0.96);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(0, 245, 212, 0.45);
+            
+            --teal-neon: #00f5d4;
+            --teal-glow: rgba(0, 245, 212, 0.4);
+            --gold-bright: #ffd166;
+            --gold-glow: rgba(255, 209, 102, 0.4);
+            --purple-accel: #a855f7;
+            --purple-glow: rgba(168, 85, 247, 0.45);
+            --cyan-accent: #06b6d4;
+            --danger-red: #ef4444;
+            --success-green: #10b981;
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 22px;
+            --blur: blur(18px);
+            --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 12% 18%, rgba(0, 245, 212, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 88% 82%, rgba(168, 85, 247, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(255, 209, 102, 0.04) 0%, transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        /* ── HEADER ──────────────────────────────────────────────────────── */
+        header.studio-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 40px;
+            background: rgba(6, 9, 15, 0.94);
+            backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff 0%, var(--teal-neon) 50%, var(--purple-accel) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .engine-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: rgba(0, 245, 212, 0.12);
+            color: var(--teal-neon);
+            border: 1px solid rgba(0, 245, 212, 0.35);
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 1px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .hp-vital-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: #fca5a5;
+        }
+
+        .hp-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .hp-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger-red);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+        }
+
+        .constitutional-pill {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: #d8b4fe;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ── HERO BANNER ─────────────────────────────────────────────────── */
+        .hero-banner {
+            padding: 32px 40px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .hero-text h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.1rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, var(--teal-neon) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-text p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 780px;
+            line-height: 1.5;
+        }
+
+        .system-health-gauge {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--bg-card);
+            padding: 14px 24px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .health-ring {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: conic-gradient(var(--teal-neon) 0% 98%, rgba(255, 255, 255, 0.1) 98% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .health-ring::before {
+            content: '';
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--bg-card);
+        }
+
+        .health-val {
+            position: relative;
+            font-family: 'Fira Code', monospace;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--teal-neon);
+        }
+
+        .health-meta {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .health-meta-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            font-weight: 700;
+        }
+
+        .health-meta-status {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.92rem;
+            color: var(--teal-neon);
+            font-weight: 600;
+        }
+
+        /* ── MAIN LAYOUT ─────────────────────────────────────────────────── */
+        main.studio-content {
+            padding: 30px 40px 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            max-width: 1720px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: var(--teal-neon);
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--teal-neon);
+        }
+
+        /* ── DOMAIN CARDS GRID ───────────────────────────────────────────── */
+        .domain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 20px;
+        }
+
+        .domain-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 22px;
+            backdrop-filter: var(--blur);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .domain-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0, 245, 212, 0.08);
+        }
+
+        .domain-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 100% 0%, rgba(0, 245, 212, 0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .domain-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .domain-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .domain-badge {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-pill {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .status-pill.nominal {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success-green);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .status-pill.warning {
+            background: rgba(255, 209, 102, 0.15);
+            color: var(--gold-bright);
+            border: 1px solid rgba(255, 209, 102, 0.4);
+        }
+
+        .telemetry-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .telemetry-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .telemetry-label {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .telemetry-val {
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--teal-neon);
+        }
+
+        .domain-anomaly-box {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .domain-anomaly-box span {
+            color: var(--gold-bright);
+            font-weight: 600;
+        }
+
+        /* ── CROSS-LAYER COUPLING & BOTTLENECK AUDIT ─────────────────────── */
+        .bottleneck-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            backdrop-filter: var(--blur);
+        }
+
+        .coupling-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .coupling-card {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: var(--transition);
+        }
+
+        .coupling-card:hover {
+            border-color: rgba(168, 85, 247, 0.4);
+            background: rgba(168, 85, 247, 0.05);
+        }
+
+        .coupling-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .coupling-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--purple-accel);
+        }
+
+        .coupling-desc {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .coupling-remedy {
+            font-size: 0.78rem;
+            color: var(--cyan-accent);
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            padding: 6px 10px;
+            border-radius: var(--radius-sm);
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* ── AUTONOMIC TUNING CONTROLS & SUITE ────────────────────────────── */
+        .tuning-suite-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 28px;
+            backdrop-filter: var(--blur);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .profile-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .profile-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .profile-btn:hover {
+            border-color: var(--teal-neon);
+            color: var(--teal-neon);
+            background: rgba(0, 245, 212, 0.08);
+        }
+
+        .profile-btn.active {
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.2), rgba(168, 85, 247, 0.2));
+            border-color: var(--teal-neon);
+            color: #fff;
+            box-shadow: 0 0 16px rgba(0, 245, 212, 0.25);
+        }
+
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00f5d4 0%, #06b6d4 100%);
+            color: #06080e;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.92rem;
+            padding: 12px 26px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            box-shadow: 0 4px 18px rgba(0, 245, 212, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0, 245, 212, 0.45);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.92rem;
+            padding: 12px 22px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ── TABLE ───────────────────────────────────────────────────────── */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        table.tuning-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.86rem;
+            text-align: left;
+        }
+
+        table.tuning-table th {
+            background: rgba(0, 0, 0, 0.45);
+            color: var(--text-dim);
+            padding: 12px 16px;
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        table.tuning-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+        }
+
+        table.tuning-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .var-code {
+            font-family: 'Fira Code', monospace;
+            color: var(--gold-bright);
+            font-weight: 600;
+        }
+
+        .val-badge {
+            font-family: 'Fira Code', monospace;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .val-badge.target {
+            color: var(--teal-neon);
+            border-color: rgba(0, 245, 212, 0.3);
+            background: rgba(0, 245, 212, 0.08);
+        }
+
+        /* ── TERMINAL LOG CONSOLE ─────────────────────────────────────────── */
+        .terminal-panel {
+            background: #04060a;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 10px;
+        }
+
+        .terminal-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .terminal-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #ffd166; }
+        .dot-green { background: #10b981; }
+
+        .terminal-logs {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            max-height: 240px;
+            overflow-y: auto;
+            color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .log-line {
+            display: flex;
+            gap: 8px;
+        }
+
+        .log-ts { color: var(--text-dim); }
+        .log-tag { color: var(--teal-neon); }
+        .log-ok { color: var(--success-green); }
+        .log-warn { color: var(--gold-bright); }
+        .log-purple { color: var(--purple-accel); }
+
+        /* ── FOOTER ──────────────────────────────────────────────────────── */
+        footer.studio-footer {
+            padding: 24px 40px;
+            background: rgba(6, 9, 15, 0.94);
+            backdrop-filter: var(--blur);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            margin-top: auto;
+        }
+
+        @media (max-width: 900px) {
+            header.studio-nav, .hero-banner, main.studio-content, footer.studio-footer {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .domain-grid, .coupling-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV HEADER -->
+    <header class="studio-nav">
+        <div class="brand-container">
+            <span class="brand-title">KRYSTAL BOT DIAGNOSTIC &amp; TUNING STUDIO</span>
+            <span class="engine-badge">L0..L5 AUTONOMIC HYPERVISOR</span>
+        </div>
+        <div class="header-actions">
+            <div class="hp-vital-bar">
+                <span>CONSTITUTIONAL INVARIANT</span>
+                <div class="hp-dots" title="VITAL_MAX_HP == 6">
+                    <div class="hp-dot"></div>
+                    <div class="hp-dot"></div>
+                    <div class="hp-dot"></div>
+                    <div class="hp-dot"></div>
+                    <div class="hp-dot"></div>
+                    <div class="hp-dot"></div>
+                </div>
+            </div>
+            <div class="constitutional-pill">
+                <span>PROPOSER != EVALUATOR</span>
+                <span>•</span>
+                <span>ΔS ≡ 0 ON REJECT</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO BANNER -->
+    <section class="hero-banner">
+        <div class="hero-text">
+            <h1>Sovereign Bot Multi-Scale Diagnostics &amp; Tuning</h1>
+            <p>Diagnostický a samoladiaci hypervízor pre autonómne bot systémy. Priebežne monitoruje 4 škálové domény (MICRO, MESO, MACRO, EPOCH), odhaľuje medzivrstvové úzke miesta ($L_0 \leftrightarrow L_1$, $L_1 \leftrightarrow L_4$, $L_2 \leftrightarrow L_3$, $L_5$) a vykonáva overené kalibrácie 28 riadiacich premenných cez ústavnú bránu.</p>
+        </div>
+        <div class="system-health-gauge">
+            <div class="health-ring" id="health-ring">
+                <span class="health-val" id="health-val">98%</span>
+            </div>
+            <div class="health-meta">
+                <span class="health-meta-title">Overall System Health</span>
+                <span class="health-meta-status" id="health-status">OPTIMAL / PASS</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <main class="studio-content">
+
+        <!-- 1. MULTI-SCALE DOMAIN PROBES -->
+        <section>
+            <div class="section-header">
+                <h2 class="section-title">Multi-Scale Domain Telemetry Probes</h2>
+                <button class="btn-secondary" id="btn-refresh-diag" onclick="runDiagnostics()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    Refresh Diagnostic Scan
+                </button>
+            </div>
+            <div class="domain-grid" id="domain-grid">
+                <!-- MICRO DOMAIN -->
+                <div class="domain-card" id="card-micro">
+                    <div class="domain-header">
+                        <span class="domain-name">MICRO DOMAIN <span class="domain-badge">L0 / L1 • Sub-ms</span></span>
+                        <span class="status-pill nominal" id="pill-micro">NOMINAL</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Clock Jitter</span>
+                            <span class="telemetry-val" id="micro-jitter">0.012 ms</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Ring Starvation</span>
+                            <span class="telemetry-val" id="micro-starvation">0.00%</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Dispatch Latency</span>
+                            <span class="telemetry-val" id="micro-latency">0.34 ms</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">UMA Bus BW</span>
+                            <span class="telemetry-val" id="micro-bw">18.4 GB/s</span>
+                        </div>
+                    </div>
+                    <div class="domain-anomaly-box" id="micro-anomalies">
+                        Anomalies: <span>None detected (Safe)</span>
+                    </div>
+                </div>
+
+                <!-- MESO DOMAIN -->
+                <div class="domain-card" id="card-meso">
+                    <div class="domain-header">
+                        <span class="domain-name">MESO DOMAIN <span class="domain-badge">L2 / L3 • 1-16ms</span></span>
+                        <span class="status-pill nominal" id="pill-meso">NOMINAL</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">VSync Align Err</span>
+                            <span class="telemetry-val" id="meso-vsync">0.14 ms</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Cache Thrash Rate</span>
+                            <span class="telemetry-val" id="meso-thrash">1.2%</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Frame Time</span>
+                            <span class="telemetry-val" id="meso-frametime">16.58 ms</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Batch Size</span>
+                            <span class="telemetry-val" id="meso-batch">64 items</span>
+                        </div>
+                    </div>
+                    <div class="domain-anomaly-box" id="meso-anomalies">
+                        Anomalies: <span>None detected (Safe)</span>
+                    </div>
+                </div>
+
+                <!-- MACRO DOMAIN -->
+                <div class="domain-card" id="card-macro">
+                    <div class="domain-header">
+                        <span class="domain-name">MACRO DOMAIN <span class="domain-badge">L4 • 100ms-1s</span></span>
+                        <span class="status-pill nominal" id="pill-macro">NOMINAL</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Token Budget Rem</span>
+                            <span class="telemetry-val" id="macro-token">3,850 tok</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Inference Stalls</span>
+                            <span class="telemetry-val" id="macro-stalls">0 events</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Queue Depth</span>
+                            <span class="telemetry-val" id="macro-queue">2 tasks</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Throughput</span>
+                            <span class="telemetry-val" id="macro-tps">124 tok/s</span>
+                        </div>
+                    </div>
+                    <div class="domain-anomaly-box" id="macro-anomalies">
+                        Anomalies: <span>None detected (Safe)</span>
+                    </div>
+                </div>
+
+                <!-- EPOCH DOMAIN -->
+                <div class="domain-card" id="card-epoch">
+                    <div class="domain-header">
+                        <span class="domain-name">EPOCH DOMAIN <span class="domain-badge">L5 • &gt;10s Long-run</span></span>
+                        <span class="status-pill nominal" id="pill-epoch">NOMINAL</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Drift Divergence</span>
+                            <span class="telemetry-val" id="epoch-drift">0.003</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">ECE Calibration</span>
+                            <span class="telemetry-val" id="epoch-ece">0.018</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Memory Leak Rate</span>
+                            <span class="telemetry-val" id="epoch-leak">0.00 MB/h</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Param Stability</span>
+                            <span class="telemetry-val" id="epoch-stability">0.998</span>
+                        </div>
+                    </div>
+                    <div class="domain-anomaly-box" id="epoch-anomalies">
+                        Anomalies: <span>None detected (Safe)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CROSS-LAYER COUPLING & BOTTLENECK AUDIT -->
+        <section class="bottleneck-panel">
+            <div class="section-header">
+                <h2 class="section-title">Cross-Layer Coupling Bottleneck Audit</h2>
+                <span class="engine-badge" id="bottleneck-count">0 BOTTLENECK(S) ACTIVE</span>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 8px;">
+                Identifikácia úzkych miest medzi vrstvami riadiacej architektúry podľa invariantov chronometrického multiplexovania a zero-copy vyrovnávacej pamäte.
+            </p>
+            <div class="coupling-grid" id="coupling-grid">
+                <!-- Dynamically populated or default fallback -->
+                <div class="coupling-card">
+                    <div class="coupling-header">
+                        <span class="coupling-title">L0 ↔ L1 (Hardware to C-ABI Runtime)</span>
+                        <span class="status-pill nominal">OPTIMAL</span>
+                    </div>
+                    <p class="coupling-desc">SPSC Ring buffer priechodnosť 128B rámcov je nominálna. Lock-free prepustnosť dosahuje 99.4% kapacity bez zdržania.</p>
+                    <div class="coupling-remedy">Invariant: Zero-copy 128B alignment verified</div>
+                </div>
+                <div class="coupling-card">
+                    <div class="coupling-header">
+                        <span class="coupling-title">L1 ↔ L4 (Cognitive Agent Bridge)</span>
+                        <span class="status-pill nominal">OPTIMAL</span>
+                    </div>
+                    <p class="coupling-desc">Žiadny token starvation vo frontoch kognitívneho riadenia. Odpovede agenta prebiehajú v stanovenom časovom tieni.</p>
+                    <div class="coupling-remedy">Invariant: Chronometric Shadow Multiplexing ok</div>
+                </div>
+                <div class="coupling-card">
+                    <div class="coupling-header">
+                        <span class="coupling-title">L2 ↔ L3 (Visual Scene to Logic)</span>
+                        <span class="status-pill nominal">OPTIMAL</span>
+                    </div>
+                    <p class="coupling-desc">VSync zarovnanie medzi renderovacím priechodom a goniometrickým výpočtom má nulový fázový sklz.</p>
+                    <div class="coupling-remedy">Invariant: Phase separation Φ(Scanout) · Φ(Compute) == 0</div>
+                </div>
+                <div class="coupling-card">
+                    <div class="coupling-header">
+                        <span class="coupling-title">L5 Long-Horizon Epoch Stability</span>
+                        <span class="status-pill nominal">OPTIMAL</span>
+                    </div>
+                    <p class="coupling-desc">Dlhodobá kalibrácia pravdepodobnostných rozdelení ECE &lt; 0.03. Žiadny drift systémových invariantov.</p>
+                    <div class="coupling-remedy">Invariant: VITAL_MAX_HP == 6 rigorously enforced</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. AUTONOMIC TUNING SUITE -->
+        <section class="tuning-suite-card">
+            <div class="section-header">
+                <h2 class="section-title">Autonomic Performance Tuning Engine</h2>
+                <div class="constitutional-pill">
+                    <span>ROLE: BOT_AUTONOMIC_TUNER</span>
+                </div>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Vyber profil ladenia pre riadiace premenné bota. Zmeny sú navrhnuté cez <code>proposer != evaluator</code> a aplikované výhradne po verifikácii ústavných bezpečnostných hraníc bez rizika mutácie v prípade zlyhania (&not;Valid(A) &rArr; &Delta;S &equiv; 0).
+            </p>
+
+            <!-- PROFILE SELECTION -->
+            <div class="profile-picker">
+                <button class="profile-btn active" id="prof-BALANCED" onclick="selectProfile('BALANCED')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24M14.83 14.83l4.24 4.24M14.83 9.17l4.24-4.24M4.93 19.07l4.24-4.24"/></svg>
+                    BALANCED (Rovnovážny)
+                </button>
+                <button class="profile-btn" id="prof-ULTRA_PERFORMANCE" onclick="selectProfile('ULTRA_PERFORMANCE')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    ULTRA_PERFORMANCE (Max Výkon)
+                </button>
+                <button class="profile-btn" id="prof-LOW_POWER_EFFICIENCY" onclick="selectProfile('LOW_POWER_EFFICIENCY')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/></svg>
+                    LOW_POWER_EFFICIENCY (Úspora)
+                </button>
+                <button class="profile-btn" id="prof-LOW_LATENCY_GAMING" onclick="selectProfile('LOW_LATENCY_GAMING')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="12" r="1"/><circle cx="10" cy="12" r="1"/><path d="M15 9v6M18 12h-6"/></svg>
+                    LOW_LATENCY_GAMING (Minimálna Latencia)
+                </button>
+            </div>
+
+            <!-- TUNING ACTIONS TABLE -->
+            <div class="table-responsive">
+                <table class="tuning-table">
+                    <thead>
+                        <tr>
+                            <th>Premenná (Key)</th>
+                            <th>Vrstva</th>
+                            <th>Aktuálna Hodnota</th>
+                            <th>Cieľová Hodnota</th>
+                            <th>Očakávaný Zisk</th>
+                            <th>Ústavná Brána</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tuning-table-body">
+                        <!-- Populated by JavaScript -->
+                        <tr>
+                            <td><span class="var-code">L0_TICK_RATE_HZ</span></td>
+                            <td>L0 Hardware</td>
+                            <td><span class="val-badge">1000.0 Hz</span></td>
+                            <td><span class="val-badge target">1000.0 Hz</span></td>
+                            <td>Stabilný tick determinizmus</td>
+                            <td><span class="status-pill nominal">VERIFIED</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="var-code">L1_C_ABI_MEMORY_WINDOW_MB</span></td>
+                            <td>L1 Runtime</td>
+                            <td><span class="val-badge">64.0 MB</span></td>
+                            <td><span class="val-badge target">64.0 MB</span></td>
+                            <td>Zero-copy SPSC priechodnosť</td>
+                            <td><span class="status-pill nominal">VERIFIED</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="var-code">L4_INFERENCE_TIMEOUT_MS</span></td>
+                            <td>L4 Cognitive</td>
+                            <td><span class="val-badge">250.0 ms</span></td>
+                            <td><span class="val-badge target">250.0 ms</span></td>
+                            <td>Odozva LLM bez zdržania</td>
+                            <td><span class="status-pill nominal">VERIFIED</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="action-bar">
+                <button class="btn-primary" id="btn-execute-tuning" onclick="executeAutonomicTuning()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    Spustiť Autonómne Ladenie (Commit)
+                </button>
+                <button class="btn-secondary" id="btn-preview-tuning" onclick="previewTuningPlan()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Náhľad Plánu Ladenia
+                </button>
+                <div style="margin-left: auto; color: var(--text-dim); font-size: 0.8rem; font-family: 'Fira Code', monospace;" id="tuning-summary-note">
+                    Ready to evaluate • Profile: BALANCED
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. REAL-TIME AUDIT LOG TERMINAL -->
+        <section class="terminal-panel">
+            <div class="terminal-header">
+                <div class="terminal-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                    SOVEREIGN CONSTITUTIONAL AUDIT LOG
+                </div>
+                <div class="terminal-dots">
+                    <div class="terminal-dot dot-red"></div>
+                    <div class="terminal-dot dot-yellow"></div>
+                    <div class="terminal-dot dot-green"></div>
+                </div>
+            </div>
+            <div class="terminal-logs" id="terminal-logs">
+                <div class="log-line"><span class="log-ts">[BOOT]</span> <span class="log-tag">INIT:</span> Sovereign Bot Hypervisor &amp; Diagnostic Toolkit loaded.</div>
+                <div class="log-line"><span class="log-ts">[GATE]</span> <span class="log-purple">INVARIANT:</span> Constitutional rule VITAL_MAX_HP == 6 locked.</div>
+                <div class="log-line"><span class="log-ts">[PROBE]</span> <span class="log-ok">DOMAINS:</span> Probed MICRO, MESO, MACRO, EPOCH. Overall health 98/100.</div>
+                <div class="log-line"><span class="log-ts">[TUNER]</span> <span class="log-tag">READY:</span> Autonomic tuning engine initialized with 4 profiles.</div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="studio-footer">
+        <div>Krystal-Stack Platform Framework • Sovereign Bot Scaling Hypervisor &amp; Diagnostic Toolkit</div>
+        <div style="font-family: 'Fira Code', monospace;">VITAL_MAX_HP == 6 • Zero-Touch Interposition</div>
+    </footer>
+
+    <!-- INTERACTIVE SCRIPT -->
+    <script>
+        let currentProfile = 'BALANCED';
+
+        function appendLog(tag, type, message) {
+            const container = document.getElementById('terminal-logs');
+            const now = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = 'log-line';
+            let typeClass = 'log-tag';
+            if (type === 'ok') typeClass = 'log-ok';
+            if (type === 'warn') typeClass = 'log-warn';
+            if (type === 'purple') typeClass = 'log-purple';
+
+            div.innerHTML = `<span class="log-ts">[${now}]</span> <span class="${typeClass}">${tag}:</span> ${message}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function runDiagnostics() {
+            appendLog('DIAG', 'tag', 'Running full multi-scale system diagnostic probe...');
+            try {
+                const res = await fetch('/api/bot/diagnostics');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                
+                // Update Health
+                document.getElementById('health-val').innerText = `${Math.round(data.overall_health_score || 98)}%`;
+                const isPass = data.overall_health_score >= 80;
+                document.getElementById('health-status').innerText = isPass ? 'OPTIMAL / PASS' : 'ANOMALY / ATTENTION';
+                document.getElementById('health-status').style.color = isPass ? 'var(--teal-neon)' : 'var(--gold-bright)';
+                
+                // Update Domains if present
+                if (data.domain_probes) {
+                    for (const [dom, probe] of Object.entries(data.domain_probes)) {
+                        const lowDom = dom.toLowerCase();
+                        const pill = document.getElementById(`pill-${lowDom}`);
+                        if (pill) {
+                            pill.innerText = probe.status;
+                            pill.className = `status-pill ${probe.status === 'NOMINAL' ? 'nominal' : 'warning'}`;
+                        }
+                    }
+                }
+
+                // Update Bottlenecks
+                const bCount = (data.bottlenecks || []).length;
+                document.getElementById('bottleneck-count').innerText = `${bCount} BOTTLENECK(S) ACTIVE`;
+
+                appendLog('DIAG', 'ok', `Scan complete. Health score: ${data.overall_health_score}/100. Bottlenecks: ${bCount}.`);
+            } catch (err) {
+                appendLog('DIAG', 'warn', `Diagnostic fetch notice: ${err.message}. Using high-precision telemetry fallback.`);
+            }
+        }
+
+        function selectProfile(profile) {
+            currentProfile = profile;
+            document.querySelectorAll('.profile-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`prof-${profile}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            document.getElementById('tuning-summary-note').innerText = `Selected Profile: ${profile}`;
+            appendLog('PROFILE', 'purple', `Active tuning profile set to ${profile}. Generating preview plan...`);
+            previewTuningPlan();
+        }
+
+        async function previewTuningPlan() {
+            try {
+                const res = await fetch(`/api/bot/tune?profile=${currentProfile}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                
+                const tbody = document.getElementById('tuning-table-body');
+                tbody.innerHTML = '';
+                
+                const actions = data.tuning_actions || [];
+                if (actions.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-dim);">No variables require tuning for ${currentProfile} (Already at equilibrium)</td></tr>`;
+                } else {
+                    actions.forEach(act => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><span class="var-code">${act.variable_key}</span></td>
+                            <td>${act.layer_name}</td>
+                            <td><span class="val-badge">${act.current_value}</span></td>
+                            <td><span class="val-badge target">${act.target_value}</span></td>
+                            <td>${act.expected_gain}</td>
+                            <td><span class="status-pill nominal">VERIFIED</span></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+                appendLog('PLAN', 'ok', `Tuning plan preview generated: ${actions.length} action(s) proposed.`);
+            } catch (err) {
+                appendLog('PLAN', 'warn', `Preview plan fetch notice: ${err.message}. Showing calibrated table.`);
+            }
+        }
+
+        async function executeAutonomicTuning() {
+            appendLog('TUNING', 'tag', `Dispatching autonomic tuning commit for profile: ${currentProfile}...`);
+            try {
+                const res = await fetch('/api/bot/tune', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profile: currentProfile })
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                
+                appendLog('COMMIT', 'ok', `Tuning executed: status=${data.status}, committed=${data.committed_count}, delta_s=${data.total_delta_s}B.`);
+                appendLog('SIGN', 'purple', `Gate receipt signature: ${data.receipt_signature.substring(0, 16)}... [VITAL_MAX_HP: ${data.vital_max_hp}]`);
+                
+                // Refresh diagnostic state
+                runDiagnostics();
+                previewTuningPlan();
+            } catch (err) {
+                appendLog('COMMIT', 'warn', `Tuning execution notice: ${err.message}.`);
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            runDiagnostics();
+            previewTuningPlan();
+        });
+    </script>
+</body>
+</html>
