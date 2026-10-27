@@ -663,6 +663,14 @@ from .sovereign_behavioral_compiler import (  # noqa: F401
     GLOBAL_BEHAVIORAL_SCHEMA_COMPILER,
 )
 
+from .sovereign_promptbook import (  # noqa: F401
+    PromptbookCategory,
+    PromptbookRecipe,
+    RenderedPrompt,
+    SovereignPromptbookRegistry,
+    GLOBAL_SOVEREIGN_PROMPTBOOK,
+)
+
 from .textbook_inferable_patterns import (  # noqa: F401
     InferablePatternId,
     PatternEvidenceTuple,
@@ -1023,6 +1031,8 @@ __all__ = [
     "SublevelDomainRouter", "HypervisorEconomicResourceGovernor",
     "VulkanUmaRuntimePredictor", "SovereignBehavioralSchemaCompiler",
     "GLOBAL_BEHAVIORAL_SCHEMA_COMPILER",
+    "PromptbookCategory", "PromptbookRecipe", "RenderedPrompt",
+    "SovereignPromptbookRegistry", "GLOBAL_SOVEREIGN_PROMPTBOOK",
     "InferablePatternId", "PatternEvidenceTuple", "ReasoningTrace11Tuple",
     "PhaseCrossoverInferenceResult", "ChronometricShadowInferenceResult",
     "SymplecticLeapfrogInferenceResult", "DwellHysteresisInferenceResult",
