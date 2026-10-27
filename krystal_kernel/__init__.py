@@ -711,6 +711,15 @@ from .sovereign_promptbook import (  # noqa: F401
     GLOBAL_SOVEREIGN_PROMPTBOOK,
 )
 
+from .ksl import (  # noqa: F401
+    KslCompiler,
+    GLOBAL_KSL_COMPILER,
+    KslOptimizationObjective,
+    MicroOpDAG,
+    KslOperationalAstBridge,
+    GLOBAL_KSL_OPERATIONAL_AST_BRIDGE,
+)
+
 from .sovereign_reasoning_brain import (  # noqa: F401
     ReasoningMode,
     EvidentialStatus,
@@ -1285,6 +1294,9 @@ __all__ = [
     "PurposeCategory", "PatternEvidenceTuple", "PurposeDescriptor",
     "EpistemicModelCandidate", "ReasoningPatternDescriptor",
     "ModelArbitrationReport", "SovereignReasoningPatternBrain",
-    "GLOBAL_REASONING_PATTERN_BRAIN"
+    "GLOBAL_REASONING_PATTERN_BRAIN",
+    "KslCompiler", "GLOBAL_KSL_COMPILER",
+    "KslOptimizationObjective", "MicroOpDAG",
+    "KslOperationalAstBridge", "GLOBAL_KSL_OPERATIONAL_AST_BRIDGE"
 ]
 

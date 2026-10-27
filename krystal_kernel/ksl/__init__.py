@@ -24,6 +24,12 @@ from .ksl_ir import (
 )
 from .ksl_code_generator import KslCodeGenerator
 from .ksl_compiler import KslCompiler, KslCompilationResult, GLOBAL_KSL_COMPILER
+from .ksl_ast_bridge import (
+    KslOptimizationObjective,
+    MicroOpDAG,
+    KslOperationalAstBridge,
+    GLOBAL_KSL_OPERATIONAL_AST_BRIDGE,
+)
 
 __all__ = [
     "ProgramNode",
@@ -70,4 +76,8 @@ __all__ = [
     "KslCompiler",
     "KslCompilationResult",
     "GLOBAL_KSL_COMPILER",
+    "KslOptimizationObjective",
+    "MicroOpDAG",
+    "KslOperationalAstBridge",
+    "GLOBAL_KSL_OPERATIONAL_AST_BRIDGE",
 ]
