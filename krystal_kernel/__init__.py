@@ -626,7 +626,25 @@ from .sovereign_subsystem_turn_coordinator import (  # noqa: F401
     AblationConfigurationMetrics,
     ComponentAblationReport,
     run_four_configuration_component_ablation,
-    GLOBAL_SUBSYSTEM_TURN_COORDINATOR,
+)
+
+from .sovereign_hypervisor_toolset import (  # noqa: F401
+    HypervisorGuestDomain,
+    HypercallKind,
+    HypercallSafetyVerdict,
+    HypercallCandidate,
+    HypercallTurnToken,
+    HypercallExecutionReceipt,
+    HypervisorGuestMetrics,
+    HypervisorAblationMetrics,
+    HypervisorAblationReport,
+    HypervisorDomainLockArbiter,
+    HypervisorReversibilityCoordinator,
+    HypervisorUmaHexGovernor,
+    HypervisorTurnDiagnostics,
+    HypervisorComponentAblationTool,
+    SovereignHypervisorConsoleTool,
+    GLOBAL_SOVEREIGN_HYPERVISOR_TOOL,
 )
 
 from .sovereign_uma_inspector_governor import (  # noqa: F401
@@ -1230,6 +1248,13 @@ __all__ = [
     "GLOBAL_SUBSYSTEM_TURN_COORDINATOR", "run_static_vs_agile_drafting_benchmark",
     "AblationConfigurationId", "AblationConfigurationMetrics",
     "ComponentAblationReport", "run_four_configuration_component_ablation",
+    "HypervisorGuestDomain", "HypercallKind", "HypercallSafetyVerdict",
+    "HypercallCandidate", "HypercallTurnToken", "HypercallExecutionReceipt",
+    "HypervisorGuestMetrics", "HypervisorAblationMetrics", "HypervisorAblationReport",
+    "HypervisorDomainLockArbiter", "HypervisorReversibilityCoordinator",
+    "HypervisorUmaHexGovernor", "HypervisorTurnDiagnostics",
+    "HypervisorComponentAblationTool", "SovereignHypervisorConsoleTool",
+    "GLOBAL_SOVEREIGN_HYPERVISOR_TOOL",
     "HexMemoryCellState", "GovernorAdviceKind", "MicroOpKind",
     "HexGridCellDescriptor", "ResourceCapabilityToken",
     "GovernorAdvice", "TokenTrackingEntry", "MicroOperation",
