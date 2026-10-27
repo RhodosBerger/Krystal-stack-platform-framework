@@ -669,8 +669,15 @@ from .sovereign_behavioral_compiler import (  # noqa: F401
 
 from .sovereign_promptbook import (  # noqa: F401
     PromptbookCategory,
+    InvariantSeverity,
+    ExecutableInvariant,
+    InvariantEvaluationReport,
     PromptbookRecipe,
     RenderedPrompt,
+    OperationalAstProposal,
+    PromptExecutionReceipt,
+    resolve_promptbook_secret_key,
+    canonical_recipe_json,
     SovereignPromptbookRegistry,
     GLOBAL_SOVEREIGN_PROMPTBOOK,
 )
@@ -913,6 +920,19 @@ from .sovereign_uma_inspector_governor import (  # noqa: F401
     GLOBAL_HW_TOKEN_MONITOR,
     GLOBAL_GOVERNOR_ADVISOR,
     GLOBAL_MICRO_OP_BOT,
+)
+
+from .sovereign_promptbook import (  # noqa: F401
+    PromptbookCategory,
+    InvariantSeverity,
+    ExecutableInvariant,
+    InvariantEvaluationReport,
+    PromptbookRecipe,
+    RenderedPrompt,
+    OperationalAstProposal,
+    PromptExecutionReceipt,
+    SovereignPromptbookRegistry,
+    GLOBAL_SOVEREIGN_PROMPTBOOK,
 )
 
 __all__ = [
@@ -1196,6 +1216,11 @@ __all__ = [
     "FourModeBenchmarkResult", "calculate_physical_clock_period_ns",
     "run_four_mode_uma_governor_benchmark",
     "GLOBAL_UMA_HEX_GRID", "GLOBAL_HW_TOKEN_MONITOR",
-    "GLOBAL_GOVERNOR_ADVISOR", "GLOBAL_MICRO_OP_BOT"
+    "GLOBAL_GOVERNOR_ADVISOR", "GLOBAL_MICRO_OP_BOT",
+    "PromptbookCategory", "InvariantSeverity", "ExecutableInvariant",
+    "InvariantEvaluationReport", "PromptbookRecipe", "RenderedPrompt",
+    "OperationalAstProposal", "PromptExecutionReceipt",
+    "resolve_promptbook_secret_key", "canonical_recipe_json",
+    "SovereignPromptbookRegistry", "GLOBAL_SOVEREIGN_PROMPTBOOK"
 ]
 
