@@ -608,6 +608,20 @@ from .sovereign_operations_compiler import (  # noqa: F401
     GLOBAL_SOVEREIGN_OPERATIONS_COMPILER
 )
 
+from .sovereign_subsystem_turn_coordinator import (  # noqa: F401
+    TurnState,
+    OperationSafetyVerdict,
+    CandidateOperation,
+    AgileDraftedEnvelope,
+    SelectionEvaluationResult,
+    TurnToken,
+    InstructionReceipt,
+    ProceduralAgileDraftingInterpolator,
+    SafeOperationSelectionPack,
+    InstructionalDependencyCoordinator,
+    GLOBAL_SUBSYSTEM_TURN_COORDINATOR,
+)
+
 from .textbook_inferable_patterns import (  # noqa: F401
     InferablePatternId,
     PatternEvidenceTuple,
@@ -948,6 +962,11 @@ __all__ = [
     "CompilationStage", "StageExecutionResult",
     "SovereignOperationsReceipt", "SovereignOperationsCompiler",
     "GLOBAL_SOVEREIGN_OPERATIONS_COMPILER",
+    "TurnState", "OperationSafetyVerdict", "CandidateOperation",
+    "AgileDraftedEnvelope", "SelectionEvaluationResult", "TurnToken",
+    "InstructionReceipt", "ProceduralAgileDraftingInterpolator",
+    "SafeOperationSelectionPack", "InstructionalDependencyCoordinator",
+    "GLOBAL_SUBSYSTEM_TURN_COORDINATOR",
     "InferablePatternId", "PatternEvidenceTuple", "ReasoningTrace11Tuple",
     "PhaseCrossoverInferenceResult", "ChronometricShadowInferenceResult",
     "SymplecticLeapfrogInferenceResult", "DwellHysteresisInferenceResult",
