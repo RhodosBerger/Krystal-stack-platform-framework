@@ -1,10 +1,12 @@
 {
   "experiment_id": "KSAC-M4.1",
   "run_id": 33,
+  "block_id": 16,
   "mode": "K_ADAPTIVE",
   "useful_work_units": 18994,
   "total_energy_j": 845.5502,
   "fpga_energy_j": 4.6005,
+  "fpga_gross_energy_j": 23.5005,
   "p95_latency_ms": 16.1,
   "throughput_ops_s": 1899.4,
   "t_core_ns": 214.1,
@@ -13,6 +15,6 @@
   "transition_reliability": 0.9034,
   "invariant_violations": 0,
   "invalid_commits": 0,
-  "timestamp_ns": 1793135524712473200,
+  "timestamp_ns": 1793136539506267200,
   "vital_max_hp": 6
 }

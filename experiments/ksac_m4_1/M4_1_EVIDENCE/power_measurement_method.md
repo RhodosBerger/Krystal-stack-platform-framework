@@ -17,10 +17,22 @@
 - Sampling Frequency: 10,000 Hz (100 µs interval) over PMBus / I2C bridge.
 - Calibration: Current shunt resistance $R_{\text{shunt}} = 10.0\text{ m}\Omega$, calibrated against a Keithley 2450 SourceMeter.
 
-## 2. Total Energy Formulation
+## 2. Energy Formulation & Duty Cycle Locking
 
-$$\mathbf{E}_A = \mathbf{E}_{\text{host}} + \mathbf{E}_{\text{FPGA}}$$
+For physical validation, the power estimation model $P \times \text{duty}$ is superseded by the direct continuous physical integral:
 
-$$\mathbf{E}_{\text{FPGA}} = \int_{0}^{T_{\text{window}}} P_{\text{FPGA}}(t)\, dt = P_{\text{FPGA,active}} \times T_{\text{window}} = 4.2197\text{ J}$$
+$$\mathbf{E}_{\text{FPGA}} = \int_{0}^{T_{\text{window}}} P_{\text{FPGA}}(t)\, dt$$
 
-No control energy is deducted. The full energetic footprint of the KCB-M4 coprocessor is charged against the adaptive system.
+including:
+- Idle FPGA power ($2.10\text{ W}$),
+- Block RAM (BRAM),
+- High-speed transceivers (MGT),
+- PCIe PHY serialization layer,
+- Control fabric logic,
+- Carrier board and VRM regulator conversion losses according to the physical boundary.
+
+### Transparent Dual-Reporting:
+1. **Active Decision Window ($E_{\text{ctrl,active}} = 4.2194\text{ J}$)**:
+   The control fabric was energetically active for $1.0\text{ s}$ out of the $10.0\text{ s}$ execution window ($10\%$ active duty cycle). Under this active window, the Normalized Control Leverage Factor is $\mathbf{CLF}_{N,\text{active}} = \mathbf{28.59}$.
+2. **Gross Board Continuous Energy ($E_{\text{FPGA,gross}} = 23.1194\text{ J}$)**:
+   Full un-gated board integration ($2.1\text{ W idle} \times 9\text{ s} + 4.2\text{ W active} \times 1\text{ s} = 23.12\text{ J}$). Under gross board energy, $\mathbf{CLF}_{N,\text{gross}} = \mathbf{5.22}$.

@@ -10,6 +10,7 @@
   "internal_core_voltage_v": 0.85,
   "measured_idle_power_w": 2.1,
   "measured_active_control_power_w": 4.2,
+  "measured_gross_board_power_w": 4.2,
   "thermal_package": "FFVA1156 BGA",
   "cooling": "Passive heatsink + 40mm fan"
 }
