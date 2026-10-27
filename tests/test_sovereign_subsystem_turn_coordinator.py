@@ -24,6 +24,9 @@ from krystal_kernel.sovereign_runtime import SubsystemNodeId
 from krystal_kernel.sovereign_subsystem_turn_coordinator import (
     TurnState,
     OperationSafetyVerdict,
+    OperationReversibilityClass,
+    ArchitectureProfile,
+    ArrheniusReliabilityModel,
     CandidateOperation,
     AgileDraftedEnvelope,
     SelectionEvaluationResult,
@@ -32,6 +35,7 @@ from krystal_kernel.sovereign_subsystem_turn_coordinator import (
     ProceduralAgileDraftingInterpolator,
     SafeOperationSelectionPack,
     InstructionalDependencyCoordinator,
+    run_static_vs_agile_drafting_benchmark,
     GLOBAL_SUBSYSTEM_TURN_COORDINATOR,
 )
 
@@ -314,6 +318,162 @@ class TestInstructionalDependencyCoordinator(unittest.TestCase):
         self.assertFalse(self.coordinator.is_bus_master_active())
         self.assertEqual(self.coordinator.get_subsystem_state(SubsystemNodeId.VPP_GRID_BROKER), TurnState.TURN_EXPIRED_ROLLBACK)
 
+    def test_irreversible_operation_precommit_validation_gate(self) -> None:
+        """Irreversible physical operations MUST require pre_commit_validated == True."""
+        cand_unvalidated = self._make_candidate("TASK-IRREV-FAIL", SubsystemNodeId.VPP_GRID_BROKER)
+        cand_unvalidated.reversibility = OperationReversibilityClass.IRREVERSIBLE
+        cand_unvalidated.pre_commit_validated = False  # Not pre-validated!
+
+        ok1, tok1, res1 = self.coordinator.request_and_grant_turn(cand_unvalidated)
+        self.assertFalse(ok1)
+        self.assertIsNone(tok1)
+        self.assertEqual(res1.verdict, OperationSafetyVerdict.REJECTED_PRECOMMIT_VALIDATION_REQUIRED)
+
+        # Now validate beforehand
+        cand_validated = self._make_candidate("TASK-IRREV-PASS", SubsystemNodeId.VPP_GRID_BROKER)
+        cand_validated.reversibility = OperationReversibilityClass.IRREVERSIBLE
+        cand_validated.pre_commit_validated = True  # Formally certified
+
+        ok2, tok2, res2 = self.coordinator.request_and_grant_turn(cand_validated)
+        self.assertTrue(ok2)
+        self.assertIsNotNone(tok2)
+        self.assertEqual(res2.verdict, OperationSafetyVerdict.ACCEPTED_AND_DRAFTED)
+
+    def test_conflict_aware_parallel_turn_scheduling(self) -> None:
+        """Operations with disjoint resource domains can execute concurrently without blocking."""
+        cand_gpu = self._make_candidate("TASK-GPU", SubsystemNodeId.CHRONO_SOC)
+        cand_gpu.resource_domains = {"GPU_QUEUE_0"}
+
+        cand_net = self._make_candidate("TASK-NET", SubsystemNodeId.WSL_BRIDGE)
+        cand_net.resource_domains = {"NETWORK_TX"}
+
+        cand_gpu_conflict = self._make_candidate("TASK-GPU-CONTENDER", SubsystemNodeId.TERRAIN_MANIFOLD)
+        cand_gpu_conflict.resource_domains = {"GPU_QUEUE_0"}
+
+        # 1. Grant Turn to GPU task
+        ok_gpu, tok_gpu, _ = self.coordinator.request_and_grant_turn(cand_gpu)
+        self.assertTrue(ok_gpu)
+        self.assertIsNotNone(tok_gpu)
+
+        # 2. Grant Turn to NET task in parallel (disjoint domain {"NETWORK_TX"})
+        ok_net, tok_net, _ = self.coordinator.request_and_grant_turn(cand_net)
+        self.assertTrue(ok_net)
+        self.assertIsNotNone(tok_net)
+
+        # Both subsystems are in TURN_GRANTED or EXECUTING_SLICE concurrently!
+        self.coordinator.begin_execution_slice(tok_gpu)
+        self.coordinator.begin_execution_slice(tok_net)
+        self.assertEqual(self.coordinator.get_subsystem_state(SubsystemNodeId.CHRONO_SOC), TurnState.EXECUTING_SLICE)
+        self.assertEqual(self.coordinator.get_subsystem_state(SubsystemNodeId.WSL_BRIDGE), TurnState.EXECUTING_SLICE)
+        self.assertEqual(len(self.coordinator.active_turn_tokens), 2)
+
+        # 3. Contending task on GPU_QUEUE_0 must be rejected due to domain conflict
+        ok_conf, tok_conf, res_conf = self.coordinator.request_and_grant_turn(cand_gpu_conflict)
+        self.assertFalse(ok_conf)
+        self.assertIsNone(tok_conf)
+        self.assertEqual(res_conf.verdict, OperationSafetyVerdict.REJECTED_DOMAIN_CONFLICT)
+
+        # 4. Commit GPU task -> GPU_QUEUE_0 domain released
+        self.coordinator.yield_turn_commit(tok_gpu, latency_us=180.0, energy_uj=8.0, output_payload_hash="gpu_done")
+        self.assertNotIn("GPU_QUEUE_0", self.coordinator.active_locked_domains)
+
+        # 5. Now contending task can successfully acquire GPU_QUEUE_0
+        ok_conf2, tok_conf2, res_conf2 = self.coordinator.request_and_grant_turn(cand_gpu_conflict)
+        self.assertTrue(ok_conf2)
+        self.assertIsNotNone(tok_conf2)
+        self.assertEqual(res_conf2.verdict, OperationSafetyVerdict.ACCEPTED_AND_DRAFTED)
+
+        # Clean up remaining turns
+        self.coordinator.yield_turn_commit(tok_net, latency_us=120.0, energy_uj=4.0, output_payload_hash="net_done")
+        self.coordinator.yield_turn_commit(tok_conf2, latency_us=150.0, energy_uj=6.0, output_payload_hash="conf_done")
+        self.assertEqual(len(self.coordinator.active_turn_tokens), 0)
+
+    def test_architecture_profile_custom_limits(self) -> None:
+        """ArchitectureProfile decouples hardware constants from hardcoded invariants."""
+        # Low-power profile with strict 60 C thermal ceiling and 0.50 UMA ceiling
+        low_power_profile = ArchitectureProfile(
+            profile_name="LOW_POWER_EMBEDDED",
+            configured_thermal_limit_c=60.0,
+            configured_uma_limit=0.50,
+            vital_max_hp=VITAL_MAX_HP
+        )
+        custom_coordinator = InstructionalDependencyCoordinator(profile=low_power_profile)
+
+        cand = self._make_candidate("TASK-CUSTOM-PROFILE", SubsystemNodeId.CHRONO_SOC)
+
+        # Temp at 62 C should be rejected by 60 C profile even though default is 75 C
+        ok_temp, _, res_temp = custom_coordinator.request_and_grant_turn(
+            cand, current_uma=0.30, current_temp_c=62.0
+        )
+        self.assertFalse(ok_temp)
+        self.assertEqual(res_temp.verdict, OperationSafetyVerdict.REJECTED_THERMAL_HEADROOM)
+
+        # UMA at 0.55 should be rejected by 0.50 profile even though default is 0.78
+        ok_uma, _, res_uma = custom_coordinator.request_and_grant_turn(
+            cand, current_uma=0.55, current_temp_c=45.0
+        )
+        self.assertFalse(ok_uma)
+        self.assertEqual(res_uma.verdict, OperationSafetyVerdict.REJECTED_BUS_SATURATED)
+
+    def test_arrhenius_reliability_model_mathematics(self) -> None:
+        """Physical Arrhenius model computes valid exponential thermal acceleration factors."""
+        # Baseline: at use temp, AF == 1.0
+        af_baseline = ArrheniusReliabilityModel.calculate_acceleration_factor(
+            t_use_c=40.0,
+            t_stress_c=40.0,
+            activation_energy_ev=0.70
+        )
+        self.assertAlmostEqual(af_baseline, 1.0, places=3)
+
+        # Elevated stress temp (85 C): AF must be substantially > 1.0 (accelerated wearout)
+        af_stressed = ArrheniusReliabilityModel.calculate_acceleration_factor(
+            t_use_c=40.0,
+            t_stress_c=85.0,
+            activation_energy_ev=0.70
+        )
+        self.assertGreater(af_stressed, 10.0)
+
+        # Lower operating temp (20 C): AF must be < 1.0 (decelerated wearout)
+        af_cool = ArrheniusReliabilityModel.calculate_acceleration_factor(
+            t_use_c=40.0,
+            t_stress_c=20.0,
+            activation_energy_ev=0.70
+        )
+        self.assertLess(af_cool, 1.0)
+
+    def test_runtime_turn_efficiency_and_telemetry_metrics(self) -> None:
+        """Turn coordinator tracks TE = latency / quantum and emits telemetry stats."""
+        cand = self._make_candidate("TASK-METRICS", SubsystemNodeId.CHRONO_SOC)
+        ok, tok, _ = self.coordinator.request_and_grant_turn(cand)
+        self.assertTrue(ok)
+
+        # Yield with known latency to measure Turn Efficiency
+        receipt = self.coordinator.yield_turn_commit(
+            tok,
+            latency_us=tok.allocated_quantum_us * 0.75,
+            energy_uj=10.0,
+            output_payload_hash="hash_metrics"
+        )
+        self.assertEqual(receipt.delta_s, 1)
+        self.assertAlmostEqual(self.coordinator.average_turn_efficiency, 0.75, places=2)
+
+        telemetry = self.coordinator.get_coordinator_telemetry()
+        self.assertTrue(telemetry["constitutional_invariant_intact"])
+        self.assertIn("average_turn_efficiency", telemetry)
+        self.assertIn("quantum_overrun_rate", telemetry)
+        self.assertIn("lock_conflict_rate", telemetry)
+
+    def test_static_vs_agile_drafting_benchmark(self) -> None:
+        """Benchmark confirms that agile drafting delivers superior utility and DraftingGain > 0."""
+        benchmark_results = run_static_vs_agile_drafting_benchmark(repetitions=3)
+
+        self.assertTrue(benchmark_results["constitutional_invariant_verified"])
+        self.assertIn("drafting_gain", benchmark_results)
+        self.assertGreater(benchmark_results["drafting_gain"], 0.0)
+        self.assertEqual(benchmark_results["conclusion"], "AGILE_DRAFTED_SUPERIOR")
+        self.assertGreater(benchmark_results["agile_drafted_metrics"]["utility"], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
+

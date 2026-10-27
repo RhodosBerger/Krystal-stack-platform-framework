@@ -611,6 +611,9 @@ from .sovereign_operations_compiler import (  # noqa: F401
 from .sovereign_subsystem_turn_coordinator import (  # noqa: F401
     TurnState,
     OperationSafetyVerdict,
+    OperationReversibilityClass,
+    ArchitectureProfile,
+    ArrheniusReliabilityModel,
     CandidateOperation,
     AgileDraftedEnvelope,
     SelectionEvaluationResult,
@@ -619,6 +622,7 @@ from .sovereign_subsystem_turn_coordinator import (  # noqa: F401
     ProceduralAgileDraftingInterpolator,
     SafeOperationSelectionPack,
     InstructionalDependencyCoordinator,
+    run_static_vs_agile_drafting_benchmark,
     GLOBAL_SUBSYSTEM_TURN_COORDINATOR,
 )
 
