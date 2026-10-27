@@ -622,6 +622,26 @@ from .sovereign_subsystem_turn_coordinator import (  # noqa: F401
     GLOBAL_SUBSYSTEM_TURN_COORDINATOR,
 )
 
+from .sovereign_uma_inspector_governor import (  # noqa: F401
+    HardwarePriorityLane,
+    HexMemoryCellState,
+    GovernorAdviceKind,
+    MicroOpKind,
+    HexGridCellDescriptor,
+    TokenTrackingEntry,
+    GovernorAdvice,
+    MicroOperation,
+    PlannedMicroOpBatch,
+    UmaInspectorHexGrid,
+    HardwarePrioritizationTokenMonitor,
+    SovereignGovernorAdvisor,
+    MicroOperationAllocationBot,
+    GLOBAL_UMA_HEX_GRID,
+    GLOBAL_HW_TOKEN_MONITOR,
+    GLOBAL_GOVERNOR_ADVISOR,
+    GLOBAL_MICRO_OP_BOT,
+)
+
 from .textbook_inferable_patterns import (  # noqa: F401
     InferablePatternId,
     PatternEvidenceTuple,
@@ -967,6 +987,13 @@ __all__ = [
     "InstructionReceipt", "ProceduralAgileDraftingInterpolator",
     "SafeOperationSelectionPack", "InstructionalDependencyCoordinator",
     "GLOBAL_SUBSYSTEM_TURN_COORDINATOR",
+    "HardwarePriorityLane", "HexMemoryCellState", "GovernorAdviceKind",
+    "MicroOpKind", "HexGridCellDescriptor", "TokenTrackingEntry",
+    "GovernorAdvice", "MicroOperation", "PlannedMicroOpBatch",
+    "UmaInspectorHexGrid", "HardwarePrioritizationTokenMonitor",
+    "SovereignGovernorAdvisor", "MicroOperationAllocationBot",
+    "GLOBAL_UMA_HEX_GRID", "GLOBAL_HW_TOKEN_MONITOR",
+    "GLOBAL_GOVERNOR_ADVISOR", "GLOBAL_MICRO_OP_BOT",
     "InferablePatternId", "PatternEvidenceTuple", "ReasoningTrace11Tuple",
     "PhaseCrossoverInferenceResult", "ChronometricShadowInferenceResult",
     "SymplecticLeapfrogInferenceResult", "DwellHysteresisInferenceResult",
