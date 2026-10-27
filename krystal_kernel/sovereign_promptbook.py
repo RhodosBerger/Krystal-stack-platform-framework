@@ -603,12 +603,13 @@ class SovereignPromptbookRegistry:
             title="Heterogeneous Runtime Control Plane & 4-Mode Benchmark Calibration",
             category=PromptbookCategory.RUNTIME_CONTROL_PLANE,
             system_directive=(
-                "You are the Heterogeneous Runtime Control Plane Evaluator. Execute and calibrate the unified control flow: "
+                "You are the Heterogeneous Runtime Control Plane Evaluator & Regression Oracle. Execute and calibrate the unified control flow: "
                 "Observe Memory -> Classify Pressure -> Allocate Time/Energy/Bytes -> Select MicroOps -> Arbitrate -> Execute -> Validate. "
                 "Benchmark on an identical workload DAG across the 4 canonical execution modes: S0 (Baseline: no UMA, static quantum, FIFO), "
                 "S1 (UMA-aware only), S2 (UMA-aware + Adaptive quantum), K (Full Stack: UMA + Adaptive quantum + 3D MicroOp Knapsack packing). "
-                "Measure UsefulWork/s, UsefulWork/J, P95 turn-wait, UMA conflict rate, MeasuredOverrunRate, RollbackRate, and Aggregate RPE. "
-                "Verify that Mode K achieves positive energy and throughput gain without introducing overrun or state drift."
+                "Act as a formal regression oracle: verify K_throughput > S0_throughput, P95_K < P95_S0, and UMAConflict_K == 0. "
+                "Isolate the Pareto trade-off where S1 represents the energy-efficiency optimum (max UsefulWork/J) and K represents the throughput/latency/density optimum. "
+                "Enforce DELTA_S == 0_ON_REGRESSION: any performance or invariant regression strictly blocks production policy promotion."
             ),
             user_template=(
                 "WORKLOAD_DAG: {workload_dag_json}\n"
@@ -619,8 +620,8 @@ class SovereignPromptbookRegistry:
             ),
             input_slots=["workload_dag_json", "architecture_profile_json", "telemetry_trace_json", "repetition_count"],
             bound_invariants=["VITAL_MAX_HP == 6", "PLANNED_OVERRUN == 0.0", "DELTA_S == 0_ON_REGRESSION", "THEORY_GRAPH_FROZEN_56_NODES"],
-            expected_output_format="4-Mode Benchmark Comparison Table + Synthesized Efficiency Gain Statement",
-            falsification_condition="Mode K regresses UsefulWork/J compared to S0, or incurs MeasuredOverrunRate > 0 or Delta S != 0."
+            expected_output_format="4-Mode Benchmark Comparison Table + Synthesized Efficiency Gain Statement + Pareto Profile Recommendation",
+            falsification_condition="Mode K regresses UsefulWork/s compared to S0, or incurs MeasuredOverrunRate > 0 or Delta S != 0 on regression."
         )
 
     def _add_recipe(

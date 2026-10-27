@@ -261,4 +261,46 @@ $$\text{KSL Operation} \implies \text{MicroOp} + \text{CapabilityRequest} + \tex
 | `deadline <= <ns>` | $\tau_i$ | `CostVector.cycle_cost_ns` |
 | `requires <op_id>` | `depends_on: Tuple[str, ...]` | `MicroOperation.depends_on` (DAG hrana) |
 
+---
+
+## 10. Pareto Control Plane, Multi-Objective Optimization Matrix & Hardware Roadmap
+
+Výsledky 4-módovej ablation štúdie odhaľujú, že jednotlivé mechaniky control plane neprispievajú k výkonu rovnakým spôsobom a vykazujú skutočný **Pareto trade-off**:
+
+### 10.1 Multiplikatívna dekompozícia priepustnosti
+Príspevky jednotlivých vrstiev nie sú aditívne, ale interagujú multiplikatívne:
+$$\text{Gain}_{\text{UMA}} \approx +41.2\% \quad (S0 \to S1: 422\,632 \to 596\,802\,\text{work/s}, \text{ Contention: } 20\% \to 0\%)$$
+$$\text{Gain}_{\text{AdaptiveQuantum} | \text{UMA}} \approx +433.1\% \quad (S1 \to S2: 596\,802 \to 3\,181\,427\,\text{work/s})$$
+$$\text{Gain}_{\text{MicroOpPacking} | \text{Adaptive}} \approx +45.9\% \quad (S2 \to K: 3\,181\,427 \to 4\,642\,409\,\text{work/s})$$
+
+Celkový zisk systému:
+$$1.4121 \times 5.3308 \times 1.4592 \approx 10.9845 \implies \mathbf{+998.45\% \text{ Throughput Gain}} \quad (10.98\times \text{ S0 Baseline})$$
+
+### 10.2 Energetický Pareto Trade-Off: S1 vs K
+Benchmark odhaľuje, že režim K nie je univerzálne „lepší vo všetkom“:
+- **Režim S1 predstavuje energetické optimum:** Dosahuje maximálny merný výkon na Joule ($\approx 18.64 \times 10^6\,\text{work/J}$) vďaka striktnému backoffu pri saturácii a konzervatívnemu statickému kvótu.
+- **Prechod $S1 \to S2$ prináša trade-off:** Throughput stúpa $5.33\times$, ale energetická efektivita klesá o $-19.98\%$ ($\approx 14.92 \times 10^6\,\text{work/J}$) kvôli agresívnemu prebúdzaniu mimo VBlank tieňa.
+- **Prechod $S2 \to K$:** Micro-op packing pridáva $+45.9\%$ throughput pri nulovej zmene $\text{UsefulWork/J}$ ($0\%$), čo dokazuje, že spotreba rastie priamo úmerne s vykonanou prácou — prínos micro-op packera je teda **vyťažovacia hustota (execution density)** a eliminácia idle bublín, nie priama energetická efektivita.
+
+### 10.3 Multi-Objective KSL / AEP Compiler Matrix
+Namiesto skalárnej optimalizácie ($\max \text{Performance}$) runtime riadi viacrozmerný cieľ:
+$$\max \left( \text{Throughput}, \text{UsefulWork/J}, \text{Latency}^{-1} \right) \quad \text{pri dodržaní } \text{VITAL\_MAX\_HP} \equiv 6$$
+
+| KSL Compiler Direktíva | Preferovaná Runtime Politika | Primárna Optimalizačná Doména |
+|:---|:---:|:---|
+| `optimize energy` | **S1** (UMA-Aware Static) | Maximálna energetická efektivita ($\text{UsefulWork/J}$) |
+| `optimize throughput` | **K** (Full Stack) | Maximálna priepustnosť ($10.98\times$ baseline) |
+| `optimize latency` | **K** (Full Stack) | Minimálny $P95$ turn wait ($45\,\mu\text{s}$ oproti $850\,\mu\text{s}$) |
+| `optimize balanced` | **S2** alebo **K** | Adaptívny trade-off riadený RAPL/tepelným governorom |
+
+### 10.4 Hardvérová Roadmapa pre $K\mu\text{ISA} \to \text{FPGA} \to \text{KSAC}$
+Dominantným zdrojom priepustnostného skoku je **Adaptive Quantum Scheduling ($5.33\times$)**.
+Z toho vyplýva kľúčová priorita pre kremíkovú syntézu:
+> **Priorita hardvérového offloadu:** Hardvérovo akcelerovaný výpočet adaptívneho quante a doménová arbitráž na úrovni FPGA/ASIC radiča, nie softvérová vizualizácia UMA hex gridu. Micro-op packing zabezpečuje optimálne plnenie vyčleneného okna.
+
+### 10.5 RECIPE-07 ako Formálny Regression Oracle
+`RECIPE-07-RUNTIME-CONTROL-PLANE-BENCHMARK` slúži ako formálny **Regression Oracle** v CI pipeline:
+$$K_{\text{throughput}} > S0_{\text{throughput}} \land P95_K < P95_{S0} \land \text{UMAConflict}_K \equiv 0$$
+Invariant $\text{DELTA\_S == 0\_ON\_REGRESSION}$ zaručuje, že akýkoľvek pokles metrík okamžite zablokuje zmenu produkčnej scheduling politiky.
+
 Týmto je špecifikácia uzavretá ako **ARCHITECTURALLY CONSISTENT** a pripravená slúžiť ako exekučná sémantika pre KSL backend.
