@@ -4286,6 +4286,13 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json(report.to_dict())
             return
 
+        # ── API: Crypto Farm Cyber-Physical Scenario Engine ─────────
+        if self.path in ("/api/crypto-farm/simulate", "/api/crypto-farm/scenario"):
+            from krystal_kernel.crypto_farm_scenario_engine import GLOBAL_CRYPTO_FARM_SCENARIO_ENGINE
+            res = GLOBAL_CRYPTO_FARM_SCENARIO_ENGINE.simulate_quarter(data)
+            self.send_json(res)
+            return
+
         # ── API: Hybrid MCP Connector & Antigravity Synchronization ──
         if self.path.startswith("/api/mcp/messages") or self.path == "/api/mcp/rpc":
             from krystal_web_hub.hybrid_mcp_antigravity_connector import GLOBAL_HYBRID_MCP_CONNECTOR
