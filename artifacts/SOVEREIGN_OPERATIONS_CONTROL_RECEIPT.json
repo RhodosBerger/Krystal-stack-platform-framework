@@ -1,15 +1,15 @@
 {
-  "receipt_id": "OPS-RECEIPT-1793136774-85fddc25",
-  "timestamp_ns": 313292919584700,
+  "receipt_id": "OPS-RECEIPT-1793136990-2de8cd9b",
+  "timestamp_ns": 313509277902900,
   "total_stages_run": 6,
   "stages_passed": 6,
   "is_fully_operational": true,
-  "total_duration_ms": 2.133,
+  "total_duration_ms": 0.722,
   "stage_results": [
     {
       "stage": "THEORY_DAG_AUDIT",
       "passed": true,
-      "duration_ms": 0.142,
+      "duration_ms": 0.059,
       "details": {
         "total_theory_nodes": 56,
         "proven_theories_count": 45,
@@ -22,7 +22,7 @@
     {
       "stage": "CONTRACT_FRAME_COMPILATION",
       "passed": true,
-      "duration_ms": 0.207,
+      "duration_ms": 0.105,
       "details": {
         "channel_tested": "WSL_TO_CHRONO_SOC",
         "frame_size_bytes": 128,
@@ -35,7 +35,7 @@
     {
       "stage": "INTERPOLATOR_VALIDATION",
       "passed": true,
-      "duration_ms": 0.268,
+      "duration_ms": 0.12,
       "details": {
         "spatial_sector_code": "0x20",
         "cadence_active_period_ms": 100.0,
@@ -49,7 +49,7 @@
     {
       "stage": "SHADOW_CYCLE_RECONCILIATION",
       "passed": true,
-      "duration_ms": 0.038,
+      "duration_ms": 0.016,
       "details": {
         "cycle_index": 1,
         "shadow_consumed_ms": 2.2,
@@ -64,7 +64,7 @@
     {
       "stage": "SUBSYSTEM_COORDINATION_POLL",
       "passed": true,
-      "duration_ms": 0.745,
+      "duration_ms": 0.143,
       "details": {
         "total_subsystems": 4,
         "all_subsystems_verified": true,
@@ -76,7 +76,7 @@
     {
       "stage": "REDUNDANT_INFERENCE_SYNTHESIS",
       "passed": true,
-      "duration_ms": 0.626,
+      "duration_ms": 0.243,
       "details": {
         "total_aspects": 15,
         "total_claims": 75,
@@ -97,6 +97,6 @@
     "shadow_window_budget_ms": 3.5,
     "theory_nodes_total": 56
   },
-  "hmac_digest": "85fddc2531f2fe377ffcd4439d61e96f550cfb148d5b15ce7e918612950fe1e4",
+  "hmac_digest": "2de8cd9b39ab1077715e9a8ad4bfa55bffdc5756a36e2570a06e5dd948617fa9",
   "vital_max_hp": 6
 }

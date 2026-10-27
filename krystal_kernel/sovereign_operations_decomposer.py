@@ -28,7 +28,10 @@ Purpose:
          [4] EXECUTION_MINIMAL
          [5] PHYSICAL_TELEMETRY
          [6] RECONCILIATION_COMMIT
-    3. Production-ready CLI and programmatic API with HMAC-SHA256 integrity.
+    3. Custom Bot Template System & Axiom Auto-Definer:
+       Every generated code snippet is synthesized by SafeOperationSourceComposer,
+       parameterized with formal OperationalAxioms, and assigned an autonomous
+       BotActor (Observer, Proposer, Verifier, Actuator, Auditor).
 ==============================================================================
 """
 
@@ -51,6 +54,14 @@ from krystal_kernel.constants import (
     CapabilityScope,
     UMA_SATURATION_THRESHOLD,
     ARRHENIUS_MAX_TEMP_C,
+)
+from krystal_kernel.sovereign_bot_operation_composer import (
+    BotArchetype,
+    OperationalAxiom,
+    AxiomAutoDefiner,
+    SovereignBotTemplateSystem,
+    SafeOperationSourceComposer,
+    GLOBAL_BOT_OPERATION_COMPOSER,
 )
 
 
@@ -116,6 +127,11 @@ class SubtaskNode:
     verification_oracle: str
     rollback_action: str
     code_snippet: str
+    bot_archetype: str = "ACTUATOR_BOT"
+    scale_domain: str = "MESO_VBLANK_MS"
+    layer_system_id: str = "L5_CONSTITUTIONAL_GATE"
+    axioms: List[Dict[str, Any]] = field(default_factory=list)
+    compiled_source: str = ""
     vital_max_hp: int = VITAL_MAX_HP
 
     def to_dict(self) -> Dict[str, Any]:
@@ -155,7 +171,10 @@ class SubtaskDAG:
         lines = ["```mermaid", "graph TD"]
         for t in self.subtasks:
             sanitized_title = t.title.replace('"', "'")
-            lines.append(f'    {t.subtask_id}["{t.subtask_id}: {sanitized_title}<br/>({t.phase.value})"]')
+            lines.append(
+                f'    {t.subtask_id}["{t.subtask_id}: {sanitized_title}<br/>'
+                f'({t.phase.value} | {t.bot_archetype})"]'
+            )
         for t in self.subtasks:
             for dep in t.depends_on:
                 lines.append(f"    {dep} --> {t.subtask_id}")
@@ -244,7 +263,7 @@ CANONICAL_OPERATIONS_CATALOG: List[Dict[str, Any]] = [
         "keywords": ["benchmark", "m4_1", "rbd", "randomized", "blocks", "vhl", "trials"],
         "synopsis": "Runs 30 randomized blocks (B1 vs K paired) to compute VHL_HC without thermal bias.",
         "default_parameters": {"blocks": 30, "seed": 42, "duty_cycle": 0.10},
-        "latency_us": 10000000.0,  # 10s per trial in real campaign
+        "latency_us": 10000000.0,
         "authority": CapabilityScope.CAN_AUTHORIZE | CapabilityScope.CAN_EXECUTE,
         "invariant": "InvariantViolationRate == 0 and InvalidCommitRate == 0",
     },
@@ -343,7 +362,6 @@ class SovereignOperationsAutocompleter:
         """
         q = query.strip().lower()
         if not q:
-            # Return top-ranked standard operations
             return [self._to_suggestion(entry, 1.0, "") for entry in self.catalog[:max_results]]
 
         state = current_state or {}
@@ -388,7 +406,6 @@ class SovereignOperationsAutocompleter:
                 normalized_score = min(1.0, round(score, 4))
                 candidates.append((normalized_score, entry, suffix))
 
-        # Sort descending by score
         candidates.sort(key=lambda x: x[0], reverse=True)
 
         results: List[OperationSuggestion] = []
@@ -413,18 +430,20 @@ class SovereignOperationsAutocompleter:
         )
 
 
-# ── 4. TASK DECOMPOSITION GENERATOR ──────────────────────────────────────────
+# ── 4. TASK DECOMPOSITION GENERATOR WITH BOT TEMPLATE SYSTEM ─────────────────
 
 class SovereignOperationsDecomposer:
     """
     Decomposes high-level management objectives and operations into an atomic,
-    dependency-ordered, verifiable Directed Acyclic Graph (DAG) of subtasks.
+    dependency-ordered, verifiable Directed Acyclic Graph (DAG) of subtasks,
+    each parameterized by an AxiomAutoDefiner and compiled by SafeOperationSourceComposer.
     """
 
     def __init__(self, vital_max_hp: int = VITAL_MAX_HP) -> None:
         self.vital_max_hp = vital_max_hp
         if self.vital_max_hp != 6:
             raise ContractViolation(f"Constitutional invariant breach: VITAL_MAX_HP must be 6, got {self.vital_max_hp}")
+        self.source_composer = SafeOperationSourceComposer(vital_max_hp=self.vital_max_hp)
 
     def decompose(
         self,
@@ -489,18 +508,65 @@ class SovereignOperationsDecomposer:
             return OperationDomain.TELEMETRY_DIAGNOSTIC
         return OperationDomain.SYSTEM_GOVERNANCE
 
+    def _create_subtask_node(
+        self,
+        subtask_id: str,
+        title: str,
+        description: str,
+        phase: SubtaskPhase,
+        subsystem_placement: SubsystemPlacement,
+        depends_on: List[str],
+        latency_budget_us: float,
+        energy_budget_j: float,
+        verification_oracle: str,
+        rollback_action: str,
+        raw_payload_snippet: str,
+        domain: OperationDomain,
+    ) -> SubtaskNode:
+        """Synthesizes a SubtaskNode using the SafeOperationSourceComposer and AxiomAutoDefiner."""
+        compiled = self.source_composer.compose_source_for_subtask(
+            subtask_id=subtask_id,
+            title=title,
+            phase_name=phase.value,
+            domain_name=domain.value,
+            subsystem=subsystem_placement.value,
+            latency_budget_us=latency_budget_us,
+            energy_budget_j=energy_budget_j,
+            verification_oracle=verification_oracle,
+            rollback_action=rollback_action,
+            action_payload=raw_payload_snippet,
+        )
+        return SubtaskNode(
+            subtask_id=subtask_id,
+            title=title,
+            description=description,
+            phase=phase,
+            subsystem_placement=subsystem_placement,
+            depends_on=depends_on,
+            latency_budget_us=latency_budget_us,
+            energy_budget_j=energy_budget_j,
+            verification_oracle=verification_oracle,
+            rollback_action=rollback_action,
+            code_snippet=compiled.source_code,
+            bot_archetype=compiled.bot_archetype.value,
+            scale_domain=compiled.scale_domain.value,
+            layer_system_id=compiled.layer_system_id.value,
+            axioms=[a.to_dict() for a in compiled.axioms],
+            compiled_source=compiled.source_code,
+            vital_max_hp=self.vital_max_hp,
+        )
+
     def _generate_phase_subtasks(
         self,
         goal: str,
         domain: OperationDomain,
         params: Dict[str, Any],
     ) -> List[SubtaskNode]:
-        """Synthesizes the concrete subtask DAG nodes according to domain semantics."""
+        """Synthesizes the concrete subtask DAG nodes across the 6 formal phases."""
         subtasks: List[SubtaskNode] = []
 
         if domain == OperationDomain.SCIENTIFIC_EVIDENCE:
-            # 1. SPECIFICATION
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-01-SPEC",
                 title="Freeze Experimental Hypothesis and Randomization Seed",
                 description="Lock H1: VHL_F > 1.0 vs H0: VHL_F <= 1.0 with 30 blocks and seed=42.",
@@ -511,10 +577,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0001,
                 verification_oracle="protocol_frozen == True and seed == 42",
                 rollback_action="reset_protocol_locks()",
-                code_snippet="protocol.lock(version='2.0-FROZEN-TWO-GATE', seed=42)",
+                raw_payload_snippet="protocol.lock(version='2.0-FROZEN-TWO-GATE', seed=42)",
+                domain=domain,
             ))
-            # 2. AUTHORITY_CHECK
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-02-AUTH",
                 title="Verify Proposer != Evaluator Authority Separation",
                 description="Confirm evaluation harness runs independently of host adaptive controller.",
@@ -525,10 +591,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0001,
                 verification_oracle="proposer_id != evaluator_id and capability_checked == True",
                 rollback_action="quarantine_unauthorized_proposer()",
-                code_snippet="assert capability.has_flag(CapabilityScope.CAN_VERIFY)",
+                raw_payload_snippet="assert capability.has_flag(CapabilityScope.CAN_VERIFY)",
+                domain=domain,
             ))
-            # 3. INVARIANT_PRESERVATION
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-03-INVAR",
                 title="Assert Constitutional Invariants & Boundary Guards",
                 description="Enforce VITAL_MAX_HP == 6, zero dropped requests, SLA latency ceiling < 20 ms.",
@@ -539,10 +605,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0001,
                 verification_oracle="vital_max_hp == 6 and sla_threshold_ms == 20.0",
                 rollback_action="abort_and_preserve_state()",
-                code_snippet="assert VITAL_MAX_HP == 6, 'Invariant violation'",
+                raw_payload_snippet="assert VITAL_MAX_HP == 6, 'Invariant violation'",
+                domain=domain,
             ))
-            # 4. EXECUTION_MINIMAL
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-04-EXEC",
                 title="Execute Randomized Block Design Campaign (30 Paired Blocks)",
                 description="Run 60 trials in alternating (B1->K or K->B1) order to cancel thermal drift.",
@@ -553,10 +619,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=12.5000,
                 verification_oracle="len(completed_blocks) == 30 and invalid_commits == 0",
                 rollback_action="purge_corrupted_runs()",
-                code_snippet="runner.execute_validation_campaign(trial_count_per_mode=30, seed=42)",
+                raw_payload_snippet="runner.execute_validation_campaign(trial_count_per_mode=30, seed=42)",
+                domain=domain,
             ))
-            # 5. PHYSICAL_TELEMETRY
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-05-TELEM",
                 title="Acquire INA226 PMBus Power and RAPL MSR Energy Data",
                 description="Compute both active control window (4.22 J) and gross board integral (23.1 J).",
@@ -567,10 +633,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0020,
                 verification_oracle="e_control_j > 0.0 and e_gross_j >= e_control_j",
                 rollback_action="invalidate_telemetry_receipt()",
-                code_snippet="telemetry = poll_ina226_rail_integrals(duration_s=10.0)",
+                raw_payload_snippet="telemetry = poll_ina226_rail_integrals(duration_s=10.0)",
+                domain=domain,
             ))
-            # 6. RECONCILIATION_COMMIT
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-06-COMMIT",
                 title="Compute VHL_HC (1.1516), Sign HMAC-SHA256, and Export Package",
                 description="Evaluate CI 95% [1.1408, 1.1624] and commit Gate M4.1-A complete / M4.1-B pending.",
@@ -581,12 +647,12 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0050,
                 verification_oracle="ci_lower > 1.10 and hmac_valid == True",
                 rollback_action="rollback_state_delta_zero()",
-                code_snippet="runner.export_evidence_package(evidence_dir, agg, trials, seed=42)",
+                raw_payload_snippet="runner.export_evidence_package(evidence_dir, agg, trials, seed=42)",
+                domain=domain,
             ))
 
         elif domain == OperationDomain.HARDWARE_CONTROL:
-            # 1. SPECIFICATION
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-01-SPEC",
                 title="Define Action Space Hints (A0..A6) and Latency Budget",
                 description="Specify microcode ingress turnaround <= 208 ns and PCIe mailbox loop <= 2.85 us.",
@@ -597,10 +663,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0001,
                 verification_oracle="t_core_ns <= 208.0 and t_sys_us <= 2.85",
                 rollback_action="reset_action_hint_descriptors()",
-                code_snippet="action_env = ActionSpace(A0_HOLD, A1_BATCH_DOWN, A2_BATCH_UP)",
+                raw_payload_snippet="action_env = ActionSpace(A0_HOLD, A1_BATCH_DOWN, A2_BATCH_UP)",
+                domain=domain,
             ))
-            # 2. AUTHORITY_CHECK
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-02-AUTH",
                 title="Check Capability Contract for Hardware Mailbox Access",
                 description="Ensure calling context holds CAN_EXECUTE and voltage writes are disabled.",
@@ -611,10 +677,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0001,
                 verification_oracle="voltage_writes_enabled == False and authorized == True",
                 rollback_action="revoke_mailbox_token()",
-                code_snippet="assert not config.allow_voltage_writes",
+                raw_payload_snippet="assert not config.allow_voltage_writes",
+                domain=domain,
             ))
-            # 3. INVARIANT_PRESERVATION
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-03-INVAR",
                 title="Verify 128B Natural Alignment & HMAC Ring Buffer Slot",
                 description="Guarantee _Alignas(64) zero-copy frame layout before bus dispatch.",
@@ -625,10 +691,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0001,
                 verification_oracle="sizeof(frame) == 128 and alignment == 64",
                 rollback_action="zero_memory_frame_buffer()",
-                code_snippet="assert sizeof(ZeroCopyContractFrame) == 128",
+                raw_payload_snippet="assert sizeof(ZeroCopyContractFrame) == 128",
+                domain=domain,
             ))
-            # 4. EXECUTION_MINIMAL
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-04-EXEC",
                 title="Transmit Microcode Command Frame to FPGA DMA Mailbox",
                 description="Write 128B frame over PCIe Gen3 x4 channel 0 without blocking host threads.",
@@ -639,10 +705,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0008,
                 verification_oracle="dma_transfer_ack == True and parity_ok == True",
                 rollback_action="dma_abort_and_clear_ring()",
-                code_snippet="pcie_mailbox.send_frame(frame_ptr, channel=0)",
+                raw_payload_snippet="pcie_mailbox.send_frame(frame_ptr, channel=0)",
+                domain=domain,
             ))
-            # 5. PHYSICAL_TELEMETRY
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-05-TELEM",
                 title="Audit Ingress-to-Decision Latch Latency via Hardware Timer",
                 description="Sample physical microsecond stamp to confirm t_core <= 208 ns.",
@@ -653,10 +719,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0002,
                 verification_oracle="measured_t_core_ns <= 220.0",
                 rollback_action="flag_pipeline_timing_hazard()",
-                code_snippet="measured_ns = fpga_timer.read_ingress_delta()",
+                raw_payload_snippet="measured_ns = fpga_timer.read_ingress_delta()",
+                domain=domain,
             ))
-            # 6. RECONCILIATION_COMMIT
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-06-COMMIT",
                 title="Commit Pacing Action Hint to Host Runtime Scheduler",
                 description="Apply batch pacing update; if timing or parity violated, enforce Delta S == 0.",
@@ -667,12 +733,12 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0005,
                 verification_oracle="scheduler_hint_acknowledged == True",
                 rollback_action="restore_static_baseline_b1()",
-                code_snippet="host_scheduler.apply_performance_hint(hint)",
+                raw_payload_snippet="host_scheduler.apply_performance_hint(hint)",
+                domain=domain,
             ))
 
         elif domain == OperationDomain.KERNEL_COMPILATION:
-            # 1. SPECIFICATION
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-01-SPEC",
                 title="Parse KSL Source Code & Extract AST Representation",
                 description="Lex and parse .ksl file into AST nodes with contracts, state, and constraints.",
@@ -683,10 +749,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0010,
                 verification_oracle="ast_root is not None and syntax_errors == 0",
                 rollback_action="clear_syntax_tree()",
-                code_snippet="ast = ksl_parser.parse(source_code)",
+                raw_payload_snippet="ast = ksl_parser.parse(source_code)",
+                domain=domain,
             ))
-            # 2. AUTHORITY_CHECK
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-02-AUTH",
                 title="Verify Type Soundness & Capability Contract Permissions",
                 description="Run semantic type checker verifying state variables and placement constraints.",
@@ -697,10 +763,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0008,
                 verification_oracle="type_checker.error_count == 0",
                 rollback_action="abort_compilation_with_diagnostic()",
-                code_snippet="ksl_type_checker.check(ast)",
+                raw_payload_snippet="ksl_type_checker.check(ast)",
+                domain=domain,
             ))
-            # 3. INVARIANT_PRESERVATION
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-03-INVAR",
                 title="Assert Zero-Copy 128B Memory Layout & Ring Buffers",
                 description="Verify all compiled structs are strictly aligned to 64 bytes and sized to 128B.",
@@ -711,10 +777,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0005,
                 verification_oracle="alignment_verified == True and no_heap_allocation == True",
                 rollback_action="invalidate_compiled_abi()",
-                code_snippet="assert kir.verify_zero_copy_invariants(ast)",
+                raw_payload_snippet="assert kir.verify_zero_copy_invariants(ast)",
+                domain=domain,
             ))
-            # 4. EXECUTION_MINIMAL
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-04-EXEC",
                 title="Emit C11 Dual-Plane Source & KµASM Microcode Sidecar",
                 description="Generate C11 header/implementation pair and binary microcode for KSAC-1.",
@@ -725,10 +791,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0020,
                 verification_oracle="len(c_code) > 0 and len(kmuasm_code) > 0",
                 rollback_action="remove_emitted_artifacts()",
-                code_snippet="c_code, asm = ksl_codegen.generate(ast)",
+                raw_payload_snippet="c_code, asm = ksl_codegen.generate(ast)",
+                domain=domain,
             ))
-            # 5. PHYSICAL_TELEMETRY
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-05-TELEM",
                 title="Audit Binary Size, Cache Line Footprint, and Latency Ceiling",
                 description="Inspect object file ELF symbols and verify memory footprint <= 768 KiB scratchpad.",
@@ -739,10 +805,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0012,
                 verification_oracle="elf_scratchpad_bytes <= 786432",
                 rollback_action="flag_scratchpad_overflow()",
-                code_snippet="assert binary_size <= 768 * 1024",
+                raw_payload_snippet="assert binary_size <= 768 * 1024",
+                domain=domain,
             ))
-            # 6. RECONCILIATION_COMMIT
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-06-COMMIT",
                 title="Sign Module with HMAC-SHA256 & Register in Kernel Manifest",
                 description="Emit cryptographic build receipt linking source hash, compiler hash, and binary.",
@@ -753,12 +819,12 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0004,
                 verification_oracle="module_registered == True and hmac_valid == True",
                 rollback_action="unregister_module_rollback()",
-                code_snippet="kernel_manifest.register(module_receipt)",
+                raw_payload_snippet="kernel_manifest.register(module_receipt)",
+                domain=domain,
             ))
 
-        else:  # SYSTEM_GOVERNANCE & TELEMETRY_DIAGNOSTIC (Default robust pipeline)
-            # 1. SPECIFICATION
-            subtasks.append(SubtaskNode(
+        else:  # SYSTEM_GOVERNANCE & TELEMETRY_DIAGNOSTIC
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-01-SPEC",
                 title="Identify System Target State and Boundary Metrics",
                 description=f"Map target bounds for objective: '{goal}' under S = (S,A,T,I,O,E,H,W).",
@@ -769,10 +835,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0001,
                 verification_oracle="target_state_specified == True",
                 rollback_action="reset_objective_context()",
-                code_snippet="target = SystemState.capture_baseline()",
+                raw_payload_snippet="target = SystemState.capture_baseline()",
+                domain=domain,
             ))
-            # 2. AUTHORITY_CHECK
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-02-AUTH",
                 title="Evaluate Capability Contract & Authority Isolation",
                 description="Confirm proposer != evaluator and operation has explicit authorization.",
@@ -783,10 +849,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0001,
                 verification_oracle="authority_level >= CapabilityScope.CAN_AUTHORIZE",
                 rollback_action="deny_unauthorized_transition()",
-                code_snippet="assert capability.has_flag(CapabilityScope.CAN_AUTHORIZE)",
+                raw_payload_snippet="assert capability.has_flag(CapabilityScope.CAN_AUTHORIZE)",
+                domain=domain,
             ))
-            # 3. INVARIANT_PRESERVATION
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-03-INVAR",
                 title="Check Invariant Conservation (VITAL_MAX_HP == 6)",
                 description="Enforce constitutional invariant set I before any state transition can be initiated.",
@@ -797,10 +863,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0001,
                 verification_oracle="vital_max_hp == 6 and invariants_held == True",
                 rollback_action="abort_action_delta_zero()",
-                code_snippet="if VITAL_MAX_HP != 6: raise ContractViolation('Invariant breach')",
+                raw_payload_snippet="if VITAL_MAX_HP != 6: raise ContractViolation('Invariant breach')",
+                domain=domain,
             ))
-            # 4. EXECUTION_MINIMAL
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-04-EXEC",
                 title="Execute Surgical, Reversible Minimal Action",
                 description="Apply isolated configuration update or diagnostic probe with bounded side-effects.",
@@ -811,10 +877,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0015,
                 verification_oracle="action_return_code == 0",
                 rollback_action="revert_surgical_action()",
-                code_snippet="action_result = execute_minimal_intervention(params)",
+                raw_payload_snippet="action_result = execute_minimal_intervention(params)",
+                domain=domain,
             ))
-            # 5. PHYSICAL_TELEMETRY
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-05-TELEM",
                 title="Sample Post-Action Physical Telemetry & Residual Error",
                 description="Measure thermal response, bus load, and compare against model prediction.",
@@ -825,10 +891,10 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0005,
                 verification_oracle="observed_telemetry_valid == True and residual < tolerance",
                 rollback_action="trigger_emergency_rollback()",
-                code_snippet="telemetry = sample_system_telemetry(); residual = abs(pred - telemetry)",
+                raw_payload_snippet="telemetry = sample_system_telemetry(); residual = abs(pred - telemetry)",
+                domain=domain,
             ))
-            # 6. RECONCILIATION_COMMIT
-            subtasks.append(SubtaskNode(
+            subtasks.append(self._create_subtask_node(
                 subtask_id="ST-06-COMMIT",
                 title="Two-Phase State Commit and HMAC-SHA256 Logging",
                 description="If validation passes, commit state S_{t+1}; otherwise enforce Delta S == 0.",
@@ -839,7 +905,8 @@ class SovereignOperationsDecomposer:
                 energy_budget_j=0.0008,
                 verification_oracle="receipt_hmac_valid == True",
                 rollback_action="enforce_state_identity_delta_zero()",
-                code_snippet="commit_state_receipt(receipt_hmac)",
+                raw_payload_snippet="commit_state_receipt(receipt_hmac)",
+                domain=domain,
             ))
 
         return subtasks
@@ -888,7 +955,7 @@ class SovereignOperationsDecomposer:
 class SovereignOperationsStudio:
     """
     Unified operational coordinator combining autocompletion, decomposition,
-    and plan validation for user-driven management workflows.
+    and bot operation source compilation for user-driven management workflows.
     """
 
     def __init__(self, vital_max_hp: int = VITAL_MAX_HP) -> None:
@@ -911,7 +978,7 @@ class SovereignOperationsStudio:
         domain: Optional[OperationDomain] = None,
         parameters: Optional[Dict[str, Any]] = None,
     ) -> SubtaskDAG:
-        """Decomposes a management goal into an executable subtask DAG."""
+        """Decomposes a management goal into an executable subtask DAG with compiled bot snippets."""
         return self.decomposer.decompose(goal, domain, parameters)
 
     def format_plan_report(self, dag: SubtaskDAG) -> str:
@@ -923,15 +990,15 @@ class SovereignOperationsStudio:
             f"**Acyclic Invariant:** `{dag.is_acyclic}` | **Constitutional HP:** `VITAL_MAX_HP == {dag.vital_max_hp}`  ",
             f"**HMAC-SHA256:** `{dag.hmac_sha256}`  ",
             "",
-            "## 1. Decomposed Subtask Table",
+            "## 1. Decomposed Subtask & Bot Archetype Table",
             "",
-            "| ID | Phase | Subtask Title | Placement | Latency (µs) | Depends On | Rollback Action |",
-            "|:---|:---|:---|:---|:---:|:---|:---|",
+            "| ID | Phase | Bot Archetype | Scale Domain | Placement | Latency (µs) | Depends On |",
+            "|:---|:---|:---|:---|:---|:---:|:---|",
         ]
         for t in dag.subtasks:
             deps_str = ", ".join(t.depends_on) if t.depends_on else "*Root*"
             lines.append(
-                f"| `{t.subtask_id}` | `{t.phase.value}` | **{t.title}** | `{t.subsystem_placement.value}` | {t.latency_budget_us:.1f} | `{deps_str}` | *{t.rollback_action}* |"
+                f"| `{t.subtask_id}` | `{t.phase.value}` | **{t.bot_archetype}** | `{t.scale_domain}` | `{t.subsystem_placement.value}` | {t.latency_budget_us:.1f} | `{deps_str}` |"
             )
 
         lines.extend([
@@ -940,14 +1007,17 @@ class SovereignOperationsStudio:
             "",
             dag.generate_mermaid_diagram(),
             "",
-            "## 3. Subtask Execution Code Snippets",
+            "## 3. Autonomous Bot Operation Source Modules (Compiled Snippets)",
             "",
         ])
         for t in dag.subtasks:
+            axiom_count = len(t.axioms)
             lines.extend([
                 f"### [{t.subtask_id}] {t.title}",
-                f"- **Phase:** `{t.phase.value}` | **Target:** `{t.subsystem_placement.value}`",
+                f"- **Bot Actor:** `{t.bot_archetype}` | **Scale:** `{t.scale_domain}` | **Layer:** `{t.layer_system_id}`",
+                f"- **Bound Axioms:** `{axiom_count}` formal rules verified",
                 f"- **Verification Oracle:** `{t.verification_oracle}`",
+                f"- **Rollback Compensation:** `{t.rollback_action}`",
                 "```python",
                 t.code_snippet,
                 "```",
@@ -1005,7 +1075,7 @@ def run_cli() -> None:
         for s in studio.autocomplete("audit"):
             print(f" -> {s.command} [suffix: '{s.completion_suffix}'] ({s.display_title})")
 
-        print("\n--- 2. Decomposing Management Goal: 'Run M4.1 Physical Validation Benchmark' ---")
+        print("\n--- 2. Decomposing Management Goal with Bot Source Composer ---")
         dag = studio.decompose_management_goal("Run M4.1 Physical Validation Benchmark")
         print(studio.format_plan_report(dag))
 

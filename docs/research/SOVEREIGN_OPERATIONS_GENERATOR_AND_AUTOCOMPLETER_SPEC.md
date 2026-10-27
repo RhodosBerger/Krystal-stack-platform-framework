@@ -109,10 +109,50 @@ suggestions = GLOBAL_OPERATIONS_STUDIO.autocomplete("bench")
 for s in suggestions:
     print(f"[{s.score:.2f}] {s.command} -> {s.display_title}")
 
-# Decompose into Subtask DAG
+# Decompose into Subtask DAG with Compiled Bot Operation Snippets
 dag = GLOBAL_OPERATIONS_STUDIO.decompose_management_goal("Run M4.1 Physical Validation Benchmark")
 print(f"Plan ID: {dag.plan_id}")
 print(f"Critical Path: {dag.critical_path_latency_us} µs")
 print(f"Subtasks: {len(dag.subtasks)}")
-print(dag.generate_mermaid_diagram())
+print(GLOBAL_OPERATIONS_STUDIO.format_plan_report(dag))
 ```
+
+---
+
+## 5. Bot Template System, Axiom Auto-Definer & Safe Operation Source Composer
+
+Pre každý uzol v acyklickom grafe podúloh (`SubtaskNode`) systém negeneruje iba abstraktný textový popis, ale **kompletný, autonómny a typovo bezpečný Python modul** riadený trojicou špecializovaných subsystémov implementovaných v [`krystal_kernel/sovereign_bot_operation_composer.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/krystal_kernel/sovereign_bot_operation_composer.py):
+
+### 5.1. Cybernetický Bot Template System (`SovereignBotTemplateSystem`)
+Mapuje každú fázu a operáciu na špecializovaný kybernetický archetyp bota:
+- **`OBSERVER_BOT`** (Fáza 1 - `SPECIFICATION`): Zmrazuje špecifikáciu, seed a počiatočné ohraničenia bez akejkoľvek mutácie.
+- **`AUDITOR_BOT`** (Fáza 2 - `AUTHORITY_CHECK`): Verifikuje oddelenie právomocí (`Proposer != Evaluator`) a platnosť capability tokenu.
+- **`VERIFIER_BOT`** (Fáza 3 - `INVARIANT_PRESERVATION`): Vyhodnocuje ústavné invarianty (`VITAL_MAX_HP == 6`) a memory layout (128B zarovnanie).
+- **`ACTUATOR_BOT`** (Fáza 4 - `EXECUTION_MINIMAL`): Vykonáva chirurgický zásah do hardvérových registrov alebo kompilačného reťazca.
+- **`OBSERVER_BOT`** (Fáza 5 - `PHYSICAL_TELEMETRY`): Monitoruje fyzické merania z INA226 prúdových bočníkov a MSR RAPL registrov.
+- **`VERIFIER_BOT`** (Fáza 6 - `RECONCILIATION_COMMIT`): Realizuje dvojfázový commit do autoritatívneho stavu $S_{t+1}$ alebo vynúti rollback $\Delta S = 0$.
+
+Každý bot je pevne ukotvený v jednej zo 4 časových mierok:
+1. `MICRO_SILICON_NS` ($0.1 - 250\text{ ns}$): L0-L2 register/FPGA mailbox.
+2. `MESO_VBLANK_MS` ($1.0 - 16.6\text{ ms}$): L3-L5 kruhové buffre `/dev/shm` a VSync tieň.
+3. `MACRO_CADENCE_MS` ($100 - 500\text{ ms}$): L6-L7 orchestrácia a telemetrický audit.
+4. `EPOCH_GOVERNANCE_S` ($1.0 - 60.0\text{ s}$): L8 globálny systémový dohľad a archivácia.
+
+### 5.2. Automatický Definovateľ Axióm (`AxiomAutoDefiner`)
+Dynamicky syntetizuje zoznam formálnych axióm pre každú podúlohu:
+- **Axióma 0 (Ústavný Invariant):** `VITAL_MAX_HP == 6` (akákoľvek neplatná zmena vyvolá $\Delta S = 0$).
+- **Axióma 1 (Separácia Právomocí):** `Proposer != Evaluator` (navrhovateľ nesmie sám certifikovať svoj výstup).
+- **Axióma 2 (Zero-Touch & 128B Frame):** Zákaz priamych mutácií cudzích pamäťových blokov a striktné 128-bajtové zarovnanie.
+- **Fázovo-odvodené axiómy:** `SPEC_FREEZE`, `CAPABILITY_GATE`, `SAFETY_CONTAINMENT`, `MINIMAL_INTERVENTION`, `PHYSICAL_GROUNDING`, `TRANSACTIONAL_COMMIT`.
+
+### 5.3. Bezpečný Kompilátor a Skladateľ Kódu Operácie (`SafeOperationSourceComposer`)
+Generuje priamo spustiteľný Python kód obsahujúci dedikovanú triedu aktora (napr. `SovereignSt04execActor`), ktorá disponuje:
+1. `assert_axioms(context)`: Kontroluje všetky naviazané axiómy v runtime. Pri porušení vyvoláva `ContractViolation`.
+2. `execute_minimal_action(context)`: Izolovaná minimálna akcia s prepojením na hardvér alebo kernel.
+3. `verify_oracle(result, context)`: Formálne overenie výsledku voči orakulu.
+4. `execute_rollback(context, reason)`: Deterministická reverzia do pôvodného stavu pri neúspechu.
+5. `run_sandboxed(context)`: Bezpečná dvojfázová obálka garantujúca invariant transakcie:
+   $$\neg\text{Valid}(result) \implies \Delta S = 0$$
+
+Celý generovaný zdrojový modul je podpísaný kryptografickým odtlačkom **HMAC-SHA256**.
+

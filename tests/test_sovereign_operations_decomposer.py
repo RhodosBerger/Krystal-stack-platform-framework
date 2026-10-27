@@ -169,9 +169,9 @@ class TestSovereignOperationsStudio(unittest.TestCase):
 
         report = self.studio.format_plan_report(dag)
         self.assertIn("# SOVEREIGN OPERATIONS PLAN", report)
-        self.assertIn("## 1. Decomposed Subtask Table", report)
+        self.assertIn("## 1. Decomposed Subtask & Bot Archetype Table", report)
         self.assertIn("## 2. Dependency Flowchart (Mermaid)", report)
-        self.assertIn("## 3. Subtask Execution Code Snippets", report)
+        self.assertIn("## 3. Autonomous Bot Operation Source Modules (Compiled Snippets)", report)
 
 
 if __name__ == "__main__":
