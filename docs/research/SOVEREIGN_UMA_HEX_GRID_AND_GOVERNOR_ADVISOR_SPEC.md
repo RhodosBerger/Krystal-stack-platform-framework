@@ -165,15 +165,23 @@ $$\mathbf{RPE} = (RPE_{\text{time}}, RPE_{\text{energy}}, RPE_{\text{memory}})$$
 kde:
 $$RPE_{\text{time}} = \frac{\sum \tau_i}{Q_{\text{time}}}, \quad RPE_{\text{energy}} = \frac{\sum E_i}{Q_{\text{energy}}}, \quad RPE_{\text{memory}} = \frac{\sum \mu_i}{Q_{\text{memory}}}$$
 
+Všetky tri veličiny sú **striktne bezrozmerné pomery** ($[s]/[s], [J]/[J], [B]/[B]$), v ktorých sa fyzikálne jednotky vykrátia. Nízky harmonický priemer (napr. $0.003 - 0.004$) teda nevzniká z dôvodu „nesúladu jednotiek“, ale je priamym matematickým dôsledkom toho, že **aspoň jedna dimenzia zdrojov vykazuje extrémne nízku utilizáciu** (napr. pamäťový footprint micro-opov je rádovo menší než pridelené kvórum $Q_{\text{memory}}$), alebo je príslušná kvóta naddimenzovaná.
+
+### Diagnostický rozklad RPE vektora & Slack Analýza
+Každá diagnostika a telemetrický report povinne uvádza plný stav:
+$$\mathbf{RPE} = (RPE_{\text{time}}, RPE_{\text{energy}}, RPE_{\text{memory}}), \quad RPE_{\min} = \min(\mathbf{RPE}), \quad RPE_{\max} = \max(\mathbf{RPE})$$
+
+- **Saturačný bottleneck (dominantný zdroj):**
+  $$RPE_{\text{dominant}} = \max(RPE_{\text{time}}, RPE_{\text{energy}}, RPE_{\text{memory}})$$
+  identifikuje subsystém, ktorý dosiahol strop prideleného kvanta a blokuje ďalšie balenie (`TIME`, `ENERGY`, `MEMORY`).
+- **Wasted Capacity / Nevyužitá rezerva (Slack):**
+  $$RPE_{\text{slack}} = 1 - \min(RPE_{\text{time}}, RPE_{\text{energy}}, RPE_{\text{memory}})$$
+  kvantifikuje najviac predimenzovanú dimenziu kvóty, ktorá viaže nevyužité zdroje v turn koordinátore a signalizuje potenciál pre prísnejšie dimenzovanie.
+
 ### Agregát: Resource Packing Balance (nie všeobecná „efektivita“)
-Harmonický priemer troch zložiek RPE nie je univerzálnou mierou výpočtovej efektivity: nízka pamäťová náročnosť (napr. $RPE_{\text{memory}} = 0.20$) pri compute-heavy operáciách ($RPE_{\text{time}} = 0.95, RPE_{\text{energy}} = 0.90$) je žiaducim stavom a nesmie byť penalizovaná ako „neefektívnosť“.
-
-Agregátna metrika sa preto formálne označuje ako **Resource Packing Balance**:
+Harmonický priemer troch bezrozmerných zložiek RPE je citlivý na minimálnu hodnotu, a preto slúži ako miera symetrie balenia zdrojov (**Resource Packing Balance**):
 $$\text{Resource Packing Balance} = \frac{3}{\frac{1}{RPE_{\text{time}}} + \frac{1}{RPE_{\text{energy}}} + \frac{1}{RPE_{\text{memory}}}}$$
-
-Pre presnú bottleneck analýzu a detekciu saturačného limitu sa povinne sleduje dominantná zložka:
-$$RPE_{\text{dominant}} = \max(RPE_{\text{time}}, RPE_{\text{energy}}, RPE_{\text{memory}})$$
-spolu s označením limitujúceho subsystému (`TIME`, `ENERGY`, `MEMORY`).
+Nízka hodnota balance neznamená neefektívnosť výpočtu, ale indikuje asymetrickú záťaž (napr. čistý compute burst bez pamäťových prenosov). Pre rozhodovanie plánovača je smerodajný $RPE_{\text{dominant}}$, kým Balance slúži ako indikátor profilu záťaže.
 
 ---
 
@@ -267,40 +275,104 @@ $$\text{KSL Operation} \implies \text{MicroOp} + \text{CapabilityRequest} + \tex
 
 Výsledky 4-módovej ablation štúdie odhaľujú, že jednotlivé mechaniky control plane neprispievajú k výkonu rovnakým spôsobom a vykazujú skutočný **Pareto trade-off**:
 
-### 10.1 Multiplikatívna dekompozícia priepustnosti
+### 10.1 Multiplikatívna dekompozícia priepustnosti & Proveniencia Contention
 Príspevky jednotlivých vrstiev nie sú aditívne, ale interagujú multiplikatívne:
-$$\text{Gain}_{\text{UMA}} \approx +41.2\% \quad (S0 \to S1: 422\,632 \to 596\,802\,\text{work/s}, \text{ Contention: } 20\% \to 0\%)$$
-$$\text{Gain}_{\text{AdaptiveQuantum} | \text{UMA}} \approx +433.1\% \quad (S1 \to S2: 596\,802 \to 3\,181\,427\,\text{work/s})$$
-$$\text{Gain}_{\text{MicroOpPacking} | \text{Adaptive}} \approx +45.9\% \quad (S2 \to K: 3\,181\,427 \to 4\,642\,409\,\text{work/s})$$
+$$\text{Gain}_{\text{UMA}} \approx +41.21\% \quad (S0 \to S1: 422\,632 \to 596\,802\,\text{work/s})$$
+$$\text{Gain}_{\text{AdaptiveQuantum} | \text{UMA}} \approx +433.08\% \quad (S1 \to S2: 596\,802 \to 3\,181\,427\,\text{work/s})$$
+$$\text{Gain}_{\text{MicroOpPacking} | \text{Adaptive}} \approx +45.92\% \quad (S2 \to K: 3\,181\,427 \to 4\,642\,409\,\text{work/s})$$
 
 Celkový zisk systému:
-$$1.4121 \times 5.3308 \times 1.4592 \approx 10.9845 \implies \mathbf{+998.45\% \text{ Throughput Gain}} \quad (10.98\times \text{ S0 Baseline})$$
+$$\frac{K}{S0} = 1.4121 \times 5.3308 \times 1.4592 \approx 10.9845 \implies \mathbf{+998.45\% \text{ Throughput Gain}} \quad (10.98\times \text{ S0 Baseline})$$
 
-### 10.2 Energetický Pareto Trade-Off: S1 vs K
-Benchmark odhaľuje, že režim K nie je univerzálne „lepší vo všetkom“:
-- **Režim S1 predstavuje energetické optimum:** Dosahuje maximálny merný výkon na Joule ($\approx 18.64 \times 10^6\,\text{work/J}$) vďaka striktnému backoffu pri saturácii a konzervatívnemu statickému kvótu.
-- **Prechod $S1 \to S2$ prináša trade-off:** Throughput stúpa $5.33\times$, ale energetická efektivita klesá o $-19.98\%$ ($\approx 14.92 \times 10^6\,\text{work/J}$) kvôli agresívnemu prebúdzaniu mimo VBlank tieňa.
-- **Prechod $S2 \to K$:** Micro-op packing pridáva $+45.9\%$ throughput pri nulovej zmene $\text{UsefulWork/J}$ ($0\%$), čo dokazuje, že spotreba rastie priamo úmerne s vykonanou prácou — prínos micro-op packera je teda **vyťažovacia hustota (execution density)** a eliminácia idle bublín, nie priama energetická efektivita.
+#### Disambiguácia Proveniencie UMA Contention (20.0% vs 27.0%)
+Pre zachovanie striktnej epistemickej vysledovateľnosti rozlišujeme dve benchmarkové kampane:
+- **Campaign A (Kanonický baseline pre RECIPE-07 / Synthetic Heterogeneous DAG):**
+  Základná kalibrovaná kampaň vykazuje pre S0 statický baseline $\text{UMAConflictRate} = 20.0\%$, ktorú UMA-aware koordinácia v S1/S2/K eliminuje na $0.0\%$.
+- **Campaign B (Vysoko-konkurenčný Stress DAG):**
+  Záťažový scenár so simultánnym pamäťovým prekrývaním viacerých domén vykazuje pre S0 baseline $\text{UMAConflictRate} = 27.0\%$, taktiež zrazenú na $0.0\%$ v S1/S2/K.
+- **Kanonická hodnota:** `RECIPE-07` striktne zakotvuje **Campaign A ($20.0\%$)** ako primárny referenčný baseline pre CI verifikáciu.
 
-### 10.3 Multi-Objective KSL / AEP Compiler Matrix
-Namiesto skalárnej optimalizácie ($\max \text{Performance}$) runtime riadi viacrozmerný cieľ:
-$$\max \left( \text{Throughput}, \text{UsefulWork/J}, \text{Latency}^{-1} \right) \quad \text{pri dodržaní } \text{VITAL\_MAX\_HP} \equiv 6$$
+### 10.2 Skutočná Pareto Hranica: $\{S1, K\}$ & Dominancia nad S2
+Z nameraných dát vyplýva:
+- $S1 = 18.64 \times 10^6\,\text{work/J}$
+- $S2 = 14.92 \times 10^6\,\text{work/J}$
+- $K = 14.92 \times 10^6\,\text{work/J}$
+- Súčasne platí: $\text{Throughput}_K (4.64\text{M}) > \text{Throughput}_{S2} (3.18\text{M})$ a $P95_K (45\,\mu\text{s}) < P95_{S2} (65\,\mu\text{s})$.
 
-| KSL Compiler Direktíva | Preferovaná Runtime Politika | Primárna Optimalizačná Doména |
-|:---|:---:|:---|
-| `optimize energy` | **S1** (UMA-Aware Static) | Maximálna energetická efektivita ($\text{UsefulWork/J}$) |
-| `optimize throughput` | **K** (Full Stack) | Maximálna priepustnosť ($10.98\times$ baseline) |
-| `optimize latency` | **K** (Full Stack) | Minimálny $P95$ turn wait ($45\,\mu\text{s}$ oproti $850\,\mu\text{s}$) |
-| `optimize balanced` | **S2** alebo **K** | Adaptívny trade-off riadený RAPL/tepelným governorom |
+**Dôsledok:** Režim K **ostro dominuje režim S2** vo všetkých troch primárnych cieľoch (priepustnosť, latencia, energetická efektivita). Režim S2 teda momentálne nie je Pareto-optimálny; predstavuje experimentálny medzibod ablácie.
+Skutočná Pareto hranica v 3D priestore $(T, L, E)$ je:
+$$\boxed{\text{ParetoFront} = \{S1, K\}}$$
 
-### 10.4 Hardvérová Roadmapa pre $K\mu\text{ISA} \to \text{FPGA} \to \text{KSAC}$
-Dominantným zdrojom priepustnostného skoku je **Adaptive Quantum Scheduling ($5.33\times$)**.
-Z toho vyplýva kľúčová priorita pre kremíkovú syntézu:
-> **Priorita hardvérového offloadu:** Hardvérovo akcelerovaný výpočet adaptívneho quante a doménová arbitráž na úrovni FPGA/ASIC radiča, nie softvérová vizualizácia UMA hex gridu. Micro-op packing zabezpečuje optimálne plnenie vyčleneného okna.
+Režim S2 sa môže vrátiť na Pareto hranicu iba vtedy, ak vykáže preukázateľnú výhodu v ďalšom, doteraz nesledovanom parametri (napr. peak power, thermal headroom, FPGA hradlová réžia, jitter, fairness).
 
-### 10.5 RECIPE-07 ako Formálny Regression Oracle
-`RECIPE-07-RUNTIME-CONTROL-PLANE-BENCHMARK` slúži ako formálny **Regression Oracle** v CI pipeline:
-$$K_{\text{throughput}} > S0_{\text{throughput}} \land P95_K < P95_{S0} \land \text{UMAConflict}_K \equiv 0$$
-Invariant $\text{DELTA\_S == 0\_ON\_REGRESSION}$ zaručuje, že akýkoľvek pokles metrík okamžite zablokuje zmenu produkčnej scheduling politiky.
+### 10.3 KSL Objective Semantics: Deklaratívny Zámer
+Namiesto hardkódovaného priraďovania politík (napr. `optimize balanced → S2`) vyjadruje KSL deklaratívny zámer a obmedzenia, pričom runtime rieši:
+$$\arg\max_{p \in \text{ParetoFront}} J(p)$$
 
-Týmto je špecifikácia uzavretá ako **ARCHITECTURALLY CONSISTENT** a pripravená slúžiť ako exekučná sémantika pre KSL backend.
+Podporované sú tri optimalizačné formulácie:
+1. **Weighted Objective (pre vyvážený režim):**
+   $$J = w_T \hat{T} + w_E \widehat{Work/J} + w_L \widehat{Latency^{-1}}$$
+   Vhodné pre `optimize balanced`, kde dynamický `ParetoSelector(S1, K, ...)` volí politiku podľa váh z RAPL/tepelného governora.
+2. **Lexicographic Objective (prioritné radenie cieľov):**
+   ```rust
+   optimize {
+       primary energy;
+       secondary latency;
+       tertiary throughput;
+   }
+   ```
+   Riešenie najprv maximalizuje primárny cieľ ($S1$) a medzi rovnocennými riešeniami minimalizuje latenciu.
+3. **$\epsilon$-Constraint Formulation (Kanonická pre Krystal):**
+   $$\max \text{Throughput} \quad \text{subject to } \left\{ \begin{array}{l} Work/J \ge E_{\min} \\ P95 \le L_{\max} \\ \text{UMAConflict} \equiv 0 \\ \text{SafetyViolations} \equiv 0 \end{array} \right.$$
+   Tento prístup plne rešpektuje ústavné hard constraints Krystal Stacku.
+
+### 10.4 KSL $\to$ PolicySelector Architektúra
+Celý prekladový reťazec pre výber scheduling politiky:
+```text
+KSL Source
+   ↓
+Objective Parser
+   ↓
+Constraint IR
+   ↓
+Candidate Runtime Policies (S0, S1, S2, K)
+   ↓
+Pareto Filter (p_i ≺ p_j: eliminuje S0 a S2 v 3D priestore)
+   ↓
+Constraint Gate (Hard Invariants: VITAL_MAX_HP == 6, Latency Limits)
+   ↓
+Policy Ranking (Weighted / Lexicographic / ε-Constraint)
+   ↓
+AEP Authorization
+   ↓
+KµISA Lowering
+```
+
+### 10.5 Špecializované Promotion Oracles pre RECIPE-07
+Namiesto jedného univerzálneho orakula zavádza `RECIPE-07` orakuly špecializované podľa cieľa:
+- **Throughput Promotion Oracle ($K$):**
+  $$K_{\text{throughput}} > S0_{\text{throughput}} \land P95_K \le P95_{\max} \land \text{UMAConflict}_K \equiv 0$$
+- **Energy Promotion Oracle ($S1$):**
+  $$Work/J_{S1} > Work/J_{S0} \land P95_{S1} \le P95_{\max} \land \text{SafetyViolations} \equiv 0$$
+- **Latency Promotion Oracle ($K$):**
+  $$P95_{\text{cand}} < P95_{\text{baseline}} \land \text{SafetyViolations} \equiv 0 \land \text{UMAConflict} \equiv 0$$
+Porušenie ktoréhokoľvek orakula vyvoláva $\Delta S \equiv 0$ a zablokuje nasadenie politiky.
+
+### 10.6 Hardvérová Roadmapa pre Silicon Syntézu
+Multiplikatívna dekompozícia dokazuje, že dominantným zdrojom zrýchlenia je **Adaptive Quantum ($5.33\times$)**. Z toho vyplýva jasná hierarchia priorít pre kremíkovú syntézu ($K\mu\text{ISA} \to \text{FPGA} \to \text{KSAC}$):
+1. **`AdaptiveQuantumEngine` (P1 - Najvyšší multiplikátor):**
+   Hardvérovo akcelerovaný výpočet dynamického kvanta $Q_{t+1} = F(L, UMA, T, Queue, Priority, Q_t)$.
+   - *RTL Kontrakt:*
+     - Vstupy: `latency_pressure`, `uma_pressure`, `thermal_headroom`, `queue_pressure`, `priority`, `previous_quantum`.
+     - Výstupy: `next_quantum`, `confidence`, `constraint_flags`.
+2. **`DomainArbitrationEngine` (P2):**
+   Hardvérová doménová arbitráž, správa turn tokens a zero-copy bariéry.
+3. **`MicroOpPackingEngine` (P3):**
+   3D knapsack greedy packer pre optimalizáciu vyťažovacej hustoty v pridelenom kvante.
+*Poznámka:* UMA Hex Grid ostáva výhradne observačnou/diagnostickou telemetrickou vrstvou.
+
+### 10.7 Epistemický Status Benchmarku & Nová Definícia KSL
+- **Klasifikácia dôkazu:** $\boxed{[SOFTWARE/HARNESS\ BENCHMARK]}$. Ablation analýza exaktne izoluje *mechanizmy v modeli*, ale skutočný prenos zisku do fyzického hardvéru vyžaduje priamu sondu `[FPGA-MEASURED]`.
+- **Architektonický posun:** Krystal Stack sa posunul z adaptívneho schedulera na $\boxed{\text{Constraint-Governed Multi-Objective Runtime}}$.
+- **Formálna definícia KSL:**
+  $$\boxed{\text{what to compute} + \text{what to optimize} + \text{what must never be violated}}$$
