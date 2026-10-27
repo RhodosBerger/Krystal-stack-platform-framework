@@ -1355,6 +1355,63 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             self.send_json(res)
             return
 
+        # ── API: Control Metrics Layer & Validation Receipts ────────
+        elif norm_path in ("/api/control-metrics/summary", "/api/control-metrics/dashboard", "/api/control-metrics/metrics"):
+            from krystal_kernel.control_metrics_layer import GLOBAL_CONTROL_METRICS_LAYER
+            summary = GLOBAL_CONTROL_METRICS_LAYER.get_summary()
+            self.send_json(summary.to_dict())
+            return
+
+        # ── API: AEP Nine-Layer Control Metrics v2 (Four-Axis Contract) ─
+        elif norm_path in ("/api/aep/control-metrics/summary", "/api/aep/metrics", "/api/aep/dashboard"):
+            from krystal_kernel.aep_control_metrics import GLOBAL_AEP_CONTROL_METRICS_ENGINE
+            dash = GLOBAL_AEP_CONTROL_METRICS_ENGINE.evaluate_dashboard_minimum()
+            snap = GLOBAL_AEP_CONTROL_METRICS_ENGINE.compute_all_layer_metrics()
+            self.send_json({
+                "four_axis_contract": {
+                    "control_validity": dash.four_axis_contract.control_validity.value,
+                    "runtime_posture": dash.four_axis_contract.runtime_posture.value,
+                    "prediction_quality": dash.four_axis_contract.prediction_quality,
+                    "prediction_grade": dash.four_axis_contract.prediction_grade.value,
+                    "calibration_trend": dash.four_axis_contract.calibration_trend,
+                    "is_learning_confirmed": dash.four_axis_contract.is_learning_confirmed,
+                    "utility_gain_percent": dash.four_axis_contract.utility_gain_percent,
+                    "utility_status": dash.four_axis_contract.utility_status.value,
+                    "certification": dash.four_axis_contract.certification.value,
+                },
+                "dashboard_minimum": {
+                    "state_integrity": dash.state_integrity,
+                    "telemetry_freshness": dash.telemetry_freshness,
+                    "invariant_violations": dash.invariant_violations,
+                    "prediction_mae": dash.prediction_mae,
+                    "transition_reliability": dash.transition_reliability,
+                    "pressure_margin_normalized": dash.pressure_margin_normalized,
+                    "deadline_miss_rate": dash.deadline_miss_rate,
+                    "policy_utility_gain": dash.policy_utility_gain,
+                    "invalid_commit_rate": dash.invalid_commit_rate,
+                    "receipt_completeness": dash.receipt_completeness,
+                    "conduct_flags": dash.conduct_flags,
+                },
+                "layer_metrics": asdict(snap)
+            })
+            return
+
+        # ── API: 15 Secondary Innovation Loops & Core Five Portfolio 
+        elif norm_path in ("/api/innovation-loops/catalog", "/api/innovation-loops/list"):
+            from krystal_kernel.secondary_innovation_loops import GLOBAL_SECONDARY_INNOVATION_COORDINATOR
+            self.send_json({
+                "status": "CATALOG_READY",
+                "total_loops": 15,
+                "loops": GLOBAL_SECONDARY_INNOVATION_COORDINATOR.get_catalog()
+            })
+            return
+
+        elif norm_path in ("/api/innovation-loops/top5", "/api/innovation-loops/core5"):
+            from krystal_kernel.secondary_innovation_loops import GLOBAL_SECONDARY_INNOVATION_COORDINATOR
+            summary = GLOBAL_SECONDARY_INNOVATION_COORDINATOR.execute_core_five_pipeline()
+            self.send_json(asdict(summary))
+            return
+
         # ── API: Gram Readers & Impedance Evaluator Telemetry ───────
         elif norm_path == "/api/impedance/telemetry":
             from krystal_kernel.gram_and_impedance_engine import GLOBAL_GRAM_AND_IMPEDANCE_ENGINE
@@ -4132,6 +4189,25 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # ── API: GraphQL CV GTD Predictive Scheduler Status ────────
+        elif self._route_path() in ("/api/graphql/cv-gtd/status", "/api/graphql/status"):
+            from krystal_kernel.graphql_cv_task_gtd_engine import (
+                GLOBAL_GRAPHQL_CV_GTD_SCHEDULER,
+                GLOBAL_LLM_RAG_DECOMPOSER,
+                HeterogeneousDeviceTarget,
+                GtdTaskPhase,
+            )
+            self.send_json({
+                "status": "OPERATIONAL",
+                "engine": "HeterogeneousGtdScheduler",
+                "theory_ref": "THEORY-GRAPHQL-CV-PREDICTIVE-TASK-TACTIC-GTD",
+                "supported_devices": [d.value for d in HeterogeneousDeviceTarget],
+                "gtd_phases": [p.value for p in GtdTaskPhase],
+                "execution_history_count": len(GLOBAL_GRAPHQL_CV_GTD_SCHEDULER.history_receipts),
+                "vital_max_hp": 6
+            })
+            return
+
         # ── API: Server-Sent Events (SSE) Stream ───────────────────
         elif self.path == "/api/stream":
             self.send_response(200)
@@ -4322,6 +4398,104 @@ class KrystalHubHandler(BaseHTTPRequestHandler):
             from krystal_kernel.sovereign_introspective_search_engine import GLOBAL_INTROSPECTIVE_SEARCH_ENGINE
             res = GLOBAL_INTROSPECTIVE_SEARCH_ENGINE.execute_introspective_cycle(data)
             self.send_json(res.to_dict())
+            return
+
+        # ── API: GraphQL CV Task GTD Predictive Schedule ───────────
+        if self.path in ("/api/graphql/inspect-and-schedule", "/api/graphql/gtd/execute"):
+            from krystal_kernel.graphql_cv_task_gtd_engine import (
+                GLOBAL_GRAPHQL_CV_GTD_SCHEDULER,
+                GLOBAL_LLM_RAG_DECOMPOSER,
+                HeterogeneousDeviceTarget,
+            )
+            query_str = data.get("query", "")
+            target_str = data.get("device_target", "AUTO_SELECT")
+            try:
+                target_dev = HeterogeneousDeviceTarget(target_str)
+            except ValueError:
+                target_dev = HeterogeneousDeviceTarget.AUTO_SELECT
+
+            decompose_mode = data.get("decompose", True)
+            if decompose_mode:
+                decomp_res = GLOBAL_LLM_RAG_DECOMPOSER.decompose_query(query_str)
+                receipt = GLOBAL_GRAPHQL_CV_GTD_SCHEDULER.execute_gtd_cycle(
+                    query_str=query_str,
+                    dag_nodes=decomp_res["atomic_sub_tasks"],
+                    preferred_device=target_dev
+                )
+                self.send_json({
+                    "decomposition": decomp_res,
+                    "receipt": receipt.to_dict(),
+                    "vital_max_hp": 6
+                })
+            else:
+                receipt = GLOBAL_GRAPHQL_CV_GTD_SCHEDULER.execute_gtd_cycle(
+                    query_str=query_str,
+                    preferred_device=target_dev
+                )
+                self.send_json({
+                    "receipt": receipt.to_dict(),
+                    "vital_max_hp": 6
+                })
+            return
+
+        # ── API: Omni Four Poles Integration Pipeline ───────────────
+        if self.path in ("/api/omni/execute_all_poles", "/api/omni/simulate"):
+            from krystal_kernel.omni_four_poles_pipeline import execute_omni_simulation_pipeline
+            res = execute_omni_simulation_pipeline(data)
+            self.send_json(res)
+            return
+
+        # ── API: Control Metrics Layer Record Transition ────────────
+        if self.path in ("/api/control-metrics/record-transition", "/api/control-metrics/transition"):
+            from krystal_kernel.control_metrics_layer import GLOBAL_CONTROL_METRICS_LAYER
+            t_id = data.get("transition_id", f"TRANS-{int(time.time()*1000)}")
+            before = data.get("before_state", [0.5, 0.5, 0.5])
+            pred = data.get("predicted_state", [0.55, 0.52, 0.48])
+            act = data.get("action", "ADAPTIVE_FREQUENCY_TUNE")
+            after = data.get("after_state", None) # None implies untrusted if not measured
+            receipt = GLOBAL_CONTROL_METRICS_LAYER.record_transition(
+                transition_id=t_id,
+                before_state=before,
+                predicted_state=pred,
+                action=act,
+                after_state=after,
+                completeness=float(data.get("completeness", 1.0)),
+                freshness=float(data.get("freshness", 0.98)),
+                confidence=float(data.get("confidence", 0.95)),
+                planning_time_ms=float(data.get("planning_time_ms", 0.45)),
+                workload_exec_time_ms=float(data.get("workload_exec_time_ms", 12.0)),
+                energy_joules=float(data.get("energy_joules", 18.5)),
+                verified_work_units=float(data.get("verified_work_units", 100.0)),
+                operating_cost_usd=float(data.get("operating_cost_usd", 0.0012)),
+                is_rollback=bool(data.get("is_rollback", False)),
+                constraint_violations_in_transition=int(data.get("constraint_violations", 0)),
+                is_correct_candidate=bool(data.get("is_correct_candidate", True)),
+                action_direction=int(data.get("action_direction", 1)),
+                quadrant=str(data.get("quadrant", "Q2"))
+            )
+            self.send_json(receipt.to_dict())
+            return
+
+        # ── API: AEP Verify AepReceipt Quality ──────────────────────
+        if self.path in ("/api/aep/control-metrics/verify-receipt", "/api/aep/receipt/verify"):
+            from krystal_kernel.aep_control_metrics import GLOBAL_AEP_CONTROL_METRICS_ENGINE
+            res = GLOBAL_AEP_CONTROL_METRICS_ENGINE.verify_aep_receipt(data)
+            self.send_json(asdict(res))
+            return
+
+        # ── API: Execute Top-5 Innovation Loops Pipeline ────────────
+        if self.path in ("/api/innovation-loops/execute-top5", "/api/innovation-loops/run-core5"):
+            from krystal_kernel.secondary_innovation_loops import GLOBAL_SECONDARY_INNOVATION_COORDINATOR
+            res = GLOBAL_SECONDARY_INNOVATION_COORDINATOR.execute_core_five_pipeline(
+                predicted_state=data.get("predicted_state"),
+                actual_state=data.get("actual_state"),
+                candidate_actions=data.get("candidate_actions"),
+                current_deviation_key=data.get("deviation_key", "DEV-THERMAL-DRIFT-01"),
+                source_device=data.get("source_device", "CPU_AVX512"),
+                target_device=data.get("target_device", "GPU_IRIS_XE"),
+                receipt_sample=data.get("receipt_sample")
+            )
+            self.send_json(asdict(res))
             return
 
         # ── API: Hybrid MCP Connector & Antigravity Synchronization ──

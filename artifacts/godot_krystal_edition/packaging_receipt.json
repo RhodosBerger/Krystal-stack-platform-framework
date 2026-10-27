@@ -1,12 +1,12 @@
 {
-  "package_id": "GKE-PKG-1792931528",
+  "package_id": "GKE-PKG-1793135590",
   "output_directory": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\artifacts\\godot_krystal_edition",
   "total_files_packaged": 39,
   "total_bytes_packaged": 153602,
   "manifest_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\artifacts\\godot_krystal_edition\\krystal_edition_manifest.json",
   "launcher_bat_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\godot_krystal_edition.bat",
   "launcher_sh_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\godot_krystal_edition.sh",
-  "hmac_digest": "ff79e7690ec73de85873f5507a50cb757e09bfd1325b9da3093b9ff17d26389e",
-  "timestamp_iso": "2026-10-25T12:32:08Z",
+  "hmac_digest": "ff00a0c61363ac53ebf2b56eb5ea74e4935e9204910e5401bd66d0988d30cb93",
+  "timestamp_iso": "2026-10-27T21:13:10Z",
   "vital_max_hp": 6
 }

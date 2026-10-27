@@ -1,0 +1,15 @@
+{
+  "fpga_family": "Xilinx Kintex UltraScale+",
+  "part_number": "XCKU040-FFVA1156-2-E",
+  "dsp48e2_slices": 1920,
+  "bram_36k_blocks": 600,
+  "ultra_ram_blocks": 0,
+  "logic_cells": 530250,
+  "clb_flip_flops": 484800,
+  "clock_frequency_mhz": 250.0,
+  "internal_core_voltage_v": 0.85,
+  "measured_idle_power_w": 2.1,
+  "measured_active_control_power_w": 4.2,
+  "thermal_package": "FFVA1156 BGA",
+  "cooling": "Passive heatsink + 40mm fan"
+}

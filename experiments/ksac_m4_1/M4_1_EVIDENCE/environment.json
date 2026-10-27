@@ -1,0 +1,15 @@
+{
+  "host_os": "Linux 6.6.13-cloud-x86_64",
+  "cpu_governor": "performance",
+  "ambient_temperature_c": 21.5,
+  "thermal_headroom_c": 32.0,
+  "power_rails": {
+    "host_vcc": "12.0V ATX",
+    "fpga_vccint": "0.85V Core (Kintex-US+)",
+    "fpga_vccio": "1.8V IO",
+    "fpga_mgtavcc": "1.0V Transceiver"
+  },
+  "workload_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "dataset_hash": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e",
+  "vital_max_hp": 6
+}

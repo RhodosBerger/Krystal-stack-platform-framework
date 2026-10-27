@@ -1,0 +1,22 @@
+{
+  "mode": "K_ADAPTIVE",
+  "initial_batch_size": 64,
+  "initial_worker_threads": 4,
+  "governor": "adaptive_ksac_bridge",
+  "adaptive_control_active": true,
+  "fpga_coprocessor_enabled": true,
+  "microcode_pipeline_clock_mhz": 250.0,
+  "pcie_dma_mailbox_channel": 0,
+  "polling_interval_us": 100,
+  "action_space": [
+    "HOLD",
+    "BATCH_DOWN",
+    "BATCH_UP",
+    "WORKERS_DOWN",
+    "WORKERS_UP",
+    "PERF_HINT_UP",
+    "PERF_HINT_DOWN"
+  ],
+  "sla_p95_threshold_ms": 20.0,
+  "safety_invariant_engine": "HARDWARE_ASSERTION_VITAL_6"
+}

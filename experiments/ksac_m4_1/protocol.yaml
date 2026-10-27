@@ -1,0 +1,73 @@
+# ==============================================================================
+# KSAC M4.1 — PHYSICAL VALIDATION EXPERIMENTAL PROTOCOL
+# ==============================================================================
+# Normative Status: FROZEN EXPERIMENTAL BENCHMARK SPECIFICATION
+# Constitutional Invariant: VITAL_MAX_HP == 6 (Delta S == 0 on breach)
+# Central Empirical Question: VHL_F > 1.0 ?
+# ==============================================================================
+
+experiment:
+  id: "KSAC-M4.1-VHL-PHYSICAL-VALIDATION"
+  version: "1.0-FROZEN"
+  date: "2026-10-27"
+  lead_hypothesis: "H1: VHL_F > 1.0 (FPGA Adaptive Control Fabric increases Work/Joule on host)"
+  null_hypothesis: "H0: VHL_F <= 1.0 (Control overhead cancels or exceeds efficiency gains)"
+
+definitions:
+  vhl_f:
+    formula: "(W_A / E_A) / (W_B / E_B)"
+    description: "Verified Hardware Leverage physically measured on hardware"
+    energy_rule: "E_A = E_host + E_accelerator + E_FPGA (Zero deduction of control overhead)"
+  
+  useful_work:
+    criteria: "Total completed inference or task units strictly meeting SLA"
+    validity_gate: "latency < P95_limit AND output_valid == True"
+    degradation_rule: "Dropped quality or SLA breach disqualifies work unit from W"
+
+  clf_normalized:
+    formula: "(Delta_W / W_B) / (E_control / E_B)"
+    description: "Normalized Control Leverage Factor (relative performance leverage per unit control energy)"
+
+  calibration_error:
+    absolute: "abs(VHL_S - VHL_F)"
+    relative: "abs(VHL_S - VHL_F) / VHL_S"
+
+baselines:
+  - id: "B0"
+    name: "OS Default Governor"
+    description: "Standard Linux CFS scheduler and ondemand/powersave governor"
+  - id: "B1"
+    name: "Static Hand-Tuned Optimum"
+    description: "Fixed statically tuned batch, worker count, and pinned clock (Key target: K > B1)"
+  - id: "B2"
+    name: "Dynamic State-of-the-Art Governor"
+    description: "Best commercial runtime autoscaler / dynamic governor"
+  - id: "K"
+    name: "KCB-M4 FPGA Adaptive"
+    description: "Krystal Control Coprocessor active via PCIe mailbox (208 ns core pipeline)"
+
+workload:
+  name: "Heterogeneous Compute Inference & GraphQL DAG"
+  state_vector: "[C, M, T, E, Q, L]" # Compute, Memory, Thermal, Energy, Queue, Latency
+  action_space:
+    A0: "HOLD"
+    A1: "BATCH_DOWN"
+    A2: "BATCH_UP"
+    A3: "WORKERS_DOWN"
+    A4: "WORKERS_UP"
+    A5: "PERFORMANCE_HINT_UP"
+    A6: "PERFORMANCE_HINT_DOWN"
+  voltage_writes_allowed: false
+
+timing_separation:
+  t_core_target_ns: 208.0    # FPGA internal microcode pipeline (Ingress -> DecisionLatch)
+  t_system_target_us: 2.85   # Host-to-host end-to-end loop via PCIe mailbox
+
+statistical_protocol:
+  min_runs: 30
+  randomized_sequence: true # e.g. B, K, K, B, K, B, B, K...
+  confidence_interval_pct: 95.0
+  pass_criteria:
+    formal_pass: "CI_95_lower(VHL_F) > 1.0"
+    strong_pass: "CI_95_lower(VHL_F) > 1.10"
+    safety_gate: "InvariantViolationRate == 0 AND InvalidCommitRate == 0"

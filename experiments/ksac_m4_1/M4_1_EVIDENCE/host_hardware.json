@@ -1,0 +1,13 @@
+{
+  "cpu_model": "Intel(R) Core(TM) i5-1135G7 @ 2.40GHz (Tiger Lake)",
+  "cores_physical": 4,
+  "cores_logical": 8,
+  "base_frequency_ghz": 2.4,
+  "all_core_turbo_ghz": 3.8,
+  "single_core_turbo_ghz": 4.2,
+  "l3_cache_mb": 8,
+  "dram_capacity_gb": 16,
+  "dram_type": "LPDDR4x-4266",
+  "pcie_link": "PCIe Gen3 x4 (via M.2 / Thunderbolt bridge)",
+  "pcie_bandwidth_gbps": 3.94
+}

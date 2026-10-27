@@ -1,0 +1,10 @@
+{
+  "mode": "B1_TUNED",
+  "batch_size": 64,
+  "worker_threads": 4,
+  "governor": "performance",
+  "frequency_mhz": 3200,
+  "adaptive_control_active": false,
+  "fpga_coprocessor_enabled": false,
+  "sla_p95_threshold_ms": 20.0
+}

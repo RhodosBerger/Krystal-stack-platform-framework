@@ -1,18 +1,18 @@
 {
-  "run_id": "RUN-TEST-1792931592",
-  "timestamp_iso": "2026-10-25T12:33:12Z",
+  "run_id": "RUN-TEST-1793135677",
+  "timestamp_iso": "2026-10-27T21:14:37Z",
   "total_layers_tested": 6,
   "all_layers_passed": true,
-  "total_duration_ms": 132.069,
+  "total_duration_ms": 234.69,
   "layer_benchmarks": {
     "L0_SILICON_PDN": {
       "layer_name": "L0_SILICON_PDN",
       "iterations": 2000,
-      "total_duration_ms": 12.011,
-      "throughput_ops_per_sec": 166518.2,
-      "latency_p50_us": 0.8,
-      "latency_p95_us": 1.6,
-      "latency_p99_us": 1.9,
+      "total_duration_ms": 18.441,
+      "throughput_ops_per_sec": 108452.8,
+      "latency_p50_us": 1.4,
+      "latency_p95_us": 2.2,
+      "latency_p99_us": 3.1,
       "passed": true,
       "empirical_indicators": {
         "safe_evaluations": 2000,
@@ -24,11 +24,11 @@
     "L1_CHRONOMETRIC_RENDER": {
       "layer_name": "L1_CHRONOMETRIC_RENDER",
       "iterations": 1500,
-      "total_duration_ms": 5.312,
-      "throughput_ops_per_sec": 282374.2,
-      "latency_p50_us": 0.4,
-      "latency_p95_us": 0.5,
-      "latency_p99_us": 0.7,
+      "total_duration_ms": 14.514,
+      "throughput_ops_per_sec": 103348.5,
+      "latency_p50_us": 0.9,
+      "latency_p95_us": 1.2,
+      "latency_p99_us": 2.3,
       "passed": true,
       "empirical_indicators": {
         "safe_60hz_adherence": 750,
@@ -40,11 +40,11 @@
     "L2_SPATIAL_SYMPLECTIC": {
       "layer_name": "L2_SPATIAL_SYMPLECTIC",
       "iterations": 10000,
-      "total_duration_ms": 5.575,
-      "throughput_ops_per_sec": 1793786.3,
-      "latency_p50_us": 0.557,
-      "latency_p95_us": 0.669,
-      "latency_p99_us": 0.836,
+      "total_duration_ms": 6.967,
+      "throughput_ops_per_sec": 1435296.8,
+      "latency_p50_us": 0.697,
+      "latency_p95_us": 0.836,
+      "latency_p99_us": 1.045,
       "passed": true,
       "empirical_indicators": {
         "det_j_preservation": 1.0,
@@ -59,11 +59,11 @@
     "L3_COGNITIVE_CADENCE": {
       "layer_name": "L3_COGNITIVE_CADENCE",
       "iterations": 1200,
-      "total_duration_ms": 5.728,
-      "throughput_ops_per_sec": 209504.5,
+      "total_duration_ms": 9.382,
+      "throughput_ops_per_sec": 127904.5,
       "latency_p50_us": 0.6,
-      "latency_p95_us": 0.8,
-      "latency_p99_us": 1.0,
+      "latency_p95_us": 1.5,
+      "latency_p99_us": 3.6,
       "passed": true,
       "empirical_indicators": {
         "min_dwell_frames": 12,
@@ -76,11 +76,11 @@
     "L4_SPSC_ZERO_COPY": {
       "layer_name": "L4_SPSC_ZERO_COPY",
       "iterations": 15000,
-      "total_duration_ms": 99.153,
-      "throughput_ops_per_sec": 151282.1,
-      "latency_p50_us": 2.2,
-      "latency_p95_us": 3.8,
-      "latency_p99_us": 4.2,
+      "total_duration_ms": 177.627,
+      "throughput_ops_per_sec": 84446.6,
+      "latency_p50_us": 3.0,
+      "latency_p95_us": 6.3,
+      "latency_p99_us": 13.3,
       "passed": true,
       "empirical_indicators": {
         "frame_size_bytes": 128,
@@ -93,11 +93,11 @@
     "L5_CONSTITUTIONAL_GATEKEEPER": {
       "layer_name": "L5_CONSTITUTIONAL_GATEKEEPER",
       "iterations": 1000,
-      "total_duration_ms": 2.562,
-      "throughput_ops_per_sec": 390304.8,
-      "latency_p50_us": 0.2,
-      "latency_p95_us": 0.3,
-      "latency_p99_us": 0.3,
+      "total_duration_ms": 3.737,
+      "throughput_ops_per_sec": 267580.0,
+      "latency_p50_us": 0.3,
+      "latency_p95_us": 0.6,
+      "latency_p99_us": 1.1,
       "passed": true,
       "empirical_indicators": {
         "safe_commits": 334,
@@ -109,6 +109,6 @@
       "vital_max_hp": 6
     }
   },
-  "receipt_hmac_digest": "1efaa8ffd73850f4c19711241dc5895db97ff084c1a83dc988a30c35385efa23",
+  "receipt_hmac_digest": "158447023f021c2a46dcab64dbcaead575b48b817b3ee9058b5a1e5f36c014b5",
   "vital_max_hp": 6
 }

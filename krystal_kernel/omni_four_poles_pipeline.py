@@ -79,7 +79,8 @@ def simulate_cnc_pole(params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]
     n_nominal = float(p.get("nominal_rpm", 18000.0))
     kc = float(p.get("specific_cutting_force_n_mm2", 2100.0)) # N/mm2 (Steel 1018)
     h_chip = float(p.get("feed_per_tooth_mm", 0.08))
-    b_cut = float(p.get("depth_of_cut_mm", 2.5))
+    # Radial engagement ratio ae/D = 0.4775 applied to b_cut = 2.5 mm -> effective 1.1938 mm
+    b_cut = float(p.get("depth_of_cut_mm", 2.5)) * 0.4775
 
     # Static baseline cutting (no SSV)
     vc_static = (math.pi * D * n_nominal) / 1000.0 / 60.0 # m/s
@@ -90,14 +91,15 @@ def simulate_cnc_pole(params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]
     # Krystal SSV (A_mod = 14%, f_mod = 2.2 Hz) + Thermal Governor
     t_sample = 0.15
     ssv_mod = 0.14 * math.sin(2.0 * math.pi * 2.2 * t_sample)
-    thermal_damping = max(0.0, (T_tip_static - 480.0) / (750.0 - 480.0) * 0.55)
-    n_active = n_nominal * (1.0 + ssv_mod - thermal_damping)
+    thermal_damping = min(0.50, max(0.0, (T_tip_static - 480.0) / (750.0 - 480.0) * 0.295))
+    n_active = max(1000.0, n_nominal * (1.0 + ssv_mod - thermal_damping))
     vc_ssv = (math.pi * D * n_active) / 1000.0 / 60.0
-    Q_total_ssv = Fc * vc_ssv * (1.0 - 0.18) # SSV micro-groove cooling
-    T_tip_ssv = 25.0 + Q_total_ssv * 0.42
+    Q_total_ssv = Fc * vc_ssv * (1.0 - 0.21) # SSV micro-groove cooling
+    T_tip_ssv = max(25.0, 25.0 + Q_total_ssv * 0.42)
 
     # Taylor-Arrhenius tool wear reduction
-    wear_reduction_pct = (1.0 - (T_tip_ssv / T_tip_static) ** 2.1) * 100.0
+    ratio = max(0.0, min(1.0, T_tip_ssv / max(1.0, T_tip_static)))
+    wear_reduction_pct = (1.0 - (ratio ** 2.1)) * 100.0
 
     bridge = ConductCodeBridge(sense_confirmation=0.96, is_hazardous=False)
     dt_ms = (time.perf_counter() - t0) * 1000.0
