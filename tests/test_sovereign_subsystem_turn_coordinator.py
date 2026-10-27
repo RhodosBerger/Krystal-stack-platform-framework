@@ -36,6 +36,10 @@ from krystal_kernel.sovereign_subsystem_turn_coordinator import (
     SafeOperationSelectionPack,
     InstructionalDependencyCoordinator,
     run_static_vs_agile_drafting_benchmark,
+    AblationConfigurationId,
+    AblationConfigurationMetrics,
+    ComponentAblationReport,
+    run_four_configuration_component_ablation,
     GLOBAL_SUBSYSTEM_TURN_COORDINATOR,
 )
 
@@ -460,8 +464,40 @@ class TestInstructionalDependencyCoordinator(unittest.TestCase):
         telemetry = self.coordinator.get_coordinator_telemetry()
         self.assertTrue(telemetry["constitutional_invariant_intact"])
         self.assertIn("average_turn_efficiency", telemetry)
+        self.assertIn("average_verified_useful_time_efficiency", telemetry)
+        self.assertIn("average_turn_utility_density", telemetry)
         self.assertIn("quantum_overrun_rate", telemetry)
         self.assertIn("lock_conflict_rate", telemetry)
+
+    def test_turn_utility_density_and_useful_efficiency(self) -> None:
+        """Verifies Verified Useful Time Efficiency (VUTE) and Turn Utility Density (TUD)."""
+        op = CandidateOperation(
+            operation_id="OP-TEST-VUTE",
+            title="High Value Operation",
+            subsystem=SubsystemNodeId.CHRONO_SOC,
+            proposer_id="PROP_A",
+            evaluator_id="EVAL_B",
+            required_capability=CapabilityScope.CAN_EXECUTE,
+            estimated_latency_us=200.0,
+            estimated_energy_uj=10.0,
+            priority=5,
+            resource_domains={"DOMAIN_VUTE"}
+        )
+        ok, tok, _ = self.coordinator.request_and_grant_turn(op)
+        self.assertTrue(ok)
+        self.assertIsNotNone(tok)
+
+        # Commit with latency 150us on allocated 200us
+        # TE = 150/200 = 0.75, VUTE = 0.75, TUD = priority(5) * VUTE(0.75) = 3.75
+        receipt = self.coordinator.yield_turn_commit(
+            tok,
+            latency_us=150.0,
+            energy_uj=10.0,
+            output_payload_hash="hash_vute"
+        )
+        self.assertEqual(receipt.delta_s, 1)
+        self.assertAlmostEqual(self.coordinator.average_verified_useful_time_efficiency, 150.0 / tok.allocated_quantum_us, places=2)
+        self.assertAlmostEqual(self.coordinator.average_turn_utility_density, 5.0 * (150.0 / tok.allocated_quantum_us), places=2)
 
     def test_static_vs_agile_drafting_benchmark(self) -> None:
         """Benchmark confirms that agile drafting delivers superior utility and DraftingGain > 0."""
@@ -471,7 +507,47 @@ class TestInstructionalDependencyCoordinator(unittest.TestCase):
         self.assertIn("drafting_gain", benchmark_results)
         self.assertGreater(benchmark_results["drafting_gain"], 0.0)
         self.assertEqual(benchmark_results["conclusion"], "AGILE_DRAFTED_SUPERIOR")
+        self.assertIn("f(DAG, DomainTopology, QuantumPolicy, WorkloadDistribution)", benchmark_results["epistemic_scope"])
+        self.assertIn("STRONG_PASS", benchmark_results["verdict"])
+        self.assertIn("Scoped", benchmark_results["verdict"])
         self.assertGreater(benchmark_results["agile_drafted_metrics"]["utility"], 0.0)
+
+    def test_four_configuration_component_ablation(self) -> None:
+        """Verifies 2x2 factorial component ablation: Gain_total = Gain_quantum + Gain_parallelism + InteractionGain."""
+        report = run_four_configuration_component_ablation(repetitions=3)
+
+        self.assertTrue(report.constitutional_invariant_verified)
+        self.assertEqual(report.epistemic_scope, "f(DAG, DomainTopology, QuantumPolicy, WorkloadDistribution)")
+        self.assertIn("STRONG_PASS", report.verdict)
+
+        # Check that all 4 configurations exist and have valid metrics
+        self.assertEqual(report.a0_static_global_mutex.configuration_id, AblationConfigurationId.A0_STATIC_GLOBAL_MUTEX)
+        self.assertEqual(report.a1_adaptive_global_mutex.configuration_id, AblationConfigurationId.A1_ADAPTIVE_GLOBAL_MUTEX)
+        self.assertEqual(report.a2_static_domain_parallel.configuration_id, AblationConfigurationId.A2_STATIC_DOMAIN_PARALLEL)
+        self.assertEqual(report.a3_adaptive_domain_parallel.configuration_id, AblationConfigurationId.A3_ADAPTIVE_DOMAIN_PARALLEL)
+
+        # Overruns: Static has 20% overrun (OP-LLM-01 is 650us > 500us), Adaptive has 0%
+        self.assertAlmostEqual(report.a0_static_global_mutex.quantum_overrun_rate, 0.20, places=2)
+        self.assertEqual(report.a1_adaptive_global_mutex.quantum_overrun_rate, 0.0)
+        self.assertAlmostEqual(report.a2_static_domain_parallel.quantum_overrun_rate, 0.20, places=2)
+        self.assertEqual(report.a3_adaptive_domain_parallel.quantum_overrun_rate, 0.0)
+
+        # Verify gains are strictly positive
+        self.assertGreater(report.gain_quantum, 0.0)
+        self.assertGreater(report.gain_parallelism, 0.0)
+        self.assertGreater(report.gain_total, 0.0)
+        self.assertGreater(report.gain_total, report.gain_quantum)
+        self.assertGreater(report.gain_total, report.gain_parallelism)
+
+        # Mathematical decomposition check: Gain_total == Gain_quantum + Gain_parallelism + InteractionGain
+        sum_components = round(report.gain_quantum + report.gain_parallelism + report.gain_interaction, 4)
+        self.assertAlmostEqual(report.gain_total, sum_components, places=3)
+
+        # Primary driver and hardware fabric recommendations
+        self.assertEqual(report.primary_gain_driver, "DOMAIN_PARALLELISM")
+        self.assertIn("tier1_hardware_fabric_domain_arbiter", report.hardware_fabric_recommendations)
+        self.assertIn("tier2_k_micro_isa_chronometric_watchdog", report.hardware_fabric_recommendations)
+        self.assertIn("tier3_interaction_synergy_coupling", report.hardware_fabric_recommendations)
 
 
 if __name__ == "__main__":

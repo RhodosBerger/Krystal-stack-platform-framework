@@ -621,8 +621,11 @@ from .sovereign_subsystem_turn_coordinator import (  # noqa: F401
     InstructionReceipt,
     ProceduralAgileDraftingInterpolator,
     SafeOperationSelectionPack,
-    InstructionalDependencyCoordinator,
     run_static_vs_agile_drafting_benchmark,
+    AblationConfigurationId,
+    AblationConfigurationMetrics,
+    ComponentAblationReport,
+    run_four_configuration_component_ablation,
     GLOBAL_SUBSYSTEM_TURN_COORDINATOR,
 )
 
@@ -910,6 +913,10 @@ from .sovereign_subsystem_turn_coordinator import (  # noqa: F401
     InstructionalDependencyCoordinator,
     GLOBAL_SUBSYSTEM_TURN_COORDINATOR,
     run_static_vs_agile_drafting_benchmark,
+    AblationConfigurationId,
+    AblationConfigurationMetrics,
+    ComponentAblationReport,
+    run_four_configuration_component_ablation,
 )
 
 from .sovereign_uma_inspector_governor import (  # noqa: F401
@@ -1221,6 +1228,8 @@ __all__ = [
     "InstructionReceipt", "ProceduralAgileDraftingInterpolator",
     "SafeOperationSelectionPack", "InstructionalDependencyCoordinator",
     "GLOBAL_SUBSYSTEM_TURN_COORDINATOR", "run_static_vs_agile_drafting_benchmark",
+    "AblationConfigurationId", "AblationConfigurationMetrics",
+    "ComponentAblationReport", "run_four_configuration_component_ablation",
     "HexMemoryCellState", "GovernorAdviceKind", "MicroOpKind",
     "HexGridCellDescriptor", "ResourceCapabilityToken",
     "GovernorAdvice", "TokenTrackingEntry", "MicroOperation",
