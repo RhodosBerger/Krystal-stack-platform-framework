@@ -26,9 +26,9 @@ class TestSovereignPromptbookRegistry(unittest.TestCase):
     def setUp(self) -> None:
         self.registry = SovereignPromptbookRegistry(vital_max_hp=VITAL_MAX_HP)
 
-    def test_registry_contains_todays_six_inventions(self) -> None:
-        """The registry must contain all 6 foundational invention recipes."""
-        self.assertEqual(len(self.registry.recipes), 6)
+    def test_registry_contains_todays_seven_inventions(self) -> None:
+        """The registry must contain all 7 foundational invention recipes."""
+        self.assertEqual(len(self.registry.recipes), 7)
         expected_ids = [
             "RECIPE-01-OPERATIONS-DECOMPOSER",
             "RECIPE-02-BOT-AXIOM-COMPOSER",
@@ -36,6 +36,7 @@ class TestSovereignPromptbookRegistry(unittest.TestCase):
             "RECIPE-04-UMA-HEX-INSPECTOR-GOVERNOR",
             "RECIPE-05-MICRO-OP-KNAPSACK-BOT",
             "RECIPE-06-BEHAVIORAL-VULKAN-SYNTHESIS",
+            "RECIPE-07-RUNTIME-CONTROL-PLANE-BENCHMARK",
         ]
         for rid in expected_ids:
             recipe = self.registry.get_recipe(rid)

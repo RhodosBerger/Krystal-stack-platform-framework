@@ -9,9 +9,10 @@ Inventions:
   1. RECIPE-01: Operations Autocompleter & 6-Phase Subtask DAG Decomposer
   2. RECIPE-02: Sovereign Bot Archetypes & Axiom Auto-Definer Synthesis
   3. RECIPE-03: Procedural Agile Drafting & Subsystem Turn Arbitrator
-  4. RECIPE-04: UMA 16x16 Hex Grid Inspector & Governor Advisory Controller
-  5. RECIPE-05: Micro-Operation Knapsack Allocation Bot
+  4. RECIPE-04: UMA 16x16 Hex Grid Inspector & Governor Advisory Controller (Contention Topology)
+  5. RECIPE-05: Micro-Operation Knapsack Allocation Bot (3D Quota & RPE)
   6. RECIPE-06: Behavioral Schema Compiler, Vector Phase RAG & Vulkan UMA Synthesis
+  7. RECIPE-07: Heterogeneous Runtime Control Plane & 4-Mode Benchmark Calibration
 Author:     Antigravity Cognitive Invariants Group
 Invariants: VITAL_MAX_HP == 6 | Proposer != Evaluator | Delta S == 0 on breach
 ================================================================================
@@ -41,6 +42,7 @@ class PromptbookCategory(str, enum.Enum):
     UMA_HEX_GOVERNOR         = "UMA_HEX_GOVERNOR"
     MICRO_OP_ALLOCATION      = "MICRO_OP_ALLOCATION"
     BEHAVIORAL_VULKAN_SYNTH  = "BEHAVIORAL_VULKAN_SYNTH"
+    RUNTIME_CONTROL_PLANE    = "RUNTIME_CONTROL_PLANE"
 
 
 @dataclass(frozen=True)
@@ -191,24 +193,29 @@ class SovereignPromptbookRegistry:
         # ---------------------------------------------------------------------
         self._add_recipe(
             recipe_id="RECIPE-04-UMA-HEX-INSPECTOR-GOVERNOR",
-            title="UMA 16x16 Hex Grid Inspector & Governor Advisory Controller",
+            title="UMA 16x16 Hex Grid Inspector & Governor Advisory Controller (Contention Topology)",
             category=PromptbookCategory.UMA_HEX_GOVERNOR,
             system_directive=(
                 "You are the Sovereign UMA Inspector & Governor Advisor. Inspect 256 memory frame slots "
-                "(0x00 to 0xFF) mapped into a 16x16 Hexadecimal Lattice. Map bandwidth pressure onto "
-                "Hex-HSL spectrum (120 deg Emerald safe to 0 deg Red alert). Emit binding governor advice: "
-                "BURST_AUTHORIZE (1.25x in VBlank), THROTTLE_DOWNSCALE (0.90x at UMA >= 0.78), or "
-                "EMERGENCY_QUOTA_CUT (0.50x at T >= 75 deg C). Track token dwell and flag starvation risks."
+                "(0x00 to 0xFF) mapped into a 16x16 Hexadecimal Lattice representing runtime contention topology: "
+                "Cell = (Storage, Owner, Pressure, Age, Token, State). Map bandwidth pressure onto "
+                "Hex-HSL spectrum (120 deg Emerald safe to 0 deg Red alert). Ground timescale in physical clock "
+                "(L0 = micro-silicon timescale, T_clk = 4.0 ns @ 250 MHz; < 1 ns for ASIC-TARGET). Enforce constitutional "
+                "principle: Advice != Authority. Evaluate telemetry strictly against ArchitectureProfile limits "
+                "(configured thermal limit, nominal UMA 0.60, throttle UMA 0.78, emergency UMA 0.90) to emit binding policy "
+                "candidate advice (BURST_AUTHORIZE, THROTTLE_DOWNSCALE, DRAIN_AND_RECONCILE, EMERGENCY_QUOTA_CUT). "
+                "Track token dwell and flag starvation risks."
             ),
             user_template=(
                 "ACTIVE_MEMORY_SLOTS: {active_slots_list}\n"
                 "SAMPLED_UMA_PRESSURE: {sampled_uma}\n"
                 "SAMPLED_TEMPERATURE_C: {sampled_temp}\n"
                 "VBLANK_PHASE_ACTIVE: {is_vblank}\n"
+                "ARCHITECTURE_PROFILE: {architecture_profile_json}\n"
                 "TASK: Generate 16x16 ASCII Hex Grid Inspector, evaluate stress gates, and emit GovernorAdvice."
             ),
-            input_slots=["active_slots_list", "sampled_uma", "sampled_temp", "is_vblank"],
-            bound_invariants=["VITAL_MAX_HP == 6", "ARRHENIUS_LIMIT_75C", "PRINCIPLE_P8_12_DWELL"],
+            input_slots=["active_slots_list", "sampled_uma", "sampled_temp", "is_vblank", "architecture_profile_json"],
+            bound_invariants=["VITAL_MAX_HP == 6", "ADVICE_IS_NOT_AUTHORITY", "ARCHITECTURE_PROFILE_LIMITS", "PRINCIPLE_P8_12_DWELL"],
             expected_output_format="16x16 ASCII Inspector Grid + Signed GovernorAdvice Record",
             falsification_condition="Advice fails to throttle under high UMA or thermal stress."
         )
@@ -218,25 +225,27 @@ class SovereignPromptbookRegistry:
         # ---------------------------------------------------------------------
         self._add_recipe(
             recipe_id="RECIPE-05-MICRO-OP-KNAPSACK-BOT",
-            title="Micro-Operation Knapsack Behavioral Batch Planner",
+            title="Micro-Operation Knapsack Behavioral Batch Planner (3D Quotas & RPE)",
             category=PromptbookCategory.MICRO_OP_ALLOCATION,
             system_directive=(
-                "You are the Micro-Operation Allocation Bot. Measure available cycle, energy, and UMA byte "
-                "quotas modulated by Governor advice. Take candidate atomic micro-operations (SAMPLE_SENSOR_PULSE, "
-                "PACK_128B_FRAME, DISPATCH_DMA_SLOT, EXECUTE_ALU_KERNEL, RECONCILE_HMAC_RECEIPT, YIELD_BUS_TOKEN) "
-                "and perform greedy knapsack packing. Prioritize critical-path operations. Guarantee zero cycle "
-                "overrun: sum(cycles) <= Quota. Delta S == 0 on quota breach."
+                "You are the Micro-Operation Allocation Bot. Measure available 3D quotas Q = (Q_time, Q_memory, Q_energy) "
+                "modulated by Governor advice. Take candidate atomic micro-operations with 5-tuple contract "
+                "MicroOp = <Opcode, CostVector, Dependencies, Capability, ExpectedEffect> (where RECONCILE_HMAC_RECEIPT = 350 ns "
+                "is marked [RTL-SIMULATED / HW-CRYPTO-TARGET]). Solve 3D knapsack allocation to maximize sum(U_i * x_i) subject "
+                "to time, memory, and energy ceilings. Disambiguate PlannedOverrunRate == 0.0 (guaranteed by knapsack admission) "
+                "from MeasuredOverrunRate (verified at runtime by hardware watchdog). Compute multi-dimensional Resource Packing "
+                "Efficiency (RPE_time, RPE_energy, RPE_memory, aggregate RPE). Enforce Delta S == 0 on quota breach."
             ),
             user_template=(
-                "AVAILABLE_WINDOW_NS: {available_window_ns}\n"
+                "AVAILABLE_3D_QUOTA: {available_3d_quota_json}\n"
                 "GOVERNOR_MULTIPLIER: {governor_multiplier}\n"
                 "CANDIDATE_MICRO_OPS: {candidate_micro_ops_json}\n"
-                "TASK: Pack batch into PlannedMicroOpBatch with HMAC signature, quota utilization, and zero overrun."
+                "TASK: Pack batch into PlannedMicroOpBatch with HMAC signature, 3D quota utilization, RPE metrics, and zero planned overrun."
             ),
-            input_slots=["available_window_ns", "governor_multiplier", "candidate_micro_ops_json"],
-            bound_invariants=["VITAL_MAX_HP == 6", "SUM_CYCLES <= QUOTA", "DELTA_S == 0_ON_OVERRUN"],
-            expected_output_format="PlannedMicroOpBatch with JSON Execution Plan and HMAC Signature",
-            falsification_condition="Planned batch exceeds cycle, energy, or UMA quota."
+            input_slots=["available_3d_quota_json", "governor_multiplier", "candidate_micro_ops_json"],
+            bound_invariants=["VITAL_MAX_HP == 6", "PLANNED_OVERRUN == 0.0", "WATCHDOG_MEASURED_OVERRUN <= 0.0", "DELTA_S == 0_ON_OVERRUN"],
+            expected_output_format="PlannedMicroOpBatch with JSON Execution Plan, RPE Metrics, and HMAC Signature",
+            falsification_condition="Planned batch exceeds cycle, energy, or UMA quota, or violates Delta S == 0."
         )
 
         # ---------------------------------------------------------------------
@@ -275,6 +284,35 @@ class SovereignPromptbookRegistry:
             expected_output_format="Full Compilation Receipt with Potential Metrics, RAG Confirmation, and UMA Relatives",
             falsification_condition="Resource swap approved without RAG phase concurrence or under bus saturation."
         )
+
+        # ---------------------------------------------------------------------
+        # RECIPE-07: Heterogeneous Runtime Control Plane & 4-Mode Benchmark
+        # ---------------------------------------------------------------------
+        self._add_recipe(
+            recipe_id="RECIPE-07-RUNTIME-CONTROL-PLANE-BENCHMARK",
+            title="Heterogeneous Runtime Control Plane & 4-Mode Benchmark Calibration",
+            category=PromptbookCategory.RUNTIME_CONTROL_PLANE,
+            system_directive=(
+                "You are the Heterogeneous Runtime Control Plane Evaluator. Execute and calibrate the unified control flow: "
+                "Observe Memory -> Classify Pressure -> Allocate Time/Energy/Bytes -> Select MicroOps -> Arbitrate -> Execute -> Validate. "
+                "Benchmark on an identical workload DAG across the 4 canonical execution modes: S0 (Baseline: no UMA, static quantum, FIFO), "
+                "S1 (UMA-aware only), S2 (UMA-aware + Adaptive quantum), K (Full Stack: UMA + Adaptive quantum + 3D MicroOp Knapsack packing). "
+                "Measure UsefulWork/s, UsefulWork/J, P95 turn-wait, UMA conflict rate, MeasuredOverrunRate, RollbackRate, and Aggregate RPE. "
+                "Verify that Mode K achieves positive energy and throughput gain without introducing overrun or state drift."
+            ),
+            user_template=(
+                "WORKLOAD_DAG: {workload_dag_json}\n"
+                "ARCHITECTURE_PROFILE: {architecture_profile_json}\n"
+                "TELEMETRY_TRACE: {telemetry_trace_json}\n"
+                "REPETITIONS: {repetition_count}\n"
+                "TASK: Execute 4-mode benchmark, produce comparative metrics table, compute Joule efficiency gain and throughput gain, and verify zero measured overrun."
+            ),
+            input_slots=["workload_dag_json", "architecture_profile_json", "telemetry_trace_json", "repetition_count"],
+            bound_invariants=["VITAL_MAX_HP == 6", "ZERO_MEASURED_OVERRUN", "DELTA_S == 0_ON_REGRESSION", "THEORY_GRAPH_FROZEN_56_NODES"],
+            expected_output_format="4-Mode Benchmark Comparison Table + Synthesized Efficiency Gain Statement",
+            falsification_condition="Mode K regresses UsefulWork/J compared to S0, or incurs MeasuredOverrunRate > 0 or Delta S != 0."
+        )
+
 
     def _add_recipe(
         self,
