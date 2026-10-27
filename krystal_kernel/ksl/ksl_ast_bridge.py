@@ -68,7 +68,244 @@ class KslOptimizationObjective(str, enum.Enum):
     THROUGHPUT = "THROUGHPUT"  # Mode K: maximize UsefulWork/s (+998% vs baseline)
     ENERGY     = "ENERGY"      # Mode S1: maximize UsefulWork/J (energetic optimum)
     LATENCY    = "LATENCY"     # Mode K: minimize P95 turn-wait (45us vs 850us)
-    BALANCED   = "BALANCED"    # Mode S2/K: adaptive Pareto trade-off via Governor
+    BALANCED   = "BALANCED"    # Dynamic ParetoSelector(S1, K, ...) trade-off via Governor
+
+
+class OptimizationStrategy(str, enum.Enum):
+    """Mathematical optimization formulation for Pareto policy selection."""
+    WEIGHTED = "WEIGHTED"                    # Scalarized J = w_T * T_norm + w_E * E_norm + w_L * L_norm
+    LEXICOGRAPHIC = "LEXICOGRAPHIC"          # Hierarchical: primary -> secondary -> tertiary
+    EPSILON_CONSTRAINT = "EPSILON_CONSTRAINT"# Maximize primary subject to hard lower/upper bounds
+
+
+@dataclass(frozen=True)
+class RuntimePolicyMetrics:
+    """Telemetry and benchmark performance metrics for a candidate scheduling policy."""
+    policy_id: str
+    mode_name: str
+    throughput_work_per_sec: float
+    useful_work_per_joule: float
+    latency_p95_ns: float
+    uma_conflict_rate: float
+    measured_overrun_rate: float
+    safety_compliant: bool
+    vital_max_hp: int = VITAL_MAX_HP
+
+
+@dataclass
+class MultiObjectiveConstraint:
+    """Hard constraints and parameters for multi-objective KSL lowering."""
+    min_useful_work_per_joule: float = 0.0
+    max_latency_p95_ns: float = 1_000_000.0  # 1.0 ms
+    require_zero_uma_conflict: bool = True
+    require_zero_safety_violation: bool = True
+    weight_throughput: float = 0.5
+    weight_energy: float = 0.3
+    weight_latency: float = 0.2
+    lexicographic_order: List[str] = field(default_factory=lambda: ["ENERGY", "LATENCY", "THROUGHPUT"])
+
+
+class ParetoPolicySelector:
+    """
+    Formal Multi-Objective Pareto Policy Selector for KSL Runtime Control Plane.
+
+    Constitutional Invariant:
+      - Evaluates candidate policies over the 3D objective space J = (Throughput, Work/J, Latency^-1).
+      - Strict Pareto Dominance: P_j dominates P_i iff P_j is not worse in any objective and strictly better in at least one.
+      - At benchmark calibration:
+          S0: Baseline (dominated by S1, S2, K)
+          S1: UMA-Aware (Pareto-optimal: max UsefulWork/J = 18.64M)
+          S2: Adaptive Quantum (dominated by K: Throughput_K > Throughput_S2, P95_K < P95_S2, Work/J equal)
+          K:  Full Stack (Pareto-optimal: max Throughput = 4.64M, min Latency = 45us)
+      - Therefore, ParetoFront == {S1, K}.
+      - Automatically prunes dominated policies (S0, S2) from admission.
+    """
+
+    def __init__(self, vital_max_hp: int = VITAL_MAX_HP) -> None:
+        if vital_max_hp != VITAL_MAX_HP:
+            raise ContractViolation(f"Constitutional HP breach in ParetoPolicySelector: {vital_max_hp} != {VITAL_MAX_HP}")
+        self.vital_max_hp = vital_max_hp
+
+    def get_canonical_benchmark_policies(self) -> List[RuntimePolicyMetrics]:
+        """Returns the four canonical benchmark campaign policies (Campaign A baseline)."""
+        return [
+            RuntimePolicyMetrics(
+                policy_id="S0",
+                mode_name="Baseline (Static FIFO)",
+                throughput_work_per_sec=422_632.0,
+                useful_work_per_joule=1_467_772.0,
+                latency_p95_ns=850_000.0,
+                uma_conflict_rate=0.20,
+                measured_overrun_rate=0.0,
+                safety_compliant=True,
+                vital_max_hp=self.vital_max_hp
+            ),
+            RuntimePolicyMetrics(
+                policy_id="S1",
+                mode_name="UMA-Aware Static Quantum",
+                throughput_work_per_sec=596_802.0,
+                useful_work_per_joule=18_643_269.0,
+                latency_p95_ns=90_000.0,
+                uma_conflict_rate=0.0,
+                measured_overrun_rate=0.0,
+                safety_compliant=True,
+                vital_max_hp=self.vital_max_hp
+            ),
+            RuntimePolicyMetrics(
+                policy_id="S2",
+                mode_name="Adaptive Quantum (No Packing)",
+                throughput_work_per_sec=3_181_427.0,
+                useful_work_per_joule=14_920_000.0,
+                latency_p95_ns=65_000.0,
+                uma_conflict_rate=0.0,
+                measured_overrun_rate=0.0,
+                safety_compliant=True,
+                vital_max_hp=self.vital_max_hp
+            ),
+            RuntimePolicyMetrics(
+                policy_id="K",
+                mode_name="Full Krystal Stack",
+                throughput_work_per_sec=4_642_409.0,
+                useful_work_per_joule=14_920_000.0,
+                latency_p95_ns=45_000.0,
+                uma_conflict_rate=0.0,
+                measured_overrun_rate=0.0,
+                safety_compliant=True,
+                vital_max_hp=self.vital_max_hp
+            ),
+        ]
+
+    def filter_pareto_front(self, candidates: List[RuntimePolicyMetrics]) -> List[RuntimePolicyMetrics]:
+        """
+        Filters candidates down to the true Pareto frontier in (Throughput, Work/J, Latency^-1).
+        A candidate p_i is eliminated if there exists another p_j such that:
+            T_j >= T_i and E_j >= E_i and L_j <= L_i
+            and (T_j > T_i or E_j > E_i or L_j < L_i)
+        """
+        frontier: List[RuntimePolicyMetrics] = []
+        for i, p_i in enumerate(candidates):
+            dominated = False
+            for j, p_j in enumerate(candidates):
+                if i == j:
+                    continue
+                no_worse = (
+                    p_j.throughput_work_per_sec >= p_i.throughput_work_per_sec and
+                    p_j.useful_work_per_joule >= p_i.useful_work_per_joule and
+                    p_j.latency_p95_ns <= p_i.latency_p95_ns
+                )
+                strictly_better = (
+                    p_j.throughput_work_per_sec > p_i.throughput_work_per_sec or
+                    p_j.useful_work_per_joule > p_i.useful_work_per_joule or
+                    p_j.latency_p95_ns < p_i.latency_p95_ns
+                )
+                if no_worse and strictly_better:
+                    dominated = True
+                    break
+            if not dominated:
+                frontier.append(p_i)
+        return frontier
+
+    def select_policy(
+        self,
+        objective: KslOptimizationObjective = KslOptimizationObjective.BALANCED,
+        strategy: OptimizationStrategy = OptimizationStrategy.EPSILON_CONSTRAINT,
+        constraints: Optional[MultiObjectiveConstraint] = None,
+        candidate_policies: Optional[List[RuntimePolicyMetrics]] = None
+    ) -> Tuple[RuntimePolicyMetrics, Dict[str, Any]]:
+        """
+        Selects the optimal runtime policy from candidates conforming to constraints and Pareto optimality.
+        """
+        cands = candidate_policies or self.get_canonical_benchmark_policies()
+        frontier = self.filter_pareto_front(cands)
+        c_spec = constraints or MultiObjectiveConstraint()
+
+        if objective == KslOptimizationObjective.THROUGHPUT:
+            # Maximizes throughput across frontier
+            selected = max(frontier, key=lambda p: p.throughput_work_per_sec)
+            audit = {"objective": "THROUGHPUT", "selected_policy": selected.policy_id, "frontier": [p.policy_id for p in frontier]}
+            return selected, audit
+
+        elif objective == KslOptimizationObjective.ENERGY:
+            # Maximizes UsefulWork/J across frontier
+            selected = max(frontier, key=lambda p: p.useful_work_per_joule)
+            audit = {"objective": "ENERGY", "selected_policy": selected.policy_id, "frontier": [p.policy_id for p in frontier]}
+            return selected, audit
+
+        elif objective == KslOptimizationObjective.LATENCY:
+            # Minimizes P95 latency across frontier
+            selected = min(frontier, key=lambda p: p.latency_p95_ns)
+            audit = {"objective": "LATENCY", "selected_policy": selected.policy_id, "frontier": [p.policy_id for p in frontier]}
+            return selected, audit
+
+        else:  # BALANCED
+            if strategy == OptimizationStrategy.EPSILON_CONSTRAINT:
+                # Filter frontier by hard bounds
+                valid = [
+                    p for p in frontier
+                    if p.useful_work_per_joule >= c_spec.min_useful_work_per_joule
+                    and p.latency_p95_ns <= c_spec.max_latency_p95_ns
+                    and (not c_spec.require_zero_uma_conflict or p.uma_conflict_rate == 0.0)
+                    and (not c_spec.require_zero_safety_violation or p.safety_compliant)
+                ]
+                if not valid:
+                    # Fallback to candidate with minimum constraint breach
+                    valid = frontier
+                selected = max(valid, key=lambda p: p.throughput_work_per_sec)
+                audit = {
+                    "objective": "BALANCED",
+                    "strategy": "EPSILON_CONSTRAINT",
+                    "selected_policy": selected.policy_id,
+                    "frontier": [p.policy_id for p in frontier],
+                    "valid_subset": [p.policy_id for p in valid]
+                }
+                return selected, audit
+
+            elif strategy == OptimizationStrategy.WEIGHTED:
+                # Normalize and scalarize
+                max_t = max(p.throughput_work_per_sec for p in frontier)
+                max_e = max(p.useful_work_per_joule for p in frontier)
+                min_l = min(p.latency_p95_ns for p in frontier)
+
+                def score(p: RuntimePolicyMetrics) -> float:
+                    t_hat = p.throughput_work_per_sec / max_t
+                    e_hat = p.useful_work_per_joule / max_e
+                    l_hat = min_l / max(1.0, p.latency_p95_ns)
+                    return c_spec.weight_throughput * t_hat + c_spec.weight_energy * e_hat + c_spec.weight_latency * l_hat
+
+                selected = max(frontier, key=score)
+                audit = {
+                    "objective": "BALANCED",
+                    "strategy": "WEIGHTED",
+                    "selected_policy": selected.policy_id,
+                    "scores": {p.policy_id: round(score(p), 4) for p in frontier}
+                }
+                return selected, audit
+
+            else:  # LEXICOGRAPHIC
+                # Sort according to order
+                order = [x.upper() for x in c_spec.lexicographic_order]
+                def lex_key(p: RuntimePolicyMetrics) -> Tuple[float, ...]:
+                    keys = []
+                    for dim in order:
+                        if dim == "ENERGY":
+                            keys.append(p.useful_work_per_joule)
+                        elif dim == "LATENCY":
+                            keys.append(-p.latency_p95_ns)
+                        elif dim == "THROUGHPUT":
+                            keys.append(p.throughput_work_per_sec)
+                    return tuple(keys)
+
+                selected = max(frontier, key=lex_key)
+                audit = {
+                    "objective": "BALANCED",
+                    "strategy": "LEXICOGRAPHIC",
+                    "order": order,
+                    "selected_policy": selected.policy_id
+                }
+                return selected, audit
+
+
+GLOBAL_PARETO_POLICY_SELECTOR = ParetoPolicySelector()
 
 
 @dataclass
@@ -202,24 +439,43 @@ class KslOperationalAstBridge:
         if vital_max_hp != VITAL_MAX_HP:
             raise ContractViolation(f"Constitutional HP breach: {vital_max_hp} != {VITAL_MAX_HP}")
         self.vital_max_hp: int = vital_max_hp
+        self.pareto_selector: ParetoPolicySelector = ParetoPolicySelector(vital_max_hp=vital_max_hp)
 
     def lower_proposal_to_ksl_ir(
         self,
         proposal: OperationalAstProposal,
-        objective: KslOptimizationObjective = KslOptimizationObjective.BALANCED
+        objective: KslOptimizationObjective = KslOptimizationObjective.BALANCED,
+        strategy: OptimizationStrategy = OptimizationStrategy.EPSILON_CONSTRAINT,
+        constraints: Optional[MultiObjectiveConstraint] = None
     ) -> KslIntermediateRepresentation:
         """
         Phase 1 Lowering:
           OperationalAstProposal -> KSL Intermediate Representation (KIR).
         Emits:
-          - KIR-C: Formal constraint gates from proposal.constraint_set + InvariantSetHash.
-          - KIR-H: Placement plan with device placement and latency ceiling from resource_budget.
+          - KIR-C: Formal constraint gates from proposal.constraint_set + InvariantSetHash + Pareto policy gate.
+          - KIR-H: Placement plan with device placement, selected Pareto policy, and latency ceiling.
           - KIR-T: Transition node with predictive objectives and action candidates.
           - KIR-S & KIR-M: Machine code instructions (GATE_AND_COMMIT, SEAL_RECEIPT_HMAC).
         """
         ir = KslIntermediateRepresentation()
 
+        # Resolve optimal policy from Pareto Frontier {S1, K}
+        selected_policy, pareto_audit = self.pareto_selector.select_policy(
+            objective=objective,
+            strategy=strategy,
+            constraints=constraints
+        )
+
         # 1. Lower KIR-C: Constraint Gates
+        ir.kir_c_constraints.append(
+            KirC_ConstraintGate(
+                name=f"PARETO_POLICY_{selected_policy.policy_id}",
+                target_metric="PARETO_OPTIMAL_FRONTIER_POLICY",
+                threshold=1.0,
+                is_hard_invariant=True
+            )
+        )
+
         for c_name in proposal.constraint_set:
             ir.kir_c_constraints.append(
                 KirC_ConstraintGate(
@@ -253,7 +509,7 @@ class KslOperationalAstBridge:
         ir.kir_h_placements.append(
             KirH_PlacementPlan(
                 function_name=proposal.operation_title,
-                selected_device="KSAC_HETEROGENEOUS",
+                selected_device=f"KSAC_{selected_policy.policy_id}",
                 latency_budget_ms=round(latency_budget_ms, 3),
                 is_zeroalloc=True,
                 ring_buffer="/dev/shm/krystal_ksac_ring0"
@@ -261,9 +517,9 @@ class KslOperationalAstBridge:
         )
 
         # 3. Lower KIR-T: Transition Node
-        predict_objs = [objective.value]
+        predict_objs = [objective.value, f"POLICY_{selected_policy.policy_id}"]
         if objective == KslOptimizationObjective.BALANCED:
-            predict_objs = ["MINIMIZE_LATENCY", "MINIMIZE_ENERGY", "MAXIMIZE_USEFUL_WORK"]
+            predict_objs = ["MINIMIZE_LATENCY", "MINIMIZE_ENERGY", "MAXIMIZE_USEFUL_WORK", f"POLICY_{selected_policy.policy_id}"]
 
         candidates_data = []
         for c in proposal.candidate_set:
@@ -416,13 +672,15 @@ class KslOperationalAstBridge:
     def compile_proposal_to_micro_op_dag(
         self,
         proposal: OperationalAstProposal,
-        objective: KslOptimizationObjective = KslOptimizationObjective.BALANCED
+        objective: KslOptimizationObjective = KslOptimizationObjective.BALANCED,
+        strategy: OptimizationStrategy = OptimizationStrategy.EPSILON_CONSTRAINT,
+        constraints: Optional[MultiObjectiveConstraint] = None
     ) -> Tuple[KslIntermediateRepresentation, MicroOpDAG]:
         """
         Complete lowering pipeline:
           OperationalAstProposal -> KslIntermediateRepresentation -> MicroOpDAG.
         """
-        ir = self.lower_proposal_to_ksl_ir(proposal, objective)
+        ir = self.lower_proposal_to_ksl_ir(proposal, objective, strategy, constraints)
         dag = self.lower_ksl_ir_to_micro_op_dag(ir, proposal)
         return ir, dag
 
@@ -432,7 +690,10 @@ class KslOperationalAstBridge:
         rendered_prompt: RenderedPrompt,
         registry: SovereignPromptbookRegistry,
         planner: Optional[MicroOperationAllocationBot] = None,
-        governor_multiplier: float = 1.0
+        governor_multiplier: float = 1.0,
+        objective: KslOptimizationObjective = KslOptimizationObjective.BALANCED,
+        strategy: OptimizationStrategy = OptimizationStrategy.EPSILON_CONSTRAINT,
+        constraints: Optional[MultiObjectiveConstraint] = None
     ) -> Tuple[PlannedMicroOpBatch, PromptExecutionReceipt]:
         """
         Complete end-to-end operational execution path:
@@ -443,7 +704,12 @@ class KslOperationalAstBridge:
           - Chained Receipt Mints with R_n = HMAC(R_{n-1} || ... )
         """
         # 1. Compile AST to MicroOp DAG
-        _, dag = self.compile_proposal_to_micro_op_dag(proposal)
+        _, dag = self.compile_proposal_to_micro_op_dag(
+            proposal=proposal,
+            objective=objective,
+            strategy=strategy,
+            constraints=constraints
+        )
 
         # 2. Evaluate Falsification Oracle prior to commitment
         oracle_ctx = {

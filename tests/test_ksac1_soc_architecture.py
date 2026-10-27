@@ -26,6 +26,8 @@ from krystal_kernel.ksac1_soc_architecture import (
     PrivilegeMode,
     SchedulerClass,
     GLOBAL_KSAC1_SOC,
+    AdaptiveQuantumEngineRTL,
+    GLOBAL_ADAPTIVE_QUANTUM_ENGINE_RTL,
 )
 from krystal_kernel.constants import VITAL_MAX_HP
 
@@ -195,12 +197,57 @@ class TestKsac1SocArchitecture(unittest.TestCase):
         self.assertEqual(r_val["vital_max_hp"], 6)
 
     def test_systemverilog_formal_assertions(self) -> None:
-        """Verifies that all 4 formal SystemVerilog properties hold."""
+        """Verifies that all 6 formal SystemVerilog properties hold."""
         sva_results = self.soc.verify_formal_properties()
         self.assertTrue(sva_results["SVA_1_INVARIANT_GATES_COMMIT"])
         self.assertTrue(sva_results["SVA_2_CONFIDENCE_GATES_COMMIT"])
         self.assertTrue(sva_results["SVA_3_SCRATCHPAD_RING_INTEGRITY"])
         self.assertTrue(sva_results["SVA_4_VITAL_MAX_HP_CONSERVATION"])
+        self.assertTrue(sva_results["SVA_5_ADAPTIVE_QUANTUM_THERMAL_BACKOFF"])
+        self.assertTrue(sva_results["SVA_6_ADAPTIVE_QUANTUM_UMA_CONTENTION_BACKOFF"])
+
+    def test_adaptive_quantum_engine_rtl(self) -> None:
+        """Verifies hardware evaluation of next quantum across thermal, UMA, and demand conditions."""
+        engine = AdaptiveQuantumEngineRTL(vital_max_hp=6)
+
+        # 1. Thermal Emergency throttle
+        out_th = engine.evaluate_next_quantum(
+            latency_pressure=0.8,
+            uma_pressure=0.2,
+            thermal_headroom=0.08,  # < 0.10
+            queue_pressure=0.8,
+            priority=3,
+            previous_quantum_ns=1_000_000
+        )
+        self.assertEqual(out_th.next_quantum_ns, engine.min_quantum_ns)
+        self.assertEqual(out_th.status, "THERMAL_THROTTLE")
+        self.assertEqual(out_th.constraint_flags & 0x01, 0x01)
+
+        # 2. UMA Bus Contention backoff
+        out_uma = engine.evaluate_next_quantum(
+            latency_pressure=0.5,
+            uma_pressure=0.85,  # > 0.80
+            thermal_headroom=0.5,
+            queue_pressure=0.5,
+            priority=1,
+            previous_quantum_ns=1_000_000
+        )
+        self.assertEqual(out_uma.next_quantum_ns, 600_000)  # 40% reduction
+        self.assertEqual(out_uma.status, "UMA_CONTENTION_BACKOFF")
+        self.assertEqual(out_uma.constraint_flags & 0x02, 0x02)
+
+        # 3. High demand upscale
+        out_upscale = engine.evaluate_next_quantum(
+            latency_pressure=0.85,
+            uma_pressure=0.30,
+            thermal_headroom=0.70,
+            queue_pressure=0.80,
+            priority=2,
+            previous_quantum_ns=500_000
+        )
+        self.assertGreater(out_upscale.next_quantum_ns, 500_000)
+        self.assertEqual(out_upscale.status, "DEMAND_UPSCALE")
+        self.assertEqual(out_upscale.constraint_flags & 0x04, 0x04)
 
 
 if __name__ == "__main__":

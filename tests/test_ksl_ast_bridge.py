@@ -66,7 +66,7 @@ class TestKslOperationalAstBridge(unittest.TestCase):
         # 2. Placement in KIR-H
         self.assertEqual(len(ir.kir_h_placements), 1)
         placement = ir.kir_h_placements[0]
-        self.assertEqual(placement.selected_device, "KSAC_HETEROGENEOUS")
+        self.assertEqual(placement.selected_device, "KSAC_K")
         self.assertEqual(placement.latency_budget_ms, 2.0)
         self.assertTrue(placement.is_zeroalloc)
 
@@ -233,5 +233,88 @@ class TestKslOperationalAstBridge(unittest.TestCase):
         self.assertIn("Falsification Oracle triggered in MicroOp DAG", str(cm.exception))
 
 
+    def test_pareto_front_pruning(self) -> None:
+        """Verifies that filter_pareto_front prunes dominated policies S0 and S2, returning {S1, K}."""
+        from krystal_kernel.ksl.ksl_ast_bridge import GLOBAL_PARETO_POLICY_SELECTOR
+        canonical_cands = GLOBAL_PARETO_POLICY_SELECTOR.get_canonical_benchmark_policies()
+        self.assertEqual(len(canonical_cands), 4)
+
+        frontier = GLOBAL_PARETO_POLICY_SELECTOR.filter_pareto_front(canonical_cands)
+        frontier_ids = [p.policy_id for p in frontier]
+
+        # S0 is dominated by all; S2 is strictly dominated by K
+        self.assertEqual(sorted(frontier_ids), ["K", "S1"])
+        self.assertNotIn("S0", frontier_ids)
+        self.assertNotIn("S2", frontier_ids)
+
+    def test_pareto_selector_objectives(self) -> None:
+        """Verifies multi-objective selection across THROUGHPUT, ENERGY, LATENCY, and BALANCED."""
+        from krystal_kernel.ksl.ksl_ast_bridge import (
+            GLOBAL_PARETO_POLICY_SELECTOR,
+            OptimizationStrategy,
+            MultiObjectiveConstraint,
+        )
+        selector = GLOBAL_PARETO_POLICY_SELECTOR
+
+        # 1. Throughput maximization -> K
+        p_thru, audit_thru = selector.select_policy(objective=KslOptimizationObjective.THROUGHPUT)
+        self.assertEqual(p_thru.policy_id, "K")
+        self.assertEqual(audit_thru["selected_policy"], "K")
+
+        # 2. Energy efficiency maximization -> S1
+        p_energy, audit_energy = selector.select_policy(objective=KslOptimizationObjective.ENERGY)
+        self.assertEqual(p_energy.policy_id, "S1")
+        self.assertEqual(audit_energy["selected_policy"], "S1")
+
+        # 3. Latency minimization -> K
+        p_lat, audit_lat = selector.select_policy(objective=KslOptimizationObjective.LATENCY)
+        self.assertEqual(p_lat.policy_id, "K")
+        self.assertEqual(audit_lat["selected_policy"], "K")
+
+        # 4. Balanced with Epsilon-Constraint: requires high energy efficiency -> S1
+        c_energy_priority = MultiObjectiveConstraint(min_useful_work_per_joule=16_000_000.0)
+        p_bal_e, _ = selector.select_policy(
+            objective=KslOptimizationObjective.BALANCED,
+            strategy=OptimizationStrategy.EPSILON_CONSTRAINT,
+            constraints=c_energy_priority
+        )
+        self.assertEqual(p_bal_e.policy_id, "S1")
+
+        # 5. Balanced with Epsilon-Constraint: requires low latency -> K
+        c_lat_priority = MultiObjectiveConstraint(max_latency_p95_ns=50_000.0)
+        p_bal_l, _ = selector.select_policy(
+            objective=KslOptimizationObjective.BALANCED,
+            strategy=OptimizationStrategy.EPSILON_CONSTRAINT,
+            constraints=c_lat_priority
+        )
+        self.assertEqual(p_bal_l.policy_id, "K")
+
+    def test_ksl_bridge_lowering_with_pareto_tagging(self) -> None:
+        """Verifies that lower_proposal_to_ksl_ir tags KIR-H and KIR-C with the selected Pareto policy."""
+        slots = {
+            "goal_description": "Pareto Tagging Test",
+            "domain_name": "PARETO_TEST",
+            "current_state_json": "{}"
+        }
+        rendered = self.registry.render_prompt("RECIPE-01-OPERATIONS-DECOMPOSER", slots)
+        proposal = self.registry.compile_to_operational_ast(
+            rendered_prompt=rendered,
+            candidate_set=["DMA_STAGING", "ALU_KERNEL"]
+        )
+
+        # Lower under ENERGY objective -> should select S1
+        ir_s1 = self.bridge.lower_proposal_to_ksl_ir(proposal, KslOptimizationObjective.ENERGY)
+        c_names_s1 = [c.name for c in ir_s1.kir_c_constraints]
+        self.assertIn("PARETO_POLICY_S1", c_names_s1)
+        self.assertEqual(ir_s1.kir_h_placements[0].selected_device, "KSAC_S1")
+
+        # Lower under THROUGHPUT objective -> should select K
+        ir_k = self.bridge.lower_proposal_to_ksl_ir(proposal, KslOptimizationObjective.THROUGHPUT)
+        c_names_k = [c.name for c in ir_k.kir_c_constraints]
+        self.assertIn("PARETO_POLICY_K", c_names_k)
+        self.assertEqual(ir_k.kir_h_placements[0].selected_device, "KSAC_K")
+
+
 if __name__ == "__main__":
     unittest.main()
+

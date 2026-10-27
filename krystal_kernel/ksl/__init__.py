@@ -26,6 +26,11 @@ from .ksl_code_generator import KslCodeGenerator
 from .ksl_compiler import KslCompiler, KslCompilationResult, GLOBAL_KSL_COMPILER
 from .ksl_ast_bridge import (
     KslOptimizationObjective,
+    OptimizationStrategy,
+    RuntimePolicyMetrics,
+    MultiObjectiveConstraint,
+    ParetoPolicySelector,
+    GLOBAL_PARETO_POLICY_SELECTOR,
     MicroOpDAG,
     KslOperationalAstBridge,
     GLOBAL_KSL_OPERATIONAL_AST_BRIDGE,
@@ -77,6 +82,11 @@ __all__ = [
     "KslCompilationResult",
     "GLOBAL_KSL_COMPILER",
     "KslOptimizationObjective",
+    "OptimizationStrategy",
+    "RuntimePolicyMetrics",
+    "MultiObjectiveConstraint",
+    "ParetoPolicySelector",
+    "GLOBAL_PARETO_POLICY_SELECTOR",
     "MicroOpDAG",
     "KslOperationalAstBridge",
     "GLOBAL_KSL_OPERATIONAL_AST_BRIDGE",

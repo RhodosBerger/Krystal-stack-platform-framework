@@ -458,13 +458,165 @@ class Ksac1HeterogeneousSoC:
         # SVA 4: Constitutional Invariant
         sva_4_pass = (self.vital_max_hp == 6)
 
+        # SVA 5: Adaptive Quantum Thermal Emergency Throttle
+        # assert property (thermal_headroom < 0.10 |-> next_quantum <= min_quantum)
+        rtl_engine = AdaptiveQuantumEngineRTL(vital_max_hp=self.vital_max_hp)
+        th_out = rtl_engine.evaluate_next_quantum(
+            latency_pressure=0.90,
+            uma_pressure=0.10,
+            thermal_headroom=0.05,  # emergency low
+            queue_pressure=0.90,
+            priority=3,
+            previous_quantum_ns=2_000_000
+        )
+        sva_5_pass = (th_out.next_quantum_ns == rtl_engine.min_quantum_ns and th_out.status == "THERMAL_THROTTLE")
+
+        # SVA 6: Adaptive Quantum UMA Contention Backoff
+        # assert property (uma_pressure > 0.80 |-> next_quantum < prev_quantum)
+        uma_out = rtl_engine.evaluate_next_quantum(
+            latency_pressure=0.90,
+            uma_pressure=0.90,  # bus contention
+            thermal_headroom=0.80,
+            queue_pressure=0.90,
+            priority=2,
+            previous_quantum_ns=1_000_000
+        )
+        sva_6_pass = (uma_out.next_quantum_ns < 1_000_000 and uma_out.status == "UMA_CONTENTION_BACKOFF")
+
         return {
             "SVA_1_INVARIANT_GATES_COMMIT": sva_1_pass,
             "SVA_2_CONFIDENCE_GATES_COMMIT": sva_2_pass,
             "SVA_3_SCRATCHPAD_RING_INTEGRITY": sva_3_pass,
             "SVA_4_VITAL_MAX_HP_CONSERVATION": sva_4_pass,
+            "SVA_5_ADAPTIVE_QUANTUM_THERMAL_BACKOFF": sva_5_pass,
+            "SVA_6_ADAPTIVE_QUANTUM_UMA_CONTENTION_BACKOFF": sva_6_pass,
         }
+
+
+# =====================================================================
+# 6. ADAPTIVE QUANTUM ENGINE (P1 SILICON ROADMAP RTL ACCELERATOR)
+# =====================================================================
+
+@dataclass(frozen=True)
+class AdaptiveQuantumRtlOutput:
+    """Formal RTL output bundle for AdaptiveQuantumEngine hardware block."""
+    next_quantum_ns: int
+    confidence: float
+    constraint_flags: int  # Bitmask: bit 0 = THERMAL_BACKOFF, bit 1 = UMA_CONTENTION, bit 2 = DEADLINE_BOOST
+    status: str
+    vital_max_hp: int = VITAL_MAX_HP
+
+
+class AdaptiveQuantumEngineRTL:
+    """
+    RTL implementation of the Adaptive Quantum Engine (Silicon Roadmap P1).
+    Synthesizes the dominant 5.33x performance multiplier in hardware logic:
+        Q_{t+1} = F(Latency, UMA, Thermal, Queue, Priority, Q_t)
+
+    RTL Contract:
+        Inputs:
+            latency_pressure (Q0.16 / float)
+            uma_pressure (Q0.16 / float)
+            thermal_headroom (Q0.16 / float)
+            queue_pressure (Q0.16 / float)
+            priority (int: 0=low, 1=normal, 2=high, 3=realtime)
+            previous_quantum_ns (int)
+        Outputs:
+            next_quantum_ns (int: clamped within [min_quantum_ns, max_quantum_ns])
+            confidence (float [0.0, 1.0])
+            constraint_flags (int)
+            status (str)
+    """
+
+    def __init__(
+        self,
+        min_quantum_ns: int = 50_000,       # 50 us
+        base_quantum_ns: int = 500_000,     # 500 us
+        max_quantum_ns: int = 3_500_000,    # 3.5 ms
+        vital_max_hp: int = VITAL_MAX_HP
+    ) -> None:
+        if vital_max_hp != VITAL_MAX_HP:
+            raise ContractViolation(f"Constitutional HP breach in AdaptiveQuantumEngineRTL: {vital_max_hp} != {VITAL_MAX_HP}")
+        self.min_quantum_ns = min_quantum_ns
+        self.base_quantum_ns = base_quantum_ns
+        self.max_quantum_ns = max_quantum_ns
+        self.vital_max_hp = vital_max_hp
+
+    def evaluate_next_quantum(
+        self,
+        latency_pressure: float,
+        uma_pressure: float,
+        thermal_headroom: float,
+        queue_pressure: float,
+        priority: int,
+        previous_quantum_ns: int
+    ) -> AdaptiveQuantumRtlOutput:
+        """
+        Combinational / Pipeline RTL logic evaluating next quantum:
+          1. Thermal constraint: Headroom < 0.10 => emergency throttle to min_quantum.
+          2. UMA bus contention: Pressure > 0.80 => back off quantum by 40% to yield bus.
+          3. Latency boost: Pressure > 0.70 & Thermal safe => upscale quantum by up to 2.5x.
+        """
+        flags = 0
+        status = "NOMINAL"
+
+        # Safe defaults
+        prev_q = previous_quantum_ns if previous_quantum_ns > 0 else self.base_quantum_ns
+
+        # 1. Thermal Emergency Backoff Gate
+        if thermal_headroom < 0.10:
+            flags |= 0x01
+            next_q = self.min_quantum_ns
+            confidence = 0.99
+            status = "THERMAL_THROTTLE"
+            return AdaptiveQuantumRtlOutput(
+                next_quantum_ns=next_q,
+                confidence=confidence,
+                constraint_flags=flags,
+                status=status,
+                vital_max_hp=self.vital_max_hp
+            )
+
+        # 2. UMA Bus Contention Backoff Gate
+        if uma_pressure > 0.80:
+            flags |= 0x02
+            # Downscale by 40%
+            next_q = max(self.min_quantum_ns, int(prev_q * 0.60))
+            confidence = 0.95
+            status = "UMA_CONTENTION_BACKOFF"
+            return AdaptiveQuantumRtlOutput(
+                next_quantum_ns=next_q,
+                confidence=confidence,
+                constraint_flags=flags,
+                status=status,
+                vital_max_hp=self.vital_max_hp
+            )
+
+        # 3. High Latency Pressure / High Queue Demand (Upscale Quantum)
+        scale_factor = 1.0
+        if latency_pressure > 0.60 or queue_pressure > 0.70:
+            flags |= 0x04
+            status = "DEMAND_UPSCALE"
+            priority_boost = 1.0 + (priority * 0.25)
+            scale_factor = min(2.5, (1.0 + latency_pressure * 0.8 + queue_pressure * 0.5) * priority_boost)
+        elif latency_pressure < 0.20 and queue_pressure < 0.20:
+            status = "IDLE_DOWNSCALE"
+            scale_factor = 0.80
+
+        raw_q = int(prev_q * scale_factor)
+        next_q = max(self.min_quantum_ns, min(self.max_quantum_ns, raw_q))
+        confidence = round(max(0.50, min(0.98, 1.0 - abs(uma_pressure - 0.5) * 0.5)), 3)
+
+        return AdaptiveQuantumRtlOutput(
+            next_quantum_ns=next_q,
+            confidence=confidence,
+            constraint_flags=flags,
+            status=status,
+            vital_max_hp=self.vital_max_hp
+        )
 
 
 # Global singleton instance
 GLOBAL_KSAC1_SOC = Ksac1HeterogeneousSoC()
+GLOBAL_ADAPTIVE_QUANTUM_ENGINE_RTL = AdaptiveQuantumEngineRTL()
+

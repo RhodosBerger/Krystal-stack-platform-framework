@@ -1055,6 +1055,9 @@ class ModeBenchmarkMetrics:
     aggregate_rpe: float
     resource_packing_balance: float = 0.0
     rpe_dominant: float = 0.0
+    rpe_min: float = 0.0
+    rpe_max: float = 0.0
+    rpe_slack: float = 0.0
     rpe_vector: Tuple[float, float, float] = (0.0, 0.0, 0.0)
     sample_size_n: int = 100
     hardware_workload_identity: str = "HOST-X86_64-UMA-SYNTHETIC-HETEROGENEOUS-DAG"
@@ -1466,6 +1469,9 @@ def run_four_mode_uma_governor_benchmark(
         balance = round(3.0 / ((1.0 / t) + (1.0 / e) + (1.0 / m)), 4)
         r_vec = (r_time, r_energy, r_memory)
         r_dom = max(r_time, r_energy, r_memory)
+        r_min = min(r_time, r_energy, r_memory)
+        r_max = max(r_time, r_energy, r_memory)
+        r_slack = round(1.0 - r_min, 4)
 
         return ModeBenchmarkMetrics(
             mode_name=name,
@@ -1490,6 +1496,9 @@ def run_four_mode_uma_governor_benchmark(
             aggregate_rpe=balance,
             resource_packing_balance=balance,
             rpe_dominant=r_dom,
+            rpe_min=r_min,
+            rpe_max=r_max,
+            rpe_slack=r_slack,
             rpe_vector=r_vec,
             sample_size_n=rounds,
             hardware_workload_identity="HOST-X86_64-UMA-SYNTHETIC-HETEROGENEOUS-DAG",
