@@ -682,6 +682,20 @@ from .sovereign_promptbook import (  # noqa: F401
     GLOBAL_SOVEREIGN_PROMPTBOOK,
 )
 
+from .sovereign_reasoning_brain import (  # noqa: F401
+    ReasoningMode,
+    EvidentialStatus,
+    EpistemicModelKind,
+    PurposeCategory,
+    PatternEvidenceTuple,
+    PurposeDescriptor,
+    EpistemicModelCandidate,
+    ReasoningPatternDescriptor,
+    ModelArbitrationReport,
+    SovereignReasoningPatternBrain,
+    GLOBAL_REASONING_PATTERN_BRAIN,
+)
+
 from .sovereign_recurrent_stream_emulator import (  # noqa: F401
     VariationKind,
     ComputationLayerId,
@@ -1221,6 +1235,11 @@ __all__ = [
     "InvariantEvaluationReport", "PromptbookRecipe", "RenderedPrompt",
     "OperationalAstProposal", "PromptExecutionReceipt",
     "resolve_promptbook_secret_key", "canonical_recipe_json",
-    "SovereignPromptbookRegistry", "GLOBAL_SOVEREIGN_PROMPTBOOK"
+    "SovereignPromptbookRegistry", "GLOBAL_SOVEREIGN_PROMPTBOOK",
+    "ReasoningMode", "EvidentialStatus", "EpistemicModelKind",
+    "PurposeCategory", "PatternEvidenceTuple", "PurposeDescriptor",
+    "EpistemicModelCandidate", "ReasoningPatternDescriptor",
+    "ModelArbitrationReport", "SovereignReasoningPatternBrain",
+    "GLOBAL_REASONING_PATTERN_BRAIN"
 ]
 
