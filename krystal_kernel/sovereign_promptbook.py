@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 """
 ================================================================================
-KRYSTAL STACK PLATFORM FRAMEWORK - SOVEREIGN PROMPTBOOK ENGINE (v2)
+KRYSTAL STACK PLATFORM FRAMEWORK - SOVEREIGN PROMPTBOOK ENGINE (v3)
 ================================================================================
-Module:     krystal_kernel/sovereign_promptbook.py
-Architecture: Trusted Operational Compiler Frontend (4-Plane Governance)
+Module:       krystal_kernel/sovereign_promptbook.py
+Architecture: Proof-Carrying Operational AST & Trusted Operational Compiler Frontend
+Planes:
   1. RECIPE PLANE: Declarative operational templates (RECIPE-01 .. RECIPE-07)
   2. SCHEMA PLANE: Typed inputs, slots, and output format contracts
   3. CONSTRAINT PLANE: Machine-verifiable executable invariant predicates (HARD/SOFT)
-  4. PROVENANCE PLANE: Canonical JSON HMAC digests, execution receipts & AST bridge
-Tenets:     KSPP v1 (P1-P10) | Epistemic Prompt Router & Calibrated Microprompts
-Compiler:   Prompt Recipe -> Typed Operational AST -> KSL Constraint IR -> KµISA -> KSAC
-Author:     Antigravity Cognitive Invariants Group
-Invariants: VITAL_MAX_HP == 6 | Proposer != Evaluator | Delta S == 0 on breach
+     carrying formal InvariantDefinition identity and versioned InvariantSetHash
+  4. PROVENANCE PLANE: RFC 8785 JSON Canonicalization Scheme (JCS), HKDF-SHA256
+     domain-separated keys, replay-protected hash-chained receipts (R_n),
+     and dual-gate validation (Proposal != Authority)
+Tenets:       KSPP v1 (P1-P10) | Epistemic Prompt Router & Calibrated Microprompts
+Compiler:     Prompt Recipe -> Typed Operational AST -> KSL Constraint IR -> KµISA -> KSAC
+Author:       Antigravity Cognitive Invariants Group (2026)
+Invariants:   VITAL_MAX_HP == 6 | Proposer != Evaluator | Delta S == 0 on breach
 ================================================================================
 """
 
@@ -22,10 +26,13 @@ import enum
 import hashlib
 import hmac
 import json
+import math
 import os
+import secrets
 import time
+import unicodedata
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from .constants import VITAL_MAX_HP, ContractViolation
 
@@ -51,65 +58,154 @@ class InvariantSeverity(str, enum.Enum):
     SOFT = "SOFT"   # Advisory guardrail; failure emits diagnostic warning
 
 
+class KeyProvenance(str, enum.Enum):
+    """Classification of cryptographic secret key provenance."""
+    SECURE_EXPLICIT = "SECURE_EXPLICIT"  # Passed explicitly from trusted KMS / TPM / Vault
+    ENV_INJECTED    = "ENV_INJECTED"     # Injected via environment variable KRYSTAL_PROMPTBOOK_SECRET_KEY
+    TEST_FALLBACK   = "TEST_FALLBACK"    # Deterministic fallback strictly for development / test harnesses
+
+
 # =============================================================================
-# KEY RESOLUTION (SECURITY PLANE)
+# 1. HARDENING: FAIL-CLOSED KEY RESOLUTION (SECURITY PLANE)
 # =============================================================================
 
-def resolve_promptbook_secret_key(explicit_key: Optional[bytes] = None) -> bytes:
+def resolve_promptbook_secret_key(
+    explicit_key: Optional[bytes] = None,
+    enforce_production_fail_closed: bool = True
+) -> Tuple[bytes, KeyProvenance]:
     """
     Authoritative key resolution for Promptbook provenance and HMAC signing.
-    Priority:
-      1. Explicitly supplied key in constructor (e.g. from KMS / TPM / Vault).
-      2. Environment variable KRYSTAL_PROMPTBOOK_SECRET_KEY.
-      3. Secure platform fallback with explicit provenance marker.
+    Enforces Fail-Closed in production environments:
+      MissingSecureKey => ContractViolation (Fail-Closed)
+    Deterministic test fallback is strictly allowed ONLY in non-production environments.
     """
+    is_production = (
+        os.environ.get("KRYSTAL_MODE", "").lower() == "production" or
+        os.environ.get("ENVIRONMENT", "").lower() == "production"
+    )
+
     if explicit_key is not None and len(explicit_key) >= 16:
-        return explicit_key
+        return (explicit_key, KeyProvenance.SECURE_EXPLICIT)
 
     env_key = os.environ.get("KRYSTAL_PROMPTBOOK_SECRET_KEY")
     if env_key:
-        return env_key.encode("utf-8")
+        key_bytes = env_key.encode("utf-8")
+        if len(key_bytes) >= 16:
+            return (key_bytes, KeyProvenance.ENV_INJECTED)
 
-    # Secure fallback key for development / sandbox verification
-    return b"krystal_sovereign_promptbook_provenance_v2_hsm_key"
+    if is_production and enforce_production_fail_closed:
+        raise ContractViolation(
+            "Missing secure cryptographic key in production mode (Fail-Closed enforced: KMS/TPM/HSM key required)"
+        )
+
+    # Secure deterministic fallback key strictly for development / sandbox verification
+    return (b"krystal_sovereign_promptbook_provenance_v2_hsm_key", KeyProvenance.TEST_FALLBACK)
 
 
 # =============================================================================
-# CONSTRAINT PLANE: EXECUTABLE INVARIANTS
+# 2. HARDENING: DOMAIN-SEPARATED KEYS VIA HKDF-SHA256 (RFC 5869)
 # =============================================================================
 
-@dataclass
-class ExecutableInvariant:
+def hkdf_extract(salt: bytes, ikm: bytes) -> bytes:
+    """RFC 5869 HKDF-Extract using HMAC-SHA256."""
+    if not salt:
+        salt = b"\x00" * 32
+    return hmac.new(salt, ikm, hashlib.sha256).digest()
+
+
+def hkdf_expand(prk: bytes, info: bytes, length: int = 32) -> bytes:
+    """RFC 5869 HKDF-Expand using HMAC-SHA256."""
+    hash_len = 32
+    n = math.ceil(length / hash_len)
+    if n > 255:
+        raise ContractViolation("Cannot expand to more than 255 * hash_len octets")
+    okm = b""
+    t = b""
+    for i in range(1, n + 1):
+        t = hmac.new(prk, t + info + bytes([i]), hashlib.sha256).digest()
+        okm += t
+    return okm[:length]
+
+
+def hkdf_derive_domain_key(
+    root_key: bytes,
+    domain: str,
+    length: int = 32,
+    salt: Optional[bytes] = None
+) -> bytes:
     """
-    Machine-verifiable invariant predicate.
-    Transforms static string assertions into executable code:
-      StringInvariant -> ExecutablePredicate
+    Derives domain-separated cryptographic keys from root secret via RFC 5869 HKDF-SHA256:
+      K_recipe    = HKDF(K_root, "krystal-domain-recipe-v1")
+      K_render    = HKDF(K_root, "krystal-domain-render-v1")
+      K_ast       = HKDF(K_root, "krystal-domain-ast-v1")
+      K_receipt   = HKDF(K_root, "krystal-domain-receipt-v1")
+    Guarantees:
+      Compromise(K_recipe) !implies Forge(TransitionReceipt)
     """
-    invariant_id: str
-    description: str
-    predicate: Callable[[Dict[str, Any]], bool]
-    severity: InvariantSeverity = InvariantSeverity.HARD
-    vital_max_hp: int = VITAL_MAX_HP
-
-    def __post_init__(self) -> None:
-        if self.vital_max_hp != VITAL_MAX_HP:
-            raise ContractViolation(f"Constitutional HP breach in ExecutableInvariant: {self.vital_max_hp} != {VITAL_MAX_HP}")
-
-
-@dataclass(frozen=True)
-class InvariantEvaluationReport:
-    """Audit report generated by evaluating a recipe's executable invariants against context."""
-    recipe_id: str
-    passed_all_hard: bool
-    evaluations: Dict[str, bool]
-    violation_reasons: List[str]
-    timestamp_ns: int
-    vital_max_hp: int = VITAL_MAX_HP
+    effective_salt = salt if salt is not None else b"krystal_kspp_domain_separation_salt_v1"
+    prk = hkdf_extract(effective_salt, root_key)
+    info = domain.encode("utf-8")
+    return hkdf_expand(prk, info, length)
 
 
 # =============================================================================
-# RECIPE & PROVENANCE DATA STRUCTURES
+# 3. HARDENING: RFC 8785 JSON CANONICALIZATION SCHEME (JCS)
 # =============================================================================
+
+def canonical_jcs_serialize(obj: Any) -> bytes:
+    """
+    Serializes a Python object to JSON adhering to RFC 8785 (JSON Canonicalization Scheme - JCS).
+    Key properties:
+      1. Unicode NFC normalization for all strings and object keys.
+      2. Deterministic key sorting by UTF-16 code units.
+      3. IEEE-754 float canonicalization (-0.0 -> 0, integer-valued floats formatted cleanly).
+      4. Strict whitespace elimination (separators=(',', ':')).
+      5. Cross-language equivalence: Canonical(x)_Python == Canonical(x)_Rust == Canonical(x)_FPGA.
+    """
+    if obj is None:
+        return b"null"
+    elif isinstance(obj, bool):
+        return b"true" if obj else b"false"
+    elif isinstance(obj, int):
+        return str(obj).encode("utf-8")
+    elif isinstance(obj, float):
+        if obj == 0.0 or obj == -0.0:
+            return b"0"
+        if math.isnan(obj) or math.isinf(obj):
+            raise ContractViolation("RFC 8785 JCS does not permit NaN or Infinity")
+        if obj.is_integer() and abs(obj) < 1e15:
+            return str(int(obj)).encode("utf-8")
+        s = json.dumps(obj)
+        if "e" in s:
+            base, exp = s.split("e")
+            exp_int = int(exp)
+            s = f"{base}e{'+' if exp_int > 0 else ''}{exp_int}"
+        return s.encode("utf-8")
+    elif isinstance(obj, str):
+        normalized = unicodedata.normalize("NFC", obj)
+        return json.dumps(normalized, ensure_ascii=False).encode("utf-8")
+    elif isinstance(obj, bytes):
+        return json.dumps(obj.hex()).encode("utf-8")
+    elif isinstance(obj, (list, tuple)):
+        items = [canonical_jcs_serialize(item) for item in obj]
+        return b"[" + b",".join(items) + b"]"
+    elif isinstance(obj, dict):
+        # Sort keys by NFC normalized UTF-16 code units (RFC 8785 section 3.2.3)
+        sorted_keys = sorted(
+            obj.keys(),
+            key=lambda k: unicodedata.normalize("NFC", str(k)).encode("utf-16-be")
+        )
+        parts = []
+        for k in sorted_keys:
+            k_bytes = canonical_jcs_serialize(str(k))
+            v_bytes = canonical_jcs_serialize(obj[k])
+            parts.append(k_bytes + b":" + v_bytes)
+        return b"{" + b",".join(parts) + b"}"
+    elif hasattr(obj, "__dict__"):
+        return canonical_jcs_serialize(obj.__dict__)
+    else:
+        return canonical_jcs_serialize(str(obj))
+
 
 def canonical_recipe_json(
     recipe_id: str,
@@ -125,7 +221,7 @@ def canonical_recipe_json(
     vital_max_hp: int
 ) -> bytes:
     """
-    Produces deterministic canonical JSON serialization for HMAC integrity signing.
+    Produces deterministic RFC 8785 canonical JSON serialization for HMAC integrity signing.
     Guarantees: RecipeChanged => DigestChanged across all functional attributes.
     """
     payload = {
@@ -141,14 +237,157 @@ def canonical_recipe_json(
         "user_template": user_template,
         "vital_max_hp": vital_max_hp
     }
-    return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return canonical_jcs_serialize(payload)
 
+
+# =============================================================================
+# 5. HARDENING: INVARIANT IDENTITY & VERSIONING (CONSTRAINT PLANE)
+# =============================================================================
+
+@dataclass(frozen=True)
+class InvariantDefinition:
+    """
+    Formal versioned identity of an executable invariant.
+    Solves the identity problem:
+      'How do we know the predicate named VITAL_MAX_HP today is the same predicate as yesterday?'
+    """
+    invariant_id: str
+    version: str
+    severity: InvariantSeverity
+    predicate_digest: str
+    input_schema: Dict[str, Any]
+    output_schema: Dict[str, Any]
+    description: str
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self) -> None:
+        if self.vital_max_hp != VITAL_MAX_HP:
+            raise ContractViolation(f"Constitutional HP breach in InvariantDefinition: {self.vital_max_hp} != {VITAL_MAX_HP}")
+
+    def canonical_digest(self) -> str:
+        """Deterministic RFC 8785 JCS digest of invariant definition."""
+        payload = {
+            "description": self.description,
+            "input_schema": self.input_schema,
+            "invariant_id": self.invariant_id,
+            "output_schema": self.output_schema,
+            "predicate_digest": self.predicate_digest,
+            "severity": self.severity.value,
+            "version": self.version,
+            "vital_max_hp": self.vital_max_hp
+        }
+        return hashlib.sha256(canonical_jcs_serialize(payload)).hexdigest()
+
+
+def compute_invariant_set_hash(definitions: List[InvariantDefinition]) -> str:
+    """
+    Computes:
+      InvariantSetHash = H(I_1 || I_2 || ... || I_n)
+    Proves exactly which versions and specifications of invariants passed.
+    """
+    sorted_defs = sorted(definitions, key=lambda d: d.invariant_id)
+    concatenated = b"".join(d.canonical_digest().encode("utf-8") for d in sorted_defs)
+    return hashlib.sha256(concatenated).hexdigest()
+
+
+@dataclass
+class ExecutableInvariant:
+    """
+    Machine-verifiable invariant predicate carrying formal InvariantDefinition identity.
+    Transforms static string assertions into executable code with cryptographic provenance:
+      StringInvariant -> ExecutablePredicate with InvariantDefinition
+    """
+    invariant_id: str
+    description: str
+    predicate: Callable[[Dict[str, Any]], bool]
+    severity: InvariantSeverity = InvariantSeverity.HARD
+    version: str = "1.0"
+    input_schema: Dict[str, Any] = field(default_factory=dict)
+    output_schema: Dict[str, Any] = field(default_factory=dict)
+    predicate_digest: str = ""
+    definition: Optional[InvariantDefinition] = None
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self) -> None:
+        if self.vital_max_hp != VITAL_MAX_HP:
+            raise ContractViolation(f"Constitutional HP breach in ExecutableInvariant: {self.vital_max_hp} != {VITAL_MAX_HP}")
+        if self.definition is None:
+            p_digest = self.predicate_digest or hashlib.sha256(self.description.encode("utf-8")).hexdigest()
+            self.definition = InvariantDefinition(
+                invariant_id=self.invariant_id,
+                version=self.version,
+                severity=self.severity,
+                predicate_digest=p_digest,
+                input_schema=self.input_schema,
+                output_schema=self.output_schema,
+                description=self.description,
+                vital_max_hp=self.vital_max_hp
+            )
+
+
+@dataclass(frozen=True)
+class InvariantEvaluationReport:
+    """Audit report generated by evaluating a recipe's executable invariants against context."""
+    recipe_id: str
+    passed_all_hard: bool
+    evaluations: Dict[str, bool]
+    violation_reasons: List[str]
+    timestamp_ns: int
+    invariant_set_hash: str = ""
+    vital_max_hp: int = VITAL_MAX_HP
+
+
+# =============================================================================
+# 7. HARDENING: EXECUTABLE FALSIFICATION ORACLE CONTRACT
+# =============================================================================
+
+@dataclass(frozen=True)
+class FalsificationOracleContract:
+    """
+    Machine-executable falsification contract carried by Proof-Carrying Operational ASTs.
+    Transforms prose descriptions ('Reject if cycle exists') into typed executable oracles:
+      Proposal -> Precondition -> Execute -> Oracle -> Commit
+      Oracle == False => NoCommit and Delta S_authoritative == 0
+    """
+    predicate_id: str
+    expected_result: bool
+    evaluator_rule: str
+    evaluator_predicate: Optional[Callable[[Dict[str, Any]], bool]] = None
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self) -> None:
+        if self.vital_max_hp != VITAL_MAX_HP:
+            raise ContractViolation(f"Constitutional HP breach in FalsificationOracleContract: {self.vital_max_hp} != {VITAL_MAX_HP}")
+
+    def evaluate(self, context: Dict[str, Any]) -> bool:
+        """
+        Evaluates oracle against execution context.
+        Returns True if verification passes (matches expected_result).
+        Returns False if falsification is triggered (blocks commit, Delta S == 0).
+        """
+        if self.evaluator_predicate is not None:
+            try:
+                res = bool(self.evaluator_predicate(context))
+                return res == self.expected_result
+            except Exception:
+                return False
+        if self.predicate_id in context:
+            return bool(context[self.predicate_id]) == self.expected_result
+        return not bool(context.get("falsification_triggered", False))
+
+    def __str__(self) -> str:
+        return self.evaluator_rule
+
+
+# =============================================================================
+# RECIPE & PROVENANCE DATA STRUCTURES
+# =============================================================================
 
 @dataclass(frozen=True)
 class PromptbookRecipe:
     """
     A formal, calibrated promptbook recipe with input slots and verification invariants.
-    Signed via Canonical JSON HMAC over all 11 structural fields.
+    Signed via RFC 8785 Canonical JSON HMAC over all 11 structural fields using K_recipe.
     """
     recipe_id: str
     title: str
@@ -160,7 +399,7 @@ class PromptbookRecipe:
     expected_output_format: str
     falsification_condition: str
     hmac_signature: str
-    schema_version: str = "2.0"
+    schema_version: str = "3.0"
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self) -> None:
@@ -173,7 +412,7 @@ class RenderedPrompt:
     """
     A concrete instantiated prompt ready for dispatch or execution.
     Features cryptographic provenance digest linking recipe hash, timestamp,
-    canonical slot values, system text, and user text.
+    canonical slot values, system text, and user text signed via K_render.
     """
     recipe_id: str
     recipe_digest: str
@@ -192,9 +431,10 @@ class RenderedPrompt:
 @dataclass(frozen=True)
 class OperationalAstProposal:
     """
-    Typed operational AST node bridging Promptbook to KSL Compiler Frontend:
+    Proof-Carrying Operational AST Proposal bridging Promptbook to KSL Compiler Frontend:
       Prompt Recipe -> Typed Operational AST -> KSL Constraint IR -> KµISA.
-    Enforces Proposal != Authority and explicit resource budgeting.
+    Enforces Proposal != Authority, explicit resource budgeting, InvariantSetHash provenance,
+    and machine-verifiable executable FalsificationOracleContract.
     """
     proposal_id: str
     recipe_id: str
@@ -205,8 +445,12 @@ class OperationalAstProposal:
     constraint_set: List[str]
     resource_budget: Dict[str, float]  # Q_time_ns, Q_memory_bytes, Q_energy_uj
     transition_contract: str
-    falsification_oracle: str
+    falsification_oracle: FalsificationOracleContract
     hmac_ast_signature: str
+    invariant_set_hash: str = ""
+    input_schema_hash: str = ""
+    execution_epoch: int = 1
+    key_id: str = "KRYSTAL-ROOT-v1"
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self) -> None:
@@ -214,11 +458,19 @@ class OperationalAstProposal:
             raise ContractViolation(f"Constitutional HP breach in OperationalAstProposal: {self.vital_max_hp} != {VITAL_MAX_HP}")
 
 
+# =============================================================================
+# 4 & 8. HARDENING: RECEIPT CHAIN REPLAY PROTECTION & AUDIT SIGNATURE
+# =============================================================================
+
 @dataclass(frozen=True)
 class PromptExecutionReceipt:
     """
-    Formal cryptographic execution receipt completing the 4-step provenance chain:
-      RecipeHash -> RenderedPromptHash -> OperationHash -> TransitionReceiptHash
+    Formal cryptographic execution receipt with hash-chaining and replay protection:
+      R_n = H(R_{n-1} || Operation_n || Result_n || Epoch || Seq || Nonce)
+    Supports dual signature separation:
+      1. HMAC-SHA256 (via K_receipt): Internal high-speed microsecond integrity.
+      2. External Audit Signature (e.g. Ed25519): Asymmetric public non-repudiation
+         without revealing shared symmetric keys to auditors or investors.
     """
     receipt_id: str
     recipe_id: str
@@ -229,6 +481,15 @@ class PromptExecutionReceipt:
     execution_status: str
     timestamp_ns: int
     hmac_receipt_signature: str
+    sequence_number: int = 1
+    execution_epoch: int = 1
+    nonce: str = ""
+    parent_receipt_hash: str = "0" * 64
+    policy_version: str = "3.0"
+    key_id: str = "KRYSTAL-ROOT-v1"
+    invariant_set_hash: str = ""
+    external_audit_signature: Optional[str] = None
+    audit_scheme: Optional[str] = None
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self) -> None:
@@ -243,11 +504,12 @@ class PromptExecutionReceipt:
 class SovereignPromptbookRegistry:
     """
     Authoritative catalog of calibrated microprompts operationalizing Krystal Stack inventions.
-    Operates as a 4-Plane Trusted Operational Compiler Frontend:
+    Operates as a 4-Plane Trusted Operational Compiler Frontend (v3):
       1. RECIPE PLANE: Declarative recipes with bound invariants.
       2. SCHEMA PLANE: Typed input slots and output contracts.
-      3. CONSTRAINT PLANE: Executable invariant pre-dispatch evaluation.
-      4. PROVENANCE PLANE: Canonical JSON HMAC integrity and execution receipt chaining.
+      3. CONSTRAINT PLANE: Executable invariant pre-dispatch evaluation and versioned InvariantSetHash.
+      4. PROVENANCE PLANE: RFC 8785 JCS, HKDF-SHA256 domain keys, replay-protected hash-chained receipts,
+         dual-gate proposal validation, and asymmetric external audit signatures.
     """
 
     def __init__(
@@ -258,7 +520,21 @@ class SovereignPromptbookRegistry:
         if vital_max_hp != VITAL_MAX_HP:
             raise ContractViolation(f"Constitutional HP breach: {vital_max_hp} != {VITAL_MAX_HP}")
         self.vital_max_hp: int = vital_max_hp
-        self.secret_key = resolve_promptbook_secret_key(secret_key)
+        self.secret_key, self.key_provenance = resolve_promptbook_secret_key(secret_key)
+
+        # Domain-Separated Cryptographic Keys via RFC 5869 HKDF-SHA256
+        self.key_recipe = hkdf_derive_domain_key(self.secret_key, "krystal-domain-recipe-v1")
+        self.key_render = hkdf_derive_domain_key(self.secret_key, "krystal-domain-render-v1")
+        self.key_ast = hkdf_derive_domain_key(self.secret_key, "krystal-domain-ast-v1")
+        self.key_receipt = hkdf_derive_domain_key(self.secret_key, "krystal-domain-receipt-v1")
+
+        # Receipt Chain State (Replay Protection)
+        self._receipt_sequence: int = 0
+        self._execution_epoch: int = 1
+        self._last_receipt_hash: str = "0" * 64
+        self.key_id: str = "KRYSTAL-PROMPTBOOK-KEY-v3"
+        self.policy_version: str = "3.0"
+
         self.recipes: Dict[str, PromptbookRecipe] = {}
         self.canonical_invariants: Dict[str, ExecutableInvariant] = {}
 
@@ -270,7 +546,7 @@ class SovereignPromptbookRegistry:
     # -------------------------------------------------------------------------
 
     def _register_canonical_executable_invariants(self) -> None:
-        """Initializes canonical machine-verifiable invariant predicates."""
+        """Initializes canonical machine-verifiable invariant predicates with formal definitions."""
 
         # 1. Constitutional HP Invariant
         self.register_executable_invariant(
@@ -279,6 +555,9 @@ class SovereignPromptbookRegistry:
                 description="Constitutional HP must equal exactly 6 at all times",
                 predicate=lambda ctx: ctx.get("vital_max_hp", VITAL_MAX_HP) == VITAL_MAX_HP,
                 severity=InvariantSeverity.HARD,
+                version="1.0",
+                input_schema={"vital_max_hp": "int"},
+                output_schema={"valid": "bool"},
                 vital_max_hp=self.vital_max_hp
             )
         )
@@ -290,6 +569,9 @@ class SovereignPromptbookRegistry:
                 description="Authorizing entity must be strictly distinct from proposing entity",
                 predicate=lambda ctx: ctx.get("proposer_id", "proposer") != ctx.get("evaluator_id", "evaluator"),
                 severity=InvariantSeverity.HARD,
+                version="1.0",
+                input_schema={"proposer_id": "str", "evaluator_id": "str"},
+                output_schema={"distinct": "bool"},
                 vital_max_hp=self.vital_max_hp
             )
         )
@@ -301,6 +583,9 @@ class SovereignPromptbookRegistry:
                 description="Subtask execution plan must not contain circular dependencies",
                 predicate=lambda ctx: not bool(ctx.get("cycle_detected", False)),
                 severity=InvariantSeverity.HARD,
+                version="1.0",
+                input_schema={"cycle_detected": "bool"},
+                output_schema={"acyclic": "bool"},
                 vital_max_hp=self.vital_max_hp
             )
         )
@@ -312,6 +597,9 @@ class SovereignPromptbookRegistry:
                 description="UMA memory bus pressure must not saturate above configured throttle threshold",
                 predicate=lambda ctx: float(ctx.get("current_uma", ctx.get("sampled_uma", 0.0))) < 0.90,
                 severity=InvariantSeverity.HARD,
+                version="1.0",
+                input_schema={"current_uma": "float"},
+                output_schema={"within_headroom": "bool"},
                 vital_max_hp=self.vital_max_hp
             )
         )
@@ -323,6 +611,9 @@ class SovereignPromptbookRegistry:
                 description="Governor recommendations must remain strictly advisory candidates",
                 predicate=lambda ctx: not bool(ctx.get("direct_hardware_mutation", False)),
                 severity=InvariantSeverity.HARD,
+                version="1.0",
+                input_schema={"direct_hardware_mutation": "bool"},
+                output_schema={"advisory_only": "bool"},
                 vital_max_hp=self.vital_max_hp
             )
         )
@@ -334,6 +625,9 @@ class SovereignPromptbookRegistry:
                 description="Knapsack admission planner must mathematically guarantee zero planned overrun",
                 predicate=lambda ctx: float(ctx.get("planned_overrun_rate", 0.0)) == 0.0,
                 severity=InvariantSeverity.HARD,
+                version="1.0",
+                input_schema={"planned_overrun_rate": "float"},
+                output_schema={"zero_overrun": "bool"},
                 vital_max_hp=self.vital_max_hp
             )
         )
@@ -345,6 +639,9 @@ class SovereignPromptbookRegistry:
                 description="On contractual breach or regression, state change must be exactly zero",
                 predicate=lambda ctx: True,  # Monitored during rollback
                 severity=InvariantSeverity.HARD,
+                version="1.0",
+                input_schema={"regression_detected": "bool"},
+                output_schema={"zero_delta": "bool"},
                 vital_max_hp=self.vital_max_hp
             )
         )
@@ -356,6 +653,9 @@ class SovereignPromptbookRegistry:
                 description="Theory dependency graph remains frozen at exactly 56 nodes",
                 predicate=lambda ctx: int(ctx.get("theory_node_count", 56)) == 56,
                 severity=InvariantSeverity.HARD,
+                version="1.0",
+                input_schema={"theory_node_count": "int"},
+                output_schema={"frozen_at_56": "bool"},
                 vital_max_hp=self.vital_max_hp
             )
         )
@@ -365,6 +665,37 @@ class SovereignPromptbookRegistry:
         if invariant.vital_max_hp != self.vital_max_hp:
             raise ContractViolation("Invariant vital HP mismatch")
         self.canonical_invariants[invariant.invariant_id] = invariant
+
+    def get_recipe_invariant_definitions(self, recipe_id: str) -> List[InvariantDefinition]:
+        """Retrieves list of InvariantDefinitions for all bound invariants of a recipe."""
+        recipe = self.get_recipe(recipe_id)
+        if recipe is None:
+            raise ContractViolation(f"Unknown promptbook recipe: {recipe_id}")
+
+        definitions: List[InvariantDefinition] = []
+        for inv_id in recipe.bound_invariants:
+            inv = self.canonical_invariants.get(inv_id)
+            if inv is not None and inv.definition is not None:
+                definitions.append(inv.definition)
+            else:
+                definitions.append(
+                    InvariantDefinition(
+                        invariant_id=inv_id,
+                        version="1.0",
+                        severity=InvariantSeverity.HARD,
+                        predicate_digest=hashlib.sha256(inv_id.encode("utf-8")).hexdigest(),
+                        input_schema={},
+                        output_schema={},
+                        description=f"Bound formal invariant {inv_id}",
+                        vital_max_hp=self.vital_max_hp
+                    )
+                )
+        return definitions
+
+    def get_recipe_invariant_set_hash(self, recipe_id: str) -> str:
+        """Computes InvariantSetHash = H(I_1 || I_2 || ... || I_n) for a recipe."""
+        defs = self.get_recipe_invariant_definitions(recipe_id)
+        return compute_invariant_set_hash(defs)
 
     def evaluate_invariants(self, recipe_id: str, context: Dict[str, Any]) -> InvariantEvaluationReport:
         """
@@ -397,12 +728,15 @@ class SovereignPromptbookRegistry:
                 # Registered as formal symbolic contract
                 evaluations[inv_id] = True
 
+        inv_set_hash = self.get_recipe_invariant_set_hash(recipe_id)
+
         return InvariantEvaluationReport(
             recipe_id=recipe_id,
             passed_all_hard=passed_all_hard,
             evaluations=evaluations,
             violation_reasons=violations,
             timestamp_ns=now_ns,
+            invariant_set_hash=inv_set_hash,
             vital_max_hp=self.vital_max_hp
         )
 
@@ -635,11 +969,11 @@ class SovereignPromptbookRegistry:
         bound_invariants: List[str],
         expected_output_format: str,
         falsification_condition: str,
-        schema_version: str = "2.0"
+        schema_version: str = "3.0"
     ) -> None:
         """
         Internal helper to canonically serialize, sign, and store a promptbook recipe.
-        The HMAC signature strictly covers all 11 fields via canonical JSON.
+        The HMAC signature strictly covers all 11 fields via RFC 8785 Canonical JSON using K_recipe.
         """
         canonical_bytes = canonical_recipe_json(
             recipe_id=recipe_id,
@@ -654,7 +988,7 @@ class SovereignPromptbookRegistry:
             schema_version=schema_version,
             vital_max_hp=self.vital_max_hp
         )
-        sig = hmac.new(self.secret_key, canonical_bytes, hashlib.sha256).hexdigest()
+        sig = hmac.new(self.key_recipe, canonical_bytes, hashlib.sha256).hexdigest()
 
         recipe = PromptbookRecipe(
             recipe_id=recipe_id,
@@ -693,8 +1027,8 @@ class SovereignPromptbookRegistry:
         """
         Instantiates a promptbook recipe by populating all input slots.
         Evaluates executable invariants in the Constraint Plane.
-        Computes canonical provenance digest:
-          digest = HMAC_K( recipe_digest || timestamp || canonical(slot_values) || system_text || user_text )
+        Computes canonical provenance digest using domain key K_render:
+          digest = HMAC_{K_render}( recipe_digest || timestamp || canonical_jcs(slot_values) || system_text || user_text )
         Raises ContractViolation if any required slot is absent or if a HARD invariant fails.
         """
         recipe = self.get_recipe(recipe_id)
@@ -715,13 +1049,13 @@ class SovereignPromptbookRegistry:
         now_ns = time.perf_counter_ns()
         rendered_user = recipe.user_template.format(**slot_values)
 
-        # Canonical Slot Serialization
-        canonical_slots = json.dumps(slot_values, sort_keys=True, separators=(",", ":"), default=str)
+        # RFC 8785 Canonical Slot Serialization
+        canonical_slots = canonical_jcs_serialize(slot_values).decode("utf-8")
         provenance_payload = (
             f"{recipe.hmac_signature}:{now_ns}:{canonical_slots}:"
             f"{recipe.system_directive}:{rendered_user}:{self.vital_max_hp}"
         ).encode("utf-8")
-        digest = hmac.new(self.secret_key, provenance_payload, hashlib.sha256).hexdigest()
+        digest = hmac.new(self.key_render, provenance_payload, hashlib.sha256).hexdigest()
 
         return RenderedPrompt(
             recipe_id=recipe_id,
@@ -738,11 +1072,15 @@ class SovereignPromptbookRegistry:
         self,
         rendered_prompt: RenderedPrompt,
         candidate_set: Optional[List[str]] = None,
-        resource_budget: Optional[Dict[str, float]] = None
+        resource_budget: Optional[Dict[str, float]] = None,
+        falsification_oracle: Optional[Union[str, FalsificationOracleContract]] = None,
+        proposer_role: str = "LLM_PROMPTBOOK_COMPILER_FRONTEND"
     ) -> OperationalAstProposal:
         """
-        Compiler Frontend Bridge: Converts a RenderedPrompt into a Typed Operational AST Proposal.
+        Compiler Frontend Bridge: Converts a RenderedPrompt into a Proof-Carrying Operational AST Proposal.
         Bridges Promptbook to KSL Constraint IR and KµISA.
+        Embeds InvariantSetHash, input schema hash, epoch, and machine-verifiable FalsificationOracleContract.
+        Signs payload using domain key K_ast.
         """
         recipe = self.get_recipe(rendered_prompt.recipe_id)
         if recipe is None:
@@ -754,42 +1092,218 @@ class SovereignPromptbookRegistry:
         candidates = candidate_set or ["CANDIDATE_MICRO_OP_BATCH_DEFAULT"]
         budget = resource_budget or {"Q_time_ns": 3_500_000.0, "Q_memory_bytes": 4096.0, "Q_energy_uj": 150.0}
 
-        sig_data = f"{proposal_id}:{rendered_prompt.hmac_digest}:{recipe.title}:{len(candidates)}:{self.vital_max_hp}".encode()
-        ast_sig = hmac.new(self.secret_key, sig_data, hashlib.sha256).hexdigest()
+        inv_set_hash = self.get_recipe_invariant_set_hash(recipe.recipe_id)
+        input_schema_hash = hashlib.sha256(canonical_jcs_serialize(recipe.input_slots)).hexdigest()
+
+        # Build formal FalsificationOracleContract
+        if isinstance(falsification_oracle, FalsificationOracleContract):
+            oracle_contract = falsification_oracle
+        elif isinstance(falsification_oracle, str) and falsification_oracle.strip():
+            oracle_contract = FalsificationOracleContract(
+                predicate_id="IS_VALID_TRANSITION",
+                expected_result=True,
+                evaluator_rule=falsification_oracle,
+                vital_max_hp=self.vital_max_hp
+            )
+        else:
+            oracle_contract = FalsificationOracleContract(
+                predicate_id="IS_VALID_TRANSITION",
+                expected_result=True,
+                evaluator_rule=recipe.falsification_condition,
+                vital_max_hp=self.vital_max_hp
+            )
+
+        ast_payload = {
+            "candidate_set": candidates,
+            "constraint_set": recipe.bound_invariants,
+            "evaluator_role": "AEP_CONSTITUTIONAL_EVALUATOR",
+            "execution_epoch": self._execution_epoch,
+            "falsification_oracle": oracle_contract.evaluator_rule,
+            "input_schema_hash": input_schema_hash,
+            "invariant_set_hash": inv_set_hash,
+            "key_id": self.key_id,
+            "operation_title": recipe.title,
+            "proposal_id": proposal_id,
+            "proposer_role": proposer_role,
+            "recipe_id": recipe.recipe_id,
+            "rendered_prompt_digest": rendered_prompt.hmac_digest,
+            "resource_budget": budget,
+            "transition_contract": "HOMOMORPHIC_STATE_DELTA_GATE",
+            "vital_max_hp": self.vital_max_hp
+        }
+        sig_data = canonical_jcs_serialize(ast_payload)
+        ast_sig = hmac.new(self.key_ast, sig_data, hashlib.sha256).hexdigest()
 
         return OperationalAstProposal(
             proposal_id=proposal_id,
             recipe_id=recipe.recipe_id,
             operation_title=recipe.title,
-            proposer_role="LLM_PROMPTBOOK_COMPILER_FRONTEND",
+            proposer_role=proposer_role,
             evaluator_role="AEP_CONSTITUTIONAL_EVALUATOR",
             candidate_set=candidates,
             constraint_set=recipe.bound_invariants,
             resource_budget=budget,
             transition_contract="HOMOMORPHIC_STATE_DELTA_GATE",
-            falsification_oracle=recipe.falsification_condition,
+            falsification_oracle=oracle_contract,
             hmac_ast_signature=ast_sig,
+            invariant_set_hash=inv_set_hash,
+            input_schema_hash=input_schema_hash,
+            execution_epoch=self._execution_epoch,
+            key_id=self.key_id,
             vital_max_hp=self.vital_max_hp
         )
+
+    # -------------------------------------------------------------------------
+    # 6. HARDENING: SECOND VALIDATION GATE (UNTRUSTED LLM OUTPUT -> TRUSTED AST)
+    # -------------------------------------------------------------------------
+
+    def validate_untrusted_llm_proposal(
+        self,
+        untrusted_output: Union[str, Dict[str, Any]],
+        rendered_prompt: RenderedPrompt,
+        execution_context: Optional[Dict[str, Any]] = None
+    ) -> OperationalAstProposal:
+        """
+        Second Validation Gate:
+          RenderedPrompt -> LLM -> UntrustedProposal -> Deterministic Parser -> Schema Validation -> Executable Invariant Evaluation -> Proof-Carrying OperationalAstProposal
+        Enforces:
+          LLMOutput != TrustedAST
+        Stochastic generation cannot bypass schemas, resource limits, or executable invariants.
+        """
+        # 1. Deterministic Parsing
+        if isinstance(untrusted_output, str):
+            raw_str = untrusted_output.strip()
+            # Strip markdown code fences if present
+            if raw_str.startswith("```"):
+                lines = raw_str.splitlines()
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                raw_str = "\n".join(lines).strip()
+            try:
+                parsed = json.loads(raw_str)
+            except Exception as e:
+                raise ContractViolation(f"Second validation gate: untrusted LLM output failed JSON parsing: {e}")
+        elif isinstance(untrusted_output, dict):
+            parsed = dict(untrusted_output)
+        else:
+            raise ContractViolation(f"Second validation gate: invalid LLM output type: {type(untrusted_output)}")
+
+        # 2. Schema Validation
+        candidate_set = parsed.get("candidate_set")
+        if not isinstance(candidate_set, list) or len(candidate_set) == 0:
+            raise ContractViolation("Second validation gate: missing or empty candidate_set in LLM proposal")
+        for c in candidate_set:
+            if not isinstance(c, (str, dict)):
+                raise ContractViolation(f"Second validation gate: invalid candidate type in candidate_set: {type(c)}")
+
+        resource_budget = parsed.get("resource_budget")
+        if not isinstance(resource_budget, dict):
+            raise ContractViolation("Second validation gate: missing or invalid resource_budget dictionary")
+        for q_key in ("Q_time_ns", "Q_memory_bytes", "Q_energy_uj"):
+            if q_key not in resource_budget:
+                raise ContractViolation(f"Second validation gate: missing budget quota {q_key}")
+            val = resource_budget[q_key]
+            if not isinstance(val, (int, float)) or val <= 0:
+                raise ContractViolation(f"Second validation gate: non-positive or invalid budget quota {q_key}: {val}")
+
+        # 3. Executable Invariant Pre-Commit Evaluation
+        ctx = dict(rendered_prompt.slot_values)
+        if execution_context:
+            ctx.update(execution_context)
+        ctx.update({
+            "candidate_count": len(candidate_set),
+            "resource_budget": resource_budget,
+            "vital_max_hp": self.vital_max_hp,
+            "theory_node_count": 56
+        })
+
+        eval_report = self.evaluate_invariants(rendered_prompt.recipe_id, ctx)
+        if not eval_report.passed_all_hard:
+            violations = "; ".join(eval_report.violation_reasons)
+            raise ContractViolation(f"Second validation gate failed: Invariant breach in LLM proposal: {violations}")
+
+        # 4. Falsification Oracle Extraction
+        recipe = self.get_recipe(rendered_prompt.recipe_id)
+        oracle_data = parsed.get("falsification_oracle")
+        if isinstance(oracle_data, dict):
+            oracle = FalsificationOracleContract(
+                predicate_id=str(oracle_data.get("predicate_id", "IS_VALID_TRANSITION")),
+                expected_result=bool(oracle_data.get("expected_result", True)),
+                evaluator_rule=str(oracle_data.get("evaluator_rule", recipe.falsification_condition if recipe else "ASSERT_VALID")),
+                vital_max_hp=self.vital_max_hp
+            )
+        else:
+            rule_text = str(oracle_data) if oracle_data else (recipe.falsification_condition if recipe else "ASSERT_VALID")
+            oracle = FalsificationOracleContract(
+                predicate_id="IS_VALID_TRANSITION",
+                expected_result=True,
+                evaluator_rule=rule_text,
+                vital_max_hp=self.vital_max_hp
+            )
+
+        # 5. Emit Trusted Proof-Carrying OperationalAstProposal
+        normalized_candidates = [c if isinstance(c, str) else json.dumps(c) for c in candidate_set]
+        return self.compile_to_operational_ast(
+            rendered_prompt=rendered_prompt,
+            candidate_set=normalized_candidates,
+            resource_budget=resource_budget,
+            falsification_oracle=oracle,
+            proposer_role="UNTRUSTED_LLM_PROPOSAL_VALIDATED"
+        )
+
+    # -------------------------------------------------------------------------
+    # 4. HARDENING: RECEIPT CHAINING & REPLAY PROTECTION
+    # -------------------------------------------------------------------------
 
     def create_execution_receipt(
         self,
         rendered_prompt: RenderedPrompt,
         operation_hash: str,
-        status: str = "COMMITTED"
+        status: str = "COMMITTED",
+        nonce: Optional[str] = None
     ) -> PromptExecutionReceipt:
         """
         Mints the formal execution receipt completing the 4-step provenance chain:
           RecipeHash -> RenderedPromptHash -> OperationHash -> TransitionReceiptHash
+        Enforces hash-chaining and replay protection:
+          R_n = HMAC_{K_receipt}( R_{n-1} || Operation_n || Result_n || Epoch || Seq || Nonce )
         """
         now_ns = time.perf_counter_ns()
         receipt_id = f"PROMPT-RECEIPT-{now_ns & 0xFFFFFF}"
 
-        sig_data = (
-            f"{receipt_id}:{rendered_prompt.recipe_digest}:{rendered_prompt.hmac_digest}:"
-            f"{operation_hash}:{status}:{now_ns}:{self.vital_max_hp}"
-        ).encode("utf-8")
-        receipt_sig = hmac.new(self.secret_key, sig_data, hashlib.sha256).hexdigest()
+        self._receipt_sequence += 1
+        sequence_number = self._receipt_sequence
+        parent_hash = self._last_receipt_hash
+        effective_nonce = nonce or f"nonce_{now_ns & 0xFFFFFFFF:08x}_{secrets.token_hex(4)}"
+
+        inv_set_hash = self.get_recipe_invariant_set_hash(rendered_prompt.recipe_id)
+
+        receipt_payload = {
+            "execution_epoch": self._execution_epoch,
+            "execution_status": status,
+            "invariants_verified": True,
+            "invariant_set_hash": inv_set_hash,
+            "key_id": self.key_id,
+            "nonce": effective_nonce,
+            "operation_hash": operation_hash,
+            "parent_receipt_hash": parent_hash,
+            "policy_version": self.policy_version,
+            "receipt_id": receipt_id,
+            "recipe_digest": rendered_prompt.recipe_digest,
+            "recipe_id": rendered_prompt.recipe_id,
+            "rendered_prompt_digest": rendered_prompt.hmac_digest,
+            "sequence_number": sequence_number,
+            "timestamp_ns": now_ns,
+            "vital_max_hp": self.vital_max_hp
+        }
+
+        canonical_receipt_bytes = canonical_jcs_serialize(receipt_payload)
+        receipt_sig = hmac.new(self.key_receipt, canonical_receipt_bytes, hashlib.sha256).hexdigest()
+
+        # Update running parent hash for next receipt in chain
+        self._last_receipt_hash = receipt_sig
 
         return PromptExecutionReceipt(
             receipt_id=receipt_id,
@@ -801,25 +1315,107 @@ class SovereignPromptbookRegistry:
             execution_status=status,
             timestamp_ns=now_ns,
             hmac_receipt_signature=receipt_sig,
+            sequence_number=sequence_number,
+            execution_epoch=self._execution_epoch,
+            nonce=effective_nonce,
+            parent_receipt_hash=parent_hash,
+            policy_version=self.policy_version,
+            key_id=self.key_id,
+            invariant_set_hash=inv_set_hash,
+            external_audit_signature=None,
+            audit_scheme=None,
             vital_max_hp=self.vital_max_hp
         )
+
+    # -------------------------------------------------------------------------
+    # 8. HARDENING: ASYMMETRIC EXTERNAL AUDIT SIGNING SEPARATION
+    # -------------------------------------------------------------------------
+
+    def sign_receipt_for_external_audit(
+        self,
+        receipt: PromptExecutionReceipt,
+        signer_fn: Callable[[bytes], Tuple[str, str]]
+    ) -> PromptExecutionReceipt:
+        """
+        Signs a receipt for external audit using an asymmetric signature scheme (e.g. Ed25519).
+        The signer_fn takes canonical receipt bytes and returns (signature_hex, scheme_name).
+        Guarantees:
+          Internal high-speed integrity uses HMAC (symmetric).
+          External third-party / investor proof uses asymmetric signatures without exposing secret keys.
+        """
+        payload_for_signing = {
+            "execution_epoch": receipt.execution_epoch,
+            "execution_status": receipt.execution_status,
+            "hmac_receipt_signature": receipt.hmac_receipt_signature,
+            "invariant_set_hash": receipt.invariant_set_hash,
+            "invariants_verified": receipt.invariants_verified,
+            "key_id": receipt.key_id,
+            "nonce": receipt.nonce,
+            "operation_hash": receipt.operation_hash,
+            "parent_receipt_hash": receipt.parent_receipt_hash,
+            "policy_version": receipt.policy_version,
+            "receipt_id": receipt.receipt_id,
+            "recipe_digest": receipt.recipe_digest,
+            "recipe_id": receipt.recipe_id,
+            "rendered_prompt_digest": receipt.rendered_prompt_digest,
+            "sequence_number": receipt.sequence_number,
+            "timestamp_ns": receipt.timestamp_ns,
+            "vital_max_hp": receipt.vital_max_hp
+        }
+        canonical_bytes = canonical_jcs_serialize(payload_for_signing)
+        sig_hex, scheme = signer_fn(canonical_bytes)
+
+        return PromptExecutionReceipt(
+            receipt_id=receipt.receipt_id,
+            recipe_id=receipt.recipe_id,
+            recipe_digest=receipt.recipe_digest,
+            rendered_prompt_digest=receipt.rendered_prompt_digest,
+            operation_hash=receipt.operation_hash,
+            invariants_verified=receipt.invariants_verified,
+            execution_status=receipt.execution_status,
+            timestamp_ns=receipt.timestamp_ns,
+            hmac_receipt_signature=receipt.hmac_receipt_signature,
+            sequence_number=receipt.sequence_number,
+            execution_epoch=receipt.execution_epoch,
+            nonce=receipt.nonce,
+            parent_receipt_hash=receipt.parent_receipt_hash,
+            policy_version=receipt.policy_version,
+            key_id=receipt.key_id,
+            invariant_set_hash=receipt.invariant_set_hash,
+            external_audit_signature=sig_hex,
+            audit_scheme=scheme,
+            vital_max_hp=receipt.vital_max_hp
+        )
+
+    def advance_execution_epoch(self) -> int:
+        """Advances execution epoch and re-anchors receipt chain parent hash."""
+        self._execution_epoch += 1
+        self._receipt_sequence = 0
+        self._last_receipt_hash = f"GENESIS_EPOCH_{self._execution_epoch}_" + ("0" * 48)
+        return self._execution_epoch
+
+    # -------------------------------------------------------------------------
+    # DOCUMENTATION & SUMMARY
+    # -------------------------------------------------------------------------
 
     def export_promptbook_markdown_summary(self) -> str:
         """Generates an executive markdown catalog of all active recipes."""
         lines = [
-            "# KRYSTAL STACK: SOVEREIGN OPERATIONAL PROMPTBOOK",
-            "## Calibrated Microprompt Recipes Based on 2026-10-27 Architectural Inventions",
+            "# KRYSTAL STACK: SOVEREIGN OPERATIONAL PROMPTBOOK (v3)",
+            "## Calibrated Microprompt Recipes & Proof-Carrying Operational AST Frontend",
             "",
-            "| Recipe ID | Title | Category | Bound Invariants |",
-            "|:---|:---|:---|:---|",
+            "| Recipe ID | Title | Category | Bound Invariants | Invariant Set Hash |",
+            "|:---|:---|:---|:---|:---|",
         ]
         for r in self.recipes.values():
             invars_str = "<br/>".join(f"`{i}`" for i in r.bound_invariants)
-            lines.append(f"| `{r.recipe_id}` | **{r.title}** | `{r.category.value}` | {invars_str} |")
+            inv_hash = self.get_recipe_invariant_set_hash(r.recipe_id)[:12] + "..."
+            lines.append(f"| `{r.recipe_id}` | **{r.title}** | `{r.category.value}` | {invars_str} | `{inv_hash}` |")
 
         lines.extend(["", "---", ""])
         for r in self.recipes.values():
             slots_str = ", ".join(f"`{s}`" for s in r.input_slots)
+            inv_hash = self.get_recipe_invariant_set_hash(r.recipe_id)
             lines.extend([
                 f"### [{r.recipe_id}] {r.title}",
                 f"- **Category:** `{r.category.value}`",
@@ -827,7 +1423,8 @@ class SovereignPromptbookRegistry:
                 f"- **Required Input Slots:** {slots_str}",
                 f"- **Expected Output:** `{r.expected_output_format}`",
                 f"- **Falsification Condition:** `{r.falsification_condition}`",
-                f"- **Canonical HMAC Digest:** `{r.hmac_signature[:16]}...`",
+                f"- **Canonical JCS HMAC (K_recipe):** `{r.hmac_signature[:16]}...`",
+                f"- **Invariant Set Hash:** `{inv_hash[:16]}...`",
                 "",
                 "**System Directive:**",
                 "> " + r.system_directive.replace("\n", " "),

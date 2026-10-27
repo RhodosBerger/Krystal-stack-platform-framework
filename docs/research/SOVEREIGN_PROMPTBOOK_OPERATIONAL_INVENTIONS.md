@@ -3,15 +3,15 @@
 
 ```text
 ================================================================================
-KRYSTAL STACK PLATFORM FRAMEWORK - PROMPTBOOK SERIES
+KRYSTAL STACK PLATFORM FRAMEWORK - PROMPTBOOK SERIES (v3)
 Document:    SOVEREIGN_PROMPTBOOK_OPERATIONAL_INVENTIONS.md
 Engine:      krystal_kernel/sovereign_promptbook.py
 Registry:    GLOBAL_SOVEREIGN_PROMPTBOOK
-Test Suite:  tests/test_sovereign_promptbook.py (7/7 PASS in 0.002s)
+Test Suite:  tests/test_sovereign_promptbook.py (20/20 PASS in 0.056s)
 Author:      Antigravity Cognitive Invariants Group
 Date:        October 2026
 Invariants:  VITAL_MAX_HP == 6 | Proposer != Evaluator | Delta S == 0 on breach
-Canonical:   CANONICAL_PHASE_04_VULKAN_UMA_SYNTHESIS
+Architecture: Proof-Carrying Operational AST & Trusted Operational Compiler Frontend
 ================================================================================
 ```
 
@@ -21,10 +21,10 @@ Canonical:   CANONICAL_PHASE_04_VULKAN_UMA_SYNTHESIS
 
 V súlade s epistemickými princípmi Krystal Stack a ústavou Antigravity je **striktne zakázané používať monolitické gigaprompty**, ktoré riedia pozornosť modelu a vedú k zlyhaniu kontextu (context drift a sycophancy). 
 
-Tento **Sovereign Promptbook** predstavuje formalizovanú sadu 6 kalibrovaných, vysoko špecializovaných **mikropromptových receptov (Microprompt Recipes)**, ktoré vznikli z dnešných inžinierskych objavov (2026-10-27). Každý recept disponuje:
+Tento **Sovereign Promptbook** predstavuje formalizovanú sadu 7 kalibrovaných, vysoko špecializovaných **mikropromptových receptov (Microprompt Recipes)**, ktoré vznikli z dnešných inžinierskych objavov (2026-10-27). Každý recept disponuje:
 - **Typovanými vstupnými slotmi (`input_slots`):** Žiadne vágne inštrukcie; každý vstup je exaktný parameter.
 - **Viazanými ústavnými invariantmi (`bound_invariants`):** Vynútenie $\text{VITAL\_MAX\_HP} \equiv 6$, $\text{Proposer} \neq \text{Evaluator}$, a $\Delta S = 0$ pri chybe.
-- **Kryptografickým podpisom (HMAC-SHA256):** Nemennosť znenia direktívy.
+- **Kryptografickým podpisom (RFC 8785 JCS + HKDF-SHA256):** Nemennosť znenia direktívy pod doménovým kľúčom $K_{\text{recipe}}$.
 - **Jasnou falzifikačnou podmienkou (`falsification_condition`):** Presná udalosť, pri ktorej je generovaný výstup okamžite zamietnutý.
 
 ---
@@ -36,9 +36,10 @@ Tento **Sovereign Promptbook** predstavuje formalizovanú sadu 6 kalibrovaných,
 | **`RECIPE-01`** | **6-Phase Management Goal Decomposer & Autocompleter** | `OPERATIONS_DECOMPOSITION` | `VITAL_MAX_HP == 6`<br/>`IS_ACYCLIC_DAG`<br/>`PROPOSER != EVALUATOR` |
 | **`RECIPE-02`** | **Cybernetic Bot Archetype & Axiom Auto-Definer Synthesis** | `BOT_ARCHETYPE_AXIOMS` | `VITAL_MAX_HP == 6`<br/>`PROPOSER != EVALUATOR`<br/>`ZERO_TOUCH_128B` |
 | **`RECIPE-03`** | **Procedural Agile Drafting & Subsystem Turn Arbitrator** | `TURN_ARBITRATION_DRAFT` | `VITAL_MAX_HP == 6`<br/>`BUS_MASTER_MUTUAL_EXCLUSION`<br/>`UMA_PRESSURE < 0.78` |
-| **`RECIPE-04`** | **UMA 16x16 Hex Grid Inspector & Governor Advisor** | `UMA_HEX_GOVERNOR` | `VITAL_MAX_HP == 6`<br/>`ARRHENIUS_LIMIT_75C`<br/>`PRINCIPLE_P8_12_DWELL` |
-| **`RECIPE-05`** | **Micro-Operation Knapsack Behavioral Batch Planner** | `MICRO_OP_ALLOCATION` | `VITAL_MAX_HP == 6`<br/>`SUM_CYCLES <= QUOTA`<br/>`DELTA_S == 0_ON_OVERRUN` |
-| **`RECIPE-06`** | **Behavioral Schema Compiler, Vector RAG & Vulkan UMA** | `BEHAVIORAL_VULKAN_SYNTH` | `VITAL_MAX_HP == 6`<br/>`PHASE_CONCURRENCE >= 0.85`<br/>`SCANOUT * COMPUTE == 0` |
+| **`RECIPE-04`** | **UMA 16x16 Hex Grid Inspector & Governor Advisor** | `UMA_HEX_GOVERNOR` | `VITAL_MAX_HP == 6`<br/>`ADVICE_IS_NOT_AUTHORITY`<br/>`UMA_PRESSURE < 0.78` |
+| **`RECIPE-05`** | **Micro-Operation Knapsack Behavioral Batch Planner** | `MICRO_OP_ALLOCATION` | `VITAL_MAX_HP == 6`<br/>`PLANNED_OVERRUN == 0.0`<br/>`DELTA_S == 0_ON_REGRESSION` |
+| **`RECIPE-06`** | **Behavioral Schema Compiler, Vector RAG & Vulkan UMA** | `BEHAVIORAL_VULKAN_SYNTH` | `VITAL_MAX_HP == 6`<br/>`PROPOSER != EVALUATOR` |
+| **`RECIPE-07`** | **Heterogeneous Runtime Control Plane & 4-Mode Benchmark** | `RUNTIME_CONTROL_PLANE` | `VITAL_MAX_HP == 6`<br/>`PLANNED_OVERRUN == 0.0`<br/>`DELTA_S == 0_ON_REGRESSION`<br/>`THEORY_GRAPH_FROZEN_56_NODES` |
 
 ---
 
@@ -265,23 +266,98 @@ print(rendered.user_text)
 
 ---
 
-## 5. Výsledky Testovania a Verifikácie
+## 5. Výsledky Testovania a Verifikácie (v3 Hardened)
 
-Nová promptbooková infraštruktúra bola overená 7 jednotkovými testami v [`tests/test_sovereign_promptbook.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_sovereign_promptbook.py):
+Nová promptbooková infraštruktúra bola overená 20 jednotkovými testami v [`tests/test_sovereign_promptbook.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/tests/test_sovereign_promptbook.py) a 113 testami celej suity suverénneho jadra:
 
 ```text
 ================================================================================
 Test Suite: tests/test_sovereign_promptbook.py
-- test_registry_contains_todays_six_inventions        ... OK
-- test_filter_by_category                             ... OK
-- test_render_prompt_successful_interpolation         ... OK
-- test_render_prompt_missing_slot_raises_contract... ... OK
-- test_render_prompt_unknown_recipe_raises_contract... ... OK
-- test_markdown_summary_export                        ... OK
-- test_constitutional_invariant_breach_prevention     ... OK
+- test_registry_contains_todays_seven_inventions                     ... OK
+- test_filter_by_category                                            ... OK
+- test_render_prompt_successful_interpolation                        ... OK
+- test_render_prompt_missing_slot_raises_contract_violation          ... OK
+- test_render_prompt_unknown_recipe_raises_contract_violation         ... OK
+- test_markdown_summary_export                                       ... OK
+- test_constitutional_invariant_breach_prevention                    ... OK
+- test_canonical_recipe_json_digest_sensitivity                      ... OK
+- test_rendered_prompt_content_digest_sensitivity                    ... OK
+- test_constraint_plane_executable_invariants_precondition           ... OK
+- test_operational_ast_proposal_compilation                          ... OK
+- test_execution_receipt_provenance_chain                            ... OK
+- test_hardening_fail_closed_in_production                           ... OK
+- test_hardening_hkdf_domain_separation                              ... OK
+- test_hardening_rfc8785_canonical_jcs_serialization                 ... OK
+- test_hardening_receipt_hash_chaining_and_replay_protection         ... OK
+- test_hardening_invariant_definition_versioning_and_identity        ... OK
+- test_hardening_second_validation_gate_untrusted_llm_proposal       ... OK
+- test_hardening_falsification_oracle_executable_contract            ... OK
+- test_hardening_asymmetric_external_audit_signature                 ... OK
 --------------------------------------------------------------------------------
-Ran 7 tests in 0.002s (7/7 PASS - 100% OK)
-Plná regresia suity jadra: 82/82 PASS in 0.024s
+Ran 20 tests in 0.056s (20/20 PASS - 100% OK)
+Plná regresia suity suverénneho jadra: 113/113 PASS in 0.075s
 Constitutional Invariant: VITAL_MAX_HP == 6 (Delta S == 0 on breach)
 ================================================================================
 ```
+
+---
+
+## 6. Architektúra v3: Proof-Carrying Operational AST & Hardening Protocol
+
+Implementácia v3 posúva Sovereign Promptbook z registra promptov na plnohodnotný **dôveryhodný operačný kompilátorový frontend (Trusted Operational Compiler Frontend)**:
+
+```text
+Intent -> Recipe -> Typed Input -> Invariant Precondition -> Rendered Contract
+       -> Untrusted LLM Proposal -> Deterministic Parser -> Schema Validate
+       -> Invariant Validate -> Proof-Carrying OperationalAstProposal -> AEP
+       -> KSL/KµISA -> Execution -> Chained Receipt (R_n)
+```
+
+### Kľúčových 7 Hardening Bodov + Asymetrický Audit:
+
+1. **Fail-Closed Riešenie Produkčného Kľúča (`KeyProvenance`):**
+   - V produkčnom režime (`KRYSTAL_MODE=production` alebo `ENVIRONMENT=production`) absencia bezpečného kľúča z KMS/TPM/HSM striktne vyvoláva `ContractViolation` (Fail-Closed).
+   - Deterministický fallback je povolený výhradne v neprodukčných testovacích prostrediach s explicitným markerom `KeyProvenance.TEST_FALLBACK`.
+
+2. **Doménovo Separované Kľúče (RFC 5869 HKDF-SHA256):**
+   - Z koreňového tajomstva $K_{\text{root}}$ sa cez HKDF-Extract a HKDF-Expand odvodzujú 4 nezávislé 32-bajtové kľúče:
+     $$K_{\text{recipe}} = \text{HKDF}(K_{\text{root}}, \text{"krystal-domain-recipe-v1"})$$
+     $$K_{\text{render}} = \text{HKDF}(K_{\text{root}}, \text{"krystal-domain-render-v1"})$$
+     $$K_{\text{ast}} = \text{HKDF}(K_{\text{root}}, \text{"krystal-domain-ast-v1"})$$
+     $$K_{\text{receipt}} = \text{HKDF}(K_{\text{root}}, \text{"krystal-domain-receipt-v1"})$$
+   - Matematická garancia: Kompromitácia receptového kľúča neumožňuje sfalšovať exekučný receipt ($\text{Compromise}(K_{\text{recipe}}) \not\implies \text{Forge}(K_{\text{receipt}})$).
+
+3. **Univerzálna Kanonická Serializácia (RFC 8785 JSON Canonicalization Scheme - JCS):**
+   - Implementovaná funkcia `canonical_jcs_serialize(obj) -> bytes` garantuje bit-exact determinizmus naprieč jazykmi ($Python \leftrightarrow Rust \leftrightarrow KSL \leftrightarrow FPGA$):
+     - Unicode NFC normalizácia reťazcov aj kľúčov slovníkov (`unicodedata.normalize('NFC', s)`).
+     - Lexikografické triedenie kľúčov podľa UTF-16 code units.
+     - IEEE-754 float normalizácia (`-0.0 \to 0`, celočíselné floaty formátované bez desatinných prípon).
+     - Striktná eliminácia bieleho miesta mimo reťazcov.
+
+4. **Ochrana Receipt Chainu Proti Replayu a Hash-Chaining:**
+   - Každý `PromptExecutionReceipt` obsahuje `sequence_number`, `execution_epoch`, kryptografický `nonce`, `parent_receipt_hash`, `policy_version` a `key_id`.
+   - Zreťazenie:
+     $$R_n = \text{HMAC}_{K_{\text{receipt}}}(R_{n-1} \parallel \text{Op}_n \parallel \text{Result}_n \parallel \text{Epoch} \parallel \text{Seq} \parallel \text{Nonce} \parallel \dots)$$
+   - Znovuvloženie starého receiptu do novej epochy alebo mimo sekvencie okamžite zlyhá pri overení reťaze.
+
+5. **Identita a Verziovanie Invariantov (`InvariantDefinition`):**
+   - Každý invariant nesie formalizovanú identitu: `invariant_id`, `version`, `severity`, `predicate_digest`, `input_schema`, `output_schema` a `description`.
+   - Vypočítava sa súhrnný hash sady invariantov:
+     $$\text{InvariantSetHash} = H(I_1 \parallel I_2 \parallel \dots \parallel I_n)$$
+   - AST aj receipt nesú `invariant_set_hash`, čím sa dokazuje, *presne ktorá verzia a špecifikácia invariantu bola overená*.
+
+6. **Druhá Validačná Brána pre Stochastický Výstup LLM:**
+   - Výstup LLM je principiálne neautoritatívny: $\text{LLMOutput} \neq \text{TrustedAST}$.
+   - Metóda `validate_untrusted_llm_proposal(untrusted_output, rendered_prompt)`:
+     1. Deterministicky sparuje JSON (odstráni prípadné markdown bloky).
+     2. Validuje schému (`candidate_set`, kladné kvóty `Q_time_ns`, `Q_memory_bytes`, `Q_energy_uj`).
+     3. Vyhodnotí viazané invarianty v Constraint Plane.
+     4. Vygeneruje autorizovaný, podpísaný `OperationalAstProposal` s rolou `UNTRUSTED_LLM_PROPOSAL_VALIDATED`.
+
+7. **Vykonateľný Kontrakt Falzifikačného Orakula (`FalsificationOracleContract`):**
+   - Namiesto voľného textu nesie AST formálny objekt `FalsificationOracleContract`: `predicate_id`, `expected_result`, `evaluator_rule`, `evaluator_predicate`.
+   - Pred commitom: ak orakulum vyhodnotí stav ako `False` $\implies \text{CommitForbidden} \land \Delta S_{\text{authoritative}} \equiv 0$.
+
+8. **Separácia Asymetrického Audítorského Podpisu (HMAC vs. Ed25519):**
+   - Interná vysokorýchlostná integrita využíva mikrosekundový symetrický HMAC-SHA256 ($K_{\text{receipt}}$).
+   - Externý audítorský podpis (`sign_receipt_for_external_audit`) umožňuje tretej strane, investorovi alebo regulátorovi overiť nezvratnosť bez sprístupnenia vnútorného tajomstva pomocou asymetrického podpisu (napr. Ed25519).
