@@ -283,6 +283,10 @@ class HypervisorReversibilityCoordinator:
     ) -> Tuple[int, bool]:
         """
         Executes compensation for COMPENSATABLE hypercalls or logical rollback for REVERSIBLE.
+        Epistemic Distinction:
+            - Delta S_authoritative == 0 (Logical consistency restored).
+            - Note: Physical bus transactions historically occurred; compensation restores
+              ConsistencyRestored rather than erasing physical universe history.
         Returns (delta_s, compensation_performed).
         """
         if candidate.reversibility == OperationReversibilityClass.COMPENSATABLE:
@@ -319,7 +323,10 @@ class HypervisorReversibilityCoordinator:
 class HypervisorUmaHexGovernor:
     """
     Slices and monitors unified UMA memory across guest domains using a 16x16 Hex Grid.
-    Enforces isolation, detects congestion, and issues governor advice per guest domain.
+    Enforces Logical UMA Resource Partitioning (Paravirtualization Control Model).
+    Scope Boundary:
+        - Classified as [PARAVIRTUALIZATION CONTROL MODEL] / [HYPERVISOR-READY].
+        - Hardware memory isolation requires physical IOMMU/VT-d page table enforcement.
     """
 
     def __init__(self, vital_max_hp: int = VITAL_MAX_HP) -> None:
@@ -710,8 +717,9 @@ class HypervisorComponentAblationTool:
                 "and eliminated 20% overrun penalty. Recommend KµISA hardware watchdog timer register."
             ),
             "tier3_interaction_synergy": (
-                f"Positive interaction gain (+{gain_interaction * 100:.1f}%) confirms dynamic quantum drafting "
-                "prevents head-of-line blocking across paravirtualized guest pipelines."
+                f"Additive interaction gain of +{gain_interaction * 100:.1f}% relative to H0 "
+                "(multiplicative interaction approximately neutral; H3 ≈ (H1*H2)/H0) confirms dynamic "
+                "quantum drafting prevents head-of-line blocking across paravirtualized guest pipelines."
             )
         }
 
