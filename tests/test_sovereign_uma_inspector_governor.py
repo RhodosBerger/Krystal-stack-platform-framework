@@ -354,6 +354,88 @@ class TestFourModeBenchmarkEngine(unittest.TestCase):
         self.assertIn("K (Full Stack)", result.summary_markdown_table)
 
 
+class TestResourceControlPlaneRefinements(unittest.TestCase):
+    """Verifies timing decomposition, canonical 9-tuple cell, decoupled VBlank, and lane timescales."""
+
+    def test_hardware_priority_lane_deadline_bounds(self) -> None:
+        """Each priority lane has explicit physical timescale deadline upper bound."""
+        self.assertEqual(HardwarePriorityLane.LANE_0_MICRO_SILICON.deadline_upper_bound_ns, 250)
+        self.assertEqual(HardwarePriorityLane.LANE_1_MESO_VBLANK.deadline_upper_bound_ns, 16_666_667)
+        self.assertEqual(HardwarePriorityLane.LANE_2_MACRO_CADENCE.deadline_upper_bound_ns, 500_000_000)
+        self.assertEqual(HardwarePriorityLane.LANE_3_EPOCH_GOVERN.deadline_upper_bound_ns, 60_000_000_000)
+
+    def test_canonical_nine_tuple_cell_descriptor(self) -> None:
+        """HexGridCellDescriptor represents canonical 9-tuple Resource Topology Cell."""
+        cell = HexGridCellDescriptor(
+            cell_index=0x4A,
+            hex_addr_tag="0x4A",
+            storage_bytes=128,
+            owner_subsystem=SubsystemNodeId.CHRONO_SOC,
+            bandwidth_pressure=0.67,
+            dwell_age_cycles=4,
+            active_token_id="TOK-0x8F12",
+            state=HexMemoryCellState.DMA_RING_ALLOCATED,
+            lane=HardwarePriorityLane.LANE_1_MESO_VBLANK,
+            read_write_mode="WRITE",
+            confidence_score=0.98
+        )
+        self.assertEqual(cell.hex_addr_tag, "0x4A")
+        self.assertEqual(cell.state, HexMemoryCellState.DMA_RING_ALLOCATED)
+        self.assertEqual(cell.lane, HardwarePriorityLane.LANE_1_MESO_VBLANK)
+        self.assertEqual(cell.read_write_mode, "WRITE")
+        self.assertEqual(cell.confidence_score, 0.98)
+
+    def test_decoupled_vblank_headroom_governor(self) -> None:
+        """VBlank alone is not enough; insufficient measured bus headroom rejects BURST_AUTHORIZE."""
+        advisor = SovereignGovernorAdvisor(vital_max_hp=VITAL_MAX_HP)
+
+        # Case 1: VBlank active, but bus headroom is constrained (0.30 <= 0.60) -> No Burst
+        adv_no_burst = advisor.evaluate_and_advise(
+            current_uma=0.20,
+            current_temp_c=45.0,
+            is_vblank_active=True,
+            measured_bus_headroom=0.30
+        )
+        self.assertNotEqual(adv_no_burst.advice_kind, GovernorAdviceKind.BURST_AUTHORIZE)
+
+        # Case 2: VBlank active AND measured headroom is ample (0.80 > 0.60) -> Burst Authorized
+        adv_burst = advisor.evaluate_and_advise(
+            current_uma=0.20,
+            current_temp_c=45.0,
+            is_vblank_active=True,
+            measured_bus_headroom=0.80
+        )
+        self.assertEqual(adv_burst.advice_kind, GovernorAdviceKind.BURST_AUTHORIZE)
+        self.assertEqual(adv_burst.suggested_quota_multiplier, 1.25)
+
+    def test_planned_batch_timing_decomposition(self) -> None:
+        """PlannedMicroOpBatch correctly decomposes sequential vs pipelined total critical path."""
+        op = MicroOperation("UOP-TEST", MicroOpKind.EXECUTE_ALU_KERNEL, SubsystemNodeId.CHRONO_SOC, 1450, 2.5, 512)
+        batch = PlannedMicroOpBatch(
+            batch_id="BATCH-TEST",
+            allocated_cycle_quota_ns=3000,
+            total_planned_cycles_ns=1450,
+            allocated_energy_quota_uj=10.0,
+            total_planned_energy_uj=2.5,
+            allocated_uma_quota_bytes=1024,
+            total_planned_uma_bytes=512,
+            operations=[op],
+            quota_utilization_ratio=1450 / 3000,
+            is_quota_respected=True,
+            hmac_signature="sig",
+            t_observe_ns=150,
+            t_decision_ns=350,
+            t_transport_ns=400,
+            t_validate_ns=250
+        )
+        # T_system = 150 + 350 + 400 + 250 = 1150 ns
+        self.assertEqual(batch.t_system_overhead_ns, 1150)
+        # T_sequential = 1150 + 1450 = 2600 ns
+        self.assertEqual(batch.t_sequential_total_ns, 2600)
+        # T_pipelined = max(1150, 1450) = 1450 ns
+        self.assertEqual(batch.t_pipelined_total_ns, 1450)
+
+
 if __name__ == "__main__":
     unittest.main()
 

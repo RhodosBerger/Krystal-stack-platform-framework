@@ -62,6 +62,19 @@ class HardwarePriorityLane(str, enum.Enum):
         """Returns clock period for this hardware priority lane."""
         return calculate_physical_clock_period_ns(frequency_mhz)
 
+    @property
+    def deadline_upper_bound_ns(self) -> int:
+        """Physical deadline class upper bound in nanoseconds."""
+        if self == HardwarePriorityLane.LANE_0_MICRO_SILICON:
+            return 250  # <= 250 ns: ASIC / FPGA register & BRAM local
+        elif self == HardwarePriorityLane.LANE_1_MESO_VBLANK:
+            return 16_666_667  # <= 16.6 ms: render / shared-memory scanout
+        elif self == HardwarePriorityLane.LANE_2_MACRO_CADENCE:
+            return 500_000_000  # <= 500 ms: harmonic cadence / turn scheduler
+        elif self == HardwarePriorityLane.LANE_3_EPOCH_GOVERN:
+            return 60_000_000_000  # <= 60 s: epoch governance ledger
+        return 16_666_667
+
 
 def calculate_physical_clock_period_ns(frequency_mhz: float = 250.0) -> float:
     """Calculates physical clock cycle duration T_clk = 1 / f in nanoseconds."""
@@ -127,6 +140,9 @@ class HexGridCellDescriptor:
     state: HexMemoryCellState = HexMemoryCellState.FREE
     hue_angle_deg: float = 120.0          # Hex-HSL: 120° (Emerald safe) -> 0° (Red alert)
     hsla_u32: int = 0x808080FF
+    lane: HardwarePriorityLane = HardwarePriorityLane.LANE_1_MESO_VBLANK
+    read_write_mode: str = "READ_WRITE"   # READ, WRITE, or READ_WRITE
+    confidence_score: float = 1.0         # Epistemic confidence [0.0, 1.0]
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self) -> None:
@@ -219,6 +235,12 @@ class MicroOperation:
     required_capability: CapabilityScope = CapabilityScope.CAN_EXECUTE
     expected_effect: str = "STATE_MUTATION_HOMOMORPHIC"
     utility_score: float = 1.0                 # U_i in knapsack optimization
+    measured_time_ns: Optional[int] = None     # tau_actual (hardware measurement)
+    measured_memory_bytes: Optional[int] = None# mu_actual (hardware measurement)
+    measured_energy_uj: Optional[float] = None # E_actual (hardware measurement)
+    reversibility: str = "ROLLBACK_SAFE"       # ROLLBACK_SAFE or STATE_IRREVERSIBLE
+    priority: int = 1
+    deadline_ns: Optional[int] = None
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self) -> None:
@@ -259,11 +281,30 @@ class PlannedMicroOpBatch:
     measured_actual_energy_uj: Optional[float] = None
     measured_actual_uma_bytes: Optional[int] = None
     measured_overrun_rate: float = 0.0         # Verified by watchdog: T_actual <= Q_actual
+    t_observe_ns: int = 150                    # Telemetry & sensor observation delay
+    t_decision_ns: int = 350                   # Governor advice & knapsack selection latency
+    t_transport_ns: int = 400                  # Host-to-FPGA/PCIe transaction turnaround
+    t_validate_ns: int = 250                   # HMAC receipt verification & boundary audit
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self) -> None:
         if self.vital_max_hp != VITAL_MAX_HP:
             raise ContractViolation(f"Constitutional HP breach in PlannedBatch: {self.vital_max_hp} != {VITAL_MAX_HP}")
+
+    @property
+    def t_system_overhead_ns(self) -> int:
+        """T_system overhead = T_observe + T_decision + T_transport + T_validate."""
+        return self.t_observe_ns + self.t_decision_ns + self.t_transport_ns + self.t_validate_ns
+
+    @property
+    def t_sequential_total_ns(self) -> int:
+        """Sequential critical path: T_system + sum(tau_i)."""
+        return self.t_system_overhead_ns + self.total_planned_cycles_ns
+
+    @property
+    def t_pipelined_total_ns(self) -> int:
+        """Pipelined overlapped critical path: max(T_system, sum(tau_i))."""
+        return max(self.t_system_overhead_ns, self.total_planned_cycles_ns)
 
     @property
     def rpe_time(self) -> float:
@@ -526,8 +567,27 @@ class HardwarePrioritizationTokenMonitor:
         """Retrieves registered ResourceCapabilityToken if present."""
         return self._capability_tokens.get(token_id)
 
+    @staticmethod
+    def get_dwell_limit_for_lane(lane: HardwarePriorityLane) -> int:
+        """
+        Returns configurable dwell epoch limit relative to the lane's physical timescale:
+        - L0 MICRO (<= 250 ns deadline): 48 cycles (e.g. 48 * 4 ns = 192 ns)
+        - L1 MESO (<= 16.6 ms deadline): 12 frames (12 * 16.6 ms = ~200 ms)
+        - L2 MACRO (<= 500 ms deadline): 8 epochs (8 * 500 ms = 4.0 s)
+        - L3 GOVERNANCE (<= 60 s deadline): 4 epochs (4 * 60 s = 240 s)
+        """
+        if lane == HardwarePriorityLane.LANE_0_MICRO_SILICON:
+            return 48
+        elif lane == HardwarePriorityLane.LANE_1_MESO_VBLANK:
+            return 12
+        elif lane == HardwarePriorityLane.LANE_2_MACRO_CADENCE:
+            return 8
+        elif lane == HardwarePriorityLane.LANE_3_EPOCH_GOVERN:
+            return 4
+        return HYSTERESIS_DWELL_FRAMES
+
     def record_quantum_progress(self, token_id: str, elapsed_ns: int) -> Optional[TokenTrackingEntry]:
-        """Updates consumed time slice and assesses starvation risk."""
+        """Updates consumed time slice and assesses starvation risk relative to lane timescale."""
         entry = self._tokens.get(token_id)
         if entry is None:
             return None
@@ -535,8 +595,9 @@ class HardwarePrioritizationTokenMonitor:
         new_consumed = entry.consumed_quantum_ns + elapsed_ns
         new_dwell = entry.dwell_cycles + 1
 
-        # Starvation risk: Dwells > 12 frames without release (Principle P8)
-        starvation = (new_dwell >= HYSTERESIS_DWELL_FRAMES) or (new_consumed > entry.allocated_quantum_ns)
+        # Starvation risk: DwellTime > DwellLimit_lane or consumed > allocated quantum
+        dwell_limit = self.get_dwell_limit_for_lane(entry.lane)
+        starvation = (new_dwell >= dwell_limit) or (new_consumed > entry.allocated_quantum_ns)
 
         updated = TokenTrackingEntry(
             token_id=entry.token_id,
@@ -596,10 +657,12 @@ class SovereignGovernorAdvisor:
         current_uma: float,
         current_temp_c: float,
         rapl_power_w: float = 18.5,
-        is_vblank_active: bool = False
+        is_vblank_active: bool = False,
+        measured_bus_headroom: Optional[float] = None
     ) -> GovernorAdvice:
         """
         Synthesizes governor advice based on current hardware telemetry and ArchitectureProfile limits.
+        Decouples VBlank from absolute physical truth: BurstAuthorize requires measured bus headroom > 0.60.
         """
         now_ns = time.perf_counter_ns()
         advice_id = f"ADV-{now_ns & 0xFFFFFF}"
@@ -608,6 +671,7 @@ class SovereignGovernorAdvisor:
         emergency_uma = self.profile.emergency_uma_limit
         throttle_uma = self.profile.configured_uma_limit
         nominal_uma = self.profile.nominal_uma_limit
+        effective_headroom = measured_bus_headroom if measured_bus_headroom is not None else round(1.0 - current_uma, 3)
 
         # 1. Critical Thermal or Saturation Emergency
         if current_temp_c >= thermal_limit or current_uma >= emergency_uma:
@@ -623,12 +687,12 @@ class SovereignGovernorAdvisor:
             throttle = HYSTERESIS_DOWNSCALE_RATIO
             rationale = f"HIGH STRESS: UMA={current_uma:.2f} >= {throttle_uma}. Applying {HYSTERESIS_DOWNSCALE_RATIO} downscale."
 
-        # 3. Clean VBlank Window with Low Pressure -> Permit Burst
-        elif is_vblank_active and current_uma < 0.40 and current_temp_c < (thermal_limit - 15.0):
+        # 3. Clean VBlank Window with Low Pressure AND Measured Bus Headroom -> Permit Burst
+        elif is_vblank_active and effective_headroom > 0.60 and current_uma < 0.40 and current_temp_c < (thermal_limit - 15.0):
             kind = GovernorAdviceKind.BURST_AUTHORIZE
             multiplier = 1.25
             throttle = 1.00
-            rationale = "OPTIMAL: VBlank active & UMA < 0.40. Authorizing 1.25x micro-op burst."
+            rationale = f"OPTIMAL: VBlank active & Headroom={effective_headroom:.2f} > 0.60 & UMA={current_uma:.2f} < 0.40. Authorizing 1.25x micro-op burst."
 
         # 4. Moderate Bus Pressure -> Drain and Reconcile
         elif current_uma > nominal_uma:
