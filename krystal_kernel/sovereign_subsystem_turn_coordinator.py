@@ -96,6 +96,9 @@ class ArchitectureProfile:
     profile_name: str = "GENERIC_CHRONO_SOC"
     configured_thermal_limit_c: float = ARRHENIUS_MAX_TEMP_C  # default 75.0 C
     configured_uma_limit: float = UMA_SATURATION_THRESHOLD      # default 0.78
+    nominal_uma_limit: float = 0.60                            # nominal throttle onset
+    emergency_uma_limit: float = 0.90                          # emergency quota halving
+    fpga_clock_freq_mhz: float = 250.0                         # Kintex UltraScale+ nominal clock (4 ns cycle)
     arrhenius_activation_energy_ev: float = 0.70                 # Silicon semiconductor Ea ~ 0.7 eV
     base_quantum_us: float = 500.0
     min_quantum_us: float = 50.0

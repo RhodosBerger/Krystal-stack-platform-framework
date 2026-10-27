@@ -873,6 +873,48 @@ from .scenario_market_farm_engine import (  # noqa: F401
     GLOBAL_CRYPTO_MARKET_FARM_ENGINE
 )
 
+from .sovereign_subsystem_turn_coordinator import (  # noqa: F401
+    TurnState,
+    OperationSafetyVerdict,
+    OperationReversibilityClass,
+    ArchitectureProfile,
+    AgileDraftedEnvelope,
+    CandidateOperation,
+    SelectionEvaluationResult,
+    TurnToken,
+    ArrheniusReliabilityModel,
+    InstructionReceipt,
+    ProceduralAgileDraftingInterpolator,
+    SafeOperationSelectionPack,
+    InstructionalDependencyCoordinator,
+    GLOBAL_SUBSYSTEM_TURN_COORDINATOR,
+    run_static_vs_agile_drafting_benchmark,
+)
+
+from .sovereign_uma_inspector_governor import (  # noqa: F401
+    HexMemoryCellState,
+    GovernorAdviceKind,
+    MicroOpKind,
+    HexGridCellDescriptor,
+    ResourceCapabilityToken,
+    GovernorAdvice,
+    TokenTrackingEntry,
+    MicroOperation,
+    PlannedMicroOpBatch,
+    UmaInspectorHexGrid,
+    HardwarePrioritizationTokenMonitor,
+    SovereignGovernorAdvisor,
+    MicroOperationAllocationBot,
+    ModeBenchmarkMetrics,
+    FourModeBenchmarkResult,
+    calculate_physical_clock_period_ns,
+    run_four_mode_uma_governor_benchmark,
+    GLOBAL_UMA_HEX_GRID,
+    GLOBAL_HW_TOKEN_MONITOR,
+    GLOBAL_GOVERNOR_ADVISOR,
+    GLOBAL_MICRO_OP_BOT,
+)
+
 __all__ = [
     "HardwareProfile", "detect_profile", "calibrate", "KernelParams", "derive_params",
     "EventLog", "ComputeKernel", "Backpressure", "DeadlineMissed", "get_kernel", "shutdown_kernel",
@@ -1138,5 +1180,22 @@ __all__ = [
     "OperationalStateVector", "KphpHintFrame", "KphpCodec",
     "ScenarioKind", "MarketState", "FarmState", "NetworkState",
     "ScenarioOutcome", "FarmExpansionReport",
-    "CryptoMarketFarmScenarioEngine", "GLOBAL_CRYPTO_MARKET_FARM_ENGINE"
+    "CryptoMarketFarmScenarioEngine", "GLOBAL_CRYPTO_MARKET_FARM_ENGINE",
+    "TurnState", "OperationSafetyVerdict", "OperationReversibilityClass",
+    "ArchitectureProfile", "AgileDraftedEnvelope", "CandidateOperation",
+    "SelectionEvaluationResult", "TurnToken", "ArrheniusReliabilityModel",
+    "InstructionReceipt", "ProceduralAgileDraftingInterpolator",
+    "SafeOperationSelectionPack", "InstructionalDependencyCoordinator",
+    "GLOBAL_SUBSYSTEM_TURN_COORDINATOR", "run_static_vs_agile_drafting_benchmark",
+    "HexMemoryCellState", "GovernorAdviceKind", "MicroOpKind",
+    "HexGridCellDescriptor", "ResourceCapabilityToken",
+    "GovernorAdvice", "TokenTrackingEntry", "MicroOperation",
+    "PlannedMicroOpBatch", "UmaInspectorHexGrid",
+    "HardwarePrioritizationTokenMonitor", "SovereignGovernorAdvisor",
+    "MicroOperationAllocationBot", "ModeBenchmarkMetrics",
+    "FourModeBenchmarkResult", "calculate_physical_clock_period_ns",
+    "run_four_mode_uma_governor_benchmark",
+    "GLOBAL_UMA_HEX_GRID", "GLOBAL_HW_TOKEN_MONITOR",
+    "GLOBAL_GOVERNOR_ADVISOR", "GLOBAL_MICRO_OP_BOT"
 ]
+
