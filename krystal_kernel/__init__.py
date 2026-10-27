@@ -600,14 +600,6 @@ from .sovereign_runtime import (  # noqa: F401
     GLOBAL_SOVEREIGN_RUNTIME
 )
 
-from .sovereign_operations_compiler import (  # noqa: F401
-    CompilationStage,
-    StageExecutionResult,
-    SovereignOperationsReceipt,
-    SovereignOperationsCompiler,
-    GLOBAL_SOVEREIGN_OPERATIONS_COMPILER
-)
-
 from .sovereign_subsystem_turn_coordinator import (  # noqa: F401
     TurnState,
     OperationSafetyVerdict,
@@ -1299,4 +1291,17 @@ __all__ = [
     "KslOptimizationObjective", "MicroOpDAG",
     "KslOperationalAstBridge", "GLOBAL_KSL_OPERATIONAL_AST_BRIDGE"
 ]
+
+
+def __getattr__(name: str):
+    if name in {
+        "CompilationStage",
+        "StageExecutionResult",
+        "SovereignOperationsReceipt",
+        "SovereignOperationsCompiler",
+        "GLOBAL_SOVEREIGN_OPERATIONS_COMPILER",
+    }:
+        from . import sovereign_operations_compiler
+        return getattr(sovereign_operations_compiler, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 

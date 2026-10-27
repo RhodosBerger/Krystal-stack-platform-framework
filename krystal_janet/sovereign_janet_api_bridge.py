@@ -33,7 +33,6 @@ from krystal_kernel.sovereign_layer_optimizer import (
 )
 from krystal_kernel.sovereign_guidebook_registry import GLOBAL_SOVEREIGN_GUIDEBOOK_REGISTRY
 from krystal_kernel.symplectic_animation_transition_engine import GLOBAL_SYMPLECTIC_TRANSITION_ENGINE
-from krystal_kernel.sovereign_operations_compiler import GLOBAL_SOVEREIGN_OPERATIONS_COMPILER
 from krystal_kernel.goniometric_proposer_kernel import get_goniometric_proposer_kernel
 from krystal_kernel.bot_diagnostic_and_tuning_toolkit import (
     get_bot_diagnostic_toolkit,

@@ -16,6 +16,8 @@ import sys
 import time
 import json
 import hashlib
+import hmac
+import subprocess
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 from typing import Dict, List, Optional, Tuple, Any
@@ -63,6 +65,9 @@ class SovereignOperationsReceipt:
     system_metrics: Dict[str, Any]
     hmac_digest: str
     vital_max_hp: int = VITAL_MAX_HP
+    git_commit: str = ""
+    compile_mode: str = "COMPILE_ONLY"
+    invariant_set_hash: str = ""
 
 
 class SovereignOperationsCompiler:
@@ -327,9 +332,20 @@ class SovereignOperationsCompiler:
             "theory_nodes_total": len(GLOBAL_THEORY_DEPENDENCY_GRAPH._nodes)
         }
 
-        # Generate HMAC-SHA256 signature
-        raw_sig_payload = f"{t_start_ns}:{total_stages}:{passed_stages}:{is_operational}:{self.vital_max_hp}".encode()
-        hmac_digest = hashlib.sha256(raw_sig_payload).hexdigest()
+        git_commit = self._get_git_commit()
+        invariant_set_hash = hashlib.sha256(
+            f"VITAL_MAX_HP={self.vital_max_hp};THEORY_NODES={len(GLOBAL_THEORY_DEPENDENCY_GRAPH._nodes)}".encode()
+        ).hexdigest()
+        stages_canonical = "|".join(f"{r.stage.value}:{r.passed}:{r.duration_ms}" for r in results)
+
+        # Canonical signature payload binding exact compiler state:
+        raw_sig_payload = (
+            f"KRYSTAL_OPERATIONS_COMPILER_V2:{git_commit}:{invariant_set_hash}:"
+            f"{t_start_ns}:{total_stages}:{passed_stages}:{is_operational}:{self.vital_max_hp}:{stages_canonical}"
+        ).encode("utf-8")
+
+        hmac_key = b"KRYSTAL_OPERATIONS_COMPILER_HMAC_SECRET_2026"
+        hmac_digest = hmac.new(hmac_key, raw_sig_payload, hashlib.sha256).hexdigest()
 
         receipt_id = f"OPS-RECEIPT-{int(time.time())}-{hmac_digest[:8]}"
         receipt = SovereignOperationsReceipt(
@@ -342,11 +358,27 @@ class SovereignOperationsCompiler:
             stage_results=results,
             system_metrics=system_metrics,
             hmac_digest=hmac_digest,
-            vital_max_hp=self.vital_max_hp
+            vital_max_hp=self.vital_max_hp,
+            git_commit=git_commit,
+            compile_mode="COMPILE_ONLY",
+            invariant_set_hash=invariant_set_hash
         )
 
         self._save_receipt_to_disk(receipt)
         return receipt
+
+    def _get_git_commit(self) -> str:
+        """Retrieves active Git commit hash for provenance binding."""
+        try:
+            repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            commit = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"],
+                cwd=repo_root,
+                stderr=subprocess.DEVNULL
+            ).decode().strip()
+            return commit
+        except Exception:
+            return "UNKNOWN_COMMIT"
 
     def _save_receipt_to_disk(self, receipt: SovereignOperationsReceipt) -> str:
         """Serializes receipt to artifacts/SOVEREIGN_OPERATIONS_CONTROL_RECEIPT.json."""
@@ -356,6 +388,9 @@ class SovereignOperationsCompiler:
         receipt_dict = {
             "receipt_id": receipt.receipt_id,
             "timestamp_ns": receipt.timestamp_ns,
+            "git_commit": receipt.git_commit,
+            "compile_mode": receipt.compile_mode,
+            "invariant_set_hash": receipt.invariant_set_hash,
             "total_stages_run": receipt.total_stages_run,
             "stages_passed": receipt.stages_passed,
             "is_fully_operational": receipt.is_fully_operational,
@@ -416,4 +451,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
