@@ -28,6 +28,14 @@ from .ksl_ir import (
 )
 from .ksl_code_generator import KslCodeGenerator
 from .ksl_compiler import KslCompiler, KslCompilationResult, GLOBAL_KSL_COMPILER
+from .compiler_passes import (
+    Ksl6PassCompiler,
+    KslOperationAST,
+    KslStatement,
+    KslVariable,
+    KirInstruction,
+    pack_kuisa_64bit
+)
 from .ksl_ast_bridge import (
     KslOptimizationObjective,
     OptimizationStrategy,
@@ -41,6 +49,12 @@ from .ksl_ast_bridge import (
 )
 
 __all__ = [
+    "Ksl6PassCompiler",
+    "KslOperationAST",
+    "KslStatement",
+    "KslVariable",
+    "KirInstruction",
+    "pack_kuisa_64bit",
     "ProgramNode",
     "DeviceGroupDecl",
     "ConstraintDecl",
