@@ -205,6 +205,33 @@ class TestKslCompilerV01(unittest.TestCase):
         self.assertIn("Pass 6: Machine Lowering & Code Generation", res.pass_audit)
         self.assertEqual(res.pass_audit["Pass 6: Machine Lowering & Code Generation"]["c11_frame_alignment_bytes"], 128)
 
+    def test_dimensional_physical_quantity_mismatch_fails_typecheck(self) -> None:
+        """Verifies that assigning thermal pressure or dimensionless floats to temperature<celsius> fails at compile time."""
+        # 1. Incompatible physical dimensions: pressure != temperature
+        dim_mismatch_prog = """
+        state RuntimeTelemetry { thermal: pressure }
+
+        fn test_dim() {
+            let s = observe RuntimeTelemetry;
+            // ILLEGAL: Assigning pressure to temperature<celsius>
+            let t: temperature<celsius> = state.thermal;
+        }
+        """
+        res = self.compiler.compile(dim_mismatch_prog)
+        self.assertFalse(res.success)
+        self.assertIn("Cannot assign incompatible physical quantity 'pressure' to 'temperature<celsius>'", res.error_message)
+
+        # 2. Assigning bare dimensionless float to dimensioned quantity without unit constructor
+        bare_float_prog = """
+        fn test_bare() {
+            // ILLEGAL: Assigning dimensionless float literal to temperature<celsius>
+            let t: temperature<celsius> = 0.78;
+        }
+        """
+        res_bare = self.compiler.compile(bare_float_prog)
+        self.assertFalse(res_bare.success)
+        self.assertIn("Cannot assign dimensionless literal 'float' to dimensioned type 'temperature<celsius>'", res_bare.error_message)
+
 
 if __name__ == "__main__":
     unittest.main()

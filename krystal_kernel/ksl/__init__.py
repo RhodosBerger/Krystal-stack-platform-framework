@@ -15,7 +15,7 @@ from .ksl_lexer import KslLexer, KslSyntaxError, Token
 from .ksl_parser import KslParser
 from .ksl_type_checker import (
     KslTypeChecker, KslTypeError, EpistemicPromotionError,
-    ZeroAllocViolation, ConstraintGatingError
+    ZeroAllocViolation, ConstraintGatingError, KslDimensionalMismatchError
 )
 from .ksl_ir import (
     KslIntermediateRepresentation, KslIrLowerer,
@@ -70,6 +70,7 @@ __all__ = [
     "EpistemicPromotionError",
     "ZeroAllocViolation",
     "ConstraintGatingError",
+    "KslDimensionalMismatchError",
     "KslIntermediateRepresentation",
     "KslIrLowerer",
     "KirS_Instruction",

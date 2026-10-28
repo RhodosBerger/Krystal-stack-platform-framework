@@ -40,8 +40,13 @@ class ConstraintGatingError(KslTypeError):
     pass
 
 
+class KslDimensionalMismatchError(KslTypeError):
+    """Raised when incompatible physical dimensions or units are assigned or compared."""
+    pass
+
+
 class KslTypeChecker:
-    """Type-checks KSL programs enforcing Epistemic, ZeroAlloc, and Invariant contracts."""
+    """Type-checks KSL programs enforcing Epistemic, ZeroAlloc, Dimensional, and Invariant contracts."""
 
     def __init__(self, vital_max_hp: int = VITAL_MAX_HP) -> None:
         self.vital_max_hp = vital_max_hp
@@ -49,6 +54,7 @@ class KslTypeChecker:
             raise ContractViolation(f"VITAL_MAX_HP must equal 6, got {self.vital_max_hp}")
         self.constraints: Dict[str, float] = {}
         self.states: Set[str] = set()
+        self.state_fields: Dict[str, TypeAnnotation] = {}
         self.rings: Set[str] = set()
         self.variables: Dict[str, TypeAnnotation] = {}
         self.in_zeroalloc = False
@@ -59,9 +65,14 @@ class KslTypeChecker:
         for c in prog.constraints:
             self.constraints[c.name] = c.limit_value
 
-        # 2. Register states
+        # 2. Register states and state field dimensional types
+        self.state_fields.clear()
         for s in prog.states:
             self.states.add(s.name)
+            for f in s.fields:
+                ann = TypeAnnotation(name=f.field_type)
+                self.state_fields[f"{s.name}.{f.name}"] = ann
+                self.state_fields[f"state.{f.name}"] = ann
 
         # 3. Register rings
         for r in prog.rings:
@@ -124,6 +135,31 @@ class KslTypeChecker:
                         f"Type Error: Cannot assign unvalidated 'Predicted<{expr_type.name}>' to "
                         f"grounded type '{declared.name}' without explicit validation!"
                     )
+
+                # Check Dimensional & Physical Type Invariants (P4 & Physical Contracts)
+                physical_dimensions = {"temperature", "pressure", "energy", "time", "frequency"}
+                if declared.name in physical_dimensions and expr_type.name in physical_dimensions:
+                    if declared.name != expr_type.name:
+                        raise KslDimensionalMismatchError(
+                            f"Dimensional Type Error: Cannot assign incompatible physical quantity "
+                            f"'{expr_type.to_string()}' to '{declared.to_string()}'. "
+                            f"({expr_type.name} != {declared.name})"
+                        )
+                    if declared.generics and expr_type.generics:
+                        dec_units = [g.name for g in declared.generics]
+                        exp_units = [g.name for g in expr_type.generics]
+                        if dec_units != exp_units:
+                            raise KslDimensionalMismatchError(
+                                f"Unit Mismatch Error: Cannot assign '{expr_type.to_string()}' to "
+                                f"'{declared.to_string()}'. Incompatible unit scales ({exp_units} != {dec_units})!"
+                            )
+
+                if declared.name in physical_dimensions and declared.generics and expr_type.name in ("float", "int") and not expr_type.generics:
+                    raise KslDimensionalMismatchError(
+                        f"Dimensional Type Error: Cannot assign dimensionless literal '{expr_type.name}' to "
+                        f"dimensioned type '{declared.to_string()}' without explicit unit constructor!"
+                    )
+
                 self.variables[stmt.name] = declared
             else:
                 self.variables[stmt.name] = expr_type
@@ -171,6 +207,8 @@ class KslTypeChecker:
         if isinstance(expr, IdentifierExpr):
             if expr.name in self.variables:
                 return self.variables[expr.name]
+            if expr.name in self.state_fields:
+                return self.state_fields[expr.name]
             return TypeAnnotation(name="Unknown", epistemic_wrapper=None)
 
         if isinstance(expr, LiteralExpr):

@@ -25,6 +25,9 @@ class KslCodeGenerator:
             "// ==============================================================================",
             "// AUTOMATICALLY GENERATED FROM KRYSTAL SYSTEMS LANGUAGE (KSL v0.1)",
             "// Target ABI: C11 Zero-Copy / KSAC Heterogeneous Driver",
+            "// Byte Order: Little Endian (Host x86_64 / FPGA KSAC-1)",
+            "// Frame Size: 128 Bytes strictly enforced via _Static_assert",
+            "// Alignment:  64B / 128B naturally aligned (zero-copy cacheline transfer)",
             "// Constitutional Invariant: VITAL_MAX_HP == 6 (Delta S == 0 on breach)",
             "// ==============================================================================",
             "#include <stdint.h>",
@@ -32,17 +35,18 @@ class KslCodeGenerator:
             "#include <stddef.h>",
             "#include <string.h>",
             "",
-            "// --- Constitutional Constants ---",
+            "// --- Constitutional Constants & ABI Contracts ---",
             "#define VITAL_MAX_HP 6",
             "#define KSAC_SCRATCHPAD_SIZE_BYTES 786432 // 768 KiB",
             "#define ZERO_COPY_FRAME_ALIGNMENT 128",
+            "#define ZERO_COPY_MIN_ALIGNMENT 64",
             "",
         ]
 
         # 1. State Structs with 128B alignment
         for s in prog.states:
             lines.extend([
-                f"// Canonical State: {s.name}",
+                f"// Canonical State: {s.name} (Endianness: Little-Endian, Size: 128B, Align: 128B)",
                 f"typedef struct _Alignas(ZERO_COPY_FRAME_ALIGNMENT) {{",
             ])
             for f in s.fields:
@@ -53,6 +57,8 @@ class KslCodeGenerator:
                 lines.append(f"    uint8_t _padding[{pad_bytes}];")
             lines.extend([
                 f"}} {s.name}_t;",
+                f"_Static_assert(sizeof({s.name}_t) == 128, \"ABI breach: sizeof({s.name}_t) != 128\");",
+                f"_Static_assert(_Alignof({s.name}_t) >= ZERO_COPY_MIN_ALIGNMENT, \"Alignment breach: _Alignof({s.name}_t) < 64\");",
                 "",
             ])
 
