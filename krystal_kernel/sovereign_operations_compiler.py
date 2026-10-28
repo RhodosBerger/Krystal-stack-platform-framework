@@ -333,9 +333,17 @@ class SovereignOperationsCompiler:
         }
 
         git_commit = self._get_git_commit()
-        invariant_set_hash = hashlib.sha256(
-            f"VITAL_MAX_HP={self.vital_max_hp};THEORY_NODES={len(GLOBAL_THEORY_DEPENDENCY_GRAPH._nodes)}".encode()
-        ).hexdigest()
+        canonical_invariants = {
+            "epistemic_anti_promotion": "PREDICTED_LT_DERIVED_LT_MEASURED",
+            "min_cacheline_alignment_bytes": 64,
+            "noether_symmetry": "DELTA_S_ZERO_ON_BREACH",
+            "theory_nodes_frozen": len(GLOBAL_THEORY_DEPENDENCY_GRAPH._nodes),
+            "vital_max_hp": self.vital_max_hp,
+            "zero_copy_alignment_bytes": 128,
+            "zero_touch_interposition": "SOURCE_CODE_DELTA_ZERO"
+        }
+        invariant_set_payload = json.dumps(canonical_invariants, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        invariant_set_hash = hashlib.sha256(invariant_set_payload).hexdigest()
         stages_canonical = "|".join(f"{r.stage.value}:{r.passed}:{r.duration_ms}" for r in results)
 
         # Canonical signature payload binding exact compiler state:

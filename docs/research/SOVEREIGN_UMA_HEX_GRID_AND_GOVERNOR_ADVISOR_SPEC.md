@@ -293,17 +293,24 @@ Pre zachovanie striktnej epistemickej vysledovateľnosti rozlišujeme dve benchm
 - **Kanonická hodnota:** `RECIPE-07` striktne zakotvuje **Campaign A ($20.0\%$)** ako primárny referenčný baseline pre CI verifikáciu.
 
 ### 10.2 Skutočná Pareto Hranica: $\{S1, K\}$ & Dominancia nad S2
-Z nameraných dát vyplýva:
-- $S1 = 18.64 \times 10^6\,\text{work/J}$
-- $S2 = 14.92 \times 10^6\,\text{work/J}$
-- $K = 14.92 \times 10^6\,\text{work/J}$
-- Súčasne platí: $\text{Throughput}_K (4.64\text{M}) > \text{Throughput}_{S2} (3.18\text{M})$ a $P95_K (45\,\mu\text{s}) < P95_{S2} (65\,\mu\text{s})$.
+Pre vylúčenie miešania metrík naprieč experimentmi je každá metrika zviazaná s 6-zložkovou provenienciou:
+`⟨campaign_id, dataset_hash, workload_hash, policy_set_hash, hardware_profile_hash, metric_schema_version⟩`.
 
-**Dôsledok:** Režim K **ostro dominuje režim S2** vo všetkých troch primárnych cieľoch (priepustnosť, latencia, energetická efektivita). Režim S2 teda momentálne nie je Pareto-optimálny; predstavuje experimentálny medzibod ablácie.
-Skutočná Pareto hranica v 3D priestore $(T, L, E)$ je:
-$$\boxed{\text{ParetoFront} = \{S1, K\}}$$
+V referenčnej **Campaign A (CI Nominal Baseline)** platí:
+- **$S0$ (Baseline FIFO):** $10.31 \times 10^6\,\text{work/J}$, Throughput: $422,632\,\text{work/s}$, P95: $850\,\mu\text{s}$, UMA Contention: $20.0\%$
+- **$S1$ (UMA-Aware):** $18.64 \times 10^6\,\text{work/J}$, Throughput: $596,802\,\text{work/s}$, P95: $90\,\mu\text{s}$, UMA Contention: $0.0\%$
+- **$S2$ (Adaptive Quantum):** $14.92 \times 10^6\,\text{work/J}$, Throughput: $3,181,427\,\text{work/s}$, P95: $65\,\mu\text{s}$, UMA Contention: $0.0\%$
+- **$K$ (Full Stack):** $14.92 \times 10^6\,\text{work/J}$, Throughput: $4,642,409\,\text{work/s}$, P95: $45\,\mu\text{s}$, UMA Contention: $0.0\%$
 
-Režim S2 sa môže vrátiť na Pareto hranicu iba vtedy, ak vykáže preukázateľnú výhodu v ďalšom, doteraz nesledovanom parametri (napr. peak power, thermal headroom, FPGA hradlová réžia, jitter, fairness).
+**Matematická analýza dominancie:**
+1. $S1$ ostro dominuje $S0$ ($T_{S1} > T_{S0}$, $E_{S1} > E_{S0}$, $L_{S1} < L_{S0}$).
+2. $K$ ostro dominuje $S2$ ($T_K > T_{S2}$, $E_K = E_{S2}$, $L_K < L_{S2}$).
+3. $S1$ a $K$ sú vzájomne nedominované: $S1$ má vyššiu energetickú efektivitu ($18.64\text{M} > 14.92\text{M}$), kým $K$ má výrazne vyšší throughput ($4.64\text{M} > 0.60\text{M}$) a nižšiu latenciu ($45\,\mu\text{s} < 90\,\mu\text{s}$).
+
+Skutočná Pareto hranica v metrickom priestore $M(\text{Throughput}, \text{Work/J}, -\text{P95})$ je preto:
+$$\boxed{\text{ParetoFront}(M, D) = \{S1, K\}}$$
+
+*Poznámka k priestoru metrík:* Režim $S2$ (Adaptive Quantum bez MicroOp packing) sa môže stať nedominovaným výhradne v rozšírenom priestore $M'$, ak vykáže preukázateľnú výhodu v doteraz nesledovanej dimenzii (napr. nižší peak power, nižší jitter, nižšia FPGA area réžia). V aktuálnom priestore $M$ ostáva dominovaný režimom $K$.
 
 ### 10.3 KSL Objective Semantics: Deklaratívny Zámer
 Namiesto hardkódovaného priraďovania politík (napr. `optimize balanced → S2`) vyjadruje KSL deklaratívny zámer a obmedzenia, pričom runtime rieši:
