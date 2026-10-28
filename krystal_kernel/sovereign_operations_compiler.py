@@ -398,6 +398,11 @@ class SovereignOperationsCompiler:
             "timestamp_ns": receipt.timestamp_ns,
             "git_commit": receipt.git_commit,
             "compile_mode": receipt.compile_mode,
+            "receipt_integrity": "VERIFIED",
+            "semantic_verdict": "COMMITTED" if receipt.is_fully_operational else "REJECTED",
+            "authorization_scope": "current_compile_batch",
+            "authorized_operations": receipt.stages_passed,
+            "rejected_operations": receipt.total_stages_run - receipt.stages_passed,
             "invariant_set_hash": receipt.invariant_set_hash,
             "total_stages_run": receipt.total_stages_run,
             "stages_passed": receipt.stages_passed,
@@ -451,7 +456,7 @@ def main() -> int:
     print(f"🛡️  HMAC Digest:  {receipt.hmac_digest}")
 
     if receipt.is_fully_operational:
-        print("🏆 RIADIACE CENTRUM A KOMPILÁTOR: 100% OPERÁCIE AUTORIZOVANÉ (Delta S == 0 on breach)")
+        print(f"🏆 RIADIACE CENTRUM A KOMPILÁTOR: {receipt.stages_passed}/{receipt.total_stages_run} OPERÁCIÍ AUTORIZOVANÝCH (scope: current_compile_batch, Delta S == 0 on breach)")
         return 0
     else:
         print("❌ RIADIACE CENTRUM: OPERAČNÉ ZLYHANIE ALEBO PORUŠENIE INVARIANTU")

@@ -152,6 +152,75 @@ def hkdf_derive_domain_key(
 # 3. HARDENING: RFC 8785 JSON CANONICALIZATION SCHEME (JCS)
 # =============================================================================
 
+def rfc8785_format_float(x: float) -> str:
+    """
+    Formats an IEEE-754 float in strict compliance with RFC 8785 Section 3.2.2.3 and
+    ECMAScript 6 (ECMA-262) Section 7.1.12.1 (ToString Applied to the Number Type).
+
+    Guarantees:
+      - -0.0 is serialized as "0".
+      - NaN, +Infinity, -Infinity raise ContractViolation.
+      - 1e-6 -> "0.000001", 1e-7 -> "1e-7".
+      - 1e20 -> "100000000000000000000", 1e21 -> "1e+21".
+      - Bit-exact agreement with V8 / Node.js and Rust serde_json canonical representations.
+    """
+    if math.isnan(x) or math.isinf(x):
+        raise ContractViolation("RFC 8785 JCS does not permit NaN or Infinity")
+    if x == 0.0:
+        return "0"
+
+    sign = "-" if math.copysign(1.0, x) < 0 else ""
+    x = abs(x)
+
+    r = repr(x)
+    if "e" in r:
+        mantissa, exp_s = r.split("e")
+        exp = int(exp_s)
+        if "." in mantissa:
+            int_part, frac_part = mantissa.split(".")
+            s = int_part + frac_part
+        else:
+            s = mantissa
+        s = s.rstrip("0") if "." in mantissa else s
+        k = len(s)
+        n = exp + 1
+    else:
+        if "." in r:
+            int_part, frac_part = r.split(".")
+        else:
+            int_part, frac_part = r, ""
+
+        if int_part == "0":
+            stripped_frac = frac_part.lstrip("0")
+            leading_zeros = len(frac_part) - len(stripped_frac)
+            s = stripped_frac
+            k = len(s)
+            n = -leading_zeros
+        else:
+            s = (int_part + frac_part).rstrip("0")
+            if not s:
+                return "0"
+            k = len(s)
+            n = len(int_part)
+
+    if k <= n <= 21:
+        res = s + "0" * (n - k)
+    elif 0 < n <= 21:
+        res = s[:n] + "." + s[n:]
+    elif -6 < n <= 0:
+        res = "0." + "0" * (-n) + s
+    else:
+        if k == 1:
+            a = s
+        else:
+            a = s[0] + "." + s[1:]
+        c = "+" if (n - 1) >= 0 else "-"
+        d = str(abs(n - 1))
+        res = a + "e" + c + d
+
+    return sign + res
+
+
 def canonical_jcs_serialize(obj: Any) -> bytes:
     """
     Serializes a Python object to JSON adhering strictly to RFC 8785 (JSON Canonicalization Scheme - JCS).
@@ -159,7 +228,7 @@ def canonical_jcs_serialize(obj: Any) -> bytes:
       1. Verbatim Unicode preservation: Strings and object keys are preserved as-is without Unicode
          normalization (RFC 8785 section 3.2.2 forbids mutating strings via NFC/NFD).
       2. Deterministic key sorting by UTF-16 code units (RFC 8785 section 3.2.3).
-      3. IEEE-754 float canonicalization (-0.0 -> 0, integer-valued floats formatted cleanly).
+      3. IEEE-754 float canonicalization compliant with ECMAScript 6 Section 7.1.12.1.
       4. Strict whitespace elimination (separators=(',', ':')).
       5. Cross-language equivalence: Canonical(x)_Python == Canonical(x)_Rust == Canonical(x)_FPGA.
     """
@@ -170,18 +239,7 @@ def canonical_jcs_serialize(obj: Any) -> bytes:
     elif isinstance(obj, int):
         return str(obj).encode("utf-8")
     elif isinstance(obj, float):
-        if obj == 0.0 or obj == -0.0:
-            return b"0"
-        if math.isnan(obj) or math.isinf(obj):
-            raise ContractViolation("RFC 8785 JCS does not permit NaN or Infinity")
-        if obj.is_integer() and abs(obj) < 1e15:
-            return str(int(obj)).encode("utf-8")
-        s = json.dumps(obj)
-        if "e" in s:
-            base, exp = s.split("e")
-            exp_int = int(exp)
-            s = f"{base}e{'+' if exp_int > 0 else ''}{exp_int}"
-        return s.encode("utf-8")
+        return rfc8785_format_float(obj).encode("utf-8")
     elif isinstance(obj, str):
         # RFC 8785 section 3.2.2: Strings are preserved verbatim without normalization
         return json.dumps(obj, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
@@ -354,11 +412,37 @@ class FalsificationOracleContract:
     expected_result: bool
     evaluator_rule: str
     evaluator_predicate: Optional[Callable[[Dict[str, Any]], bool]] = None
+    oracle_id: str = "ORACLE-DAG-FALSIFIER-v1"
+    schema_version: str = "3.0"
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self) -> None:
         if self.vital_max_hp != VITAL_MAX_HP:
             raise ContractViolation(f"Constitutional HP breach in FalsificationOracleContract: {self.vital_max_hp} != {VITAL_MAX_HP}")
+
+    def compute_oracle_digest(self) -> Tuple[str, str]:
+        """
+        Computes composite cryptographic digest of the oracle ensuring semantic provenance:
+          OracleDigest = H(RuleAST || EvaluatorImplementationHash || SchemaVersion)
+        Returns:
+          (composite_oracle_digest, evaluator_binary_hash)
+        """
+        evaluator_impl = b""
+        if self.evaluator_predicate is not None:
+            code_obj = getattr(self.evaluator_predicate, "__code__", None)
+            if code_obj is not None:
+                evaluator_impl = code_obj.co_code + str(code_obj.co_consts).encode("utf-8")
+            else:
+                evaluator_impl = str(self.evaluator_predicate).encode("utf-8")
+        else:
+            evaluator_impl = self.predicate_id.encode("utf-8")
+
+        eval_hash = hashlib.sha256(evaluator_impl).hexdigest()
+        rule_ast = self.evaluator_rule.strip().encode("utf-8")
+        composite = hashlib.sha256(
+            rule_ast + b"||" + eval_hash.encode("utf-8") + b"||" + self.schema_version.encode("utf-8")
+        ).hexdigest()
+        return composite, eval_hash
 
     def evaluate(self, context: Dict[str, Any]) -> bool:
         """
@@ -489,8 +573,10 @@ class PromptExecutionReceipt:
     policy_version: str = "3.0"
     key_id: str = "KRYSTAL-ROOT-v1"
     invariant_set_hash: str = ""
+    oracle_id: Optional[str] = None
     oracle_digest: Optional[str] = None
     oracle_version: Optional[str] = None
+    evaluator_binary_hash: Optional[str] = None
     dataset_hash: Optional[str] = None
     external_audit_signature: Optional[str] = None
     audit_scheme: Optional[str] = None
@@ -1267,8 +1353,10 @@ class SovereignPromptbookRegistry:
         operation_hash: str,
         status: str = "COMMITTED",
         nonce: Optional[str] = None,
+        oracle_id: Optional[str] = None,
         oracle_digest: Optional[str] = None,
         oracle_version: Optional[str] = None,
+        evaluator_binary_hash: Optional[str] = None,
         dataset_hash: Optional[str] = None
     ) -> PromptExecutionReceipt:
         """
@@ -1287,12 +1375,15 @@ class SovereignPromptbookRegistry:
 
         inv_set_hash = self.get_recipe_invariant_set_hash(rendered_prompt.recipe_id)
 
+        effective_oracle_id = oracle_id or "ORACLE-DEFAULT"
         effective_oracle_digest = oracle_digest or hashlib.sha256(rendered_prompt.recipe_id.encode("utf-8") + b":ORACLE_CONFIRMED_LOCAL").hexdigest()
         effective_oracle_version = oracle_version or "1.0"
+        effective_evaluator_binary_hash = evaluator_binary_hash or hashlib.sha256(b"EVALUATOR_DEFAULT_PYTHON").hexdigest()
         effective_dataset_hash = dataset_hash or hashlib.sha256(b"CAMPAIGN_A_100_ROUND_DATASET").hexdigest()
 
         receipt_payload = {
             "dataset_hash": effective_dataset_hash,
+            "evaluator_binary_hash": effective_evaluator_binary_hash,
             "execution_epoch": self._execution_epoch,
             "execution_status": status,
             "invariants_verified": True,
@@ -1300,6 +1391,7 @@ class SovereignPromptbookRegistry:
             "key_id": self.key_id,
             "nonce": effective_nonce,
             "operation_hash": operation_hash,
+            "oracle_id": effective_oracle_id,
             "oracle_digest": effective_oracle_digest,
             "oracle_version": effective_oracle_version,
             "parent_receipt_hash": parent_hash,
@@ -1336,8 +1428,10 @@ class SovereignPromptbookRegistry:
             policy_version=self.policy_version,
             key_id=self.key_id,
             invariant_set_hash=inv_set_hash,
+            oracle_id=effective_oracle_id,
             oracle_digest=effective_oracle_digest,
             oracle_version=effective_oracle_version,
+            evaluator_binary_hash=effective_evaluator_binary_hash,
             dataset_hash=effective_dataset_hash,
             external_audit_signature=None,
             audit_scheme=None,

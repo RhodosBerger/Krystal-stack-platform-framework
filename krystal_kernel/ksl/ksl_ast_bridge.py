@@ -741,14 +741,16 @@ class KslOperationalAstBridge:
 
         # 4. Mint Formal Execution Receipt with Oracle Semantic Provenance
         op_hash = hashlib.sha256(batch.hmac_signature.encode("utf-8")).hexdigest()
-        oracle_hash = hashlib.sha256(dag.falsification_oracle.evaluator_rule.encode("utf-8")).hexdigest()
+        oracle_digest, eval_bin_hash = dag.falsification_oracle.compute_oracle_digest()
         dataset_hash = hashlib.sha256(b"CAMPAIGN_A_100_ROUND_DATASET").hexdigest()
         receipt = registry.create_execution_receipt(
             rendered_prompt=rendered_prompt,
             operation_hash=op_hash,
             status="COMMITTED",
-            oracle_digest=oracle_hash,
-            oracle_version="1.0",
+            oracle_id=dag.falsification_oracle.oracle_id,
+            oracle_digest=oracle_digest,
+            oracle_version=dag.falsification_oracle.schema_version,
+            evaluator_binary_hash=eval_bin_hash,
             dataset_hash=dataset_hash
         )
 

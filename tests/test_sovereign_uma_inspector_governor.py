@@ -16,9 +16,15 @@ from krystal_kernel.sovereign_uma_inspector_governor import (
     HardwarePriorityLane,
     HexMemoryCellState,
     GovernorAdviceKind,
+    MemoryBottleneckCause,
+    CauseAwareMemoryAction,
     MicroOpKind,
     HexGridCellDescriptor,
     GovernorAdvice,
+    MemoryControllerPressureVector,
+    MCServiceRequest,
+    calculate_mc_service_debt,
+    evaluate_t5_mc_subtransition,
     MicroOperation,
     PlannedMicroOpBatch,
     ResourceCapabilityToken,
@@ -571,6 +577,214 @@ class TestResourceControlPlaneRefinements(unittest.TestCase):
         self.assertEqual(batch.t_sequential_total_ns, 2600)
         # T_pipelined = max(1150, 1450) = 1450 ns
         self.assertEqual(batch.t_pipelined_total_ns, 1450)
+
+
+class TestMemoryControllerPressureVectorAndT5Subtransition(unittest.TestCase):
+    """
+    Verifies Memory Controller Pressure Vector (MCP), Service Debt (D_MC),
+    Subtransition T_{5, MC}, and HexGridCellDescriptor controller telemetry.
+    """
+
+    def test_mcp_vector_properties_and_mu_mc(self) -> None:
+        """MCP vector computes correct mu_MC and identifies dominant cause."""
+        mcp = MemoryControllerPressureVector(
+            queue_occupancy=0.20,
+            bank_conflict_rate=0.30,
+            row_miss_pressure=0.65,
+            refresh_blocking_pressure=0.10,
+            service_debt_pressure=0.25,
+            write_drain_pressure=0.15,
+            bandwidth_headroom=0.80  # 1 - H = 0.20
+        )
+        self.assertEqual(mcp.mu_mc, 0.65)
+        self.assertEqual(mcp.dominant_cause, MemoryBottleneckCause.ROW_MISS_THRASHING)
+        self.assertEqual(mcp.as_tuple(), (0.20, 0.30, 0.65, 0.10, 0.25, 0.15, 0.80))
+
+    def test_mcp_vital_hp_invariant(self) -> None:
+        """Constitutional invariant VITAL_MAX_HP == 6 must hold in MCP."""
+        with self.assertRaises(ContractViolation):
+            MemoryControllerPressureVector(vital_max_hp=5)
+
+    def test_mc_service_debt_calculation(self) -> None:
+        """D_MC accurately computes weighted latency debt across requests."""
+        # Empty list -> 0.0
+        self.assertEqual(calculate_mc_service_debt([]), 0.0)
+
+        # 3 requests:
+        # req1: age=50, deadline=100 -> ratio=0.5, weight=1.0 -> 0.5
+        # req2: age=120, deadline=100 -> ratio=1.2, weight=1.0 -> 1.2
+        # req3: age=80, deadline=100 -> ratio=0.8, weight=2.0 -> 1.6
+        # sum = 3.3, N=3 -> D_MC = 1.10 (Service debt breach!)
+        reqs = [
+            MCServiceRequest("R1", age_ns=50, deadline_ns=100, weight=1.0),
+            MCServiceRequest("R2", age_ns=120, deadline_ns=100, weight=1.0),
+            MCServiceRequest("R3", age_ns=80, deadline_ns=100, weight=2.0),
+        ]
+        debt = calculate_mc_service_debt(reqs)
+        self.assertAlmostEqual(debt, 1.10, places=3)
+        self.assertGreater(debt, 1.0)  # Service envelope breach
+
+    def test_mc_service_request_validation(self) -> None:
+        """MCServiceRequest rejects invalid deadlines and non-6 HP."""
+        with self.assertRaises(ContractViolation):
+            MCServiceRequest("R-BAD", age_ns=10, deadline_ns=0)
+        with self.assertRaises(ContractViolation):
+            MCServiceRequest("R-BAD", age_ns=10, deadline_ns=100, vital_max_hp=3)
+
+    def test_t5_mc_case_a_high_volume_healthy_controller(self) -> None:
+        """Case A: High volume (RPE_m = 0.90) but controller healthy (mu_MC = 0.35) -> NO throttling."""
+        mcp = MemoryControllerPressureVector(
+            queue_occupancy=0.30,
+            bank_conflict_rate=0.20,
+            row_miss_pressure=0.25,
+            refresh_blocking_pressure=0.10,
+            service_debt_pressure=0.35,
+            write_drain_pressure=0.15,
+            bandwidth_headroom=0.75  # 1 - H = 0.25
+        )
+        self.assertEqual(mcp.mu_mc, 0.35)
+        cause, action, advice = evaluate_t5_mc_subtransition(
+            rpe_m=0.90,
+            mcp=mcp,
+            mc_throttle_threshold=0.75,
+            service_debt_limit=1.0,
+            rpe_m_dominant=False
+        )
+        self.assertEqual(cause, MemoryBottleneckCause.NOMINAL)
+        self.assertEqual(action, CauseAwareMemoryAction.SUSTAIN)
+        self.assertEqual(advice, GovernorAdviceKind.SUSTAIN_NOMINAL)
+
+    def test_t5_mc_case_b_low_volume_bank_conflict(self) -> None:
+        """Case B: Low volume (RPE_m = 0.45) but severe bank conflicts (mu_MC = 0.91) -> Targeted action."""
+        mcp = MemoryControllerPressureVector(
+            queue_occupancy=0.30,
+            bank_conflict_rate=0.91,
+            row_miss_pressure=0.40,
+            refresh_blocking_pressure=0.10,
+            service_debt_pressure=0.20,
+            write_drain_pressure=0.10,
+            bandwidth_headroom=0.60
+        )
+        self.assertEqual(mcp.mu_mc, 0.91)
+        self.assertEqual(mcp.dominant_cause, MemoryBottleneckCause.BANK_CONFLICT)
+
+        cause, action, advice = evaluate_t5_mc_subtransition(
+            rpe_m=0.45,
+            mcp=mcp,
+            mc_throttle_threshold=0.75,
+            service_debt_limit=1.0
+        )
+        self.assertEqual(cause, MemoryBottleneckCause.BANK_CONFLICT)
+        self.assertEqual(action, CauseAwareMemoryAction.REORDER_REMAP_DEFER)
+        self.assertEqual(advice, GovernorAdviceKind.EMERGENCY_QUOTA_CUT)
+
+    def test_t5_mc_service_debt_breach(self) -> None:
+        """Service debt breach triggers PRIORITY_INHERITANCE_PROMOTION."""
+        mcp = MemoryControllerPressureVector(
+            queue_occupancy=0.40,
+            bank_conflict_rate=0.20,
+            row_miss_pressure=0.30,
+            refresh_blocking_pressure=0.10,
+            service_debt_pressure=1.20,  # > 1.0 limit
+            write_drain_pressure=0.15,
+            bandwidth_headroom=0.70
+        )
+        cause, action, advice = evaluate_t5_mc_subtransition(
+            rpe_m=0.50,
+            mcp=mcp,
+            service_debt_limit=1.0
+        )
+        self.assertEqual(cause, MemoryBottleneckCause.SERVICE_DEBT_BREACH)
+        self.assertEqual(action, CauseAwareMemoryAction.PRIORITY_INHERITANCE_PROMOTION)
+
+    def test_t5_mc_refresh_blocking(self) -> None:
+        """Refresh blocking triggers HOLD_BURST_FOR_REFRESH."""
+        mcp = MemoryControllerPressureVector(
+            refresh_blocking_pressure=0.80,
+            bandwidth_headroom=0.80
+        )
+        cause, action, advice = evaluate_t5_mc_subtransition(
+            rpe_m=0.50,
+            mcp=mcp,
+            mc_throttle_threshold=0.75
+        )
+        self.assertEqual(cause, MemoryBottleneckCause.REFRESH_BLOCKING)
+        self.assertEqual(action, CauseAwareMemoryAction.HOLD_BURST_FOR_REFRESH)
+        self.assertEqual(advice, GovernorAdviceKind.THROTTLE_DOWNSCALE)
+
+    def test_t5_mc_queue_congestion(self) -> None:
+        """Queue congestion triggers REDUCE_PRODUCERS_INCREASE_QUANTUM."""
+        mcp = MemoryControllerPressureVector(
+            queue_occupancy=0.85,
+            bandwidth_headroom=0.80
+        )
+        cause, action, advice = evaluate_t5_mc_subtransition(
+            rpe_m=0.50,
+            mcp=mcp,
+            mc_throttle_threshold=0.75
+        )
+        self.assertEqual(cause, MemoryBottleneckCause.QUEUE_CONGESTION)
+        self.assertEqual(action, CauseAwareMemoryAction.REDUCE_PRODUCERS_INCREASE_QUANTUM)
+
+    def test_governor_advisor_mcp_integration_case_a_and_b(self) -> None:
+        """GovernorAdvisor distinguishes Case A from Case B when MCP is supplied."""
+        advisor = SovereignGovernorAdvisor(vital_max_hp=VITAL_MAX_HP)
+
+        # Case A: UMA is high (0.85 >= 0.78 throttle limit) but MCP is healthy (mu_MC = 0.30)
+        mcp_healthy = MemoryControllerPressureVector(
+            queue_occupancy=0.25,
+            bank_conflict_rate=0.20,
+            row_miss_pressure=0.25,
+            refresh_blocking_pressure=0.10,
+            service_debt_pressure=0.30,
+            write_drain_pressure=0.20,
+            bandwidth_headroom=0.80
+        )
+        adv_a = advisor.evaluate_and_advise(
+            current_uma=0.85,
+            current_temp_c=45.0,
+            mcp=mcp_healthy
+        )
+        self.assertEqual(adv_a.advice_kind, GovernorAdviceKind.SUSTAIN_NOMINAL)
+        self.assertEqual(adv_a.suggested_quota_multiplier, 1.0)
+        self.assertIn("HIGH VOLUME STREAMING", adv_a.rationale)
+
+        # Case B: UMA is low (0.45) but bank conflict is critical (B = 0.91)
+        mcp_conflict = MemoryControllerPressureVector(
+            bank_conflict_rate=0.91,
+            bandwidth_headroom=0.60
+        )
+        adv_b = advisor.evaluate_and_advise(
+            current_uma=0.45,
+            current_temp_c=45.0,
+            mcp=mcp_conflict
+        )
+        self.assertEqual(adv_b.advice_kind, GovernorAdviceKind.EMERGENCY_QUOTA_CUT)
+        self.assertEqual(adv_b.mc_cause, MemoryBottleneckCause.BANK_CONFLICT)
+        self.assertEqual(adv_b.mc_action, CauseAwareMemoryAction.REORDER_REMAP_DEFER)
+        self.assertIn("CONTROLLER CONTENTION", adv_b.rationale)
+
+    def test_hex_grid_cell_descriptor_mc_telemetry(self) -> None:
+        """HexGridCellDescriptor accurately stores controller-local telemetry."""
+        grid = UmaInspectorHexGrid(vital_max_hp=VITAL_MAX_HP)
+        cell = grid.allocate_cell(
+            cell_index=0x15,
+            state=HexMemoryCellState.ACTIVE_BUS_MASTER,
+            subsystem=SubsystemNodeId.CHRONO_SOC,
+            bandwidth_pressure=0.50,
+            controller_channel_id=1,
+            bank_id=7,
+            bank_conflict_score=0.42,
+            request_age_cycles=18,
+            refresh_blocked=True,
+            mc_pressure=0.65
+        )
+        self.assertEqual(cell.controller_channel_id, 1)
+        self.assertEqual(cell.bank_id, 7)
+        self.assertAlmostEqual(cell.bank_conflict_score, 0.42, places=2)
+        self.assertEqual(cell.request_age_cycles, 18)
+        self.assertTrue(cell.refresh_blocked)
+        self.assertAlmostEqual(cell.mc_pressure, 0.65, places=2)
 
 
 if __name__ == "__main__":

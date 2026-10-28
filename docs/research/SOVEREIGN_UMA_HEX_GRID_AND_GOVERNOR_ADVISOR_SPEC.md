@@ -185,6 +185,97 @@ Nízka hodnota balance neznamená neefektívnosť výpočtu, ale indikuje asymet
 
 ---
 
+## 7.1 Memory Controller Pressure Vector ($\mathbf{MCP}$), ServiceDebt a Subprechod $T_{5, MC}$
+
+V doterajšom modeli merala zložka $RPE_{\text{memory}} = \frac{\sum \mu_i}{Q_{\text{memory}}}$ výhradne **objem využitej pamäťovej kvóty**, no neposkytovala informáciu o tom, **prečo pamäťový radič nestíha alebo prečo vznikajú latencie**. 
+
+Pre KSL v0.2 a UMA Governor sa preto nezavádza ďalší izolovaný skalár typu `queue_depth`, ale 7-zložkový **Memory Controller Pressure Vector ($\mathbf{MCP}$)**:
+
+$$\boxed{\mathbf{MCP} = \langle Q, B, R, F, A, W, H \rangle}$$
+
+kde:
+- $Q \in [0.0, 1.0]$: **Queue Occupancy** — miera zaplnenia frontu požiadaviek (request queue).
+- $B \in [0.0, 1.0]$: **Bank Conflict Rate** — frekvencia kolízií pri prístupe k rovnakému pamäťovému banku naprieč kanálmi.
+- $R \in [0.0, 1.0]$: **Row-Miss Pressure** — pomer row-buffer miss cyklov vyžadujúcich PRECHARGE a ACTIVATE.
+- $F \in [0.0, 1.0]$: **Refresh Blocking Pressure** — miera zablokovania radiča periódami obnovy pamäťových buniek ($t_{\text{RFC}}$).
+- $A \in [0.0, 1.0]$: **Request-Age / Service-Debt Pressure** — tlak starnutia požiadaviek vzhľadom na ich deadline.
+- $W \in [0.0, 1.0]$: **Write-Drain Pressure** — réžia prepínania zbernice Read/Write a tlak vyprázdňovania write bufferu.
+- $H \in [0.0, 1.0]$: **Bandwidth Headroom** — normalizovaná zostávajúca priepustnosť radiča ($1 - H$ reprezentuje tlak saturácie zbernice).
+
+Tým vzniká fundamentálne rozlíšenie:
+$$\begin{array}{rcl}
+RPE_{\text{memory}} & = & \text{koľko pamäťového budgetu dávka vyčerpala} \\
+\mathbf{MCP} & = & \text{prečo má pamäťový radič problém túto prácu fyzicky obslúžiť}
+\end{array}$$
+
+### Odvodený skalár $\mu_{MC}$ a Disambiguácia Prípadov A a B
+Pre potreby vyhodnocovacieho orakula governora sa z vektora $\mathbf{MCP}$ odvodzuje normalizovaný skalár:
+$$\boxed{\mu_{MC} = \max(Q, B, R, F, A, W, 1 - H)}$$
+
+Tento skalár umožňuje ostrú diskrimináciu prevádzkových režimov, ktoré doterajšie $RPE_m$ nerozlišovalo:
+
+1. **Prípad A — Vysoký objem, zdravý radič ($RPE_m = 0.90, \mu_{MC} = 0.35$):**
+   Pamäť sa intenzívne využíva (sekvenčný streaming), požiadavky sú rovnomerne rozprestreté medzi kanály a banky, write buffer ani refresh neblokujú zbernicu. **Governor neaplikuje zníženie kvóty (NO throttle)**, pretože radič pracuje v optimálnom priepustnom režime.
+2. **Prípad B — Nízky objem, deštruktívny prístupový vzor ($RPE_m = 0.45, \mu_{MC} = 0.91$):**
+   Objem prenášaných dát je nízky, avšak vznikajú extrémne bank conflicts ($B = 0.91$) alebo row miss thrashing. Úzkym hrdlom je topológia pamäťového radiča. Governor okamžite zasahuje kauzálne primeraným zásahom.
+
+### Kľúčový parameter: Memory Controller Service Debt ($D_{MC}$)
+Vzhľadom na kontrakt turnov, deadlinov a capability rozpočtov v Krystal Stacku je kritickým parametrom **`MCServiceDebt` ($D_{MC}$)**:
+$$\boxed{D_{MC} = \frac{1}{N} \sum_{i=1}^N \frac{\text{Age}_i}{\text{Deadline}_i} \cdot \text{Weight}_i}$$
+
+- Pre požiadavku blížiacu sa k deadlinu ($\text{Age}_i \to \text{Deadline}_i$) rastie debt k hodnote $1.0$.
+- Ak $D_{MC} > 1.0$, pamäťový radič **porušuje zmluvnú garanciu latencie (service envelope breach)** a governor prioritne povyšuje kritické úlohy.
+
+### Kauzálne zásahy namiesto plošného throttlingu
+Namiesto jednorazového obmedzenia kvóty zavádza Krystal Stack adresné politiky:
+| Symptóm v $\mathbf{MCP}$ | Diagnostikovaná príčina | Kauzálny zásah (`CauseAwareMemoryAction`) |
+|:---|:---|:---|
+| $B \to \text{high}$ | `BANK_CONFLICT` | `REORDER_REMAP_DEFER` (premapovanie adries / rozptyl bankov) |
+| $Q \to \text{high}$ | `QUEUE_CONGESTION` | `REDUCE_PRODUCERS_INCREASE_QUANTUM` (zníženie počtu producentov) |
+| $A \to \text{high} \lor D_{MC} > 1.0$ | `SERVICE_DEBT_BREACH` | `PRIORITY_INHERITANCE_PROMOTION` (dedičstvo priority) |
+| $F \to \text{high}$ | `REFRESH_BLOCKING` | `HOLD_BURST_FOR_REFRESH` (pozastavenie burstu počas $t_{\text{RFC}}$) |
+| $W \to \text{high} \lor H \to \text{low}$ | `WRITE_DRAIN_CONTENTION` | `DRAIN_AND_RECONCILE` (vyprázdnenie SPSC a write ringov) |
+
+### Operačný Subprechod $T_{5, MC}$
+Aby sa zachoval prísny invariant **zmrazenia grafu teórie na 56 uzloch (0 cyklov, žiadny Node 57, žiadny T13)**, rozširuje sa prechod $T_5$ o operačnú sub-sémantiku:
+$$\boxed{T_{5, MC}: (RPE_m, \mathbf{MCP}) \longrightarrow (\text{MemoryCause}, \text{Action})}$$
+
+Stav pamäťového radiča je modelovaný ako:
+$$MC_t = \langle RPE_m, \mathbf{MCP}, \text{Channel}, \text{Bank}, \text{Queue}, \text{Refresh}, \text{Phase} \rangle \xrightarrow{\text{Observe}} MC_{t+1}$$
+
+a podmienka viazanosti na pamäť (`MemoryBound`) sa vyhodnocuje ako:
+$$\text{MemoryBound} \iff (RPE_m = RPE_{\text{dominant}} \land RPE_m \ge \theta_m) \lor \mu_{MC} \ge \theta_{MC} \lor D_{MC} \ge 1.0$$
+
+Pri zachovaní hard invariantu $\Delta Q_{\text{current\_batch}} \equiv 0$ sa vybraná akcia prejaví až pri alokácii kvóty pre nasledujúcu dávku ($Q_{\text{next\_batch}}$).
+
+### Fyzikálna korekcia k 128B zarovnaniu (Cachelines vs DRAM Stalls)
+Na bežných x86 a ARM architektúrach je veľkosť L1/L2 cacheline typicky **64B**. Rámec Krystal Stacku s veľkosťou **128B** preto predstavuje:
+$$\text{Frame}_{128\text{B}} = 2 \times 64\text{B} \quad (\text{dva prirodzene zarovnané cacheline bloky})$$
+
+- **Čo 128B zarovnanie zaručuje:** Zabraňuje tomu, aby rámec prekračoval hranicu vlastného 128B bloku, čím eliminuje split-boundary cacheline prístupy a zaručuje deterministické zero-copy rozhranie.
+- **Čo 128B zarovnanie NEZARUČUJE:** Samo osebe **neeliminuje DRAM stalls** (bank conflicts, refresh cykly a row misses vznikajú nezávisle od zarovnania rámca). Tieto javy sa preto musia monitorovať a riadiť cez vektor $\mathbf{MCP}$.
+
+### Rozšírenie `HexGridCellDescriptor` a `ArchitectureProfile`
+Hexadecimálna mriežka UMA integruje lokálne telemetrické dáta radiča:
+```text
+HexGridCellDescriptor:
+    address, owner, pressure, age, token, state
+    controller_channel_id: Optional[int]    [MEASURED | UNKNOWN]
+    bank_id:               Optional[int]    [MEASURED | UNKNOWN]
+    bank_conflict_score:   float            [DERIVED]
+    request_age_cycles:    int              [MEASURED]
+    refresh_blocked:       bool             [MEASURED]
+    mc_pressure:           float            [DERIVED]
+```
+
+V `ArchitectureProfile` sú parametre radiča explicitne oddelené od všeobecného limitu zbernice:
+- `mc_channel_count = 2`, `mc_banks_per_channel = 16`, `mc_request_queue_depth = 64`
+- `mc_burst_bytes = 128`, `mc_controller_bus_width = 64`
+- `mc_pressure_recovery = 0.55`, `mc_pressure_throttle = 0.75`, `mc_pressure_emergency = 0.90`
+- `mc_service_debt_limit = 1.0`
+
+---
+
 ## 8. Štvormódový Benchmark (S0, S1, S2, K) & Epistemická Proveniencia
 
 Benchmark porovnáva 4 režimy plánovania na identickom heterogénnom workload DAG:

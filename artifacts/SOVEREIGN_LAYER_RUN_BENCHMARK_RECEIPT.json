@@ -1,50 +1,52 @@
 {
-  "run_id": "RUN-TEST-1793141440",
-  "timestamp_iso": "2026-10-27T22:50:40Z",
+  "run_id": "RUN-TEST-1793178184",
+  "timestamp_iso": "2026-10-28T09:03:04Z",
   "total_layers_tested": 6,
   "all_layers_passed": true,
-  "total_duration_ms": 149.636,
+  "total_duration_ms": 288.352,
   "layer_benchmarks": {
     "L0_SILICON_PDN": {
       "layer_name": "L0_SILICON_PDN",
       "iterations": 2000,
-      "total_duration_ms": 11.316,
-      "throughput_ops_per_sec": 176748.7,
-      "latency_p50_us": 0.9,
-      "latency_p95_us": 1.5,
-      "latency_p99_us": 1.8,
+      "total_duration_ms": 21.147,
+      "throughput_ops_per_sec": 94576.5,
+      "latency_p50_us": 2.0,
+      "latency_p95_us": 2.6,
+      "latency_p99_us": 3.0,
       "passed": true,
       "empirical_indicators": {
         "safe_evaluations": 2000,
         "max_allowed_vdd": 1.0,
         "attenuation_verified": true
       },
+      "evidence_class": "MODEL_CHECKED",
       "vital_max_hp": 6
     },
     "L1_CHRONOMETRIC_RENDER": {
       "layer_name": "L1_CHRONOMETRIC_RENDER",
       "iterations": 1500,
-      "total_duration_ms": 6.272,
-      "throughput_ops_per_sec": 239154.4,
-      "latency_p50_us": 0.5,
-      "latency_p95_us": 0.7,
-      "latency_p99_us": 0.9,
+      "total_duration_ms": 12.942,
+      "throughput_ops_per_sec": 115899.9,
+      "latency_p50_us": 1.0,
+      "latency_p95_us": 1.4,
+      "latency_p99_us": 1.9,
       "passed": true,
       "empirical_indicators": {
         "safe_60hz_adherence": 750,
         "unsafe_144hz_quarantined": 750,
         "min_shadow_budget_ms": 3.5
       },
+      "evidence_class": "SOFTWARE_BENCHMARK",
       "vital_max_hp": 6
     },
     "L2_SPATIAL_SYMPLECTIC": {
       "layer_name": "L2_SPATIAL_SYMPLECTIC",
       "iterations": 10000,
-      "total_duration_ms": 4.129,
-      "throughput_ops_per_sec": 2422128.6,
-      "latency_p50_us": 0.413,
-      "latency_p95_us": 0.495,
-      "latency_p99_us": 0.619,
+      "total_duration_ms": 8.941,
+      "throughput_ops_per_sec": 1118443.1,
+      "latency_p50_us": 0.894,
+      "latency_p95_us": 1.073,
+      "latency_p99_us": 1.341,
       "passed": true,
       "empirical_indicators": {
         "det_j_preservation": 1.0,
@@ -54,16 +56,17 @@
         "cfl_margin_adhered": true,
         "sector_code": "0x60"
       },
+      "evidence_class": "SOFTWARE_BENCHMARK",
       "vital_max_hp": 6
     },
     "L3_COGNITIVE_CADENCE": {
       "layer_name": "L3_COGNITIVE_CADENCE",
       "iterations": 1200,
-      "total_duration_ms": 5.29,
-      "throughput_ops_per_sec": 226843.1,
-      "latency_p50_us": 0.5,
-      "latency_p95_us": 1.0,
-      "latency_p99_us": 1.1,
+      "total_duration_ms": 9.021,
+      "throughput_ops_per_sec": 133025.9,
+      "latency_p50_us": 0.9,
+      "latency_p95_us": 1.4,
+      "latency_p99_us": 2.0,
       "passed": true,
       "empirical_indicators": {
         "min_dwell_frames": 12,
@@ -71,16 +74,17 @@
         "is_chattering_suppressed_ge_80pct": true,
         "final_merkle_momentum": 0.984248283155264
       },
+      "evidence_class": "SOFTWARE_BENCHMARK",
       "vital_max_hp": 6
     },
     "L4_SPSC_ZERO_COPY": {
       "layer_name": "L4_SPSC_ZERO_COPY",
       "iterations": 15000,
-      "total_duration_ms": 117.655,
-      "throughput_ops_per_sec": 127491.5,
-      "latency_p50_us": 2.8,
-      "latency_p95_us": 4.3,
-      "latency_p99_us": 5.1,
+      "total_duration_ms": 228.68,
+      "throughput_ops_per_sec": 65593.8,
+      "latency_p50_us": 5.7,
+      "latency_p95_us": 7.1,
+      "latency_p99_us": 15.1,
       "passed": true,
       "empirical_indicators": {
         "frame_size_bytes": 128,
@@ -88,16 +92,17 @@
         "integrity_rate": 1.0,
         "vital_hp": 6
       },
+      "evidence_class": "HOST_MEASURED",
       "vital_max_hp": 6
     },
     "L5_CONSTITUTIONAL_GATEKEEPER": {
       "layer_name": "L5_CONSTITUTIONAL_GATEKEEPER",
       "iterations": 1000,
-      "total_duration_ms": 2.962,
-      "throughput_ops_per_sec": 337621.1,
-      "latency_p50_us": 0.3,
-      "latency_p95_us": 0.4,
-      "latency_p99_us": 0.5,
+      "total_duration_ms": 4.155,
+      "throughput_ops_per_sec": 240685.5,
+      "latency_p50_us": 0.4,
+      "latency_p95_us": 0.7,
+      "latency_p99_us": 0.8,
       "passed": true,
       "empirical_indicators": {
         "safe_commits": 334,
@@ -106,9 +111,13 @@
         "delta_s_zero_violations": 0,
         "delta_s_zero_guarantee": true
       },
+      "evidence_class": "HOST_MEASURED",
       "vital_max_hp": 6
     }
   },
-  "receipt_hmac_digest": "f9b46da25e6802b49298f603dc34a87877dfde0e112b964aba9ea31f871bd38d",
+  "receipt_hmac_digest": "7a912576dbc164871725d5e0ba00ff5fe569a0f4906c3999efa240d55038f019",
+  "receipt_integrity": "VERIFIED",
+  "semantic_verdict": "COMMITTED",
+  "evidence_stratification": "STRATIFIED_PER_LAYER",
   "vital_max_hp": 6
 }

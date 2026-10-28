@@ -103,6 +103,20 @@ class ArchitectureProfile:
     base_quantum_us: float = 500.0
     min_quantum_us: float = 50.0
     max_quantum_us: float = 3500.0
+    # Memory Controller (MC) Profile Parameters:
+    mc_channel_count: int = 2
+    mc_banks_per_channel: int = 16
+    mc_request_queue_depth: int = 64
+    mc_burst_bytes: int = 128                  # 2 x 64B cache lines
+    mc_controller_bus_width: int = 64          # bits per channel
+    mc_row_hit_target: float = 0.85
+    mc_bank_conflict_limit: float = 0.30
+    mc_refresh_guard_ns: int = 350
+    mc_write_drain_high_watermark: float = 0.80
+    mc_pressure_recovery: float = 0.55
+    mc_pressure_throttle: float = 0.75
+    mc_pressure_emergency: float = 0.90
+    mc_service_debt_limit: float = 1.0
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self) -> None:

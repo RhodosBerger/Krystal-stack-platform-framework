@@ -102,6 +102,47 @@ class GovernorAdviceKind(str, enum.Enum):
     EMERGENCY_QUOTA_CUT = "EMERGENCY_QUOTA_CUT"  # Critical breach, halve allocation quota
 
 
+class MemoryBottleneckCause(str, enum.Enum):
+    """
+    Root causes for memory subsystem contention and memory controller pressure.
+    Replaces blunt volume-based throttling with cause-aware diagnostics:
+    - NOMINAL: Operating within verified memory controller envelopes.
+    - QUEUE_CONGESTION: Request queue occupancy Q approaching saturation.
+    - BANK_CONFLICT: High bank collision rate B across channels.
+    - ROW_MISS_THRASHING: Row buffer misses R causing repeated PRECHARGE/ACTIVATE cycles.
+    - REFRESH_BLOCKING: Memory controller blocked by tRFC refresh cycles F.
+    - SERVICE_DEBT_BREACH: Latency debt A (D_MC > 1.0) violating turn deadlines.
+    - WRITE_DRAIN_CONTENTION: Write buffer high-watermark drain W stalling reads.
+    - BANDWIDTH_SATURATION: Bus bandwidth headroom H depleted (1 - H high).
+    """
+    NOMINAL                = "NOMINAL"
+    QUEUE_CONGESTION       = "QUEUE_CONGESTION"
+    BANK_CONFLICT          = "BANK_CONFLICT"
+    ROW_MISS_THRASHING     = "ROW_MISS_THRASHING"
+    REFRESH_BLOCKING       = "REFRESH_BLOCKING"
+    SERVICE_DEBT_BREACH    = "SERVICE_DEBT_BREACH"
+    WRITE_DRAIN_CONTENTION = "WRITE_DRAIN_CONTENTION"
+    BANDWIDTH_SATURATION   = "BANDWIDTH_SATURATION"
+
+
+class CauseAwareMemoryAction(str, enum.Enum):
+    """
+    Targeted intervention policies selected by operational subtransition T_{5, MC}:
+    - SUSTAIN: Maintain current micro-operation batch pace.
+    - REORDER_REMAP_DEFER: Reorder / bank-remap / defer conflicting access patterns.
+    - REDUCE_PRODUCERS_INCREASE_QUANTUM: Throttles producer concurrency, increases turn quantum.
+    - PRIORITY_INHERITANCE_PROMOTION: Promotes critical tasks with high age/deadline ratio.
+    - HOLD_BURST_FOR_REFRESH: Pauses micro-bursts until tRFC refresh window completes.
+    - DRAIN_AND_RECONCILE: Enforces immediate SPSC ring drain and write buffer reconciliation.
+    """
+    SUSTAIN                           = "SUSTAIN"
+    REORDER_REMAP_DEFER               = "REORDER_REMAP_DEFER"
+    REDUCE_PRODUCERS_INCREASE_QUANTUM = "REDUCE_PRODUCERS_INCREASE_QUANTUM"
+    PRIORITY_INHERITANCE_PROMOTION    = "PRIORITY_INHERITANCE_PROMOTION"
+    HOLD_BURST_FOR_REFRESH            = "HOLD_BURST_FOR_REFRESH"
+    DRAIN_AND_RECONCILE               = "DRAIN_AND_RECONCILE"
+
+
 class MicroOpKind(str, enum.Enum):
     """
     Atomic primitives synthesized by MicroOperationAllocationBot with epistemic cost classifications:
@@ -143,6 +184,13 @@ class HexGridCellDescriptor:
     lane: HardwarePriorityLane = HardwarePriorityLane.LANE_1_MESO_VBLANK
     read_write_mode: str = "READ_WRITE"   # READ, WRITE, or READ_WRITE
     confidence_score: float = 1.0         # Epistemic confidence [0.0, 1.0]
+    # Memory Controller Local Telemetry:
+    controller_channel_id: Optional[int] = None # Channel index [MEASURED | UNKNOWN]
+    bank_id: Optional[int] = None               # Bank index [MEASURED | UNKNOWN]
+    bank_conflict_score: float = 0.0            # Bank contention score [DERIVED]
+    request_age_cycles: int = 0                 # Cell dwell age in memory controller
+    refresh_blocked: bool = False               # Blocked by tRFC refresh guard
+    mc_pressure: float = 0.0                    # Local cell controller pressure [DERIVED]
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self) -> None:
@@ -271,6 +319,109 @@ class TokenTrackingEntry:
 
 
 @dataclass(frozen=True)
+class MemoryControllerPressureVector:
+    """
+    Memory Controller Pressure Vector MCP = <Q, B, R, F, A, W, H>
+    Differentiates volume of memory usage (RPE_memory) from controller contention cause:
+    - Q: queue occupancy [0.0, 1.0] (Obsadenosť request queue)
+    - B: bank conflict rate [0.0, 1.0] (Miera bankových konfliktov)
+    - R: row-miss pressure [0.0, 1.0] (Tlak row-buffer miss cyklov)
+    - F: refresh blocking pressure [0.0, 1.0] (Blokovanie tRFC refreshom)
+    - A: request-age / service-debt pressure [0.0, 1.0] (Tlak veku requestov a service debtu)
+    - W: read/write turnaround / write-drain pressure [0.0, 1.0]
+    - H: bandwidth headroom [0.0, 1.0] (Zostávajúca rezerva priepustnosti radiča)
+    """
+    queue_occupancy: float = 0.0           # Q
+    bank_conflict_rate: float = 0.0        # B
+    row_miss_pressure: float = 0.0         # R
+    refresh_blocking_pressure: float = 0.0 # F
+    service_debt_pressure: float = 0.0     # A
+    write_drain_pressure: float = 0.0      # W
+    bandwidth_headroom: float = 1.0        # H
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self) -> None:
+        if self.vital_max_hp != VITAL_MAX_HP:
+            raise ContractViolation(f"Constitutional HP breach in MCP vector: {self.vital_max_hp} != {VITAL_MAX_HP}")
+
+    @property
+    def mu_mc(self) -> float:
+        """
+        Derived controller pressure scalar:
+        mu_MC = max(Q, B, R, F, A, W, 1 - H)
+        """
+        h_pressure = max(0.0, 1.0 - self.bandwidth_headroom)
+        return round(max(
+            self.queue_occupancy,
+            self.bank_conflict_rate,
+            self.row_miss_pressure,
+            self.refresh_blocking_pressure,
+            self.service_debt_pressure,
+            self.write_drain_pressure,
+            h_pressure
+        ), 4)
+
+    @property
+    def dominant_cause(self) -> MemoryBottleneckCause:
+        """Diagnoses the root cause component in MCP: argmax(Q, B, R, F, A, W, 1-H)."""
+        h_pressure = max(0.0, 1.0 - self.bandwidth_headroom)
+        pressures = [
+            (self.queue_occupancy, MemoryBottleneckCause.QUEUE_CONGESTION),
+            (self.bank_conflict_rate, MemoryBottleneckCause.BANK_CONFLICT),
+            (self.row_miss_pressure, MemoryBottleneckCause.ROW_MISS_THRASHING),
+            (self.refresh_blocking_pressure, MemoryBottleneckCause.REFRESH_BLOCKING),
+            (self.service_debt_pressure, MemoryBottleneckCause.SERVICE_DEBT_BREACH),
+            (self.write_drain_pressure, MemoryBottleneckCause.WRITE_DRAIN_CONTENTION),
+            (h_pressure, MemoryBottleneckCause.BANDWIDTH_SATURATION),
+        ]
+        max_val, cause = max(pressures, key=lambda x: x[0])
+        if max_val < 0.20:
+            return MemoryBottleneckCause.NOMINAL
+        return cause
+
+    def as_tuple(self) -> Tuple[float, float, float, float, float, float, float]:
+        """Returns tuple representation: (Q, B, R, F, A, W, H)."""
+        return (
+            self.queue_occupancy,
+            self.bank_conflict_rate,
+            self.row_miss_pressure,
+            self.refresh_blocking_pressure,
+            self.service_debt_pressure,
+            self.write_drain_pressure,
+            self.bandwidth_headroom
+        )
+
+
+@dataclass(frozen=True)
+class MCServiceRequest:
+    """Latency-critical memory controller request with turn deadline and priority weight."""
+    request_id: str
+    age_ns: float
+    deadline_ns: float
+    weight: float = 1.0
+    subsystem: SubsystemNodeId = SubsystemNodeId.CHRONO_SOC
+    vital_max_hp: int = VITAL_MAX_HP
+
+    def __post_init__(self) -> None:
+        if self.vital_max_hp != VITAL_MAX_HP:
+            raise ContractViolation("Constitutional HP breach in MCServiceRequest")
+        if self.deadline_ns <= 0.0:
+            raise ContractViolation("MCServiceRequest deadline must be strictly positive")
+
+
+def calculate_mc_service_debt(requests: List[MCServiceRequest]) -> float:
+    """
+    Calculates Memory Controller Service Debt D_MC:
+    D_MC = (1 / N) * sum_i ( (Age_i / Deadline_i) * Weight_i )
+    When D_MC > 1.0, controller breaches service envelope.
+    """
+    if not requests:
+        return 0.0
+    total_debt = sum((req.age_ns / req.deadline_ns) * req.weight for req in requests)
+    return round(total_debt / len(requests), 4)
+
+
+@dataclass(frozen=True)
 class GovernorAdvice:
     """Formal recommendation emitted by SovereignGovernorAdvisor (Advice != Authority)."""
     advice_id: str
@@ -282,6 +433,8 @@ class GovernorAdvice:
     rationale: str
     timestamp_ns: int
     hmac_digest: str
+    mc_cause: Optional[MemoryBottleneckCause] = None
+    mc_action: Optional[CauseAwareMemoryAction] = None
     vital_max_hp: int = VITAL_MAX_HP
 
     def __post_init__(self) -> None:
@@ -529,7 +682,13 @@ class UmaInspectorHexGrid:
         subsystem: SubsystemNodeId,
         bandwidth_pressure: float,
         active_token_id: Optional[str] = None,
-        dwell_age_cycles: int = 0
+        dwell_age_cycles: int = 0,
+        controller_channel_id: Optional[int] = None,
+        bank_id: Optional[int] = None,
+        bank_conflict_score: float = 0.0,
+        request_age_cycles: int = 0,
+        refresh_blocked: bool = False,
+        mc_pressure: float = 0.0
     ) -> HexGridCellDescriptor:
         """Assigns memory cell occupancy and updates Hex-HSL color mapping and contention topology."""
         if not (0 <= cell_index < 256):
@@ -557,6 +716,12 @@ class UmaInspectorHexGrid:
             storage_bytes=128,
             hue_angle_deg=round(hue_angle, 1),
             hsla_u32=hsla,
+            controller_channel_id=controller_channel_id,
+            bank_id=bank_id,
+            bank_conflict_score=round(bank_conflict_score, 3),
+            request_age_cycles=request_age_cycles,
+            refresh_blocked=refresh_blocked,
+            mc_pressure=round(mc_pressure, 3),
             vital_max_hp=self.vital_max_hp
         )
         self.cells[cell_index] = updated
@@ -777,6 +942,70 @@ class HardwarePrioritizationTokenMonitor:
         return [t for t in self._tokens.values() if t.is_starvation_risk]
 
 
+def evaluate_t5_mc_subtransition(
+    rpe_m: float,
+    mcp: MemoryControllerPressureVector,
+    mc_throttle_threshold: float = 0.75,
+    service_debt_limit: float = 1.0,
+    rpe_m_dominant: bool = False,
+    current_temp_c: float = 45.0,
+    thermal_limit_c: float = ARRHENIUS_MAX_TEMP_C
+) -> Tuple[MemoryBottleneckCause, CauseAwareMemoryAction, GovernorAdviceKind]:
+    """
+    Operational Subtransition T_{5, MC}:
+    (RPE_m, MCP) -> (MemoryCause, Action, GovernorAdviceKind)
+
+    Differentiates:
+    - Case A: High volume, healthy controller (RPE_m = 0.90, mu_MC = 0.35)
+      Sequential streaming with good bank distribution -> SUSTAIN_NOMINAL (no throttling!).
+    - Case B: Low volume, high contention access pattern (RPE_m = 0.45, mu_MC = 0.91)
+      Severe bank conflicts or row misses -> Targeted Cause-Aware intervention.
+    """
+    if current_temp_c >= thermal_limit_c:
+        return MemoryBottleneckCause.NOMINAL, CauseAwareMemoryAction.SUSTAIN, GovernorAdviceKind.EMERGENCY_QUOTA_CUT
+
+    mu_mc = mcp.mu_mc
+    is_memory_bound = (
+        (rpe_m_dominant and rpe_m >= mc_throttle_threshold) or
+        (mu_mc >= mc_throttle_threshold) or
+        (mcp.service_debt_pressure >= service_debt_limit)
+    )
+
+    if not is_memory_bound:
+        # Case A: Controller healthy, requests well distributed.
+        return MemoryBottleneckCause.NOMINAL, CauseAwareMemoryAction.SUSTAIN, GovernorAdviceKind.SUSTAIN_NOMINAL
+
+    # Case B or Memory-Bound Contention
+    dominant = mcp.dominant_cause
+
+    # Latency debt / service-debt breach takes precedence:
+    if mcp.service_debt_pressure >= service_debt_limit or dominant == MemoryBottleneckCause.SERVICE_DEBT_BREACH:
+        advice_kind = GovernorAdviceKind.EMERGENCY_QUOTA_CUT if mu_mc >= 0.90 else GovernorAdviceKind.THROTTLE_DOWNSCALE
+        return MemoryBottleneckCause.SERVICE_DEBT_BREACH, CauseAwareMemoryAction.PRIORITY_INHERITANCE_PROMOTION, advice_kind
+
+    # Severity level for advice:
+    if mu_mc >= 0.90:
+        advice_kind = GovernorAdviceKind.EMERGENCY_QUOTA_CUT
+    elif mu_mc >= mc_throttle_threshold or (rpe_m_dominant and rpe_m >= mc_throttle_threshold):
+        advice_kind = GovernorAdviceKind.THROTTLE_DOWNSCALE
+    else:
+        advice_kind = GovernorAdviceKind.SUSTAIN_NOMINAL
+
+    # Cause-aware action dispatch:
+    if dominant == MemoryBottleneckCause.BANK_CONFLICT:
+        return MemoryBottleneckCause.BANK_CONFLICT, CauseAwareMemoryAction.REORDER_REMAP_DEFER, advice_kind
+    elif dominant == MemoryBottleneckCause.ROW_MISS_THRASHING:
+        return MemoryBottleneckCause.ROW_MISS_THRASHING, CauseAwareMemoryAction.REORDER_REMAP_DEFER, advice_kind
+    elif dominant == MemoryBottleneckCause.REFRESH_BLOCKING:
+        return MemoryBottleneckCause.REFRESH_BLOCKING, CauseAwareMemoryAction.HOLD_BURST_FOR_REFRESH, advice_kind
+    elif dominant == MemoryBottleneckCause.QUEUE_CONGESTION:
+        return MemoryBottleneckCause.QUEUE_CONGESTION, CauseAwareMemoryAction.REDUCE_PRODUCERS_INCREASE_QUANTUM, advice_kind
+    elif dominant in (MemoryBottleneckCause.WRITE_DRAIN_CONTENTION, MemoryBottleneckCause.BANDWIDTH_SATURATION):
+        return dominant, CauseAwareMemoryAction.DRAIN_AND_RECONCILE, GovernorAdviceKind.DRAIN_AND_RECONCILE
+
+    return dominant, CauseAwareMemoryAction.SUSTAIN, advice_kind
+
+
 # =============================================================================
 # 3. SOVEREIGN GOVERNOR ADVISOR
 # =============================================================================
@@ -809,11 +1038,16 @@ class SovereignGovernorAdvisor:
         current_temp_c: float,
         rapl_power_w: float = 18.5,
         is_vblank_active: bool = False,
-        measured_bus_headroom: Optional[float] = None
+        measured_bus_headroom: Optional[float] = None,
+        mcp: Optional[MemoryControllerPressureVector] = None,
+        rpe_m: Optional[float] = None,
+        rpe_m_dominant: bool = False
     ) -> GovernorAdvice:
         """
         Synthesizes governor advice based on current hardware telemetry and ArchitectureProfile limits.
         Decouples VBlank from absolute physical truth: BurstAuthorize requires measured bus headroom > 0.60.
+        If mcp (Memory Controller Pressure Vector) is provided, executes subtransition T_{5, MC}
+        to differentiate high volume from controller contention (Case A vs Case B).
         """
         now_ns = time.perf_counter_ns()
         advice_id = f"ADV-{now_ns & 0xFFFFFF}"
@@ -824,35 +1058,111 @@ class SovereignGovernorAdvisor:
         nominal_uma = self.profile.nominal_uma_limit
         effective_headroom = measured_bus_headroom if measured_bus_headroom is not None else round(1.0 - current_uma, 3)
 
-        # 1. Critical Thermal or Saturation Emergency
-        if current_temp_c >= thermal_limit or current_uma >= emergency_uma:
+        mc_cause: Optional[MemoryBottleneckCause] = None
+        mc_action: Optional[CauseAwareMemoryAction] = None
+
+        # 1. Critical Thermal Emergency
+        if current_temp_c >= thermal_limit:
             kind = GovernorAdviceKind.EMERGENCY_QUOTA_CUT
             multiplier = 0.50
             throttle = 0.50
-            rationale = f"CRITICAL: Temp={current_temp_c}°C >= {thermal_limit}°C or UMA={current_uma:.2f} >= {emergency_uma}. Halving quota."
+            rationale = f"CRITICAL: Temp={current_temp_c}°C >= {thermal_limit}°C. Halving quota."
 
-        # 2. Standard UMA Saturation Contention (>= configured throttle limit, default 0.78)
+        # 2. Memory Controller Pressure Aware Evaluation (T_{5, MC})
+        elif mcp is not None:
+            effective_rpe_m = rpe_m if rpe_m is not None else current_uma
+            cause, action, sub_advice = evaluate_t5_mc_subtransition(
+                rpe_m=effective_rpe_m,
+                mcp=mcp,
+                mc_throttle_threshold=self.profile.mc_pressure_throttle,
+                service_debt_limit=self.profile.mc_service_debt_limit,
+                rpe_m_dominant=rpe_m_dominant,
+                current_temp_c=current_temp_c,
+                thermal_limit_c=thermal_limit
+            )
+            mc_cause = cause
+            mc_action = action
+
+            if cause != MemoryBottleneckCause.NOMINAL:
+                # Case B: Low or moderate volume, but serious controller contention (bank conflicts, refresh, debt, etc.)
+                kind = sub_advice
+                if kind == GovernorAdviceKind.EMERGENCY_QUOTA_CUT:
+                    multiplier = 0.50
+                    throttle = 0.50
+                elif kind == GovernorAdviceKind.THROTTLE_DOWNSCALE:
+                    multiplier = HYSTERESIS_DOWNSCALE_RATIO
+                    throttle = HYSTERESIS_DOWNSCALE_RATIO
+                elif kind == GovernorAdviceKind.DRAIN_AND_RECONCILE:
+                    multiplier = 0.95
+                    throttle = 0.95
+                else:
+                    multiplier = 1.00
+                    throttle = 1.00
+                rationale = (
+                    f"CONTROLLER CONTENTION: cause={cause.value} (mu_MC={mcp.mu_mc:.2f}, "
+                    f"RPE_m={effective_rpe_m:.2f}). Action={action.value}."
+                )
+
+            elif current_uma >= emergency_uma:
+                # Total saturation emergency
+                kind = GovernorAdviceKind.EMERGENCY_QUOTA_CUT
+                multiplier = 0.50
+                throttle = 0.50
+                rationale = f"CRITICAL: UMA={current_uma:.2f} >= emergency limit {emergency_uma}."
+
+            elif current_uma >= throttle_uma:
+                # Case A: High volume (RPE_m high), but controller is healthy (mu_mc < throttle_limit). DO NOT throttle!
+                kind = GovernorAdviceKind.SUSTAIN_NOMINAL
+                multiplier = 1.00
+                throttle = 1.00
+                rationale = (
+                    f"HIGH VOLUME STREAMING (UMA={current_uma:.2f}) BUT CONTROLLER HEALTHY "
+                    f"(mu_MC={mcp.mu_mc:.2f} < {self.profile.mc_pressure_throttle:.2f}). Sustaining pace without throttling."
+                )
+
+            elif is_vblank_active and effective_headroom > 0.60 and current_uma < 0.40 and current_temp_c < (thermal_limit - 15.0):
+                kind = GovernorAdviceKind.BURST_AUTHORIZE
+                multiplier = 1.25
+                throttle = 1.00
+                rationale = f"OPTIMAL: VBlank active & Headroom={effective_headroom:.2f} > 0.60 & UMA={current_uma:.2f} < 0.40. Authorizing 1.25x micro-op burst."
+
+            elif current_uma > nominal_uma:
+                kind = GovernorAdviceKind.DRAIN_AND_RECONCILE
+                multiplier = 0.95
+                throttle = 0.95
+                rationale = f"BUS CONTENTION: UMA={current_uma:.2f} > {nominal_uma}. Recommending SPSC ring drain."
+
+            else:
+                kind = GovernorAdviceKind.SUSTAIN_NOMINAL
+                multiplier = 1.00
+                throttle = 1.00
+                rationale = "NOMINAL: Operating within verified parameters."
+
+        # 3. Standard Legacy Governor Path (when mcp is not provided)
+        elif current_uma >= emergency_uma:
+            kind = GovernorAdviceKind.EMERGENCY_QUOTA_CUT
+            multiplier = 0.50
+            throttle = 0.50
+            rationale = f"CRITICAL: UMA={current_uma:.2f} >= {emergency_uma}. Halving quota."
+
         elif current_uma >= throttle_uma or current_temp_c >= (thermal_limit - 5.0):
             kind = GovernorAdviceKind.THROTTLE_DOWNSCALE
             multiplier = HYSTERESIS_DOWNSCALE_RATIO  # 0.90
             throttle = HYSTERESIS_DOWNSCALE_RATIO
             rationale = f"HIGH STRESS: UMA={current_uma:.2f} >= {throttle_uma}. Applying {HYSTERESIS_DOWNSCALE_RATIO} downscale."
 
-        # 3. Clean VBlank Window with Low Pressure AND Measured Bus Headroom -> Permit Burst
         elif is_vblank_active and effective_headroom > 0.60 and current_uma < 0.40 and current_temp_c < (thermal_limit - 15.0):
             kind = GovernorAdviceKind.BURST_AUTHORIZE
             multiplier = 1.25
             throttle = 1.00
             rationale = f"OPTIMAL: VBlank active & Headroom={effective_headroom:.2f} > 0.60 & UMA={current_uma:.2f} < 0.40. Authorizing 1.25x micro-op burst."
 
-        # 4. Moderate Bus Pressure -> Drain and Reconcile
         elif current_uma > nominal_uma:
             kind = GovernorAdviceKind.DRAIN_AND_RECONCILE
             multiplier = 0.95
             throttle = 0.95
             rationale = f"BUS CONTENTION: UMA={current_uma:.2f} > {nominal_uma}. Recommending SPSC ring drain."
 
-        # 5. Nominal Conditions
         else:
             kind = GovernorAdviceKind.SUSTAIN_NOMINAL
             multiplier = 1.00
@@ -873,6 +1183,8 @@ class SovereignGovernorAdvisor:
             rationale=rationale,
             timestamp_ns=now_ns,
             hmac_digest=digest,
+            mc_cause=mc_cause,
+            mc_action=mc_action,
             vital_max_hp=self.vital_max_hp
         )
         self.advice_history.append(advice)

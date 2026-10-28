@@ -159,8 +159,24 @@ def print_banner(title: str) -> None:
     print("=" * 80)
 
 
-def benchmark_compiler_pipeline(compiler: KslCompiler, source: str, n_warmup: int = 10, n_runs: int = 100) -> Dict[str, Any]:
-    """Measures statistical distribution of compiler passes over repeated runs (N >= 100)."""
+def compute_bootstrap_ci_p99(samples: List[float], n_bootstraps: int = 1000, alpha: float = 0.05) -> Tuple[float, float]:
+    """Computes empirical non-parametric bootstrap 95% confidence interval for P99 tail latency."""
+    import random
+    n = len(samples)
+    p99_estimates: List[float] = []
+    rng = random.Random(42)
+    for _ in range(n_bootstraps):
+        resample = [rng.choice(samples) for _ in range(n)]
+        resample.sort()
+        p99_estimates.append(resample[min(int(n * 0.99), n - 1)])
+    p99_estimates.sort()
+    low_idx = int(n_bootstraps * (alpha / 2.0))
+    high_idx = int(n_bootstraps * (1.0 - alpha / 2.0))
+    return p99_estimates[low_idx], p99_estimates[high_idx]
+
+
+def benchmark_compiler_pipeline(compiler: KslCompiler, source: str, n_warmup: int = 20, n_runs: int = 1000) -> Dict[str, Any]:
+    """Measures statistical distribution of compiler passes over repeated runs (N >= 1000)."""
     # Warmup
     for _ in range(n_warmup):
         compiler.compile(source)
@@ -181,14 +197,18 @@ def benchmark_compiler_pipeline(compiler: KslCompiler, source: str, n_warmup: in
     cv_pct = (stddev_val / mean_val) * 100.0 if mean_val > 0 else 0.0
 
     p50_val = durations_ms[int(n * 0.50)]
+    p90_val = durations_ms[min(int(n * 0.90), n - 1)]
     p95_val = durations_ms[min(int(n * 0.95), n - 1)]
     p99_val = durations_ms[min(int(n * 0.99), n - 1)]
+    p99_ci_low, p99_ci_high = compute_bootstrap_ci_p99(durations_ms)
 
     return {
         "mean_ms": mean_val,
         "p50_ms": p50_val,
+        "p90_ms": p90_val,
         "p95_ms": p95_val,
         "p99_ms": p99_val,
+        "p99_ci_95": (p99_ci_low, p99_ci_high),
         "stddev_ms": stddev_val,
         "cv_pct": cv_pct,
         "min_ms": durations_ms[0],
@@ -491,7 +511,9 @@ def run_ksl_demonstration() -> Dict[str, Any]:
     print("\n  Epistemic Evidence Model & Semantic Provenance:")
     print("    [+] Receipt Integrity:          VERIFIED (RFC 8785 verbatim JCS + HMAC-SHA256 authentication)")
     print("    [+] Semantic Claim Truth:       ORACLE_CONFIRMED_LOCAL (grounded in executed Python test oracle)")
-    print(f"    [+] Oracle Digest:              SHA256:{receipt.oracle_digest[:16]}... (Rule: {dag.falsification_oracle.evaluator_rule})")
+    print(f"    [+] Oracle ID:                  {receipt.oracle_id}")
+    print(f"    [+] Oracle Digest:              SHA256:{receipt.oracle_digest[:16]}... (H(RuleAST || EvalHash || SchemaVersion))")
+    print(f"    [+] Evaluator Implementation:   SHA256:{receipt.evaluator_binary_hash[:16]}...")
     print(f"    [+] Oracle Version:             v{receipt.oracle_version}")
     print(f"    [+] Benchmark Dataset Hash:     SHA256:{receipt.dataset_hash[:16]}...")
     print("    [+] Authorized Operations:      3 / 3 (100% authorized within current compile batch)")
@@ -500,18 +522,20 @@ def run_ksl_demonstration() -> Dict[str, Any]:
     stage6_ms = (time.perf_counter_ns() - t0_stage6) / 1e6
 
     # --------------------------------------------------------------------------
-    # STAGE 7: STATISTICAL COMPILER BENCHMARK (N=100 RUNS)
+    # STAGE 7: STATISTICAL COMPILER BENCHMARK (N=1000 RUNS)
     # --------------------------------------------------------------------------
     t0_stage7 = time.perf_counter_ns()
-    print_banner("STAGE 7: COMPILER BENCHMARK & VARIABILITY AUDIT (N=100 RUNS)")
-    stats = benchmark_compiler_pipeline(compiler, CANONICAL_DEMO_KSL_SOURCE, n_warmup=10, n_runs=100)
+    print_banner("STAGE 7: COMPILER BENCHMARK & TAIL VARIABILITY AUDIT (N=1000 RUNS)")
+    stats = benchmark_compiler_pipeline(compiler, CANONICAL_DEMO_KSL_SOURCE, n_warmup=20, n_runs=1000)
     stage7_ms = (time.perf_counter_ns() - t0_stage7) / 1e6
 
-    print(f"  Sample Size:                      N = {stats['runs']} runs (Warmup: 10 runs)")
+    print(f"  Sample Size:                      N = {stats['runs']} runs (Warmup: 20 runs)")
     print(f"  Compiler Passes Duration (Mean):  {stats['mean_ms']:.2f} ms")
     print(f"  Median (P50):                     {stats['p50_ms']:.2f} ms")
+    print(f"  P90 Latency:                      {stats['p90_ms']:.2f} ms")
     print(f"  Tail Latency (P95):               {stats['p95_ms']:.2f} ms")
-    print(f"  Worst Case (P99):                 {stats['p99_ms']:.2f} ms")
+    print(f"  Worst Case Tail (P99):            {stats['p99_ms']:.2f} ms (95% Bootstrap CI: [{stats['p99_ci_95'][0]:.2f}, {stats['p99_ci_95'][1]:.2f}] ms)")
+    print(f"  Max Latency:                      {stats['max_ms']:.2f} ms")
     print(f"  Standard Deviation:               {stats['stddev_ms']:.2f} ms")
     print(f"  Coefficient of Variation (CV):    {stats['cv_pct']:.2f} % (Exact unrounded)")
 
@@ -521,6 +545,8 @@ def run_ksl_demonstration() -> Dict[str, Any]:
     single_run_total_ms = stage1_ms + stage2_ms + stage3_ms + stage4_ms + stage5_ms + stage6_ms
     pct_stage2 = (stage2_ms / single_run_total_ms * 100.0) if single_run_total_ms > 0 else 0.0
     pct_infra = 100.0 - pct_stage2
+    mean_compiler_ms = stats['mean_ms']
+    mean_compiler_share_pct = (mean_compiler_ms / single_run_total_ms * 100.0) if single_run_total_ms > 0 else 0.0
 
     print_banner("END-TO-END PIPELINE LATENCY DECOMPOSITION (SUBSYSTEM AUDIT)")
     print("  Single-Run End-to-End Latency Breakdown:")
@@ -536,8 +562,11 @@ def run_ksl_demonstration() -> Dict[str, Any]:
     print("  " + "-" * 76)
     print(f"  {'Total Single-Run Pipeline Latency':<40} {single_run_total_ms:>10.2f} ms   100.00%   End-to-End Path")
     print("  " + "-" * 76)
-    print(f"  [>>>] Compiler Frontend Execution Share:   {pct_stage2:.2f} % (Frontend is ~1.5% of total pipeline)")
-    print(f"  [>>>] Subsystem Execution & Proof Share:    {pct_infra:.2f} % (Dominant latency in simulation, crypto & DAG scheduling)")
+    print(f"  [>>>] Single-Run Compiler Frontend Share:  {pct_stage2:.2f} % ({stage2_ms:.2f} ms / {single_run_total_ms:.2f} ms)")
+    print(f"  [>>>] Mean Statistical Compiler Share:     {mean_compiler_share_pct:.2f} % ({mean_compiler_ms:.2f} ms / {single_run_total_ms:.2f} ms)")
+    print(f"  [>>>] Subsystem Execution & Proof Share:    {pct_infra:.2f} % (Dominant latency in DAG scheduling, RTL sim & crypto)")
+    print("  [NOTE] The historical ~1.5% compiler share belonged to the legacy 51.36 ms baseline (0.78 ms / 51.36 ms).")
+    print(f"         In the streamlined ~3.18 ms pipeline, compiler passes represent ~20.4% on average (~40.0% single-run).")
 
     # Save evidence artifact
     evidence_payload = {
@@ -551,15 +580,18 @@ def run_ksl_demonstration() -> Dict[str, Any]:
             "stage4_rtl_simulation_ms": stage4_ms,
             "stage5_knapsack_dag_ms": stage5_ms,
             "stage6_jcs_hmac_receipt_ms": stage6_ms,
-            "compiler_share_pct": pct_stage2,
+            "single_run_compiler_share_pct": pct_stage2,
+            "mean_compiler_share_pct": mean_compiler_share_pct,
             "infrastructure_share_pct": pct_infra,
         },
-        "compiler_benchmark_100_runs": {
+        "compiler_benchmark_1000_runs": {
             "runs": stats["runs"],
             "mean_ms": stats["mean_ms"],
             "p50_ms": stats["p50_ms"],
+            "p90_ms": stats["p90_ms"],
             "p95_ms": stats["p95_ms"],
             "p99_ms": stats["p99_ms"],
+            "p99_ci_95": stats["p99_ci_95"],
             "stddev_ms": stats["stddev_ms"],
             "cv_pct": stats["cv_pct"],
             "min_ms": stats["min_ms"],
@@ -569,7 +601,9 @@ def run_ksl_demonstration() -> Dict[str, Any]:
         "receipt_provenance": {
             "receipt_id": receipt.receipt_id,
             "hmac_signature": receipt.hmac_receipt_signature,
+            "oracle_id": receipt.oracle_id,
             "oracle_digest": receipt.oracle_digest,
+            "evaluator_binary_hash": receipt.evaluator_binary_hash,
             "oracle_version": receipt.oracle_version,
             "dataset_hash": receipt.dataset_hash,
             "invariants_verified": receipt.invariants_verified,

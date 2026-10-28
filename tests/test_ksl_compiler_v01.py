@@ -14,7 +14,10 @@ import unittest
 from krystal_kernel.constants import VITAL_MAX_HP, ContractViolation
 from krystal_kernel.ksl import (
     KslCompiler, GLOBAL_KSL_COMPILER, EpistemicPromotionError,
-    ZeroAllocViolation, ConstraintGatingError
+    ZeroAllocViolation, ConstraintGatingError, DimensionalDerivationError,
+    KslDimensionalMismatchError, DimensionVector,
+    DIM_ENERGY, DIM_TIME, DIM_POWER, DIM_BANDWIDTH, DIM_MEMORY,
+    DIM_FREQUENCY, DIM_THROUGHPUT, DIM_WORK_EFFICIENCY, DIM_SCALAR
 )
 
 
@@ -282,6 +285,9 @@ class TestKslCompilerV01(unittest.TestCase):
         self.assertTrue(res.success)
         c_code = res.c11_code
 
+        self.assertIn("offsetof(RuntimeTelemetry_t, compute) == 0", c_code)
+        self.assertIn("offsetof(RuntimeTelemetry_t, _padding) == 24", c_code)
+
         # Locate available C compiler: zig cc (Clang), clang, or gcc
         cc_cmd = None
         if shutil.which("zig"):
@@ -294,6 +300,7 @@ class TestKslCompilerV01(unittest.TestCase):
         if cc_cmd is None:
             self.skipTest("No native C compiler (zig, clang, gcc) detected in environment")
 
+        # 1. Compile in isolated temporary directory
         with tempfile.TemporaryDirectory() as tmp_dir:
             src_file = Path(tmp_dir) / "ksl_abi_test.c"
             obj_file = Path(tmp_dir) / "ksl_abi_test.o"
@@ -307,6 +314,118 @@ class TestKslCompilerV01(unittest.TestCase):
             )
             self.assertTrue(obj_file.exists())
             self.assertGreater(obj_file.stat().st_size, 0)
+
+        # 2. Compile permanent workspace golden files (ksl_abi_test.c and artifacts/ksl_abi_golden.c)
+        root_src = Path("ksl_abi_test.c")
+        root_obj = Path("ksl_abi_test.o")
+        root_src.write_text(c_code, encoding="utf-8")
+        cmd_root = cc_cmd + ["-std=c11", "-Wall", "-Wextra", "-Werror", "-c", str(root_src), "-o", str(root_obj)]
+        proc_root = subprocess.run(cmd_root, capture_output=True, text=True)
+        self.assertEqual(
+            proc_root.returncode, 0,
+            f"Root ksl_abi_test.c compilation failed!\nSTDOUT: {proc_root.stdout}\nSTDERR: {proc_root.stderr}"
+        )
+        self.assertTrue(root_obj.exists())
+
+        art_src = Path("artifacts/ksl_abi_golden.c")
+        art_src.parent.mkdir(parents=True, exist_ok=True)
+        art_src.write_text(c_code, encoding="utf-8")
+
+    def test_dimension_vector_algebra_direct(self) -> None:
+        """Verifies abelian group operations and derived quantities on DimensionVector directly."""
+        # T1: Energy / Time = Power -> [M L^2 T^-2] - [T] = [M L^2 T^-3]
+        self.assertEqual(DIM_ENERGY - DIM_TIME, DIM_POWER)
+        self.assertEqual(DIM_POWER.to_string(), "[M L^2 T^-3]")
+
+        # T2: Memory / Time = Bandwidth -> [memory] - [T] = [memory T^-1]
+        self.assertEqual(DIM_MEMORY - DIM_TIME, DIM_BANDWIDTH)
+        self.assertIn("memory", DIM_BANDWIDTH.to_string())
+        self.assertIn("T^-1", DIM_BANDWIDTH.to_string())
+
+        # T3: 1 / Time = Frequency -> [scalar] - [T] = [T^-1]
+        self.assertEqual(DIM_SCALAR - DIM_TIME, DIM_FREQUENCY)
+        self.assertEqual(DIM_FREQUENCY.to_string(), "[T^-1]")
+
+        # T4: Throughput / Power = Work Efficiency -> [work T^-1] - [M L^2 T^-3] = [work M^-1 L^-2 T^2]
+        self.assertEqual(DIM_THROUGHPUT - DIM_POWER, DIM_WORK_EFFICIENCY)
+        self.assertEqual(DIM_WORK_EFFICIENCY, DimensionVector(work=1, mass=-1, length=-2, time=2))
+        self.assertIn("work", DIM_WORK_EFFICIENCY.to_string())
+        self.assertIn("T^2", DIM_WORK_EFFICIENCY.to_string())
+
+        # Verify Memory / Time != Work / Time
+        self.assertNotEqual(DIM_MEMORY - DIM_TIME, DIM_THROUGHPUT)
+
+    def test_dimensional_algebra_t1_t4_compiler_inference(self) -> None:
+        """Verifies that KSL compiler correctly infers derived physical quantities T1-T4."""
+        prog = """
+        fn test_derivations() {
+            // T1: energy / time -> power<watt>
+            let energy: energy<joule> = 12.0<J>;
+            let dt: time<second> = 0.5<s>;
+            let p1 = energy / dt;
+            let p2: power<watt> = energy / dt;
+
+            // T2: memory / time -> bandwidth<bytes_per_second>
+            let mem: memory<bytes> = 1024<B>;
+            let bw1 = mem / dt;
+            let bw2: bandwidth<bytes_per_second> = mem / dt;
+
+            // T3: 1 / time -> frequency<hertz>
+            let freq1 = 1.0 / dt;
+            let freq2: frequency<hertz> = 1.0 / dt;
+
+            // T4: throughput / power -> efficiency<work_per_joule>
+            let w: work<ops> = 1000<ops>;
+            let tp: throughput<work_per_second> = w / dt;
+            let eff1 = tp / p2;
+            let eff2: efficiency<work_per_joule> = tp / p2;
+        }
+        """
+        res = self.compiler.compile(prog)
+        self.assertTrue(res.success, f"Compilation failed: {res.error_message}")
+
+    def test_dimensional_derivation_error_on_mismatch(self) -> None:
+        """Verifies that declared type mismatch with derived dimension raises DimensionalDerivationError."""
+        bad_derivation_prog = """
+        fn test_bad() {
+            let energy: energy<joule> = 12.0<J>;
+            let dt: time<second> = 0.5<s>;
+            // ILLEGAL: energy / dt is power<watt> [M L^2 T^-3], not frequency<hertz> [T^-1]
+            let bad: frequency<hertz> = energy / dt;
+        }
+        """
+        res = self.compiler.compile(bad_derivation_prog)
+        self.assertFalse(res.success)
+        self.assertIn("DimensionalDerivationError", res.error_message)
+        self.assertIn("frequency<hertz>", res.error_message)
+        self.assertIn("power<watt>", res.error_message)
+
+        # Incompatible addition
+        bad_add_prog = """
+        fn test_bad_add() {
+            let energy: energy<joule> = 12.0<J>;
+            let dt: time<second> = 0.5<s>;
+            // ILLEGAL: Cannot add energy and time
+            let bad_add = energy + dt;
+        }
+        """
+        res_add = self.compiler.compile(bad_add_prog)
+        self.assertFalse(res_add.success)
+        self.assertIn("Cannot perform '+' on incompatible dimensions", res_add.error_message)
+
+    def test_dimensional_algebra_affine_normalization_protection(self) -> None:
+        """Verifies Section 2: Affine quantities with non-zero offset cannot undergo multiplication/division."""
+        affine_mul_prog = """
+        fn test_affine() {
+            let temp: temperature<celsius> = 25.0<C>;
+            let dt: time<second> = 0.5<s>;
+            // ILLEGAL: Celsius has non-zero offset (273.15) and cannot be multiplied directly
+            let bad_mul = temp * dt;
+        }
+        """
+        res = self.compiler.compile(affine_mul_prog)
+        self.assertFalse(res.success)
+        self.assertIn("Affine unit 'celsius' with non-zero offset (273.15) cannot be multiplied or divided directly", res.error_message)
 
 
 if __name__ == "__main__":

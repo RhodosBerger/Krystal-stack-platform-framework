@@ -398,10 +398,10 @@ class KslParser:
 
     def parse_binary_expression(self) -> Expression:
         left = self.parse_primary()
-        if self.check("OPERATOR") and self.current().value in {"<", "<=", ">", ">=", "==", "!=", "+", "-", "*", "/"}:
+        while self.check("OPERATOR") and self.current().value in {"<", "<=", ">", ">=", "==", "!=", "+", "-", "*", "/"}:
             op = self.expect("OPERATOR").value
             right = self.parse_primary()
-            return BinaryExpr(left=left, operator=op, right=right)
+            left = BinaryExpr(left=left, operator=op, right=right)
         return left
 
     def parse_primary(self) -> Expression:
@@ -415,7 +415,31 @@ class KslParser:
         if self.match("NUMBER"):
             raw = tok.value.rstrip("msusBKiMB")
             val = float(raw) if "." in raw else int(raw)
-            return LiteralExpr(value=val, literal_type="float" if isinstance(val, float) else "int")
+            unit: Optional[str] = None
+            # Check for generic unit syntax on literals: e.g. 12.0<J>, 0.5<s>, 1024<B>
+            if (self.check("OPERATOR", "<") and
+                self.pos + 2 < len(self.tokens) and
+                self.tokens[self.pos + 1].type in {"IDENTIFIER", "KEYWORD"} and
+                self.tokens[self.pos + 2].type == "OPERATOR" and
+                self.tokens[self.pos + 2].value == ">"):
+                self.expect("OPERATOR", "<")
+                unit_tok = self.current()
+                self.pos += 1
+                self.expect("OPERATOR", ">")
+                unit = unit_tok.value
+            elif not unit:
+                for suffix, u_name in [
+                    ("ms", "millisecond"),
+                    ("us", "microsecond"),
+                    ("ns", "nanosecond"),
+                    ("KiB", "kilobytes"),
+                    ("MB", "megabytes"),
+                    ("B", "bytes"),
+                ]:
+                    if tok.value.endswith(suffix):
+                        unit = u_name
+                        break
+            return LiteralExpr(value=val, literal_type="float" if isinstance(val, float) else "int", unit=unit)
 
         if self.match("STRING"):
             return LiteralExpr(value=tok.value, literal_type="string")

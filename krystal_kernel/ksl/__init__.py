@@ -16,7 +16,10 @@ from .ksl_parser import KslParser
 from .ksl_type_checker import (
     KslTypeChecker, KslTypeError, EpistemicPromotionError,
     ZeroAllocViolation, ConstraintGatingError, KslDimensionalMismatchError,
-    PhysicalQuantity, CANONICAL_PHYSICAL_QUANTITIES
+    DimensionalDerivationError, DimensionVector, DERIVED_DIMENSION_REGISTRY,
+    PhysicalQuantity, CANONICAL_PHYSICAL_QUANTITIES, UNIT_ALIASES,
+    DIM_SCALAR, DIM_ENERGY, DIM_POWER, DIM_TIME, DIM_FREQUENCY,
+    DIM_MEMORY, DIM_BANDWIDTH, DIM_WORK, DIM_THROUGHPUT, DIM_WORK_EFFICIENCY
 )
 from .ksl_ir import (
     KslIntermediateRepresentation, KslIrLowerer,
@@ -72,6 +75,20 @@ __all__ = [
     "ZeroAllocViolation",
     "ConstraintGatingError",
     "KslDimensionalMismatchError",
+    "DimensionalDerivationError",
+    "DimensionVector",
+    "DERIVED_DIMENSION_REGISTRY",
+    "UNIT_ALIASES",
+    "DIM_SCALAR",
+    "DIM_ENERGY",
+    "DIM_POWER",
+    "DIM_TIME",
+    "DIM_FREQUENCY",
+    "DIM_MEMORY",
+    "DIM_BANDWIDTH",
+    "DIM_WORK",
+    "DIM_THROUGHPUT",
+    "DIM_WORK_EFFICIENCY",
     "KslIntermediateRepresentation",
     "KslIrLowerer",
     "KirS_Instruction",

@@ -87,8 +87,18 @@ class KslCodeGenerator:
                 f"typedef struct {s.name} {s.name}_t;",
                 f"_Static_assert(sizeof({s.name}_t) == 128, \"ABI breach: sizeof({s.name}_t) != 128\");",
                 f"_Static_assert(_Alignof({s.name}_t) == 128, \"ABI breach: _Alignof({s.name}_t) != 128\");",
-                "",
             ])
+            for i, f in enumerate(s.fields):
+                lines.append(
+                    f"_Static_assert(offsetof({s.name}_t, {f.name}) == {i * 4}, "
+                    f"\"ABI breach: offsetof({s.name}_t, {f.name}) != {i * 4}\");"
+                )
+            if pad_bytes > 0:
+                lines.append(
+                    f"_Static_assert(offsetof({s.name}_t, _padding) == {len(s.fields) * 4}, "
+                    f"\"ABI breach: offsetof({s.name}_t, _padding) != {len(s.fields) * 4}\");"
+                )
+            lines.append("")
 
         # 2. Ring Buffers
         for r in prog.rings:

@@ -99,6 +99,7 @@ class IdentifierExpr(Expression):
 class LiteralExpr(Expression):
     value: Any
     literal_type: str  # "int", "float", "string", "bool"
+    unit: Optional[str] = None
 
 
 @dataclass

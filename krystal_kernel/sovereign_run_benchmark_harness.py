@@ -47,6 +47,7 @@ class LayerRunBenchmarkMetrics:
     latency_p99_us: float
     passed: bool
     empirical_indicators: Dict[str, Any]
+    evidence_class: str = "HOST_MEASURED"
     vital_max_hp: int = VITAL_MAX_HP
 
 
@@ -59,6 +60,9 @@ class FullSovereignRunReceipt:
     total_duration_ms: float
     layer_benchmarks: Dict[str, LayerRunBenchmarkMetrics]
     receipt_hmac_digest: str
+    receipt_integrity: str = "VERIFIED"
+    semantic_verdict: str = "COMMITTED"
+    evidence_stratification: str = "STRATIFIED_PER_LAYER"
     vital_max_hp: int = VITAL_MAX_HP
 
 
@@ -110,6 +114,7 @@ class SovereignRunBenchmarkHarness:
                 "max_allowed_vdd": 1.00,
                 "attenuation_verified": True
             },
+            evidence_class="MODEL_CHECKED",
             vital_max_hp=self.vital_max_hp
         )
 
@@ -152,6 +157,7 @@ class SovereignRunBenchmarkHarness:
                 "unsafe_144hz_quarantined": unsafe_144hz_count,
                 "min_shadow_budget_ms": 3.50
             },
+            evidence_class="SOFTWARE_BENCHMARK",
             vital_max_hp=self.vital_max_hp
         )
 
@@ -184,6 +190,7 @@ class SovereignRunBenchmarkHarness:
                 "cfl_margin_adhered": rep.cfl_margin_adhered,
                 "sector_code": rep.sector_code
             },
+            evidence_class="SOFTWARE_BENCHMARK",
             vital_max_hp=self.vital_max_hp
         )
 
@@ -232,6 +239,7 @@ class SovereignRunBenchmarkHarness:
                 "is_chattering_suppressed_ge_80pct": (suppression_ratio >= 0.80),
                 "final_merkle_momentum": self.cadence_gov.momentum
             },
+            evidence_class="SOFTWARE_BENCHMARK",
             vital_max_hp=self.vital_max_hp
         )
 
@@ -274,6 +282,7 @@ class SovereignRunBenchmarkHarness:
                 "integrity_rate": 1.0,
                 "vital_hp": self.vital_max_hp
             },
+            evidence_class="HOST_MEASURED",
             vital_max_hp=self.vital_max_hp
         )
 
@@ -350,6 +359,7 @@ class SovereignRunBenchmarkHarness:
                 "delta_s_zero_violations": delta_s_zero_violations,
                 "delta_s_zero_guarantee": True
             },
+            evidence_class="HOST_MEASURED",
             vital_max_hp=self.vital_max_hp
         )
 

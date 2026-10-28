@@ -643,10 +643,16 @@ from .sovereign_uma_inspector_governor import (  # noqa: F401
     HardwarePriorityLane,
     HexMemoryCellState,
     GovernorAdviceKind,
+    MemoryBottleneckCause,
+    CauseAwareMemoryAction,
     MicroOpKind,
     HexGridCellDescriptor,
     TokenTrackingEntry,
     GovernorAdvice,
+    MemoryControllerPressureVector,
+    MCServiceRequest,
+    calculate_mc_service_debt,
+    evaluate_t5_mc_subtransition,
     MicroOperation,
     PlannedMicroOpBatch,
     UmaInspectorHexGrid,
@@ -1155,8 +1161,11 @@ __all__ = [
     "SafeOperationSelectionPack", "InstructionalDependencyCoordinator",
     "GLOBAL_SUBSYSTEM_TURN_COORDINATOR",
     "HardwarePriorityLane", "HexMemoryCellState", "GovernorAdviceKind",
+    "MemoryBottleneckCause", "CauseAwareMemoryAction",
     "MicroOpKind", "HexGridCellDescriptor", "TokenTrackingEntry",
-    "GovernorAdvice", "MicroOperation", "PlannedMicroOpBatch",
+    "GovernorAdvice", "MemoryControllerPressureVector",
+    "MCServiceRequest", "calculate_mc_service_debt", "evaluate_t5_mc_subtransition",
+    "MicroOperation", "PlannedMicroOpBatch",
     "UmaInspectorHexGrid", "HardwarePrioritizationTokenMonitor",
     "SovereignGovernorAdvisor", "MicroOperationAllocationBot",
     "GLOBAL_UMA_HEX_GRID", "GLOBAL_HW_TOKEN_MONITOR",
@@ -1289,7 +1298,15 @@ __all__ = [
     "GLOBAL_REASONING_PATTERN_BRAIN",
     "KslCompiler", "GLOBAL_KSL_COMPILER",
     "KslOptimizationObjective", "MicroOpDAG",
-    "KslOperationalAstBridge", "GLOBAL_KSL_OPERATIONAL_AST_BRIDGE"
+    "KslOperationalAstBridge", "GLOBAL_KSL_OPERATIONAL_AST_BRIDGE",
+    "SOFTWARE_BASELINE_STATE", "BASELINE_PURPOSE",
+    "THEORY_NODES", "PARETO_DATASET", "PHYSICAL_EVIDENCE",
+    "Hte001RunManifest", "HardwareTransitionReceipt",
+    "Kcu116AcquisitionTransport", "Hte001Orchestrator",
+    "GLOBAL_HTE001_MANIFEST_PATH",
+    "compute_harness_source_hash", "compute_transition_oracle_hash",
+    "compute_sensor_contract_hash", "compute_requirements_lock_hash",
+    "compute_acquisition_software_identity"
 ]
 
 
@@ -1303,5 +1320,24 @@ def __getattr__(name: str):
     }:
         from . import sovereign_operations_compiler
         return getattr(sovereign_operations_compiler, name)
+    if name in {
+        "SOFTWARE_BASELINE_STATE",
+        "BASELINE_PURPOSE",
+        "THEORY_NODES",
+        "PARETO_DATASET",
+        "PHYSICAL_EVIDENCE",
+        "Hte001RunManifest",
+        "HardwareTransitionReceipt",
+        "Kcu116AcquisitionTransport",
+        "Hte001Orchestrator",
+        "GLOBAL_HTE001_MANIFEST_PATH",
+        "compute_harness_source_hash",
+        "compute_transition_oracle_hash",
+        "compute_sensor_contract_hash",
+        "compute_requirements_lock_hash",
+        "compute_acquisition_software_identity",
+    }:
+        from . import hte001_hardware_transition_harness
+        return getattr(hte001_hardware_transition_harness, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 

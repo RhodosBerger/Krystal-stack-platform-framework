@@ -469,6 +469,88 @@ class TestSovereignPromptbookRegistry(unittest.TestCase):
         self.assertEqual(audited_rcpt.receipt_id, rcpt.receipt_id)
         self.assertEqual(audited_rcpt.hmac_receipt_signature, rcpt.hmac_receipt_signature)
 
+    def test_rfc8785_ecmascript_number_serialization_golden_vectors(self) -> None:
+        """Verifies strict ECMAScript 6 / RFC 8785 Section 3.2.2.3 IEEE-754 float serialization golden vectors."""
+        from krystal_kernel.sovereign_promptbook import rfc8785_format_float, canonical_jcs_serialize
+
+        golden_cases = {
+            -0.0: "0",
+            0.0: "0",
+            1e-6: "0.000001",
+            1e-7: "1e-7",
+            1e20: "100000000000000000000",
+            1e21: "1e+21",
+            333333333.33333329: "333333333.3333333",
+            5e-324: "5e-324",
+            -1e-6: "-0.000001",
+            -1e-7: "-1e-7",
+            -1e20: "-100000000000000000000",
+            -1e21: "-1e+21",
+            0.5: "0.5",
+            123.456: "123.456",
+            100.0: "100"
+        }
+
+        for val, expected_str in golden_cases.items():
+            formatted = rfc8785_format_float(val)
+            self.assertEqual(
+                formatted, expected_str,
+                f"RFC 8785 float format failed for {val!r}: got '{formatted}', expected '{expected_str}'"
+            )
+            # Test in JSON object serialization
+            json_bytes = canonical_jcs_serialize({"v": val})
+            expected_json = f'{{"v":{expected_str}}}'.encode("utf-8")
+            self.assertEqual(
+                json_bytes, expected_json,
+                f"JCS serialization failed for {val!r}: got {json_bytes!r}, expected {expected_json!r}"
+            )
+
+        # NaN and Infs must raise ContractViolation
+        for invalid_val in [float("nan"), float("inf"), float("-inf")]:
+            with self.assertRaises(ContractViolation):
+                rfc8785_format_float(invalid_val)
+            with self.assertRaises(ContractViolation):
+                canonical_jcs_serialize({"invalid": invalid_val})
+
+    def test_oracle_composite_provenance_digest_and_receipt(self) -> None:
+        """Verifies that OracleDigest = H(RuleAST || EvaluatorHash || SchemaVersion) and records on receipts."""
+        from krystal_kernel.sovereign_promptbook import FalsificationOracleContract
+
+        oracle1 = FalsificationOracleContract(
+            predicate_id="TEST_ORACLE",
+            expected_result=True,
+            evaluator_rule="Must have zero cycle",
+            evaluator_predicate=lambda ctx: bool(ctx.get("ok", True)),
+            schema_version="3.0"
+        )
+        dig1, eval1 = oracle1.compute_oracle_digest()
+        self.assertEqual(len(dig1), 64)
+        self.assertEqual(len(eval1), 64)
+
+        # Changing rule text changes composite digest
+        oracle2 = FalsificationOracleContract(
+            predicate_id="TEST_ORACLE",
+            expected_result=True,
+            evaluator_rule="Must have zero cycle and low thermal",
+            evaluator_predicate=lambda ctx: bool(ctx.get("ok", True)),
+            schema_version="3.0"
+        )
+        dig2, eval2 = oracle2.compute_oracle_digest()
+        self.assertEqual(eval1, eval2)  # evaluator code same
+        self.assertNotEqual(dig1, dig2)  # composite digest different
+
+        # Changing evaluator predicate changes evaluator hash and composite digest
+        oracle3 = FalsificationOracleContract(
+            predicate_id="TEST_ORACLE",
+            expected_result=True,
+            evaluator_rule="Must have zero cycle",
+            evaluator_predicate=lambda ctx: bool(ctx.get("ok", True)) and float(ctx.get("t", 0.0)) < 1.0,
+            schema_version="3.0"
+        )
+        dig3, eval3 = oracle3.compute_oracle_digest()
+        self.assertNotEqual(eval1, eval3)
+        self.assertNotEqual(dig1, dig3)
+
 
 if __name__ == "__main__":
     unittest.main()
