@@ -274,22 +274,25 @@ class TestSovereignPromptbookRegistry(unittest.TestCase):
         self.assertNotEqual(receipt_sig, recipe_sig)
 
     def test_hardening_rfc8785_canonical_jcs_serialization(self) -> None:
-        """RFC 8785 JCS must normalize Unicode NFC, normalize -0.0, format floats, and sort keys by UTF-16."""
+        """RFC 8785 JCS must preserve Unicode verbatim (no NFC/NFD normalization), format floats, and sort keys by UTF-16."""
         from krystal_kernel.sovereign_promptbook import canonical_jcs_serialize
 
-        # 1. Unicode NFC normalization: decomposed vs precomposed
-        decomposed = "Krystal \u0073\u030c"  # s + caron
+        # 1. Unicode verbatim preservation: RFC 8785 Section 3.2.2 explicitly forbids mutating strings via NFC
+        # JCS(NFC(x)) != JCS(x) in general: decomposed and precomposed MUST remain distinct verbatim bytes
+        decomposed = "Krystal \u0073\u030c"  # s + combining caron
         precomposed = "Krystal \u0161"        # š
-        self.assertEqual(canonical_jcs_serialize(decomposed), canonical_jcs_serialize(precomposed))
+        self.assertNotEqual(canonical_jcs_serialize(decomposed), canonical_jcs_serialize(precomposed))
+        self.assertEqual(canonical_jcs_serialize(decomposed), b'"Krystal s\xcc\x8c"')
+        self.assertEqual(canonical_jcs_serialize(precomposed), b'"Krystal \xc5\xa1"')
 
-        # 2. Float -0.0 normalization
+        # 2. Float -0.0 normalization (RFC 8785 Section 3.2.2.3)
         self.assertEqual(canonical_jcs_serialize(-0.0), b"0")
         self.assertEqual(canonical_jcs_serialize(0.0), b"0")
 
         # 3. Integer-valued float format
         self.assertEqual(canonical_jcs_serialize(1.0), b"1")
 
-        # 4. UTF-16 code unit key sorting
+        # 4. UTF-16 code unit key sorting (RFC 8785 Section 3.2.3)
         data = {"z": 1, "a": 2, "m": 3}
         self.assertEqual(canonical_jcs_serialize(data), b'{"a":2,"m":3,"z":1}')
 

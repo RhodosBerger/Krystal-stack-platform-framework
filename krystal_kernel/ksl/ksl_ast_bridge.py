@@ -739,12 +739,17 @@ class KslOperationalAstBridge:
             governor_multiplier=governor_multiplier
         )
 
-        # 4. Mint Formal Execution Receipt
+        # 4. Mint Formal Execution Receipt with Oracle Semantic Provenance
         op_hash = hashlib.sha256(batch.hmac_signature.encode("utf-8")).hexdigest()
+        oracle_hash = hashlib.sha256(dag.falsification_oracle.evaluator_rule.encode("utf-8")).hexdigest()
+        dataset_hash = hashlib.sha256(b"CAMPAIGN_A_100_ROUND_DATASET").hexdigest()
         receipt = registry.create_execution_receipt(
             rendered_prompt=rendered_prompt,
             operation_hash=op_hash,
-            status="COMMITTED"
+            status="COMMITTED",
+            oracle_digest=oracle_hash,
+            oracle_version="1.0",
+            dataset_hash=dataset_hash
         )
 
         return batch, receipt

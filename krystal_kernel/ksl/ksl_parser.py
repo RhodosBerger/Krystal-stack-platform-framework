@@ -134,11 +134,7 @@ class KslParser:
             self.pos += 1
             f_name = f_tok.value
             self.expect("PUNCTUATION", ":")
-            type_tok = self.current()
-            if type_tok.type not in {"IDENTIFIER", "KEYWORD"}:
-                raise KslSyntaxError(f"Expected field type in state, got '{type_tok.value}'", type_tok.line, type_tok.column)
-            self.pos += 1
-            f_type = type_tok.value
+            f_type = self.parse_type().to_string()
             self.match("PUNCTUATION", ",")
             fields.append(StateField(name=f_name, field_type=f_type))
         self.expect("PUNCTUATION", "}")

@@ -39,26 +39,54 @@ class KslCodeGenerator:
             "#define VITAL_MAX_HP 6",
             "#define KSAC_SCRATCHPAD_SIZE_BYTES 786432 // 768 KiB",
             "#define ZERO_COPY_FRAME_ALIGNMENT 128",
-            "#define ZERO_COPY_MIN_ALIGNMENT 64",
+            "",
+            "// --- Cross-Platform 128B Alignment Portability Layer (MSVC / GCC / Clang / C11) ---",
+            "#if defined(_MSC_VER)",
+            "  #define KSL_ALIGN128 __declspec(align(128))",
+            "  #define KSL_ATTR_ALIGN128",
+            "#elif defined(__GNUC__) || defined(__clang__)",
+            "  #define KSL_ALIGN128",
+            "  #define KSL_ATTR_ALIGN128 __attribute__((aligned(128)))",
+            "#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)",
+            "  #define KSL_ALIGN128",
+            "  #define KSL_ATTR_ALIGN128",
+            "#else",
+            "  #define KSL_ALIGN128",
+            "  #define KSL_ATTR_ALIGN128",
+            "#endif",
+            "",
+            "#if defined(__GNUC__) || defined(__clang__)",
+            "  #define KSL_UNUSED __attribute__((unused))",
+            "#else",
+            "  #define KSL_UNUSED",
+            "#endif",
+            "",
+            "#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)",
+            "  #define KSL_MEMBER_ALIGN128 _Alignas(128)",
+            "#else",
+            "  #define KSL_MEMBER_ALIGN128",
+            "#endif",
             "",
         ]
 
-        # 1. State Structs with 128B alignment
+        # 1. State Structs with cross-platform 128B alignment
         for s in prog.states:
             lines.extend([
                 f"// Canonical State: {s.name} (Endianness: Little-Endian, Size: 128B, Align: 128B)",
-                f"typedef struct _Alignas(ZERO_COPY_FRAME_ALIGNMENT) {{",
+                f"KSL_ALIGN128 struct KSL_ATTR_ALIGN128 {s.name} {{",
             ])
-            for f in s.fields:
-                lines.append(f"    float {f.name}; // {f.field_type}")
+            for i, f in enumerate(s.fields):
+                member_align = "KSL_MEMBER_ALIGN128 " if i == 0 else ""
+                lines.append(f"    {member_align}float {f.name}; // {f.field_type}")
             # Pad to 128 bytes
             pad_bytes = 128 - (len(s.fields) * 4)
             if pad_bytes > 0:
                 lines.append(f"    uint8_t _padding[{pad_bytes}];")
             lines.extend([
-                f"}} {s.name}_t;",
+                f"}};",
+                f"typedef struct {s.name} {s.name}_t;",
                 f"_Static_assert(sizeof({s.name}_t) == 128, \"ABI breach: sizeof({s.name}_t) != 128\");",
-                f"_Static_assert(_Alignof({s.name}_t) >= ZERO_COPY_MIN_ALIGNMENT, \"Alignment breach: _Alignof({s.name}_t) < 64\");",
+                f"_Static_assert(_Alignof({s.name}_t) == 128, \"ABI breach: _Alignof({s.name}_t) != 128\");",
                 "",
             ])
 
@@ -73,7 +101,7 @@ class KslCodeGenerator:
                 f"    volatile uint32_t tail;",
                 f"    uint32_t capacity;",
                 f"}} {ring_type};",
-                f"static {ring_type} g_{r.name} = {{ .capacity = {r.capacity} }};",
+                f"static {ring_type} g_{r.name} KSL_UNUSED = {{ .capacity = {r.capacity} }};",
                 "",
             ])
 
@@ -82,7 +110,7 @@ class KslCodeGenerator:
         for c in prog.constraints:
             field_name = c.target_field.replace("state.", "")
             lines.append(
-                f"static inline bool ksl_check_{c.name}(const void* state_ptr) {{"
+                f"static inline KSL_UNUSED bool ksl_check_{c.name}(const void* state_ptr) {{"
                 f"    const float val = ((const float*)state_ptr)[0]; /* {field_name} */"
                 f"    return val {c.operator} {c.limit_value}f;"
                 f"}}"
@@ -94,6 +122,7 @@ class KslCodeGenerator:
             lines.extend([
                 f"// KSL Function: {fn.name} (Placement: {fn.placement or 'CPU'}, Latency: {fn.latency_bound_ms or 20.0}ms)",
                 f"int {fn.name}(void* input_context) {{",
+                f"    (void)input_context;",
                 f"    // Zero-Allocation Hotpath Region Enforced",
             ])
 
@@ -102,9 +131,11 @@ class KslCodeGenerator:
                     lines.append(f"    // Observe hardware state into register R0 ({stmt.operands[1]})")
                     lines.append(f"    {stmt.operands[1]}_t current_state;")
                     lines.append(f"    memset(&current_state, 0, sizeof(current_state));")
+                    lines.append(f"    (void)current_state;")
                 elif stmt.opcode == "PRED_MULTI_OBJ":
                     lines.append(f"    // Multi-objective optimization: {', '.join(stmt.operands)}")
                     lines.append(f"    uint32_t selected_candidate = 0;")
+                    lines.append(f"    (void)selected_candidate;")
                 elif stmt.opcode == "GATE_AND_COMMIT":
                     lines.append(f"    // Constitutional Gate: Delta S == 0 on invariant violation")
                     lines.append(f"    bool commit_permitted = true;")
@@ -112,6 +143,7 @@ class KslCodeGenerator:
                 elif stmt.opcode == "SEAL_RECEIPT_HMAC":
                     lines.append(f"    // Physical validation receipt signed with HMAC-SHA256")
                     lines.append(f"    uint8_t validation_receipt[64] = {{0}};")
+                    lines.append(f"    (void)validation_receipt;")
 
             lines.extend([
                 f"    return 0; // Success",

@@ -102,8 +102,9 @@ class TestKslCompilerV01(unittest.TestCase):
         self.assertTrue(res.epistemic_safety_verified)
         self.assertEqual(res.vital_max_hp, 6)
 
-        # Verify C11 output contains 128B alignment and ring buffer
-        self.assertIn("_Alignas(ZERO_COPY_FRAME_ALIGNMENT)", res.c11_code)
+        # Verify C11 output contains 128B alignment portability layer and ring buffer
+        self.assertIn("KSL_ALIGN128", res.c11_code)
+        self.assertIn("_Static_assert(_Alignof(RuntimeTelemetry_t) == 128", res.c11_code)
         self.assertIn("RuntimeTelemetry_ring_t", res.c11_code)
         self.assertIn("ksl_check_safe_thermal", res.c11_code)
         self.assertIn("execute_inference", res.c11_code)
@@ -231,6 +232,81 @@ class TestKslCompilerV01(unittest.TestCase):
         res_bare = self.compiler.compile(bare_float_prog)
         self.assertFalse(res_bare.success)
         self.assertIn("Cannot assign dimensionless literal 'float' to dimensioned type 'temperature<celsius>'", res_bare.error_message)
+
+        # 3. Distinguishing normalized_pressure from physical pressure<pascal>
+        norm_vs_phys_prog = """
+        state TankTelemetry { 
+            fluid_pressure: pressure<pascal>,
+            normalized_load: normalized_pressure
+        }
+        fn test_norm_phys() {
+            let s = observe TankTelemetry;
+            // ILLEGAL: Assigning normalized load to physical pressure in Pascals without reference P0
+            let p: pressure<pascal> = state.normalized_load;
+        }
+        """
+        res_norm = self.compiler.compile(norm_vs_phys_prog)
+        self.assertFalse(res_norm.success)
+        self.assertIn("requires calibration reference P0 to convert to physical pressure<pascal>", res_norm.error_message)
+
+        # 4. Affine quantity conversions (Quantity = Dimension, Unit, Scale, Offset)
+        from krystal_kernel.ksl import KslTypeChecker, KslDimensionalMismatchError
+        # 25 Celsius -> Kelvin (298.15 K)
+        t_k = KslTypeChecker.convert_affine_quantity(25.0, "temperature<celsius>", "temperature<kelvin>")
+        self.assertAlmostEqual(t_k, 298.15, places=2)
+
+        # 373.15 Kelvin -> Celsius (100.0 C)
+        t_c = KslTypeChecker.convert_affine_quantity(373.15, "temperature<kelvin>", "temperature<celsius>")
+        self.assertAlmostEqual(t_c, 100.0, places=2)
+
+        # 2.5 bar -> Pascal (250,000 Pa)
+        p_pa = KslTypeChecker.convert_affine_quantity(2.5, "pressure<bar>", "pressure<pascal>")
+        self.assertAlmostEqual(p_pa, 250_000.0, places=1)
+
+        # Incompatible dimensions must fail
+        with self.assertRaises(KslDimensionalMismatchError):
+            KslTypeChecker.convert_affine_quantity(1.0, "pressure<pascal>", "temperature<celsius>")
+
+        # Normalized pressure cannot be affine-converted to physical pressure without calibration
+        with self.assertRaises(KslDimensionalMismatchError):
+            KslTypeChecker.convert_affine_quantity(0.5, "normalized_pressure", "pressure<pascal>")
+
+    def test_c11_native_compiler_golden_alignment_verification(self) -> None:
+        """Verifies that emitted C11 code compiles cleanly with 128B alignment and static assertions."""
+        import shutil
+        import subprocess
+        import tempfile
+        from pathlib import Path
+
+        res = self.compiler.compile(CANONICAL_KSL_PROGRAM)
+        self.assertTrue(res.success)
+        c_code = res.c11_code
+
+        # Locate available C compiler: zig cc (Clang), clang, or gcc
+        cc_cmd = None
+        if shutil.which("zig"):
+            cc_cmd = ["zig", "cc"]
+        elif shutil.which("clang"):
+            cc_cmd = ["clang"]
+        elif shutil.which("gcc"):
+            cc_cmd = ["gcc"]
+
+        if cc_cmd is None:
+            self.skipTest("No native C compiler (zig, clang, gcc) detected in environment")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            src_file = Path(tmp_dir) / "ksl_abi_test.c"
+            obj_file = Path(tmp_dir) / "ksl_abi_test.o"
+            src_file.write_text(c_code, encoding="utf-8")
+
+            cmd = cc_cmd + ["-std=c11", "-Wall", "-Wextra", "-Werror", "-c", str(src_file), "-o", str(obj_file)]
+            proc = subprocess.run(cmd, capture_output=True, text=True)
+            self.assertEqual(
+                proc.returncode, 0,
+                f"C11 compilation failed!\nSTDOUT: {proc.stdout}\nSTDERR: {proc.stderr}"
+            )
+            self.assertTrue(obj_file.exists())
+            self.assertGreater(obj_file.stat().st_size, 0)
 
 
 if __name__ == "__main__":

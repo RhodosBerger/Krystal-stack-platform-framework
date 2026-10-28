@@ -15,7 +15,8 @@ from .ksl_lexer import KslLexer, KslSyntaxError, Token
 from .ksl_parser import KslParser
 from .ksl_type_checker import (
     KslTypeChecker, KslTypeError, EpistemicPromotionError,
-    ZeroAllocViolation, ConstraintGatingError, KslDimensionalMismatchError
+    ZeroAllocViolation, ConstraintGatingError, KslDimensionalMismatchError,
+    PhysicalQuantity, CANONICAL_PHYSICAL_QUANTITIES
 )
 from .ksl_ir import (
     KslIntermediateRepresentation, KslIrLowerer,
@@ -91,4 +92,6 @@ __all__ = [
     "MicroOpDAG",
     "KslOperationalAstBridge",
     "GLOBAL_KSL_OPERATIONAL_AST_BRIDGE",
+    "PhysicalQuantity",
+    "CANONICAL_PHYSICAL_QUANTITIES",
 ]
