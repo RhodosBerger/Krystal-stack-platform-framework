@@ -1,6 +1,6 @@
 {
   "experiment_id": "HTE-001",
-  "run_id": "HTE-001-RUN-0001",
+  "run_id": "HTE-001-RUN-0001-TEMPLATE",
   "sequence": 1,
   "software_commit": "12f91b5c1b4d42b5ce979fb3a01d2233ba02f0ed",
   "manifest_hash": "ae6a1add5fcf1d3cb36c36859d3f38ef48a27df340b8aaf39daa3b47ea17f9cf",
@@ -13,13 +13,13 @@
   "fpga_part": "xcku5p-ffvb676-2-e",
   "clock_frequency": 500000000,
   "vital_max_hp": 6,
-  "exact_zero_pass": true,
-  "normalized_residuals_pass": true,
-  "transition_pass": true,
-  "acquisition_valid": true,
-  "receipt_integrity": "VERIFIED",
-  "evidence_class": "FPGA_BOARD_MEASURED",
-  "semantic_verdict": "COMMITTED",
+  "exact_zero_pass": false,
+  "normalized_residuals_pass": false,
+  "transition_pass": false,
+  "acquisition_valid": false,
+  "receipt_integrity": "UNVERIFIED",
+  "evidence_class": "PENDING",
+  "semantic_verdict": "UNEXECUTED",
   "raw_residuals": {
     "memory": 0.0,
     "energy": 0.0,
@@ -51,7 +51,7 @@
     "queue": 0.0,
     "compute": 0.0
   },
-  "timestamp_iso": "YYYY-MM-DDTHH:MM:SSZ",
+  "timestamp_iso": null,
   "timestamp_ns": 0,
-  "hmac_signature": "0000000000000000000000000000000000000000000000000000000000000000"
+  "hmac_signature": "UNSIGNED_TEMPLATE_PENDING_PHYSICAL_ACQUISITION"
 }

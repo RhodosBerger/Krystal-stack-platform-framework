@@ -112,26 +112,26 @@ $$\text{CUD} = \frac{|\text{Statements}|}{\max(1.0, E_{\text{estimated}})}$$
 Compilation fails if estimated costs exceed declared operation bounds.
 
 ### Pass 3: Authority & Reversibility Classification
-Enforces the constitutional law $\text{Proposal} \neq \text{Authority}$. Validates that `compensatable` operations define complete `on_abort` handlers, and blocks `irreversible` operations lacking prior validation. Rejects any `COMMIT` statement that does not emit an auditable verification receipt.
+Enforces the constitutional law $\text{Proposal} \neq \text{Authority}$ and the **Commit-after-Validate** rule: $\text{AuthoritativeCommit}$ strictly requires a prior $\text{Validated}\langle T\rangle$ receipt. Placing `COMMIT` before `VALIDATE` raises `EpistemicOrderingError` at compile-time, guaranteeing control-flow dominance. Validates that `compensatable` operations define complete `on_abort` handlers, and blocks `irreversible` operations lacking prior validation.
 
 ### Pass 4: Temporal & Computational Impedance Scheduling
 Computes dimensionless computational impedance to evaluate queue backpressure and pipeline match:
 $$Z_c = \frac{\text{QueueDepth} \cdot \text{Latency}}{\text{EffectiveBandwidth}}, \qquad \Gamma_c = \frac{Z_{\text{load}} - Z_{\text{base}}}{Z_{\text{load}} + Z_{\text{base}}}$$
 Operations with overlapping execution windows are verified to have disjoint hardware resource sets ($\text{ResourceSets}(A) \cap \text{ResourceSets}(B) = \emptyset$) or synchronize via serialized `TurnToken` structures.
 
-### Pass 5: Transition Verification Synthesis
-Synthesizes a closed-loop intermediate representation (KIR) stream:
-$$\text{ACQUIRE\_TOKEN} \to \text{SAMPLE\_L3} \to \text{EVAL\_L4} \to \text{CHECK\_L2} \to \text{COMMIT\_L6} \to \text{VERIFY\_L8} \to \text{RELEASE}$$
-Each node carries a formal runtime guard condition (e.g., $|R_t| \le \epsilon$).
+### Pass 5: Transition Verification Synthesis (AEP Closed-Loop)
+Synthesizes a closed-loop intermediate representation (KIR) stream strictly adhering to the AEP execution law:
+$$\text{ACQUIRE\_TOKEN} \to \text{SAMPLE\_L3} \to \text{EVAL\_L4} \to \text{CHECK\_L2} \to \text{EXECUTE\_CANDIDATE\_L6} \to \text{SAMPLE\_L3} \to \text{VERIFY\_RESIDUAL\_L8} \to \text{COMMIT\_VALIDATED\_L8} \to \text{RELEASE}$$
+Crucially, `EXECUTE_CANDIDATE_L6` executes in speculative candidate space emitting `ExecutionObservationCandidate`. Authoritative state commitment is delayed until `COMMIT_VALIDATED_L8` confirms residual compliance ($|R_t| \le \epsilon$), preventing unverified mutations from corrupting authoritative state.
 
-### Pass 6: Machine Lowering to KµISA 64-Bit Words
+### Pass 6: Machine Lowering to KµISA 64-Bit Words (Fail-Closed)
 Lowers KIR instructions into compact 64-bit binary words tailored for FPGA L0 mailboxes and microcode sequencers:
 ```text
 KµISA 64-bit Word Layout:
 [63:56] Opcode (8b) | [55:52] Lane (4b) | [51:40] Target/UMA (12b) | [39:20] Time ns (20b) | [19:0] Energy nJ (20b)
 ```
-Example: Lowering `COMMIT_CANDIDATE_L6` for Lane L1 with target register `0x04A`, $t = 600\,\text{ns}$ (`0x258`), and $e = 260\,\text{nJ}$ (`0x104`) yields the deterministic machine word:
-$$\texttt{0x50104A0025800104}$$
+Lowering is strictly fail-closed: unknown opcodes raise `UnknownOpcodeError`, unknown lanes raise `UnknownLaneError`, and out-of-range integer fields raise `MachineEncodingOverflowError` rather than silent bitmask truncation. Example: Lowering `EXECUTE_CANDIDATE_L6` for Lane L1 with target register `0x04A`, $t = 500\,\text{ns}$ (`0x1F4`), and $e = 200\,\text{nJ}$ (`0x0C8`) yields the deterministic machine word:
+$$\texttt{0x50104A001F4000C8}$$
 
 ---
 

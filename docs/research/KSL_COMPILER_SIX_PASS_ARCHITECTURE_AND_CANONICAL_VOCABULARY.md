@@ -85,19 +85,20 @@ Verifikuje nemennosť proveniančného zväzu. Blokuje tiché pretypovania medzi
 Kvantifikuje trojzložkový rozpočet $Q = (t, m, e)$ (čas v $\text{ns}$, tlak UMA zbernice v intervale $[0, 1]$ a energiu v $\text{nJ}$). Vypočítava skóre Compute-Utility Density (CUD) a overuje, že odhadované náklady neprekročia deklarovaný limit operácie.
 
 ### Prechod 3: Authority & Reversibility Checker
-Vynucuje ústavné pravidlo $\text{Proposal} \neq \text{Authority}$. Pre operácie `compensatable` vyžaduje prítomnosť kompenzačného bloku; pre `irreversible` vyžaduje predchádzajúcu validáciu. Odmieta akýkoľvek commit bez validačného receiptu.
+Vynucuje ústavné pravidlo $\text{Proposal} \neq \text{Authority}$ a **pravidlo Commit-after-Validate**: $\text{AuthoritativeCommit}$ vyžaduje predchádzajúci $\text{Validated}\langle T\rangle$ receipt. Umiestnenie `COMMIT` pred `VALIDATE` vyvolá v čase kompilácie `EpistemicOrderingError`. Pre operácie `compensatable` vyžaduje prítomnosť kompenzačného bloku; pre `irreversible` vyžaduje predchádzajúcu validáciu.
 
 ### Prechod 4: Temporal & Computational Impedance Scheduler
 Modeluje časové okná a bezrozmernú analógiu výpočtovej impedancie:
 $$Z_c = \frac{\text{QueueDepth} \cdot \text{Latency}}{\text{EffectiveBandwidth}}, \qquad \Gamma_c = \frac{Z_{\text{load}} - Z_{\text{base}}}{Z_{\text{load}} + Z_{\text{base}}}$$
 Zabezpečuje, že operácie s prekryvom časových okien majú disjunktné množiny hardvérových prostriedkov alebo používajú arbitráž cez `TurnToken`.
 
-### Prechod 5: Transition Verification Synthesis
-Syntetizuje uzavretú reťaz KIR inštrukcií (Krystal Intermediate Representation):
-`ACQUIRE_TURN_TOKEN` $\to$ `SAMPLE_TELEMETRY_L3` $\to$ `EVAL_PREDICTOR_L4` $\to$ `CHECK_CONSTRAINTS_L2` $\to$ `COMMIT_CANDIDATE_L6` $\to$ `VERIFY_RESIDUAL_L8` $\to$ `EMIT_RECEIPT_RELEASE`.
+### Prechod 5: Transition Verification Synthesis (AEP Closed-Loop)
+Syntetizuje uzavretú reťaz KIR inštrukcií (Krystal Intermediate Representation) podľa sekvencie AEP:
+`ACQUIRE_TURN_TOKEN` $\to$ `SAMPLE_TELEMETRY_L3` $\to$ `EVAL_PREDICTOR_L4` $\to$ `CHECK_CONSTRAINTS_L2` $\to$ `EXECUTE_CANDIDATE_L6` $\to$ `SAMPLE_TELEMETRY_L3` $\to$ `VERIFY_RESIDUAL_L8` $\to$ `COMMIT_VALIDATED_L8` $\to$ `EMIT_RECEIPT_RELEASE`.
+`EXECUTE_CANDIDATE_L6` vykonáva akciu v kandidátskom/špekulatívnom priestore; autoritatívny commit nastáva až v kroku `COMMIT_VALIDATED_L8` po potvrdení rezídua ($|R_t| \le \epsilon$).
 
-### Prechod 6: Machine Lowering
-Generuje deterministické 64-bitové inštrukčné slová KµISA pre FPGA L0 Mailbox.
+### Prechod 6: Machine Lowering (Fail-Closed)
+Generuje deterministické 64-bitové inštrukčné slová KµISA pre FPGA L0 Mailbox s ochranou proti pretečeniu bitových polí (`MachineEncodingOverflowError`) a striktným mapovaním opcode/lane bez fail-open fallbackov.
 
 ---
 
@@ -113,14 +114,14 @@ Každá inštrukcia KIR sa deterministicky kóduje do 64-bitového slova:
 +----------+--------+-----------------+----------------------+----------------------+
 ```
 
-- **Bity [63:56]:** Opcode (`0x10` TurnToken, `0x20` Telemetry, `0x30` Predictor, `0x40` Constraint, `0x50` Commit, `0x60` Verify, `0x70` Receipt)
+- **Bity [63:56]:** Opcode (`0x10` TurnToken, `0x20` Telemetry, `0x30` Predictor, `0x40` Constraint, `0x50` ExecuteCandidate, `0x60` VerifyResidual, `0x68` CommitValidated, `0x70` Receipt)
 - **Bity [55:52]:** Exekučný pruh (`0x0` L0, `0x1` L1, `0x2` L2, `0x3` L3)
 - **Bity [51:40]:** Adresa UMA bunky / cieľového registra
 - **Bity [39:20]:** Časový rozpočet v nanosekundách (rozsah až $1.04\text{ ms}$)
 - **Bity [19:0]:** Energetický rozpočet v nanojouloch (rozsah až $1.04\text{ mJ}$)
 
-Príklad vygenerovaného slova pre `COMMIT_CANDIDATE_L6` (L1, bunka `0x04A`, $600\text{ ns}$, $260\text{ nJ}$):
-$$\mathbf{0x50104A0025800104}$$
+Príklad vygenerovaného slova pre `EXECUTE_CANDIDATE_L6` (L1, bunka `0x04A`, $500\text{ ns}$, $200\text{ nJ}$):
+$$\mathbf{0x50104A001F4000C8}$$
 
 ---
 

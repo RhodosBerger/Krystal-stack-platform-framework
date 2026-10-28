@@ -53,14 +53,20 @@ OVERALL AUDIT VERDICT: COMPLIANT
 #### Step 2: Audit a Hardware Execution Receipt
 Audit a candidate receipt file against the preregistered manifest:
 ```bash
-python standalone_evaluator.py --manifest HTE001_RUN_MANIFEST.json --receipt RECEIPT_TEMPLATE.json
+python standalone_evaluator.py --manifest HTE001_RUN_MANIFEST.json --receipt path/to/run_0001_receipt.json
 ```
-The evaluator verifies:
-1. Manifest hash match.
-2. Constitutional invariant: `vital_max_hp == 6`.
-3. Hard zero memory delta: $R_{\text{memory}} == 0.0$ bytes ($\Delta S_{\text{protected}} \equiv 0$).
-4. Envelope compliance: $|r_j| \le 1.0$ across all normalized fields.
-5. HMAC signature integrity (if `--secret-key-hex` is provided).
+The evaluator enforces:
+1. **Template Anti-Promotion Gate:** If the receipt carries `EvidenceClass=PENDING` or `SemanticVerdict=UNEXECUTED` (as in `RECEIPT_TEMPLATE.json`), it is immediately rejected with:
+   `REJECT [PHYSICAL_EVIDENCE_INCOMPLETE]: Unexecuted receipt template detected.`
+   Templates can NEVER be certified as physical proof.
+2. **Physical Evidence Completeness Gate:** If asserting `FPGA_BOARD_MEASURED`, the receipt MUST provide:
+   - Valid ISO 8601 timestamp string (`timestamp_iso`) and `timestamp_ns > 0`.
+   - `acquisition_valid == True`.
+   - 64-hex-character HMAC-SHA256 signature (`hmac_signature` cannot be placeholder).
+3. **Manifest Hash & Invariants:** Manifest hash matches preregistered anchor; constitutional invariant `vital_max_hp == 6`.
+4. **Hard Zero Memory Delta ($I_0$):** $R_{\text{memory}} == 0.0$ bytes ($\Delta S_{\text{protected}} \equiv 0$).
+5. **Envelope Compliance ($I_+$):** $|r_j| \le 1.0$ across all normalized fields.
+6. **HMAC Signature Integrity:** Recomputed over canonical RFC 8785 bytes when `--secret-key-hex` is provided.
 
 #### Step 3: Audit a Batch of 30+ Acquisition Runs
 When auditing a directory containing 30 or more runs:

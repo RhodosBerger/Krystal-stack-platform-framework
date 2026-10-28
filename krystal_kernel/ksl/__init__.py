@@ -34,7 +34,11 @@ from .compiler_passes import (
     KslStatement,
     KslVariable,
     KirInstruction,
-    pack_kuisa_64bit
+    pack_kuisa_64bit,
+    MachineEncodingOverflowError,
+    UnknownOpcodeError,
+    UnknownLaneError,
+    EpistemicOrderingError,
 )
 from .ksl_ast_bridge import (
     KslOptimizationObjective,
@@ -55,6 +59,10 @@ __all__ = [
     "KslVariable",
     "KirInstruction",
     "pack_kuisa_64bit",
+    "MachineEncodingOverflowError",
+    "UnknownOpcodeError",
+    "UnknownLaneError",
+    "EpistemicOrderingError",
     "ProgramNode",
     "DeviceGroupDecl",
     "ConstraintDecl",

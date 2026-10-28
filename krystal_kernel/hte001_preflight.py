@@ -16,6 +16,8 @@ Constitutional Principles:
   - Anti-Promotion Barrier: Claims KS-CLAIM-019 and KS-CLAIM-020 remain PENDING.
   - Zero-Mutation Guarantee: Invariant breach halts execution with Delta S == 0.
   - VITAL_MAX_HP == 6 (Constitutional Sentinel P10).
+  - P0 Provenance Authentication: Secret keys resolved from environment or tagged DEV_FALLBACK.
+  - Epistemic Status Stratification: [PHYSICAL_PREFLIGHT_VERIFIED] vs [PRE_FLIGHT_VERIFIED_EMULATED].
 ================================================================================
 """
 
@@ -40,11 +42,30 @@ from krystal_kernel.hte001_hardware_transition_harness import (
     canonical_jcs_serialize,
 )
 
-PREFLIGHT_SECRET_KEY = b"KRYSTAL_HTE001_PREFLIGHT_VERIFICATION_SECRET_v01"
 THEORY_NODES_EXPECTED = 56
 EXPECTED_MANIFEST_DIGEST = "ae6a1add5fcf1d3cb36c36859d3f38ef48a27df340b8aaf39daa3b47ea17f9cf"
 EXPECTED_HARNESS_DIGEST = "f520b171e29ea8b85b5d11d65c2ad7dd4baa9e0019ecd4eb56fee8d585f7a064"
 EXPECTED_SOFTWARE_IDENTITY = "e5c8578cbe3382dd059a319ad915567859b18c6cb1d0fe61ed3abbbc0c7d3fd0"
+
+
+def resolve_preflight_secret_key(enforce_secure_key: bool = False) -> Tuple[bytes, str]:
+    """
+    Resolves the cryptographic secret key for signing preflight receipts.
+    Order of precedence:
+      1. KRYSTAL_PREFLIGHT_SECRET_KEY environment variable.
+      2. KRYSTAL_HTE001_SECRET_KEY environment variable.
+      3. Fail-Closed in production/enforce mode.
+      4. Explicitly tagged dev fallback key.
+    """
+    env_key = os.environ.get("KRYSTAL_PREFLIGHT_SECRET_KEY") or os.environ.get("KRYSTAL_HTE001_SECRET_KEY")
+    if env_key:
+        return env_key.encode("utf-8"), "ENVIRONMENT_SECRET_KEY"
+    if enforce_secure_key:
+        raise ValueError(
+            "[P0 PROVENANCE AUTHENTICATION] Missing secure KRYSTAL_PREFLIGHT_SECRET_KEY "
+            "in production mode (Fail-Closed enforced: TPM/HSM/CI secret required)."
+        )
+    return b"KRYSTAL_HTE001_DEV_FALLBACK_INSECURE_KEY_v01", "DEV_FALLBACK_INSECURE_TEST_KEY"
 
 
 @dataclass
@@ -70,9 +91,11 @@ class PreflightCheckReceipt:
     vital_max_hp: int
     theory_nodes_total: int
     hardware_present: bool
-    environment_type: str  # "PHYSICAL_HARDWARE" | "EMULATED_DEVELOPMENT"
+    environment_type: str        # "PHYSICAL_HARDWARE" | "EMULATED_DEVELOPMENT"
     all_checks_passed: bool
-    overall_status: str     # "[PRE-FLIGHT VERIFIED]" | "[PRE-FLIGHT FAILED]"
+    overall_status: str           # "[PHYSICAL_PREFLIGHT_VERIFIED]" | "[PRE_FLIGHT_VERIFIED_EMULATED]" | "[PRE-FLIGHT FAILED]"
+    physical_run_allowed: bool    # Strictly False unless environment_type == "PHYSICAL_HARDWARE"
+    signature_provenance: str     # "ENVIRONMENT_SECRET_KEY" | "DEV_FALLBACK_INSECURE_TEST_KEY"
     checks: List[Dict[str, Any]]
     epistemic_warning: str
     hmac_signature: str = ""
@@ -90,11 +113,13 @@ class Hte001PreflightChecker:
         harness_path: str = "krystal_kernel/hte001_hardware_transition_harness.py",
         artifacts_dir: str = "artifacts/hte001",
         enforce_physical_hardware: bool = False,
+        enforce_secure_key: bool = False,
     ):
         self.manifest_path = Path(manifest_path)
         self.harness_path = Path(harness_path)
         self.artifacts_dir = Path(artifacts_dir)
         self.enforce_physical_hardware = enforce_physical_hardware
+        self.enforce_secure_key = enforce_secure_key
 
     def run_all_checks(self) -> Tuple[bool, PreflightCheckReceipt]:
         checks: List[PreflightCheckItem] = []
@@ -230,10 +255,35 @@ class Hte001PreflightChecker:
             expected_value="PHYSICAL_DETECTED" if self.enforce_physical_hardware else "ANY",
         ))
 
-        # Overall synthesis
+        # Overall synthesis & Epistemic Status Stratification
         all_passed = all(c.passed for c in checks)
         env_type = "PHYSICAL_HARDWARE" if hardware_present else "EMULATED_DEVELOPMENT"
-        overall_status = "[PRE-FLIGHT VERIFIED]" if all_passed else "[PRE-FLIGHT FAILED]"
+
+        if all_passed and hardware_present:
+            overall_status = "[PHYSICAL_PREFLIGHT_VERIFIED]"
+            physical_run_allowed = True
+            warning_msg = (
+                "PHYSICAL READINESS: Environment verified on physical hardware. "
+                "PhysicalRunAllowed is TRUE for RUN-0001 acquisition. "
+                "Claims KS-CLAIM-019 and KS-CLAIM-020 strictly remain in PENDING status "
+                "until RUN-0001 physical execution and receipt verification."
+            )
+        elif all_passed and not hardware_present:
+            overall_status = "[PRE_FLIGHT_VERIFIED_EMULATED]"
+            physical_run_allowed = False
+            warning_msg = (
+                "EMULATION NOTICE: Status [PRE_FLIGHT_VERIFIED_EMULATED] certifies logic and hash readiness "
+                "in a development environment only. PhysicalRunAllowed is strictly FALSE. "
+                "Physical execution of RUN-0001 requires [PHYSICAL_PREFLIGHT_VERIFIED] with real FPGA hardware. "
+                "Claims KS-CLAIM-019 and KS-CLAIM-020 strictly remain in PENDING status."
+            )
+        else:
+            overall_status = "[PRE-FLIGHT FAILED]"
+            physical_run_allowed = False
+            warning_msg = "PREFLIGHT FAILED: Invariant, hash, or environment check failed."
+
+        # Key resolution with provenance tagging
+        secret_key, sig_provenance = resolve_preflight_secret_key(self.enforce_secure_key)
 
         receipt_id = f"PREFLIGHT-{int(time.time())}-{hashlib.sha256(str(time.monotonic_ns()).encode()).hexdigest()[:8]}"
         timestamp_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -255,18 +305,16 @@ class Hte001PreflightChecker:
             environment_type=env_type,
             all_checks_passed=all_passed,
             overall_status=overall_status,
+            physical_run_allowed=physical_run_allowed,
+            signature_provenance=sig_provenance,
             checks=[asdict(c) for c in checks],
-            epistemic_warning=(
-                "ANTI-PROMOTION NOTICE: Preflight verification certifies environmental, hash, and "
-                "manifest readiness only. Claims KS-CLAIM-019 and KS-CLAIM-020 strictly remain in "
-                "PENDING status until physical FPGA RUN-0001 execution on Xilinx KCU116."
-            ),
+            epistemic_warning=warning_msg,
         )
 
         # Sign receipt with HMAC-SHA256
         data_to_sign = {k: v for k, v in asdict(receipt).items() if k != "hmac_signature"}
         jcs_bytes = canonical_jcs_serialize(data_to_sign)
-        receipt.hmac_signature = hmac.new(PREFLIGHT_SECRET_KEY, jcs_bytes, hashlib.sha256).hexdigest()
+        receipt.hmac_signature = hmac.new(secret_key, jcs_bytes, hashlib.sha256).hexdigest()
 
         return all_passed, receipt
 
@@ -277,6 +325,7 @@ def main():
     parser.add_argument("--harness", default="krystal_kernel/hte001_hardware_transition_harness.py", help="Path to harness")
     parser.add_argument("--artifacts-dir", default="artifacts/hte001", help="Output directory for receipts")
     parser.add_argument("--enforce-physical", action="store_true", help="Fail if real hardware is not connected")
+    parser.add_argument("--enforce-secure-key", action="store_true", help="Fail if environment secret key is missing")
     parser.add_argument("--output-receipt", default="artifacts/hte001/HTE001_PREFLIGHT_RECEIPT.json", help="Save receipt path")
     parser.add_argument("--json", action="store_true", help="Print receipt JSON to stdout")
     args = parser.parse_args()
@@ -286,6 +335,7 @@ def main():
         harness_path=args.harness,
         artifacts_dir=args.artifacts_dir,
         enforce_physical_hardware=args.enforce_physical,
+        enforce_secure_key=args.enforce_secure_key,
     )
 
     passed, receipt = checker.run_all_checks()
@@ -302,21 +352,23 @@ def main():
         print("=" * 80)
         print("KSL v0.2 — HTE-001 PREFLIGHT VERIFICATION REPORT")
         print("=" * 80)
-        print(f"Receipt ID:       {receipt.receipt_id}")
-        print(f"Timestamp:        {receipt.timestamp_iso}")
-        print(f"Overall Status:   {receipt.overall_status}")
-        print(f"Environment:      {receipt.environment_type}")
-        print(f"Manifest Digest:  {receipt.manifest_hash} (Match: {receipt.manifest_verified})")
-        print(f"Harness Digest:   {receipt.harness_hash} (Match: {receipt.harness_verified})")
-        print(f"Software Identity: {receipt.software_identity} (Match: {receipt.software_identity_verified})")
-        print(f"Constitutional:   VITAL_MAX_HP={receipt.vital_max_hp}, THEORY_NODES={receipt.theory_nodes_total}")
+        print(f"Receipt ID:           {receipt.receipt_id}")
+        print(f"Timestamp:            {receipt.timestamp_iso}")
+        print(f"Overall Status:       {receipt.overall_status}")
+        print(f"Physical Run Allowed: {receipt.physical_run_allowed}")
+        print(f"Environment:          {receipt.environment_type}")
+        print(f"Signature Provenance: {receipt.signature_provenance}")
+        print(f"Manifest Digest:      {receipt.manifest_hash} (Match: {receipt.manifest_verified})")
+        print(f"Harness Digest:       {receipt.harness_hash} (Match: {receipt.harness_verified})")
+        print(f"Software Identity:    {receipt.software_identity} (Match: {receipt.software_identity_verified})")
+        print(f"Constitutional:       VITAL_MAX_HP={receipt.vital_max_hp}, THEORY_NODES={receipt.theory_nodes_total}")
         print("-" * 80)
         for c in receipt.checks:
             mark = "PASS" if c["passed"] else "FAIL"
             print(f"  [{mark:4s}] {c['check_name']:<32s} : {c['details']}")
         print("-" * 80)
-        print(f"HMAC Signature:   {receipt.hmac_signature}")
-        print(f"Notice:           {receipt.epistemic_warning}")
+        print(f"HMAC Signature:       {receipt.hmac_signature}")
+        print(f"Notice:               {receipt.epistemic_warning}")
         print("=" * 80)
 
     sys.exit(0 if passed else 1)

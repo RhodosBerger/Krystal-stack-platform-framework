@@ -147,6 +147,43 @@ def evaluate_single_receipt(
     notes: List[str] = []
     passed = True
 
+    ev_class = receipt.get("evidence_class")
+    verdict = receipt.get("semantic_verdict")
+    integrity = receipt.get("receipt_integrity")
+
+    # 0. Template / Unexecuted Receipt Sentinel Gate
+    if ev_class == "PENDING" or verdict == "UNEXECUTED":
+        notes.append(
+            f"REJECT [PHYSICAL_EVIDENCE_INCOMPLETE]: Unexecuted receipt template detected "
+            f"(EvidenceClass={ev_class}, SemanticVerdict={verdict}). "
+            f"An unexecuted template cannot certify physical transition."
+        )
+        return False, notes
+
+    # 0b. Physical Evidence Completeness Gate
+    if ev_class == "FPGA_BOARD_MEASURED":
+        ts_iso = receipt.get("timestamp_iso")
+        ts_ns = receipt.get("timestamp_ns", 0)
+        sig = receipt.get("hmac_signature", "")
+        acq_valid = receipt.get("acquisition_valid", False)
+
+        completeness_errors = []
+        if not ts_iso or not isinstance(ts_iso, str) or len(ts_iso) < 10:
+            completeness_errors.append("missing valid timestamp_iso")
+        if not ts_ns or ts_ns <= 0:
+            completeness_errors.append("missing valid timestamp_ns (> 0)")
+        if not sig or sig.startswith("UNSIGNED") or len(sig) != 64:
+            completeness_errors.append("missing non-placeholder HMAC signature (64 hex characters required)")
+        if not acq_valid:
+            completeness_errors.append("acquisition_valid is False")
+
+        if completeness_errors:
+            notes.append(
+                f"REJECT [PHYSICAL_EVIDENCE_INCOMPLETE]: Receipt asserts FPGA_BOARD_MEASURED but fails "
+                f"completeness criteria: {', '.join(completeness_errors)}."
+            )
+            return False, notes
+
     # 1. Manifest Hash Verification
     rec_manifest_hash = receipt.get("manifest_hash", "")
     if rec_manifest_hash != EXPECTED_MANIFEST_DIGEST:

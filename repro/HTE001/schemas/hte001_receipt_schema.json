@@ -50,7 +50,7 @@
     "acquisition_valid": { "type": "boolean" },
     "receipt_integrity": { "type": "string", "enum": ["VERIFIED", "UNVERIFIED", "CORRUPTED"] },
     "evidence_class": { "type": "string", "enum": ["PENDING", "FPGA_BOARD_MEASURED", "SIMULATION"] },
-    "semantic_verdict": { "type": "string", "enum": ["COMMITTED", "FAIL"] },
+    "semantic_verdict": { "type": "string", "enum": ["COMMITTED", "FAIL", "UNEXECUTED"] },
     "raw_residuals": {
       "type": "object",
       "required": ["memory", "energy", "latency", "thermal", "queue", "compute"],
@@ -76,8 +76,8 @@
     },
     "raw_predictions": { "type": "object" },
     "raw_measurements": { "type": "object" },
-    "timestamp_iso": { "type": "string", "format": "date-time" },
+    "timestamp_iso": { "type": ["string", "null"] },
     "timestamp_ns": { "type": "integer" },
-    "hmac_signature": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    "hmac_signature": { "type": "string", "minLength": 16 }
   }
 }
