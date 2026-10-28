@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hte001HardwareTransitionReceiptSchema",
+  "description": "JSON Schema governing KSL v0.2 Hardware Transition Experiment 001 Execution Receipt",
+  "type": "object",
+  "required": [
+    "experiment_id",
+    "run_id",
+    "sequence",
+    "software_commit",
+    "manifest_hash",
+    "bitstream_hash",
+    "board_id",
+    "fpga_part",
+    "clock_frequency",
+    "vital_max_hp",
+    "exact_zero_pass",
+    "normalized_residuals_pass",
+    "transition_pass",
+    "acquisition_valid",
+    "receipt_integrity",
+    "evidence_class",
+    "semantic_verdict",
+    "raw_residuals",
+    "normalized_residuals",
+    "raw_predictions",
+    "raw_measurements",
+    "timestamp_iso",
+    "timestamp_ns",
+    "hmac_signature"
+  ],
+  "properties": {
+    "experiment_id": { "type": "string", "const": "HTE-001" },
+    "run_id": { "type": "string" },
+    "sequence": { "type": "integer", "minimum": 0 },
+    "software_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "manifest_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "ksl_source_hash": { "type": "string" },
+    "kir_hash": { "type": "string" },
+    "kmicroisa_hash": { "type": "string" },
+    "rtl_hash": { "type": "string" },
+    "bitstream_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "board_id": { "type": "string" },
+    "fpga_part": { "type": "string" },
+    "clock_frequency": { "type": "integer" },
+    "vital_max_hp": { "type": "integer", "const": 6 },
+    "exact_zero_pass": { "type": "boolean" },
+    "normalized_residuals_pass": { "type": "boolean" },
+    "transition_pass": { "type": "boolean" },
+    "acquisition_valid": { "type": "boolean" },
+    "receipt_integrity": { "type": "string", "enum": ["VERIFIED", "UNVERIFIED", "CORRUPTED"] },
+    "evidence_class": { "type": "string", "enum": ["PENDING", "FPGA_BOARD_MEASURED", "SIMULATION"] },
+    "semantic_verdict": { "type": "string", "enum": ["COMMITTED", "FAIL"] },
+    "raw_residuals": {
+      "type": "object",
+      "required": ["memory", "energy", "latency", "thermal", "queue", "compute"],
+      "properties": {
+        "memory": { "type": "number", "const": 0.0 },
+        "energy": { "type": "number" },
+        "latency": { "type": "number" },
+        "thermal": { "type": "number" },
+        "queue": { "type": "number" },
+        "compute": { "type": "number" }
+      }
+    },
+    "normalized_residuals": {
+      "type": "object",
+      "required": ["energy", "latency", "thermal", "queue", "compute"],
+      "properties": {
+        "energy": { "type": "number" },
+        "latency": { "type": "number" },
+        "thermal": { "type": "number" },
+        "queue": { "type": "number" },
+        "compute": { "type": "number" }
+      }
+    },
+    "raw_predictions": { "type": "object" },
+    "raw_measurements": { "type": "object" },
+    "timestamp_iso": { "type": "string", "format": "date-time" },
+    "timestamp_ns": { "type": "integer" },
+    "hmac_signature": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "experiment_id": "HTE-001",
+  "run_id": "HTE-001-RUN-0001",
+  "sequence": 1,
+  "software_commit": "12f91b5c1b4d42b5ce979fb3a01d2233ba02f0ed",
+  "manifest_hash": "ae6a1add5fcf1d3cb36c36859d3f38ef48a27df340b8aaf39daa3b47ea17f9cf",
+  "ksl_source_hash": "1ea89aec1cef9cc59570f6dc0b0553ded2d57fcac5e386398d3bff4803c09d97",
+  "kir_hash": "098f6bcd4621d373cade4e832627b4f6e3c09b83f3f0d4b53f631e3ef0478082",
+  "kmicroisa_hash": "5d41402abc4b2a76b9719d911017c592965c7198bbd46fcf85a544621c1f525f",
+  "rtl_hash": "562f086a44f80bac729ea37c17153d1b9eb32f5400b453568b3008d1cacfbc28",
+  "bitstream_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "board_id": "XILINX-KCU116-KINTEX-USPLUS-REV1",
+  "fpga_part": "xcku5p-ffvb676-2-e",
+  "clock_frequency": 500000000,
+  "vital_max_hp": 6,
+  "exact_zero_pass": true,
+  "normalized_residuals_pass": true,
+  "transition_pass": true,
+  "acquisition_valid": true,
+  "receipt_integrity": "VERIFIED",
+  "evidence_class": "FPGA_BOARD_MEASURED",
+  "semantic_verdict": "COMMITTED",
+  "raw_residuals": {
+    "memory": 0.0,
+    "energy": 0.0,
+    "latency": 0.0,
+    "thermal": 0.0,
+    "queue": 0.0,
+    "compute": 0.0
+  },
+  "normalized_residuals": {
+    "energy": 0.0,
+    "latency": 0.0,
+    "thermal": 0.0,
+    "queue": 0.0,
+    "compute": 0.0
+  },
+  "raw_predictions": {
+    "memory": 0.0,
+    "energy": 0.0,
+    "latency": 0.0,
+    "thermal": 0.0,
+    "queue": 0.0,
+    "compute": 0.0
+  },
+  "raw_measurements": {
+    "memory": 0.0,
+    "energy": 0.0,
+    "latency": 0.0,
+    "thermal": 0.0,
+    "queue": 0.0,
+    "compute": 0.0
+  },
+  "timestamp_iso": "YYYY-MM-DDTHH:MM:SSZ",
+  "timestamp_ns": 0,
+  "hmac_signature": "0000000000000000000000000000000000000000000000000000000000000000"
+}

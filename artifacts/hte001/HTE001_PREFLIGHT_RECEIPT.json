@@ -1,0 +1,76 @@
+{
+  "receipt_id": "PREFLIGHT-1793186667-f84f00b4",
+  "timestamp_iso": "2026-10-28T11:24:27Z",
+  "timestamp_ns": 1793186667736472100,
+  "manifest_hash": "ae6a1add5fcf1d3cb36c36859d3f38ef48a27df340b8aaf39daa3b47ea17f9cf",
+  "manifest_verified": true,
+  "harness_hash": "f520b171e29ea8b85b5d11d65c2ad7dd4baa9e0019ecd4eb56fee8d585f7a064",
+  "harness_verified": true,
+  "software_identity": "e5c8578cbe3382dd059a319ad915567859b18c6cb1d0fe61ed3abbbc0c7d3fd0",
+  "software_identity_verified": true,
+  "vital_max_hp": 6,
+  "theory_nodes_total": 56,
+  "hardware_present": false,
+  "environment_type": "EMULATED_DEVELOPMENT",
+  "all_checks_passed": true,
+  "overall_status": "[PRE-FLIGHT VERIFIED]",
+  "checks": [
+    {
+      "check_name": "CONSTITUTIONAL_INVARIANTS",
+      "passed": true,
+      "details": "VITAL_MAX_HP=6, THEORY_NODES=56 (expected 56)",
+      "measured_value": {
+        "vital_max_hp": 6,
+        "theory_nodes": 56
+      },
+      "expected_value": {
+        "vital_max_hp": 6,
+        "theory_nodes": 56
+      }
+    },
+    {
+      "check_name": "MANIFEST_PREREGISTRATION_DIGEST",
+      "passed": true,
+      "details": "Loaded manifest HTE-001. Hash match: True.",
+      "measured_value": "ae6a1add5fcf1d3cb36c36859d3f38ef48a27df340b8aaf39daa3b47ea17f9cf",
+      "expected_value": "ae6a1add5fcf1d3cb36c36859d3f38ef48a27df340b8aaf39daa3b47ea17f9cf"
+    },
+    {
+      "check_name": "ACQUISITION_HARNESS_DIGEST",
+      "passed": true,
+      "details": "Harness read (42688 bytes). Hash match: True.",
+      "measured_value": "f520b171e29ea8b85b5d11d65c2ad7dd4baa9e0019ecd4eb56fee8d585f7a064",
+      "expected_value": "f520b171e29ea8b85b5d11d65c2ad7dd4baa9e0019ecd4eb56fee8d585f7a064"
+    },
+    {
+      "check_name": "ACQUISITION_SOFTWARE_IDENTITY",
+      "passed": true,
+      "details": "Software identity: e5c8578cbe3382dd059a319ad915567859b18c6cb1d0fe61ed3abbbc0c7d3fd0",
+      "measured_value": "e5c8578cbe3382dd059a319ad915567859b18c6cb1d0fe61ed3abbbc0c7d3fd0",
+      "expected_value": "e5c8578cbe3382dd059a319ad915567859b18c6cb1d0fe61ed3abbbc0c7d3fd0"
+    },
+    {
+      "check_name": "STORAGE_WRITE_PERMISSIONS",
+      "passed": true,
+      "details": "Write access verified. Available disk: 36773.0 MB (min 50 MB).",
+      "measured_value": "36773.0 MB",
+      "expected_value": ">= 50.0 MB"
+    },
+    {
+      "check_name": "MONOTONIC_CLOCK_RESOLUTION",
+      "passed": true,
+      "details": "Monotonic timer forward delta: 1077900 ns (1.078 ms).",
+      "measured_value": 1077900,
+      "expected_value": "> 0 ns"
+    },
+    {
+      "check_name": "HARDWARE_INTERFACE_PROBE",
+      "passed": true,
+      "details": "Physical I2C bus /dev/i2c-1 not detected. Emulation / mock telemetry active.",
+      "measured_value": "EMULATION_MOCK",
+      "expected_value": "ANY"
+    }
+  ],
+  "epistemic_warning": "ANTI-PROMOTION NOTICE: Preflight verification certifies environmental, hash, and manifest readiness only. Claims KS-CLAIM-019 and KS-CLAIM-020 strictly remain in PENDING status until physical FPGA RUN-0001 execution on Xilinx KCU116.",
+  "hmac_signature": "4de6a576a1df55ee664dca2a101f411f2a49468d6a989051a6cecfb4032c5f78"
+}
