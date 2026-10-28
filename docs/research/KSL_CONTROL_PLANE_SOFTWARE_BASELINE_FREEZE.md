@@ -341,18 +341,63 @@ Podľa špecifikácie Texas Instruments INA226 nie je možné zamieňať vzorkov
   $$T_{\text{conversion-cycle}} = V_{SHCT} + V_{BUSCT} = 140\,\mu\text{s} + 140\,\mu\text{s} = 280\,\mu\text{s}$$
   $$f_{\text{conversion,max}} = \frac{1}{280\,\mu\text{s}} \approx 3\,571.43\text{ Hz}$$
 
-Pri frekvencii pollingu registrov $10\text{ kHz}$ ($T_{\text{poll}} = 100\,\mu\text{s}$) dochádza medzi dokončeniami konverzií k čítaniu rovnakého výsledku.
-Preto sa zavádza formálne oddelenie v telemetrii:
-1. `sensor_poll_rate_hz` = 10 000 Hz ($T_{\text{poll}} = 100\,\mu\text{s}$)
-2. `sensor_conversion_rate_hz` = 3 571.43 Hz ($T_{\text{conversion}} = 280\,\mu\text{s}$)
-3. `raw_read_count` $\approx 3\,080$ (celkový počet I²C čítaní za beh)
-4. $\mathbf{N_{\text{independent conversions}}}$ $\approx \mathbf{1\,098}$ ($\sim 742$ aktívnych + $\sim 356$ idle) — **autoritatívna meracia kardinalita**
-5. `duplicate_read_count` $\approx 1\,982$ (deduplikované čítania)
+#### 6.5.1 Event-Based Conversion Tracking & Zákaz deduplikácie podľa hodnoty
+1. **Event-based identifikácia nezávislých vzoriek:**
+   $$\boxed{\text{IndependentSample} \iff \text{NewConversionReadyEvent}}$$
+   Akvizícia monitoruje Conversion Ready stav (príznak `CVRF` v registri Mask/Enable `0x06` resp. hardvérový pin `ALERT` v režime `CNVR`). Každá nová nezávislá vzorka vzniká výhradne dokončením nového fyzikálneho ADC cyklu.
+   Receipt povinne deklaruje metódu akvizície:
+   $$\text{independent\_sample\_method} = \texttt{"CONVERSION\_READY\_OBSERVED"}$$
 
-**Provenance invariant:**
-Hodnota `first_physical_sample_timestamp: null` zostáva trvalo zapísaná v preregistrovanom manifeste, čím je garantovaná nemennosť jeho kanonického odtlačku:
-$$\boxed{H(\text{Manifest}) = \text{3a2003ce8101b3fb1ce0568f86f148ef37d41b4b4bca7fd4ba18783e2a44a468}}$$
-Skutočná časová pečiatka prvého odčítania vzorky patrí výhradne do [FPGA-BOARD-MEASURED] receiptu a acquisition ledgeru, ktoré na manifest odkazujú.
+2. **Zákaz deduplikácie na základe numerickej rovnosti:**
+   $$\boxed{\text{SameValue} \not\implies \text{SameConversion}}$$
+   Dve po sebe idúce nezávislé ADC konverzie môžu v ustálenom stave legitímne vrátiť identické kvantované číslo napätia či prúdu. Deduplikácia sa riadi výhradne identitou conversion cyklu / event transition, nikdy nie rovnosťou nameranej hodnoty (`value_new == value_previous`).
+
+3. **`raw_read_count` ako transport diagnostic, nie hard failure gate:**
+   - Polling registrov pri $10\text{ kHz}$ ($T_{\text{poll}} = 100\,\mu\text{s}$) produkuje `raw_read_count` $\approx 3\,080$ čítaní.
+   - Pri clock-stretchingu alebo transportnom jitteri I²C zbernice môže `raw_read_count` klesnúť pod 3 000 (napr. 2 400), hoci ADC evidence je stopercentne platná.
+   - Preto `raw_read_count` slúži výhradne ako transport diagnostic. Hard fyzikálny invariant viaže:
+     $$\mathbf{active\_independent\_conversion\_count} \ge \mathbf{700}$$
+     $$\mathbf{independent\_conversion\_count} \ge \mathbf{1\,000}$$
+     $$\mathbf{\Delta t_{\text{burst}}} \ge \mathbf{200\,000\,000\text{ ns}}\ (\ge 200\text{ ms})$$
+     $$\mathbf{dropped\_samples} == \mathbf{0}$$
+
+---
+
+### 6.6 Dual-Layer Software Identity & P0 Provenance Resolution
+
+Pred spustením fyzického behu `RUN-0001` bol vyriešený P0 provenance konflikt (modifikácia harnesse po commite `28fdb407...`). Preregistračný manifest bol revidovaný **pred prvou fyzickou vzorkou** (`first_physical_sample_timestamp: null`), čo garantuje absenciu post-hoc ladenia.
+
+#### 6.6.1 Definícia AcquisitionSoftwareIdentity
+Akvizícia nie je viazaná výhradne na Git commit hash, ale na kanonickú identitu celého vykonávacieho reťazca:
+$$\boxed{\text{AcquisitionSoftwareIdentity} = H\left(\text{HarnessSource} \parallel \text{OracleContract} \parallel \text{SensorContract} \parallel \text{Dependencies} \parallel \text{Commit}\right)}$$
+
+Kanonické kryptografické odtlačky frozen komponentov:
+1. `software_commit`:
+   $$\texttt{12f91b5c1b4d42b5ce979fb3a01d2233ba02f0ed}$$
+2. `acquisition_harness_hash` (SHA-256 zdrojového kódu `hte001_hardware_transition_harness.py`):
+   $$\texttt{f520b171e29ea8b85b5d11d65c2ad7dd4baa9e0019ecd4eb56fee8d585f7a064}$$
+3. `transition_oracle_hash` (RFC 8785 canonical digest Transition Oracle kontraktu):
+   $$\texttt{3c87c20d94855b78f5ebcb92067376dca9dbc5699a723e7207ef8399c4fcbf42}$$
+4. `sensor_contract_hash` (RFC 8785 canonical digest INA226 ADC kontraktu):
+   $$\texttt{257637962a9ff799222323732d938036e94b14f00d1ed2d55b4af944316934e9}$$
+5. `requirements_lock_hash` (SHA-256 závislostí `requirements.txt`):
+   $$\texttt{3b00d587bf644fe1372aa72d3d9753111d3e1ace386c241ef94b57bfaa08bd8e}$$
+6. **Výsledná softvérová identita:**
+   $$\boxed{\text{AcquisitionSoftwareIdentity} = \texttt{e5c8578cbe3382dd059a319ad915567859b18c6cb1d0fe61ed3abbbc0c7d3fd0}}$$
+
+#### 6.6.2 Runtime Provenance Gate
+Receipt povinne overuje rovnosť odtlačkov za behu:
+$$\boxed{PASS_{\text{provenance}} \iff H_{\text{runtime}} == H_{\text{manifest}}}$$
+Ak by bol spustený akýkoľvek modifikovaný kód harnesse, orakula alebo senzorového kontraktu, $PASS_{\text{provenance}} = \text{False}$ a beh je diskvalifikovaný z akvizičnej validity.
+
+#### 6.6.3 Superseding Manifest Chain
+Predchádzajúci manifest `3a2003ce...` bol formálne nahradený:
+- `supersedes_manifest_hash`: `3a2003ce8101b3fb1ce0568f86f148ef37d41b4b4bca7fd4ba18783e2a44a468`
+- `superseded_reason`: `SUPERSEDED_BEFORE_PHYSICAL_ACQUISITION_INA226_CADENCE_AND_PROVENANCE_IDENTITY_EXPANSION`
+- `first_physical_sample_timestamp: null` (trvalo zachované v manifeste)
+
+Kanonický RFC 8785 SHA-256 digest finálneho manifestu:
+$$\boxed{H(\text{Manifest}_{\text{final}}) = \text{ae6a1add5fcf1d3cb36c36859d3f38ef48a27df340b8aaf39daa3b47ea17f9cf}}$$
 
 ---
 
@@ -360,10 +405,13 @@ Skutočná časová pečiatka prvého odčítania vzorky patrí výhradne do [FP
 
 $$\boxed{\begin{aligned}
 &\text{SoftwareBaseline} &&= \text{FROZEN}\\
-&\text{Manifest} &&= \text{FINAL\_PREREGISTERED (SHA256: 3a2003ce8101b3fb1ce0568f86f148ef37d41b4b4bca7fd4ba18783e2a44a468)}\\
-&\text{Harness} &&= \text{TEST-VERIFIED (76/76 PASS v 0.59s)}\\
+&\text{SoftwareCommit} &&= \texttt{12f91b5c1b4d42b5ce979fb3a01d2233ba02f0ed}\\
+&\text{AcquisitionSoftwareIdentity} &&= \texttt{e5c8578cbe3382dd059a319ad915567859b18c6cb1d0fe61ed3abbbc0c7d3fd0}\\
+&\text{Manifest} &&= \text{FINAL\_PREREGISTERED (SHA256: ae6a1add5fcf1d3cb36c36859d3f38ef48a27df340b8aaf39daa3b47ea17f9cf)}\\
+&\text{SupersededManifest} &&= \texttt{3a2003ce8101b3fb1ce0568f86f148ef37d41b4b4bca7fd4ba18783e2a44a468}\\
+&\text{Harness} &&= \text{TEST-VERIFIED (11/11 PASS v 0.14s | 101/101 SUITE PASS v 0.65s)}\\
 &\text{TransitionOracle} &&= \text{FROZEN (Envelope Compliance + Bootstrap 95\% CI)}\\
-&\text{ADC/SensorContract} &&= \text{INA226 280us CONVERSION CADENCE FROZEN}\\
+&\text{ADC/SensorContract} &&= \text{INA226 280us EVENT-BASED CONVERSION CADENCE FROZEN}\\
 &\text{RTL} &&= \text{RTL-SIMULATED}\\
 &\text{Board Acquisition} &&= \text{READY / PHYSICAL ACQUISITION READY}\\
 &\text{PhysicalEvidence} &&= \text{PENDING}\\
@@ -373,5 +421,6 @@ $$\boxed{\begin{aligned}
 Ďalším artefaktom projektu bude priamo autentický:
 $$\boxed{[\text{FPGA-BOARD-MEASURED}]\ \text{artifacts/hte001/HTE001\_RUN\_0001\_RECEIPT.json}}$$
 bez ohľadu na to, či jeho sémantický verdikt bude `COMMITTED` alebo `FAIL`.
+
 
 
