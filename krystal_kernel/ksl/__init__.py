@@ -51,6 +51,19 @@ from .ksl_ast_bridge import (
     KslOperationalAstBridge,
     GLOBAL_KSL_OPERATIONAL_AST_BRIDGE,
 )
+from .llm_topology_schemas import (
+    LlmWorkloadStage,
+    TargetDeviceBlock,
+    InterconnectionChannelType,
+    LlmInterconnectionTopology,
+    LlmModuleNode,
+    LlmModuleConnectionEdge,
+    LlmWorkloadCharacteristics,
+    LlmTopologyPotentialEstimate,
+    LlmInterconnectionSchema,
+    LlmTopologyRegistry,
+    GLOBAL_LLM_TOPOLOGY_REGISTRY,
+)
 
 __all__ = [
     "Ksl6PassCompiler",
@@ -133,4 +146,15 @@ __all__ = [
     "GLOBAL_KSL_OPERATIONAL_AST_BRIDGE",
     "PhysicalQuantity",
     "CANONICAL_PHYSICAL_QUANTITIES",
+    "LlmWorkloadStage",
+    "TargetDeviceBlock",
+    "InterconnectionChannelType",
+    "LlmInterconnectionTopology",
+    "LlmModuleNode",
+    "LlmModuleConnectionEdge",
+    "LlmWorkloadCharacteristics",
+    "LlmTopologyPotentialEstimate",
+    "LlmInterconnectionSchema",
+    "LlmTopologyRegistry",
+    "GLOBAL_LLM_TOPOLOGY_REGISTRY",
 ]
