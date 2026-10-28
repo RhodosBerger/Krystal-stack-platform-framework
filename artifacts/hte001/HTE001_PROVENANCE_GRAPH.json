@@ -1,0 +1,268 @@
+{
+  "graph_schema": "KSL-PROVENANCE-DAG-v1",
+  "experiment_id": "HTE-001",
+  "nodes": [
+    {
+      "id": "NODE_MANIFEST",
+      "type": "EXPERIMENTAL_MANIFEST",
+      "name": "HTE-001 Preregistered Run Manifest",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "ae6a1add5fcf1d3cb36c36859d3f38ef48a27df340b8aaf39daa3b47ea17f9cf",
+      "metadata": {
+        "experiment_id": "HTE-001",
+        "status": "FINAL_PREREGISTERED_MANIFEST",
+        "supersedes_manifest": "3a2003ce8101b3fb1ce0568f86f148ef37d41b4b4bca7fd4ba18783e2a44a468"
+      }
+    },
+    {
+      "id": "NODE_SOFTWARE_COMMIT",
+      "type": "SOURCE_CONTROL_COMMIT",
+      "name": "Authoritative Git Commit",
+      "status": "SEALED",
+      "digest_algorithm": "GIT_COMMIT_HASH",
+      "canonical_digest": "12f91b5c1b4d42b5ce979fb3a01d2233ba02f0ed",
+      "metadata": {
+        "repo": "RhodosBerger/Krystal-stack-platform-framework"
+      }
+    },
+    {
+      "id": "NODE_ACQUISITION_HARNESS",
+      "type": "EXECUTION_CODE",
+      "name": "HTE-001 Hardware Transition Harness",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "f520b171e29ea8b85b5d11d65c2ad7dd4baa9e0019ecd4eb56fee8d585f7a064",
+      "metadata": {
+        "path": "krystal_kernel/hte001_hardware_transition_harness.py"
+      }
+    },
+    {
+      "id": "NODE_TRANSITION_ORACLE",
+      "type": "EVALUATION_ORACLE",
+      "name": "Transition Correctness Oracle (I_0, I_+)",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "3c87c20d94855b78f5ebcb92067376dca9dbc5699a723e7207ef8399c4fcbf42",
+      "metadata": {
+        "exact_zero_fields": [
+          "memory"
+        ]
+      }
+    },
+    {
+      "id": "NODE_SENSOR_CONTRACT",
+      "type": "HARDWARE_CONTRACT",
+      "name": "INA226 Sensor Cadence Contract (140us VSHCT/VBUSCT)",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "257637962a9ff799222323732d938036e94b14f00d1ed2d55b4af944316934e9",
+      "metadata": {
+        "conversion_cadence_hz": 3571.43,
+        "mode": "CONVERSION_READY_OBSERVED"
+      }
+    },
+    {
+      "id": "NODE_REQUIREMENTS_LOCK",
+      "type": "ENVIRONMENT_LOCK",
+      "name": "Deterministic Dependencies Lock",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "3b00d587bf644fe1372aa72d3d9753111d3e1ace386c241ef94b57bfaa08bd8e",
+      "metadata": {
+        "scope": "python_core_3_14_clean"
+      }
+    },
+    {
+      "id": "NODE_SOFTWARE_IDENTITY",
+      "type": "COMPOSITE_IDENTITY",
+      "name": "Dual-Layer Software Acquisition Identity",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "e5c8578cbe3382dd059a319ad915567859b18c6cb1d0fe61ed3abbbc0c7d3fd0",
+      "metadata": {
+        "composition": "Commit || Harness || Oracle || Contract || Lock"
+      }
+    },
+    {
+      "id": "NODE_KSL_SOURCE",
+      "type": "SOURCE_CODE",
+      "name": "KSL Quantum Kernel Source",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "1ea89aec1cef9cc59570f6dc0b0553ded2d57fcac5e386398d3bff4803c09d97",
+      "metadata": {
+        "target": "AdaptiveQuantum_v1"
+      }
+    },
+    {
+      "id": "NODE_KIR",
+      "type": "INTERMEDIATE_REPRESENTATION",
+      "name": "KIR Lowered MicroOp Graph",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "098f6bcd4621d373cade4e832627b4f6e3c09b83f3f0d4b53f631e3ef0478082",
+      "metadata": {
+        "zeroalloc": true
+      }
+    },
+    {
+      "id": "NODE_KMUISA",
+      "type": "TARGET_ASSEMBLY",
+      "name": "K-micro-ISA Bytecode Sidecar",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "5d41402abc4b2a76b9719d911017c592965c7198bbd46fcf85a544621c1f525f",
+      "metadata": {
+        "isa_version": "1.0"
+      }
+    },
+    {
+      "id": "NODE_RTL_SOURCE",
+      "type": "HARDWARE_DESCRIPTION",
+      "name": "KSAC-1 Adaptive Quantizer Verilog RTL",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "562f086a44f80bac729ea37c17153d1b9eb32f5400b453568b3008d1cacfbc28",
+      "metadata": {
+        "sim_verifier": "Verilator_5.0"
+      }
+    },
+    {
+      "id": "NODE_BITSTREAM",
+      "type": "SILICON_BINARY",
+      "name": "FPGA Bitstream (xcku5p-ffvb676-2-e)",
+      "status": "SEALED",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadata": {
+        "clock_frequency_hz": 500000000
+      }
+    },
+    {
+      "id": "NODE_FPGA_BOARD",
+      "type": "PHYSICAL_DEVICE",
+      "name": "Xilinx KCU116 Kintex UltraScale+ PCIe Board",
+      "status": "TARGET_READY",
+      "digest_algorithm": "HARDWARE_SERIAL_ALIAS",
+      "canonical_digest": "KCU116-DEV-001",
+      "metadata": {
+        "model": "XILINX-KCU116-KINTEX-USPLUS-REV1"
+      }
+    },
+    {
+      "id": "NODE_RAW_TELEMETRY",
+      "type": "PHYSICAL_ACQUISITION",
+      "name": "RUN-0001 Paired Idle Telemetry Stream",
+      "status": "PENDING_PHYSICAL_EXECUTION",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "PENDING_ACQUISITION",
+      "metadata": {
+        "target_samples": ">= 1000 independent ADC conversions"
+      }
+    },
+    {
+      "id": "NODE_HARDWARE_RECEIPT",
+      "type": "CRYPTOGRAPHIC_RECEIPT",
+      "name": "RUN-0001 HardwareTransitionReceipt",
+      "status": "PENDING_PHYSICAL_EXECUTION",
+      "digest_algorithm": "HMAC-SHA256",
+      "canonical_digest": "PENDING_RECEIPT_HMAC",
+      "metadata": {
+        "schema": "KSL-HTR-v0.2"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "NODE_MANIFEST",
+      "to": "NODE_SOFTWARE_COMMIT",
+      "relation": "SPECIFIES_COMMIT"
+    },
+    {
+      "from": "NODE_SOFTWARE_COMMIT",
+      "to": "NODE_ACQUISITION_HARNESS",
+      "relation": "INCLUDES"
+    },
+    {
+      "from": "NODE_SOFTWARE_COMMIT",
+      "to": "NODE_TRANSITION_ORACLE",
+      "relation": "INCLUDES"
+    },
+    {
+      "from": "NODE_SOFTWARE_COMMIT",
+      "to": "NODE_SENSOR_CONTRACT",
+      "relation": "INCLUDES"
+    },
+    {
+      "from": "NODE_SOFTWARE_COMMIT",
+      "to": "NODE_REQUIREMENTS_LOCK",
+      "relation": "INCLUDES"
+    },
+    {
+      "from": "NODE_ACQUISITION_HARNESS",
+      "to": "NODE_SOFTWARE_IDENTITY",
+      "relation": "BINDS_INTO"
+    },
+    {
+      "from": "NODE_TRANSITION_ORACLE",
+      "to": "NODE_SOFTWARE_IDENTITY",
+      "relation": "BINDS_INTO"
+    },
+    {
+      "from": "NODE_SENSOR_CONTRACT",
+      "to": "NODE_SOFTWARE_IDENTITY",
+      "relation": "BINDS_INTO"
+    },
+    {
+      "from": "NODE_REQUIREMENTS_LOCK",
+      "to": "NODE_SOFTWARE_IDENTITY",
+      "relation": "BINDS_INTO"
+    },
+    {
+      "from": "NODE_KSL_SOURCE",
+      "to": "NODE_KIR",
+      "relation": "COMPILER_LOWERS"
+    },
+    {
+      "from": "NODE_KIR",
+      "to": "NODE_KMUISA",
+      "relation": "CODE_GEN_EMITS"
+    },
+    {
+      "from": "NODE_KMUISA",
+      "to": "NODE_RTL_SOURCE",
+      "relation": "HARDWARE_SYNTHESIS_CORRESPONDS"
+    },
+    {
+      "from": "NODE_RTL_SOURCE",
+      "to": "NODE_BITSTREAM",
+      "relation": "VIVADO_BITSTREAM_GENERATED"
+    },
+    {
+      "from": "NODE_BITSTREAM",
+      "to": "NODE_FPGA_BOARD",
+      "relation": "PROGRAMMED_INTO"
+    },
+    {
+      "from": "NODE_SOFTWARE_IDENTITY",
+      "to": "NODE_RAW_TELEMETRY",
+      "relation": "GOVERNS_ACQUISITION"
+    },
+    {
+      "from": "NODE_FPGA_BOARD",
+      "to": "NODE_RAW_TELEMETRY",
+      "relation": "MEASURED_FROM"
+    },
+    {
+      "from": "NODE_RAW_TELEMETRY",
+      "to": "NODE_HARDWARE_RECEIPT",
+      "relation": "EVIDENTIALLY_MINTED_INTO"
+    },
+    {
+      "from": "NODE_MANIFEST",
+      "to": "NODE_HARDWARE_RECEIPT",
+      "relation": "CRYPTOGRAPHICALLY_SEALS"
+    }
+  ]
+}
