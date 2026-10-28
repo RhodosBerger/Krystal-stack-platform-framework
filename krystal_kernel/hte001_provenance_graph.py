@@ -9,7 +9,30 @@ the HTE-001 experiment supply chain.
 
 import json
 from pathlib import Path
-from typing import Dict, Any, List
+import hashlib
+
+
+def compute_hte001_evidence_root(
+    manifest_hash: str,
+    software_identity: str,
+    bitstream_hash: str,
+    run_receipt_hashes: List[str] = None,
+    statistics_hash: str = "PENDING_RUN_STATISTICS",
+    uncertainty_budget_hash: str = "HTE001_UNCERTAINTY_BUDGET_v1"
+) -> str:
+    """
+    Computes the authoritative Merkle Evidence Root:
+        R_runs = Merkle(H(RUN_1), ..., H(RUN_N))
+        EvidenceRoot = SHA256(ManifestHash || SoftwareIdentity || BitstreamHash || RunsRoot || StatsHash || UncertaintyHash)
+    """
+    if not run_receipt_hashes:
+        runs_root = hashlib.sha256(b"PENDING_30_PHYSICAL_RUNS").hexdigest()
+    else:
+        runs_concat = "".join(sorted(run_receipt_hashes)).encode("utf-8")
+        runs_root = hashlib.sha256(runs_concat).hexdigest()
+
+    evidence_core = f"{manifest_hash}:{software_identity}:{bitstream_hash}:{runs_root}:{statistics_hash}:{uncertainty_budget_hash}"
+    return hashlib.sha256(evidence_core.encode("utf-8")).hexdigest()
 
 
 def generate_hte001_provenance_dag(manifest_path: str | Path = None) -> Dict[str, Any]:
@@ -161,6 +184,19 @@ def generate_hte001_provenance_dag(manifest_path: str | Path = None) -> Dict[str
             "digest_algorithm": "HMAC-SHA256",
             "canonical_digest": "PENDING_RECEIPT_HMAC",
             "metadata": {"schema": "KSL-HTR-v0.2"}
+        },
+        {
+            "id": "NODE_EVIDENCE_ROOT",
+            "type": "MERKLE_EVIDENCE_ROOT",
+            "name": "HTE-001 Master Experiment Evidence Root",
+            "status": "SEALED_PREREGISTRATION",
+            "digest_algorithm": "SHA-256",
+            "canonical_digest": compute_hte001_evidence_root(
+                manifest_hash=manifest_hash,
+                software_identity=str(m.get("acquisition_software_identity", "")),
+                bitstream_hash=str(m.get("bitstream_hash", ""))
+            ),
+            "metadata": {"formula": "H(ManifestHash || SoftwareIdentity || BitstreamHash || RunsRoot || StatsHash || UncertaintyHash)"}
         }
     ]
 
@@ -182,7 +218,8 @@ def generate_hte001_provenance_dag(manifest_path: str | Path = None) -> Dict[str
         {"from": "NODE_SOFTWARE_IDENTITY", "to": "NODE_RAW_TELEMETRY", "relation": "GOVERNS_ACQUISITION"},
         {"from": "NODE_FPGA_BOARD", "to": "NODE_RAW_TELEMETRY", "relation": "MEASURED_FROM"},
         {"from": "NODE_RAW_TELEMETRY", "to": "NODE_HARDWARE_RECEIPT", "relation": "EVIDENTIALLY_MINTED_INTO"},
-        {"from": "NODE_MANIFEST", "to": "NODE_HARDWARE_RECEIPT", "relation": "CRYPTOGRAPHICALLY_SEALS"}
+        {"from": "NODE_HARDWARE_RECEIPT", "to": "NODE_EVIDENCE_ROOT", "relation": "MERKLE_AGGREGATES_INTO"},
+        {"from": "NODE_MANIFEST", "to": "NODE_EVIDENCE_ROOT", "relation": "SEALS_ROOT"}
     ]
 
     return {

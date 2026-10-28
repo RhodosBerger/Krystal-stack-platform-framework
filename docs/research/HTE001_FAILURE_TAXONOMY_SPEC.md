@@ -87,3 +87,22 @@ Definovaných je 6 sekvenčných fáz exekúcie:
 | **`INVARIANT_FAILURE`** | `VALID` | `FPGA_BOARD_MEASURED` | `FAIL` | Zapečatiť `QuarantineReceipt`; $\Delta S \equiv 0$; izolovať riadiaci subsystém. |
 | **`ENVELOPE_FAILURE`** | `VALID` | `FPGA_BOARD_MEASURED` | `FAIL` | Zapečatiť receipt; $\Delta S \equiv 0$; zachovať beh v dátovom súbore. |
 | **`BIAS_FAILURE`** | `VALID` | `FPGA_BOARD_MEASURED` | `FAIL` | Zapečatiť kompletný experimentálny denník; falzifikovať hypotézu $H_1$. |
+
+---
+
+## 5. Kauzálna Diagnostika a Pravidlá Opakovaného Behu (Rerun Matrix)
+
+Z hľadiska vedeckej metodológie nie je každý `FAIL` ekvivalentný:
+- **Technické/Transportné zlyhanie (Transport Artifact):** Neplatná akvizícia dovoľuje opakovať meranie bez falzifikácie hypotézy.
+- **Fyzikálne/Sémantické zlyhanie (Empirical Falsification):** Platná akvizícia s prekročením obálky predstavuje nezvratný dôkaz a vyžaduje trvalé zachovanie v dátovom súbore.
+
+| Trieda Zlyhania | Kauzálna Doména | Platnosť Evidencie | Povolené Opakovanie (Rerun) | Vyžaduje Revíziu Manifestu? | Vedecký Dopad na $H_1$ |
+|---|---|:---:|:---:|:---:|---|
+| **`PROVENANCE_FAILURE`** | Riadenie verzie kódu | `NULL` | ÁNO (po zosúladení commitu) | NIE | Žiadny (beh nebol autorizovaný) |
+| **`ACQUISITION_FAILURE`** | I2C zbernica / Buffer | `INVALID` | ÁNO (po resete I2C linky) | NIE | Žiadny (technický artefakt transportu) |
+| **`BITSTREAM_MISMATCH`** | Konfigurácia čipu | `INVALID` | ÁNO (po flashnutí správneho bitstreamu) | NIE | Žiadny (nesprávny testovaný objekt) |
+| **`SENSOR_FAILURE`** | Merací obvod | `INVALID` | ÁNO (po oprave hardvéru senzora) | NIE | Žiadny (zlyhanie meracieho prístroja) |
+| **`INVARIANT_FAILURE`** | Architektonický kontrakt | `VALID` | **NIE** (ako rovnaký beh) | ÁNO (odhalená architektonická chyba) | Okamžitá diskvalifikácia lowering pipeline |
+| **`ENVELOPE_FAILURE`** | Fyzikálna dynamika | `VALID` | **NIE** (ako rovnaký beh) | **ZÁKAZ** (beh zostáva v súbore) | Dôkaz pre falzifikáciu hypotézy $H_1$ |
+| **`BIAS_FAILURE`** | Štatistické vychýlenie | `VALID` | **NIE** | **ZÁKAZ** | Nezvratná empirická falzifikácia $H_1$ |
+

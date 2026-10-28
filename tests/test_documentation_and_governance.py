@@ -80,25 +80,104 @@ class TestDocumentationAndGovernance(unittest.TestCase):
         commit_node = nodes_by_id["NODE_SOFTWARE_COMMIT"]
         self.assertEqual(commit_node["canonical_digest"], "12f91b5c1b4d42b5ce979fb3a01d2233ba02f0ed")
 
+        # Merkle Evidence Root must be present and sealed
+        self.assertIn("NODE_EVIDENCE_ROOT", nodes_by_id)
+        root_node = nodes_by_id["NODE_EVIDENCE_ROOT"]
+        self.assertEqual(root_node["status"], "SEALED_PREREGISTRATION")
+        self.assertEqual(len(root_node["canonical_digest"]), 64)
+
         # Telemetry and receipt nodes must be pending execution
         self.assertEqual(nodes_by_id["NODE_RAW_TELEMETRY"]["status"], "PENDING_PHYSICAL_EXECUTION")
         self.assertEqual(nodes_by_id["NODE_HARDWARE_RECEIPT"]["status"], "PENDING_PHYSICAL_EXECUTION")
 
         # Verify DAG acyclicity
         edges = dag.get("edges", [])
-        self.assertGreaterEqual(len(edges), 15)
+        self.assertGreaterEqual(len(edges), 17)
 
     def test_measurement_uncertainty_budget_resolvability(self) -> None:
         """Verifies GUM uncertainty budget: expanded uncertainty U_95% must be smaller than epsilon_energy."""
         budget = MetrologicalUncertaintyBudget()
         res = budget.calculate_energy_uncertainty_budget()
 
-        # U_95% must be strictly less than epsilon (0.050 uJ)
+        # Both Conservative and Correlated bounds must be strictly less than epsilon (0.050 uJ)
         self.assertTrue(res["metrologically_resolvable"])
-        self.assertLess(res["u95_e_op_uj"], res["epsilon_energy_uj"])
-        # Discrimination ratio: epsilon / U95 > 50x
-        ratio = res["epsilon_energy_uj"] / res["u95_e_op_uj"]
-        self.assertGreater(ratio, 50.0, f"Uncertainty discrimination ratio too low: {ratio:.1f}x")
+        self.assertLess(res["u95_conservative_uj"], res["epsilon_energy_uj"])
+        self.assertLess(res["u95_correlated_uj"], res["epsilon_energy_uj"])
+
+        # Discrimination ratio for conservative: > 10x
+        self.assertGreater(res["discrimination_ratio_conservative"], 10.0)
+        # Discrimination ratio for correlated: > 100x
+        self.assertGreater(res["discrimination_ratio_correlated"], 100.0)
+
+    def test_claims_lattice_and_semantic_digests(self) -> None:
+        """Verifies 4D evidence lattice points and RFC 8785 claim semantic digests."""
+        from krystal_kernel.claims_lattice import (
+            EvidenceLatticePoint, compute_claim_semantic_digest
+        )
+
+        with open(self.claims_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        for c in data.get("claims", []):
+            cid = c["claim_id"]
+            # 1. Digest verification
+            expected_digest = compute_claim_semantic_digest(c)
+            self.assertEqual(c.get("claim_digest"), expected_digest, f"Digest mismatch on {cid}")
+
+            # 2. 4D Lattice Point verification
+            curr_lat = EvidenceLatticePoint.from_dict(c["current_evidence_lattice"])
+            max_lat = EvidenceLatticePoint.from_dict(c["max_allowed_evidence_lattice"])
+            self.assertTrue(
+                curr_lat.is_less_than_or_equal_to(max_lat),
+                f"4D Lattice anti-promotion violation on {cid}: {curr_lat} exceeds {max_lat}"
+            )
+
+            if cid in ("KS-CLAIM-019", "KS-CLAIM-020"):
+                self.assertEqual(curr_lat.measurement, "PENDING")
+
+    def test_claim_promotion_protocol_and_gates(self) -> None:
+        """Verifies that the ClaimPromotionEngine rejects unauthorized evidence and seals valid receipts."""
+        from krystal_kernel.claim_promotion_protocol import ClaimPromotionEngine
+        from krystal_kernel.claims_lattice import EvidenceLatticePoint
+
+        engine = ClaimPromotionEngine(self.claims_path)
+
+        # Case A: Promotion rejected if evidence receipt is not VERIFIED
+        bad_receipt = {
+            "receipt_integrity": "CORRUPTED",
+            "semantic_verdict": "COMMITTED",
+            "measurement_boundary": "FPGA_BOARD",
+            "sensor_id": "INA226_I2C_CALIBRATED"
+        }
+        target_lat = EvidenceLatticePoint("FROZEN", "REGRESSION_TESTED", "CONTRACT_BOUND", "FPGA_BOARD_MEASURED")
+        ok, rec, msg = engine.evaluate_promotion("KS-CLAIM-019", target_lat, bad_receipt)
+        self.assertFalse(ok)
+        self.assertIn("ReceiptIntegrity", msg)
+
+        # Case B: Promotion rejected if scope does not cover claim
+        bad_scope_receipt = {
+            "receipt_integrity": "VERIFIED",
+            "semantic_verdict": "COMMITTED",
+            "measurement_boundary": "HOST_ONLY_CPU",
+            "sensor_id": "INA226_I2C_CALIBRATED"
+        }
+        ok, rec, msg = engine.evaluate_promotion("KS-CLAIM-019", target_lat, bad_scope_receipt)
+        self.assertFalse(ok)
+        self.assertIn("Scope mismatch", msg)
+
+        # Case C: Authorized promotion with valid physical receipt
+        valid_receipt = {
+            "receipt_integrity": "VERIFIED",
+            "semantic_verdict": "COMMITTED",
+            "measurement_boundary": "FPGA_BOARD",
+            "sensor_id": "INA226_I2C_CALIBRATED",
+            "board_id": "XILINX-KCU116-KINTEX-USPLUS-REV1"
+        }
+        ok, rec, msg = engine.evaluate_promotion("KS-CLAIM-019", target_lat, valid_receipt)
+        self.assertTrue(ok, f"Promotion failed: {msg}")
+        self.assertIsNotNone(rec)
+        self.assertTrue(rec.verify_integrity())
+        self.assertEqual(rec.new_lattice["measurement"], "FPGA_BOARD_MEASURED")
 
     def test_documentation_text_invariants(self) -> None:
         """Scans documentation files to ensure no forbidden drift phrases exist."""

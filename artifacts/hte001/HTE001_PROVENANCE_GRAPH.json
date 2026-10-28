@@ -171,6 +171,17 @@
       "metadata": {
         "schema": "KSL-HTR-v0.2"
       }
+    },
+    {
+      "id": "NODE_EVIDENCE_ROOT",
+      "type": "MERKLE_EVIDENCE_ROOT",
+      "name": "HTE-001 Master Experiment Evidence Root",
+      "status": "SEALED_PREREGISTRATION",
+      "digest_algorithm": "SHA-256",
+      "canonical_digest": "43875d5f2bd1220ce9f6f2e1fd14d3593c073fca8e73e9630cf5b67189043208",
+      "metadata": {
+        "formula": "H(ManifestHash || SoftwareIdentity || BitstreamHash || RunsRoot || StatsHash || UncertaintyHash)"
+      }
     }
   ],
   "edges": [
@@ -260,9 +271,14 @@
       "relation": "EVIDENTIALLY_MINTED_INTO"
     },
     {
+      "from": "NODE_HARDWARE_RECEIPT",
+      "to": "NODE_EVIDENCE_ROOT",
+      "relation": "MERKLE_AGGREGATES_INTO"
+    },
+    {
       "from": "NODE_MANIFEST",
-      "to": "NODE_HARDWARE_RECEIPT",
-      "relation": "CRYPTOGRAPHICALLY_SEALS"
+      "to": "NODE_EVIDENCE_ROOT",
+      "relation": "SEALS_ROOT"
     }
   ]
 }

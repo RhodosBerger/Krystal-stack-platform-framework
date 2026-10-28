@@ -30,7 +30,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "tests/test_posledni_kmen_server_api.py",
       "falsifier": "Any runtime transition where an invalid action mutates protected state fields (Delta S_protected != 0) or sets HP > 6.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "bab828d7b35336a0f9ada54ec7aa91c423ab0b765aaf684b815f14eb56f855bd",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-002",
@@ -42,7 +55,20 @@
       "current_evidence_status": "CODEBASE-VERIFIED",
       "verification_source": "ksl_abi_test.c, artifacts/ksl_abi_golden.c, tests/test_ksl_compiler_v01.py",
       "falsifier": "Compilation failure of _Static_assert(sizeof == 128) or _Alignof != 128 on any supported C11 compiler.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "895c71290041341719260324fce5ba09867a6e3c20a0b2d317ffaf38051376b7",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "UNIT_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "UNIT_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-003",
@@ -54,7 +80,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "tests/test_v_zerocopy_memory_model_02.py",
       "falsifier": "Cache-line bounce observed between producer and consumer or sequence counter overflow causing dropped frames.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "c5302efaa99d20ea0f450e125769ee6372db32266a919a42995860e779cb157d",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-004",
@@ -66,7 +105,20 @@
       "current_evidence_status": "CODEBASE-VERIFIED",
       "verification_source": "docs/research/KSL_CONTROL_PLANE_SOFTWARE_BASELINE_FREEZE.md",
       "falsifier": "Introduction of a 57th theory node, cyclic dependency, or operation T13 into the graph.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "6c6a7f42240a3c72bba1b8bf56ac0fa74226bd385e2c97ab33e0c162ad29795a",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "UNIT_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "UNIT_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-005",
@@ -78,7 +130,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "krystal_kernel/ksl/ksl_type_checker.py, tests/test_ksl_compiler_v01.py",
       "falsifier": "Violation of abelian group axioms: D(A * B) != D(A) + D(B) or D(A / B) != D(A) - D(B).",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "6b9ac44e245006e2dbbc40a045bfeb5e01c2ac27d96af954f47ee0800984783c",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-006",
@@ -90,7 +155,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "tests/test_ksl_compiler_v01.py",
       "falsifier": "Compiler accepting 'temp * dt' where temp is in Celsius without raising DimensionalDerivationError.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "5b57d765f8a2b33ab316f90c8e46d767e6b4b0f948392e2a14bbe27f42eed506",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-007",
@@ -102,7 +180,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "tests/test_ksl_compiler_v01.py",
       "falsifier": "KSL compiler failing to infer power<watt> from energy<joule> / time<second>.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "8164ebfe9f95e641bb46e464a5844e2cd8d3d3415171f3eec1aa5fbcf3611827",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-008",
@@ -114,7 +205,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "krystal_kernel/sovereign_governor_advisor.py, tests/test_sovereign_uma_inspector_governor.py",
       "falsifier": "Runtime mutation of active MicroOp DAG quotas during current batch execution.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "8daa4af9a54880c6f5cede5a49e72fcef5561bea464c780984683860affe56fe",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-009",
@@ -126,7 +230,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "krystal_kernel/sovereign_governor_advisor.py, tests/test_sovereign_uma_inspector_governor.py",
       "falsifier": "High bank-conflict contention (mu_MC > 0.78) misdiagnosed as nominal streaming due to moderate RPE_memory.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "6e429734e0beeedba872f1ee775f737f9477894e103ca828df71c15a38fa986e",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-010",
@@ -138,7 +255,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "tests/test_sovereign_uma_inspector_governor.py",
       "falsifier": "Telemetry showing background reasoning compute active during active VSync scanout window.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "e35f7a5a39e61d4045ef775508fd7bad1dccf8fdfd96c03b2362d9f81bbc3395",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-011",
@@ -150,7 +280,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "tests/test_sovereign_uma_inspector_governor.py",
       "falsifier": "Rapid policy alternation (flapping) under stationary boundary input signals.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "3db3e2cecf42104deb9a582fcf035727c91425f7b30e8a8e6ed959b419993ae2",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-012",
@@ -162,7 +305,20 @@
       "current_evidence_status": "SOFTWARE-BENCHMARK",
       "verification_source": "docs/research/KSL_CONTROL_PLANE_SOFTWARE_BASELINE_FREEZE.md, tests/test_sovereign_reasoning_brain.py",
       "falsifier": "Discovery of a policy in Campaign A that strictly Pareto-dominates both S1 and K in metric space M.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "c9e835447efefcc003e3e4be51a714c74d63032db515aff8632d36e5a55d8ed3",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-013",
@@ -174,7 +330,20 @@
       "current_evidence_status": "ARCHITECTURAL",
       "verification_source": "docs/research/KSL_V02_OPERATIONAL_TRANSITION_ALGEBRA_SPEC.md",
       "falsifier": "Numerical phase-space evolution exhibiting secular energy drift or det(J) != 1.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "3dcfe7a927773bffec58f34dcb6d04902f6891c3ed930682236c7e2d963fa301",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "UNIT_TESTED",
+        "formal": "FORMALLY_PROVEN",
+        "measurement": "PENDING"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "UNIT_TESTED",
+        "formal": "FORMALLY_PROVEN",
+        "measurement": "PENDING"
+      }
     },
     {
       "claim_id": "KS-CLAIM-014",
@@ -186,7 +355,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "docs/research/KSL_V02_OPERATIONAL_TRANSITION_ALGEBRA_SPEC.md",
       "falsifier": "Sanction penalty transition causing an unauthorized mutation in target entity protected HP.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "a3e6f80224f984d0306ef43814a030ccf2da697cf85ad180be8190eca5e539eb",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-015",
@@ -198,7 +380,20 @@
       "current_evidence_status": "RTL-SIMULATED",
       "verification_source": "docs/research/KSL_V02_HARDWARE_TRANSITION_EXPERIMENT_001.md",
       "falsifier": "Verilator simulation failure, timing violation, or cycle count exceeding 104 cycles for the quantum kernel.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "47fe90b0132c35f10da497913a1c762d7df2c168d2e46ebb4b1eb3f0ddd69052",
+      "current_evidence_lattice": {
+        "implementation": "IMPLEMENTED",
+        "verification": "UNIT_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "SIMULATED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "IMPLEMENTED",
+        "verification": "UNIT_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "SIMULATED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-016",
@@ -210,7 +405,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "krystal_kernel/hte001_hardware_transition_harness.py, tests/test_hte001_hardware_transition_harness.py",
       "falsifier": "Demonstration that INA226 ADC can complete independent shunt and bus conversions in less than 280 us with AVG=1.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "9649bdc640672a805e874cae9a90030bfde15f71400b924ed0ab55f50cd489b4",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-017",
@@ -222,7 +430,20 @@
       "current_evidence_status": "CODEBASE-VERIFIED",
       "verification_source": "krystal_kernel/hte001_hardware_transition_harness.py, artifacts/hte001/HTE001_RUN_MANIFEST.json",
       "falsifier": "Modification of acquisition harness or oracle code executing without detection by the provenance gate.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "5241f2d5933f39e8497cc6c56f2fce956ebf6ea64ed512854a153265a6880d56",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "UNIT_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "UNIT_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-018",
@@ -234,7 +455,20 @@
       "current_evidence_status": "TEST-VERIFIED",
       "verification_source": "krystal_kernel/hte001_hardware_transition_harness.py, tests/test_hte001_hardware_transition_harness.py",
       "falsifier": "Application of max(0, E) clamping to dynamic energy differences or absence of paired idle baselines.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "53c77808c6ce6e26ba7bcb8f0657f9e0ae11d0ead60f44fb76b7000335109d26",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "HOST_BENCHMARKED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-019",
@@ -246,7 +480,20 @@
       "current_evidence_status": "PENDING",
       "verification_source": "artifacts/hte001/ (Awaiting RUN-0001 execution)",
       "falsifier": "Physical oscilloscope/logic analyzer measurement showing T_actual > 208 ns.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "b9952b2211dfd666f2d26163bec035b1a4327a9cd6276db0bc6c4ae17e17c7e1",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "UNIT_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "PENDING"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "FPGA_BOARD_MEASURED"
+      }
     },
     {
       "claim_id": "KS-CLAIM-020",
@@ -258,7 +505,20 @@
       "current_evidence_status": "PENDING",
       "verification_source": "artifacts/hte001/ (Awaiting RUN-0001 execution)",
       "falsifier": "Physical INA226 board telemetry showing E_actual > 0.45 uJ per validated operation.",
-      "falsification_status": "UNFALSIFIED"
+      "falsification_status": "UNFALSIFIED",
+      "claim_digest": "b0bf05d4795fa998915c157306daf9f718be4b1a7865bb5f2ecc9547db734a35",
+      "current_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "UNIT_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "PENDING"
+      },
+      "max_allowed_evidence_lattice": {
+        "implementation": "FROZEN",
+        "verification": "REGRESSION_TESTED",
+        "formal": "CONTRACT_BOUND",
+        "measurement": "FPGA_BOARD_MEASURED"
+      }
     }
   ]
 }
