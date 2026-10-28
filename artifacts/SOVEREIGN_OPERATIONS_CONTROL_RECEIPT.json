@@ -1,7 +1,7 @@
 {
-  "receipt_id": "OPS-RECEIPT-1793192427-00ae8685",
-  "timestamp_ns": 368946024138200,
-  "git_commit": "06fb33e2d583336426724cd9407194fe48f83602",
+  "receipt_id": "OPS-RECEIPT-1793196025-68ebc2e4",
+  "timestamp_ns": 372543613076700,
+  "git_commit": "1ddc70af64f3f7ab9888277655f494ed4e132038",
   "compile_mode": "COMPILE_ONLY",
   "receipt_integrity": "VERIFIED",
   "semantic_verdict": "COMMITTED",
@@ -12,12 +12,12 @@
   "total_stages_run": 6,
   "stages_passed": 6,
   "is_fully_operational": true,
-  "total_duration_ms": 1.962,
+  "total_duration_ms": 1.203,
   "stage_results": [
     {
       "stage": "THEORY_DAG_AUDIT",
       "passed": true,
-      "duration_ms": 0.161,
+      "duration_ms": 0.099,
       "details": {
         "total_theory_nodes": 56,
         "proven_theories_count": 45,
@@ -30,7 +30,7 @@
     {
       "stage": "CONTRACT_FRAME_COMPILATION",
       "passed": true,
-      "duration_ms": 0.203,
+      "duration_ms": 0.172,
       "details": {
         "channel_tested": "WSL_TO_CHRONO_SOC",
         "frame_size_bytes": 128,
@@ -43,7 +43,7 @@
     {
       "stage": "INTERPOLATOR_VALIDATION",
       "passed": true,
-      "duration_ms": 0.325,
+      "duration_ms": 0.208,
       "details": {
         "spatial_sector_code": "0x20",
         "cadence_active_period_ms": 100.0,
@@ -57,7 +57,7 @@
     {
       "stage": "SHADOW_CYCLE_RECONCILIATION",
       "passed": true,
-      "duration_ms": 0.043,
+      "duration_ms": 0.029,
       "details": {
         "cycle_index": 1,
         "shadow_consumed_ms": 2.2,
@@ -72,7 +72,7 @@
     {
       "stage": "SUBSYSTEM_COORDINATION_POLL",
       "passed": true,
-      "duration_ms": 0.341,
+      "duration_ms": 0.228,
       "details": {
         "total_subsystems": 4,
         "all_subsystems_verified": true,
@@ -84,7 +84,7 @@
     {
       "stage": "REDUNDANT_INFERENCE_SYNTHESIS",
       "passed": true,
-      "duration_ms": 0.778,
+      "duration_ms": 0.399,
       "details": {
         "total_aspects": 15,
         "total_claims": 75,
@@ -105,6 +105,6 @@
     "shadow_window_budget_ms": 3.5,
     "theory_nodes_total": 56
   },
-  "hmac_digest": "00ae868525bca5f2cae43899e9e0b1217393f84fb7355739033088aa22ad853c",
+  "hmac_digest": "68ebc2e4d7ef0b951cdc96918c0f188faba2a3482af5051c2078230d03119211",
   "vital_max_hp": 6
 }
