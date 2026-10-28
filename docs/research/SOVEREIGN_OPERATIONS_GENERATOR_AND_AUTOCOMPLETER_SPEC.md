@@ -79,7 +79,7 @@ Prediktívny engine podporuje 5 domén operácií:
    - `bind_shm_ring_buffer` — Alokácia lock-free SPSC kruhových buffrov v `/dev/shm`.
 5. **`TELEMETRY_DIAGNOSTIC`:**
    - `sample_rapl_msr` — Vzorkovanie registrov `MSR_PKG_ENERGY_STATUS` a `MSR_DRAM_ENERGY_STATUS`.
-   - `poll_ina226_shunts` — 10 kHz vzorkovanie prúdových bočníkov dosky carrier FPGA.
+   - `poll_ina226_shunts` — 10 kHz I²C transport polling registrov (fyzikálna konverzia ADC: 3.57 kHz pri 280 µs cykle) prúdových bočníkov dosky carrier FPGA.
 
 ---
 

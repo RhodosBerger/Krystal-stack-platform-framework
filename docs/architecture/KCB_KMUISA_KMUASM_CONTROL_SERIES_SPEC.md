@@ -215,7 +215,7 @@ HALT
 - [4] Invariant (Invariant):  VITAL_MAX_HP == 6 && (UnsafeRule => CompilationRejection && Delta S == 0).
 - [5] Verifikácia (Verify):   tests/test_kcb_kmuisa_control_engine.py (7/7 PASS) + 44/44 Full Regression PASS + Sovereign Operations Compiler PASS.
 - [6] Validita (Validity):    Construct (expanding influence space), Internal (strict L2/L4 gating), External (FPGA microcode pipeline to RISC-V SoC).
-- [7] Meranie (Measurement):  n=44 tests, 0.086s execution, 0.78 ms compiler pass, 100% operations authorized.
+- [7] Meranie (Measurement):  n=44 tests, 0.086s execution, 0.78 ms compiler pass, authorized_operations: 44, rejected_operations: 0, scope: current_compile_batch.
 - [8] Kalibrácia (Metric):    Prediction MAE <= 0.058, Transition Reliability TR >= 0.895, Constraint Violations == 0.
 - [9] Falzifikátor (Falsify): CLKREQ without CHECK THERMAL, non-zero physical actions in M0, L4 simulation bypass, or vital_max_hp != 6.
 - [10] Verdikt (Verdict):     APPROVED_FACT (Theory Node 54: THEORY-KCB-KMUISA-KMUASM-ADAPTIVE-CONTROL-SERIES).

@@ -144,9 +144,17 @@ $$\langle S_{\text{authoritative}, t}, S_{\text{physical}, t} \rangle \xrightarr
   $$\boxed{S_{\text{authoritative}, t+1} \equiv S_{\text{authoritative}, t}}$$
   $$S_{\text{physical}, \text{after}} \text{ and } \mathbf{R} \xrightarrow{} \text{QuarantineReceipt} \quad (\text{Evidence Captured})$$
 
-### 4.3 Normalized Residual Verdict
-The 5-dimensional residual vector $\mathbf{R} = (R_L, R_E, R_T, R_M, R_Q)$ is normalized against task-specified tolerances $\boldsymbol{\epsilon}$:
-$$r_i = \frac{R_i}{\epsilon_i} \implies \boxed{\text{Valid} \iff \max_{i} |r_i| \le 1.0}$$
+### 4.3 Normalized Residual Verdict & Exact Zero Invariant Partitioning
+The 5-dimensional residual vector $\mathbf{R} = (R_{\text{latency}}, R_{\text{energy}}, R_{\text{thermal}}, R_{\text{memory}}, R_{\text{queue}})$ is strictly partitioned into exact zero invariants $I_0$ and normalized tolerances $I_+$ to avoid division by zero when $\epsilon_i = 0$:
+$$I_0 = \{i \mid \epsilon_i = 0\} = \{\text{memory}\}, \quad I_+ = \{i \mid \epsilon_i > 0\} = \{\text{compute}, \text{energy}, \text{latency}, \text{queue}, \text{thermal}\}$$
+
+For $i \in I_+$, the normalized residual is computed as:
+$$r_i = \frac{R_i}{\epsilon_i}$$
+For $i \in I_0$, exact mathematical equality is required without division by zero:
+$$R_i \equiv 0 \quad (|R_i| \le 10^{-9})$$
+
+The transition pass predicate is formally defined as:
+$$\boxed{\text{PASS}_{\text{transition}} \iff \left(\forall i \in I_0: R_i = 0\right) \land \left(\max_{i \in I_+} |r_i| \le 1.0\right)}$$
 
 ### 4.4 Reversibility Triage
 When an actuation fails verification:
