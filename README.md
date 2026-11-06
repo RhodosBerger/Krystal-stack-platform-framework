@@ -8,6 +8,8 @@
 [![Grid Standard](https://img.shields.io/badge/Grid%20Standard-EN%2050160%20Compliant-f59e0b?style=for-the-badge)](artifacts/benchmarks/VPP_GRID_BROKER_AND_SWITCHED_MATRIX_SPEC.md)
 [![Inference](https://img.shields.io/badge/Inference-OpenVINO%20%7C%20DirectML%20%7C%20Vulkan-ea580c?style=for-the-badge&logo=intel)](krystal_kernel/)
 [![State Invariant](https://img.shields.io/badge/Constitutional%20Rule-VITAL__MAX__HP%20%3D%3D%206-ef4444?style=for-the-badge)](artifacts/benchmarks/)
+[![XERJ Hub](https://img.shields.io/badge/XERJ%20Corpus%20Hub-Selected%20Reference-8b5cf6?style=for-the-badge)](krystal_kernel/slovak_llm_adapter.py)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Du%C5%A1an%20Kopeck%C3%BD-0a66c2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/du%C5%A1an-kopeck%C3%BD-bbba33301/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](LICENSE)
 
 ---
@@ -21,6 +23,17 @@
 
 > **Executive Summary:**  
 > **Krystal Stack** is a modular, high-performance R&D ecosystem operating as a **Hardware-in-the-Loop (HIL) Ready Digital Twin and Simulation Suite**. It models, orchestrates, and validates heterogeneous computing (Multi-GPU/CPU/NPU), real-time energy arbitrage on spot electricity markets (OKTE / Day-Ahead), and asymmetric 3-phase grid-edge power electronics with microsecond-level determinism.
+
+---
+
+## 🏆 External Validation & OpenVINO / Vulkan Reference Highlights
+
+* **Selected for XERJ Corpus Hub (Apache-2.0 Reference Implementation):**
+  Our OpenVINO tensor substrate with cryptographic SHA-256 weight fingerprinting and Win32 OS Memory Headroom Guard ([`krystal_kernel/slovak_llm_adapter.py`](krystal_kernel/slovak_llm_adapter.py)) was independently selected by **XERJ** as a worked reference architecture for coding agents.
+* **Intel OpenVINO Innovator Validation & Positioning Dossier:**
+  Full architectural breakdown of the Adaptive Execution Processor (AEP) closed-loop orchestration above OpenVINO Runtime: [`docs/openvino/OPENVINO_INNOVATOR_VALIDATION_POSITIONING.md`](docs/openvino/OPENVINO_INNOVATOR_VALIDATION_POSITIONING.md).
+* **Verified 20.35x Vulkan Compute UMA Speedup & Zero-Copy Telemetry:**
+  Hardware benchmark on Intel Iris Xe UMA (`0x8086:0x9a49`) reducing frame latency from `46.99 ms` (CPU baseline) to **`2.31 ms`** (`433.13 FPS`, `0.321 ms` kernel wait) and saving **`497.66 MB/s`** of memory bandwidth at 60 FPS: [`artifacts/VULKAN_IRIS_XE_BENCHMARK_RESULTS.json`](artifacts/VULKAN_IRIS_XE_BENCHMARK_RESULTS.json) & [`artifacts/GPU_ZERO_COPY_READBACK_BENCHMARK.json`](artifacts/GPU_ZERO_COPY_READBACK_BENCHMARK.json).
 
 ---
 
@@ -150,4 +163,5 @@ python -m unittest tests/test_tri_phase_dosing_controller.py \
 
 * **System Architect & Lead Engineer**: Dušan Kopecký ([@RhodosBerger](https://github.com/RhodosBerger))
 * **Contact**: `dusan.kopecky0101@gmail.com`
+* **LinkedIn**: [Dušan Kopecký](https://www.linkedin.com/in/du%C5%A1an-kopeck%C3%BD-bbba33301/)
 * **License**: Apache License 2.0 (See [`LICENSE`](LICENSE))
