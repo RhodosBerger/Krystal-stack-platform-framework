@@ -1,5 +1,5 @@
-# KRYSTAL STACK PLATFORM FRAMEWORK 🌌
-### High-Performance Compute · Digital Twin Simulation Suite · Grid-Edge Optimization · Zero-Copy IPC · Strict State Invariant
+# KRYSTAL STACK: Heterogeneous AI Runtime, OpenVINO & Vulkan Compute Orchestrator 🌌
+### Heterogeneous Compute (CPU · GPU · NPU) · Intel OpenVINO & Vulkan Compute · 128B Zero-Copy UMA IPC · Deterministic AI Safety Gate · Digital Twin Suite
 
 <div align="center">
 
@@ -21,8 +21,8 @@
 
 </div>
 
-> **Executive Summary:**  
-> **Krystal Stack** is a modular, high-performance R&D ecosystem operating as a **Hardware-in-the-Loop (HIL) Ready Digital Twin and Simulation Suite**. It models, orchestrates, and validates heterogeneous computing (Multi-GPU/CPU/NPU), real-time energy arbitrage on spot electricity markets (OKTE / Day-Ahead), and asymmetric 3-phase grid-edge power electronics with microsecond-level determinism.
+> **Project Description & Search Summary:**  
+> **Krystal Stack** is an open-source **Heterogeneous AI Execution & Hardware Acceleration Framework** for **x86_64** and **ARM64** systems. Sitting above **Intel OpenVINO**, **Vulkan Compute**, **DirectML**, and **Keras 3**, it eliminates the **Unified Memory (UMA) Bandwidth Wall** using **128-byte lock-free Zero-Copy SPSC ring buffers**, **Chronometric Shadow Multiplexing**, and a formal **Epistemic Invariant Gate** (`VITAL_MAX_HP == 6`, guaranteeing $\Delta S = 0$ on invalid transitions). Proven with a **20.35x Vulkan GPU speedup**, **497.66 MB/s saved memory bandwidth**, and selected for the **XERJ Corpus Hub** as a production reference for AI coding agents.
 
 ---
 

@@ -5,7 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "krystal-stack"
 version = "0.1.0"
-description = "Krystal-Stack Platform Framework - Heterogeneous Compute & Cyber-Physical Suite"
+description = "Krystal Stack: Heterogeneous AI Runtime, OpenVINO & Vulkan Compute Orchestrator, 128B Zero-Copy UMA IPC & Deterministic Safety Gate (x86/ARM)"
+keywords = ["openvino", "vulkan-compute", "heterogeneous-computing", "zero-copy-ipc", "uma-memory", "npu-acceleration", "llm-inference", "arm64", "x86-64", "keras", "formal-verification", "xerj"]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

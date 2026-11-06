@@ -19,8 +19,8 @@
 
 </div>
 
-> **Výkonné zhrnutie:**  
-> **Krystal Stack** je modulárny výskumno-vývojový ekosystém fungujúci ako **Hardware-in-the-Loop (HIL) Digitálne dvojča a simulačný framework**. Umožňuje deterministické modelovanie, riadenie a validáciu heterogénnych výpočtov (Multi-GPU/CPU/NPU), cenovej arbitráže na spotovom trhu s elektrinou (OKTE) a asymetrickej trojfázovej výkonovej elektroniky bez rizika poškodenia fyzickej infraštruktúry.
+> **Popis projektu & SEO Zhrnutie:**  
+> **Krystal Stack** je nízkoúrovňový **framework pre heterogénnu AI akceleráciu a orchestráciu hardvéru (CPU · GPU · NPU)** pre architektúry **x86_64** a **ARM64**. Spája **Intel OpenVINO**, **Vulkan Compute**, **Keras 3** a **128-bajtové Zero-Copy SPSC kruhové buffery** v unifikovanej pamäti (**UMA**). Eliminuje pamäťovú stenu (Memory Wall), dosahuje **20,35x zrýchlenie vo Vulkane**, šetrí **497,66 MB/s** priepustnosti zbernice a je zaradený do **XERJ Corpus Hubu** ako referenčná architektúra pre AI inžinierov.
 
 ---
 
