@@ -1,400 +1,869 @@
 <!DOCTYPE html>
 <!--
   Licensed under the Apache License, Version 2.0 (the "License");
-  Krystal Sovereign AI // 3-Tier Persona Interface (Port 8090):
-    1. ✨ Jednoduchý Užívateľský Mód (Pre bežných ľudí + jednoduché variácie odpovedí)
-    2. 📊 Prehľad & Analógie (Zrozumiteľné prirovnania odozvy a spoľahlivosti)
+  Krystal Sovereign AI // Fluid Design System v2.0 (Port 8090):
+    1. ✨ Jednoduchý mód (Čistý rozhovor + 1-klik variácie odpovedí)
+    2. 📊 Mód s analógiami (Vizualizácia priepustnosti + ľudské prirovnania)
     3. 🛠️ Administrátor & Architekt (OpenVINO / oneAPI / UMA Zóny / Tenzory / LM Studio)
 -->
 <html lang="sk">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Krystal Sovereign AI (Apache-2.0)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Krystal Sovereign AI — Fluid Console (Apache-2.0)</title>
   <style>
+    /* =========================================================================
+       KRYSTAL FLUID DESIGN MANUAL v2.0 — CSS TOKENS & FLUID SCALES
+       ========================================================================= */
     :root {
-      --bg-main: #212121;
-      --bg-sidebar: #171717;
-      --bg-card: #2a2a2a;
-      --bg-input: #2f2f2f;
-      --border: #3a3a3a;
-      --text: #ececec;
-      --muted: #9e9e9e;
-      --accent: #10a37f;
+      /* Surface Palette (Obsidian & Emerald Coherent Theme) */
+      --bg-app: #0f1115;
+      --bg-sidebar: #14171d;
+      --bg-elevated: #1a1e26;
+      --bg-card: #1f242d;
+      --bg-input: #252b36;
+      --bg-glass: rgba(26, 30, 38, 0.85);
+
+      /* Borders & Dividers */
+      --border-subtle: #2a303c;
+      --border-strong: #384152;
+      --border-accent: rgba(16, 185, 129, 0.45);
+
+      /* Typography Colors */
+      --text-primary: #f3f4f6;
+      --text-secondary: #cbd5e1;
+      --text-muted: #8b95a5;
+
+      /* Semantic Accents */
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --accent-soft: rgba(16, 185, 129, 0.14);
       --cyan: #38bdf8;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg-main);
-      color: var(--text);
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      --cyan-soft: rgba(56, 189, 248, 0.14);
+      --amber: #f59e0b;
+      --danger: #ef4444;
+
+      /* Fluid Typography Scale (clamp for mobile -> 4K desktop) */
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+      --fs-xs: clamp(0.72rem, 0.68rem + 0.15vw, 0.78rem);
+      --fs-sm: clamp(0.81rem, 0.77rem + 0.18vw, 0.88rem);
+      --fs-base: clamp(0.92rem, 0.88rem + 0.22vw, 1.0rem);
+      --fs-lg: clamp(1.05rem, 0.98rem + 0.3vw, 1.2rem);
+      --fs-xl: clamp(1.2rem, 1.1rem + 0.45vw, 1.45rem);
+
+      /* Fluid Spacing & Layout Tokens */
+      --space-1: 0.375rem;
+      --space-2: 0.625rem;
+      --space-3: 0.875rem;
+      --space-4: 1.25rem;
+      --space-5: clamp(1.25rem, 2.5vw, 2.25rem);
+      --chat-max-width: 860px;
+      --admin-max-width: 1380px;
+      --sidebar-width: 280px;
+
+      /* Radii & Shadows */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 9999px;
+      --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.28);
     }
 
-    /* TOP NAVIGATION BAR: 3-Mode Switcher */
-    .topbar {
-      height: 64px;
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      font-family: var(--font-sans);
+      font-size: var(--fs-base);
+      background: var(--bg-app);
+      color: var(--text-primary);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================================
+       COHERENT PERSONA STATE RULES (Instant CSS reactivity across all bubbles)
+       ========================================================================= */
+    body[data-persona="simple"] .analogy-only {
+      display: none !important;
+    }
+    body[data-persona="analogy"] .analogy-only {
+      display: flex !important;
+    }
+    body[data-persona="admin"] #user-view {
+      display: none !important;
+    }
+    body[data-persona="admin"] #admin-view {
+      display: block !important;
+    }
+    body:not([data-persona="admin"]) #user-view {
+      display: flex !important;
+    }
+    body:not([data-persona="admin"]) #admin-view {
+      display: none !important;
+    }
+
+    /* =========================================================================
+       FLUID TOP NAVIGATION & CONTROL HEADER
+       ========================================================================= */
+    .app-header {
       background: var(--bg-sidebar);
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: var(--space-2) clamp(12px, 2.5vw, 24px);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      flex-shrink: 0;
+      z-index: 30;
+    }
+
+    .header-top-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
-      flex-shrink: 0;
+      gap: var(--space-2);
+      flex-wrap: wrap;
     }
-    .brand {
+
+    .brand-group {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 16px;
+      gap: var(--space-2);
+      min-width: 0;
     }
+
+    .drawer-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .drawer-toggle:hover {
+      border-color: var(--accent);
+      background: var(--bg-input);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: var(--fs-lg);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      background: var(--accent-soft);
+      color: #34d399;
+      border: 1px solid var(--border-accent);
+      white-space: nowrap;
+    }
+
+    /* Segmented 3-Persona Mode Switcher */
     .mode-switcher {
       display: flex;
-      background: #111;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 4px;
+      align-items: center;
+      background: var(--bg-app);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 3px;
       gap: 4px;
+      max-width: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
+    .mode-switcher::-webkit-scrollbar { display: none; }
+
     .mode-btn {
       background: transparent;
       border: none;
-      color: var(--muted);
-      padding: 8px 14px;
-      border-radius: 7px;
-      font-size: 13px;
+      color: var(--text-muted);
+      padding: 7px clamp(10px, 1.4vw, 15px);
+      border-radius: var(--radius-sm);
+      font-size: var(--fs-xs);
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s;
+      white-space: nowrap;
+      transition: all 0.16s ease;
+    }
+    .mode-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
     }
     .mode-btn.active {
       background: var(--accent);
-      color: #fff;
-    }
-    .model-select {
-      background: var(--bg-card);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
+      color: #06281e;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
     }
 
+    /* Fluid Control Bar for Presets & Models (Never clips or overflows) */
+    .header-controls-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    .control-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 5px 10px;
+      min-width: 0;
+    }
+    .control-field label {
+      font-size: var(--fs-xs);
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .model-select {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      background: transparent;
+      color: var(--text-primary);
+      border: none;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      text-overflow: ellipsis;
+    }
+    .model-select option {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    /* =========================================================================
+       MAIN WORKSPACE & COLLAPSIBLE SIDEBAR DRAWER
+       ========================================================================= */
     .workspace {
       flex: 1;
       display: flex;
+      position: relative;
       overflow: hidden;
+      min-height: 0;
     }
 
-    /* CHAT VIEW (Shared by Simple Mode & Analogy Mode) */
     #user-view {
       flex: 1;
       display: flex;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
-    }
-    .user-sidebar {
-      width: 265px;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      overflow-y: auto;
-    }
-    .new-chat {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: left;
-    }
-    .new-chat:hover { border-color: var(--accent); }
-    .quick-btn {
-      background: transparent;
-      border: none;
-      color: #d4d4d4;
-      padding: 9px 10px;
-      border-radius: 7px;
-      text-align: left;
-      font-size: 13px;
-      cursor: pointer;
-      line-height: 1.35;
-    }
-    .quick-btn:hover { background: var(--bg-card); }
-    .analogy-card {
-      margin-top: auto;
-      background: #1e2422;
-      border: 1px solid #2b443c;
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 12.5px;
-      line-height: 1.5;
+      position: relative;
     }
 
+    .sidebar-backdrop {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(2px);
+      z-index: 19;
+    }
+
+    .user-sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      padding: var(--space-3);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      flex-shrink: 0;
+      transition: margin-left 0.22s ease, transform 0.22s ease;
+      z-index: 20;
+    }
+
+    body.sidebar-collapsed .user-sidebar {
+      margin-left: calc(-1 * var(--sidebar-width));
+    }
+
+    .sidebar-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin: 8px 4px 2px 4px;
+    }
+
+    .new-chat-btn {
+      background: var(--accent-soft);
+      border: 1px solid var(--border-accent);
+      color: #34d399;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: var(--fs-sm);
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s;
+    }
+    .new-chat-btn:hover {
+      background: var(--accent);
+      color: #052e16;
+    }
+
+    .quick-btn {
+      background: var(--bg-elevated);
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      text-align: left;
+      font-size: var(--fs-xs);
+      cursor: pointer;
+      line-height: 1.38;
+      transition: all 0.14s;
+    }
+    .quick-btn:hover {
+      background: var(--bg-card);
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .analogy-card {
+      margin-top: auto;
+      background: linear-gradient(145deg, rgba(16, 185, 129, 0.12), rgba(56, 189, 248, 0.08));
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      font-size: var(--fs-xs);
+      line-height: 1.5;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* =========================================================================
+       FLUID CHAT COLUMN, CENTERED STREAM & COMPOSER
+       ========================================================================= */
     .chat-column {
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-width: 0;
+      height: 100%;
       overflow: hidden;
+      background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.05), transparent 60%);
     }
+
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 28px 18%;
+      padding: var(--space-4) clamp(12px, 4vw, 36px);
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: var(--space-3);
+      scroll-behavior: smooth;
     }
+
+    .chat-stream-inner {
+      width: min(100%, var(--chat-max-width));
+      margin-inline: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
     .bubble {
-      line-height: 1.65;
-      font-size: 15.5px;
+      line-height: 1.62;
+      font-size: var(--fs-base);
+      border-radius: var(--radius-lg);
+      padding: clamp(12px, 2vw, 18px);
+      word-break: break-word;
+      box-shadow: var(--shadow-card);
     }
+
     .bubble.user {
       align-self: flex-end;
-      background: var(--bg-input);
-      padding: 12px 18px;
-      border-radius: 18px;
-      max-width: 75%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #042f2e;
+      font-weight: 600;
+      max-width: min(88%, 640px);
+      border-bottom-right-radius: 4px;
     }
+
     .bubble.assistant {
-      align-self: flex-start;
-      max-width: 92%;
+      align-self: stretch;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-bottom-left-radius: 4px;
     }
+
+    .bubble.preset-notice {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--border-accent);
+      font-size: var(--fs-sm);
+      padding: 10px 14px;
+    }
+
+    .reply-content {
+      font-size: var(--fs-base);
+      color: var(--text-primary);
+    }
+
     .variation-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .var-btn {
-      background: #2b2b2b;
-      color: #e5e5e5;
-      border: 1px solid #444;
-      border-radius: 16px;
-      padding: 5px 12px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-    .var-btn:hover {
-      border-color: var(--accent);
-      color: #fff;
-    }
-    .human-summary {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 10px;
-      padding: 8px 12px;
-      background: #1b1b1b;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 12.5px;
-      color: #bdbdbd;
-    }
-    .links-box {
-      margin-top: 8px;
-      padding: 10px 14px;
-      background: #181c20;
-      border: 1px solid #2d3748;
-      border-radius: 8px;
-      font-size: 12.5px;
-    }
-    .chip-btn {
-      background: var(--bg-card);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 4px 10px;
-      font-size: 11.5px;
-      cursor: pointer;
+      gap: 6px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
     }
 
-    .composer-area {
-      padding: 12px 18% 22px 18%;
-    }
-    .variation-selector-strip {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-      align-items: center;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .composer-box {
-      display: flex;
-      gap: 10px;
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 10px 16px;
-      align-items: center;
-    }
-    .composer-box input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-size: 15.5px;
-      outline: none;
-    }
-    .send-btn {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 9px 18px;
-      border-radius: 10px;
+    .var-btn {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill);
+      padding: 5px 12px;
+      font-size: var(--fs-xs);
       font-weight: 600;
       cursor: pointer;
+      transition: all 0.15s;
+    }
+    .var-btn:hover, .var-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #34d399;
     }
 
-    /* ADMIN & TECHNICAL ARCHITECT CONSOLE */
+    /* Analogy & Telemetry Bar (Automatically toggled by Persona Mode!) */
+    .human-summary {
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--cyan);
+      border-radius: var(--radius-sm);
+      font-size: var(--fs-xs);
+      color: var(--text-secondary);
+    }
+
+    .links-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: rgba(56, 189, 248, 0.06);
+      border: 1px solid rgba(56, 189, 248, 0.22);
+      border-radius: var(--radius-sm);
+      font-size: var(--fs-xs);
+    }
+
+    .link-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 4px 0;
+    }
+
+    .chip-btn {
+      background: var(--bg-card);
+      color: var(--cyan);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: var(--radius-pill);
+      padding: 4px 10px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip-btn:hover {
+      background: var(--cyan);
+      color: #082f49;
+    }
+
+    /* Sticky Fluid Bottom Composer */
+    .composer-area {
+      padding: 10px clamp(12px, 4vw, 36px) clamp(12px, 2vh, 20px);
+      background: linear-gradient(180deg, transparent, var(--bg-app) 25%);
+      flex-shrink: 0;
+    }
+
+    .composer-inner {
+      width: min(100%, var(--chat-max-width));
+      margin-inline: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .variation-selector-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      font-size: var(--fs-xs);
+      color: var(--text-muted);
+    }
+
+    .composer-box {
+      display: flex;
+      gap: 8px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 8px 10px 8px 14px;
+      align-items: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      transition: border-color 0.15s;
+    }
+    .composer-box:focus-within {
+      border-color: var(--accent);
+    }
+
+    .composer-box input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: var(--fs-base);
+      outline: none;
+    }
+
+    .send-btn {
+      background: var(--accent);
+      color: #042f2e;
+      border: none;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .send-btn:hover {
+      background: var(--accent-hover);
+      color: #fff;
+    }
+    .send-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* =========================================================================
+       FLUID ADMIN & ARCHITECT CONSOLE
+       ========================================================================= */
     #admin-view {
       flex: 1;
-      display: none;
       overflow-y: auto;
-      padding: 28px 40px;
+      padding: var(--space-4) clamp(14px, 3.5vw, 40px);
     }
+
+    .admin-container {
+      width: min(100%, var(--admin-max-width));
+      margin-inline: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .admin-header-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4);
+    }
+
     .admin-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-      margin-bottom: 22px;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap: var(--space-3);
     }
+
     .admin-card {
       background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
+
     .admin-card h3 {
-      margin: 0 0 12px 0;
-      font-size: 15px;
+      margin: 0;
+      font-size: var(--fs-base);
       color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+
     .kv-row {
       display: flex;
       justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid #333;
-      font-size: 13px;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: var(--fs-xs);
     }
+    .kv-row:last-child { border-bottom: none; }
+    .kv-row code {
+      font-family: var(--font-mono);
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-align: right;
+      word-break: break-all;
+    }
+
     .form-group {
-      margin-bottom: 12px;
-      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: var(--fs-xs);
     }
     .form-group label {
-      display: block;
-      color: var(--muted);
-      margin-bottom: 5px;
+      color: var(--text-muted);
+      font-weight: 600;
     }
+    .admin-input {
+      width: 100%;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+    }
+
     table {
       width: 100%;
+      min-width: 580px;
       border-collapse: collapse;
-      font-size: 13px;
-      margin-top: 8px;
+      font-size: var(--fs-xs);
     }
     th, td {
-      border-bottom: 1px solid var(--border);
-      padding: 9px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 12px;
       text-align: left;
     }
-    th { color: var(--cyan); }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 5px;
-      font-size: 11px;
-      font-weight: 600;
-      background: rgba(16, 163, 127, 0.2);
-      color: #34d399;
-      border: 1px solid var(--accent);
+    th {
+      background: var(--bg-elevated);
+      color: var(--cyan);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* =========================================================================
+       RESPONSIVE BREAKPOINTS (Tablet <= 960px & Mobile <= 640px)
+       ========================================================================= */
+    @media (max-width: 960px) {
+      .user-sidebar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        margin-left: 0 !important;
+        transform: translateX(-100%);
+        box-shadow: 12px 0 32px rgba(0, 0, 0, 0.6);
+      }
+      body.sidebar-open .user-sidebar {
+        transform: translateX(0);
+      }
+      body.sidebar-open .sidebar-backdrop {
+        display: block;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .header-top-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .brand-group {
+        justify-content: space-between;
+      }
+      .mode-switcher {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .mode-btn {
+        flex: 1;
+        text-align: center;
+        padding: 7px 6px;
+      }
+      .bubble.user {
+        max-width: 94%;
+      }
     }
   </style>
 </head>
-<body>
+<body data-persona="simple">
 
-  <!-- TOP NAVIGATION BAR WITH 3 PERSONA MODES -->
-  <header class="topbar">
-    <div class="brand">
-      <span>💎 Krystal AI</span>
-      <span class="badge">Apache-2.0</span>
+  <!-- FLUID 2-TIER NAVIGATION HEADER -->
+  <header class="app-header">
+    <div class="header-top-row">
+      <div class="brand-group">
+        <button class="drawer-toggle" onclick="toggleSidebar()" title="Zobraziť / skryť bočný panel" aria-label="Menu">
+          ☰
+        </button>
+        <div class="brand-title">
+          <span>💎 Krystal AI</span>
+          <span class="status-pill">LM Studio :1234 + AST</span>
+        </div>
+      </div>
+
+      <nav class="mode-switcher" aria-label="Režim zobrazenia">
+        <button id="btn-mode-simple" class="mode-btn active" onclick="setPersona('simple')">
+          ✨ Jednoduchý
+        </button>
+        <button id="btn-mode-analogy" class="mode-btn" onclick="setPersona('analogy')">
+          📊 S Analógiami
+        </button>
+        <button id="btn-mode-admin" class="mode-btn" onclick="setPersona('admin')">
+          🛠️ Administrátor
+        </button>
+      </nav>
     </div>
 
-    <div class="mode-switcher">
-      <button id="btn-mode-simple" class="mode-btn active" onclick="setPersona('simple')">
-        ✨ Jednoduchý Užívateľský Mód
-      </button>
-      <button id="btn-mode-analogy" class="mode-btn" onclick="setPersona('analogy')">
-        📊 Mód s Analógiami (Prehľad)
-      </button>
-      <button id="btn-mode-admin" class="mode-btn" onclick="setPersona('admin')">
-        🛠️ Administrátor &amp; Technický Architekt
-      </button>
-    </div>
+    <div class="header-controls-row">
+      <div class="control-field">
+        <label for="preset-select">Predvoľba:</label>
+        <select id="preset-select" class="model-select" onchange="applySystemPreset(this.value)">
+          <option value="edge-fast">⚡ Preset 1: Rýchly Edge (Gemma-4-E2B | UMA 32%)</option>
+          <option value="deep-12b">🧠 Preset 2: Hĺbková Analýza (Gemma-4-12B-QAT | 32KB GPU)</option>
+          <option value="coder-6.7b">💻 Preset 3: Inžiniersky Kód (DeepSeek-Coder-6.7B)</option>
+          <option value="hysteresis-lock">🛡️ Preset 4: Stabilizátor 12-Frame Hysterézia (UMA 74%)</option>
+          <option value="pure-ast">🧮 Preset 5: Čistý XERJ CPU Kompilátor (0 LLM tokenov | &lt;2 ms)</option>
+        </select>
+      </div>
 
-    <div>
-      <select id="model-select" class="model-select">
-        <option value="qwen3-14b-sk">🇸🇰 Slovenský Asistent Qwen3 (14,8B)</option>
-        <option value="phi4-3.8b">⚡ Rýchly Asistent Phi-4 (3,8B)</option>
-        <option value="llama-3.2-3b">🚀 Kompaktný Llama-3.2 (3,2B)</option>
-        <option value="mistral-7b">🧠 Podnikový Mistral (7,2B)</option>
-        <option value="pure-cpu">🧮 Čisté Fakty (CPU — bez LLM)</option>
-      </select>
+      <div class="control-field">
+        <label for="model-select">Model:</label>
+        <select id="model-select" class="model-select">
+          <option value="google/gemma-4-e2b">🟢 google/gemma-4-e2b (4,6B GGUF — LM Studio :1234)</option>
+          <option value="google/gemma-4-12b-qat">🧠 google/gemma-4-12b-qat (12B QAT GGUF — LM Studio :1234)</option>
+          <option value="deepseek-coder-6.7b-base">💻 deepseek-coder-6.7b-base (6,7B GGUF — LM Studio :1234)</option>
+          <option value="pure-cpu">🧮 Čistý Faktický Kompilátor (CPU AST — 0 LLM tokenov)</option>
+        </select>
+      </div>
     </div>
   </header>
 
-  <div class="workspace">
+  <main class="workspace">
 
     <!-- POHĽAD PRE POUŽÍVATEĽOV (Jednoduchý mód + Mód s analógiami) -->
     <section id="user-view">
-      <aside class="user-sidebar">
-        <button class="new-chat" onclick="clearChat()">+ Nový rozhovor</button>
+      <div class="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
 
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:8px;">Rýchle témy</div>
+      <aside class="user-sidebar" id="user-sidebar">
+        <button class="new-chat-btn" onclick="clearChat()">
+          <span>+ Nový rozhovor</span>
+          <span>↺</span>
+        </button>
+
+        <div class="sidebar-section-title">Systémové Presety (1-Klik)</div>
+        <button class="quick-btn" onclick="applySystemPreset('edge-fast')">⚡ <strong>Preset 1:</strong> Rýchly Edge (Gemma-4-E2B)</button>
+        <button class="quick-btn" onclick="applySystemPreset('deep-12b')">🧠 <strong>Preset 2:</strong> Hĺbkový 12B QAT (Gemma-4-12B)</button>
+        <button class="quick-btn" onclick="applySystemPreset('coder-6.7b')">💻 <strong>Preset 3:</strong> Inžiniersky Kód (DeepSeek-6.7B)</button>
+        <button class="quick-btn" onclick="applySystemPreset('hysteresis-lock')">🛡️ <strong>Preset 4:</strong> 12-Frame Hysterézia (UMA 74%)</button>
+        <button class="quick-btn" onclick="applySystemPreset('pure-ast')">🧮 <strong>Preset 5:</strong> Čistý CPU AST (0 LLM tokenov)</button>
+
+        <div class="sidebar-section-title">Rýchle overené dopyty</div>
         <button class="quick-btn" onclick="askQuestion('Aké je zrýchlenie pre Vulkan Iris Xe?')">⚡ Aké je zrýchlenie grafiky Iris Xe?</button>
         <button class="quick-btn" onclick="askQuestion('What is the saved bandwidth for Zero Copy Ring?')">🔄 Koľko pamäte ušetrí Zero-Copy Ring?</button>
-        <button class="quick-btn" onclick="askQuestion('Porovnaj frame latency pre CPU Baseline vs Vulkan Iris Xe')">⚖️ Porovnaj rýchlosť procesora a grafiky</button>
+        <button class="quick-btn" onclick="askQuestion('Porovnaj frame latency pre CPU Baseline vs Vulkan Iris Xe')">⚖️ Porovnaj latenciu procesora a grafiky</button>
         <button class="quick-btn" onclick="askQuestion('Koľko overených faktov je v krystal_sovereign?')">📊 Koľko overených faktov poznáš?</button>
 
-        <div class="analogy-card" id="sidebar-analogy-card" style="display:none;">
-          <div style="font-weight:700;color:#34d399;margin-bottom:4px;" id="analogy-title">🟢 Plynulá diaľnica (Plný výkon)</div>
-          <div id="analogy-desc" style="color:#d4d4d4;">
-            Systém najprv vyhľadá presný fakt v kartotéke na procesore a grafickú kartu zapojí iba na sformulovanie vety.
+        <div class="analogy-card analogy-only" id="sidebar-analogy-card">
+          <div style="font-weight:700;color:#34d399;" id="analogy-title">🟢 Plynulá diaľnica (Plný výkon)</div>
+          <div id="analogy-desc" style="color:var(--text-secondary);">
+            Systém najprv vyhľadá presný fakt v kartotéke na procesore (&lt;2 ms) a grafickú kartu zapojí iba pri otvorených otázkach.
           </div>
         </div>
       </aside>
 
       <div class="chat-column">
         <div class="chat-messages" id="chat-messages">
-          <div class="bubble assistant">
-            <div>
-              <strong>Ahoj! Som tvoj lokálny asistent Krystal AI.</strong><br/>
-              Momentálne si v <strong>✨ Jednoduchom užívateľskom móde</strong> — odpovedám stručne, pravdivo a pod každou odpoveďou si môžeš jedným kliknutím vybrať jednoduchú variáciu (<em>Stručne jednou vetou</em>, <em>Vysvetli jednoducho</em> alebo <em>Ukáž príklad</em>).
+          <div class="chat-stream-inner" id="chat-stream">
+            <div class="bubble assistant">
+              <div class="reply-content">
+                <strong>Ahoj! Som tvoj lokálny asistent Krystal AI (Fluid Design v2.0).</strong><br/>
+                Rozhranie sa teraz plynulo prispôsobuje akejkoľvek šírke obrazovky a prepínanie medzi režimami <strong>✨ Jednoduchý</strong>, <strong>📊 S Analógiami</strong> a <strong>🛠️ Administrátor</strong> okamžite upraví aj už zobrazené správy.
+              </div>
+              <div class="human-summary analogy-only">
+                <span><strong>Architektúra:</strong> <code>Neurosymbolický Fast-Path (&lt;2,5 ms) + LM Studio (:1234)</code></span>
+                <span><strong>Úspora kontextu:</strong> <code>999 -&gt; 39 tokenov (6,24× rýchlejšie LLM)</code></span>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="composer-area">
-          <div class="variation-selector-strip">
-            <span>Štýl odpovede:</span>
-            <button class="var-btn" onclick="setVariationStyle('standard')" id="style-standard" style="border-color:var(--accent);">Prirodzená odpoveď</button>
-            <button class="var-btn" onclick="setVariationStyle('short')" id="style-short">⚡ Stručne (1 veta)</button>
-            <button class="var-btn" onclick="setVariationStyle('beginner')" id="style-beginner">💡 Jednoducho pre každého</button>
-          </div>
-          <div class="composer-box">
-            <input id="chat-input" type="text" value="Aké je zrýchlenie pre Vulkan Iris Xe?" placeholder="Opýtaj sa čokoľvek..." onkeydown="if(event.key==='Enter') sendChat()" />
-            <button class="send-btn" onclick="sendChat()">Odoslať</button>
+          <div class="composer-inner">
+            <div class="variation-selector-strip">
+              <span>Štýl odpovede:</span>
+              <button class="var-btn active" onclick="setVariationStyle('standard')" id="style-standard">Prirodzená odpoveď</button>
+              <button class="var-btn" onclick="setVariationStyle('short')" id="style-short">⚡ Stručne (1 veta)</button>
+              <button class="var-btn" onclick="setVariationStyle('beginner')" id="style-beginner">💡 Jednoducho pre každého</button>
+            </div>
+            <div class="composer-box">
+              <input id="chat-input" type="text" value="Aké je zrýchlenie pre Vulkan Iris Xe?" placeholder="Opýtaj sa čokoľvek..." onkeydown="if(event.key==='Enter') sendChat()" />
+              <button class="send-btn" onclick="sendChat()">Odoslať ↵</button>
+            </div>
           </div>
         </div>
       </div>
@@ -402,88 +871,175 @@
 
     <!-- POHĽAD PRE ADMINISTRÁTORA A TECHNICKÉHO ARCHITEKTA -->
     <section id="admin-view">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <div>
-          <h2 style="margin:0;">🛠️ Inžinierska a Administrátorská Konzola (OpenVINO + Intel oneAPI + XERJ Query-1)</h2>
-          <small style="color:var(--muted);">Priame riadenie zón UMA zbernice, 12-snímkovej hysterézie, alokácie tenzorov a premostenia na LM Studio / Bionic.</small>
-        </div>
-        <button class="send-btn" onclick="setPersona('simple')">← Späť do Užívateľského módu</button>
-      </div>
-
-      <div class="admin-grid">
-        <div class="admin-card">
-          <h3>1. Kalibrácia UMA Zbernice &amp; Alokácie Tenzorov</h3>
-          <div class="form-group">
-            <label>Zaťaženie UMA zbernice (<code>current_bus_pressure</code>):</label>
-            <select id="uma-select" class="model-select" style="width:100%;" onchange="updateAnalogyPreview()">
-              <option value="0.32">🟢 32 % — Zelená zóna (GPU_ZERO_COPY_FP16, 512 tok)</option>
-              <option value="0.58">🟡 58 % — Žltá zóna (GPU Paced, 256 tok)</option>
-              <option value="0.74">🟠 74 % — Oranžová zóna (CPU_AVX2_INT8 + 12-Frame Hysterézia)</option>
-              <option value="0.88">🔴 88 % — Červená zóna (Ochrana 60Hz VSync, iba CPU AST)</option>
-            </select>
+      <div class="admin-container">
+        <div class="admin-header-card">
+          <div>
+            <h2 style="margin:0;font-size:var(--fs-lg);">🛠️ Inžinierska a Administrátorská Konzola (OpenVINO + oneAPI + XERJ Query-1)</h2>
+            <small style="color:var(--text-muted);">Priame riadenie zón UMA zbernice, 12-snímkovej hysterézie, alokácie tenzorov a premostenia na LM Studio.</small>
           </div>
-          <div class="form-group">
-            <label>Veľkosť alokovaného tenzora (<code>HardwareCrossoverPolicy</code> hranica = 16 KB):</label>
-            <select id="payload-select" class="model-select" style="width:100%;">
-              <option value="32768">32 768 B (32 KB Hustý tenzor -> GPU Iris Xe / Arc)</option>
-              <option value="4096">4 096 B (4 KB Mikro-tenzor -> CPU AVX2-VNNI)</option>
-              <option value="131072">131 072 B (128 KB Blok -> 128B Zero-Copy Ring)</option>
-            </select>
+          <button class="send-btn" onclick="setPersona('simple')">← Späť do Rozhovoru</button>
+        </div>
+
+        <div class="admin-grid">
+          <div class="admin-card">
+            <h3>1. Kalibrácia UMA Zbernice &amp; Tenzorov</h3>
+            <div class="form-group">
+              <label for="uma-select">Zaťaženie UMA zbernice (<code>current_bus_pressure</code>):</label>
+              <select id="uma-select" class="admin-input" onchange="updateAnalogyPreview()">
+                <option value="0.32">🟢 32 % — Zelená zóna (GPU_ZERO_COPY_FP16, 512 tok)</option>
+                <option value="0.58">🟡 58 % — Žltá zóna (GPU Paced, 256 tok)</option>
+                <option value="0.74">🟠 74 % — Oranžová zóna (CPU_AVX2_INT8 + 12-Frame Hysterézia)</option>
+                <option value="0.88">🔴 88 % — Červená zóna (Ochrana 60Hz VSync, iba CPU AST)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="payload-select">Veľkosť alokovaného tenzora (hranica = 16 KB):</label>
+              <select id="payload-select" class="admin-input">
+                <option value="32768">32 768 B (32 KB Hustý tenzor -&gt; GPU Iris Xe / Arc)</option>
+                <option value="4096">4 096 B (4 KB Mikro-tenzor -&gt; CPU AVX2-VNNI)</option>
+                <option value="131072">131 072 B (128 KB Blok -&gt; 128B Zero-Copy Ring)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="max-tokens-input">Maximálny rozpočet generovaných tokenov (<code>max_tokens</code>):</label>
+              <input id="max-tokens-input" type="number" class="admin-input" value="512" />
+            </div>
+            <button class="send-btn" style="width:100%;margin-top:auto;" onclick="runAdminDiagnostic()">⚡ Spustiť diagnostický dopyt s touto kalibráciou</button>
           </div>
-          <div class="form-group">
-            <label>Maximálny rozpočet generovaných tokenov (<code>max_tokens</code>):</label>
-            <input id="max-tokens-input" type="number" class="model-select" style="width:100%;" value="512" />
+
+          <div class="admin-card">
+            <h3>2. Živý Stav Regulátora &amp; Hysterézie (P8)</h3>
+            <div class="kv-row"><span>Ústavný invariant:</span><code>VITAL_MAX_HP == 6</code></div>
+            <div class="kv-row"><span>Aktívna výpočtová dráha:</span><code id="adm-path">GPU_ZERO_COPY_FP16</code></div>
+            <div class="kv-row"><span>OpenVINO / oneAPI zariadenie:</span><code id="adm-dev">CPU / GPU</code></div>
+            <div class="kv-row"><span>12-Snímková hysterézia (dwell):</span><code id="adm-dwell">0 / 12 (pinned: false)</code></div>
+            <div class="kv-row"><span>Rekurentné Merkle-Momentum:</span><code id="adm-mom">0.0000</code></div>
+            <div class="kv-row"><span>Nameraná latencia (Celková / AST):</span><code id="adm-lat">— ms</code></div>
+            <div class="kv-row"><span>Spotreba tokenov (Krystal vs. RAG):</span><code id="adm-tok">0 vs. 2 450 tok</code></div>
+            <div class="kv-row"><span>RFC 8785 IR Digest:</span><code id="adm-digest">Overené</code></div>
           </div>
-          <button class="send-btn" style="width:100%;margin-top:6px;" onclick="runAdminDiagnostic()">⚡ Spustiť diagnostický dopyt s touto kalibráciou</button>
+
+          <div class="admin-card">
+            <h3>3. Endpointy &amp; Fyzické Meranie (LM Studio :1234)</h3>
+            <div class="kv-row"><span>OpenAI Base URL:</span><code>http://127.0.0.1:8090/v1</code></div>
+            <div class="kv-row"><span>LM Studio Upstream:</span><code>http://127.0.0.1:1234/v1</code></div>
+            <div class="kv-row"><span>Default LM Studio (999 tok):</span><code>52 273 ms (0,61 tok/s)</code></div>
+            <div class="kv-row"><span>Krystal Prefill (39 tok):</span><code>8 374 ms (6,24× rýchlejšie)</code></div>
+            <div class="kv-row"><span>Krystal CPU AST Fast-Path:</span><code>~2,4 ms (21 780× rýchlejšie)</code></div>
+            <div class="kv-row"><span>Fluid Design System:</span><code>v2.0 (clamp + auto-fit grid)</code></div>
+          </div>
         </div>
 
         <div class="admin-card">
-          <h3>2. Živý Stav Regulátora &amp; Hysterézie (P8)</h3>
-          <div class="kv-row"><span>Ústavný invariant:</span><code>VITAL_MAX_HP == 6</code></div>
-          <div class="kv-row"><span>Aktívna výpočtová dráha:</span><code id="adm-path">GPU_ZERO_COPY_FP16</code></div>
-          <div class="kv-row"><span>OpenVINO / oneAPI zariadenie:</span><code id="adm-dev">CPU / GPU</code></div>
-          <div class="kv-row"><span>12-Snímková hysterézia (dwell):</span><code id="adm-dwell">0 / 12 (pinned: false)</code></div>
-          <div class="kv-row"><span>Rekurentné Merkle-Momentum:</span><code id="adm-mom">0.0000</code></div>
-          <div class="kv-row"><span>Nameraná latencia (Celková / AST):</span><code id="adm-lat" style="color:#34d399;">— ms</code></div>
-          <div class="kv-row"><span>Spotreba tokenov (Krystal vs. RAG):</span><code id="adm-tok">48 vs. 2 450 tok (51x úspora)</code></div>
-          <div class="kv-row"><span>RFC 8785 IR Digest:</span><code id="adm-digest">Overené</code></div>
+          <h3>4. Benchmark Matica Modelov (CPU AST vs. Lokálne GGUF vs. Cloud)</h3>
+          <div class="table-responsive" id="admin-benchmark-table">Načítavam tabuľku...</div>
         </div>
-
-        <div class="admin-card">
-          <h3>3. Endpointy pre LM Studio &amp; Bionic GPT</h3>
-          <div class="kv-row"><span>OpenAI Base URL:</span><code>http://127.0.0.1:8090/v1</code></div>
-          <div class="kv-row"><span>Chat Completions:</span><code>/v1/chat/completions</code></div>
-          <div class="kv-row"><span>Zoznam modelov:</span><code>/v1/models</code></div>
-          <div class="kv-row"><span>Neurosymbolické fakty:</span><code>/api/v1/facts/_ask</code></div>
-          <div class="kv-row"><span>LM Studio Upstream:</span><code>http://127.0.0.1:1234/v1</code></div>
-          <div class="kv-row"><span>Kompresia prefillu:</span><code>2450 -> 48 tokenov</code></div>
-        </div>
-      </div>
-
-      <div class="admin-card">
-        <h3>4. Benchmark Matica Modelov (50M CPU AST vs. 3,2B–14,8B OpenVINO vs. 1,2 Bilióna Cloud)</h3>
-        <div id="admin-benchmark-table">Načítavam tabuľku...</div>
       </div>
     </section>
 
-  </div>
+  </main>
 
   <script>
     let currentPersona = 'simple';
     let variationStyle = 'standard';
 
+    const SYSTEM_PRESETS = {
+      'edge-fast': {
+        name: '⚡ Preset 1: Rýchly Edge (Gemma-4-E2B)',
+        model: 'google/gemma-4-e2b',
+        uma: '0.32',
+        payload: '32768',
+        maxTokens: '160',
+        style: 'standard',
+        persona: 'simple',
+        samplePrompt: 'Aké je zrýchlenie pre Vulkan Iris Xe?'
+      },
+      'deep-12b': {
+        name: '🧠 Preset 2: Hĺbková Analýza (Gemma-4-12B-QAT)',
+        model: 'google/gemma-4-12b-qat',
+        uma: '0.32',
+        payload: '131072',
+        maxTokens: '256',
+        style: 'standard',
+        persona: 'analogy',
+        samplePrompt: 'Porovnaj frame latency pre CPU Baseline vs Vulkan Iris Xe'
+      },
+      'coder-6.7b': {
+        name: '💻 Preset 3: Inžiniersky Kód (DeepSeek-Coder-6.7B)',
+        model: 'deepseek-coder-6.7b-base',
+        uma: '0.58',
+        payload: '32768',
+        maxTokens: '256',
+        style: 'standard',
+        persona: 'analogy',
+        samplePrompt: 'What is the saved bandwidth for Zero Copy Ring?'
+      },
+      'hysteresis-lock': {
+        name: '🛡️ Preset 4: Stabilizátor 12-Frame Hysterézia (UMA 74%)',
+        model: 'google/gemma-4-e2b',
+        uma: '0.74',
+        payload: '4096',
+        maxTokens: '64',
+        style: 'short',
+        persona: 'analogy',
+        samplePrompt: 'Porovnaj frame latency pre CPU Baseline vs Vulkan Iris Xe'
+      },
+      'pure-ast': {
+        name: '🧮 Preset 5: Čistý XERJ CPU Kompilátor (0 LLM tokenov)',
+        model: 'pure-cpu',
+        uma: '0.88',
+        payload: '4096',
+        maxTokens: '16',
+        style: 'short',
+        persona: 'simple',
+        samplePrompt: 'Koľko overených faktov je v krystal_sovereign?'
+      }
+    };
+
+    function toggleSidebar() {
+      if (window.innerWidth <= 960) {
+        document.body.classList.toggle('sidebar-open');
+      } else {
+        document.body.classList.toggle('sidebar-collapsed');
+      }
+    }
+
+    function closeMobileSidebar() {
+      document.body.classList.remove('sidebar-open');
+    }
+
+    function applySystemPreset(presetKey) {
+      const p = SYSTEM_PRESETS[presetKey];
+      if (!p) return;
+      document.getElementById('preset-select').value = presetKey;
+      document.getElementById('model-select').value = p.model;
+      document.getElementById('uma-select').value = p.uma;
+      document.getElementById('payload-select').value = p.payload;
+      document.getElementById('max-tokens-input').value = p.maxTokens;
+      setVariationStyle(p.style);
+      setPersona(p.persona);
+      updateAnalogyPreview();
+      document.getElementById('chat-input').value = p.samplePrompt;
+      closeMobileSidebar();
+
+      const stream = document.getElementById('chat-stream');
+      stream.insertAdjacentHTML('beforeend', `
+        <div class="bubble assistant preset-notice">
+          ✅ Aktivovaný <strong>${p.name}</strong> — Model: <code>${p.model}</code> | UMA: <code>${Math.round(parseFloat(p.uma)*100)}%</code> | Tenzor: <code>${p.payload} B</code>. Otázka je pripravená v poli dole.
+        </div>
+      `);
+      scrollToBottom();
+    }
+
     function setPersona(mode) {
       currentPersona = mode;
-      const isAdmin = (mode === 'admin');
-      document.getElementById('user-view').style.display = isAdmin ? 'none' : 'flex';
-      document.getElementById('admin-view').style.display = isAdmin ? 'block' : 'none';
-      document.getElementById('sidebar-analogy-card').style.display = (mode === 'analogy') ? 'block' : 'none';
+      document.body.setAttribute('data-persona', mode);
 
       document.getElementById('btn-mode-simple').classList.toggle('active', mode === 'simple');
       document.getElementById('btn-mode-analogy').classList.toggle('active', mode === 'analogy');
       document.getElementById('btn-mode-admin').classList.toggle('active', mode === 'admin');
 
-      if (isAdmin) {
+      if (mode === 'admin') {
         loadAdminTelemetry();
         loadAdminBenchmark();
       }
@@ -492,7 +1048,7 @@
     function setVariationStyle(style) {
       variationStyle = style;
       ['standard', 'short', 'beginner'].forEach(s => {
-        document.getElementById('style-' + s).style.borderColor = (s === style) ? 'var(--accent)' : '#444';
+        document.getElementById('style-' + s).classList.toggle('active', s === style);
       });
     }
 
@@ -507,18 +1063,25 @@
     }
 
     function clearChat() {
-      document.getElementById('chat-messages').innerHTML = '';
+      document.getElementById('chat-stream').innerHTML = '';
+      closeMobileSidebar();
+    }
+
+    function scrollToBottom() {
+      const box = document.getElementById('chat-messages');
+      box.scrollTop = box.scrollHeight;
     }
 
     function askQuestion(text) {
       if (currentPersona === 'admin') setPersona('simple');
+      closeMobileSidebar();
       document.getElementById('chat-input').value = text;
       sendChat();
     }
 
     function runAdminDiagnostic() {
       setPersona('analogy');
-      document.getElementById('chat-input').value = 'Analyzuj saturáciu UMA zbernice pri prechode na CPU a 12-snímkovú hysteréziu';
+      document.getElementById('chat-input').value = 'Porovnaj frame latency pre CPU Baseline vs Vulkan Iris Xe';
       sendChat();
     }
 
@@ -528,7 +1091,7 @@
       const desc = document.getElementById('analogy-desc');
       if (uma < 0.45) {
         title.textContent = '🟢 Plynulá diaľnica (Plný výkon)';
-        desc.textContent = 'Pamäťová zbernica má dostatok voľnej kapacity. Grafické jadro pracuje naplno.';
+        desc.textContent = 'Pamäťová zbernica má dostatok voľnej kapacity. Overené fakty vybaví CPU do 2 ms, otvorené otázky GPU.';
       } else if (uma < 0.70) {
         title.textContent = '🟡 Stredná premávka (Plynulá regulácia)';
         desc.textContent = 'Systém mierne skracuje odpovede, aby obrazovka bežala plynulo.';
@@ -551,10 +1114,11 @@
       const payloadBytes = parseInt(document.getElementById('payload-select').value || '32768', 10);
       const maxTokens = parseInt(document.getElementById('max-tokens-input').value || '512', 10);
       const modelKey = document.getElementById('model-select').value;
-      const box = document.getElementById('chat-messages');
+      const stream = document.getElementById('chat-stream');
 
-      box.innerHTML += `<div class="bubble user">${prompt}</div>`;
+      stream.insertAdjacentHTML('beforeend', `<div class="bubble user">${prompt}</div>`);
       input.value = '';
+      scrollToBottom();
 
       try {
         const res = await fetch('/api/v1/facts/_ask', {
@@ -585,51 +1149,50 @@
         document.getElementById('adm-dev').textContent = `${ov.selected_device || 'CPU'} (${ov.payload_bytes || 32768} B)`;
         document.getElementById('adm-dwell').textContent = `${gov.hysteresis_dwell_counter || 0} / 12 (pinned: ${gov.hysteresis_pinned_cpu})`;
         document.getElementById('adm-mom').textContent = gov.merkle_momentum || 0;
-        document.getElementById('adm-lat').textContent = `${tok.total_pipeline_latency_ms} ms`;
-        document.getElementById('adm-tok').textContent = `${tok.neurosymbolic_prompt_tokens} vs. ${tok.classical_rag_prompt_tokens} tok (${tok.token_reduction_ratio}x úspora)`;
+        document.getElementById('adm-lat').textContent = `${tok.total_pipeline_latency_ms} ms (AST: ${tok.ast_compile_latency_ms} ms)`;
+        document.getElementById('adm-tok').textContent = `${tok.neurosymbolic_prompt_tokens} vs. ${tok.classical_rag_prompt_tokens} tok`;
 
         const safePrompt = prompt.replace(/'/g, "\\'");
         const variationButtonsHtml = `
           <div class="variation-bar">
-            <button class="var-btn" onclick="document.getElementById('chat-input').value='${safePrompt}';sendChat('short')">⚡ Povedz mi to 1 vetou</button>
+            <button class="var-btn" onclick="document.getElementById('chat-input').value='${safePrompt}';sendChat('short')">⚡ 1 vetou</button>
             <button class="var-btn" onclick="document.getElementById('chat-input').value='${safePrompt}';sendChat('beginner')">💡 Vysvetli jednoduchšie</button>
-            <button class="var-btn" onclick="document.getElementById('chat-input').value='${safePrompt}';sendChat('standard')">📖 Plná odpoveď modelu</button>
+            <button class="var-btn" onclick="document.getElementById('chat-input').value='${safePrompt}';sendChat('standard')">📖 Plná odpoveď</button>
           </div>
         `;
 
-        const analogyBoxHtml = (currentPersona === 'analogy') ? `
-          <div class="human-summary">
-            <span><strong>Spoľahlivosť:</strong> ✓ Overený fakt</span>
-            <span><strong>Odozva:</strong> ${tok.total_pipeline_latency_ms} ms</span>
-            <span><strong>Úspora čítania:</strong> ${tok.token_reduction_ratio}× menej balastu než bežný RAG</span>
+        const analogyBoxHtml = `
+          <div class="human-summary analogy-only">
+            <span><strong>Zdroj dôkazu:</strong> <code>${data.evidence_classification || 'MEASURED'}</code></span>
+            <span><strong>Tokeny:</strong> ${tok.neurosymbolic_prompt_tokens} in / ${tok.actual_completion_tokens || 0} out</span>
+            <span><strong>Čas (Celkový / LLM / AST):</strong> ${tok.total_pipeline_latency_ms} ms / ${tok.llm_inference_latency_ms || 0} ms / ${tok.ast_compile_latency_ms} ms</span>
           </div>
-        ` : '';
+        `;
 
         const linksHtml = links.length ? `
           <div class="links-box">
-            <div style="font-weight:600;color:var(--cyan);margin-bottom:6px;">🔗 Súvisiace témy a ďalšie otázky:</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              ${links.slice(0, 2).map(l => `
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-                  <a href="${l.url}" target="_blank" style="color:#60a5fa;text-decoration:none;">• ${l.title} ↗</a>
-                  ${l.followup_prompt ? `<button class="chip-btn" onclick="askQuestion('${l.followup_prompt}')">Opýtať sa: ${l.followup_prompt}</button>` : ''}
-                </div>
-              `).join('')}
-            </div>
+            <div style="font-weight:700;color:var(--cyan);margin-bottom:4px;">🔗 Súvisiace témy a ďalšie otázky:</div>
+            ${links.slice(0, 2).map(l => `
+              <div class="link-item">
+                <a href="${l.url}" target="_blank" style="color:#60a5fa;text-decoration:none;">• ${l.title} ↗</a>
+                ${l.followup_prompt ? `<button class="chip-btn" onclick="askQuestion('${l.followup_prompt}')">Opýtať sa: ${l.followup_prompt}</button>` : ''}
+              </div>
+            `).join('')}
           </div>
         ` : '';
 
-        box.innerHTML += `
+        stream.insertAdjacentHTML('beforeend', `
           <div class="bubble assistant">
-            <div>${displayedReply}</div>
+            <div class="reply-content">${displayedReply}</div>
             ${variationButtonsHtml}
             ${analogyBoxHtml}
             ${linksHtml}
           </div>
-        `;
-        box.scrollTop = box.scrollHeight;
+        `);
+        scrollToBottom();
       } catch (err) {
-        box.innerHTML += `<div class="bubble assistant" style="color:#ef4444;">Nepodarilo sa spojiť so serverom: ${err}</div>`;
+        stream.insertAdjacentHTML('beforeend', `<div class="bubble assistant" style="border-color:var(--danger);color:#fca5a5;">Nepodarilo sa spojiť so serverom: ${err}</div>`);
+        scrollToBottom();
       }
     }
 
@@ -648,9 +1211,9 @@
         const data = await r.json();
         let rows = data.models.map(m => `
           <tr>
-            <td><strong>${m.model_id}</strong><br/><small style="color:var(--muted)">${m.parameter_scale_label_sk}</small></td>
+            <td><strong>${m.model_id}</strong><br/><small style="color:var(--text-muted)">${m.parameter_scale_label_sk}</small></td>
             <td>${m.classical_rag_prompt_tokens} tok (${m.classical_rag_prefill_ms} ms)</td>
-            <td style="color:#34d399;font-weight:600;">${m.neurosymbolic_prompt_tokens} tok (${m.neurosymbolic_prefill_ms} ms)</td>
+            <td style="color:#34d399;font-weight:700;">${m.neurosymbolic_prompt_tokens} tok (${m.neurosymbolic_prefill_ms} ms)</td>
             <td><code>${m.active_compute_path_neurosymbolic}</code> (${m.allocated_output_token_budget_neurosymbolic} out tok)</td>
           </tr>
         `).join('');

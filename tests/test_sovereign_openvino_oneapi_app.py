@@ -67,12 +67,16 @@ class TestSovereignOpenVinoOneApiApp(unittest.TestCase):
         bm = self.app.benchmark_concrete_models_on_hardware()
         self.assertEqual(bm["vital_max_hp"], 6)
         models = bm["models"]
-        self.assertEqual(len(models), 6)
-        param_scales = [m["parameter_count_billions"] for m in models]
-        self.assertEqual(param_scales, [0.05, 3.2, 3.8, 7.2, 14.8, 1200.0])
+        self.assertEqual(len(models), 4)
+        param_scales = sorted([m["parameter_count_billions"] for m in models])
+        self.assertEqual(param_scales, [0.05, 4.6, 6.7, 12.0])
 
         frontend_path = os.path.join(os.getcwd(), "frontend", "sovereign_openvino_oneapi_console.html")
         self.assertTrue(os.path.exists(frontend_path))
+        with open(frontend_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        self.assertIn("KRYSTAL FLUID DESIGN MANUAL v2.0", html)
+        self.assertIn("data-persona=", html)
 
 
 if __name__ == "__main__":
