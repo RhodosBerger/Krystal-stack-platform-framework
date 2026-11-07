@@ -169,12 +169,70 @@ class RecurrentVariationsStreamDecoder:
     """
     Decodes telemetry variation streams, extracting harmonic frequencies,
     jitter distribution, and generating quantized variation tokens.
+    Includes O(1) Welford online jitter variance & Goertzel VSync resonator.
     """
 
-    def __init__(self, vital_max_hp: int = VITAL_MAX_HP) -> None:
+    def __init__(self, vital_max_hp: int = VITAL_MAX_HP, target_vsync_hz: float = 60.0) -> None:
         if vital_max_hp != VITAL_MAX_HP:
             raise ContractViolation(f"Constitutional HP breach: {vital_max_hp} != {VITAL_MAX_HP}")
         self.vital_max_hp: int = vital_max_hp
+        self.target_vsync_hz: float = target_vsync_hz
+        # O(1) recurrent Welford & Goertzel state
+        self._sample_count: int = 0
+        self._welford_mean_jitter: float = 0.0
+        self._welford_m2_jitter: float = 0.0
+        self._goertzel_s1: float = 0.0
+        self._goertzel_s2: float = 0.0
+        self._last_timestamp_ns: int = 0
+
+    def reset_recurrent_state(self) -> None:
+        """Resets the O(1) online Welford and Goertzel accumulators."""
+        self._sample_count = 0
+        self._welford_mean_jitter = 0.0
+        self._welford_m2_jitter = 0.0
+        self._goertzel_s1 = 0.0
+        self._goertzel_s2 = 0.0
+        self._last_timestamp_ns = 0
+
+    def step_recurrent_sample(self, sample: StreamVariationSample) -> Dict[str, float]:
+        """
+        O(1) online update for a single telemetry sample using Welford's algorithm
+        and a second-order Goertzel filter tuned to target_vsync_hz.
+        """
+        if sample.vital_max_hp != VITAL_MAX_HP:
+            raise ContractViolation(f"Constitutional HP breach in sample: {sample.vital_max_hp} != {VITAL_MAX_HP}")
+
+        self._sample_count += 1
+        x_jitter = float(sample.jitter_ns)
+        delta = x_jitter - self._welford_mean_jitter
+        self._welford_mean_jitter += delta / self._sample_count
+        delta2 = x_jitter - self._welford_mean_jitter
+        self._welford_m2_jitter += delta * delta2
+
+        variance = (self._welford_m2_jitter / self._sample_count) if self._sample_count > 1 else 0.0
+        std_jitter = math.sqrt(max(0.0, variance))
+
+        # Second-order Goertzel step (normalized resonator around 60Hz/240Hz sampling)
+        omega = 2.0 * math.pi * (self.target_vsync_hz / 240.0)
+        coeff = 2.0 * math.cos(omega)
+        s0 = sample.magnitude + coeff * self._goertzel_s1 - self._goertzel_s2
+        self._goertzel_s2 = self._goertzel_s1
+        self._goertzel_s1 = s0
+        goertzel_power = max(
+            0.0,
+            self._goertzel_s1 ** 2 + self._goertzel_s2 ** 2 - coeff * self._goertzel_s1 * self._goertzel_s2,
+        )
+
+        self._last_timestamp_ns = sample.timestamp_ns
+        stability = max(0.05, min(0.99, 1.0 - (std_jitter / max(100.0, self._welford_mean_jitter + 1.0))))
+        return {
+            "sample_count": float(self._sample_count),
+            "mean_jitter_ns": round(self._welford_mean_jitter, 2),
+            "std_jitter_ns": round(std_jitter, 2),
+            "goertzel_vsync_power": round(goertzel_power, 4),
+            "stability_score": round(stability, 3),
+            "vital_max_hp": float(self.vital_max_hp),
+        }
 
     def decode_stream(
         self,
@@ -195,8 +253,13 @@ class RecurrentVariationsStreamDecoder:
                 vital_max_hp=self.vital_max_hp
             )
 
-        jitters = [s.jitter_ns for s in samples]
-        mean_jitter = sum(jitters) / len(jitters)
+        self.reset_recurrent_state()
+        tokens: List[str] = []
+        last_metrics: Dict[str, float] = {}
+        for s in samples:
+            last_metrics = self.step_recurrent_sample(s)
+            phase_deg = int(math.degrees(s.phase_rad)) % 360
+            tokens.append(f"TOK_{s.kind.value[:3]}_{s.layer.value[:2]}_{phase_deg:03d}")
 
         # Estimate fundamental frequency from timestamps if multiple samples exist
         if len(samples) > 1:
@@ -205,15 +268,8 @@ class RecurrentVariationsStreamDecoder:
         else:
             freq = 60.0  # Default nominal 60 Hz base
 
-        # Quantize variation samples into alphanumeric tokens
-        tokens: List[str] = []
-        for s in samples:
-            phase_deg = int(math.degrees(s.phase_rad)) % 360
-            tokens.append(f"TOK_{s.kind.value[:3]}_{s.layer.value[:2]}_{phase_deg:03d}")
-
-        # Stability score decays with jitter volatility
-        jitter_std = math.sqrt(sum((j - mean_jitter) ** 2 for j in jitters) / len(jitters))
-        stability = max(0.05, min(0.99, 1.0 - (jitter_std / max(100.0, mean_jitter + 1.0))))
+        mean_jitter = last_metrics.get("mean_jitter_ns", 0.0)
+        stability = last_metrics.get("stability_score", 1.0)
 
         return DecodedHarmonicStream(
             stream_id=stream_id,

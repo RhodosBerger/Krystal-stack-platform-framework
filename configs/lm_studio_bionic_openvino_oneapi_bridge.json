@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "bridge_name": "Krystal-Sovereign-LMStudio-Bionic-OpenVINO-oneAPI-Bridge",
+  "license": "Apache-2.0",
+  "constitutional_invariants": {
+    "vital_max_hp": 6,
+    "hysteresis_dwell_frames": 12,
+    "max_uma_bus_pressure": 0.78,
+    "zero_copy_frame_alignment_bytes": 128,
+    "proposer_equals_evaluator": false
+  },
+  "endpoints": {
+    "krystal_sovereign_proxy": {
+      "base_url": "http://127.0.0.1:8090/v1",
+      "chat_completions": "http://127.0.0.1:8090/v1/chat/completions",
+      "models_list": "http://127.0.0.1:8090/v1/models",
+      "neurosymbolic_facts_ask": "http://127.0.0.1:8090/api/v1/facts/_ask",
+      "neurosymbolic_facts_bulk": "http://127.0.0.1:8090/api/v1/facts/_bulk",
+      "hardware_status": "http://127.0.0.1:8090/api/v1/hardware/status"
+    },
+    "lm_studio_upstream": {
+      "base_url": "http://127.0.0.1:1234/v1",
+      "chat_completions": "http://127.0.0.1:1234/v1/chat/completions",
+      "models_list": "http://127.0.0.1:1234/v1/models",
+      "timeout_ms": 15000,
+      "prefill_compression_mode": "NEUROSYMBOLIC_FACT_INJECTION_48_TOKENS"
+    },
+    "bionic_gpt_connector": {
+      "openai_api_base": "http://127.0.0.1:8090/v1",
+      "api_key": "krystal-sovereign-local-key",
+      "default_model": "qwen3-14b-sk"
+    }
+  },
+  "openvino_oneapi_pipeline": {
+    "cpu_micro_tensor_threshold_bytes": 16384,
+    "cpu_execution_provider": "oneAPI_oneDNN_AVX2_VNNI",
+    "gpu_execution_provider": "OpenVINO_LevelZero_IrisXe_Arc_DP4A",
+    "kv_cache_quantization": "INT8_U8",
+    "weight_compression": "INT4_SYM_AWQ",
+    "chronometric_vblank_sync_hz": 60
+  },
+  "internet_source_provenance_policy": {
+    "default_unverified_web_status": "HYPOTHESIS_ONLY_NEVER_FACT",
+    "tiers": {
+      "TIER_1_OFFICIAL_AUTHORITY": {
+        "epistemic_class": "VERIFIED_WITH_SCOPE",
+        "allowed_domains": [
+          "*.gov.sk",
+          "*.slov-lex.sk",
+          "*.europa.eu",
+          "*.nist.gov",
+          "*.khronos.org",
+          "*.intel.com",
+          "*.ietf.org"
+        ],
+        "require_rfc8785_sha256_digest": true,
+        "allow_direct_fact_store_commit": true
+      },
+      "TIER_2_TECHNICAL_PRIMARY_SOURCE": {
+        "epistemic_class": "MEASURED_WITH_SCOPE",
+        "allowed_domains": [
+          "github.com/inofficial/Krystal-stack-platform-framework",
+          "arxiv.org",
+          "docs.openvino.ai",
+          "oneapi-src.github.io"
+        ],
+        "require_dual_seed_ast_consensus": true,
+        "allow_direct_fact_store_commit": true
+      },
+      "TIER_3_OPEN_INTERNET_DISCOVERY": {
+        "epistemic_class": "UNKNOWN",
+        "description": "Neoficiálne weby, blogy a fóra slúžia len ako hypotéza (EXPLORE). Nikdy sa nepovýšia na fakt bez krížového potvrdenia z TIER_1 alebo TIER_2.",
+        "allow_direct_fact_store_commit": false,
+        "on_conflict_with_tier1": "DISCARD_AND_KEEP_TIER1"
+      }
+    }
+  }
+}

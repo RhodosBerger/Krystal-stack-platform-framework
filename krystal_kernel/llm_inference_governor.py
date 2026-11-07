@@ -7,7 +7,8 @@ Classification: [IMPLEMENTED]
 Core Implementation:
   1. LLMInferenceState - Authoritative state tracking token throughput & health.
   2. StaticBaselineGovernor - Greedy dispatch without bus awareness.
-  3. AdaptiveInferenceGovernor - Chronometric shadow multiplexer & backpressure.
+  3. AdaptiveInferenceGovernor - Chronometric shadow multiplexer & backpressure
+     with KSPP Principle 8 (12-frame dwell hysteresis & O(1) Merkle-Momentum).
   4. Integration with AepTransactionalEngine (WorkloadType.INFERENCE).
   5. Invariant Preservation - VITAL_MAX_HP == 6.
 """
@@ -17,6 +18,7 @@ from __future__ import annotations
 import copy
 import dataclasses
 import enum
+import hashlib
 import os
 import sys
 import time
@@ -27,6 +29,7 @@ WORKSPACE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if WORKSPACE_ROOT not in sys.path:
     sys.path.insert(0, WORKSPACE_ROOT)
 
+from krystal_kernel.constants import HYSTERESIS_DWELL_FRAMES
 from krystal_kernel.aep_engine import (
     AepTransactionalEngine,
     AepReceipt,
@@ -42,6 +45,9 @@ from krystal_kernel.slovak_llm_adapter import (
     InferenceRequest,
     InferenceResponse,
     ModelSpec,
+)
+from krystal_kernel.sovereign_recurrent_stream_emulator import (
+    RecurrentPathwaysGovernorExtension,
 )
 
 
@@ -64,6 +70,10 @@ class LLMInferenceState:
     backpressure_drops: int = 0
     last_action: str = "INIT"
     vital_max_hp: int = VITAL_MAX_HP
+    merkle_momentum: float = 0.0
+    recurrent_state_digest: str = ""
+    hysteresis_dwell_counter: int = 0
+    hysteresis_pinned_cpu: bool = False
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -105,6 +115,27 @@ def transition_llm_inference(
     )
     new_state["vital_max_hp"] = VITAL_MAX_HP
 
+    # O(1) Recurrent Merkle-Momentum update (KSPP Principle 8: M_k = gamma * M_{k-1} + w_k)
+    gamma = float(action_payload.get("gamma_decay", 0.85))
+    evidence_weight = float(action_payload.get("evidence_weight", 1.0))
+    prev_momentum = float(new_state.get("merkle_momentum", 0.0))
+    new_state["merkle_momentum"] = round((gamma * prev_momentum) + evidence_weight, 4)
+
+    # Cryptographic recurrent state digest chain
+    prev_digest = str(new_state.get("recurrent_state_digest", ""))
+    req_id = str(telemetry.get("request_id", new_state["completed_requests"]))
+    chain_material = (
+        f"{prev_digest}:{req_id}:{new_state['completed_requests']}:"
+        f"{new_state['total_tokens_generated']}:{new_state['merkle_momentum']}:{VITAL_MAX_HP}"
+    ).encode("utf-8")
+    new_state["recurrent_state_digest"] = hashlib.sha256(chain_material).hexdigest()
+
+    # Hysteresis state tracking (P8)
+    if "hysteresis_dwell_counter" in action_payload:
+        new_state["hysteresis_dwell_counter"] = int(action_payload["hysteresis_dwell_counter"])
+    if "hysteresis_pinned_cpu" in action_payload:
+        new_state["hysteresis_pinned_cpu"] = bool(action_payload["hysteresis_pinned_cpu"])
+
     # Expose actual device and telemetry for AepReceipt capture
     new_state["actual_device"] = telemetry.get("actual_device", "CPU")
     new_state["requested_device"] = telemetry.get("requested_device", "GPU")
@@ -118,7 +149,8 @@ def transition_llm_inference(
 class AepInferenceGovernor:
     """
     Deterministic AEP Governor managing LLM inference pipelines.
-    Supports STATIC_BASELINE (greedy) and ADAPTIVE_GOVERNOR (bus-aware) modes.
+    Supports STATIC_BASELINE (greedy) and ADAPTIVE_GOVERNOR (bus-aware) modes,
+    with KSPP Principle 8 12-frame dwell hysteresis and O(1) Merkle-Momentum.
     """
 
     def __init__(
@@ -127,6 +159,11 @@ class AepInferenceGovernor:
         adapter: Optional[SlovakLLMAdapter] = None,
         engine: Optional[AepTransactionalEngine] = None,
         max_pressure_threshold: float = 0.85,
+        enable_hysteresis: bool = True,
+        hysteresis_dwell_frames: int = HYSTERESIS_DWELL_FRAMES,
+        gamma_decay: float = 0.85,
+        pathway_governor: Optional[RecurrentPathwaysGovernorExtension] = None,
+        measurement_id: str = "MEAS-LLM-INFERENCE",
     ) -> None:
         self.mode = mode
         self.adapter = adapter or SlovakLLMAdapter()
@@ -134,6 +171,13 @@ class AepInferenceGovernor:
             invariants=[VitalHpInvariantRule()],
             max_pressure_threshold=max_pressure_threshold,
         )
+        self.enable_hysteresis = enable_hysteresis
+        self.hysteresis_dwell_frames = hysteresis_dwell_frames
+        self.gamma_decay = gamma_decay
+        self.pathway_governor = pathway_governor or RecurrentPathwaysGovernorExtension(vital_max_hp=VITAL_MAX_HP)
+        self.measurement_id = measurement_id
+        self.pathway_governor.register_pathway(self.measurement_id, "AEP_LLM_RECURRENT_PATHWAY")
+
         self.current_state = LLMInferenceState(
             session_id=f"SESS-{time.time_ns()}",
             active_model=self.adapter.model_spec.model_id,
@@ -150,7 +194,8 @@ class AepInferenceGovernor:
     ) -> Tuple[bool, AepReceipt, Optional[InferenceResponse]]:
         """
         Dispatches inference through governor policy and AEP transaction gate.
-        Enforces zero-dirty mutation on backpressure rejection.
+        Enforces zero-dirty mutation on backpressure rejection and 12-frame dwell
+        hysteresis when recovering from CPU fallback to GPU.
         """
         runtime_id = f"AEP-INF-{self.mode.value}"
 
@@ -158,6 +203,8 @@ class AepInferenceGovernor:
         effective_max_tokens = max_tokens
         effective_device = target_device
         execution_lane = ExecutionLane.COMPUTE
+        next_dwell_counter = self.current_state.hysteresis_dwell_counter
+        next_pinned_cpu = self.current_state.hysteresis_pinned_cpu
 
         if self.mode == GovernorMode.STATIC_BASELINE:
             # Greedy dispatch: Ignore bus pressure completely
@@ -166,9 +213,9 @@ class AepInferenceGovernor:
             execution_lane = ExecutionLane.COMPUTE
 
         elif self.mode == GovernorMode.ADAPTIVE_GOVERNOR:
-            # Adaptive Chronometric Multiplexing
+            # Adaptive Chronometric Multiplexing + KSPP P8 12-frame Hysteresis
             if current_bus_pressure < 0.40:
-                # Green Zone: Full throughput
+                # Green Zone: Full throughput (unless pinned on CPU during hysteresis dwell)
                 effective_max_tokens = max_tokens
                 effective_device = target_device
                 execution_lane = ExecutionLane.COMPUTE
@@ -178,15 +225,37 @@ class AepInferenceGovernor:
                 effective_device = target_device
                 execution_lane = ExecutionLane.COMPUTE
             elif current_bus_pressure < 0.85:
-                # Orange Zone: Contention. Emergency compression + route to CPU
+                # Orange Zone: Contention. Immediate downscale to CPU (KSPP P8)
                 # to liberate Iris Xe UMA bandwidth for render scanout
                 effective_max_tokens = min(24, max_tokens)
                 effective_device = "CPU"
                 execution_lane = ExecutionLane.BACKGROUND
+                if self.enable_hysteresis and target_device == "GPU":
+                    next_pinned_cpu = True
+                    next_dwell_counter = 0
             else:
                 # Red Zone: Critical saturation. Pre-emptively reject before running
                 # to prevent bus starvation.
                 pass
+
+            # Enforce 12-frame dwell hysteresis on upscale from CPU -> GPU
+            if (
+                self.enable_hysteresis
+                and current_bus_pressure < 0.70
+                and self.current_state.hysteresis_pinned_cpu
+                and target_device == "GPU"
+            ):
+                next_dwell_counter = self.current_state.hysteresis_dwell_counter + 1
+                if next_dwell_counter < self.hysteresis_dwell_frames:
+                    # Remain pinned to CPU until dwell period completes (anti-oscillation)
+                    effective_device = "CPU"
+                    execution_lane = ExecutionLane.BACKGROUND
+                    effective_max_tokens = min(effective_max_tokens, max(16, max_tokens // 2))
+                    next_pinned_cpu = True
+                else:
+                    # Dwell complete: release CPU pin and restore GPU
+                    next_pinned_cpu = False
+                    next_dwell_counter = 0
 
         # 2. Check engine backpressure rejection (L7)
         if current_bus_pressure > self.engine.max_pressure_threshold:
@@ -241,10 +310,21 @@ class AepInferenceGovernor:
             )
             return False, result.receipt, None
 
+        # Record recurrent pathway telemetry hit
+        pathway_mult = self.pathway_governor.record_pathway_hit(
+            self.measurement_id,
+            detected_stress=(current_bus_pressure >= 0.70),
+        )
+
         # 4. State Transition & Commit via AEP Engine
         action_payload = {
             "action": "INFERENCE_EXECUTE",
             "inference_telemetry": inference_resp.to_dict(),
+            "gamma_decay": self.gamma_decay,
+            "evidence_weight": 1.0,
+            "hysteresis_dwell_counter": next_dwell_counter,
+            "hysteresis_pinned_cpu": next_pinned_cpu,
+            "pathway_throttle_multiplier": pathway_mult,
         }
 
         result = self.engine.execute_transition(
@@ -277,6 +357,10 @@ class AepInferenceGovernor:
                     backpressure_drops=result.state.get("backpressure_drops", 0),
                     last_action=result.state.get("last_action", "INFERENCE_EXECUTE"),
                     vital_max_hp=result.state.get("vital_max_hp", VITAL_MAX_HP),
+                    merkle_momentum=result.state.get("merkle_momentum", 0.0),
+                    recurrent_state_digest=result.state.get("recurrent_state_digest", ""),
+                    hysteresis_dwell_counter=result.state.get("hysteresis_dwell_counter", 0),
+                    hysteresis_pinned_cpu=result.state.get("hysteresis_pinned_cpu", False),
                 )
             return True, result.receipt, inference_resp
         else:
