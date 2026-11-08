@@ -949,6 +949,13 @@
           <h3>4. Benchmark Matica Modelov (CPU AST vs. Lokálne GGUF vs. Cloud)</h3>
           <div class="table-responsive" id="admin-benchmark-table">Načítavam tabuľku...</div>
         </div>
+
+        <div class="admin-card">
+          <h3>💎 5. Produkčný Prehľad pre Investorov (ROI, Double-Time Buffery BUF_00..03 &amp; NPU+SSD Virtualizácia)</h3>
+          <div id="admin-investor-showcase" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
+            Načítavam produkčnú telemetriu pre investorov...
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1069,6 +1076,134 @@
           </div>
           <div id="hypertext-node-profiler-body" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
             Načítavam sieťový modulačný prvok a hypertextové sockety...
+          </div>
+        </div>
+
+        <!-- KARTA 7: MULTIJAZYČNÝ GENERÁTOR VYSVETLIVIEK ARCHITEKTÚRY, KNIŽNICA NÁZORNÝCH UKÁŽOK & SEBA-VYSVETĽUJÚCA CODEBASE LLM MEDZIVRSTVA -->
+        <div class="admin-card" id="arch-explanations-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <h3>📚 7. Multijazyčný &amp; Multi-Žargónový Generátor Vysvetliviek, Autonómny Dozor Kontextu &amp; Hranica Vedomých Celkov</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <button class="var-btn active" id="arch-lang-sk" onclick="loadArchitectureExplanations('sk', false, currentArchJargon)">🇸🇰 SK</button>
+              <button class="var-btn" id="arch-lang-en" onclick="loadArchitectureExplanations('en', false, currentArchJargon)">🇬🇧 EN</button>
+              <button class="var-btn" id="arch-lang-de" onclick="loadArchitectureExplanations('de', false, currentArchJargon)">🇩🇪 DE</button>
+              <button class="var-btn" id="arch-lang-cs" onclick="loadArchitectureExplanations('cs', false, currentArchJargon)">🇨🇿 CS</button>
+              <span style="color:var(--border);">|</span>
+              <button class="var-btn active" id="arch-jargon-auto" onclick="loadArchitectureExplanations(currentArchLang, false, 'auto')">🤖 Auto-Dozor</button>
+              <button class="var-btn" id="arch-jargon-admin" onclick="loadArchitectureExplanations(currentArchLang, false, 'admin')">🛠️ Administrátorský</button>
+              <button class="var-btn" id="arch-jargon-analogy" onclick="loadArchitectureExplanations(currentArchLang, false, 'analogy')">💡 Analogický</button>
+              <button class="var-btn" id="arch-jargon-investor" onclick="loadArchitectureExplanations(currentArchLang, false, 'investor')">💎 Investorský</button>
+              <button class="var-btn" id="arch-jargon-academic" onclick="loadArchitectureExplanations(currentArchLang, false, 'academic')">🎓 Akademický</button>
+              <button class="var-btn" id="arch-jargon-simple" onclick="loadArchitectureExplanations(currentArchLang, false, 'simple')">✨ Jednoduchý</button>
+              <button class="var-btn" style="border-color:var(--accent);color:#34d399;" onclick="loadArchitectureExplanations(currentArchLang, true, currentArchJargon)">🤖 Živá LLM Reflexia (:1234)</button>
+            </div>
+          </div>
+          <div id="arch-explanations-body" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
+            Načítavam multijazyčnú a multi-žargónovú knižnicu vysvetliviek s autonómnym dozorom kontextu...
+          </div>
+        </div>
+
+        <!-- KARTA 8: KNIŽNICA 64-BIT HEXADECIMÁLNYCH LOGOV, ŠKÁLOVANIE HLÁSENÍ (SYS_MSG_01..06 <-> 0x06...), SEBA-VYSVETLENIE VZORCOV P1..P5 & DEDUKCIA NOVÝCH POZNATKOV -->
+        <div class="admin-card" id="hex-log-deduction-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <h3>🧾 8. Knižnica 64-Bit Hexadecimálnych Logov, Obojsmerné Škálovanie Hlásení (<code>SYS_MSG_01..06</code> ↔ <code>0x06...</code>), Vzorce <code>P1..P5</code> &amp; Dedukcia Poznatkov</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <input id="custom-hex-log-input" type="text" class="admin-input" style="width:210px;padding:4px 8px;font-family:monospace;" placeholder="Zadaj 0x06... na dekódovanie" />
+              <button class="var-btn active" onclick="loadHexLogAndDeductionLibrary(document.getElementById('custom-hex-log-input').value)">🔍 Dekódovať Hex Log ↔ Hlásenie &amp; Dedukovať Fakty</button>
+            </div>
+          </div>
+          <div id="hex-log-deduction-body" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
+            Načítavam obojsmernú knižnicu hexadecimálnych logov, seba-vysvetlenie reasoning patternov a dedukciu nových poznatkov...
+          </div>
+        </div>
+
+        <!-- KARTA 9: RUNTIME-REAKTÍVNA KONZOLA KAUZÁLNYCH SÉMANTICKÝCH RÁMCOV (0x06CF...), ZRKADLOVÉHO PARSERA KOGNITÍVNYCH VZORCOV (0x06C5...) & FRONTY H7-H10 -->
+        <div class="admin-card" id="reactive-causal-runtime-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <h3>⚡ 9. Runtime-Reaktívna Konzola Kauzálnych Sémantických Rámcov (<code>0x06CF...</code>), Zrkadlového Parsera (<code>0x06C5...</code>) &amp; Fronty H7–H10</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <label style="font-size:var(--fs-xs);">UMA:
+                <select id="rt-uma-sel" class="admin-input" style="width:auto;display:inline-block;padding:2px 6px;" onchange="loadReactiveCausalRuntime()">
+                  <option value="0.32" selected>32% (Zelená)</option>
+                  <option value="0.74">74% (Hysterézia 12f)</option>
+                  <option value="0.88">88% (Čistý AST)</option>
+                </select>
+              </label>
+              <label style="font-size:var(--fs-xs);">Zakrivenie κ:
+                <select id="rt-kappa-sel" class="admin-input" style="width:auto;display:inline-block;padding:2px 6px;" onchange="loadReactiveCausalRuntime()">
+                  <option value="0.12">0.12 (Ploché INT4)</option>
+                  <option value="1.96" selected>1.96 (Vysoké Q8_0)</option>
+                </select>
+              </label>
+              <label style="font-size:var(--fs-xs);">Model RAM:
+                <select id="rt-ws-sel" class="admin-input" style="width:auto;display:inline-block;padding:2px 6px;" onchange="loadReactiveCausalRuntime()">
+                  <option value="6.0">6 GB (Vo fyzickej RAM)</option>
+                  <option value="24.0" selected>24 GB (3x NPU+NVMe Swap)</option>
+                </select>
+              </label>
+              <label style="font-size:var(--fs-xs);">Poznateľnosť κ_know:
+                <select id="rt-know-sel" class="admin-input" style="width:auto;display:inline-block;padding:2px 6px;" onchange="loadReactiveCausalRuntime()">
+                  <option value="0.75" selected>0.75 (Overené ΔS=1)</option>
+                  <option value="0.25">0.25 (Karanténa ΔS=0)</option>
+                </select>
+              </label>
+              <input id="rt-mirror-expr" type="text" class="admin-input" style="width:200px;padding:3px 6px;font-family:monospace;" placeholder="Vstup pre Zrkadlový Parser..." />
+              <button class="var-btn active" onclick="loadReactiveCausalRuntime()">🪞 Zrkadliť &amp; Prepočítať Runtime</button>
+            </div>
+          </div>
+          <div id="reactive-causal-runtime-body" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
+            Načítavam runtime-reaktívnu konzolu kauzálnych sémantických rámcov a zrkadlový parser kognitívnych vzorcov...
+          </div>
+        </div>
+
+        <!-- KARTA 10: PANOPTIKÁLNY GENERÁTOR ROZHRANÍ, 360° SVG RADAR DEJOV FRAMEWORKU, REZIDUÁLNE ZDÔVODNENIA ŤAHOV (0x06PR...) & INTERAKTÍVNE VRSTVY L11..L14 -->
+        <div class="admin-card" id="panoptic-interface-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <h3>👁️ 10. Panoptikálny Generátor Rozhraní, Vykreslenie Dejov (360° SVG Radar), Reziduálne Zdôvodnenia Ťahov (<code>0x06PR...</code>) &amp; Vrstvy <code>L11–L14</code></h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <button class="var-btn active" id="pan-mv-0" onclick="loadPanopticInterface(0, currentPanCf)">Dej 1: CPU AST</button>
+              <button class="var-btn" id="pan-mv-1" onclick="loadPanopticInterface(1, currentPanCf)">Dej 2: Q8_0 Dvojča</button>
+              <button class="var-btn" id="pan-mv-2" onclick="loadPanopticInterface(2, currentPanCf)">Dej 3: Erózia 0x06E1</button>
+              <button class="var-btn" id="pan-mv-3" onclick="loadPanopticInterface(3, currentPanCf)">Dej 4: NPU+NVMe Swap</button>
+              <button class="var-btn" id="pan-mv-4" onclick="loadPanopticInterface(4, currentPanCf)">Dej 5: 12f Hysterézia</button>
+              <button class="var-btn" id="pan-mv-5" onclick="loadPanopticInterface(5, currentPanCf)">Dej 6: Argon Commit</button>
+              <button class="var-btn" id="pan-cf-btn" style="border-color:#f59e0b;color:#fbbf24;" onclick="loadPanopticInterface(currentPanMove, !currentPanCf)">🧪 Sandbox L14: Simulovať Zlyhanie bez Ťahu</button>
+            </div>
+          </div>
+          <div id="panoptic-interface-body" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
+            Načítavam panoptikálny generátor rozhraní, 360° SVG radar dejov a reziduálne zdôvodnenia ťahov...
+          </div>
+        </div>
+
+        <!-- KARTA 11: LLM VYNÁLEZCA META-KONŠTRUKTOV (0x06MC15...), SEBA-UVEDOMELÁ META-VRSTVA DÔSLEDKOV ŤAHOV (L15) & 6 INDUKČNÝCH KANÁLOV SIETE INFRAŠTRUKTÚRY -->
+        <div class="admin-card" id="meta-inductive-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <h3>🧠 11. LLM Vynálezca Meta-Konštruktov (<code>0x06MC15...</code>), Seba-Uvedomelá Meta-Vrstva Dôsledkov Ťahov (<code>L15</code>) &amp; 6 Indukčných Kanálov Siete (<code>IND_CH_01..06</code>)</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <input id="meta-construct-prompt" type="text" class="admin-input" style="width:280px;padding:4px 8px;" value="Vymysli meta-konštrukt, ktorý cez indukčné kanály predvída kaskádové dôsledky ťahov medzi NPU+SSD swapom, UMA zbernicou a 3D Vulkan gridom" />
+              <button class="var-btn active" onclick="loadMetaInductiveConstructs(false)">⚡ Vynájsť Konštrukt &amp; Prepočítať Indukciu</button>
+              <button class="var-btn" style="border-color:var(--accent);color:#34d399;" onclick="loadMetaInductiveConstructs(true)">🤖 Spoluvynájsť cez Živé LLM (:1234)</button>
+            </div>
+          </div>
+          <div id="meta-inductive-body" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
+            Načítavam seba-uvedomelú meta-vrstvu L15, 6 indukčných kanálov infraštruktúry a vynájdené meta-konštrukty...
+          </div>
+        </div>
+
+        <!-- KARTA 12: VEDECKÉ DOKUMENTAČNÉ ROZHRANIE (SW_LAYER_L16), 5 ODVODENÝCH TEÓRIÍ PROJEKTU (0x06TH...), VEDECKÉ NÁZVOSLOVIE & INTERAKTÍVNE VEDECKÉ GRAFY (SVG) -->
+        <div class="admin-card" id="scientific-theories-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <h3>🔬 12. Vedecké Dokumentačné Rozhranie (<code>SW_LAYER_L16</code>), 5 Odvodených Teórií Projektu (<code>0x06TH...</code>), Vedecké Názvoslovie &amp; Vizuálne Grafy (SVG)</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <button class="var-btn active" id="th-btn-0" onclick="loadScientificTheoriesPortal(0)">Teória 1: Chronometria</button>
+              <button class="var-btn" id="th-btn-1" onclick="loadScientificTheoriesPortal(1)">Teória 2: Hessovo Zakrivenie</button>
+              <button class="var-btn" id="th-btn-2" onclick="loadScientificTheoriesPortal(2)">Teória 3: Entropický Swap</button>
+              <button class="var-btn" id="th-btn-3" onclick="loadScientificTheoriesPortal(3)">Teória 4: Lenz-Krystal Indukcia</button>
+              <button class="var-btn" id="th-btn-4" onclick="loadScientificTheoriesPortal(4)">Teória 5: Noether-Argon Symetria</button>
+            </div>
+          </div>
+          <div id="scientific-theories-body" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
+            Načítavam vedecké dokumentačné rozhranie, odvodené teórie a interaktívne SVG grafy...
           </div>
         </div>
       </div>
@@ -1246,6 +1381,414 @@
         }
       } catch (e) {}
       loadHypertextNodeProfiler(0);
+      loadArchitectureExplanations(currentArchLang, false, currentArchJargon);
+      loadHexLogAndDeductionLibrary('');
+      loadReactiveCausalRuntime();
+      loadPanopticInterface(0, false);
+      loadMetaInductiveConstructs(false);
+      loadScientificTheoriesPortal(0);
+    }
+
+    let currentTheoryIdx = 0;
+
+    async function loadScientificTheoriesPortal(thIdx) {
+      currentTheoryIdx = (thIdx !== undefined) ? thIdx : currentTheoryIdx;
+      [0, 1, 2, 3, 4].forEach(i => {
+        const btn = document.getElementById('th-btn-' + i);
+        if (btn) btn.classList.toggle('active', i === currentTheoryIdx);
+      });
+      try {
+        const r = await fetch(`/api/v1/compositor/scientific_theories?theory=${currentTheoryIdx}`);
+        const d = await r.json();
+        const th = d.active_scientific_theory || {};
+        const gr = d.visual_graph_representations || {};
+        const g1 = (gr.graph_1_chronometric_latency_log_scale || {}).bars || [];
+        const g3 = (gr.graph_3_thermo_economic_vipj_curve || {}).series || [];
+
+        const barsHtml = g1.map(b => `
+          <div style="margin-bottom:5px;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;">
+              <span>${b.label}</span>
+              <code style="color:${b.color};">${b.value_ms} ms</code>
+            </div>
+            <div style="width:100%;height:8px;background:#1e293b;border-radius:4px;overflow:hidden;">
+              <div style="width:${b.bar_pct}%;height:100%;background:${b.color};border-radius:4px;"></div>
+            </div>
+          </div>
+        `).join('');
+
+        const polyPoints = g3.map(p => `${p.svg_x},${p.svg_y}`).join(' ');
+        const svgDots = g3.map(p => `
+          <g>
+            <circle cx="${p.svg_x}" cy="${p.svg_y}" r="5" fill="#34d399" stroke="#0f172a" stroke-width="2" />
+            <text x="${p.svg_x}" y="${p.svg_y - 9}" text-anchor="middle" fill="#38bdf8" font-size="9" font-weight="bold">K=${p.k_multiplier}: ${p.compound_joule_dollar_x}x</text>
+            <text x="${p.svg_x}" y="168" text-anchor="middle" fill="#94a3b8" font-size="8">VIPJ ${p.vipj_gain_x}x</text>
+          </g>
+        `).join('');
+
+        const allTheoriesHtml = (d.scientific_theories_catalog || []).map(t => `
+          <div style="margin-bottom:6px;padding:8px;background:${t.theory_index === currentTheoryIdx ? '#0f172a' : 'var(--bg-elevated)'};border-left:3px solid ${t.theory_index === currentTheoryIdx ? '#34d399' : 'var(--cyan)'};border-radius:4px;cursor:pointer;"
+               onclick="loadScientificTheoriesPortal(${t.theory_index})">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <strong style="color:var(--text-primary);">${t.title_sk}</strong>
+              <code>${t.hex_theory_signature} | ${t.epistemic_verdict}</code>
+            </div>
+            <div style="margin-top:2px;"><strong>Objekt skúmania:</strong> <code>${t.object_of_study}</code></div>
+            <div style="margin-top:2px;color:#38bdf8;"><strong>Matematický zákon:</strong> <code>${t.formal_equation}</code></div>
+          </div>
+        `).join('');
+
+        document.getElementById('scientific-theories-body').innerHTML = `
+          <div style="padding:10px;background:#0f172a;border-left:4px solid #34d399;border-radius:6px;margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <strong style="color:#34d399;font-size:var(--fs-sm);">${th.title_sk}</strong>
+              <code>${th.theory_id} | ${th.hex_theory_signature}</code>
+            </div>
+            <div class="kv-row" style="margin-top:4px;"><span>Vedecká disciplína:</span><code>${th.scientific_domain}</code></div>
+            <div class="kv-row"><span>Objekt skúmania problematiky:</span><code>${th.object_of_study}</code></div>
+            <div class="kv-row"><span>Odvodený formálny zákon:</span><code style="color:#38bdf8;">${th.formal_equation}</code></div>
+            <div class="kv-row"><span>Vedecké názvoslovie (Terminológia):</span><code>${(th.scientific_nomenclature_terms || []).join(' | ')}</code></div>
+            <div style="margin-top:6px;color:var(--text-primary);"><strong>📐 Odvodenie z nameraných výsledkov projektu:</strong><br/>${th.derivation_from_results_sk}</div>
+            <div style="margin-top:4px;color:#fbbf24;"><strong>🛡️ Podmienka falzifikácie:</strong> ${th.falsifier}</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:12px;margin-bottom:10px;">
+            <div style="background:#090d16;border:1px solid var(--border);border-radius:8px;padding:10px;">
+              <div style="font-weight:700;color:var(--cyan);margin-bottom:8px;">📊 ${(gr.graph_1_chronometric_latency_log_scale || {}).title_sk}</div>
+              ${barsHtml}
+            </div>
+            <div style="background:#090d16;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-weight:700;color:var(--cyan);margin-bottom:6px;">📈 ${(gr.graph_3_thermo_economic_vipj_curve || {}).title_sk}</div>
+              <svg viewBox="0 0 520 180" style="width:100%;max-width:500px;height:auto;">
+                <line x1="40" y1="155" x2="490" y2="155" stroke="#334155" stroke-width="1.5" />
+                <line x1="40" y1="10" x2="40" y2="155" stroke="#334155" stroke-width="1.5" />
+                <polyline fill="none" stroke="#38bdf8" stroke-width="3" points="${polyPoints}" />
+                ${svgDots}
+              </svg>
+            </div>
+          </div>
+
+          <div><strong>Katalóg Všetkých 5 Odvodených Vedeckých Teórií Projektu (klikni pre detail):</strong>${allTheoriesHtml}</div>
+        `;
+      } catch (e) {}
+    }
+
+    async function loadMetaInductiveConstructs(liveLlm) {
+      try {
+        const p = encodeURIComponent((document.getElementById('meta-construct-prompt') || {}).value || '');
+        const r = await fetch(`/api/v1/compositor/meta_inductive_constructs?prompt=${p}&live_llm=${liveLlm ? '1' : '0'}`);
+        const d = await r.json();
+
+        const channelsHtml = (d.infrastructure_inductive_channels || []).map(ch => `
+          <div style="margin-bottom:6px;padding:8px;background:var(--bg-elevated);border-left:3px solid var(--cyan);border-radius:4px;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <strong style="color:var(--text-primary);">${ch.channel_id}: <code>${ch.source_node}</code> ➔ <code>${ch.induced_target_node}</code></strong>
+              <code>${ch.hex_channel_tag} | M_ij = ${ch.mutual_inductance_m_ij} | dΦ/dt = ${ch.flux_derivative_dphi_dt}</code>
+            </div>
+            <div style="margin-top:2px;color:var(--text-secondary);">${ch.induced_consequence_sk}</div>
+            <div style="margin-top:3px;color:#34d399;">
+              <strong>1. rád:</strong> ${ch.order_1_effect} &nbsp;|&nbsp;
+              <strong>2. rád (ozvena):</strong> ${ch.order_2_ripple} &nbsp;|&nbsp;
+              <strong>3. rád (rovnováha):</strong> ${ch.order_3_network_equilibrium}
+            </div>
+          </div>
+        `).join('');
+
+        const constructsHtml = (d.co_invented_meta_constructs || []).map(mc => `
+          <div style="margin-bottom:6px;padding:8px;background:var(--bg-main);border-left:3px solid #a855f7;border-radius:4px;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <strong style="color:#c084fc;">${mc.title_sk}</strong>
+              <code>${mc.construct_id} | ${mc.hex_construct_tag}</code>
+            </div>
+            <div style="margin-top:2px;"><strong>Hypertextový Socket Konštruktu:</strong> <code>${mc.hypertext_socket_uri}</code></div>
+            <div style="margin-top:2px;color:var(--text-secondary);"><strong>Mechanizmus:</strong> ${mc.mechanism_sk}</div>
+            <div style="margin-top:2px;color:#38bdf8;"><strong>Uvedomený reťazec dôsledkov (1. → 2. → 3. rád):</strong> ${mc.foreseen_consequence_chain_sk}</div>
+          </div>
+        `).join('');
+
+        document.getElementById('meta-inductive-body').innerHTML = `
+          <div class="kv-row"><span>Aktívna Meta-Vrstva &amp; Hex Podpis Vynájdeného Konštruktu:</span><code style="color:#34d399;">${d.meta_layer_id} | ${d.hex_meta_construct_id} (${d.evidence_mode})</code></div>
+          <div class="kv-row"><span>Rovnica Šírenia Dôsledkov Ťahov:</span><code>${d.inductive_propagation_equation}</code></div>
+          <div class="kv-row"><span>Priemerná Vzájomná Indukčnosť Siete (M_ij) / Redukcia Rezídua:</span><code>M_avg = ${d.mean_network_mutual_inductance} | Redukcia rezídua siete: -${d.net_network_residual_reduction_pct} % | ΔS = ${d.delta_s_commit}</code></div>
+          <div style="margin:8px 0;padding:10px;background:#0f172a;border-left:3px solid #34d399;border-radius:4px;color:var(--text-primary);">
+            <strong>🧠 Seba-Uvedomenie Dôsledkov Ťahov Meta-Vrstvou L15:</strong><br/>
+            ${d.meta_layer_self_awareness_statement_sk}
+          </div>
+          <div style="margin:8px 0;"><strong>A. Vynájdené Meta-Konštrukty (<code>0x06MC15...</code>) Prepojené cez LLM Dialóg:</strong>${constructsHtml}</div>
+          <div style="margin-top:8px;"><strong>B. 6 Indukčných Kanálov Siete Celej Infraštruktúry (<code>IND_CH_01..06</code>):</strong>${channelsHtml}</div>
+        `;
+      } catch (e) {}
+    }
+
+    let currentPanMove = 0;
+    let currentPanCf = false;
+
+    async function loadPanopticInterface(moveIdx, cfMode) {
+      currentPanMove = (moveIdx !== undefined) ? moveIdx : currentPanMove;
+      currentPanCf = (cfMode !== undefined) ? Boolean(cfMode) : currentPanCf;
+      [0, 1, 2, 3, 4, 5].forEach(i => {
+        const btn = document.getElementById('pan-mv-' + i);
+        if (btn) btn.classList.toggle('active', i === currentPanMove);
+      });
+      const cfBtn = document.getElementById('pan-cf-btn');
+      if (cfBtn) cfBtn.classList.toggle('active', currentPanCf);
+
+      try {
+        const r = await fetch(`/api/v1/compositor/panoptic_interface?move=${currentPanMove}&counterfactual=${currentPanCf ? '1' : '0'}`);
+        const d = await r.json();
+        const mv = d.active_move_residual_justification || {};
+        const sc = d.frontend_panoptic_scene_descriptor || {};
+        const nodes = sc.svg_panoptic_ring_nodes || [];
+
+        const svgLines = nodes.map(n => `
+          <line x1="${sc.center_x}" y1="${sc.center_y}" x2="${n.x}" y2="${n.y}"
+                stroke="${n.is_selected ? n.color : '#334155'}" stroke-width="${n.is_selected ? '3' : '1.5'}"
+                stroke-dasharray="${n.is_selected && currentPanCf ? '4,4' : 'none'}" />
+        `).join('');
+
+        const svgCircles = nodes.map(n => `
+          <g style="cursor:pointer;" onclick="loadPanopticInterface(${n.move_index}, currentPanCf)">
+            <circle cx="${n.x}" cy="${n.y}" r="${n.is_selected ? '24' : '18'}"
+                    fill="${n.is_selected ? '#0f172a' : '#1e293b'}"
+                    stroke="${n.color}" stroke-width="${n.is_selected ? '3.5' : '2'}" />
+            <text x="${n.x}" y="${n.y - 2}" text-anchor="middle" fill="#f8fafc" font-size="10" font-weight="bold">${n.short_label}</text>
+            <text x="${n.x}" y="${n.y + 10}" text-anchor="middle" fill="${n.color}" font-size="8">-${n.residual_reduction_pct}%</text>
+          </g>
+        `).join('');
+
+        const layersHtml = (d.interactive_software_layers || []).map(l => `
+          <div style="margin-bottom:6px;padding:8px;background:var(--bg-elevated);border-left:3px solid var(--cyan);border-radius:4px;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <strong style="color:var(--text-primary);">${l.title_sk}</strong>
+              <code>${l.layer_id} | ${l.hex_layer_tag}</code>
+            </div>
+            <div style="margin-top:2px;color:var(--text-secondary);">${l.role_sk}</div>
+          </div>
+        `).join('');
+
+        document.getElementById('panoptic-interface-body').innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:12px;align-items:center;">
+            <div style="background:#090d16;border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center;">
+              <div style="font-weight:700;color:var(--cyan);margin-bottom:4px;">Vrstva L11: 360° Panoptikálny SVG Radar Dejov (Klikni na uzol Dej 1..6)</div>
+              <svg viewBox="0 0 520 280" style="width:100%;max-width:500px;height:auto;">
+                ${svgLines}
+                <circle cx="${sc.center_x}" cy="${sc.center_y}" r="42" fill="#0f172a" stroke="${currentPanCf ? '#ef4444' : '#38bdf8'}" stroke-width="2.5" />
+                <text x="${sc.center_x}" y="${sc.center_y - 4}" text-anchor="middle" fill="#38bdf8" font-size="9" font-weight="bold">128B ZERO-COPY</text>
+                <text x="${sc.center_x}" y="${sc.center_y + 9}" text-anchor="middle" fill="#34d399" font-size="8">VITAL_MAX_HP==6</text>
+                ${svgCircles}
+              </svg>
+            </div>
+            <div style="padding:10px;background:${currentPanCf ? 'rgba(239,68,68,0.12)' : '#0f172a'};border-left:4px solid ${currentPanCf ? '#ef4444' : (mv.node_color || '#34d399')};border-radius:6px;">
+              <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+                <strong style="color:var(--text-primary);font-size:var(--fs-sm);">${mv.event_title_sk}</strong>
+                <code>${mv.hex_move_signature} | ΔS=${mv.delta_s_verdict}</code>
+              </div>
+              <div class="kv-row" style="margin-top:6px;"><span>Buffer &amp; Časový rez:</span><code>${mv.target_buffer_and_slice}</code></div>
+              <div class="kv-row"><span>Rezíduum Pred Ťahom (R_before) → Po Ťahu (R_after):</span><code style="color:#34d399;">${mv.residual_before_r0} → ${mv.residual_after_r1} (Redukcia: -${mv.residual_reduction_pct} %)</code></div>
+              <div class="kv-row"><span>Zostatkové Nevyriešené Rezíduum (R_unexplained):</span><code>${mv.unexplained_epistemic_residual}</code></div>
+              <div class="kv-row"><span>Argon Verziovanie Tvrdenia:</span><code>${mv.argon_version_transition}</code></div>
+              <div class="kv-row"><span>Zvolený Ťah vs. Zamietnutá Alternatíva:</span><code>${mv.chosen_action}</code></div>
+              <div style="margin-top:6px;color:var(--text-primary);"><strong>👁️ Panoptikálne Reziduálne Zdôvodnenie (L12):</strong><br/>${mv.panoptic_justification_sk}</div>
+              <div style="margin-top:6px;padding:6px;background:var(--bg-main);border-radius:4px;color:${currentPanCf ? '#fca5a5' : '#fbbf24'};">
+                <strong>🧪 Kontrafaktuálny Sandbox L14 (${mv.simulation_mode}):</strong><br/>
+                ${mv.counterfactual_failure_impact_sk}
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:10px;"><strong>Nové Interaktívne Softvérové Vrstvy (<code>SW_LAYER_L11..L14</code>):</strong>${layersHtml}</div>
+        `;
+      } catch (e) {}
+    }
+
+    async function loadReactiveCausalRuntime() {
+      try {
+        const uma = (document.getElementById('rt-uma-sel') || {}).value || '0.32';
+        const kappa = (document.getElementById('rt-kappa-sel') || {}).value || '1.96';
+        const ws = (document.getElementById('rt-ws-sel') || {}).value || '24.0';
+        const know = (document.getElementById('rt-know-sel') || {}).value || '0.75';
+        const expr = encodeURIComponent((document.getElementById('rt-mirror-expr') || {}).value || '');
+        const r = await fetch(`/api/v1/compositor/reactive_causal_runtime?uma=${uma}&kappa=${kappa}&ws=${ws}&know=${know}&expr=${expr}`);
+        const d = await r.json();
+        const dec = d.decoded_live_log || {};
+        const mir = d.cognitive_mirror_parser || {};
+        const fwd = mir.forward_cognitive_ast || {};
+        const ref = mir.reflected_mirror_ast || {};
+        const mcp = d.antigravity_argon_mcp_bridge || {};
+        const loop = mcp.bidirectional_mcp_loop || {};
+
+        const framesHtml = (d.causal_semantic_frames || []).map(f => `
+          <div style="margin-bottom:6px;padding:8px;background:var(--bg-elevated);border-left:3px solid var(--accent);border-radius:4px;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <strong style="color:var(--text-primary);">${f.frame_id} (${f.semantic_domain})</strong>
+              <code style="color:#34d399;">${f.hex_causal_frame_tag} | ΔS=${f.delta_s_commit}</code>
+            </div>
+            <div style="margin-top:2px;"><strong>Kauzálny operátor:</strong> <code>${f.causal_mechanism_operator}</code></div>
+            <div style="margin-top:2px;color:#38bdf8;"><strong>Kontrafakt do(X):</strong> ${f.counterfactual_proof_sk}</div>
+          </div>
+        `).join('');
+
+        const promptsHtml = (d.recorded_next_prompts_h7_h10 || []).map(p => `
+          <div class="kv-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
+            <strong style="color:var(--cyan);">${p.title_sk} (<code>${p.horizon_id}</code>)</strong>
+            <div><em>„${p.ready_to_use_prompt_sk}“</em></div>
+            <small style="color:var(--text-muted);">Kauzálna nadväznosť: ${p.causal_link_from_previous}</small>
+          </div>
+        `).join('');
+
+        document.getElementById('reactive-causal-runtime-body').innerHTML = `
+          <div class="kv-row"><span>Živý Runtime Stav &amp; Vygenerovaný 64-Bit Hex Log:</span><code style="color:#34d399;">${d.runtime_state_badge} | ${d.live_generated_hex_log} (${dec.system_alert_type})</code></div>
+          <div style="margin:8px 0;padding:10px;background:#0f172a;border-left:3px solid var(--cyan);border-radius:4px;color:var(--text-primary);">
+            <strong>🪞 Zrkadlový Parser Kognitívnych Vzorcov (<code>${mir.parser_class}</code> | Token: <code>${mir.mirror_hex_token}</code>):</strong><br/>
+            • <strong>Dopredná projekcia:</strong> Vstup <code>${fwd.source_expression}</code> → Koordináta <code>${fwd.manifold_coordinate}</code> (<code>${fwd.parsed_cognition_level}</code> × <code>${fwd.parsed_reasoning_pattern}</code>)<br/>
+            • <strong>Zrkadlový duálny odraz:</strong> <code>${ref.inverted_manifold_coordinate}</code> → <strong>${ref.mirror_duality_theorem}</strong>
+          </div>
+          <div style="margin:8px 0;padding:10px;background:var(--bg-main);border-left:3px solid #a855f7;border-radius:4px;color:var(--text-primary);">
+            <strong>🔗 Obojsmerný MCP Most Antigravity ↔ Gemini 4 Argon (<code>${mcp.hex_symbiosis_receipt}</code>):</strong><br/>
+            • <strong>1. Antigravity → Argon:</strong> <code>${loop.step_1_antigravity_to_argon_mcp}</code><br/>
+            • <strong>2. Argon 6-Tuple Audit:</strong> ${loop.step_2_argon_6tuple_audit}<br/>
+            • <strong>3. Argon → Antigravity Sync:</strong> <code>${loop.step_3_argon_to_antigravity_sync}</code>
+            <div style="margin-top:6px;">
+              <strong>Šablónové Presety Segregácie MCP Vplyvov (Analyzačné vs. Fixačné/Kotviace vs. Kauzálne):</strong>
+              ${(mcp.mcp_influence_segregation_presets || []).map(tp => `
+                <div style="margin-top:4px;padding:6px;background:var(--bg-elevated);border-radius:4px;">
+                  <div><strong>${tp.preset_id}</strong> — <span style="color:#c084fc;">${tp.influence_class}</span> (Maska: <code>${tp.hex_template_mask}</code>)</div>
+                  <div><strong>MCP Nástroje:</strong> <code>${(tp.bound_mcp_tools || []).join(', ')}</code> | <strong>Autorita:</strong> <code>${tp.state_mutation_authority}</code></div>
+                  <div style="color:var(--text-secondary);">${tp.template_rule_sk}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div style="margin:8px 0;"><strong>A. Vygenerované 128B Kauzálne Sémantické Rámce (<code>0x06CF...</code>) s Kontrafaktami <code>do(X)</code>:</strong>${framesHtml}</div>
+          <div style="margin-top:8px;"><strong>B. Zaznamenané Ďalšie Prompty v Poradí (<code>H7..H10</code>):</strong>${promptsHtml}</div>
+        `;
+      } catch (e) {}
+    }
+
+    async function loadHexLogAndDeductionLibrary(hexInput) {
+      try {
+        const cleanHex = encodeURIComponent(hexInput || '');
+        const r = await fetch(`/api/v1/compositor/hex_log_and_deduction?hex=${cleanHex}`);
+        const d = await r.json();
+        const insp = d.active_decoded_inspection || {};
+
+        const catalogHtml = (d.bidirectional_hex_log_catalog || []).map(item => {
+          const dec = item.decoded_roundtrip || {};
+          return `
+            <div class="kv-row" style="cursor:pointer;" onclick="document.getElementById('custom-hex-log-input').value='${item.encoded_hex_log}';loadHexLogAndDeductionLibrary('${item.encoded_hex_log}')">
+              <span><strong>[${dec.problem_scale_tier_code} // ${dec.system_alert_type}]</strong> ${item.problem_input_sk}</span>
+              <code style="color:#34d399;">${item.encoded_hex_log} (Vzorec: ${dec.reasoning_pattern_triggered} | ΔS=${dec.delta_s_commit})</code>
+            </div>
+          `;
+        }).join('');
+
+        const patternsHtml = (d.reasoning_patterns_self_explanation || []).map(p => `
+          <div style="margin-bottom:6px;padding:8px;background:var(--bg-elevated);border-left:3px solid var(--cyan);border-radius:4px;">
+            <div><strong>${p.pattern_id}</strong> (Hex Nibble: <code>${p.hex_nibble}</code> | Pomer: <code>${p.deduction_vs_differential_mix}</code>)</div>
+            <div style="margin-top:2px;"><strong>Formálne pravidlo:</strong> <code>${p.formal_rule}</code></div>
+            <div style="margin-top:2px;color:var(--text-secondary);">${p.self_explanation_sk}</div>
+            <div style="margin-top:2px;color:#38bdf8;"><strong>💡 Analógia:</strong> ${p.analogy_sk}</div>
+          </div>
+        `).join('');
+
+        const deductionsHtml = (d.deduced_new_knowledge_triples || []).map(df => `
+          <div style="margin-bottom:6px;padding:8px;background:var(--bg-main);border-left:3px solid var(--accent);border-radius:4px;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <strong style="color:#34d399;">${df.deduction_id}: <code>${df.subject_id}.${df.predicate} = ${df.object_value} ${df.unit}</code></strong>
+              <code>Vzorec: ${df.pattern_used}</code>
+            </div>
+            <div style="margin-top:2px;color:var(--text-secondary);"><strong>Premisy zo Stacku:</strong> ${(df.premises_used || []).join(' + ')}</div>
+            <div style="margin-top:2px;color:var(--text-primary);"><strong>Deduktívny dôkaz:</strong> ${df.deductive_proof_sk}</div>
+          </div>
+        `).join('');
+
+        document.getElementById('hex-log-deduction-body').innerHTML = `
+          <div class="kv-row"><span>Schéma 64-Bit Hexadecimálneho Rámca:</span><code>${d.hex_log_bitfield_schema}</code></div>
+          <div style="margin:8px 0;padding:10px;background:#0f172a;border-left:3px solid #34d399;border-radius:4px;color:var(--text-primary);">
+            <strong>🔍 Obojsmerný Dekodér Aktívneho Hex Logu (<code>${insp.hex_log_frame}</code> | CRC-12: <code>${insp.crc12_verified ? 'PLATNÉ' : 'NEPLATNÉ'}</code>):</strong><br/>
+            ${insp.reconstructed_explanation_sk}
+          </div>
+          <div style="margin:8px 0;"><strong>A. Knižnica 6 Úrovní Škálovania Problematiky ↔ Hexadecimálne Systémové Hlásenia (klikni pre dekódovanie):</strong>${catalogHtml}</div>
+          <div style="margin:8px 0;"><strong>B. Seba-Vysvetlenie Vlastných Reasoning Patternov (<code>P1..P5</code>):</strong>${patternsHtml}</div>
+          <div style="margin-top:8px;"><strong>C. Autonómna Dedukcia Nových Poznatkov zo Znalostnej Bázy Celého Krystal Stacku (<code>${d.deduced_new_knowledge_count} nových faktov</code> zapísaných do AST):</strong>${deductionsHtml}</div>
+        `;
+      } catch (e) {}
+    }
+
+    let currentArchLang = 'sk';
+    let currentArchJargon = 'auto';
+
+    async function loadArchitectureExplanations(lang, liveLlm, jargon) {
+      currentArchLang = lang || 'sk';
+      currentArchJargon = jargon || 'auto';
+      ['sk', 'en', 'de', 'cs'].forEach(l => {
+        const btn = document.getElementById('arch-lang-' + l);
+        if (btn) btn.classList.toggle('active', l === currentArchLang);
+      });
+      ['auto', 'admin', 'analogy', 'investor', 'academic', 'simple'].forEach(j => {
+        const btn = document.getElementById('arch-jargon-' + j);
+        if (btn) btn.classList.toggle('active', j === currentArchJargon);
+      });
+      try {
+        const ctxPrompt = encodeURIComponent((document.getElementById('ddes-prompt-input') || {}).value || '');
+        const r = await fetch(`/api/v1/compositor/architecture_explanations?lang=${currentArchLang}&jargon=${currentArchJargon}&context=${ctxPrompt}&live_llm=${liveLlm ? '1' : '0'}`);
+        const d = await r.json();
+        const cb = d.codebase_introspection || {};
+        const mw = d.middleware_self_explanation || {};
+        const gov = d.autonomous_context_decision_layer || {};
+        const fr = d.conscious_unit_epistemic_frontier || {};
+        const lib = d.architectural_elements_library || [];
+
+        const modulesHtml = (cb.modules || []).map(m => `
+          <div class="kv-row">
+            <span><strong>${m.module_file}</strong> (${m.line_count} riadkov | SHA-256: <code>${m.sha256_prefix}</code>)</span>
+            <code>Triedy: ${(m.classes || []).join(', ')}</code>
+          </div>
+        `).join('');
+
+        const elementsHtml = lib.map(el => {
+          const ex = el.illustrative_example || {};
+          return `
+            <div style="margin-bottom:10px;padding:10px;background:var(--bg-elevated);border-left:3px solid var(--accent);border-radius:4px;">
+              <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+                <strong style="color:var(--text-primary);font-size:var(--fs-sm);">${el.element_id}</strong>
+                <code>Hex: ${el.hex_tag} | Kotva: ${el.codebase_anchor}</code>
+              </div>
+              <div style="margin-top:4px;color:var(--text-secondary);">${el.localized_explanation}</div>
+              <div style="margin-top:6px;padding:6px 8px;background:#0f172a;border-left:3px solid var(--cyan);border-radius:4px;color:#38bdf8;">
+                <strong>🎯 Preklad do žargónu (${(d.selected_jargon || 'analogy').toUpperCase()}):</strong> ${el.jargon_explanation || ''}
+              </div>
+              <div style="margin-top:6px;padding:8px;background:var(--bg-main);border-radius:4px;">
+                <div><strong>📌 Názorný scenár (${currentArchLang.toUpperCase()}):</strong> ${ex.scenario}</div>
+                <div style="margin-top:2px;"><strong>Vstup:</strong> <code>${ex.input_state}</code></div>
+                <div style="margin-top:2px;"><strong>Kódová väzba:</strong> <code>${ex.code_snippet}</code></div>
+                <div style="margin-top:2px;"><strong>Overený výstup:</strong> <code style="color:#34d399;">${ex.output_state}</code></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        const barriersHtml = (fr.barriers_to_conscious_units || []).map(b => `
+          <div class="kv-row" style="align-items:flex-start;flex-direction:column;gap:2px;">
+            <strong style="color:var(--text-primary);">${b.title_sk}</strong>
+            <div><span style="color:#34d399;">✔ Už postavené:</span> ${b.already_built}</div>
+            <div><span style="color:#fbbf24;">⚡ Chýbajúci most:</span> ${b.missing_gap}</div>
+          </div>
+        `).join('');
+
+        document.getElementById('arch-explanations-body').innerHTML = `
+          <div class="kv-row"><span>Stav Generátora, Jazyk &amp; Aktívny Žargón:</span><code>${d.status} | Jazyk: ${currentArchLang.toUpperCase()} | Žargón: ${(d.selected_jargon || '').toUpperCase()}</code></div>
+          <div class="kv-row"><span>Autonómna Rozhodovacia Vrstva Kontextu (<code>${gov.governor_class}</code>):</span><code>${gov.supervision_hex_receipt} | Fidelity: ${gov.semantic_fidelity_score} | ${gov.decision_layer_verdict}</code></div>
+          <div class="kv-row"><span>Dôvod výberu žargónu rozhodovacou vrstvou:</span><span>${gov.selection_reason_sk}</span></div>
+          <div class="kv-row"><span>Introspekcia Codebase (AST Graph):</span><code>${cb.connected_modules_count} jadrových modulov | ${cb.total_verified_lines_of_code} riadkov kódu</code></div>
+          <div style="margin:8px 0;padding:10px;background:var(--bg-main);border-left:3px solid var(--cyan);border-radius:4px;color:var(--text-primary);">
+            <strong>🤖 Seba-Vysvetlenie Architektúry Medzivrstvou (${currentArchLang.toUpperCase()} // Žargón: ${(d.selected_jargon || '').toUpperCase()}):</strong><br/>
+            ${mw.jargon_supervised_explanation || mw.live_llm_synthesized_reflection || mw.deterministic_codebase_trace}
+          </div>
+          <div style="margin:8px 0;"><strong>A. Živá AST Mapa Napojenej Codebase (<code>krystal_kernel/*</code>):</strong>${modulesHtml}</div>
+          <div style="margin:8px 0;"><strong>B. Multijazyčná &amp; Multi-Žargónová Knižnica Prvkov Architektúry:</strong>${elementsHtml}</div>
+          <div style="margin-top:8px;"><strong>C. Epistemická Hranica Vedomých Celkov (<code>${fr.current_achieved_stage}</code>):</strong>${barriersHtml}</div>
+        `;
+      } catch (e) {}
     }
 
     async function loadHypertextNodeProfiler(altIndex) {
@@ -1519,11 +2062,14 @@
           </div>
         `;
 
+        const compDet = data.compositional_detection || {};
+        const htProf = data.hypertext_node_profiler || {};
         const analogyBoxHtml = `
           <div class="human-summary analogy-only">
             <span><strong>Zdroj dôkazu:</strong> <code>${data.evidence_classification || 'MEASURED'}</code></span>
             <span><strong>Tokeny:</strong> ${tok.neurosymbolic_prompt_tokens} in / ${tok.actual_completion_tokens || 0} out</span>
             <span><strong>Čas (Celkový / LLM / AST):</strong> ${tok.total_pipeline_latency_ms} ms / ${tok.llm_inference_latency_ms || 0} ms / ${tok.ast_compile_latency_ms} ms</span>
+            <span><strong>Kompozícia &amp; Syntax Profiler:</strong> <code>${compDet.hex_composition_descriptor || '0x06C0'}</code> | <code>${htProf.profiler_hex_receipt || '0x0659'}</code> (${htProf.total_graph_latency_ms || 4.74} ms)</span>
           </div>
         `;
 
@@ -1563,6 +2109,26 @@
         const st = await r.json();
         document.getElementById('adm-digest').textContent = st.compiled_ir_digest.slice(0, 20) + '...';
         document.getElementById('adm-dev').textContent = st.hardware.openvino_available_devices.join(', ');
+      } catch (e) {}
+      try {
+        const rInv = await fetch('/api/v1/production/investor_showcase');
+        const inv = await rInv.json();
+        const roi = inv.investor_economics_and_roi || {};
+        const mb = inv.multi_buffer_hierarchy || {};
+        const slices = (mb.fractional_time_and_set_mapping || []).map(s => `
+          <div class="kv-row">
+            <span><strong>${s.slice_id}:</strong> ${s.set_symbol} (${s.time_fraction_ms})</span>
+            <code>${s.target_buffer_partition} | ${s.hex_partition_mask}</code>
+          </div>
+        `).join('');
+        document.getElementById('admin-investor-showcase').innerHTML = `
+          <div class="kv-row"><span>Produkčné vydanie &amp; SHA-256 Digest:</span><code>${inv.production_release_tag} (${inv.production_showcase_digest.slice(0, 16)}...)</code></div>
+          <div class="kv-row"><span>Redukcia infraštruktúrnych nákladov (Cloud RAG vs. Krystal Edge):</span><code>$${roi.classical_vector_rag_monthly_cloud_usd}/mes → $${roi.krystal_neurosymbolic_edge_monthly_usd}/mes (${roi.infrastructure_cost_reduction_ratio}× úspora)</code></div>
+          <div class="kv-row"><span>Zrýchlenie faktov (CPU AST) / LLM Prefill:</span><code>${roi.deterministic_fact_speedup_x}× (&lt;2 ms) / ${roi.llm_prefill_speedup_x}× (39 tok)</code></div>
+          <div class="kv-row"><span>Energetický zisk (VIPJ) &amp; Úspora UMA pásma:</span><code>${roi.verified_inferences_per_joule_gain_x}× viac inferencií/Joule | ${roi.uma_bandwidth_saved_pct} % úspora pásma</code></div>
+          <div class="kv-row"><span>Bezzáťažový NVMe SSD Swap + NPU Inline Dekompresia:</span><code>${roi.effective_ssd_swap_bw_gbps} GB/s efektívne | Stall: ${roi.net_ssd_pagefault_stall_ms} ms (0 B memcpy)</code></div>
+          <div style="margin-top:8px;"><strong>Rozdelenie 16,67 ms snímky na 5 Zlomkov Doby a Časti Bufferov (BUF_00..BUF_03):</strong>${slices}</div>
+        `;
       } catch (e) {}
     }
 

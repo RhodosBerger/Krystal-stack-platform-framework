@@ -270,6 +270,147 @@ class TestSovereignOpenVinoOneApiApp(unittest.TestCase):
             np1["syntax_profiler_report"]["profiler_hex_receipt"],
         )
 
+        # 11. End-to-End Investor Production Showcase & Hybrid Query Integration
+        inv = self.app.get_investor_production_showcase()
+        self.assertEqual(inv["vital_max_hp"], 6)
+        self.assertEqual(inv["status"], "PRODUCTION_READY_VERIFIED")
+        self.assertEqual(inv["investor_economics_and_roi"]["net_ssd_pagefault_stall_ms"], 0.0)
+        self.assertEqual(len(inv["production_showcase_digest"]), 64)
+
+        q_e2e = self.app.execute_hybrid_query(
+            namespace="krystal_sovereign",
+            prompt="Oprav vypadnuté hrany v obraze a ťahaj dáta z disku tak, aby sa to nespomalilo",
+            uma_utilization=0.32,
+        )
+        self.assertIn("compositional_detection", q_e2e)
+        self.assertIn("hypertext_node_profiler", q_e2e)
+        self.assertTrue(q_e2e["compositional_detection"]["hex_composition_descriptor"].startswith("0x06C0"))
+        self.assertTrue(q_e2e["hypertext_node_profiler"]["profiler_hex_receipt"].startswith("0x0659"))
+
+        # 12. Multilingual & Multi-Jargon Architectural Explanation Generator + Autonomous Context Governor
+        for lang_code, jargon_code in (("sk", "auto"), ("en", "admin"), ("de", "analogy"), ("cs", "investor")):
+            expl = DoubleTimeCoefficientEmulator().generate_multilingual_architecture_explanations_and_self_reflection(
+                lang=lang_code,
+                element_id="ALL",
+                invoke_live_llm=False,
+                jargon=jargon_code,
+                context_query="Vysvetli ROI a náklady cloudu" if jargon_code == "auto" else "",
+            )
+            self.assertEqual(expl["vital_max_hp"], 6)
+            self.assertEqual(expl["status"], "MULTILINGUAL_EXPLANATION_LIBRARY_READY")
+            self.assertEqual(expl["selected_language"], lang_code)
+            self.assertEqual(expl["elements_count"], 6)
+            self.assertIn("autonomous_context_decision_layer", expl)
+            self.assertEqual(
+                expl["autonomous_context_decision_layer"]["decision_layer_verdict"],
+                "CONTEXT_SUPERVISION_APPROVED",
+            )
+            self.assertTrue(
+                expl["autonomous_context_decision_layer"]["supervision_hex_receipt"].startswith("0x06F7")
+            )
+            self.assertIn("conscious_unit_epistemic_frontier", expl)
+            self.assertEqual(len(expl["conscious_unit_epistemic_frontier"]["barriers_to_conscious_units"]), 5)
+            first_elem = expl["architectural_elements_library"][0]
+            self.assertIn("jargon_explanation", first_elem)
+            self.assertIn("jargon_translations", first_elem)
+            self.assertIn("illustrative_example", first_elem)
+            self.assertIn("code_snippet", first_elem["illustrative_example"])
+            self.assertIn("output_state", first_elem["illustrative_example"])
+
+        # 13. Bidirectional Hexadecimal Log & Problem-Scaling Library + Self-Explaining Reasoning Patterns + KB Deduction
+        hl = DoubleTimeCoefficientEmulator().run_hex_log_scaling_and_knowledge_deduction_library(
+            fact_engine=self.app.fact_engine,
+        )
+        self.assertEqual(hl["vital_max_hp"], 6)
+        self.assertEqual(hl["status"], "HEX_LOG_SCALING_AND_DEDUCTION_VERIFIED")
+        self.assertEqual(hl["hex_log_catalog_count"], 6)
+        self.assertEqual(len(hl["reasoning_patterns_self_explanation"]), 5)
+        self.assertEqual(hl["deduced_new_knowledge_count"], 5)
+        self.assertTrue(hl["ingested_into_live_fact_engine"])
+
+        sample_hex = hl["bidirectional_hex_log_catalog"][3]["encoded_hex_log"]
+        decoded_rt = DoubleTimeCoefficientEmulator().decode_hex_log_to_problem_report(sample_hex)
+        self.assertTrue(decoded_rt["crc12_verified"])
+        self.assertEqual(decoded_rt["vital_max_hp_header"], 6)
+        self.assertEqual(decoded_rt["system_alert_type"], "SYS_MSG_04_NPU_NVME_SHADOW_PREFETCH")
+        self.assertEqual(decoded_rt["problem_scale_tier_code"], "T3")
+        self.assertEqual(decoded_rt["reasoning_pattern_triggered"], "P3_CAUSAL_DIFFERENTIAL")
+        self.assertAlmostEqual(decoded_rt["decoded_metric_value"], 25.2, places=2)
+
+        # 14. Reactive Causal-Semantic Frame Generator, Cognitive Mirror Parser, Marketer Jargon & Genesis MD
+        rcr = DoubleTimeCoefficientEmulator().run_causal_semantic_frame_generator_and_reactive_runtime(
+            uma_pressure=0.32,
+            curvature_kappa=1.96,
+            working_set_gb=24.0,
+            knowability_kappa=0.75,
+        )
+        self.assertEqual(rcr["vital_max_hp"], 6)
+        self.assertEqual(rcr["status"], "REACTIVE_CAUSAL_RUNTIME_ONLINE")
+        self.assertEqual(rcr["causal_semantic_frames_count"], 4)
+        self.assertTrue(rcr["causal_semantic_frames"][0]["hex_causal_frame_tag"].startswith("0x06CF"))
+        self.assertTrue(rcr["cognitive_mirror_parser"]["mirror_hex_token"].startswith("0x06C5"))
+        self.assertTrue(rcr["cognitive_mirror_parser"]["reflected_mirror_ast"]["bijective_roundtrip_verified"])
+        self.assertEqual(len(rcr["antigravity_argon_mcp_bridge"]["mcp_influence_segregation_presets"]), 3)
+        self.assertEqual(len(rcr["recorded_next_prompts_h7_h10"]), 4)
+
+        mkt = DoubleTimeCoefficientEmulator().generate_multilingual_architecture_explanations_and_self_reflection(
+            lang="sk",
+            jargon="marketer",
+        )
+        self.assertEqual(mkt["selected_jargon"], "marketer")
+        self.assertIn("94,49 %", mkt["middleware_self_explanation"]["jargon_supervised_explanation"])
+
+        genesis_md = os.path.join(
+            os.getcwd(), "docs", "architecture", "KRYSTAL_GENESIS_ONTOLOGICAL_AND_CAUSAL_BLUEPRINT.md"
+        )
+        self.assertTrue(os.path.exists(genesis_md))
+
+        # 15. Panoptic Interface Generator, Residual Move Justifications & Interactive Software Layers L11..L14
+        pan_opt = DoubleTimeCoefficientEmulator().generate_panoptic_interface_and_residual_justifications(
+            selected_move_index=3,
+            simulate_counterfactual_failure=False,
+        )
+        pan_cf = DoubleTimeCoefficientEmulator().generate_panoptic_interface_and_residual_justifications(
+            selected_move_index=3,
+            simulate_counterfactual_failure=True,
+        )
+        self.assertEqual(pan_opt["vital_max_hp"], 6)
+        self.assertEqual(pan_opt["status"], "PANOPTIC_INTERFACE_AND_RESIDUAL_LAYERS_ONLINE")
+        self.assertEqual(len(pan_opt["all_framework_moves"]), 6)
+        self.assertEqual(pan_opt["interactive_software_layers_count"], 4)
+        self.assertTrue(
+            pan_opt["active_move_residual_justification"]["hex_move_signature"].startswith("0x06PR")
+        )
+        self.assertEqual(pan_opt["active_move_residual_justification"]["delta_s_verdict"], 1)
+        self.assertEqual(pan_cf["active_move_residual_justification"]["delta_s_verdict"], 0)
+        self.assertEqual(
+            len(pan_opt["frontend_panoptic_scene_descriptor"]["svg_panoptic_ring_nodes"]),
+            6,
+        )
+
+        # 16. LLM Meta-Construct Inventor, Self-Aware Consequence Meta-Layer L15 & 6 Infrastructure Inductive Channels
+        mc = DoubleTimeCoefficientEmulator().invent_meta_construct_via_inductive_channels(
+            user_construct_prompt="Vymysli konštrukt pre indukčnú synchronizáciu NPU swapu a 3D Vulkan gridu",
+            invoke_live_llm=False,
+        )
+        self.assertEqual(mc["vital_max_hp"], 6)
+        self.assertEqual(mc["status"], "META_CONSEQUENCE_INDUCTIVE_LAYER_ONLINE")
+        self.assertEqual(mc["meta_layer_id"], "SW_LAYER_L15_META_CONSEQUENCE_CORE")
+        self.assertTrue(mc["hex_meta_construct_id"].startswith("0x06MC15"))
+        self.assertEqual(mc["inductive_channels_count"], 6)
+        self.assertEqual(len(mc["co_invented_meta_constructs"]), 3)
+        self.assertGreater(mc["mean_network_mutual_inductance"], 0.9)
+
+        # 17. Derived Scientific Theories, Scientific Nomenclature & Visual Graph Representations (SW_LAYER_L16)
+        th = DoubleTimeCoefficientEmulator().derive_scientific_theories_and_visual_graphs(selected_theory_index=1)
+        self.assertEqual(th["vital_max_hp"], 6)
+        self.assertEqual(th["status"], "SCIENTIFIC_THEORIES_AND_VISUAL_GRAPHS_VERIFIED")
+        self.assertEqual(th["documentation_interface_layer"], "SW_LAYER_L16_SCIENTIFIC_DOC_PORTAL")
+        self.assertEqual(th["theories_count"], 5)
+        self.assertTrue(th["active_scientific_theory"]["hex_theory_signature"].startswith("0x06TH"))
+        self.assertIn("graph_1_chronometric_latency_log_scale", th["visual_graph_representations"])
+        self.assertIn("graph_3_thermo_economic_vipj_curve", th["visual_graph_representations"])
+
 
 if __name__ == "__main__":
     unittest.main()
