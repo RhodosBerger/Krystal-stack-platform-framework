@@ -77,6 +77,36 @@ class TestSovereignOpenVinoOneApiApp(unittest.TestCase):
             html = f.read()
         self.assertIn("KRYSTAL FLUID DESIGN MANUAL v2.0", html)
         self.assertIn("data-persona=", html)
+        self.assertIn("btn-mode-ddes", html)
+
+    def test_ddes_compositor_scraper_and_finetuning_export(self) -> None:
+        state = self.app.compositor.get_compositor_state()
+        self.assertEqual(state["vital_max_hp"], 6)
+        self.assertEqual(len(state["precached_themes"]), 3)
+        self.assertGreaterEqual(state["samples_count"], 3)
+
+        synth = self.app.compositor.compose_hybrid_conclusion(
+            prompt="Compare RAG prefill tokens vs Krystal AST fast-path on quantized GGUF",
+            theme_id="theme_neurosymbolic_fastpath",
+            cognition_level=5,
+            pattern_type="P3_CAUSAL_DIFFERENTIAL",
+            scrape_target="OpenVINO quantization research",
+            invoke_live_llm=False,
+        )
+        self.assertEqual(synth["status"], "SYNTHESIZED_AND_STORED")
+        self.assertEqual(synth["vital_max_hp"], 6)
+        self.assertIn("conducted_neurosymbolic_facts", synth)
+        self.assertIn("hybrid_sense_packet", synth)
+        self.assertGreater(len(synth["conducted_neurosymbolic_facts"]["conducted_triples"]), 0)
+        self.assertGreaterEqual(synth["hybrid_sense_packet"]["sense_coherence_score"], 0.8)
+        node = synth["conclusion_node_sample"]
+        self.assertEqual(node["cognition_level_code"], "L5_MULTI_SOURCE_SYNTHESIS")
+        self.assertEqual(node["pattern_type"], "P3_CAUSAL_DIFFERENTIAL")
+        self.assertEqual(len(node["node_digest"]), 64)
+
+        jsonl = self.app.compositor.export_finetuning_jsonl()
+        self.assertIn("NODE-DDES-0001", jsonl)
+        self.assertIn("L5_MULTI_SOURCE_SYNTHESIS", jsonl)
 
 
 if __name__ == "__main__":

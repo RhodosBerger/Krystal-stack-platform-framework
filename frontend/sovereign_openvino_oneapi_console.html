@@ -101,17 +101,24 @@
     body[data-persona="analogy"] .analogy-only {
       display: flex !important;
     }
-    body[data-persona="admin"] #user-view {
+    body[data-persona="admin"] #user-view,
+    body[data-persona="ddes"] #user-view {
       display: none !important;
     }
     body[data-persona="admin"] #admin-view {
       display: block !important;
     }
-    body:not([data-persona="admin"]) #user-view {
-      display: flex !important;
-    }
     body:not([data-persona="admin"]) #admin-view {
       display: none !important;
+    }
+    body[data-persona="ddes"] #ddes-view {
+      display: block !important;
+    }
+    body:not([data-persona="ddes"]) #ddes-view {
+      display: none !important;
+    }
+    body:not([data-persona="admin"]):not([data-persona="ddes"]) #user-view {
+      display: flex !important;
     }
 
     /* =========================================================================
@@ -773,6 +780,9 @@
         <button id="btn-mode-analogy" class="mode-btn" onclick="setPersona('analogy')">
           📊 S Analógiami
         </button>
+        <button id="btn-mode-ddes" class="mode-btn" onclick="setPersona('ddes')">
+          🧬 DDES &amp; Fine-Tuning
+        </button>
         <button id="btn-mode-admin" class="mode-btn" onclick="setPersona('admin')">
           🛠️ Administrátor
         </button>
@@ -937,6 +947,110 @@
       </div>
     </section>
 
+    <!-- POHĽAD PRE DDES VÝSKUM, SCRAPER, MULTI-DATA KOMPOZITOR & FINE-TUNING -->
+    <section id="ddes-view" style="flex:1;overflow-y:auto;padding:var(--space-4) clamp(14px, 3.5vw, 40px);">
+      <div class="admin-container">
+        <div class="admin-header-card">
+          <div>
+            <h2 style="margin:0;font-size:var(--fs-lg);">🧬 Differential-Deductive Epistemic Synthesis (DDES) &amp; Multi-Data Kompozitor</h2>
+            <small style="color:var(--text-muted);">
+              Spája (A) Lokálne AST fakty &amp; poznanie modelu + (B) Pred-kešované výskumné témy + (C) Scraper externého výskumu do uzlov záverov (<code>ConclusionNodeSample</code>) pre LoRA / QLoRA Fine-Tuning.
+            </small>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="/api/v1/compositor/export.jsonl" download="krystal_ddes_finetune.jsonl" class="send-btn" style="text-decoration:none;background:var(--cyan);color:#082f49;">
+              ⬇ Exportovať Fine-Tuning JSONL
+            </a>
+            <button class="send-btn" onclick="setPersona('simple')">← Späť do Rozhovoru</button>
+          </div>
+        </div>
+
+        <div class="admin-grid">
+          <!-- KARTA 1: PRED-KEŠOVANÉ VÝSKUMNÉ TÉMY -->
+          <div class="admin-card">
+            <h3>1. Pred-Kešované Výskumné Témy (Pre-Cached Themes)</h3>
+            <small style="color:var(--text-muted);">Vyber tému s pred-uloženými lokálnymi meraniami a esenciálnym poznaním modelu:</small>
+            <button class="quick-btn" onclick="selectDdesTheme('theme_neurosymbolic_fastpath', 'Prečo Krystal + XERJ Query-1 zrýchľuje odpoveď 6,24x až 21 780x oproti klasickému RAGu?')">
+              ⚡ <strong>Téma 1:</strong> Neurosymbolický Fast-Path vs. Vektorový RAG (999 -&gt; 39 tok)
+            </button>
+            <button class="quick-btn" onclick="selectDdesTheme('theme_quantization_grounding', 'Ako 4-bitová kvantizácia (Q4_K_M / QAT) dosahuje 100 % presnosť faktov pri spojení s CPU AST?')">
+              🧠 <strong>Téma 2:</strong> 4-Bit Kvantizácia (Q4_K_M / QAT) &amp; Eliminácia Halucinácií
+            </button>
+            <button class="quick-btn" onclick="selectDdesTheme('theme_uma_hysteresis_p8', 'Prečo sa pri UMA >= 70 % aktivuje 12-snímková hysterézia a 16KB hranica tenzorov?')">
+              🛡️ <strong>Téma 3:</strong> Saturácia UMA Zbernice, 16KB Hranica &amp; 12-Frame Hysterézia
+            </button>
+            <div class="kv-row" style="margin-top:auto;">
+              <span>Aktívna téma:</span>
+              <code id="ddes-active-theme-badge">theme_neurosymbolic_fastpath</code>
+            </div>
+          </div>
+
+          <!-- KARTA 2: ÚROVEŇ KOGNÍCIE (L1-L5) & VZOREC UVAŽOVANIA (P1-P5) -->
+          <div class="admin-card">
+            <h3>2. Kognitívna Hĺbka (L1–L5) &amp; Spektrum (Dedukcia ↔ Diferenciál)</h3>
+            <div class="form-group">
+              <label for="ddes-cognition-select">Úroveň kognitívneho spracovania (<code>CognitionLevel</code>):</label>
+              <select id="ddes-cognition-select" class="admin-input">
+                <option value="5" selected>L5: Multi-Source Hybrid Synthesis &amp; Conclusion Node (Model + Cache + Web)</option>
+                <option value="4">L4: Differential &amp; Boundary Contrast (Δ-gradienty a hranice)</option>
+                <option value="3">L3: Deductive Invariant Verification ({Premisy, VITAL_MAX_HP==6} ⊢ C)</option>
+                <option value="2">L2: Semantic Grounding (Data ⊕ Fyzikálny zmysel)</option>
+                <option value="1">L1: Lexical AST Retrieval (Priamy fakt &lt; 2 ms)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ddes-pattern-select">Vzorec uvažovania (<code>ReasoningPatternType</code>):</label>
+              <select id="ddes-pattern-select" class="admin-input">
+                <option value="P3_CAUSAL_DIFFERENTIAL" selected>P3_CAUSAL_DIFFERENTIAL (50% Dedukcia / 50% Diferenciál A/B)</option>
+                <option value="P1_DEDUCTIVE_GATE">P1_DEDUCTIVE_GATE (100% Dedukcia — Invariant &amp; Anti-Promotion)</option>
+                <option value="P2_BOUNDARY_BIFURCATION">P2_BOUNDARY_BIFURCATION (70% Dedukcia / 30% Hranica 16KB &amp; UMA)</option>
+                <option value="P4_HOMOTOPIC_CONFLICT">P4_HOMOTOPIC_CONFLICT (30% Dedukcia / 70% Rozpor zdrojov E_A ⊥ E_B)</option>
+                <option value="P5_ABDUCTIVE_SYNTHESIS">P5_ABDUCTIVE_SYNTHESIS (20% Dedukcia / 80% Syntéza zákona z Δ)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ddes-scrape-input">Scraper externého zdroja (URL alebo téma na porovnanie s modelom):</label>
+              <input id="ddes-scrape-input" type="text" class="admin-input" placeholder="napr. https://docs.openvino.ai alebo nechaj prázdne pre lokálnu keš" />
+            </div>
+          </div>
+
+          <!-- KARTA 3: SPUSTENIE MULTI-DATA KOMPOZITORA -->
+          <div class="admin-card">
+            <h3>3. Syntéza Hybridného Uzla Záveru (Conclusion Node)</h3>
+            <div class="form-group">
+              <label for="ddes-prompt-input">Výskumná otázka / hypotéza pre spájanie Dát a Zmyslu:</label>
+              <input id="ddes-prompt-input" type="text" class="admin-input" value="Prečo Krystal + XERJ Query-1 zrýchľuje odpoveď 6,24x až 21 780x oproti klasickému RAGu?" />
+            </div>
+            <div class="kv-row">
+              <span>Použiť aj živý GGUF model (:1234):</span>
+              <input id="ddes-live-llm" type="checkbox" style=" accent-color:var(--accent);width:16px;height:16px;" />
+            </div>
+            <div class="kv-row">
+              <span>Počet vzoriek vo Fine-Tuning DB:</span>
+              <code id="ddes-count-badge">3 uzly</code>
+            </div>
+            <button class="send-btn" style="width:100%;margin-top:auto;" onclick="runDdesSynthesis()">
+              🧬 Syntetizovať Hybridný Záver &amp; Uložiť do Fine-Tuning DB
+            </button>
+          </div>
+        </div>
+
+        <!-- POSLEDNÝ SYNTETIZOVANÝ UZOL (DETAIL DATA ⊕ SENSE & DEDUCTION ↔ DIFFERENTIAL) -->
+        <div class="admin-card" id="ddes-latest-node-card">
+          <h3>4. Detail Aktuálneho Uzla Záveru (Data ⊕ Sense → Deductive &amp; Differential Bridge → Conclusion)</h3>
+          <div id="ddes-latest-node-body" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
+            Načítavam syntetizované uzly...
+          </div>
+        </div>
+
+        <!-- DATABÁZA VZORIEK PRE FINE-TUNING -->
+        <div class="admin-card">
+          <h3>5. Databáza Vzoriek pre Fine-Tuning (ConclusionNodeSample Graph Registry)</h3>
+          <div class="table-responsive" id="ddes-samples-table">Načítavam databázu vzoriek...</div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <script>
@@ -1037,12 +1151,115 @@
 
       document.getElementById('btn-mode-simple').classList.toggle('active', mode === 'simple');
       document.getElementById('btn-mode-analogy').classList.toggle('active', mode === 'analogy');
+      document.getElementById('btn-mode-ddes').classList.toggle('active', mode === 'ddes');
       document.getElementById('btn-mode-admin').classList.toggle('active', mode === 'admin');
 
       if (mode === 'admin') {
         loadAdminTelemetry();
         loadAdminBenchmark();
+      } else if (mode === 'ddes') {
+        loadDdesState();
       }
+    }
+
+    let selectedDdesThemeId = 'theme_neurosymbolic_fastpath';
+
+    function selectDdesTheme(themeId, defaultPrompt) {
+      selectedDdesThemeId = themeId;
+      document.getElementById('ddes-active-theme-badge').textContent = themeId;
+      document.getElementById('ddes-prompt-input').value = defaultPrompt;
+    }
+
+    async function loadDdesState() {
+      try {
+        const r = await fetch('/api/v1/compositor/state');
+        const st = await r.json();
+        document.getElementById('ddes-count-badge').textContent = `${st.samples_count} uzlov`;
+        if (st.samples && st.samples.length > 0) {
+          renderDdesNodeDetail(st.samples[0]);
+          renderDdesSamplesTable(st.samples);
+        }
+      } catch (e) {}
+    }
+
+    async function runDdesSynthesis() {
+      const prompt = document.getElementById('ddes-prompt-input').value.trim();
+      const cogLevel = parseInt(document.getElementById('ddes-cognition-select').value, 10);
+      const pattern = document.getElementById('ddes-pattern-select').value;
+      const scrapeTarget = document.getElementById('ddes-scrape-input').value.trim();
+      const invokeLlm = document.getElementById('ddes-live-llm').checked;
+      const modelKey = document.getElementById('model-select').value;
+
+      document.getElementById('ddes-latest-node-body').innerHTML = '⏳ Spúšťam Multi-Data Hybrid Kompozitor...';
+      try {
+        const r = await fetch('/api/v1/compositor/synthesize', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            prompt: prompt,
+            theme_id: selectedDdesThemeId,
+            cognition_level: cogLevel,
+            pattern_type: pattern,
+            scrape_target: scrapeTarget,
+            invoke_live_llm: invokeLlm,
+            selected_model_key: modelKey
+          })
+        });
+        await r.json();
+        await loadDdesState();
+      } catch (err) {
+        document.getElementById('ddes-latest-node-body').innerHTML = `<span style="color:var(--danger);">Chyba syntézy: ${err}</span>`;
+      }
+    }
+
+    function renderDdesNodeDetail(sample) {
+      const dl = sample.data_layer || {};
+      const sl = sample.sense_layer || {};
+      const ded = sample.deductive_bridge || {};
+      const diff = sample.differential_bridge || {};
+      const cn = sample.conclusion_node || {};
+      const triples = (dl.conducted_neurosymbolic_triples || []).map(
+        t => `${t.subject_id}.${t.predicate}=${t.object_value}${t.unit}`
+      ).join(' | ');
+
+      document.getElementById('ddes-latest-node-body').innerHTML = `
+        <div class="kv-row"><span>ID Uzla &amp; SHA-256 Digest:</span><code>${sample.node_id} (${sample.node_digest.slice(0, 16)}...)</code></div>
+        <div class="kv-row"><span>Kognitívna úroveň &amp; Vzorec:</span><code>${sample.cognition_level_code} // ${sample.pattern_type}</code></div>
+        <div class="kv-row"><span>1A. Neurosymbolický Vodič Faktov (AST Triples):</span><code>${triples || dl.stream_a_local_ast}</code></div>
+        <div class="kv-row"><span>1B. Proveniencia Externých Dát:</span><code>${dl.scraped_provenance_tier}</code></div>
+        <div class="kv-row"><span>2A. Hybridný Fetcher Zmyslu (Ontológia jednotiek):</span><span>${sl.neurosymbolic_unit_sense || sl.physical_construct_meaning}</span></div>
+        <div class="kv-row"><span>2B. Polarita Zmyslu &amp; Koherencia (Sense Score):</span><code>${sl.differential_sense_polarity || 'VERIFIED'} | Skóre: ${sl.sense_coherence_score || 0.98}</code></div>
+        <div class="kv-row"><span>3. Deduktívny Most (R_ded):</span><span>${ded.deductive_entailment}</span></div>
+        <div class="kv-row"><span>4. Diferenciálny Most (R_diff):</span><span>${diff.delta_local_vs_internet}</span></div>
+        <div style="margin-top:8px;padding:10px;background:var(--bg-elevated);border-left:3px solid var(--accent);border-radius:var(--radius-sm);color:var(--text-primary);">
+          <strong>💎 Syntetizovaný Hybridný Záver:</strong><br/>${cn.hybrid_conclusion}<br/>
+          <small style="color:var(--text-muted);"><strong>Falzifikátor:</strong> ${cn.falsifier}</small>
+        </div>
+      `;
+    }
+
+    function renderDdesSamplesTable(samples) {
+      const rows = samples.map(s => `
+        <tr>
+          <td><code>${s.node_id}</code><br/><small style="color:var(--text-muted);">${s.node_digest.slice(0, 12)}...</small></td>
+          <td><code>${s.cognition_level_code}</code><br/><small style="color:var(--cyan);">${s.pattern_type}</small></td>
+          <td><strong>${s.prompt_topic}</strong><br/><small style="color:var(--text-muted);">${s.sense_layer.physical_construct_meaning}</small></td>
+          <td>${s.conclusion_node.hybrid_conclusion}</td>
+        </tr>
+      `).join('');
+      document.getElementById('ddes-samples-table').innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Node ID &amp; Digest</th>
+              <th>Kognícia &amp; Vzorec</th>
+              <th>Otázka &amp; Fyzikálny Zmysel (Sense)</th>
+              <th>Syntetizovaný Hybridný Záver (Conclusion Node)</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
     }
 
     function setVariationStyle(style) {

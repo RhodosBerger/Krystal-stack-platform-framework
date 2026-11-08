@@ -31,6 +31,10 @@ import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
 
 from krystal_kernel.claims_lattice import canonical_jcs_serialize
+from krystal_kernel.epistemic_cognition_compositor import (
+    COGNITION_LEVEL_DESCRIPTIONS,
+    MultiDataHybridCompositor,
+)
 from krystal_kernel.epistemic_enlg_compiler import EnlgVerdict
 from krystal_kernel.krystal_query1_neurosymbolic_engine import (
     GLOBAL_KRYSTAL_QUERY1_ENGINE,
@@ -114,6 +118,10 @@ class SovereignOpenVinoOneApiApp:
         self.llm_governor = llm_governor or AepInferenceGovernor()
         self.dp4a_pack = OpenVinoIrisXeDP4APack()
         self.lm_studio_base_url = lm_studio_base_url
+        self.compositor = MultiDataHybridCompositor(
+            fact_engine=self.fact_engine,
+            lm_studio_base_url=self.lm_studio_base_url,
+        )
         self.compiled_ir_digest = self._compile_oneapi_openvino_pipeline()
 
     def _compile_oneapi_openvino_pipeline(self) -> str:
@@ -459,6 +467,18 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
         if self.path == "/api/v1/models/benchmark":
             self._send_json(200, self.app_instance.benchmark_concrete_models_on_hardware())
             return
+        if self.path == "/api/v1/compositor/state":
+            self._send_json(200, self.app_instance.compositor.get_compositor_state())
+            return
+        if self.path == "/api/v1/compositor/export.jsonl":
+            jsonl_bytes = self.app_instance.compositor.export_finetuning_jsonl().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/x-ndjson; charset=utf-8")
+            self.send_header("Content-Disposition", 'attachment; filename="krystal_ddes_finetune.jsonl"')
+            self.send_header("Content-Length", str(len(jsonl_bytes)))
+            self.end_headers()
+            self.wfile.write(jsonl_bytes)
+            return
         if self.path in ("/v1/models", "/api/v1/lmstudio/models"):
             models_list = [
                 {
@@ -549,6 +569,19 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 close_set=close_set,
             )
             self._send_json(200, bulk_res)
+            return
+
+        if self.path == "/api/v1/compositor/synthesize":
+            comp_res = self.app_instance.compositor.compose_hybrid_conclusion(
+                prompt=str(data.get("prompt", "Prečo Krystal + XERJ Query-1 zrýchľuje odpoveď?")),
+                theme_id=str(data.get("theme_id", "auto")),
+                cognition_level=int(data.get("cognition_level", 5)),
+                pattern_type=str(data.get("pattern_type", "auto")),
+                scrape_target=str(data.get("scrape_target", "")),
+                invoke_live_llm=bool(data.get("invoke_live_llm", False)),
+                selected_model_key=str(data.get("selected_model_key", "google/gemma-4-e2b")),
+            )
+            self._send_json(200, comp_res)
             return
 
         self._send_json(404, {"error": "POST endpoint not found", "path": self.path})
