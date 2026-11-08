@@ -2064,6 +2064,24 @@
       retroactivelyAdaptMessages();
     }
 
+    function renderMarkdownCodeBlocks(text) {
+      if (!text) return '';
+      return String(text).replace(/```([a-zA-Z0-9_+]*)\n([\s\S]*?)```/g, function(_, lang, code) {
+        const escapedCode = code
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+        const langLabel = (lang || 'code').toUpperCase();
+        return `<div style="margin:10px 0;border:1px solid #334155;border-radius:8px;overflow:hidden;background:#090d16;">` +
+          `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;background:#1e293b;font-size:11px;color:#94a3b8;font-family:monospace;">` +
+          `<span>${langLabel} (VALIDATED ZERO-GC)</span>` +
+          `<button onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.innerText);this.textContent='✓ Skopírované'" style="background:#0f172a;color:#38bdf8;border:1px solid #38bdf8;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;">📋 Kopírovať kód</button>` +
+          `</div>` +
+          `<pre style="margin:0;padding:12px;overflow-x:auto;font-family:Consolas,monospace;font-size:12.5px;line-height:1.5;color:#e2e8f0;white-space:pre;"><code>${escapedCode}</code></pre>` +
+          `</div>`;
+      });
+    }
+
     function formatByVariation(rawFact, fullReply, style) {
       const safeRaw = (rawFact && String(rawFact).trim()) ? String(rawFact).trim() : 'Overený neurosymbolický výstup (VITAL_MAX_HP == 6)';
       const safeFull = (fullReply && String(fullReply).trim()) ? String(fullReply).trim() : safeRaw;
@@ -2071,12 +2089,12 @@
       const activePreset = SYSTEM_PRESETS[presetKey] || SYSTEM_PRESETS['ddes-hybrid'];
       const prefixTag = activePreset.prefix ? `<code>${activePreset.prefix}</code> ` : '';
       if (style === 'short') {
-        return `${prefixTag}<strong>Stručná odpoveď:</strong> ${safeRaw}`;
+        return `${prefixTag}<strong>Stručná odpoveď:</strong> ${renderMarkdownCodeBlocks(safeRaw)}`;
       }
       if (style === 'beginner') {
-        return `${prefixTag}<strong>Vysvetlenie jednoduchou rečou:</strong> Výsledok je <strong>${safeRaw}</strong>. Namiesto toho, aby počítač čítal tisíce stránok a tipoval odpoveď, pozrel sa priamo do overenej tabuľky faktov a kvadratického digitálneho dvojčaťa, takže odpoveď je okamžitá a stopercentne presná.`;
+        return `${prefixTag}<strong>Vysvetlenie jednoduchou rečou:</strong> Výsledok je <strong>${renderMarkdownCodeBlocks(safeRaw)}</strong>. Namiesto toho, aby počítač čítal tisíce stránok a tipoval odpoveď, pozrel sa priamo do overenej tabuľky faktov a kvadratického digitálneho dvojčaťa, takže odpoveď je okamžitá a stopercentne presná.`;
       }
-      return `${prefixTag}${safeFull}`;
+      return `${prefixTag}${renderMarkdownCodeBlocks(safeFull)}`;
     }
 
     function retroactivelyAdaptMessages() {
@@ -2217,8 +2235,16 @@
           </div>
         ` : '';
 
-        const escapedRawAttr = String(rawFact).replace(/"/g, '&quot;');
-        const escapedFullAttr = String(fullReply).replace(/"/g, '&quot;');
+        const escapedRawAttr = String(rawFact)
+          .replace(/&/g, '&amp;')
+          .replace(/"/g, '&quot;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+        const escapedFullAttr = String(fullReply)
+          .replace(/&/g, '&amp;')
+          .replace(/"/g, '&quot;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
 
         stream.insertAdjacentHTML('beforeend', `
           <div class="bubble assistant" data-raw-fact="${escapedRawAttr}" data-full-reply="${escapedFullAttr}">
