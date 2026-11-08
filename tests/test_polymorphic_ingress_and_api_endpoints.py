@@ -355,6 +355,25 @@ class TestPolymorphicIngressAndGlyphStrokePipeline:
         assert r_webapp["vital_max_hp"] == 6
         assert r_webapp["webapp_backend_status"] == "UNIFIED_KNOWLEDGE_KERNEL_ONLINE"
         assert len(r_webapp["kernel_trigonometry_and_deductions"]["architectural_shift_deductions"]) == 4
+        risc_cmp = r_webapp["hex_coherent_runtime"]["average_config_and_iris_xe_uma_audit"][
+            "risc_arm_bytecode_matrix_benchmarks"
+        ]["architecture_comparison"]
+        assert "Intel_Xeon_Scalable_AMX_INT8_8Ch_DDR5_HBM2e" in risc_cmp
+        xeon_cfg = risc_cmp["Intel_Xeon_Scalable_AMX_INT8_8Ch_DDR5_HBM2e"]
+        assert xeon_cfg["total_matrix_cycles"] == 4
+        assert xeon_cfg["parallel_128b_frames_per_amx_pass"] == 64
+
+        from krystal_kernel.visual_glyph_stroke_ml_compiler import KernelGovernedTrigonometricHarmonicEngine
+        hyst = KernelGovernedTrigonometricHarmonicEngine().evaluate_model_pi_and_b_across_12_frame_hysteresis()
+        assert hyst["vital_max_hp"] == 6
+        assert hyst["hysteresis_window_frames"] == 12
+        assert len(hyst["frames_trace"]) == 13
+        assert hyst["frames_trace"][6]["phase_pi"] == "6*pi/6"
+        assert hyst["frames_trace"][6]["active_draft_tokens"] == 12
+        assert hyst["frames_trace"][12]["phase_pi"] == "12*pi/6"
+        assert hyst["frames_trace"][12]["active_draft_tokens"] == 28
+        assert hyst["frames_trace"][12]["model_b_pinned_cpu"] is False
+
 
 
 

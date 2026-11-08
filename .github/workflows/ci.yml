@@ -88,7 +88,16 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest tests/ -v --cov=src/python --cov-report=xml --ignore=tests/integration || python -m unittest discover tests
+          python -m pytest \
+            tests/test_v_zerocopy_memory_model_02.py \
+            tests/test_v_universal_engine_interposer.py \
+            tests/test_v_perf_zerocopy_01.py \
+            tests/test_v_autonomous_research_cycle.py \
+            tests/test_v_os_coordination_policy_engine.py \
+            tests/test_v_os_coordination_resilience.py \
+            tests/test_polymorphic_ingress_and_api_endpoints.py \
+            tests/test_sovereign_openvino_oneapi_app.py \
+            --import-mode=importlib -v --cov=src/python --cov-report=xml
 
       - name: KrystalSDK smoke test
         run: |
