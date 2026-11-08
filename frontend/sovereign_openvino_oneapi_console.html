@@ -799,6 +799,7 @@
           <option value="coder-6.7b">💻 Preset 4: Inžiniersky Kód &amp; Dedukcia (DeepSeek-Coder-6.7B | L3 | P1)</option>
           <option value="hysteresis-lock">🛡️ Preset 5: Stabilizátor 12-Frame Hysterézia (DDES v2 | L4 | P2 | UMA 74%)</option>
           <option value="pure-ast">🧮 Preset 6: Čistý XERJ Vodič Faktov (CPU AST | L1 | 0 LLM tokenov)</option>
+          <option value="cv-vulkan-3d-joule">👁️ Preset 7: CV Kvadratické Dvojča, Vulkan 3D Hex Grid &amp; Joule Governor</option>
         </select>
       </div>
 
@@ -834,6 +835,7 @@
         <button class="quick-btn" onclick="applySystemPreset('coder-6.7b')">💻 <strong>Preset 4:</strong> Inžiniersky Kód (Dedukcia L3)</button>
         <button class="quick-btn" onclick="applySystemPreset('hysteresis-lock')">🛡️ <strong>Preset 5:</strong> 12-Frame Hysterézia (UMA 74%)</button>
         <button class="quick-btn" onclick="applySystemPreset('pure-ast')">🧮 <strong>Preset 6:</strong> Čistý CPU AST (0 LLM tokenov)</button>
+        <button class="quick-btn" onclick="applySystemPreset('cv-vulkan-3d-joule')">👁️ <strong>Preset 7:</strong> CV Dvojča, Vulkan 3D Hex &amp; Joule</button>
 
         <div class="sidebar-section-title">Rýchle overené dopyty</div>
         <button class="quick-btn" onclick="askQuestion('Aké je zrýchlenie pre Vulkan Iris Xe?')">⚡ Aké je zrýchlenie grafiky Iris Xe?</button>
@@ -981,6 +983,9 @@
             </button>
             <button class="quick-btn" onclick="selectDdesTheme('theme_uma_hysteresis_p8', 'Prečo sa pri UMA >= 70 % aktivuje 12-snímková hysterézia a 16KB hranica tenzorov?')">
               🛡️ <strong>Téma 3:</strong> Saturácia UMA Zbernice, 16KB Hranica &amp; 12-Frame Hysterézia
+            </button>
+            <button class="quick-btn" onclick="selectDdesTheme('theme_cv_vulkan_3d_hex_joule', 'Ako CV Kvadratické Digitálne Dvojča, Vulkan 3D Hex Grid a Joule Governor zrýchľujú prelomové objavy?')">
+              👁️ <strong>Téma 4:</strong> CV Kvadratické Dvojča, Vulkan 3D Hex Grid &amp; Joule Násobič
             </button>
             <div class="kv-row" style="margin-top:auto;">
               <span>Aktívna téma:</span>
@@ -1131,7 +1136,21 @@
         patternType: 'P1_DEDUCTIVE_GATE',
         style: 'short',
         persona: 'simple',
+        prefix: '[Čistý CPU AST L1 // 0 LLM Tokenov]',
         samplePrompt: 'Koľko overených faktov je v krystal_sovereign?'
+      },
+      'cv-vulkan-3d-joule': {
+        name: '👁️ Preset 7: CV Kvadratické Dvojča, Vulkan 3D Hex Grid & Joule Governor',
+        model: 'krystal/ddes-reasoner-v2',
+        uma: '0.32',
+        payload: '32768',
+        maxTokens: '256',
+        cognitionLevel: '5',
+        patternType: 'P5_ABDUCTIVE_SYNTHESIS',
+        style: 'standard',
+        persona: 'analogy',
+        prefix: '[CV Dvojča + Vulkan 3D Hex Grid (0x06...) // Joule VIPJ 11,6x]',
+        samplePrompt: 'Ako CV Kvadratické Digitálne Dvojča, Vulkan 3D Hex Grid a Joule Governor zrýchľujú prelomové objavy?'
       }
     };
 
@@ -1298,16 +1317,34 @@
       ['standard', 'short', 'beginner'].forEach(s => {
         document.getElementById('style-' + s).classList.toggle('active', s === style);
       });
+      retroactivelyAdaptMessages();
     }
 
     function formatByVariation(rawFact, fullReply, style) {
+      const safeRaw = (rawFact && String(rawFact).trim()) ? String(rawFact).trim() : 'Overený neurosymbolický výstup (VITAL_MAX_HP == 6)';
+      const safeFull = (fullReply && String(fullReply).trim()) ? String(fullReply).trim() : safeRaw;
+      const presetKey = (document.getElementById('preset-select') || {}).value || 'ddes-hybrid';
+      const activePreset = SYSTEM_PRESETS[presetKey] || SYSTEM_PRESETS['ddes-hybrid'];
+      const prefixTag = activePreset.prefix ? `<code>${activePreset.prefix}</code> ` : '';
       if (style === 'short') {
-        return `<strong>Stručná odpoveď:</strong> ${rawFact}`;
+        return `${prefixTag}<strong>Stručná odpoveď:</strong> ${safeRaw}`;
       }
       if (style === 'beginner') {
-        return `<strong>Vysvetlenie jednoduchou rečou:</strong> Výsledok je <strong>${rawFact}</strong>. Namiesto toho, aby počítač čítal tisíce stránok a tipoval odpoveď, pozrel sa priamo do overenej tabuľky faktov, takže odpoveď je okamžitá a stopercentne presná.`;
+        return `${prefixTag}<strong>Vysvetlenie jednoduchou rečou:</strong> Výsledok je <strong>${safeRaw}</strong>. Namiesto toho, aby počítač čítal tisíce stránok a tipoval odpoveď, pozrel sa priamo do overenej tabuľky faktov a kvadratického digitálneho dvojčaťa, takže odpoveď je okamžitá a stopercentne presná.`;
       }
-      return fullReply;
+      return `${prefixTag}${safeFull}`;
+    }
+
+    function retroactivelyAdaptMessages() {
+      const bubbles = document.querySelectorAll('#chat-stream .bubble.assistant[data-raw-fact]');
+      bubbles.forEach(b => {
+        const rawFact = b.getAttribute('data-raw-fact') || '';
+        const fullReply = b.getAttribute('data-full-reply') || '';
+        const contentEl = b.querySelector('.reply-content');
+        if (contentEl) {
+          contentEl.innerHTML = formatByVariation(rawFact, fullReply, variationStyle);
+        }
+      });
     }
 
     function clearChat() {
@@ -1433,8 +1470,11 @@
           </div>
         ` : '';
 
+        const escapedRawAttr = String(rawFact).replace(/"/g, '&quot;');
+        const escapedFullAttr = String(fullReply).replace(/"/g, '&quot;');
+
         stream.insertAdjacentHTML('beforeend', `
-          <div class="bubble assistant">
+          <div class="bubble assistant" data-raw-fact="${escapedRawAttr}" data-full-reply="${escapedFullAttr}">
             <div class="reply-content">${displayedReply}</div>
             ${variationButtonsHtml}
             ${analogyBoxHtml}

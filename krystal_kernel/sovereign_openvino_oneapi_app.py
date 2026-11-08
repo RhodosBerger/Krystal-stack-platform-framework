@@ -130,6 +130,7 @@ class SovereignOpenVinoOneApiApp:
             fact_engine=self.fact_engine,
             lm_studio_base_url=self.lm_studio_base_url,
         )
+        self.backfill_receipt = self.compositor.summarize_and_backfill_knowledge_gaps()
         self.compiled_ir_digest = self._compile_oneapi_openvino_pipeline()
 
     def _compile_oneapi_openvino_pipeline(self) -> str:
@@ -494,6 +495,24 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             return
         if self.path == "/api/v1/compositor/state":
             self._send_json(200, self.app_instance.compositor.get_compositor_state())
+            return
+        if self.path == "/api/v1/compositor/blueprint":
+            self._send_json(
+                200,
+                {
+                    "blueprint": self.app_instance.compositor.synthesize_amplitude_state_blueprint_and_intermodule_templates(),
+                    "vulkan_3d_hex_grid": self.app_instance.compositor.adapt_kernels_and_vulkan_3d_hex_grid(),
+                    "joule_multiplier": self.app_instance.compositor.evaluate_joule_governor_inference_multiplier(),
+                    "backfill_receipt": self.app_instance.backfill_receipt,
+                    "preset_templates": self.app_instance.compositor.get_retroactive_preset_templates(),
+                },
+            )
+            return
+        if self.path == "/api/v1/compositor/backfill_gaps":
+            self._send_json(200, self.app_instance.compositor.summarize_and_backfill_knowledge_gaps())
+            return
+        if self.path == "/api/v1/compositor/erosion_codec":
+            self._send_json(200, self.app_instance.compositor.run_visual_erosion_codec_pipeline())
             return
         if self.path == "/api/v1/compositor/export.jsonl":
             jsonl_bytes = self.app_instance.compositor.export_finetuning_jsonl().encode("utf-8")

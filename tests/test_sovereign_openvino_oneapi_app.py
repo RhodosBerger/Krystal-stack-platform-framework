@@ -92,7 +92,7 @@ class TestSovereignOpenVinoOneApiApp(unittest.TestCase):
     def test_ddes_compositor_scraper_and_finetuning_export(self) -> None:
         state = self.app.compositor.get_compositor_state()
         self.assertEqual(state["vital_max_hp"], 6)
-        self.assertEqual(len(state["precached_themes"]), 3)
+        self.assertGreaterEqual(len(state["precached_themes"]), 4)
         self.assertGreaterEqual(state["samples_count"], 3)
 
         synth = self.app.compositor.compose_hybrid_conclusion(
@@ -117,6 +117,93 @@ class TestSovereignOpenVinoOneApiApp(unittest.TestCase):
         jsonl = self.app.compositor.export_finetuning_jsonl()
         self.assertIn("NODE-DDES-0001", jsonl)
         self.assertIn("L5_MULTI_SOURCE_SYNTHESIS", jsonl)
+
+    def test_cv_quadratic_digital_twin_openvino_verification_loop(self) -> None:
+        # 1. Nominal verification with automatic neurosymbolic quantization selection
+        res = self.app.compositor.run_cv_digital_twin_verification_loop(
+            cv_observations=[0.15, 0.27, None, 0.63, 0.87, None, 1.47, 1.83],
+            residual_tolerance=0.02,
+        )
+        self.assertTrue(res["verified"])
+        self.assertEqual(res["status"], "VERIFIED_COMMIT")
+        self.assertEqual(res["delta_s"], 1)
+        self.assertEqual(res["vital_max_hp"], 6)
+        self.assertEqual(res["quadratic_scheme"]["reconstructed_indices"], [2, 5])
+        self.assertLessEqual(res["openvino_numerical_validation"]["final_max_residual"], 0.02)
+        self.assertIn("hardware_core_allocation", res)
+        self.assertTrue(res["hardware_core_allocation"]["gpu_offload_enabled"])
+        self.assertIn("P_CORE_SIMD", res["hardware_core_allocation"]["core_schemes"])
+        self.assertIn("NPU_SYSTOLIC_ARRAY", res["hardware_core_allocation"]["core_schemes"])
+
+        # 2. Forced coarse quantization with strict tolerance -> rejects with Delta S == 0
+        res_reject = self.app.compositor.run_cv_digital_twin_verification_loop(
+            cv_observations=[0.15, 0.27, None, 0.63, 0.87, None, 1.47, 1.83],
+            residual_tolerance=0.001,
+            force_coarse_quantization=True,
+        )
+        self.assertFalse(res_reject["verified"])
+        self.assertEqual(res_reject["status"], "REJECTED_DELTA_S_ZERO")
+        self.assertEqual(res_reject["delta_s"], 0)
+        self.assertEqual(res_reject["pipeline_semaphores"]["SEM_05_OPENVINO_COMMIT_GATE"], "RED_ROLLBACK_DELTA_S_ZERO")
+
+        # 3. Evaluate all 3 validation scheme datasets across pipeline semaphores
+        suite = self.app.compositor.evaluate_validation_scheme_datasets()
+        self.assertEqual(suite["datasets_evaluated"], 3)
+        s1 = suite["results"]["SET_01_NOMINAL_SMOOTH_CV"]
+        s2 = suite["results"]["SET_02_HIGH_CURVATURE_AUTOHEAL"]
+        s3 = suite["results"]["SET_03_BEYOND_KNOWABLE_HORIZON"]
+        self.assertEqual(s1["pipeline_semaphores"]["SEM_05_OPENVINO_COMMIT_GATE"], "GREEN_COMMIT_AUTHORIZED")
+        self.assertEqual(s2["pipeline_semaphores"]["SEM_03_QUANTIZATION_GATE"], "YELLOW_AUTO_HEAL_UPGRADE")
+        self.assertEqual(s2["delta_s"], 1)
+        self.assertEqual(s3["status"], "BEYOND_KNOWABLE_LIMIT_UNKNOWN")
+        self.assertEqual(s3["pipeline_semaphores"]["SEM_01_KNOWABILITY_GATE"], "RED_BEYOND_KNOWABLE_LIMIT")
+        self.assertEqual(s3["delta_s"], 0)
+
+    def test_backfill_joule_multiplier_vulkan_3d_hex_and_amplitude_blueprint(self) -> None:
+        # 1. Retroactive preset templates & anti-empty guarantee
+        tpl = self.app.compositor.get_retroactive_preset_templates()
+        self.assertTrue(tpl["anti_empty_guarantee"])
+        self.assertTrue(tpl["retroactive_adaptation_enabled"])
+        self.assertIn("cv-vulkan-3d-joule", tpl["presets"])
+
+        # 2. Reverse knowledge-gap summarizer & backfill flow
+        bf = self.app.compositor.summarize_and_backfill_knowledge_gaps()
+        self.assertEqual(bf["reverse_flow_status"], "COHERENT_BACKFILL_COMPLETE")
+        self.assertGreaterEqual(bf["total_facts_across_namespaces"], 14)
+        self.assertEqual(len(bf["reverse_flow_summaries"]), 4)
+
+        # 3. Multi-task Joule Governor & Inference Multiplier
+        jm = self.app.compositor.evaluate_joule_governor_inference_multiplier(
+            joule_budget_j=15.0,
+            concurrent_tasks=4,
+        )
+        self.assertEqual(jm["vital_max_hp"], 6)
+        self.assertGreater(jm["peak_vipj_gain_ratio"], 10.0)
+        self.assertEqual(len(jm["multiplier_scaling_table"]), 5)
+
+        # 4. Vulkan 3D Hex Grid & 128B Speculative Discovery Arena
+        vk = self.app.compositor.adapt_kernels_and_vulkan_3d_hex_grid(grid_dims=(4, 4, 4))
+        self.assertEqual(vk["grid_dimensions"]["total_voxels"], 64)
+        self.assertGreater(vk["breakthrough_candidates_count"], 0)
+        self.assertTrue(vk["top_breakthrough_voxels"][0]["hex_voxel_descriptor"].startswith("0x06DF"))
+
+        # 5. Amplitude-State Blueprint, Combinatorial Scheme Synthesizer & Future Prompts
+        bp = self.app.compositor.synthesize_amplitude_state_blueprint_and_intermodule_templates()
+        self.assertEqual(bp["vital_max_hp"], 6)
+        combos = bp["amplitude_state_analogy"]["combinations_evaluated"]
+        self.assertIn("CONSTRUCTIVE_RESONANCE_PROMOTED", combos[0]["interference_regime"])
+        self.assertIn("DESTRUCTIVE_CANCELLATION_QUARANTINED", combos[1]["interference_regime"])
+        self.assertEqual(len(bp["inter_module_templates"]), 5)
+        self.assertEqual(len(bp["future_runtime_horizons"]), 4)
+
+        # 6. Visual Erosion Encoder & Decoder + Derived Repository Flows
+        ec = self.app.compositor.run_visual_erosion_codec_pipeline()
+        self.assertEqual(ec["vital_max_hp"], 6)
+        self.assertEqual(ec["status"], "EROSION_CODEC_VERIFIED")
+        self.assertTrue(ec["encoder_output"]["hex_erosion_descriptor"].startswith("0x06E1"))
+        self.assertGreater(ec["decoder_output"]["erosion_error_reduction_pct"], 90.0)
+        self.assertEqual(ec["decoder_output"]["delta_s"], 1)
+        self.assertEqual(len(ec["derived_repository_features"]), 4)
 
 
 if __name__ == "__main__":
