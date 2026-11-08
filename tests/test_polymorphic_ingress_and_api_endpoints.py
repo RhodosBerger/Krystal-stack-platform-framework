@@ -201,7 +201,7 @@ class TestPolymorphicIngressAndGlyphStrokePipeline:
         assert ds["encoded_samples"][0]["ksyn_hex_packet"].startswith("4b53594e")
 
         connector = PolymorphicApiEndpointConnector()
-        assert len(connector.SUPPORTED_ENDPOINTS) == 17
+        assert len(connector.SUPPORTED_ENDPOINTS) == 19
 
         r_glyph = connector.dispatch("POST", "/api/v1/ml/glyph_stroke_compile", {"text": SPRINT_MOTTO_SK})
         assert r_glyph["status_code"] == 200
@@ -296,4 +296,28 @@ class TestPolymorphicIngressAndGlyphStrokePipeline:
             ]
             == 33.33
         )
+
+        r_joule = connector.dispatch("POST", "/api/v1/evolution/retrospective_joule_audit", {})
+        assert r_joule["status_code"] == 200
+        assert r_joule["vital_max_hp"] == 6
+        assert len(r_joule["omitted_topological_bridges"]) == 4
+        assert len(r_joule["module_parameter_scaling_matrix"]) == 4
+        assert r_joule["joule_amplitude_boost_telemetry"]["reclaimed_joule_reserve_per_op"] > 0.65
+        assert r_joule["joule_amplitude_boost_telemetry"]["unlocked_amplitude_boost_db"] > 10.0
+
+        r_bezier = connector.dispatch(
+            "POST",
+            "/api/v1/perception/bezier_isa_morph",
+            {"source_cluster": "zámok pamäte", "target_cluster": "Speicherschloss", "steps": 5},
+        )
+        assert r_bezier["status_code"] == 200
+        assert r_bezier["vital_max_hp"] == 6
+        assert len(r_bezier["bezier_morph_trajectory"]) == 5
+        assert len(r_bezier["llm_adapter_instruction_set"]) == 8
+        assert len(r_bezier["perceptual_parameter_queries"]) == 5
+        mem = r_bezier["coherent_text_bezier_memory_estimates"]
+        assert mem["per_cluster_bytes"]["clusters_per_128b_contract_frame"] == 6
+        assert mem["scale_estimates"][0]["coherent_photographic_o1_kb"] < 1.0
+
+
 

@@ -783,6 +783,12 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             ]
             self._send_json(200, {"object": "list", "data": models_list})
             return
+        from krystal_kernel.polymorphic_ingress_adapter import PolymorphicApiEndpointConnector
+        poly_conn = PolymorphicApiEndpointConnector()
+        if f"GET {self.path}" in poly_conn.SUPPORTED_ENDPOINTS:
+            res = poly_conn.dispatch("GET", self.path, {})
+            self._send_json(res.get("status_code", 200), res)
+            return
         self._send_json(404, {"error": "Endpoint not found", "path": self.path})
 
     def do_POST(self) -> None:
@@ -876,6 +882,13 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 selected_model_key=str(data.get("selected_model_key", "google/gemma-4-e2b")),
             )
             self._send_json(200, comp_res)
+            return
+
+        from krystal_kernel.polymorphic_ingress_adapter import PolymorphicApiEndpointConnector
+        poly_conn = PolymorphicApiEndpointConnector()
+        if f"POST {self.path}" in poly_conn.SUPPORTED_ENDPOINTS:
+            res = poly_conn.dispatch("POST", self.path, data)
+            self._send_json(res.get("status_code", 200), res)
             return
 
         self._send_json(404, {"error": "POST endpoint not found", "path": self.path})

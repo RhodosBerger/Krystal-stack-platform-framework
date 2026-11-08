@@ -435,6 +435,8 @@ class PolymorphicApiEndpointConnector:
         "POST /api/v1/cv/lip_reading_glottal",
         "POST /api/v1/autocomplete/onomatopoeic_whisper",
         "POST /api/v1/provenance/reversible_trace",
+        "POST /api/v1/evolution/retrospective_joule_audit",
+        "POST /api/v1/perception/bezier_isa_morph",
     )
 
     def __init__(self, adapter: Optional[PolymorphicIngressAdapter] = None) -> None:
@@ -452,6 +454,8 @@ class PolymorphicApiEndpointConnector:
             RhetoricalLipReadingAndGlottalEngine,
             OnomatopoeicPythonAutocompleteModel,
             ReversibleSignalProvenanceFramework,
+            RetrospectiveEvolutionAndJouleAmplitudeEngine,
+            PerceptualQueryLibraryAndBezierIsaEngine,
         )
         self.speculative_core = AdaptiveKerasSpeculativeCore()
         self.bootstrap_engine = GridPrefillBootstrapEngine()
@@ -465,6 +469,8 @@ class PolymorphicApiEndpointConnector:
         self.lip_glottal_engine = RhetoricalLipReadingAndGlottalEngine()
         self.python_whisperer = OnomatopoeicPythonAutocompleteModel()
         self.provenance_framework = ReversibleSignalProvenanceFramework()
+        self.retro_joule_engine = RetrospectiveEvolutionAndJouleAmplitudeEngine()
+        self.bezier_isa_engine = PerceptualQueryLibraryAndBezierIsaEngine()
 
     def dispatch(self, method: str, path: str, payload: Any = None) -> Dict[str, Any]:
         """Dispatches an API request to the corresponding governed handler."""
@@ -710,6 +716,30 @@ class PolymorphicApiEndpointConnector:
                 signal_payload=str(data.get("signal_payload", "Písmená sú symboly a znaky sú čiary.")),
                 hex_tone_id=str(data.get("hex_tone_id", "0xC2")),
                 observer_perspective=str(data.get("observer_perspective", "ACOUSTIC_PHONOLOGICAL_GLOTTAL_VIEW")),
+            )
+            res["status_code"] = 200
+            res["endpoint"] = route_key
+            return res
+
+        if route_key == "POST /api/v1/evolution/retrospective_joule_audit":
+            data = payload if isinstance(payload, dict) else {}
+            res = self.retro_joule_engine.evaluate_retrospective_and_joule_boost(
+                baseline_latency_ms=float(data.get("baseline_latency_ms", 47.0)),
+                optimized_latency_ms=float(data.get("optimized_latency_ms", 2.309)),
+                rapl_power_envelope_watts=float(data.get("rapl_power_envelope_watts", 15.0)),
+                current_mimic_tonus=float(data.get("current_mimic_tonus", 0.78)),
+                acoustic_slope_db_per_sec=float(data.get("acoustic_slope_db_per_sec", 4.5)),
+            )
+            res["status_code"] = 200
+            res["endpoint"] = route_key
+            return res
+
+        if route_key == "POST /api/v1/perception/bezier_isa_morph":
+            data = payload if isinstance(payload, dict) else {}
+            res = self.bezier_isa_engine.morph_text_clusters_with_bezier_and_isa(
+                source_cluster=str(data.get("source_cluster", "zámok pamäte")),
+                target_cluster=str(data.get("target_cluster", "Speicherschloss")),
+                steps=int(data.get("steps", 5)),
             )
             res["status_code"] = 200
             res["endpoint"] = route_key

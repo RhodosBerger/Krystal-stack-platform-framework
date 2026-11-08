@@ -436,6 +436,59 @@ class TestSovereignOpenVinoOneApiApp(unittest.TestCase):
         self.assertTrue(mcp_rollback["live_deductive_synthesis"]["deductive_answers_allowed"])
         self.assertGreater(mcp_rollback["live_deductive_synthesis"]["structural_certainty_pct"], 99.9)
 
+    def test_live_http_web_console_and_polymorphic_glyph_joule_endpoints(self) -> None:
+        import http.server
+        import json
+        import threading
+        import urllib.request
+        from krystal_kernel.sovereign_openvino_oneapi_app import SovereignOpenVinoRequestHandler
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SovereignOpenVinoRequestHandler)
+        port = server.server_address[1]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            # 1. Verify morning web console HTML at GET /
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5.0) as resp:
+                self.assertEqual(resp.status, 200)
+                html = resp.read().decode("utf-8")
+                self.assertIn("KRYSTAL FLUID DESIGN MANUAL v2.0", html)
+
+            # 2. Verify GET /api/v1/telemetry/observer_matrix on the live web server
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/v1/telemetry/observer_matrix", timeout=5.0) as resp:
+                self.assertEqual(resp.status, 200)
+                obs = json.loads(resp.read().decode("utf-8"))
+                self.assertEqual(obs["vital_max_hp"], 6)
+                self.assertEqual(obs["matrix_shape"], [9, 10])
+
+            # 3. Verify POST /api/v1/evolution/retrospective_joule_audit over HTTP
+            req_joule = urllib.request.Request(
+                f"http://127.0.0.1:{port}/api/v1/evolution/retrospective_joule_audit",
+                data=json.dumps({"baseline_latency_ms": 47.0, "optimized_latency_ms": 2.309}).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req_joule, timeout=5.0) as resp:
+                self.assertEqual(resp.status, 200)
+                j_data = json.loads(resp.read().decode("utf-8"))
+                self.assertEqual(j_data["vital_max_hp"], 6)
+                self.assertGreater(j_data["joule_amplitude_boost_telemetry"]["unlocked_amplitude_boost_db"], 10.0)
+
+            # 4. Verify POST /api/v1/provenance/reversible_trace over HTTP
+            req_prov = urllib.request.Request(
+                f"http://127.0.0.1:{port}/api/v1/provenance/reversible_trace",
+                data=json.dumps({"signal_payload": "Kryštál a čiary", "hex_tone_id": "0xC2"}).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req_prov, timeout=5.0) as resp:
+                self.assertEqual(resp.status, 200)
+                p_data = json.loads(resp.read().decode("utf-8"))
+                self.assertTrue(p_data["reverse_provenance_audit"]["bijective_reversibility_verified"])
+        finally:
+            server.shutdown()
+            server.server_close()
+
 
 if __name__ == "__main__":
     unittest.main()
