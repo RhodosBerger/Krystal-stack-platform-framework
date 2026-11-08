@@ -24,7 +24,27 @@ import pytest
 
 from krystal_kernel.constants import VITAL_MAX_HP
 
+from krystal_web_hub.server import KrystalHubHandler, ThreadedHTTPServer
+import threading
+import time
+
 BASE_URL = "http://127.0.0.1:8000"
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _ensure_web_hub_server():
+    global BASE_URL
+    server = ThreadedHTTPServer(("127.0.0.1", 0), KrystalHubHandler)
+    port = server.server_address[1]
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    BASE_URL = f"http://127.0.0.1:{port}"
+    time.sleep(0.1)
+    try:
+        yield
+    finally:
+        server.shutdown()
+        server.server_close()
 
 
 def make_request(path: str, data: dict = None) -> dict:

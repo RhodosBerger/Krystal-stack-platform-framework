@@ -793,17 +793,19 @@
       <div class="control-field">
         <label for="preset-select">Predvoľba:</label>
         <select id="preset-select" class="model-select" onchange="applySystemPreset(this.value)">
-          <option value="edge-fast">⚡ Preset 1: Rýchly Edge (Gemma-4-E2B | UMA 32%)</option>
-          <option value="deep-12b">🧠 Preset 2: Hĺbková Analýza (Gemma-4-12B-QAT | 32KB GPU)</option>
-          <option value="coder-6.7b">💻 Preset 3: Inžiniersky Kód (DeepSeek-Coder-6.7B)</option>
-          <option value="hysteresis-lock">🛡️ Preset 4: Stabilizátor 12-Frame Hysterézia (UMA 74%)</option>
-          <option value="pure-ast">🧮 Preset 5: Čistý XERJ CPU Kompilátor (0 LLM tokenov | &lt;2 ms)</option>
+          <option value="ddes-hybrid" selected>🧬 Preset 1: Krystal DDES Reasoner v2 (Fakty + Hybridný Zmysel | L5 | P3)</option>
+          <option value="edge-fast">⚡ Preset 2: Rýchly Edge + Sense Grounding (Gemma-4-E2B | L2 | UMA 32%)</option>
+          <option value="deep-12b">🧠 Preset 3: Hĺbková Diferenciálna Analýza (Gemma-4-12B-QAT | L4 | P5)</option>
+          <option value="coder-6.7b">💻 Preset 4: Inžiniersky Kód &amp; Dedukcia (DeepSeek-Coder-6.7B | L3 | P1)</option>
+          <option value="hysteresis-lock">🛡️ Preset 5: Stabilizátor 12-Frame Hysterézia (DDES v2 | L4 | P2 | UMA 74%)</option>
+          <option value="pure-ast">🧮 Preset 6: Čistý XERJ Vodič Faktov (CPU AST | L1 | 0 LLM tokenov)</option>
         </select>
       </div>
 
       <div class="control-field">
         <label for="model-select">Model:</label>
         <select id="model-select" class="model-select">
+          <option value="krystal/ddes-reasoner-v2" selected>🧬 krystal/ddes-reasoner-v2 (4,65B DDES Fact+Sense Hybrid)</option>
           <option value="google/gemma-4-e2b">🟢 google/gemma-4-e2b (4,6B GGUF — LM Studio :1234)</option>
           <option value="google/gemma-4-12b-qat">🧠 google/gemma-4-12b-qat (12B QAT GGUF — LM Studio :1234)</option>
           <option value="deepseek-coder-6.7b-base">💻 deepseek-coder-6.7b-base (6,7B GGUF — LM Studio :1234)</option>
@@ -826,11 +828,12 @@
         </button>
 
         <div class="sidebar-section-title">Systémové Presety (1-Klik)</div>
-        <button class="quick-btn" onclick="applySystemPreset('edge-fast')">⚡ <strong>Preset 1:</strong> Rýchly Edge (Gemma-4-E2B)</button>
-        <button class="quick-btn" onclick="applySystemPreset('deep-12b')">🧠 <strong>Preset 2:</strong> Hĺbkový 12B QAT (Gemma-4-12B)</button>
-        <button class="quick-btn" onclick="applySystemPreset('coder-6.7b')">💻 <strong>Preset 3:</strong> Inžiniersky Kód (DeepSeek-6.7B)</button>
-        <button class="quick-btn" onclick="applySystemPreset('hysteresis-lock')">🛡️ <strong>Preset 4:</strong> 12-Frame Hysterézia (UMA 74%)</button>
-        <button class="quick-btn" onclick="applySystemPreset('pure-ast')">🧮 <strong>Preset 5:</strong> Čistý CPU AST (0 LLM tokenov)</button>
+        <button class="quick-btn" onclick="applySystemPreset('ddes-hybrid')">🧬 <strong>Preset 1:</strong> Krystal DDES Reasoner v2 (Fakty + Zmysel)</button>
+        <button class="quick-btn" onclick="applySystemPreset('edge-fast')">⚡ <strong>Preset 2:</strong> Rýchly Edge + Sense (Gemma-4-E2B)</button>
+        <button class="quick-btn" onclick="applySystemPreset('deep-12b')">🧠 <strong>Preset 3:</strong> Hĺbkový 12B QAT (Diferenciál L4)</button>
+        <button class="quick-btn" onclick="applySystemPreset('coder-6.7b')">💻 <strong>Preset 4:</strong> Inžiniersky Kód (Dedukcia L3)</button>
+        <button class="quick-btn" onclick="applySystemPreset('hysteresis-lock')">🛡️ <strong>Preset 5:</strong> 12-Frame Hysterézia (UMA 74%)</button>
+        <button class="quick-btn" onclick="applySystemPreset('pure-ast')">🧮 <strong>Preset 6:</strong> Čistý CPU AST (0 LLM tokenov)</button>
 
         <div class="sidebar-section-title">Rýchle overené dopyty</div>
         <button class="quick-btn" onclick="askQuestion('Aké je zrýchlenie pre Vulkan Iris Xe?')">⚡ Aké je zrýchlenie grafiky Iris Xe?</button>
@@ -1058,52 +1061,74 @@
     let variationStyle = 'standard';
 
     const SYSTEM_PRESETS = {
+      'ddes-hybrid': {
+        name: '🧬 Preset 1: Krystal DDES Reasoner v2 (Vodič Faktov + Hybridný Zmysel)',
+        model: 'krystal/ddes-reasoner-v2',
+        uma: '0.32',
+        payload: '32768',
+        maxTokens: '192',
+        cognitionLevel: '5',
+        patternType: 'P3_CAUSAL_DIFFERENTIAL',
+        style: 'standard',
+        persona: 'analogy',
+        samplePrompt: 'Porovnaj frame latency pre CPU Baseline vs Vulkan Iris Xe'
+      },
       'edge-fast': {
-        name: '⚡ Preset 1: Rýchly Edge (Gemma-4-E2B)',
+        name: '⚡ Preset 2: Rýchly Edge + Sense Grounding (Gemma-4-E2B)',
         model: 'google/gemma-4-e2b',
         uma: '0.32',
         payload: '32768',
         maxTokens: '160',
+        cognitionLevel: '2',
+        patternType: 'P2_BOUNDARY_BIFURCATION',
         style: 'standard',
         persona: 'simple',
         samplePrompt: 'Aké je zrýchlenie pre Vulkan Iris Xe?'
       },
       'deep-12b': {
-        name: '🧠 Preset 2: Hĺbková Analýza (Gemma-4-12B-QAT)',
+        name: '🧠 Preset 3: Hĺbková Diferenciálna Analýza (Gemma-4-12B-QAT)',
         model: 'google/gemma-4-12b-qat',
         uma: '0.32',
         payload: '131072',
         maxTokens: '256',
+        cognitionLevel: '4',
+        patternType: 'P5_ABDUCTIVE_SYNTHESIS',
         style: 'standard',
         persona: 'analogy',
         samplePrompt: 'Porovnaj frame latency pre CPU Baseline vs Vulkan Iris Xe'
       },
       'coder-6.7b': {
-        name: '💻 Preset 3: Inžiniersky Kód (DeepSeek-Coder-6.7B)',
+        name: '💻 Preset 4: Inžiniersky Kód & Dedukcia (DeepSeek-Coder-6.7B)',
         model: 'deepseek-coder-6.7b-base',
         uma: '0.58',
         payload: '32768',
         maxTokens: '256',
+        cognitionLevel: '3',
+        patternType: 'P1_DEDUCTIVE_GATE',
         style: 'standard',
         persona: 'analogy',
         samplePrompt: 'What is the saved bandwidth for Zero Copy Ring?'
       },
       'hysteresis-lock': {
-        name: '🛡️ Preset 4: Stabilizátor 12-Frame Hysterézia (UMA 74%)',
-        model: 'google/gemma-4-e2b',
+        name: '🛡️ Preset 5: Stabilizátor 12-Frame Hysterézia (DDES v2 | UMA 74%)',
+        model: 'krystal/ddes-reasoner-v2',
         uma: '0.74',
         payload: '4096',
         maxTokens: '64',
+        cognitionLevel: '4',
+        patternType: 'P2_BOUNDARY_BIFURCATION',
         style: 'short',
         persona: 'analogy',
         samplePrompt: 'Porovnaj frame latency pre CPU Baseline vs Vulkan Iris Xe'
       },
       'pure-ast': {
-        name: '🧮 Preset 5: Čistý XERJ CPU Kompilátor (0 LLM tokenov)',
+        name: '🧮 Preset 6: Čistý XERJ Vodič Faktov (CPU AST | 0 LLM tokenov)',
         model: 'pure-cpu',
         uma: '0.88',
         payload: '4096',
         maxTokens: '16',
+        cognitionLevel: '1',
+        patternType: 'P1_DEDUCTIVE_GATE',
         style: 'short',
         persona: 'simple',
         samplePrompt: 'Koľko overených faktov je v krystal_sovereign?'
@@ -1130,6 +1155,12 @@
       document.getElementById('uma-select').value = p.uma;
       document.getElementById('payload-select').value = p.payload;
       document.getElementById('max-tokens-input').value = p.maxTokens;
+      if (document.getElementById('ddes-cognition-select')) {
+        document.getElementById('ddes-cognition-select').value = p.cognitionLevel || '5';
+      }
+      if (document.getElementById('ddes-pattern-select')) {
+        document.getElementById('ddes-pattern-select').value = p.patternType || 'P3_CAUSAL_DIFFERENTIAL';
+      }
       setVariationStyle(p.style);
       setPersona(p.persona);
       updateAnalogyPreview();
@@ -1139,7 +1170,7 @@
       const stream = document.getElementById('chat-stream');
       stream.insertAdjacentHTML('beforeend', `
         <div class="bubble assistant preset-notice">
-          ✅ Aktivovaný <strong>${p.name}</strong> — Model: <code>${p.model}</code> | UMA: <code>${Math.round(parseFloat(p.uma)*100)}%</code> | Tenzor: <code>${p.payload} B</code>. Otázka je pripravená v poli dole.
+          ✅ Aktivovaný <strong>${p.name}</strong> — Model: <code>${p.model}</code> | Kognícia: <code>L${p.cognitionLevel}</code> | Vzorec: <code>${p.patternType}</code> | UMA: <code>${Math.round(parseFloat(p.uma)*100)}%</code>. Otázka je pripravená v poli dole.
         </div>
       `);
       scrollToBottom();
@@ -1338,6 +1369,8 @@
       scrollToBottom();
 
       try {
+        const cogLevel = parseInt((document.getElementById('ddes-cognition-select') || {}).value || '5', 10);
+        const patternType = (document.getElementById('ddes-pattern-select') || {}).value || 'P3_CAUSAL_DIFFERENTIAL';
         const res = await fetch('/api/v1/facts/_ask', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
@@ -1347,7 +1380,9 @@
             uma_utilization: uma,
             max_tokens: maxTokens,
             payload_bytes: payloadBytes,
-            selected_model_key: modelKey
+            selected_model_key: modelKey,
+            cognition_level: cogLevel,
+            pattern_type: patternType
           })
         });
         const data = await res.json();

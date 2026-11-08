@@ -190,7 +190,7 @@ class AepInferenceGovernor:
         target_device: str = "GPU",
         current_bus_pressure: float = 0.10,
         deadline_budget_us: int = 500_000,
-        enforce_headroom: bool = True,
+        enforce_headroom: Optional[bool] = None,
     ) -> Tuple[bool, AepReceipt, Optional[InferenceResponse]]:
         """
         Dispatches inference through governor policy and AEP transaction gate.

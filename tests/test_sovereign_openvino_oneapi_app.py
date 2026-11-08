@@ -67,9 +67,19 @@ class TestSovereignOpenVinoOneApiApp(unittest.TestCase):
         bm = self.app.benchmark_concrete_models_on_hardware()
         self.assertEqual(bm["vital_max_hp"], 6)
         models = bm["models"]
-        self.assertEqual(len(models), 4)
+        self.assertEqual(len(models), 5)
         param_scales = sorted([m["parameter_count_billions"] for m in models])
-        self.assertEqual(param_scales, [0.05, 4.6, 6.7, 12.0])
+        self.assertEqual(param_scales, [0.05, 4.6, 4.65, 6.7, 12.0])
+
+        res_ddes = self.app.execute_hybrid_query(
+            namespace="krystal_sovereign",
+            prompt="Porovnaj frame latency pre CPU Baseline vs Vulkan Iris Xe",
+            selected_model_key="krystal/ddes-reasoner-v2",
+            cognition_level=5,
+            pattern_type="P3_CAUSAL_DIFFERENTIAL",
+        )
+        self.assertIn("DDES_HYBRID_FACT_AND_SENSE_MEASURED", res_ddes["evidence_classification"])
+        self.assertIn("krystal/ddes-reasoner-v2", res_ddes["conversational_reply"])
 
         frontend_path = os.path.join(os.getcwd(), "frontend", "sovereign_openvino_oneapi_console.html")
         self.assertTrue(os.path.exists(frontend_path))

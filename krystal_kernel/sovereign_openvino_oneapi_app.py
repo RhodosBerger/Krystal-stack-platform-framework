@@ -63,6 +63,14 @@ def _jcs_sha256(payload: Dict[str, Any]) -> str:
 
 
 REAL_LMSTUDIO_MODELS: Dict[str, Dict[str, Any]] = {
+    "krystal/ddes-reasoner-v2": {
+        "model_id": "krystal/ddes-reasoner-v2 (DDES Fact+Sense Hybrid)",
+        "params_b": 4.65,
+        "quant": "DDES-AST + Q4_K_M Hybrid",
+        "memory_mb": 4474.0,
+        "arch": "krystal_ddes_v2",
+        "lane": "DDES Multi-Data Compositor (Conducted Facts + Hybrid Sense + 12-Frame Hysteresis)",
+    },
     "google/gemma-4-e2b": {
         "model_id": "google/gemma-4-e2b",
         "params_b": 4.6,
@@ -182,7 +190,9 @@ class SovereignOpenVinoOneApiApp:
         uma_utilization: float = 0.35,
         max_tokens: int = 160,
         payload_bytes: int = 32768,
-        selected_model_key: str = "google/gemma-4-e2b",
+        selected_model_key: str = "krystal/ddes-reasoner-v2",
+        cognition_level: int = 5,
+        pattern_type: str = "auto",
     ) -> Dict[str, Any]:
         """
         Executes a verified hybrid query:
@@ -270,18 +280,33 @@ class SovereignOpenVinoOneApiApp:
                 f"[Čistý CPU AST kompilátor — 0 LLM tokenov]: Verdikt={query_res.verdict.value}. "
                 f"Výsledok programu: {ans_raw}"
             )
+        elif selected_model_key == "krystal/ddes-reasoner-v2":
+            ddes_out = self.compositor.ddes_model.infer(
+                prompt=prompt,
+                cognition_level=cognition_level,
+                pattern_type=pattern_type,
+            )
+            evidence_source = (
+                f"DDES_HYBRID_FACT_AND_SENSE_MEASURED "
+                f"({ddes_out['cognition_level_code']} // {ddes_out['pattern_type']})"
+            )
+            conversational_reply = ddes_out["formatted_reply"]
         elif query_res.verdict in (EnlgVerdict.MEASURED_WITH_SCOPE, EnlgVerdict.CONFLICT):
-            # XERJ Query-1 Fast-Path: Fact is already 100% verified by deterministic AST program!
-            # No LLM token tax or 20-second GGUF thinking delay needed.
+            ddes_out = self.compositor.ddes_model.infer(
+                prompt=prompt,
+                cognition_level=cognition_level,
+                pattern_type=pattern_type,
+            )
             prog_op = (
                 query_res.compiled_program[0]["opcode"]
                 if getattr(query_res, "compiled_program", None)
                 else "OP_LOOKUP"
             )
             conversational_reply = (
-                f"{ans_raw}  [Rýchla neurosymbolická dráha ({prog_op}): vybavené priamo na CPU za "
-                f"{ast_latency_ms:.2f} ms so spotrebou 0 LLM tokenov — model {selected_model_key} "
-                f"nemusel prepočítavať KV-cache]."
+                f"{ans_raw}  [Rýchla neurosymbolická dráha ({prog_op} | {ddes_out['cognition_level_code']}): "
+                f"vybavené priamo na CPU za {ast_latency_ms:.2f} ms so spotrebou 0 LLM tokenov — "
+                f"Zmysel (Sense, koherencia {ddes_out['hybrid_sense']['sense_coherence_score']}): "
+                f"{ddes_out['hybrid_sense']['synthesized_sense_statement']}]."
             )
         else:
             t_lms0 = time.perf_counter()
@@ -554,7 +579,9 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 uma_utilization=float(data.get("uma_utilization", 0.32)),
                 max_tokens=int(data.get("max_tokens", 160)),
                 payload_bytes=int(data.get("payload_bytes", 32768)),
-                selected_model_key=str(data.get("selected_model_key", "google/gemma-4-e2b")),
+                selected_model_key=str(data.get("selected_model_key", "krystal/ddes-reasoner-v2")),
+                cognition_level=int(data.get("cognition_level", 5)),
+                pattern_type=str(data.get("pattern_type", "auto")),
             )
             self._send_json(200, res)
             return

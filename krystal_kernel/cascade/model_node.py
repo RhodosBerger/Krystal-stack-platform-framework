@@ -694,7 +694,7 @@ class SlovakLLMNode(ModelNode):
         adapter: Optional[Any] = None,
         parameter_count_b: float = 3.0,
         quantization: str = "Q4_K_M",
-        enforce_headroom: bool = True,
+        enforce_headroom: bool = False,
         target_device: str = "CPU",
     ):
         from krystal_kernel.slovak_llm_adapter import SlovakLLMAdapter, ModelSpec
