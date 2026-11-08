@@ -201,7 +201,7 @@ class TestPolymorphicIngressAndGlyphStrokePipeline:
         assert ds["encoded_samples"][0]["ksyn_hex_packet"].startswith("4b53594e")
 
         connector = PolymorphicApiEndpointConnector()
-        assert len(connector.SUPPORTED_ENDPOINTS) == 19
+        assert len(connector.SUPPORTED_ENDPOINTS) == 24
 
         r_glyph = connector.dispatch("POST", "/api/v1/ml/glyph_stroke_compile", {"text": SPRINT_MOTTO_SK})
         assert r_glyph["status_code"] == 200
@@ -318,6 +318,47 @@ class TestPolymorphicIngressAndGlyphStrokePipeline:
         mem = r_bezier["coherent_text_bezier_memory_estimates"]
         assert mem["per_cluster_bytes"]["clusters_per_128b_contract_frame"] == 6
         assert mem["scale_estimates"][0]["coherent_photographic_o1_kb"] < 1.0
+
+        r_mcp_ncp = connector.dispatch(
+            "POST",
+            "/api/v1/mcp_ncp/control_plane",
+            {"mcp_tool_name": "krystal_glyph_bezier_isa_morph", "uma_bus_pressure": 0.34},
+        )
+        assert r_mcp_ncp["status_code"] == 200
+        assert r_mcp_ncp["vital_max_hp"] == 6
+        assert r_mcp_ncp["mcp_registered_tools_count"] == 5
+        assert r_mcp_ncp["active_ncp_silicon_node"]["max_draft_tokens"] == 28
+
+        r_synth = connector.dispatch(
+            "POST",
+            "/api/v1/runtime/hex_coherent_synthesis",
+            {"coherent_text": "Písmená sú symboly a znaky sú čiary.", "hex_tone_id": "0xC4"},
+        )
+        assert r_synth["status_code"] == 200
+        assert r_synth["vital_max_hp"] == 6
+        assert r_synth["synthesis_operations_count"] == 6
+        assert r_synth["coherent_hex_units"][0]["hex_geometry_record"].startswith("0x4B53_")
+
+        r_trig = connector.dispatch(
+            "POST",
+            "/api/v1/math/kernel_trigonometric_eval",
+            {"angle_deg": 58.282525, "glottal_f0_hz": 261.63},
+        )
+        assert r_trig["status_code"] == 200
+        assert r_trig["vital_max_hp"] == 6
+        assert r_trig["pythagorean_invariant_preserved"] is True
+        assert abs(r_trig["pythagorean_identity_sum"] - 1.0) <= 1e-4
+        assert len(r_trig["chebyshev_harmonics_t1_to_t4"]) == 4
+
+        r_webapp = connector.dispatch("GET", "/api/v1/webapp/unified_knowledge_kernel", {})
+        assert r_webapp["status_code"] == 200
+        assert r_webapp["vital_max_hp"] == 6
+        assert r_webapp["webapp_backend_status"] == "UNIFIED_KNOWLEDGE_KERNEL_ONLINE"
+        assert len(r_webapp["kernel_trigonometry_and_deductions"]["architectural_shift_deductions"]) == 4
+
+
+
+
 
 
 

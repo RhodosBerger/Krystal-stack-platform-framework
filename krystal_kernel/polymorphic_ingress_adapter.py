@@ -437,6 +437,11 @@ class PolymorphicApiEndpointConnector:
         "POST /api/v1/provenance/reversible_trace",
         "POST /api/v1/evolution/retrospective_joule_audit",
         "POST /api/v1/perception/bezier_isa_morph",
+        "POST /api/v1/mcp_ncp/control_plane",
+        "POST /api/v1/runtime/hex_coherent_synthesis",
+        "POST /api/v1/math/kernel_trigonometric_eval",
+        "GET /api/v1/webapp/unified_knowledge_kernel",
+        "POST /api/v1/webapp/unified_knowledge_kernel",
     )
 
     def __init__(self, adapter: Optional[PolymorphicIngressAdapter] = None) -> None:
@@ -456,6 +461,9 @@ class PolymorphicApiEndpointConnector:
             ReversibleSignalProvenanceFramework,
             RetrospectiveEvolutionAndJouleAmplitudeEngine,
             PerceptualQueryLibraryAndBezierIsaEngine,
+            McpNcpUnifiedControlPlaneBridge,
+            HexGeometricCoherentRuntimeAndSynthesisEngine,
+            KernelGovernedTrigonometricHarmonicEngine,
         )
         self.speculative_core = AdaptiveKerasSpeculativeCore()
         self.bootstrap_engine = GridPrefillBootstrapEngine()
@@ -471,6 +479,9 @@ class PolymorphicApiEndpointConnector:
         self.provenance_framework = ReversibleSignalProvenanceFramework()
         self.retro_joule_engine = RetrospectiveEvolutionAndJouleAmplitudeEngine()
         self.bezier_isa_engine = PerceptualQueryLibraryAndBezierIsaEngine()
+        self.mcp_ncp_bridge = McpNcpUnifiedControlPlaneBridge()
+        self.hex_coherent_runtime = HexGeometricCoherentRuntimeAndSynthesisEngine()
+        self.trig_engine = KernelGovernedTrigonometricHarmonicEngine()
 
     def dispatch(self, method: str, path: str, payload: Any = None) -> Dict[str, Any]:
         """Dispatches an API request to the corresponding governed handler."""
@@ -744,6 +755,74 @@ class PolymorphicApiEndpointConnector:
             res["status_code"] = 200
             res["endpoint"] = route_key
             return res
+
+        if route_key == "POST /api/v1/mcp_ncp/control_plane":
+            data = payload if isinstance(payload, dict) else {}
+            res = self.mcp_ncp_bridge.orchestrate_mcp_ncp_control_plane(
+                mcp_tool_name=str(data.get("mcp_tool_name", "krystal_glyph_bezier_isa_morph")),
+                uma_bus_pressure=float(data.get("uma_bus_pressure", 0.36)),
+                typography_mode=str(data.get("typography_mode", "SANS_SERIF_DIRECT_LINEAR")),
+            )
+            res["status_code"] = 200
+            res["endpoint"] = route_key
+            return res
+
+        if route_key == "POST /api/v1/runtime/hex_coherent_synthesis":
+            data = payload if isinstance(payload, dict) else {}
+            res = self.hex_coherent_runtime.execute_coherent_hex_runtime_synthesis(
+                coherent_text=str(
+                    data.get("coherent_text", "Písmená sú symboly a znaky sú čiary v koherentnom celku.")
+                ),
+                typography_mode=str(data.get("typography_mode", "SANS_SERIF_DIRECT_LINEAR")),
+                hex_tone_id=str(data.get("hex_tone_id", "0xC4")),
+                uma_bus_pressure=float(data.get("uma_bus_pressure", 0.35)),
+            )
+            res["status_code"] = 200
+            res["endpoint"] = route_key
+            return res
+
+        if route_key == "POST /api/v1/math/kernel_trigonometric_eval":
+            data = payload if isinstance(payload, dict) else {}
+            res = self.trig_engine.evaluate_kernel_trigonometric_state(
+                angle_deg=float(data.get("angle_deg", 58.282525)),
+                glottal_f0_hz=float(data.get("glottal_f0_hz", 261.63)),
+                time_sec=float(data.get("time_sec", 0.002309)),
+            )
+            res["status_code"] = 200
+            res["endpoint"] = route_key
+            return res
+
+        if route_key in (
+            "GET /api/v1/webapp/unified_knowledge_kernel",
+            "POST /api/v1/webapp/unified_knowledge_kernel",
+        ):
+            data = payload if isinstance(payload, dict) else {}
+            text_in = str(
+                data.get("text", "Písmená sú symboly a znaky sú čiary v koherentnom celku.")
+            )
+            angle_in = float(data.get("angle_deg", 58.282525))
+            uma_in = float(data.get("uma_bus_pressure", 0.34))
+
+            runtime_state = self.hex_coherent_runtime.execute_coherent_hex_runtime_synthesis(
+                coherent_text=text_in,
+                uma_bus_pressure=uma_in,
+            )
+            trig_state = self.trig_engine.evaluate_kernel_trigonometric_state(angle_deg=angle_in)
+            bezier_state = self.bezier_isa_engine.morph_text_clusters_with_bezier_and_isa()
+            mcp_ncp_state = self.mcp_ncp_bridge.orchestrate_mcp_ncp_control_plane(uma_bus_pressure=uma_in)
+            joule_state = self.retro_joule_engine.evaluate_retrospective_and_joule_boost()
+
+            return {
+                "status_code": 200,
+                "endpoint": route_key,
+                "webapp_backend_status": "UNIFIED_KNOWLEDGE_KERNEL_ONLINE",
+                "hex_coherent_runtime": runtime_state,
+                "kernel_trigonometry_and_deductions": trig_state,
+                "bezier_isa_and_typography_modes": bezier_state,
+                "mcp_ncp_control_plane": mcp_ncp_state,
+                "retrospective_joule_and_parameter_scaling": joule_state,
+                "vital_max_hp": VITAL_MAX_HP,
+            }
 
         return {
             "status_code": 404,
