@@ -411,6 +411,31 @@ class TestSovereignOpenVinoOneApiApp(unittest.TestCase):
         self.assertIn("graph_1_chronometric_latency_log_scale", th["visual_graph_representations"])
         self.assertIn("graph_3_thermo_economic_vipj_curve", th["visual_graph_representations"])
 
+        # 18. MCP Multimodal Operational Profile Generator & Simple Ecosystem Demo (SW_LAYER_L17)
+        mcp_eco = DoubleTimeCoefficientEmulator().run_mcp_multimodal_profile_generator_and_ecosystem_demo(
+            operational_mode="MODE_02_HYSTERESIS_GUARD_74",
+            scenario_id="SCENARIO_B_DEGRADED_ADAPTIVE_COMMIT",
+        )
+        self.assertEqual(mcp_eco["vital_max_hp"], 6)
+        self.assertEqual(mcp_eco["status"], "MCP_MULTIMODAL_ECOSYSTEM_LAYER_VERIFIED")
+        self.assertEqual(mcp_eco["software_layer_id"], "SW_LAYER_L17_MCP_MULTIMODAL_ECOSYSTEM")
+        self.assertTrue(mcp_eco["deductive_answers_enabled"])
+        self.assertEqual(len(mcp_eco["refined_5stage_deductive_process"]), 5)
+        self.assertEqual(len(mcp_eco["operational_profiles_catalog"]), 3)
+        self.assertEqual(len(mcp_eco["simple_ecosystem_nodes"]), 4)
+        self.assertEqual(mcp_eco["active_ecosystem_scenario"]["delta_s_commit"], 1)
+        self.assertEqual(mcp_eco["active_ecosystem_scenario"]["delta_s_deductive_answer"], 1)
+
+        mcp_rollback = DoubleTimeCoefficientEmulator().run_mcp_multimodal_profile_generator_and_ecosystem_demo(
+            operational_mode="MODE_03_SURVIVAL_LOCK_88",
+            scenario_id="SCENARIO_C_SURVIVAL_ATOMIC_ROLLBACK",
+            custom_deductive_query="Kde je paleta #42 pri zahmlenej kamere a ako ju bezpečne obísť?",
+        )
+        self.assertEqual(mcp_rollback["active_ecosystem_scenario"]["delta_s_commit"], 0)
+        self.assertEqual(mcp_rollback["active_ecosystem_scenario"]["delta_s_deductive_answer"], 1)
+        self.assertTrue(mcp_rollback["live_deductive_synthesis"]["deductive_answers_allowed"])
+        self.assertGreater(mcp_rollback["live_deductive_synthesis"]["structural_certainty_pct"], 99.9)
+
 
 if __name__ == "__main__":
     unittest.main()

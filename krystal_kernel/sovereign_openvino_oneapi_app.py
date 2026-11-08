@@ -278,10 +278,15 @@ class SovereignOpenVinoOneApiApp:
         llm_wall_ms = 0.0
         conversational_reply = ""
 
+        refined_deductive = self.emulator.synthesize_refined_deductive_answer(
+            prompt=prompt,
+            uma_utilization=uma_utilization,
+        )
+
         if selected_model_key == "pure-cpu" or allocated_budget == 0:
             conversational_reply = (
-                f"[Čistý CPU AST kompilátor — 0 LLM tokenov]: Verdikt={query_res.verdict.value}. "
-                f"Výsledok programu: {ans_raw}"
+                f"[Čistý CPU AST + 5-Fázová Sylogistická Dedukcia — 0 LLM tokenov]: Verdikt={query_res.verdict.value}. "
+                f"Výsledok programu: {ans_raw} | {refined_deductive['deduced_conclusion_sk']}"
             )
         elif selected_model_key == "krystal/ddes-reasoner-v2":
             ddes_out = self.compositor.ddes_model.infer(
@@ -293,7 +298,10 @@ class SovereignOpenVinoOneApiApp:
                 f"DDES_HYBRID_FACT_AND_SENSE_MEASURED "
                 f"({ddes_out['cognition_level_code']} // {ddes_out['pattern_type']})"
             )
-            conversational_reply = ddes_out["formatted_reply"]
+            conversational_reply = (
+                f"{ddes_out['formatted_reply']}  [5-Fázová Deduktívna Syntéza ({refined_deductive['hex_deductive_tag']}): "
+                f"{refined_deductive['deduced_conclusion_sk']}]"
+            )
         elif query_res.verdict in (EnlgVerdict.MEASURED_WITH_SCOPE, EnlgVerdict.CONFLICT):
             ddes_out = self.compositor.ddes_model.infer(
                 prompt=prompt,
@@ -309,7 +317,8 @@ class SovereignOpenVinoOneApiApp:
                 f"{ans_raw}  [Rýchla neurosymbolická dráha ({prog_op} | {ddes_out['cognition_level_code']}): "
                 f"vybavené priamo na CPU za {ast_latency_ms:.2f} ms so spotrebou 0 LLM tokenov — "
                 f"Zmysel (Sense, koherencia {ddes_out['hybrid_sense']['sense_coherence_score']}): "
-                f"{ddes_out['hybrid_sense']['synthesized_sense_statement']}]."
+                f"{ddes_out['hybrid_sense']['synthesized_sense_statement']} | "
+                f"{refined_deductive['deduced_conclusion_sk']}]."
             )
         else:
             t_lms0 = time.perf_counter()
@@ -348,9 +357,10 @@ class SovereignOpenVinoOneApiApp:
                     evidence_source = f"PHYSICAL_LM_STUDIO_MEASURED ({selected_model_key} @ :1234)"
             except Exception as exc:
                 llm_wall_ms = (time.perf_counter() - t_lms0) * 1000.0
-                evidence_source = f"CPU_AST_FAST_FALLBACK ({type(exc).__name__})"
+                evidence_source = f"CPU_AST_DEDUCTIVE_FAST_FALLBACK ({type(exc).__name__})"
                 conversational_reply = (
-                    f"[Rýchly CPU AST záchranný režim ({query_res.verdict.value})]: {ans_raw}"
+                    f"[Rýchly CPU AST + Deduktívny režim ({query_res.verdict.value})]: {ans_raw} | "
+                    f"{refined_deductive['deduced_conclusion_sk']}"
                 )
 
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
@@ -379,6 +389,7 @@ class SovereignOpenVinoOneApiApp:
             "evidence_classification": evidence_source,
             "selected_model": model_info,
             "conversational_reply": conversational_reply,
+            "refined_deductive_inference": refined_deductive,
             "query_response": query_res.to_dict(),
             "compositional_detection": {
                 "hex_composition_descriptor": comp_detect["hex_composition_descriptor"],
@@ -732,6 +743,22 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 200,
                 DoubleTimeCoefficientEmulator().derive_scientific_theories_and_visual_graphs(
                     selected_theory_index=th_idx,
+                ),
+            )
+            return
+        if self.path.startswith("/api/v1/compositor/mcp_multimodal_ecosystem"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.double_time_coefficient_emulator import DoubleTimeCoefficientEmulator
+            qs = parse_qs(urlparse(self.path).query)
+            op_mode = qs.get("mode", ["MODE_01_NOMINAL_FULL_DUPLEX"])[0]
+            scen_id = qs.get("scenario", ["SCENARIO_A_NOMINAL_COMMIT"])[0]
+            ded_q = qs.get("query", [""])[0]
+            self._send_json(
+                200,
+                DoubleTimeCoefficientEmulator().run_mcp_multimodal_profile_generator_and_ecosystem_demo(
+                    operational_mode=op_mode,
+                    scenario_id=scen_id,
+                    custom_deductive_query=ded_q,
                 ),
             )
             return

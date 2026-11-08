@@ -1206,6 +1206,23 @@
             Načítavam vedecké dokumentačné rozhranie, odvodené teórie a interaktívne SVG grafy...
           </div>
         </div>
+
+        <!-- KARTA 13: VRSTVA MCP GENERÁTORA ŠABLÓN & PREVÁDZKOVÝCH PROFILOV (SW_LAYER_L17), MATICA DOSTUPNOSTI MULTIMODÁLNYCH TRANSAKČNÝCH OPERÁCIÍ, POVOLENÉ DEDUKTÍVNE ODPOVEDE (5-FÁZOVÝ PROCES) & DEMONŠTRÁCIA NA JEDNODUCHOM EKOSYSTÉME -->
+        <div class="admin-card" id="mcp-multimodal-ecosystem-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <h3>🧩 13. MCP Vrstva Šablón &amp; Prevádzkových Profilov (<code>SW_LAYER_L17</code>), 5-Fázové Deduktívne Odpovede &amp; Ekosystém <code>Krystal-Mini</code></h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <button class="var-btn active" id="mcp-mode-1" onclick="loadMcpMultimodalEcosystem('MODE_01_NOMINAL_FULL_DUPLEX', 'SCENARIO_A_NOMINAL_COMMIT')">🟢 Režim 1: Nominálny (UMA 32% / Scenár A)</button>
+              <button class="var-btn" id="mcp-mode-2" onclick="loadMcpMultimodalEcosystem('MODE_02_HYSTERESIS_GUARD_74', 'SCENARIO_B_DEGRADED_ADAPTIVE_COMMIT')">🟡 Režim 2: Hysterézia 74% (64B Kostra / Scenár B)</button>
+              <button class="var-btn" id="mcp-mode-3" onclick="loadMcpMultimodalEcosystem('MODE_03_SURVIVAL_LOCK_88', 'SCENARIO_C_SURVIVAL_ATOMIC_ROLLBACK')">🟣 Režim 3: Survival Lock 88% (ΔS_phys=0 + Deduktívna Odpoveď ΔS_ded=1)</button>
+              <input id="mcp-deductive-query-input" type="text" class="admin-input" style="width:230px;padding:4px 8px;" placeholder="Vlastná otázka pre 5-fázovú dedukciu..." />
+              <button class="var-btn" style="border-color:#34d399;color:#34d399;" onclick="loadMcpMultimodalEcosystem(currentMcpMode, currentMcpScenario)">🧠 Odvodiť Deduktívnu Odpoveď</button>
+            </div>
+          </div>
+          <div id="mcp-multimodal-ecosystem-body" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
+            Načítavam MCP vrstvu šablón prevádzkových režimov, 5-fázový deduktívny proces, maticu multimodálnych transakcií a jednoduchý ekosystém...
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1387,6 +1404,121 @@
       loadPanopticInterface(0, false);
       loadMetaInductiveConstructs(false);
       loadScientificTheoriesPortal(0);
+      loadMcpMultimodalEcosystem('MODE_01_NOMINAL_FULL_DUPLEX', 'SCENARIO_A_NOMINAL_COMMIT');
+    }
+
+    let currentMcpMode = 'MODE_01_NOMINAL_FULL_DUPLEX';
+    let currentMcpScenario = 'SCENARIO_A_NOMINAL_COMMIT';
+
+    async function loadMcpMultimodalEcosystem(modeId, scenarioId) {
+      currentMcpMode = modeId || currentMcpMode;
+      currentMcpScenario = scenarioId || currentMcpScenario;
+      const mMap = {
+        'MODE_01_NOMINAL_FULL_DUPLEX': 'mcp-mode-1',
+        'MODE_02_HYSTERESIS_GUARD_74': 'mcp-mode-2',
+        'MODE_03_SURVIVAL_LOCK_88': 'mcp-mode-3'
+      };
+      Object.keys(mMap).forEach(k => {
+        const b = document.getElementById(mMap[k]);
+        if (b) b.classList.toggle('active', k === currentMcpMode);
+      });
+      try {
+        const qVal = encodeURIComponent((document.getElementById('mcp-deductive-query-input') || {}).value || '');
+        const r = await fetch(`/api/v1/compositor/mcp_multimodal_ecosystem?mode=${encodeURIComponent(currentMcpMode)}&scenario=${encodeURIComponent(currentMcpScenario)}&query=${qVal}`);
+        const d = await r.json();
+        const prof = d.active_generated_profile || {};
+        const tpl = prof.generated_template_schema || {};
+        const sc = d.active_ecosystem_scenario || {};
+        const mat = prof.multimodal_availability_matrix || [];
+        const nodes = d.simple_ecosystem_nodes || [];
+        const ded = d.live_deductive_synthesis || {};
+        const stages = d.refined_5stage_deductive_process || [];
+
+        const matrixHtml = mat.map(m => `
+          <div style="margin-bottom:6px;padding:7px;background:var(--bg-elevated);border-left:3px solid ${m.color};border-radius:4px;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <strong style="color:var(--text-primary);">${m.modality_name_sk}</strong>
+              <code style="color:${m.color};">${m.availability_status} (${m.availability_pct}%) | ${m.latency_ms} ms</code>
+            </div>
+            <div style="margin-top:2px;font-size:11px;">
+              <strong>Transakčná operácia:</strong> <code>${m.transactional_op}</code> &nbsp;|&nbsp;
+              <strong>MCP Väzba:</strong> <code>${m.mcp_binding}</code>
+            </div>
+            <div style="margin-top:2px;font-size:11px;color:#38bdf8;">
+              <strong>Deduktívna rola v procese:</strong> ${m.deductive_role || ''}
+            </div>
+          </div>
+        `).join('');
+
+        const svgNodes = nodes.map((n, idx) => {
+          const isRollback = sc.delta_s_commit === 0 && idx >= 1;
+          const strokeCol = isRollback ? '#a855f7' : '#34d399';
+          return `
+            <g>
+              ${idx < nodes.length - 1 ? `<line x1="${n.svg_x + 42}" y1="${n.svg_y}" x2="${nodes[idx+1].svg_x - 42}" y2="${nodes[idx+1].svg_y}" stroke="${strokeCol}" stroke-width="2.5" stroke-dasharray="${isRollback ? '4,4' : 'none'}" />` : ''}
+              <rect x="${n.svg_x - 42}" y="${n.svg_y - 32}" width="84" height="64" rx="8" fill="#0f172a" stroke="${strokeCol}" stroke-width="2" />
+              <text x="${n.svg_x}" y="${n.svg_y - 8}" text-anchor="middle" fill="#f8fafc" font-size="9" font-weight="bold">${n.node_id.replace('NODE_0', 'UZOL ')}</text>
+              <text x="${n.svg_x}" y="${n.svg_y + 8}" text-anchor="middle" fill="#38bdf8" font-size="8">${n.mcp_tool}</text>
+              <text x="${n.svg_x}" y="${n.svg_y + 22}" text-anchor="middle" fill="${strokeCol}" font-size="8">${isRollback ? 'ΔS_phys=0|ΔS_ded=1' : 'COMMIT + DED OK'}</text>
+            </g>
+          `;
+        }).join('');
+
+        const stepsHtml = (sc.step_by_step_trace_sk || []).map(st => `<div style="margin-top:3px;">• ${st}</div>`).join('');
+        const premisesHtml = (ded.premises_chain || []).map(pr => `<div style="margin-top:2px;">• ${pr}</div>`).join('');
+        const stagesHtml = stages.map(s => `
+          <div style="padding:6px;background:var(--bg-elevated);border-left:3px solid #38bdf8;border-radius:4px;margin-bottom:4px;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;">
+              <strong style="color:var(--text-primary);">${s.title_sk}</strong>
+              <code>${s.stage_id} | ${s.latency_ms} ms</code>
+            </div>
+            <div style="color:var(--text-secondary);margin-top:2px;">${s.description_sk}</div>
+          </div>
+        `).join('');
+
+        document.getElementById('mcp-multimodal-ecosystem-body').innerHTML = `
+          <div class="kv-row"><span>Aktívna MCP Vrstva, Profil &amp; Stav Dedukcie:</span><code style="color:#34d399;">${d.software_layer_id} | ${prof.profile_template_id} (${prof.hex_profile_signature}) | Deduktívne odpovede: POVOLENÉ (${prof.deductive_mode_policy})</code></div>
+          <div class="kv-row"><span>Prevádzkový Režim &amp; MCP Generátor:</span><code>${prof.title_sk} | Nástroj: ${prof.mcp_generator_tool}</code></div>
+          <div class="kv-row"><span>Zdokonalený Bifurkovaný Transakčný Zákon:</span><code style="color:#38bdf8;">${d.formal_transactional_law}</code></div>
+          <div class="kv-row"><span>Šablóna Profilu (Segregácia / Brána / Dedukcia):</span><code>${tpl.influence_segregation} | Brána: ${tpl.atomic_commit_gate} | Dedukcia: ${tpl.deductive_inference_gate}</code></div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:12px;margin:10px 0;">
+            <div>
+              <strong>A. Matica Dostupnosti 5 Multimodálnych Operácií &amp; Ich Deduktívna Rola:</strong>
+              <div style="margin-top:6px;">${matrixHtml}</div>
+            </div>
+            <div style="background:#090d16;border:1px solid var(--border);border-radius:8px;padding:10px;">
+              <div style="font-weight:700;color:var(--cyan);margin-bottom:6px;text-align:center;">B. Jednoduchý 4-Uzlový Ekosystém: ${d.simple_ecosystem_name}</div>
+              <svg viewBox="0 0 540 175" style="width:100%;max-width:520px;height:auto;display:block;margin:0 auto;">
+                ${svgNodes}
+              </svg>
+              <div style="padding:8px;background:#0f172a;border-left:4px solid ${sc.delta_s_commit === 1 ? '#34d399' : '#a855f7'};border-radius:4px;margin-top:6px;">
+                <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+                  <strong style="color:var(--text-primary);">${sc.title_sk}</strong>
+                  <code>${sc.hex_transaction_receipt} | ΔS_phys=${sc.delta_s_commit} | ΔS_ded=${sc.delta_s_deductive_answer} | ${sc.total_transaction_latency_ms} ms</code>
+                </div>
+                <div style="margin-top:4px;color:#fbbf24;"><strong>Podnet:</strong> ${sc.operator_trigger_sk}</div>
+                <div style="margin-top:4px;color:var(--text-primary);"><strong>Priebeh multimodálnej transakcie cez MCP:</strong>${stepsHtml}</div>
+                <div style="margin-top:6px;padding:6px;background:rgba(52,211,153,0.1);border-left:3px solid #34d399;border-radius:4px;color:#34d399;">
+                  <strong>🧠 Deduktívna Odpoveď Scenára (ΔS_ded = 1):</strong><br/>${sc.deductive_answer_synthesis_sk || ''}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:10px;background:#0f172a;border-left:4px solid #38bdf8;border-radius:6px;margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <strong style="color:#38bdf8;font-size:var(--fs-sm);">C. Živý Výstup Zdokonaleného Sylogistického Deduktívneho Motora (${ded.syllogism_id})</strong>
+              <code>${ded.hex_deductive_tag} | Latencia: ${ded.deductive_latency_ms} ms | Istota: ${ded.structural_certainty_pct}% (R_ded=${ded.epistemic_residual_r_ded})</code>
+            </div>
+            <div style="margin-top:4px;color:var(--text-secondary);"><strong>Reťazec Premís z Aktívnych Modalít:</strong>${premisesHtml}</div>
+            <div style="margin-top:6px;color:#34d399;"><strong>Odvodená Deduktívna Odpoveď:</strong> ${ded.deduced_conclusion_sk}</div>
+            <div style="margin-top:4px;font-size:11px;color:#c084fc;"><strong>Argon 6-Tuple Pečať:</strong> <code>${ded.argon_6tuple_stamp}</code></div>
+          </div>
+
+          <div><strong>D. Zdokonalený 5-Fázový Proces Deduktívnych Odpovedí v MCP Vrstve L17:</strong><div style="margin-top:6px;">${stagesHtml}</div></div>
+        `;
+      } catch (e) {}
     }
 
     let currentTheoryIdx = 0;

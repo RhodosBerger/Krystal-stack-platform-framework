@@ -177,3 +177,22 @@ xychart-beta
     y-axis "Redukcia rezídua (%)" 85 --> 100
     bar [100.0, 94.12, 98.46, 100.0, 97.14, 99.40]
 ```
+
+---
+
+## 7. Vrstva MCP Generátora Šablón a Prevádzkových Profilov pre Multimodálne Transakčné Operácie (`SW_LAYER_L17_MCP_MULTIMODAL_ECOSYSTEM`)
+
+### 7.1 Formálny Transakčný Zákon Multimodality
+$$\text{Commit}(\mathcal{T}_{\text{multi}}) \iff \left(\forall m \in \text{ActiveModalities}: \text{Available}(m, \text{Mode})\right) \land \text{Valid}(S_t, \mathcal{T}_{\text{multi}}) \land (\text{VITAL\_MAX\_HP} \equiv 6)$$
+$$\neg\text{Commit}(\mathcal{T}_{\text{multi}}) \implies S_{t+1} \equiv S_t \quad (\Delta S = 0, \text{Zero-Mutation Rollback})$$
+
+### 7.2 Prevádzkové Profily Generované cez MCP (`0x06P1`..`0x06P3`)
+1. **`MODE_01_NOMINAL_FULL_DUPLEX` (`TPL_PROF_01_FULL_5MOD_ACID`, `0x06P1F50320000001`):**
+   * UMA: `32 %` | Dostupnosť všetkých 5 modalít: `100 %` (`Audio 16B`, `Vision Q8_0`, `Text AST`, `3D Vulkan Grid`, `128B Ledger Ring`).
+   * Atómová transakcia Palety #42 (`SCENARIO_A_NOMINAL_COMMIT`) prebehne za **`4,28 ms`** ($\Delta S = 1$).
+2. **`MODE_02_HYSTERESIS_GUARD_74` (`TPL_PROF_02_HYSTERESIS_ADAPTIVE_SKELETON`, `0x06P2E10740000012`):**
+   * UMA: `74 %` | Vision prepína na `64B Morfologickú Kostru (0x06E1)` (`98,46 %` obnova, `-96,8 %` šírky pásma) a 3D scéna sa odkladá do fázového tieňa `BUF_01` (`15,047 ms`).
+   * Adaptívna transakcia (`SCENARIO_B_DEGRADED_ADAPTIVE_COMMIT`) prebehne za **`2,98 ms`** ($\Delta S = 1$).
+3. **`MODE_03_SURVIVAL_LOCK_88` (`TPL_PROF_03_NOETHER_SURVIVAL_LOCK`, `0x06P3AA0880000000`):**
+   * UMA: `88 %` | Vision deteguje podkročený horizont poznateľnosti ($\kappa_{\text{know}} = 0,22 < 0,35$), 3D scéna je odpojená a Argon aktivuje Noether-Rollback bránu (`SCENARIO_C_SURVIVAL_ATOMIC_ROLLBACK`, **`1,42 ms`**, $\Delta S = 0$).
+
