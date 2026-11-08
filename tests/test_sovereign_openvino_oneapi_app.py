@@ -196,7 +196,7 @@ class TestSovereignOpenVinoOneApiApp(unittest.TestCase):
         self.assertEqual(len(bp["inter_module_templates"]), 5)
         self.assertEqual(len(bp["future_runtime_horizons"]), 4)
 
-        # 6. Visual Erosion Encoder & Decoder + Derived Repository Flows
+        # 6. Visual Erosion Encoder & Decoder + Derived Repository Flows + Extended Layers L8..L10
         ec = self.app.compositor.run_visual_erosion_codec_pipeline()
         self.assertEqual(ec["vital_max_hp"], 6)
         self.assertEqual(ec["status"], "EROSION_CODEC_VERIFIED")
@@ -204,6 +204,71 @@ class TestSovereignOpenVinoOneApiApp(unittest.TestCase):
         self.assertGreater(ec["decoder_output"]["erosion_error_reduction_pct"], 90.0)
         self.assertEqual(ec["decoder_output"]["delta_s"], 1)
         self.assertEqual(len(ec["derived_repository_features"]), 4)
+
+        ext = self.app.compositor.evaluate_extended_pipeline_and_120b_120t_scaling()
+        self.assertEqual(ext["vital_max_hp"], 6)
+        self.assertEqual(len(ext["extended_pipeline_layers"]), 3)
+        self.assertEqual(len(ext["power_and_architecture_profiles"]), 3)
+        self.assertIn("scale_120_miliard_120B_dense_q4", ext["parameter_scaling_120b_and_120t"])
+        self.assertIn("scale_120_bilionov_120T_sparse_moe", ext["parameter_scaling_120b_and_120t"])
+
+        # 7. Hardware Resource Virtualization & Zero-Stall NVMe SSD Swap with NPU Decompression
+        virt = self.app.compositor.virtualize_resources_and_zero_stall_ssd_swap(
+            active_working_set_gb=24.0,
+            physical_ram_budget_gb=8.0,
+        )
+        self.assertEqual(virt["vital_max_hp"], 6)
+        self.assertEqual(virt["status"], "ZERO_STALL_VIRTUALIZATION_VERIFIED")
+        self.assertTrue(virt["zero_slowdown_proof"]["zero_slowdown_achieved"])
+        self.assertEqual(virt["zero_slowdown_proof"]["net_pipeline_stall_ms"], 0.0)
+        self.assertEqual(len(virt["schema_addons"]), 4)
+
+        # 8. Double-Time Compositor (tau_real + tau_spec dual temporal horizon)
+        dt = self.app.compositor.run_double_time_compositor_cycle()
+        self.assertEqual(dt["vital_max_hp"], 6)
+        self.assertEqual(dt["status"], "DOUBLE_TIME_LOCK_VERIFIED")
+        self.assertEqual(dt["temporal_domains"]["tau_real_present_axis"]["ssd_stall_ms"], 0.0)
+        self.assertEqual(dt["synchronization_bridge"]["commit_cost_cpu_cycles"], 1)
+
+        # 9. Coefficient Emulation & Emergent Module Synthesis
+        ce = self.app.compositor.run_coefficient_emulation_and_module_synthesis()
+        self.assertEqual(ce["vital_max_hp"], 6)
+        self.assertEqual(ce["emulator_status"], "COEFFICIENT_EMULATION_VERIFIED")
+        self.assertEqual(len(ce["emulated_regimes"]), 4)
+        self.assertEqual(ce["emulated_regimes"][0]["emulated_outcomes"]["delta_s"], 1)
+        self.assertEqual(ce["emulated_regimes"][3]["emulated_outcomes"]["delta_s"], 0)
+        self.assertEqual(len(ce["emergent_modules_catalog"]), 4)
+        mb = ce["multi_buffer_hierarchy"]
+        self.assertEqual(mb["buffer_tiers_count"], 4)
+        self.assertEqual(len(mb["fractional_time_and_set_mapping"]), 5)
+        self.assertEqual(mb["zero_copy_memcpy_bytes"], 0)
+
+        from krystal_kernel.double_time_coefficient_emulator import DoubleTimeCoefficientEmulator
+        fa = DoubleTimeCoefficientEmulator().analyze_achievable_frontier_and_synergy_matrix()
+        self.assertEqual(fa["vital_max_hp"], 6)
+        self.assertEqual(fa["status"], "FRONTIER_ANALYSIS_VERIFIED")
+        self.assertEqual(len(fa["achievable_frontier_domains"]), 5)
+
+        pc = DoubleTimeCoefficientEmulator().detect_compositional_procedure_from_paraphrase(
+            "Keď vypadnú hrany z kamery, dopočítaj ich cez dvojča a ťahaj váhy z SSD disku tak, aby sa to nespomalilo a šetri energiu v jouloch"
+        )
+        self.assertEqual(pc["vital_max_hp"], 6)
+        self.assertGreaterEqual(pc["detected_states_count"], 3)
+        self.assertTrue(pc["hex_composition_descriptor"].startswith("0x06C0"))
+        self.assertIn("VisualErosionEncoder", pc["synthesized_composite_pipeline"])
+        self.assertIn("ECore_NVMe_DMA", pc["synthesized_composite_pipeline"])
+
+        # 10. Network Modulation Element & Hypertext Socket Node-Editor Syntax Profiler
+        np0 = DoubleTimeCoefficientEmulator().run_network_modulation_and_hypertext_node_profiler(active_alt_index=0)
+        np1 = DoubleTimeCoefficientEmulator().run_network_modulation_and_hypertext_node_profiler(active_alt_index=1)
+        self.assertEqual(np0["vital_max_hp"], 6)
+        self.assertEqual(np0["status"], "HYPERTEXT_NODE_SYNTAX_VERIFIED")
+        self.assertTrue(np0["syntax_profiler_report"]["syntax_valid"])
+        self.assertTrue(np0["syntax_profiler_report"]["profiler_hex_receipt"].startswith("0x0659"))
+        self.assertNotEqual(
+            np0["syntax_profiler_report"]["profiler_hex_receipt"],
+            np1["syntax_profiler_report"]["profiler_hex_receipt"],
+        )
 
 
 if __name__ == "__main__":

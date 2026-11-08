@@ -1056,6 +1056,21 @@
           <h3>5. Databáza Vzoriek pre Fine-Tuning (ConclusionNodeSample Graph Registry)</h3>
           <div class="table-responsive" id="ddes-samples-table">Načítavam databázu vzoriek...</div>
         </div>
+
+        <!-- SIEŤOVÝ MODULAČNÝ PRVOK & NODE EDITOR SYNTAX PROFILER (HYPERTEXT SOCKETS) -->
+        <div class="admin-card" id="hypertext-node-profiler-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <h3>🕸️ 6. Sieťový Modulačný Prvok (Dočasná Pamäť) &amp; Node Editor Syntax Profiler (Hypertext Sockets)</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="var-btn active" id="ht-alt-0" onclick="loadHypertextNodeProfiler(0)">🔗 Socket Alt 0 (Nominálna Q8_0)</button>
+              <button class="var-btn" id="ht-alt-1" onclick="loadHypertextNodeProfiler(1)">🔗 Socket Alt 1 (Vulkan FP16 / 16x)</button>
+              <button class="var-btn" id="ht-alt-2" onclick="loadHypertextNodeProfiler(2)">🔗 Socket Alt 2 (Úsporný NPU INT4)</button>
+            </div>
+          </div>
+          <div id="hypertext-node-profiler-body" style="font-size:var(--fs-xs);line-height:1.55;color:var(--text-secondary);">
+            Načítavam sieťový modulačný prvok a hypertextové sockety...
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1229,6 +1244,60 @@
           renderDdesNodeDetail(st.samples[0]);
           renderDdesSamplesTable(st.samples);
         }
+      } catch (e) {}
+      loadHypertextNodeProfiler(0);
+    }
+
+    async function loadHypertextNodeProfiler(altIndex) {
+      [0, 1, 2].forEach(i => {
+        const btn = document.getElementById('ht-alt-' + i);
+        if (btn) btn.classList.toggle('active', i === altIndex);
+      });
+      try {
+        const r = await fetch(`/api/v1/compositor/hypertext_node_profiler?alt=${altIndex}`);
+        const d = await r.json();
+        const mod = d.ephemeral_memory_modulator || {};
+        const prof = d.syntax_profiler_report || {};
+        const graph = d.node_editor_graph || {};
+
+        const bindingsHtml = (mod.bindings || []).map(b => `
+          <div class="kv-row">
+            <span><strong>${b.construct_name}</strong> (${b.target_buffer_ref})</span>
+            <code>${b.temp_memory_slot_hex} | Δφ=${b.phase_lock_rad} rad</code>
+          </div>
+        `).join('');
+
+        const nodesHtml = (graph.nodes || []).map(n => {
+          const socks = (n.hypertext_sockets || []).map(s => {
+            const alts = (s.alternative_parameters || []).map(a => `
+              <a href="${s.hypertext_uri}&select=${a.alt_index}"
+                 onclick="loadHypertextNodeProfiler(${a.alt_index});return false;"
+                 style="display:inline-block;margin-right:6px;padding:2px 6px;border-radius:4px;text-decoration:none;border:1px solid ${a.alt_index===d.active_alternative_index?'var(--accent)':'var(--border)'};color:${a.alt_index===d.active_alternative_index?'#34d399':'#60a5fa'};">
+                ⚡ ${a.label_sk}: <code>${a.value}</code> (${a.latency_ms} ms / ${a.joules} J)
+              </a>
+            `).join('');
+            return `
+              <div style="margin-top:4px;padding:6px;background:var(--bg-main);border-radius:4px;">
+                <div><strong>[${s.direction}] Socket:</strong> <code>${s.socket_id}</code> — Zmluva: <code>${s.contract_type}</code> | Aktívny: <code>${s.active_parameter}</code></div>
+                <div style="margin-top:4px;"><strong>Hypertextové alternatívy (klikni na socket):</strong> ${alts}</div>
+              </div>
+            `;
+          }).join('');
+          return `
+            <div style="margin-bottom:8px;padding:8px;background:var(--bg-elevated);border-left:3px solid var(--cyan);border-radius:4px;">
+              <div><strong>${n.title_sk}</strong> (<code>${n.node_id}</code>) — Väzba: <code>${n.construct_bound}</code> | Zlomok: <code>${n.time_slice}</code></div>
+              ${socks}
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('hypertext-node-profiler-body').innerHTML = `
+          <div class="kv-row"><span>Stav Syntax Profilera &amp; Hex Potvrdenka:</span><code>${d.status} | ${prof.profiler_hex_receipt}</code></div>
+          <div class="kv-row"><span>Celková latencia grafu / Spotreba (Alt ${d.active_alternative_index}):</span><code>${prof.total_graph_latency_ms} ms (${prof.frame_budget_utilization_pct} % snímky) | ${prof.total_graph_energy_joules} J</code></div>
+          <div class="kv-row"><span>Dočasná pamäť (Ephemeral Scratchpad) &amp; Parafrázová väzba:</span><code>${mod.scratchpad_region_hex} | Kompozícia: ${mod.paraphrase_composition_link}</code></div>
+          <div style="margin:8px 0;"><strong>A. Väzby na konštrukcie v dočasnej pamäti:</strong>${bindingsHtml}</div>
+          <div><strong>B. Zosieťované uzly Node Editora s Hypertextovými Socketmi:</strong>${nodesHtml}</div>
+        `;
       } catch (e) {}
     }
 

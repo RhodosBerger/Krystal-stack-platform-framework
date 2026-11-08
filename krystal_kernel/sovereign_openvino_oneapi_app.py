@@ -514,6 +514,43 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
         if self.path == "/api/v1/compositor/erosion_codec":
             self._send_json(200, self.app_instance.compositor.run_visual_erosion_codec_pipeline())
             return
+        if self.path == "/api/v1/compositor/extended_scaling":
+            self._send_json(200, self.app_instance.compositor.evaluate_extended_pipeline_and_120b_120t_scaling())
+            return
+        if self.path == "/api/v1/compositor/npu_ssd_virtualization":
+            self._send_json(200, self.app_instance.compositor.virtualize_resources_and_zero_stall_ssd_swap())
+            return
+        if self.path == "/api/v1/compositor/double_time":
+            self._send_json(200, self.app_instance.compositor.run_double_time_compositor_cycle())
+            return
+        if self.path == "/api/v1/compositor/coefficient_emulation":
+            self._send_json(200, self.app_instance.compositor.run_coefficient_emulation_and_module_synthesis())
+            return
+        if self.path == "/api/v1/compositor/frontier_analysis":
+            from krystal_kernel.double_time_coefficient_emulator import DoubleTimeCoefficientEmulator
+            self._send_json(200, DoubleTimeCoefficientEmulator().analyze_achievable_frontier_and_synergy_matrix())
+            return
+        if self.path.startswith("/api/v1/compositor/paraphrase_composition"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.double_time_coefficient_emulator import DoubleTimeCoefficientEmulator
+            qs = parse_qs(urlparse(self.path).query)
+            q_text = qs.get("q", ["Oprav vypadnuté hrany v obraze a ťahaj dáta z disku tak, aby sa to nespomalilo pri nízkej spotrebe v jouloch"])[0]
+            self._send_json(200, DoubleTimeCoefficientEmulator().detect_compositional_procedure_from_paraphrase(q_text))
+            return
+        if self.path.startswith("/api/v1/compositor/hypertext_node_profiler"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.double_time_coefficient_emulator import DoubleTimeCoefficientEmulator
+            qs = parse_qs(urlparse(self.path).query)
+            alt_idx = int(qs.get("alt", ["0"])[0])
+            q_text = qs.get("q", [""])[0]
+            self._send_json(
+                200,
+                DoubleTimeCoefficientEmulator().run_network_modulation_and_hypertext_node_profiler(
+                    active_alt_index=alt_idx,
+                    custom_paraphrase=q_text,
+                ),
+            )
+            return
         if self.path == "/api/v1/compositor/export.jsonl":
             jsonl_bytes = self.app_instance.compositor.export_finetuning_jsonl().encode("utf-8")
             self.send_response(200)
