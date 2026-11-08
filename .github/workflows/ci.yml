@@ -182,30 +182,31 @@ jobs:
           fi
 
   # ============================================================
-  # GPU Integration Tests (Self-hosted runner with GPU)
+  # GPU Integration & Sovereign Iris Xe / Vulkan Tests
   # ============================================================
   test-gpu:
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-22.04
     needs: [test-python, test-rust]
-    if: false # Disabled on GitHub cloud runners until self-hosted GPU runner is registered
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Python
-        run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install -r requirements.txt
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-      - name: Verify GPU stack
+      - name: Install dependencies
         run: |
-          source venv/bin/activate
-          python scripts/verify_stack.py
+          pip install --upgrade pip
+          pip install pytest
 
-      - name: Run GPU tests
+      - name: Run GPU Kernels, Fault Injection & Sovereign Iris Xe Tests
         run: |
-          source venv/bin/activate
-          python -m pytest tests/integration/gpu -v
+          python -m pytest \
+            tests/test_crystalsec_v3_gpu_kernels.py \
+            tests/test_gpu_fault_injection_and_resilience.py \
+            tests/test_sovereign_openvino_oneapi_app.py \
+            --import-mode=importlib -v --tb=short
 
   # ============================================================
   # Package Build
