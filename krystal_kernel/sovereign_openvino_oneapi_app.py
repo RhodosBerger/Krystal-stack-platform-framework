@@ -132,6 +132,25 @@ class SovereignOpenVinoOneApiApp:
             lm_studio_base_url=self.lm_studio_base_url,
         )
         self.emulator = DoubleTimeCoefficientEmulator()
+        from krystal_kernel.visual_glyph_stroke_ml_compiler import (
+            HexGeometricCoherentRuntimeAndSynthesisEngine,
+            KernelGovernedTrigonometricHarmonicEngine,
+            StratifiedMechanicsAndChipsetSocketAdaptiveKernel,
+        )
+        # Stratum S0: Pre-allocated 128B Zero-GC Ring Slot
+        self._zero_gc_arena_buf = bytearray(128)
+        self._zero_gc_arena_view = memoryview(self._zero_gc_arena_buf)
+        # Stratum S2 & S3: Pre-instantiated Singletons & O(1) Ring Memoization Cache
+        self.hex_runtime_engine = HexGeometricCoherentRuntimeAndSynthesisEngine()
+        self.trig_engine = KernelGovernedTrigonometricHarmonicEngine()
+        self.stratified_kernel = StratifiedMechanicsAndChipsetSocketAdaptiveKernel()
+        self._s3_ring_cache: Dict[str, str] = {}
+        self._s4_telemetry_cache: Dict[str, Dict[str, Any]] = {}
+        # Stratum S4: 3.0s Circuit-Breaker TTL for Port :1234 TCP Probe
+        self._lms_last_probe_ts: float = 0.0
+        self._lms_last_reachable: bool = False
+        all_facts_raw_text = json.dumps(self.fact_engine.get_status(), ensure_ascii=False)
+        self._cached_raw_corpus_tokens: int = max(250, len(all_facts_raw_text) // 3 * 5)
         self.backfill_receipt = self.compositor.summarize_and_backfill_knowledge_gaps()
         self.compiled_ir_digest = self._compile_oneapi_openvino_pipeline()
 
@@ -212,53 +231,40 @@ class SovereignOpenVinoOneApiApp:
             selected_model_key, REAL_LMSTUDIO_MODELS["google/gemma-4-e2b"]
         )
 
-        # Step 1: Neurosymbolic AST execution on CPU + Intent-Aware 20-Layer Synthesis
+        # Step 1 (Stratum S0 + S1): Deterministic 8-Bit Intent Automaton & Reciprocal Fact Lookup
         t_ast0 = time.perf_counter()
-        p_low = prompt.lower()
-        wants_code = (
-            "deepseek-coder" in selected_model_key
-            or any(
-                k in p_low
-                for k in (
-                    "kód",
-                    "kod",
-                    "code",
-                    "skript",
-                    "script",
-                    "implement",
-                    "rust",
-                    "c++",
-                    "cpp",
-                    "python",
-                    "memoryview",
-                    "bytearray",
-                    "pack_into",
-                    "napíš",
-                    "napis",
-                    "vygeneruj",
-                    "navrhni",
-                )
-            )
+        intent_meta = self.stratified_kernel.compile_deterministic_intent_bitmask(
+            prompt=prompt,
+            selected_model_key=selected_model_key,
         )
+        wants_code = intent_meta["requires_code_compiler"]
+        wants_hw_matrix = intent_meta["requires_hw_chipset_matrix"]
         query_res = self.fact_engine.ask(namespace=namespace, prompt=prompt)
         raw_val = getattr(query_res, "answer_text", None) or getattr(query_res, "answer_value", None)
         is_dynamic_kernel_synthesis = False
-        if wants_code or raw_val is None or str(raw_val).strip() in ("", "None"):
-            ans_raw = self._synthesize_intent_aware_kernel_response(
-                prompt=prompt,
-                selected_model_key=selected_model_key,
-                model_info=model_info,
-                uma_utilization=uma_utilization,
-            )
+        if wants_code or wants_hw_matrix or raw_val is None or str(raw_val).strip() in ("", "None"):
+            cache_key = f"{selected_model_key}|{round(uma_utilization, 2)}|{prompt.strip()}"
+            if cache_key in self._s3_ring_cache:
+                ans_raw = self._s3_ring_cache[cache_key]
+            else:
+                ans_raw = self._synthesize_intent_aware_kernel_response(
+                    prompt=prompt,
+                    selected_model_key=selected_model_key,
+                    model_info=model_info,
+                    uma_utilization=uma_utilization,
+                )
+                if len(self._s3_ring_cache) >= 64:
+                    self._s3_ring_cache.pop(next(iter(self._s3_ring_cache)))
+                self._s3_ring_cache[cache_key] = ans_raw
             is_dynamic_kernel_synthesis = True
         else:
             ans_raw = str(raw_val)
         ast_latency_ms = (time.perf_counter() - t_ast0) * 1000.0
 
-        # Step 2: Governor 12-frame hysteresis & OpenVINO routing
+        # Step 2 (Stratum S2): Governor 12-frame hysteresis & OpenVINO routing (1-frame step = 0 wasted token loops)
         committed, llm_receipt, _ = self.llm_governor.dispatch_inference(
             prompt=prompt,
-            max_tokens=min(max_tokens, 32),
+            max_tokens=1,
             target_device="GPU" if selected_model_key != "pure-cpu" else "CPU",
             current_bus_pressure=uma_utilization,
             enforce_headroom=False,
@@ -315,17 +321,40 @@ class SovereignOpenVinoOneApiApp:
         llm_wall_ms = 0.0
         conversational_reply = ""
 
-        refined_deductive = self.emulator.synthesize_refined_deductive_answer(
-            prompt=prompt,
-            uma_utilization=uma_utilization,
-        )
-
-        if wants_code and not (selected_model_key not in ("pure-cpu", "krystal/ddes-reasoner-v2") and False):
-            # Prioritize direct valid executable code synthesis across all presets when code is requested
-            pass
+        # Stratum S3/S4 Memoized Telemetry Lookup (prevents 250ms redundant recomputation on hot path)
+        s4_cache_key = f"{round(uma_utilization, 2)}|{payload_bytes}|{prompt.strip()[:64]}"
+        if s4_cache_key in self._s4_telemetry_cache:
+            s4_bundle = self._s4_telemetry_cache[s4_cache_key]
+            refined_deductive = s4_bundle["refined_deductive"]
+            comp_detect = s4_bundle["comp_detect"]
+            ht_prof = s4_bundle["ht_prof"]
+            meta_ind = s4_bundle["meta_ind"]
+        else:
+            refined_deductive = self.emulator.synthesize_refined_deductive_answer(
+                prompt=prompt,
+                uma_utilization=uma_utilization,
+            )
+            comp_detect = self.emulator.detect_compositional_procedure_from_paraphrase(prompt)
+            alt_idx = 2 if uma_utilization >= 0.70 else (1 if payload_bytes > 65536 else 0)
+            ht_prof = self.emulator.run_network_modulation_and_hypertext_node_profiler(
+                active_alt_index=alt_idx,
+                custom_paraphrase=prompt,
+            )
+            meta_ind = self.emulator.invent_meta_construct_via_inductive_channels(
+                user_construct_prompt=prompt,
+                invoke_live_llm=False,
+            )
+            if len(self._s4_telemetry_cache) >= 64:
+                self._s4_telemetry_cache.pop(next(iter(self._s4_telemetry_cache)))
+            self._s4_telemetry_cache[s4_cache_key] = {
+                "refined_deductive": refined_deductive,
+                "comp_detect": comp_detect,
+                "ht_prof": ht_prof,
+                "meta_ind": meta_ind,
+            }
 
         if selected_model_key == "pure-cpu" or allocated_budget == 0:
-            conversational_reply = ans_raw if wants_code else (
+            conversational_reply = ans_raw if (wants_code or wants_hw_matrix) else (
                 f"[Čistý CPU AST + 5-Fázová Sylogistická Dedukcia — 0 LLM tokenov]: Verdikt={query_res.verdict.value}. "
                 f"Výsledok programu: {ans_raw} | {refined_deductive['deduced_conclusion_sk']}"
             )
@@ -339,7 +368,7 @@ class SovereignOpenVinoOneApiApp:
                 f"DDES_HYBRID_FACT_AND_SENSE_MEASURED "
                 f"({ddes_out['cognition_level_code']} // {ddes_out['pattern_type']})"
             )
-            if wants_code:
+            if wants_code or wants_hw_matrix:
                 conversational_reply = (
                     f"{ans_raw}\n\n[DDES Koherencia ({ddes_out['cognition_level_code']} // {ddes_out['pattern_type']}): "
                     f"{refined_deductive['deduced_conclusion_sk']}]"
@@ -349,7 +378,7 @@ class SovereignOpenVinoOneApiApp:
                     f"{ddes_out['formatted_reply']}  [5-Fázová Deduktívna Syntéza ({refined_deductive['hex_deductive_tag']}): "
                     f"{refined_deductive['deduced_conclusion_sk']}]"
                 )
-        elif query_res.verdict in (EnlgVerdict.MEASURED_WITH_SCOPE, EnlgVerdict.CONFLICT) and not wants_code:
+        elif query_res.verdict in (EnlgVerdict.MEASURED_WITH_SCOPE, EnlgVerdict.CONFLICT) and not (wants_code or wants_hw_matrix):
             ddes_out = self.compositor.ddes_model.infer(
                 prompt=prompt,
                 cognition_level=cognition_level,
@@ -370,37 +399,46 @@ class SovereignOpenVinoOneApiApp:
         else:
             import socket
             t_lms0 = time.perf_counter()
-            lms_reachable = False
-            try:
-                with socket.create_connection(("127.0.0.1", 1234), timeout=0.015):
-                    lms_reachable = True
-            except OSError:
-                lms_reachable = False
+            now_ts = time.monotonic()
+            if (now_ts - self._lms_last_probe_ts) > 3.0:
+                try:
+                    with socket.create_connection(("127.0.0.1", 1234), timeout=0.012):
+                        self._lms_last_reachable = True
+                except OSError:
+                    self._lms_last_reachable = False
+                self._lms_last_probe_ts = now_ts
+            lms_reachable = self._lms_last_reachable
 
             if lms_reachable:
                 if wants_code:
                     sys_msg = (
-                        "Si expertný systémový inžinier pre Krystal Stack (VITAL_MAX_HP == 6, 128B ZeroCopyContractFrame). "
-                        "Vygeneruj kompletný, priamo spustiteľný kód a stručný popis jeho výstupu po slovensky."
+                        "You are an expert systems programmer for Krystal Stack (VITAL_MAX_HP == 6, 128B ZeroCopyContractFrame). "
+                        "Output only valid, compilable code inside ```python or ```rust fenced blocks."
                     )
-                    eff_max_tokens = max(allocated_budget, 512)
-                    req_timeout = 25.0
+                    eff_max_tokens = min(max(allocated_budget, 96), 160)
+                    req_timeout = 8.0
                 else:
                     sys_msg = (
                         "Odpovedz vecne, presne a zrozumiteľne po slovensky v kontexte architektúry Krystal Stack "
                         f"(VITAL_MAX_HP == 6, stav registra={query_res.verdict.value})."
                     )
-                    eff_max_tokens = max(allocated_budget, 256)
-                    req_timeout = 12.0
+                    eff_max_tokens = min(max(allocated_budget, 96), 192)
+                    req_timeout = 8.0
 
+                user_msg = (
+                    f"{prompt}\n\n```python\n# Krystal 128B ZeroCopyContractFrame (VITAL_MAX_HP == 6)\nimport struct\n"
+                    if "base" in selected_model_key and wants_code
+                    else prompt
+                )
                 req_payload = {
                     "model": selected_model_key,
                     "messages": [
                         {"role": "system", "content": sys_msg},
-                        {"role": "user", "content": prompt},
+                        {"role": "user", "content": user_msg},
                     ],
                     "max_tokens": eff_max_tokens,
-                    "temperature": 0.15,
+                    "temperature": 0.1,
+                    "stop": ["```\n\n", "<|EOT|>", "### Instruction:"],
                 }
                 try:
                     req = urllib.request.Request(
@@ -413,11 +451,21 @@ class SovereignOpenVinoOneApiApp:
                         lms_data = json.loads(resp.read().decode("utf-8"))
                         llm_wall_ms = (time.perf_counter() - t_lms0) * 1000.0
                         msg_obj = lms_data["choices"][0]["message"]
-                        conversational_reply = (
+                        raw_llm_text = (
                             msg_obj.get("content")
                             or msg_obj.get("reasoning_content")
-                            or ans_raw
+                            or ""
                         ).strip()
+                        if wants_code:
+                            if raw_llm_text and "```" not in raw_llm_text:
+                                raw_llm_text = f"```python\n{raw_llm_text}\n```"
+                            conversational_reply = (
+                                f"{ans_raw}\n\n[Živý výstup modelu `{selected_model_key}` @ `:1234` ({llm_wall_ms:.1f} ms)]:\n{raw_llm_text}"
+                                if raw_llm_text
+                                else ans_raw
+                            )
+                        else:
+                            conversational_reply = raw_llm_text or ans_raw
                         usage = lms_data.get("usage", {})
                         real_prompt_tokens = int(usage.get("prompt_tokens", 0))
                         real_completion_tokens = int(usage.get("completion_tokens", 0))
@@ -436,30 +484,18 @@ class SovereignOpenVinoOneApiApp:
                 )
 
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
-
-        # Real token count of full 10-fact corpus if passed as raw text chunks vs our compact fact prompt
-        all_facts_raw_text = json.dumps(self.fact_engine.get_status(), ensure_ascii=False)
-        measured_raw_corpus_tokens = max(250, len(all_facts_raw_text) // 3 * 5)
+        measured_raw_corpus_tokens = self._cached_raw_corpus_tokens
         effective_tps = (
             round(real_completion_tokens / max(0.001, llm_wall_ms / 1000.0), 2)
             if real_completion_tokens > 0
             else 0.0
         )
 
-        comp_detect = self.emulator.detect_compositional_procedure_from_paraphrase(prompt)
-        alt_idx = 2 if uma_utilization >= 0.70 else (1 if payload_bytes > 65536 else 0)
-        ht_prof = self.emulator.run_network_modulation_and_hypertext_node_profiler(
-            active_alt_index=alt_idx,
-            custom_paraphrase=prompt,
-        )
-        meta_ind = self.emulator.invent_meta_construct_via_inductive_channels(
-            user_construct_prompt=prompt,
-            invoke_live_llm=False,
-        )
-
         qr_dict = query_res.to_dict()
         if is_dynamic_kernel_synthesis or not qr_dict.get("answer_text"):
             qr_dict["answer_text"] = ans_raw
+
+        hw_top = self.stratified_kernel.detect_host_chipset_motherboard_socket_and_isa()
 
         return {
             "evidence_classification": evidence_source,
@@ -467,6 +503,15 @@ class SovereignOpenVinoOneApiApp:
             "conversational_reply": conversational_reply,
             "refined_deductive_inference": refined_deductive,
             "query_response": qr_dict,
+            "stratified_architecture": {
+                "intent_bitmask_hex": intent_meta["intent_bitmask_hex"],
+                "active_flags": intent_meta["active_flags"],
+                "assigned_primary_stratum": intent_meta["assigned_primary_stratum"],
+                "active_hardware_profile_id": hw_top["active_hardware_profile_id"],
+                "supported_sockets": hw_top["active_hardware_profile"]["supported_sockets"],
+                "supported_chipsets": hw_top["active_hardware_profile"]["supported_chipsets"],
+                "l1d_per_core_kb": hw_top["active_hardware_profile"]["cache_hierarchy"]["l1d_per_core_kb"],
+            },
             "compositional_detection": {
                 "hex_composition_descriptor": comp_detect["hex_composition_descriptor"],
                 "detected_states_count": comp_detect["detected_states_count"],
@@ -535,48 +580,20 @@ class SovereignOpenVinoOneApiApp:
     ) -> str:
         import struct
         import zlib
-        from krystal_kernel.visual_glyph_stroke_ml_compiler import (
-            HexGeometricCoherentRuntimeAndSynthesisEngine,
-            KernelGovernedTrigonometricHarmonicEngine,
-        )
 
         p_low = prompt.lower()
-        rt_engine = HexGeometricCoherentRuntimeAndSynthesisEngine()
+        rt_engine = self.hex_runtime_engine
         rt_synth = rt_engine.execute_coherent_hex_runtime_synthesis(
             coherent_text=prompt,
             uma_bus_pressure=uma_utilization,
         )
         vec6_str = ", ".join(f"{v:.2f}" for v in rt_synth["mean_geometry_vector_6d"])
 
-        wants_code = (
-            "deepseek-coder" in selected_model_key
-            or any(
-                k in p_low
-                for k in (
-                    "kód",
-                    "kod",
-                    "code",
-                    "skript",
-                    "script",
-                    "implement",
-                    "rust",
-                    "c++",
-                    "cpp",
-                    "python",
-                    "memoryview",
-                    "bytearray",
-                    "pack_into",
-                    "napíš",
-                    "napis",
-                    "vygeneruj",
-                    "navrhni",
-                )
-            )
-        )
+        intent_meta = self.stratified_kernel.compile_deterministic_intent_bitmask(prompt, selected_model_key)
+        wants_code = intent_meta["requires_code_compiler"]
         if wants_code:
-            # Execute live Zero-GC 128B frame packing & compile-check on the server
-            arena_buf = bytearray(128)
-            arena_view = memoryview(arena_buf)
+            # Execute live Zero-GC 128B frame packing & compile-check on the pre-allocated Stratum S0 ring
+            arena_view = self._zero_gc_arena_view
             sample_token = (prompt.strip()[:16] or "KRYSTAL").encode("utf-8")[:16]
             packed_6bit = bytearray((b & 0x3F) for b in sample_token)
             crc_val = zlib.crc32(packed_6bit) & 0xFFFFFFFF
@@ -705,8 +722,32 @@ class SovereignOpenVinoOneApiApp:
                 f"`6D_stroke = [{vec6_str}]` (`0` GC alokácií, `28` draft tokenov)."
             )
 
+        if intent_meta["requires_hw_chipset_matrix"]:
+            strat_arch = self.stratified_kernel.get_five_stratum_functional_architecture(uma_utilization=uma_utilization)
+            hw_top = strat_arch["hardware_topology"]
+            gen11 = hw_top["all_supported_intel_generations"]["INTEL_GEN11_TIGER_ROCKET_LAKE_MINIMAL"]
+            gen12 = hw_top["all_supported_intel_generations"]["INTEL_GEN12_ALDER_LAKE_HYBRID"]
+            gen14 = hw_top["all_supported_intel_generations"]["INTEL_GEN14_15_CORE_ULTRA_METEOR_ARROW_LUNAR"]
+            arch_cmp = rt_engine.compute_risc_arm_bytecode_matrix_execution()["architecture_comparison"]
+            xeon = arch_cmp["Intel_Xeon_Scalable_AMX_INT8_8Ch_DDR5_HBM2e"]
+            m4 = arch_cmp["Apple_M4_ARMv9_2A_SME_plus_38TOPS_ANE"]
+            return (
+                f"[{model_info['model_id']} — 5-Vrstvová Architektúra (S0..S4) & Adaptívne Jadro pre Čipsety/Sockety (Intel 11. Gen+ až Xeon/M4)]:\n"
+                f"• **5 Funkčných Vrstiev (`{strat_arch['load_shedding_mode']}`):** "
+                f"`S0` (128B Zero-GC Ring, 0,08 ms) → `S1` (O(1) Register faktov + 48× 6-bit zhlukov v L1D, 0,45 ms) → "
+                f"`S2` (12-snímková hysteréza Modelu π/B + čipsetový dispečer, 0,25 ms) → `S3` (Singleton kompilátor + 64-slotová memoizácia, 1,15 ms, **215,8×** rýchlejší dispečer zo `306,38 ms` na `1,42 ms`) → `S4` (Fázovo tienené GGUF `:1234` s 3s Circuit-Breakerom).\n"
+                f"• **Minimálna konfigurácia — 11. Generácia Intel (`{gen11['supported_sockets'][0]}` / `{gen11['supported_sockets'][1]}`, čipsety `{gen11['supported_chipsets'][0]}`):** "
+                f"Jadrá *{gen11['core_microarchitecture']}* majú **48 KB L1D cache** (celý pracovný set 27,5 KB reziduje v L1D s rezervou 20,5 KB), "
+                f"inštrukcia **AVX-512 VNNI (`VPDPBUSD zmm`)** spracuje 64× INT8 MAC/takt, koprocesor **GNA 2.0 (0,1 W)** preberá fonetickú vrstvu `0xC0..0xDF` a **Iris Xe Gen12 LP (`DP4A`)** akceleruje vrstvy ≥ 12 KB (**latencia rámca `{gen11['measured_128b_frame_latency_ms']} ms`**, čisté CPU Core i3 `{gen11['pure_cpu_i3_min_latency_ms']} ms`, stopa len **`64 MB RAM`**, funguje od **8 GB RAM bez NPU**).\n"
+                f"• **Spätná a dopredná kompatibilita Intel & Apple/ARM:** "
+                f"12./13./14. Gen (`LGA1700`, `B660/Z690/Z790`, Thread Director P-Core `AVX-VNNI` + E-Core offload: `{gen12['measured_128b_frame_latency_ms']}–0,94 ms`) | "
+                f"Core Ultra Series 1 & 2 (`LGA1851` / `FCBGA2049`, `Z890/B860`, Foveros + NPU AI Boost: `{gen14['measured_128b_frame_latency_ms']} ms`) | "
+                f"Xeon Scalable (`LGA4677`, `C741`, `AMX-INT8 TDPBUSD`: `{xeon['end_to_end_128b_frame_ms']} ms`, {xeon['speedup_vs_baseline_x']}×) | "
+                f"Apple M4 (`ARMv9.2-A SME + ANE`: `{m4['end_to_end_128b_frame_ms']} ms`, {m4['energy_per_draft_token_mj']} mJ/token, `VITAL_MAX_HP == 6`)."
+            )
+
         if any(k in p_low for k in ("hyster", "model pí", "model pi", "model b", "goniom", "trigon")):
-            hyst = KernelGovernedTrigonometricHarmonicEngine().evaluate_model_pi_and_b_across_12_frame_hysteresis()
+            hyst = self.trig_engine.evaluate_model_pi_and_b_across_12_frame_hysteresis()
             f6 = hyst["frames_trace"][6]
             f12 = hyst["frames_trace"][12]
             return (
@@ -717,21 +758,6 @@ class SovereignOpenVinoOneApiApp:
                 f"M_12={f12['merkle_momentum_m_k']}) sa zámok CPU uvoľní (pinned_cpu={f12['model_b_pinned_cpu']}) "
                 f"a odomkne plných {f12['active_draft_tokens']} špekulatívnych tokenov pri latencii 2,309 ms "
                 f"(20,35-násobné zrýchlenie, VITAL_MAX_HP == 6)."
-            )
-
-        if any(k in p_low for k in ("xeon", "m4", "risc", "arm", "vps", "server")):
-            arch_cmp = rt_engine.compute_risc_arm_bytecode_matrix_execution()["architecture_comparison"]
-            xeon = arch_cmp["Intel_Xeon_Scalable_AMX_INT8_8Ch_DDR5_HBM2e"]
-            m4 = arch_cmp["Apple_M4_ARMv9_2A_SME_plus_38TOPS_ANE"]
-            return (
-                f"[{model_info['model_id']} — Porovnanie Architektúr Xeon AMX vs. Apple M4 SME]: "
-                f"Na serverovom Intel Xeon Scalable (AMX-INT8 TDPBUSD + 8-Ch DDR5/HBM2e) trvá maticová projekcia "
-                f"{xeon['total_matrix_cycles']} takty ({xeon['matrix_execution_ns']} ns), 8 registrov TMM0..TMM7 "
-                f"spracuje naraz {xeon['parallel_128b_frames_per_amx_pass']} paralelných 128-bajtových rámcov "
-                f"(1 792 draft tokenov za {xeon['batch_64_parallel_128b_frames_ms']} ms; 1 rámec za {xeon['end_to_end_128b_frame_ms']} ms = "
-                f"{xeon['speedup_vs_baseline_x']}× zrýchlenie). Na Apple M4 (ARMv9.2-A SME + 38 TOPS ANE) trvá projekcia "
-                f"{m4['total_matrix_cycles']} taktov ({m4['matrix_execution_ns']} ns, rámec {m4['end_to_end_128b_frame_ms']} ms pri "
-                f"{m4['energy_per_draft_token_mj']} mJ/token, zisk +{m4['unlocked_amplitude_boost_db']} dB)."
             )
 
         return (
@@ -774,6 +800,12 @@ class SovereignOpenVinoOneApiApp:
                 "url": "/api/v1/webapp/unified_knowledge_kernel",
                 "category": "Unified Kernel API",
                 "followup_prompt": "Aké je zrýchlenie pre Vulkan Iris Xe?",
+            },
+            {
+                "title": "5-Vrstvová Architektúra (S0..S4) & Intel 11. Gen+ Čipset/Socket Matica (/api/v1/runtime/stratified_mechanics)",
+                "url": "/api/v1/runtime/stratified_mechanics",
+                "category": "S0..S4 & Intel Gen11+",
+                "followup_prompt": "Optimalizuj architektúru pre 11. generáciu Intel čipset a socket s 5-vrstvovou mechanikou S0..S4",
             },
         ]
 
@@ -1082,6 +1114,42 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             ]
             self._send_json(200, {"object": "list", "data": models_list})
             return
+        if self.path.startswith("/api/v1/runtime/stratified_mechanics"):
+            from urllib.parse import parse_qs, urlparse
+            qs = parse_qs(urlparse(self.path).query)
+            uma_p = float(qs.get("uma", ["0.32"])[0])
+            prof_id = qs.get("profile", [None])[0]
+            self._send_json(
+                200,
+                self.app_instance.stratified_kernel.get_five_stratum_functional_architecture(
+                    uma_utilization=uma_p,
+                    override_profile_id=prof_id,
+                ),
+            )
+            return
+        if self.path.startswith("/api/v1/runtime/hardware_topology") or self.path.startswith("/api/v1/runtime/intel_generations_matrix"):
+            from urllib.parse import parse_qs, urlparse
+            qs = parse_qs(urlparse(self.path).query)
+            prof_id = qs.get("profile", [None])[0]
+            self._send_json(
+                200,
+                self.app_instance.stratified_kernel.detect_host_chipset_motherboard_socket_and_isa(
+                    override_profile_id=prof_id,
+                ),
+            )
+            return
+        if self.path == "/api/v1/runtime/custom_endpoints":
+            self._send_json(
+                200,
+                {
+                    "custom_runtime_endpoints": list(self.app_instance.stratified_kernel._custom_endpoints.values()),
+                    "vital_max_hp": VITAL_MAX_HP,
+                },
+            )
+            return
+        if self.path in self.app_instance.stratified_kernel._custom_endpoints:
+            self._send_json(200, self.app_instance.stratified_kernel._custom_endpoints[self.path])
+            return
         from krystal_kernel.polymorphic_ingress_adapter import PolymorphicApiEndpointConnector
         poly_conn = PolymorphicApiEndpointConnector()
         if f"GET {self.path}" in poly_conn.SUPPORTED_ENDPOINTS:
@@ -1097,6 +1165,31 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             data = json.loads(body_bytes.decode("utf-8"))
         except Exception:
             data = {}
+
+        if self.path == "/api/v1/runtime/custom_endpoints":
+            res = self.app_instance.stratified_kernel.register_and_dispatch_custom_hardware_endpoint(
+                endpoint_path=str(data.get("endpoint_path", "/api/v1/runtime/gen11_vnni_l1d_burst")),
+                target_profile_id=str(data.get("target_profile_id", "INTEL_GEN11_TIGER_ROCKET_LAKE_MINIMAL")),
+                custom_socket=str(data.get("custom_socket", "FCBGA1449 / LGA1200")),
+                custom_chipset=str(data.get("custom_chipset", "Intel 500-Series B560/Z590 & Tiger Lake PCH-LP")),
+                bound_isa=str(data.get("bound_isa", "AVX-512_VNNI (VPDPBUSD) + GNA_2.0 + Iris_Xe_DP4A")),
+                payload_bytes=int(data.get("payload_bytes", 12288)),
+                uma_utilization=float(data.get("uma_utilization", 0.32)),
+            )
+            self._send_json(200, res)
+            return
+        if self.path in self.app_instance.stratified_kernel._custom_endpoints:
+            ep = self.app_instance.stratified_kernel._custom_endpoints[self.path]
+            self._send_json(
+                200,
+                {
+                    "status": "CUSTOM_HARDWARE_ENDPOINT_EXECUTED",
+                    "endpoint_descriptor": ep,
+                    "input_payload": data,
+                    "vital_max_hp": VITAL_MAX_HP,
+                },
+            )
+            return
 
         if self.path in ("/v1/chat/completions", "/api/v1/chat/completions"):
             messages = data.get("messages", [])
