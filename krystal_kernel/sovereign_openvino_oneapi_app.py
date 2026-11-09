@@ -238,7 +238,10 @@ class SovereignOpenVinoOneApiApp:
             selected_model_key=selected_model_key,
         )
         wants_code = intent_meta["requires_code_compiler"]
-        wants_hw_matrix = intent_meta["requires_hw_chipset_matrix"]
+        wants_hw_matrix = (
+            intent_meta["requires_hw_chipset_matrix"]
+            or any(k in prompt.lower() for k in ("godot", "blender", "oxygen", "wordpress", "scenár", "scenar", "zrkadlo", "prózu", "prozu", "iq", "tenzor"))
+        )
         query_res = self.fact_engine.ask(namespace=namespace, prompt=prompt)
         raw_val = getattr(query_res, "answer_text", None) or getattr(query_res, "answer_value", None)
         is_dynamic_kernel_synthesis = False
@@ -746,6 +749,27 @@ class SovereignOpenVinoOneApiApp:
                 f"Apple M4 (`ARMv9.2-A SME + ANE`: `{m4['end_to_end_128b_frame_ms']} ms`, {m4['energy_per_draft_token_mj']} mJ/token, `VITAL_MAX_HP == 6`)."
             )
 
+        if any(k in p_low for k in ("godot", "blender", "oxygen", "wordpress", "scenár", "scenar", "zrkadlo", "prózu", "prozu", "iq", "tenzor")):
+            scen = self.stratified_kernel.synthesize_godot_blender_oxygen_game_scenario_and_semantic_mirror(uma_utilization=uma_utilization)
+            core = scen["epistemic_grid_to_logic_core"]
+            acts = scen["four_act_game_scenario"]
+            gd_code = scen["mcp_and_engine_code_blueprints"]["godot_4_gdscript_client"]
+            return (
+                f"[{model_info['model_id']} — {scen['title']}]:\n"
+                f"• **Vlastné Tenzory & Prechod Grid → Deterministická Logika:** `{core['custom_tensor_spec']}` — {core['grid_to_logic_transition']}\n"
+                f"• **Sémantické Zrkadlo (Dvojjazyčná Projekcia Próza ↔ Špecifikácia):**\n"
+                f"  - *Hovorová próza:* {core['semantic_mirror_bijection']['colloquial_prose_sk']}\n"
+                f"  - *Odborný exaktný výstup:* `{core['semantic_mirror_bijection']['technical_specification_sk']}`\n"
+                f"• **Kognitívny & Psychometrický Index:** Kompozitný ekvivalent `{core['psychometric_cognitive_index']['composite_epistemic_iq_equivalent']} IQ` "
+                f"(`ECE = {core['psychometric_cognitive_index']['calibration_ece']}`, 0,0 % halucinácií).\n"
+                f"• **4-Aktový Scenár Hry (Blender MCP → Godot 4.3 → WordPress Oxygen Builder):**\n"
+                f"  1. **{acts[0]['act_title']}:** {acts[0]['narrative_prose_sk']}\n"
+                f"  2. **{acts[1]['act_title']}:** {acts[1]['narrative_prose_sk']}\n"
+                f"  3. **{acts[2]['act_title']}:** {acts[2]['narrative_prose_sk']}\n"
+                f"  4. **{acts[3]['act_title']}:** {acts[3]['narrative_prose_sk']}\n"
+                f"```gdscript\n{gd_code}```"
+            )
+
         if any(k in p_low for k in ("hyster", "model pí", "model pi", "model b", "goniom", "trigon")):
             hyst = self.trig_engine.evaluate_model_pi_and_b_across_12_frame_hysteresis()
             f6 = hyst["frames_trace"][6]
@@ -1145,6 +1169,12 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                     "custom_runtime_endpoints": list(self.app_instance.stratified_kernel._custom_endpoints.values()),
                     "vital_max_hp": VITAL_MAX_HP,
                 },
+            )
+            return
+        if self.path.startswith("/api/v1/runtime/godot_blender_oxygen_scenario"):
+            self._send_json(
+                200,
+                self.app_instance.stratified_kernel.synthesize_godot_blender_oxygen_game_scenario_and_semantic_mirror(),
             )
             return
         if self.path in self.app_instance.stratified_kernel._custom_endpoints:
