@@ -138,5 +138,7 @@ class SeniorPromptLoreQuestEngine:
             "chronological_attempts_registry": CHRONOLOGICAL_ATTEMPTS_REGISTRY,
         }
 
+    compile_senior_prompt_lore_quest_script = build_senior_lore_quest_prompt_script
+
 
 GLOBAL_SENIOR_PROMPT_LORE_ENGINE = SeniorPromptLoreQuestEngine()
