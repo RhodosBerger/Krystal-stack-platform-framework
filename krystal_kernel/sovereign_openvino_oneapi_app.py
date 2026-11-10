@@ -1185,6 +1185,10 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             from krystal_kernel.senior_prompt_lore_quest_engine import GLOBAL_SENIOR_PROMPT_LORE_ENGINE
             self._send_json(200, GLOBAL_SENIOR_PROMPT_LORE_ENGINE.compile_senior_prompt_lore_quest_script())
             return
+        if self.path.startswith("/api/v1/runtime/adaptive_genetic_scenario"):
+            from krystal_kernel.adaptive_genetic_taxonomy_scenario_engine import GLOBAL_ADAPTIVE_GENETIC_SCENARIO_ENGINE
+            self._send_json(200, GLOBAL_ADAPTIVE_GENETIC_SCENARIO_ENGINE.recompile_bugs_into_epistemic_kernel_features())
+            return
         if self.path.startswith("/api/hybrid/status"):
             from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
             self._send_json(
