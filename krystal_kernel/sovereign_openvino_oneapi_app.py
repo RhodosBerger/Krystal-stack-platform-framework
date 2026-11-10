@@ -1177,9 +1177,44 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.app_instance.stratified_kernel.synthesize_godot_blender_oxygen_game_scenario_and_semantic_mirror(),
             )
             return
+        if self.path.startswith("/api/v1/runtime/dusan_game_vulkan_power_plan"):
+            from krystal_kernel.dusan_game_vulkan_power_tensor_bridge import GLOBAL_DUSAN_GAME_VULKAN_BRIDGE
+            self._send_json(200, GLOBAL_DUSAN_GAME_VULKAN_BRIDGE.fetch_tensor_and_behavioral_schema_dependencies())
+            return
+        if self.path.startswith("/api/v1/runtime/senior_prompt_lore_quest"):
+            from krystal_kernel.senior_prompt_lore_quest_engine import GLOBAL_SENIOR_PROMPT_LORE_ENGINE
+            self._send_json(200, GLOBAL_SENIOR_PROMPT_LORE_ENGINE.compile_senior_prompt_lore_quest_script())
+            return
+        if self.path.startswith("/api/hybrid/status"):
+            from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
+            self._send_json(
+                200,
+                {
+                    "status": "ONLINE_SOVEREIGN",
+                    "vital_max_hp": GLOBAL_HYBRID_LORE_AGGREGATOR.vital_max_hp,
+                    "bitboard_hex": hex(GLOBAL_HYBRID_LORE_AGGREGATOR.grid_bitboard),
+                    "pending_actions": len(GLOBAL_HYBRID_LORE_AGGREGATOR.pending_queue),
+                },
+            )
+            return
         if self.path in self.app_instance.stratified_kernel._custom_endpoints:
             self._send_json(200, self.app_instance.stratified_kernel._custom_endpoints[self.path])
             return
+        if self.path == "/api/hybrid/fetch_objectives":
+            from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
+            lens = str(data.get("semantic_lens", "LORE_NARRATIVE"))
+            self._send_json(200, GLOBAL_HYBRID_LORE_AGGREGATOR.aggregate_hybrid_lore_and_fetch_objectives(semantic_lens=lens))
+            return
+
+        if self.path == "/api/hybrid/marias_click":
+            from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
+            action_id = str(data.get("action_id", "ACT_MARIAS_TRUMP_MARRIAGE"))
+            from_idx = int(data.get("from_idx", 12))
+            to_idx = int(data.get("to_idx", 28))
+            pkt = GLOBAL_HYBRID_LORE_AGGREGATOR.enqueue_and_resolve_marias_click_action(action_id, from_idx, to_idx)
+            self._send_json(200, GLOBAL_HYBRID_LORE_AGGREGATOR.decode_binary_grid_packet(pkt))
+            return
+
         from krystal_kernel.polymorphic_ingress_adapter import PolymorphicApiEndpointConnector
         poly_conn = PolymorphicApiEndpointConnector()
         if f"GET {self.path}" in poly_conn.SUPPORTED_ENDPOINTS:
@@ -1304,6 +1339,21 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 selected_model_key=str(data.get("selected_model_key", "google/gemma-4-e2b")),
             )
             self._send_json(200, comp_res)
+            return
+
+        if self.path == "/api/hybrid/fetch_objectives":
+            from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
+            lens = str(data.get("semantic_lens", "LORE_NARRATIVE"))
+            self._send_json(200, GLOBAL_HYBRID_LORE_AGGREGATOR.aggregate_hybrid_lore_and_fetch_objectives(semantic_lens=lens))
+            return
+
+        if self.path == "/api/hybrid/marias_click":
+            from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
+            action_id = str(data.get("action_id", "ACT_MARIAS_TRUMP_MARRIAGE"))
+            from_idx = int(data.get("from_idx", 12))
+            to_idx = int(data.get("to_idx", 28))
+            pkt = GLOBAL_HYBRID_LORE_AGGREGATOR.enqueue_and_resolve_marias_click_action(action_id, from_idx, to_idx)
+            self._send_json(200, GLOBAL_HYBRID_LORE_AGGREGATOR.decode_binary_grid_packet(pkt))
             return
 
         from krystal_kernel.polymorphic_ingress_adapter import PolymorphicApiEndpointConnector
