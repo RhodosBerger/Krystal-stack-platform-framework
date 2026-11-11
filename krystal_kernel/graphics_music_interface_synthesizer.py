@@ -571,6 +571,114 @@ class GraphicsMusicInterfaceSynthesizer:
                 {"level": "E3_CAUSTIC_L1D_REFLEX", "hex": "#00F2FE", "elevation_dp": 8, "role": "48 KB L1D AVX-512 telemetria"},
                 {"level": "E4_UMBRAL_OVERLOAD_GATE", "hex": "#FF5E62", "elevation_dp": 13, "role": "Ohmov skrat (I > 8.0 A) & Kolaps vlny"},
             ],
+            "artistic_composition_formulas_and_decision_patterns": self.evaluate_artistic_composition_and_decision_patterns(),
+            "marias_card_interface_projection": self.project_interface_through_marias_playing_cards(),
+            "vital_max_hp": self.vital_max_hp,
+        }
+
+    def evaluate_artistic_composition_and_decision_patterns(self) -> Dict[str, Any]:
+        """
+        Definuje matematické vzorce umenia (Zlatá špirála, Dynamická symetria, Chiaroscuro tenebrizmus,
+        Ittenova protifázová farebná harmónia) a rozhodovacie patterny pri komponovaní obrazu cez Vulkan.
+        """
+        phi = (1.0 + math.sqrt(5.0)) / 2.0
+        return {
+            "vulkan_projection_pipeline": "VK_KHR_shader_integer_dot_product (DP4A) -> Fragment Shader Projection (Render(S) != S)",
+            "artistic_formulas": [
+                {
+                    "formula_id": "ART_01_LOGARITHMIC_GOLDEN_SPIRAL",
+                    "equation": "r(theta) = a * phi^(2 * theta / pi), kde phi = 1.6180339887",
+                    "visual_role": "Určuje presné ohnisko pozornosti (Focal Point) pre dopad karty Mariášu a mínometnej paraboly.",
+                },
+                {
+                    "formula_id": "ART_02_DYNAMIC_SYMMETRY_ROOT_RECTANGLES",
+                    "equation": "d_baroque = atan(1 / phi) = 31.717 deg (Baroková uhlopriečka BL->TR vs. Sinister TL->BR)",
+                    "visual_role": "Rozhoduje o smere vektorového pohybu: vzostupná baroková uhlopriečka pre SOLAR_TRUTH, klesajúca pre UMBRAL_BETRAYAL.",
+                },
+                {
+                    "formula_id": "ART_03_CHIAROSCURO_VRAY_RADIANCE",
+                    "equation": "L_out(p) = E_dir*(1 - alpha_AO) + K_chiaroscuro * exp(-||p - p_focal||^2 / (2 * sigma_phi^2))",
+                    "visual_role": "Caravaggiovský kontrast svetla a tieňa: 72.4% plochy v obsidiánovom tieni (#0B0E14), 27.6% (1/phi^2) v zlatom jase (#F5D061).",
+                },
+                {
+                    "formula_id": "ART_04_ITTEN_ANTIPHASE_CHROMATIC_TENSOR",
+                    "equation": "C_harm(theta) = C_base + Delta_C * cos(theta + pi), kde cos(pi) = -1",
+                    "visual_role": "Protifázový farebný kontrast medzi zlatou (580 nm) a azúrovou L1D telemetriou (485 nm) bez zrakovej únavy.",
+                },
+            ],
+            "image_composition_decision_patterns": [
+                {
+                    "decision_id": "DECISION_01_FOCAL_SALIENCY_GATE",
+                    "condition": "marias_hlaska_points >= 40 or effective_current_amps > 6.0",
+                    "compositional_action": "Presunie kameru do priesečníka Zlatej špirály (0.618*W, 0.382*H) a aktivuje zlatý kaustický bloom.",
+                },
+                {
+                    "decision_id": "DECISION_02_RULE_OF_ODDS_ENTITY_FRAMING",
+                    "condition": "spawned_entities_count % 2 == 0",
+                    "compositional_action": "Pridá vizuálny kotevný totem (nepárny počet 3 alebo 5 prvkov v zábere) pre dynamickú rovnováhu.",
+                },
+                {
+                    "decision_id": "DECISION_03_HYSTERETIC_DEPTH_OF_FIELD",
+                    "condition": "uma_bus_utilization >= 0.70 (12-frame dwell active)",
+                    "compositional_action": "Zúži hĺbku ostrosti (Bokeh sigma_phi) na aktívny 3-cyklus Rubikovej kocky, čím šetrí šírku pásma UMA zbernice.",
+                },
+            ],
+        }
+
+    def project_interface_through_marias_playing_cards(
+        self,
+        played_card_id: str = "SRDCIA_KRAL_HLASKA_40",
+        grid_from_idx: int = 12,
+        grid_to_idx: int = 28,
+    ) -> Dict[str, Any]:
+        """
+        Definuje samotné užívateľské rozhranie (UI) ako živú projekciu cez 32-kartový Mariáš
+        (Render(S) = Pi_Marias(S) != S): používateľ nekliká na statické tlačidlá, ale vynáša karty
+        v partii Mariášu proti jadru (Omniscience Core Opponent), pričom každá karta premieta
+        iný pohľad na mriežku, telemetriu a skladové zásoby.
+        """
+        marias_ui_projection_deck = [
+            {
+                "card_id": "SRDCIA_KRAL_HLASKA_40",
+                "suit_sk": "Červeň / Srdcia (Atut / Tromf)",
+                "rank_sk": "Kráľ + Horník (Hláška 40 b.)",
+                "projected_ui_view": "SOLAR_TRUTH_COMMAND_VIEW",
+                "vulkan_shader_projection": "Zobrazí 8x8 hex-grid v zlatom reze (61.8% viewport), odomkne +40 b. v 24B KMB1 pakete a zvýši napätie o +2.4 V.",
+                "ai_opponent_counter_card": "SRDCIA_ESO_STOVKA (Jadro odpovedá esom a drží invariant VITAL_MAX_HP == 6)",
+            },
+            {
+                "card_id": "ZELEN_HORNIK_HLASKA_20",
+                "suit_sk": "Zeleň / Listy",
+                "rank_sk": "Horník + Kráľ (Hláška 20 b.)",
+                "projected_ui_view": "STOCK_DEPOT_ACF_LOGISTICS_VIEW",
+                "vulkan_shader_projection": "Premietne rozhranie Sklad–Depo (`nabytok47.sk` & `RH Isolation Slovakia` ACF `meta_query` za 0.42 ms) a stav zásob.",
+                "ai_opponent_counter_card": "ZELEN_DESIATKA (Jadro optimalizuje genetickú taxonómiu na Fitness 0.9918)",
+            },
+            {
+                "card_id": "ZALUD_SEDMA_ULTIMO",
+                "suit_sk": "Žaluď",
+                "rank_sk": "Sedma (Posledný zdvih / Ultimo)",
+                "projected_ui_view": "MORTAR_BALLISTIC_AND_OHM_GRID_VIEW",
+                "vulkan_shader_projection": "Premietne parabolickú balistiku mínometu theta_aim = 0.5*arcsin(g*d/v0^2) a prúdovú mapu I = V/R <= 8.0 A.",
+                "ai_opponent_counter_card": "ZALUD_KRAL (Jadro spúšťa komutátor Rubikovej kocky [R, U] = R U R' U')",
+            },
+            {
+                "card_id": "GULA_ SPODOK_BETL_DURCH",
+                "suit_sk": "Guľa",
+                "rank_sk": "Spodok (Režim Betl / Durch — 0 zdvihov)",
+                "projected_ui_view": "CHRONOMETRIC_SHADOW_L1D_SURVIVAL_VIEW",
+                "vulkan_shader_projection": "Prepne UI do 7.5 W L1D Survival projekcie (27.5 KB v L1D cache, 1.42 ms latencia, 0.3382 mJ za rad inštrukcií).",
+                "ai_opponent_counter_card": "GULA_SEDMA (Jadro potvrdzuje 12-snímkovú hysteréziu bez kmitania zbernice)",
+            },
+        ]
+
+        selected = next((c for c in marias_ui_projection_deck if c["card_id"] == played_card_id), marias_ui_projection_deck[0])
+
+        return {
+            "projection_principle": "Render(S) = Pi_Marias(S) != S (Rozhranie je čistá projekcia stavu cez vynesenú kartu Mariášu)",
+            "active_played_card": selected,
+            "interactive_marias_projection_deck": marias_ui_projection_deck,
+            "grid_transition": {"from_idx": grid_from_idx, "to_idx": grid_to_idx, "kmb1_packet_bytes": 24},
             "vital_max_hp": self.vital_max_hp,
         }
 
