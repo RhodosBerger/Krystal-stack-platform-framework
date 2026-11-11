@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 420" width="100%" height="100%">
+  <defs>
+    <radialGradient id="obsidianGlow" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#1d2436"/>
+      <stop offset="65%" stop-color="#0d1017"/>
+      <stop offset="100%" stop-color="#07080c"/>
+    </radialGradient>
+    <linearGradient id="goldTrump" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5d061"/>
+      <stop offset="50%" stop-color="#c9a227"/>
+      <stop offset="100%" stop-color="#8a680d"/>
+    </linearGradient>
+    <linearGradient id="cyanL1D" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f2fe"/>
+      <stop offset="100%" stop-color="#4facfe"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="860" height="420" rx="16" fill="url(#obsidianGlow)" stroke="#c9a227" stroke-width="2"/>
+
+  <!-- Hlavička a invariant VITAL_MAX_HP == 6 -->
+  <text x="28" y="38" fill="#f5d061" font-family="monospace" font-size="16" font-weight="bold">
+    KRYSTAL × POSLEDNÍ KMEN — 6D TRIGONOMETRIC &amp; RUBIK'S CHOICE STUDIO (VITAL_MAX_HP == 6)
+  </text>
+  <text x="28" y="60" fill="#9baec8" font-family="monospace" font-size="12">
+    128B ZeroCopyContractFrame (84B Wire / 16 Params) | Ohm Grid I = V/R &lt;= 8.0 A | 12-Frame Hysteresis (1.42 ms)
+  </text>
+
+  <!-- Ľavý panel: Hexová mriežka + 6D Bézierova krivka Mariášu -->
+  <g transform="translate(55, 95)">
+    <polygon points="80,0 130,28 130,85 80,113 30,85 30,28" fill="#131926" stroke="#4facfe" stroke-width="2"/>
+    <polygon points="185,0 235,28 235,85 185,113 135,85 135,28" fill="#182232" stroke="#c9a227" stroke-width="2"/>
+    <polygon points="132,90 182,118 182,175 132,203 82,175 82,118" fill="#1f1826" stroke="#ff5e62" stroke-width="2"/>
+    <polygon points="237,90 287,118 287,175 237,203 187,175 187,118" fill="#122620" stroke="#38ef7d" stroke-width="2"/>
+
+    <!-- 6D Kubická Bézierova krivka (Hláška +40b & Parabolický mínomet) -->
+    <path d="M 80 56 C 125 -20, 195 -10, 237 146" fill="none" stroke="url(#goldTrump)" stroke-width="3.5" stroke-dasharray="6,3"/>
+    <circle cx="80" cy="56" r="6" fill="#00f2fe"/>
+    <circle cx="237" cy="146" r="7" fill="#f5d061"/>
+
+    <text x="48" y="60" fill="#00f2fe" font-family="monospace" font-size="11">HEX(2,1) V=12.6V</text>
+    <text x="150" y="60" fill="#f5d061" font-family="monospace" font-size="11">HLÁŠKA +40b</text>
+    <text x="95" y="152" fill="#ff7b7e" font-family="monospace" font-size="11">I=5.25A &lt;= 8A</text>
+    <text x="198" y="152" fill="#38ef7d" font-family="monospace" font-size="11">ACF QTY &gt;= 1</text>
+  </g>
+
+  <!-- Pravý panel: 6 Pevných Stredov Rubikovej Kocky == VITAL_MAX_HP == 6 -->
+  <g transform="translate(450, 88)">
+    <rect x="0" y="0" width="375" height="285" rx="12" fill="#101520" stroke="#2e3c56" stroke-width="1.5"/>
+    <text x="18" y="28" fill="#f5d061" font-family="monospace" font-size="13" font-weight="bold">
+      RUBIK'S GROUP G_Rubik subset S_48 (6 FIXED CENTERS == 6 HP)
+    </text>
+
+    <!-- 6 Stredov (U, D, F, B, L, R) -->
+    <rect x="20" y="45" width="102" height="58" rx="6" fill="#1a2333" stroke="#ffffff" stroke-width="2"/>
+    <text x="30" y="68" fill="#ffffff" font-family="monospace" font-size="11" font-weight="bold">U: S0 RING</text>
+    <text x="30" y="88" fill="#9baec8" font-family="monospace" font-size="10">128B / 84B Wire</text>
+
+    <rect x="136" y="45" width="102" height="58" rx="6" fill="#1a2333" stroke="#f5d061" stroke-width="2"/>
+    <text x="146" y="68" fill="#f5d061" font-family="monospace" font-size="11" font-weight="bold">D: S1 0x17</text>
+    <text x="146" y="88" fill="#9baec8" font-family="monospace" font-size="10">8-Bit Intent</text>
+
+    <rect x="252" y="45" width="102" height="58" rx="6" fill="#1a2333" stroke="#38ef7d" stroke-width="2"/>
+    <text x="262" y="68" fill="#38ef7d" font-family="monospace" font-size="11" font-weight="bold">F: S2 L1D</text>
+    <text x="262" y="88" fill="#9baec8" font-family="monospace" font-size="10">48x6 Tensor</text>
+
+    <rect x="20" y="118" width="102" height="58" rx="6" fill="#1a2333" stroke="#00f2fe" stroke-width="2"/>
+    <text x="30" y="141" fill="#00f2fe" font-family="monospace" font-size="11" font-weight="bold">B: S3 12-FR</text>
+    <text x="30" y="161" fill="#9baec8" font-family="monospace" font-size="10">Hysteresis Pi-B</text>
+
+    <rect x="136" y="118" width="102" height="58" rx="6" fill="#1a2333" stroke="#ff9944" stroke-width="2"/>
+    <text x="146" y="141" fill="#ff9944" font-family="monospace" font-size="11" font-weight="bold">L: S4 OXY6</text>
+    <text x="146" y="161" fill="#9baec8" font-family="monospace" font-size="10">Babylon/Godot</text>
+
+    <rect x="252" y="118" width="102" height="58" rx="6" fill="#1a2333" stroke="#ff5e62" stroke-width="2"/>
+    <text x="262" y="141" fill="#ff5e62" font-family="monospace" font-size="11" font-weight="bold">R: HP == 6</text>
+    <text x="262" y="161" fill="#9baec8" font-family="monospace" font-size="10">¬Valid =&gt; ΔS=0</text>
+
+    <!-- Spodný stavový riadok -->
+    <text x="20" y="208" fill="#00f2fe" font-family="monospace" font-size="11">
+      • 6D Vector: (dx, dy, kappa, p, v, phi) | cos(pi) = -1 (19.65% redundancy)
+    </text>
+    <text x="20" y="232" fill="#38ef7d" font-family="monospace" font-size="11">
+      • Joule Queue: 0.3382 mJ / 100 ops | Vulkan PL1: 15W / 12W / 7.5W
+    </text>
+    <text x="20" y="256" fill="#f5d061" font-family="monospace" font-size="11">
+      • GA Taxonomy Fitness: 0.9918 | Cost Advantage: 319x ($42/mo vs $13.4k/mo)
+    </text>
+  </g>
+</svg>

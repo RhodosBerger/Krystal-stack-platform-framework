@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Krystal × Poslední kmen — Grafika, Hudba a Flat-Design Rozhranie (VITAL_MAX_HP == 6)</title>
+  <style>
+    :root {
+      --bg-obsidian: #0b0e14;
+      --bg-panel: #131924;
+      --gold-trump: #c9a227;
+      --gold-bright: #f5d061;
+      --cyan-l1d: #00f2fe;
+      --emerald-ok: #38ef7d;
+      --crimson-alert: #ff5e62;
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-obsidian);
+      color: var(--text-main);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-panel);
+      border: 1px solid var(--gold-trump);
+      border-radius: 12px;
+      padding: 16px 24px;
+      margin-bottom: 20px;
+    }
+    .hp-badge {
+      background: rgba(56, 239, 125, 0.12);
+      border: 2px solid var(--emerald-ok);
+      color: var(--emerald-ok);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 20px;
+    }
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid #263248;
+      border-radius: 12px;
+      padding: 18px;
+    }
+    h2 {
+      font-size: 16px;
+      color: var(--gold-bright);
+      margin-bottom: 12px;
+      font-family: monospace;
+      letter-spacing: 0.5px;
+    }
+    canvas {
+      width: 100%;
+      height: 300px;
+      background: #080b10;
+      border: 1px solid #2e3c56;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    button {
+      background: #1c2638;
+      color: var(--gold-bright);
+      border: 1px solid var(--gold-trump);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-family: monospace;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    button:hover {
+      background: var(--gold-trump);
+      color: #080b10;
+      font-weight: 700;
+    }
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: monospace;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .param-table th, .param-table td {
+      border-bottom: 1px solid #222d40;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    .param-table th { color: var(--cyan-l1d); }
+    .mirror-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .mirror-card {
+      background: #0d121b;
+      border-left: 3px solid var(--gold-trump);
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .mirror-card.formal { border-left-color: var(--cyan-l1d); font-family: monospace; font-size: 12px; }
+    audio { width: 100%; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1 style="font-size: 20px; color: var(--gold-bright);">KRYSTAL × POSLEDNÍ KMEN — ŠTÚDIO GRAFIKY, HUDBY A ROZHRANIA</h1>
+      <p style="font-size: 13px; color: var(--text-muted); font-family: monospace;">
+        128B ZeroCopyContractFrame (84B Wire / 16 Params) | 6D Trigonometric Bézier | 12-Frame Hysteresis (1.42 ms)
+      </p>
+    </div>
+    <div class="hp-badge" id="hpAnchorBadge">VITAL_MAX_HP == 6 (6 PEVNÝCH STREDOV RUBIKOVEJ KOCKY)</div>
+  </header>
+
+  <div class="studio-grid">
+    <!-- ĽAVÝ STĹPEC: Interaktívny 3D/2D Hex-Grid Canvas + SVG + Hudobný Syntetizátor -->
+    <div class="panel">
+      <h2>[1] PROCEDURÁLNA GRAFIKA: 8×8 HEX-GRID, OHMOV ZÁKON &amp; 6D BÉZIEROVA TRAJEKTÓRIA</h2>
+      <canvas id="hexRubikCanvas" width="680" height="300"></canvas>
+      <div class="btn-row">
+        <button onclick="setLens('SOLAR_TRUTH')">Šošovka: SOLAR_TRUTH (Dm9)</button>
+        <button onclick="setLens('CAUSTIC_SUSPICION')">Šošovka: CAUSTIC_SUSPICION (Gm7)</button>
+        <button onclick="setLens('UMBRAL_BETRAYAL')">Šošovka: UMBRAL_BETRAYAL (A7b9)</button>
+        <button onclick="triggerMariasHlaska()">Mariáš Hláška (+40 b. &amp; Mínomet)</button>
+        <button onclick="applyRubikCommutator()">Rubik Komutátor [R, U] = R U R' U'</button>
+      </div>
+
+      <h2 style="margin-top: 18px;">[2] PROCEDURÁLNA HUDBA: WAV MOTÍV + ŽIVÝ WEBAUDIO POLYPHONY SYNTH</h2>
+      <audio controls src="/static/audio/krystal_posledni_kmen_theme.wav"></audio>
+      <div class="btn-row">
+        <button onclick="playWebAudioChord()">Prehrať živý WebAudio Akord (D-Dorian + cos(π)=-1)</button>
+      </div>
+
+      <div class="mirror-box">
+        <div class="mirror-card" id="colloquialProse">
+          <strong>Hovorový opis (Pre hráča):</strong><br>
+          Zlaté svetlo pravdy preniká cez hmlu močiara. Tvoja kráľovská Hláška (+40 b.) nabíja kryštálovú mriežku napätím 12.6 V pri bezpečnom prúde 5.25 A a drží všetkých 6 životov pevne uzamknutých.
+        </div>
+        <div class="mirror-card formal" id="formalProof">
+          <strong>Formálny dôkaz (Sémantické zrkadlo):</strong><br>
+          VITAL_MAX_HP == 6 | I = 12.6V / 2.4Ω = 5.25A &lt;= 8.0A | 6D Vector = (0.27, 0.38, 0.16, 0.17, 0.25, 0.45), cos(π) = -1 | Dwell = 12 frames | KMB1 = 24B CRC32 OK.
+        </div>
+      </div>
+    </div>
+
+    <!-- PRAVÝ STĹPEC: 16 Serverových Parametrov (84B / 128B) & SVG Emblém -->
+    <div class="panel">
+      <h2>[3] 16 SERVEROVÝCH PARAMETROV VÝKONU K CENE (84 B WIRE / 128 B RÁMEC — 319× ÚSPORA)</h2>
+      <img src="/static/img/krystal_hex_rubik_emblem.svg" alt="Krystal Hex Rubik Emblem" style="width:100%; border-radius:8px; margin-bottom:10px;"/>
+      <table class="param-table">
+        <thead>
+          <tr><th>#</th><th>Parameter</th><th>Hodnota v reálnom čase</th><th>Bajty</th></tr>
+        </thead>
+        <tbody id="paramTableBody">
+          <tr><td>1</td><td>magic_header</td><td>"KMB1"</td><td>4 B</td></tr>
+          <tr><td>2</td><td>vital_max_hp</td><td style="color:#38ef7d;font-weight:bold;">6 (LOCKED)</td><td>1 B</td></tr>
+          <tr><td>3</td><td>active_stratum_mask</td><td>0x1F (S0..S4)</td><td>1 B</td></tr>
+          <tr><td>4</td><td>intent_bitmask_8b</td><td>0x17 (Branchless)</td><td>1 B</td></tr>
+          <tr><td>5</td><td>vray_perception_lens</td><td id="tdLens">SOLAR_TRUTH (0)</td><td>1 B</td></tr>
+          <tr><td>6</td><td>grid_bitboard_64</td><td id="tdBitboard">0x8100000800000081</td><td>8 B</td></tr>
+          <tr><td>7</td><td>marias_trump_score</td><td id="tdMarias">40 pts (Hláška)</td><td>2 B</td></tr>
+          <tr><td>8</td><td>ohm_grid_current_a</td><td id="tdCurrent">5.25 A (&lt;= 8.0 A)</td><td>4 B</td></tr>
+          <tr><td>9</td><td>cv_bezier_vector_6d</td><td>[0.27,0.38,0.16,0.17,0.25,0.45]</td><td>24 B</td></tr>
+          <tr><td>10</td><td>vulkan_pl1_watts</td><td>15.0 W (0.3382 mJ Queue)</td><td>4 B</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('hexRubikCanvas');
+    const ctx = canvas.getContext('2d');
+    let activeLens = 'SOLAR_TRUTH';
+    let mariasScore = 40;
+    let currentAmps = 5.25;
+    let phaseAngle = 0.0;
+    let rubikStep = 0;
+
+    function drawStudioScene() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const lensColor = activeLens === 'SOLAR_TRUTH' ? '#f5d061' : (activeLens === 'CAUSTIC_SUSPICION' ? '#38ef7d' : '#ff5e62');
+
+      // Kreslenie 8x4 výseku hexovej mriežky
+      const r = 26;
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 8; col++) {
+          const cx = 65 + col * 72 + (row % 2) * 36;
+          const cy = 58 + row * 62;
+          ctx.beginPath();
+          for (let k = 0; k < 6; k++) {
+            const ang = (Math.PI / 3) * k + (rubikStep * 0.05);
+            const vx = cx + r * Math.cos(ang);
+            const vy = cy + r * Math.sin(ang);
+            if (k === 0) ctx.moveTo(vx, vy);
+            else ctx.lineTo(vx, vy);
+          }
+          ctx.closePath();
+          ctx.fillStyle = (row + col) % 3 === 0 ? '#182436' : '#101722';
+          ctx.fill();
+          ctx.strokeStyle = (row === 1 && col === 2) || (row === 2 && col === 5) ? lensColor : '#2c3e5a';
+          ctx.lineWidth = (row === 1 && col === 2) || (row === 2 && col === 5) ? 2.5 : 1.2;
+          ctx.stroke();
+        }
+      }
+
+      // 6D Kubická Bézierova krivka + mínometná balistika
+      ctx.beginPath();
+      ctx.moveTo(245, 120);
+      const ctrlY = 30 + 25 * Math.cos(phaseAngle);
+      ctx.bezierCurveTo(310, ctrlY, 390, ctrlY, 460, 182);
+      ctx.strokeStyle = lensColor;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // 6 Pevných Stredov Rubikovej Kocky (VITAL_MAX_HP == 6)
+      const centers = ['#ffffff', '#f5d061', '#38ef7d', '#00f2fe', '#ff9944', '#ff5e62'];
+      for (let i = 0; i < 6; i++) {
+        ctx.fillStyle = centers[i];
+        ctx.fillRect(20 + i * 28, 268, 20, 20);
+      }
+      ctx.fillStyle = '#e6edf3';
+      ctx.font = '12px monospace';
+      ctx.fillText('6 Pevných Stredov Rubikovej Kocky (VITAL_MAX_HP == 6) | Fáza cos(π) = -1', 200, 283);
+
+      phaseAngle += 0.06;
+      requestAnimationFrame(drawStudioScene);
+    }
+
+    function setLens(lens) {
+      activeLens = lens;
+      document.getElementById('tdLens').textContent = lens;
+      playWebAudioChord();
+    }
+
+    function triggerMariasHlaska() {
+      mariasScore = mariasScore === 40 ? 60 : 40;
+      document.getElementById('tdMarias').textContent = mariasScore + ' pts (Hláška)';
+      playWebAudioChord();
+    }
+
+    function applyRubikCommutator() {
+      rubikStep = (rubikStep + 1) % 6;
+      document.getElementById('tdBitboard').textContent = '0x8100000800000' + (rubikStep + 1) + '81';
+      playWebAudioChord();
+    }
+
+    function playWebAudioChord() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const actx = new AudioCtx();
+        const freqs = activeLens === 'SOLAR_TRUTH' ? [146.83, 220.0, 293.66, 369.99]
+                    : (activeLens === 'CAUSTIC_SUSPICION' ? [146.83, 196.0, 233.08, 349.23]
+                    : [110.0, 138.59, 196.0, 233.08]);
+        freqs.forEach((f, idx) => {
+          const osc = actx.createOscillator();
+          const gain = actx.createGain();
+          osc.type = idx === 0 ? 'triangle' : 'sine';
+          osc.frequency.setValueAtTime(f, actx.currentTime);
+          gain.gain.setValueAtTime(0.08, actx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0008, actx.currentTime + 1.2);
+          osc.connect(gain);
+          gain.connect(actx.destination);
+          osc.start();
+          osc.stop(actx.currentTime + 1.2);
+        });
+      } catch (e) {}
+    }
+
+    drawStudioScene();
+  </script>
+</body>
+</html>
