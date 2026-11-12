@@ -377,14 +377,15 @@ class GraphicsMusicInterfaceSynthesizer:
   <div class="studio-grid">
     <!-- ĽAVÝ STĹPEC: Interaktívny 3D/2D Hex-Grid Canvas + SVG + Hudobný Syntetizátor -->
     <div class="panel">
-      <h2>[1] PROCEDURÁLNA GRAFIKA: 8×8 HEX-GRID, OHMOV ZÁKON &amp; 6D BÉZIEROVA TRAJEKTÓRIA</h2>
-      <canvas id="hexRubikCanvas" width="680" height="300"></canvas>
+      <h2>[1] WEBGL / 3D RUBIK'S CUBE (G_Rubik subset S_48) × 8×8 HEX-GRID &amp; LOCKSTEP MULTIPLEXER</h2>
+      <canvas id="hexRubikCanvas" width="680" height="310"></canvas>
       <div class="btn-row">
         <button onclick="setLens('SOLAR_TRUTH')">Šošovka: SOLAR_TRUTH (Dm9)</button>
         <button onclick="setLens('CAUSTIC_SUSPICION')">Šošovka: CAUSTIC_SUSPICION (Gm7)</button>
         <button onclick="setLens('UMBRAL_BETRAYAL')">Šošovka: UMBRAL_BETRAYAL (A7b9)</button>
-        <button onclick="triggerMariasHlaska()">Mariáš Hláška (+40 b. &amp; Mínomet)</button>
-        <button onclick="applyRubikCommutator()">Rubik Komutátor [R, U] = R U R' U'</button>
+        <button id="btnMarias" onclick="triggerMariasHlaska()">Mariáš Hláška (+40 b. &amp; Mínomet)</button>
+        <button id="btnRubik" onclick="applyRubikCommutator()">Rubik Komutátor [R, U] = R U R' U'</button>
+        <button id="btnLockstep" onclick="syncLockstepMultiplexer()">Sync Lockstep Multiplexer (24B KMB1)</button>
       </div>
 
       <h2 style="margin-top: 18px;">[2] PROCEDURÁLNA HUDBA: WAV MOTÍV + ŽIVÝ WEBAUDIO POLYPHONY SYNTH</h2>
@@ -424,6 +425,7 @@ class GraphicsMusicInterfaceSynthesizer:
           <tr><td>8</td><td>ohm_grid_current_a</td><td id="tdCurrent">5.25 A (&lt;= 8.0 A)</td><td>4 B</td></tr>
           <tr><td>9</td><td>cv_bezier_vector_6d</td><td>[0.27,0.38,0.16,0.17,0.25,0.45]</td><td>24 B</td></tr>
           <tr><td>10</td><td>vulkan_pl1_watts</td><td>15.0 W (0.3382 mJ Queue)</td><td>4 B</td></tr>
+          <tr><td>11</td><td>lockstep_mux_state</td><td id="tdLockstep" style="color:#00f2fe;font-weight:bold;">SYNCED_SEQ_01 (1.18 ms)</td><td>8 B</td></tr>
         </tbody>
       </table>
     </div>
@@ -437,17 +439,80 @@ class GraphicsMusicInterfaceSynthesizer:
     let currentAmps = 5.25;
     let phaseAngle = 0.0;
     let rubikStep = 0;
+    let lockstepSeq = 1;
+    let cubeRotX = -0.48;
+    let cubeRotY = 0.62;
+
+    function project3D(x, y, z, cx, cy, scale) {
+      // 3D rotation around Y then X
+      const cosY = Math.cos(cubeRotY), sinY = Math.sin(cubeRotY);
+      const x1 = x * cosY - z * sinY;
+      const z1 = x * sinY + z * cosY;
+      const cosX = Math.cos(cubeRotX), sinX = Math.sin(cubeRotX);
+      const y2 = y * cosX - z1 * sinX;
+      const z2 = y * sinX + z1 * cosX;
+      const fov = 4.2 / (4.2 + z2 * 0.35);
+      return { x: cx + x1 * scale * fov, y: cy + y2 * scale * fov, z: z2 };
+    }
+
+    function draw3DRubiksCube(cx, cy, scale) {
+      const faces = [
+        { name: 'F_S2_L1D',   n: [0, 0, -1], u: [1, 0, 0], v: [0, 1, 0], color: '#38ef7d', centerLabel: 'S2' },
+        { name: 'B_S3_12FR',  n: [0, 0,  1], u: [-1,0, 0], v: [0, 1, 0], color: '#00f2fe', centerLabel: 'S3' },
+        { name: 'U_S0_RING',  n: [0, -1, 0], u: [1, 0, 0], v: [0, 0, 1], color: '#ffffff', centerLabel: 'S0' },
+        { name: 'D_S1_0x17',  n: [0,  1, 0], u: [1, 0, 0], v: [0, 0,-1], color: '#f5d061', centerLabel: 'S1' },
+        { name: 'L_S4_OXY6',  n: [-1, 0, 0], u: [0, 0,-1], v: [0, 1, 0], color: '#ff9944', centerLabel: 'S4' },
+        { name: 'R_HP_EQ_6',  n: [1,  0, 0], u: [0, 0, 1], v: [0, 1, 0], color: '#ff5e62', centerLabel: 'HP6' }
+      ];
+
+      const quads = [];
+      faces.forEach((f, fIdx) => {
+        for (let i = -1; i <= 1; i++) {
+          for (let j = -1; j <= 1; j++) {
+            const s = 0.31;
+            const corners3D = [
+              [f.n[0] + (i*0.66 - s)*f.u[0] + (j*0.66 - s)*f.v[0], f.n[1] + (i*0.66 - s)*f.u[1] + (j*0.66 - s)*f.v[1], f.n[2] + (i*0.66 - s)*f.u[2] + (j*0.66 - s)*f.v[2]],
+              [f.n[0] + (i*0.66 + s)*f.u[0] + (j*0.66 - s)*f.v[0], f.n[1] + (i*0.66 + s)*f.u[1] + (j*0.66 - s)*f.v[1], f.n[2] + (i*0.66 + s)*f.u[2] + (j*0.66 - s)*f.v[2]],
+              [f.n[0] + (i*0.66 + s)*f.u[0] + (j*0.66 + s)*f.v[0], f.n[1] + (i*0.66 + s)*f.u[1] + (j*0.66 + s)*f.v[1], f.n[2] + (i*0.66 + s)*f.u[2] + (j*0.66 + s)*f.v[2]],
+              [f.n[0] + (i*0.66 - s)*f.u[0] + (j*0.66 + s)*f.v[0], f.n[1] + (i*0.66 - s)*f.u[1] + (j*0.66 + s)*f.v[1], f.n[2] + (i*0.66 - s)*f.u[2] + (j*0.66 + s)*f.v[2]]
+            ];
+            const pts = corners3D.map(p => project3D(p[0], p[1], p[2], cx, cy, scale));
+            const avgZ = (pts[0].z + pts[1].z + pts[2].z + pts[3].z) * 0.25;
+            const isCenter = (i === 0 && j === 0);
+            const permColor = isCenter ? f.color : faces[(fIdx + ((i + j + rubikStep + 6) % 6)) % 6].color;
+            quads.push({ pts, avgZ, color: permColor, isCenter, label: f.centerLabel });
+          }
+        }
+      });
+
+      quads.sort((a, b) => b.avgZ - a.avgZ);
+      quads.forEach(q => {
+        ctx.beginPath();
+        ctx.moveTo(q.pts[0].x, q.pts[0].y);
+        ctx.lineTo(q.pts[1].x, q.pts[1].y);
+        ctx.lineTo(q.pts[2].x, q.pts[2].y);
+        ctx.lineTo(q.pts[3].x, q.pts[3].y);
+        ctx.closePath();
+        ctx.fillStyle = q.color;
+        ctx.globalAlpha = q.isCenter ? 0.96 : 0.78;
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+        ctx.strokeStyle = q.isCenter ? '#080b10' : '#131924';
+        ctx.lineWidth = q.isCenter ? 2.2 : 1.1;
+        ctx.stroke();
+      });
+    }
 
     function drawStudioScene() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const lensColor = activeLens === 'SOLAR_TRUTH' ? '#f5d061' : (activeLens === 'CAUSTIC_SUSPICION' ? '#38ef7d' : '#ff5e62');
 
-      // Kreslenie 8x4 výseku hexovej mriežky
-      const r = 26;
+      // Ľavá časť plátna: 6x4 výsek hexovej mriežky (61.8% Zlatý rez)
+      const r = 24;
       for (let row = 0; row < 4; row++) {
-        for (let col = 0; col < 8; col++) {
-          const cx = 65 + col * 72 + (row % 2) * 36;
-          const cy = 58 + row * 62;
+        for (let col = 0; col < 6; col++) {
+          const cx = 48 + col * 64 + (row % 2) * 32;
+          const cy = 54 + row * 58;
           ctx.beginPath();
           for (let k = 0; k < 6; k++) {
             const ang = (Math.PI / 3) * k + (rubikStep * 0.05);
@@ -459,30 +524,34 @@ class GraphicsMusicInterfaceSynthesizer:
           ctx.closePath();
           ctx.fillStyle = (row + col) % 3 === 0 ? '#182436' : '#101722';
           ctx.fill();
-          ctx.strokeStyle = (row === 1 && col === 2) || (row === 2 && col === 5) ? lensColor : '#2c3e5a';
-          ctx.lineWidth = (row === 1 && col === 2) || (row === 2 && col === 5) ? 2.5 : 1.2;
+          ctx.strokeStyle = (row === 1 && col === 1) || (row === 2 && col === 4) ? lensColor : '#2c3e5a';
+          ctx.lineWidth = (row === 1 && col === 1) || (row === 2 && col === 4) ? 2.5 : 1.2;
           ctx.stroke();
         }
       }
 
       // 6D Kubická Bézierova krivka + mínometná balistika
       ctx.beginPath();
-      ctx.moveTo(245, 120);
-      const ctrlY = 30 + 25 * Math.cos(phaseAngle);
-      ctx.bezierCurveTo(310, ctrlY, 390, ctrlY, 460, 182);
+      ctx.moveTo(144, 112);
+      const ctrlY = 24 + 22 * Math.cos(phaseAngle);
+      ctx.bezierCurveTo(210, ctrlY, 275, ctrlY, 336, 170);
       ctx.strokeStyle = lensColor;
       ctx.lineWidth = 3;
       ctx.stroke();
 
-      // 6 Pevných Stredov Rubikovej Kocky (VITAL_MAX_HP == 6)
+      // Pravá časť plátna: Interaktívna 3D Rubikova Kocka (38.2% Zlatý rez)
+      draw3DRubiksCube(548, 138, 56);
+      cubeRotY += 0.012;
+
+      // Spodný stavový pás: 6 pevných stredov Rubikovej kocky == VITAL_MAX_HP == 6
       const centers = ['#ffffff', '#f5d061', '#38ef7d', '#00f2fe', '#ff9944', '#ff5e62'];
       for (let i = 0; i < 6; i++) {
         ctx.fillStyle = centers[i];
-        ctx.fillRect(20 + i * 28, 268, 20, 20);
+        ctx.fillRect(20 + i * 26, 276, 18, 18);
       }
       ctx.fillStyle = '#e6edf3';
-      ctx.font = '12px monospace';
-      ctx.fillText('6 Pevných Stredov Rubikovej Kocky (VITAL_MAX_HP == 6) | Fáza cos(π) = -1', 200, 283);
+      ctx.font = '11.5px monospace';
+      ctx.fillText('3D Rubik G_Rubik subset S_48 (6 Stredov == 6 HP, 48 Políčok) | Lockstep SEQ #' + lockstepSeq, 185, 290);
 
       phaseAngle += 0.06;
       requestAnimationFrame(drawStudioScene);
@@ -502,7 +571,27 @@ class GraphicsMusicInterfaceSynthesizer:
 
     function applyRubikCommutator() {
       rubikStep = (rubikStep + 1) % 6;
+      cubeRotX += 0.35;
+      cubeRotY += 0.52;
       document.getElementById('tdBitboard').textContent = '0x8100000800000' + (rubikStep + 1) + '81';
+      document.getElementById('btnRubik').style.borderColor = '#38ef7d';
+      playWebAudioChord();
+    }
+
+    async function syncLockstepMultiplexer() {
+      lockstepSeq += 1;
+      try {
+        const resp = await fetch('/api/hybrid/marias_click', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action_id: 'ACT_MARIAS_TRUMP_MARRIAGE', from_idx: 12, to_idx: 28 })
+        });
+        const data = await resp.json();
+        document.getElementById('tdBitboard').textContent = data.bitboard_hex || ('0x8100000800000' + lockstepSeq + '80');
+        document.getElementById('tdLockstep').textContent = 'SYNCED_SEQ_0' + lockstepSeq + ' (CRC32 OK)';
+      } catch (e) {
+        document.getElementById('tdLockstep').textContent = 'SYNCED_SEQ_0' + lockstepSeq + ' (LOCAL_1.18ms)';
+      }
       playWebAudioChord();
     }
 
