@@ -1193,6 +1193,38 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             from krystal_kernel.graphics_music_interface_synthesizer import GLOBAL_GRAPHICS_MUSIC_UI_SYNTHESIZER
             self._send_json(200, GLOBAL_GRAPHICS_MUSIC_UI_SYNTHESIZER.synthesize_omniscience_core_unified_model())
             return
+        if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
+            from pathlib import Path
+            html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"
+            if html_file.exists():
+                b = html_file.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(b)))
+                self.end_headers()
+                self.wfile.write(b)
+                return
+        if self.path.startswith("/static/"):
+            from pathlib import Path
+            rel = self.path.lstrip("/")
+            f_path = Path(__file__).resolve().parent.parent / "krystal_web_hub" / rel
+            if f_path.exists() and f_path.is_file():
+                b = f_path.read_bytes()
+                ctype = "application/octet-stream"
+                if f_path.suffix == ".svg":
+                    ctype = "image/svg+xml"
+                elif f_path.suffix == ".wav":
+                    ctype = "audio/wav"
+                elif f_path.suffix == ".html":
+                    ctype = "text/html; charset=utf-8"
+                elif f_path.suffix == ".js":
+                    ctype = "application/javascript; charset=utf-8"
+                self.send_response(200)
+                self.send_header("Content-Type", ctype)
+                self.send_header("Content-Length", str(len(b)))
+                self.end_headers()
+                self.wfile.write(b)
+                return
         if self.path.startswith("/api/hybrid/status"):
             from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
             self._send_json(
