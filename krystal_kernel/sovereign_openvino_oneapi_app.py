@@ -1193,6 +1193,20 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             from krystal_kernel.graphics_music_interface_synthesizer import GLOBAL_GRAPHICS_MUSIC_UI_SYNTHESIZER
             self._send_json(200, GLOBAL_GRAPHICS_MUSIC_UI_SYNTHESIZER.synthesize_omniscience_core_unified_model())
             return
+        if self.path.startswith("/api/v1/runtime/ontologic_gnosis_strata"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.ontologic_gnosis_power_strata import GLOBAL_ONTOLOGIC_GNOSIS_ENGINE
+            qs = parse_qs(urlparse(self.path).query)
+            conflict_flag = qs.get("conflict", ["0"])[0] in ("1", "true", "True")
+            uma_p = float(qs.get("uma", ["0.35"])[0])
+            self._send_json(
+                200,
+                GLOBAL_ONTOLOGIC_GNOSIS_ENGINE.build_expanded_ten_stratum_stack(
+                    uma_utilization=uma_p,
+                    contradictory_evidence_detected=conflict_flag,
+                ),
+            )
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"
