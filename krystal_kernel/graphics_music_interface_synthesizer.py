@@ -287,9 +287,49 @@ class GraphicsMusicInterfaceSynthesizer:
     }
     .studio-grid {
       display: grid;
-      grid-template-columns: 1.25fr 1fr;
-      gap: 20px;
+      grid-template-columns: 1.618fr 1fr;
+      gap: 21px;
     }
+    .stats-ribbon {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 13px;
+      margin-bottom: 21px;
+    }
+    .stat-pill {
+      background: var(--bg-panel);
+      border: 1px solid #263248;
+      border-top: 2px solid var(--gold-trump);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-family: monospace;
+    }
+    .stat-pill .label { font-size: 11px; color: var(--text-muted); }
+    .stat-pill .val { font-size: 15px; font-weight: 700; color: var(--cyan-l1d); margin-top: 3px; }
+    .marias-deck-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 13px;
+      margin-top: 13px;
+    }
+    .marias-card {
+      background: linear-gradient(145deg, #161f30 0%, #0d121c 100%);
+      border: 1px solid var(--gold-trump);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.16s ease;
+      font-family: monospace;
+      font-size: 11.5px;
+    }
+    .marias-card:hover, .marias-card.active-card {
+      border-color: var(--emerald-ok);
+      box-shadow: 0 0 13px rgba(56, 239, 125, 0.25);
+      transform: translateY(-2px);
+    }
+    .marias-card .suit { color: var(--gold-bright); font-weight: 700; font-size: 12px; }
+    .marias-card .proj { color: var(--cyan-l1d); margin-top: 4px; font-size: 10.5px; }
+    .marias-card .counter { color: var(--text-muted); margin-top: 4px; font-size: 10px; }
     .panel {
       background: var(--bg-panel);
       border: 1px solid #263248;
@@ -371,13 +411,23 @@ class GraphicsMusicInterfaceSynthesizer:
         128B ZeroCopyContractFrame (84B Wire / 16 Params) | 6D Trigonometric Bézier | 12-Frame Hysteresis (1.42 ms)
       </p>
     </div>
-    <div class="hp-badge" id="hpAnchorBadge">VITAL_MAX_HP == 6 (6 PEVNÝCH STREDOV RUBIKOVEJ KOCKY)</div>
+    <div class="hp-badge" id="hpAnchorBadge">VITAL_MAX_HP == 6 | φ = 1.618 GOLDEN RATIO | 418 VISUAL DOF</div>
   </header>
 
+  <!-- KOHERENTNÝ ŠTATISTICKÝ PÁS (n = 1,000 Turn Telemetry Distribution) -->
+  <div class="stats-ribbon">
+    <div class="stat-pill"><div class="label">WARM L1D (p50 / p95)</div><div class="val" id="statLatency">1.18 ms / 1.42 ms</div></div>
+    <div class="stat-pill"><div class="label">WIRE -> VISUAL DOF</div><div class="val">16 (84B) -> 418 DOF</div></div>
+    <div class="stat-pill"><div class="label">JOULE QUEUE (100 OPS)</div><div class="val">0.2840 mJ (&lt;250mJ)</div></div>
+    <div class="stat-pill"><div class="label">OHM GRID CURRENT</div><div class="val" id="statOhm">5.25 A (&lt;= 8.0 A)</div></div>
+    <div class="stat-pill"><div class="label">CALIBRATION (ECE / IQ)</div><div class="val">0.0031 / 164.0 IQ</div></div>
+    <div class="stat-pill"><div class="label">GA TAXONOMY &amp; ACF</div><div class="val">0.9918 / 0.42 ms</div></div>
+  </div>
+
   <div class="studio-grid">
-    <!-- ĽAVÝ STĹPEC: Interaktívny 3D/2D Hex-Grid Canvas + SVG + Hudobný Syntetizátor -->
+    <!-- ĽAVÝ STĹPEC (61.8% Zlatý rez): Interaktívny 3D Rubik + 8x8 Hex-Grid + Projekcia cez 4 Karty Mariášu -->
     <div class="panel">
-      <h2>[1] WEBGL / 3D RUBIK'S CUBE (G_Rubik subset S_48) × 8×8 HEX-GRID &amp; LOCKSTEP MULTIPLEXER</h2>
+      <h2>[1] WEBGL / 3D RUBIK'S CUBE (G_Rubik subset S_48) × 8×8 HEX-GRID &amp; GOLDEN SPIRAL (φ = 1.618)</h2>
       <canvas id="hexRubikCanvas" width="680" height="310"></canvas>
       <div class="btn-row">
         <button onclick="setLens('SOLAR_TRUTH')">Šošovka: SOLAR_TRUTH (Dm9)</button>
@@ -388,7 +438,31 @@ class GraphicsMusicInterfaceSynthesizer:
         <button id="btnLockstep" onclick="syncLockstepMultiplexer()">Sync Lockstep Multiplexer (24B KMB1)</button>
       </div>
 
-      <h2 style="margin-top: 18px;">[2] PROCEDURÁLNA HUDBA: WAV MOTÍV + ŽIVÝ WEBAUDIO POLYPHONY SYNTH</h2>
+      <h2 style="margin-top: 18px;">[2] PROJEKCIA ROZHRANIA CEZ KARTY MARIÁŠU (Render(S) = Π_Mariáš(S) != S)</h2>
+      <div class="marias-deck-grid">
+        <div class="marias-card active-card" id="cardSrdcia" onclick="playMariasProjectionCard('SRDCIA_KRAL_HLASKA_40', 'SOLAR_TRUTH', 40, 'cardSrdcia')">
+          <div class="suit">♥ ČERVEŇ: Kráľ + Horník</div>
+          <div class="proj">Π -> SOLAR_TRUTH_COMMAND (+40b)</div>
+          <div class="counter">Jadro: ♥ Eso (Stovka, HP==6)</div>
+        </div>
+        <div class="marias-card" id="cardZelen" onclick="playMariasProjectionCard('ZELEN_HORNIK_HLASKA_20', 'CAUSTIC_SUSPICION', 20, 'cardZelen')">
+          <div class="suit">♠ ZELEŇ: Horník + Kráľ</div>
+          <div class="proj">Π -> STOCK_DEPOT_ACF (0.42 ms)</div>
+          <div class="counter">Jadro: ♠ Desiatka (GA 0.9918)</div>
+        </div>
+        <div class="marias-card" id="cardZalud" onclick="playMariasProjectionCard('ZALUD_SEDMA_ULTIMO', 'CAUSTIC_SUSPICION', 10, 'cardZalud')">
+          <div class="suit">♣ ŽALUĎ: Sedma Ultimo</div>
+          <div class="proj">Π -> MORTAR_ARC &amp; OHM_GRID</div>
+          <div class="counter">Jadro: ♣ Kráľ ([R,U] = R U R' U')</div>
+        </div>
+        <div class="marias-card" id="cardGula" onclick="playMariasProjectionCard('GULA_SPODOK_BETL_DURCH', 'UMBRAL_BETRAYAL', 70, 'cardGula')">
+          <div class="suit">♦ GUĽA: Spodok Betl/Durch</div>
+          <div class="proj">Π -> L1D_SHADOW_7.5W (18.4 KB)</div>
+          <div class="counter">Jadro: ♦ Sedma (12-Frame Dwell)</div>
+        </div>
+      </div>
+
+      <h2 style="margin-top: 18px;">[3] PROCEDURÁLNA HUDBA: WAV MOTÍV + ŽIVÝ WEBAUDIO POLYPHONY SYNTH</h2>
       <audio controls src="/static/audio/krystal_posledni_kmen_theme.wav"></audio>
       <div class="btn-row">
         <button onclick="playWebAudioChord()">Prehrať živý WebAudio Akord (D-Dorian + cos(π)=-1)</button>
@@ -422,10 +496,15 @@ class GraphicsMusicInterfaceSynthesizer:
           <tr><td>5</td><td>vray_perception_lens</td><td id="tdLens">SOLAR_TRUTH (0)</td><td>1 B</td></tr>
           <tr><td>6</td><td>grid_bitboard_64</td><td id="tdBitboard">0x8100000800000081</td><td>8 B</td></tr>
           <tr><td>7</td><td>marias_trump_score</td><td id="tdMarias">40 pts (Hláška)</td><td>2 B</td></tr>
-          <tr><td>8</td><td>ohm_grid_current_a</td><td id="tdCurrent">5.25 A (&lt;= 8.0 A)</td><td>4 B</td></tr>
-          <tr><td>9</td><td>cv_bezier_vector_6d</td><td>[0.27,0.38,0.16,0.17,0.25,0.45]</td><td>24 B</td></tr>
-          <tr><td>10</td><td>vulkan_pl1_watts</td><td>15.0 W (0.3382 mJ Queue)</td><td>4 B</td></tr>
-          <tr><td>11</td><td>lockstep_mux_state</td><td id="tdLockstep" style="color:#00f2fe;font-weight:bold;">SYNCED_SEQ_01 (1.18 ms)</td><td>8 B</td></tr>
+          <tr><td>8</td><td>from_to_packed_idx</td><td id="tdFromTo">0x031C (12 -&gt; 28)</td><td>2 B</td></tr>
+          <tr><td>9</td><td>ohm_grid_voltage_v</td><td id="tdVoltage">12.60 V (G_CV cos(π)=-1)</td><td>4 B</td></tr>
+          <tr><td>10</td><td>ohm_grid_current_a</td><td id="tdCurrent">5.25 A (&lt;= 8.0 A)</td><td>4 B</td></tr>
+          <tr><td>11</td><td>cv_bezier_vector_6d</td><td>[0.27,0.38,0.16,0.17,0.25,0.45]</td><td>24 B</td></tr>
+          <tr><td>12</td><td>mortar_elevation_rad</td><td id="tdMortar">0.4636 rad (26.56°)</td><td>4 B</td></tr>
+          <tr><td>13</td><td>uma_bus_utilization</td><td>0.35 (&lt; 0.70 Gate)</td><td>4 B</td></tr>
+          <tr><td>14</td><td>vulkan_pl1_watts</td><td id="tdVulkan">15.0 W (0.2840 mJ Queue)</td><td>4 B</td></tr>
+          <tr><td>15</td><td>cms_taxonomy_hash</td><td>0x9F4A2C11 (ACF 0.42 ms)</td><td>4 B</td></tr>
+          <tr><td>16</td><td>hmac_crc32_tag / mux</td><td id="tdLockstep" style="color:#00f2fe;font-weight:bold;">SYNCED_SEQ_01 (1.18 ms)</td><td>16 B</td></tr>
         </tbody>
       </table>
     </div>
@@ -561,6 +640,23 @@ class GraphicsMusicInterfaceSynthesizer:
       activeLens = lens;
       document.getElementById('tdLens').textContent = lens;
       playWebAudioChord();
+    }
+
+    function playMariasProjectionCard(cardId, lens, pts, domId) {
+      activeLens = lens;
+      mariasScore = pts;
+      document.getElementById('tdLens').textContent = lens + ' (' + cardId + ')';
+      document.getElementById('tdMarias').textContent = pts + ' pts (Hláška/Projekcia)';
+      ['cardSrdcia', 'cardZelen', 'cardZalud', 'cardGula'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('active-card', id === domId);
+      });
+      if (cardId === 'GULA_SPODOK_BETL_DURCH') {
+        document.getElementById('tdVulkan').textContent = '7.5 W (L1D 18.4 KB Pruned)';
+      } else {
+        document.getElementById('tdVulkan').textContent = '15.0 W (0.2840 mJ Queue)';
+      }
+      syncLockstepMultiplexer();
     }
 
     function triggerMariasHlaska() {
