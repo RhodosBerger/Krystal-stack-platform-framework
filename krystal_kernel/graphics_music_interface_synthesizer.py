@@ -758,6 +758,49 @@ class GraphicsMusicInterfaceSynthesizer:
             ],
             "artistic_composition_formulas_and_decision_patterns": self.evaluate_artistic_composition_and_decision_patterns(),
             "marias_card_interface_projection": self.project_interface_through_marias_playing_cards(),
+            "blizzard_tactile_card_and_spell_manual": self.synthesize_blizzard_tactile_card_and_spell_manual(),
+            "vital_max_hp": self.vital_max_hp,
+        }
+
+    def synthesize_blizzard_tactile_card_and_spell_manual(self) -> Dict[str, Any]:
+        """
+        Synthesizes the Blizzard Hearthstone-inspired Physical-Tactile Card & Spell Design Manual
+        fused with Material-Phi Golden Ratio (phi = 1.618), the 12 Clan Spell Cards from
+        `dusan-game/packages/shared/src/core/PhysicsActionDataset.ts`, the 5 Protagonist Dice
+        Classes from `AethericDiceEngine.ts`, and the 32-Card Mariáš projection deck.
+        """
+        return {
+            "manual_id": "BLIZZARD_KRYSTAL_TACTILE_CARD_MANUAL_V1",
+            "card_frame_proportions": {
+                "aspect_ratio": "1 : 1.618 (Golden Rectangle Vertical Card Frame: 280px x 453px)",
+                "top_left_mana_voltage_gem": "Faceted Sapphire/Gold Gem displaying Voltage V (0.5V - 5.5V) & Current I = V/R",
+                "portrait_oval_socket": "Beveled metallic oval (55% height) with 3D parallax shader & Chiaroscuro rim light",
+                "clan_banner_scroll": "Embossed parchment/obsidian ribbon naming Clan (Crystal, Toxic, Druid) & Mariáš Suit (♥ ♠ ♣ ♦)",
+                "spell_text_plaque": "Recessed stone/parchment box with bold keyword badges: [SLOW], [ROOT], [SILENCE], [DISARM], [HLÁŠKA +40b]",
+                "bottom_left_kinetic_badge": "Bronze/Gold gear badge showing Kinetic Push/Pull force (0 - 2 hexes) & Resistance R (1.0 - 4.0 Ohm)",
+                "bottom_right_damage_hp_shield": "Crimson Sword / Emerald Shield capped by constitutional VITAL_MAX_HP == 6",
+            },
+            "clan_spell_cards_catalog": [
+                {"card_id": "crystal_laser", "clan": "Crystal (♥ Srdcia)", "voltage_v": 4.5, "resistance_r": 1.5, "current_a": 3.00, "power_w": 13.50, "kinetic": "1 hex push", "damage": 3, "spell_effect": "slow"},
+                {"card_id": "crystal_shield", "clan": "Crystal (♥ Srdcia)", "voltage_v": 0.5, "resistance_r": 4.0, "current_a": 0.13, "power_w": 0.06, "kinetic": "0 none", "damage": 0, "spell_effect": "shield_guard"},
+                {"card_id": "crystal_teleport", "clan": "Crystal (♥ Srdcia)", "voltage_v": 2.0, "resistance_r": 2.0, "current_a": 1.00, "power_w": 2.00, "kinetic": "2 hex pull", "damage": 1, "spell_effect": "phase_blink"},
+                {"card_id": "crystal_pulse", "clan": "Crystal (♥ Srdcia)", "voltage_v": 3.0, "resistance_r": 1.0, "current_a": 3.00, "power_w": 9.00, "kinetic": "1 hex push", "damage": 2, "spell_effect": "shockwave"},
+                {"card_id": "snake_venom", "clan": "Toxic (♠ Zeleň)", "voltage_v": 4.0, "resistance_r": 1.0, "current_a": 4.00, "power_w": 16.00, "kinetic": "0 none", "damage": 2, "spell_effect": "silence"},
+                {"card_id": "acid_rain", "clan": "Toxic (♠ Zeleň)", "voltage_v": 5.0, "resistance_r": 2.0, "current_a": 2.50, "power_w": 12.50, "kinetic": "1 hex push", "damage": 3, "spell_effect": "slow"},
+                {"card_id": "toxic_hook", "clan": "Toxic (♠ Zeleň)", "voltage_v": 3.0, "resistance_r": 1.5, "current_a": 2.00, "power_w": 6.00, "kinetic": "2 hex pull", "damage": 2, "spell_effect": "root"},
+                {"card_id": "mud_slide", "clan": "Toxic (♠ Zeleň)", "voltage_v": 2.0, "resistance_r": 2.5, "current_a": 0.80, "power_w": 1.60, "kinetic": "1 hex push", "damage": 1, "spell_effect": "quagmire"},
+                {"card_id": "bear_swipe", "clan": "Druid (♣ Žaluď)", "voltage_v": 5.5, "resistance_r": 1.0, "current_a": 5.50, "power_w": 30.25, "kinetic": "1 hex push", "damage": 3, "spell_effect": "disarm"},
+                {"card_id": "forest_grow", "clan": "Druid (♣ Žaluď)", "voltage_v": 1.5, "resistance_r": 3.5, "current_a": 0.43, "power_w": 0.64, "kinetic": "0 none", "damage": 0, "spell_effect": "absorb_4J_overload"},
+                {"card_id": "wind_gust", "clan": "Druid (♦ Guľa)", "voltage_v": 2.5, "resistance_r": 1.5, "current_a": 1.67, "power_w": 4.17, "kinetic": "2 hex push", "damage": 1, "spell_effect": "gale_push"},
+                {"card_id": "nature_heal", "clan": "Druid (♦ Guľa)", "voltage_v": 1.0, "resistance_r": 3.0, "current_a": 0.33, "power_w": 0.33, "kinetic": "0 none", "damage": 0, "spell_effect": "restore_hp_cap_6"},
+            ],
+            "aetheric_dice_protagonist_classes": [
+                {"class_key": "SOVEREIGN_EXEMPLAR", "die": "D6", "modifier": "AVERAGE: round((val + roll) / 2)"},
+                {"class_key": "AETHER_SPELLWEAVER", "die": "D12", "modifier": "MULTIPLY: round(val * (1 + roll/12))"},
+                {"class_key": "MYRMIDON_SENTINEL", "die": "D6", "modifier": "AVERAGE: round((val + roll) / 2)"},
+                {"class_key": "GIGANTIC_BEHEMOTH", "die": "D12", "modifier": "DIVIDE: max(1, round(val / max(1, (13 - roll)*0.5)))"},
+                {"class_key": "SWIFT_HARBINGER", "die": "D6", "modifier": "MULTIPLY: round(val * (1 + roll/6))"},
+            ],
             "vital_max_hp": self.vital_max_hp,
         }
 
