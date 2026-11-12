@@ -1,0 +1,88 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: krystal-hybrid-default-deny-all
+  namespace: krystal-sovereign
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: krystal-hybrid-strict-allowlist
+  namespace: krystal-sovereign
+spec:
+  podSelector:
+    matchLabels:
+      app: krystal-hybrid-engine
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: krystal-ingress-gateway
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: strapi-cms
+      ports:
+        - protocol: TCP
+          port: 1337
+    - to:
+        - podSelector:
+            matchLabels:
+              app: medusa-commerce
+      ports:
+        - protocol: TCP
+          port: 9000
+    - to:
+        - podSelector:
+            matchLabels:
+              app: ollama-llm
+      ports:
+        - protocol: TCP
+          port: 11434
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krystal-hybrid-engine
+  namespace: krystal-sovereign
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: krystal-hybrid-engine
+  template:
+    metadata:
+      labels:
+        app: krystal-hybrid-engine
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: krystal-hybrid-runtime
+          image: krystal-stack/hybrid-taxonomy-runtime:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: VITAL_MAX_HP
+              value: "6"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]

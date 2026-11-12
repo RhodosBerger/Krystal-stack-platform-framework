@@ -1,0 +1,29 @@
+#!/usr/sbin/nft -f
+# Krystal-Stack Sovereign Default-Drop Firewall (nftables)
+flush ruleset
+
+table inet krystal_absolute_firewall {
+    set fail2ban_blocklist {
+        type ipv4_addr
+        flags interval, timeout
+    }
+
+    chain input {
+        type filter hook input priority 0; policy drop;
+
+        iif "lo" accept
+        ct state established,related accept
+        ct state invalid drop
+        ip saddr @fail2ban_blocklist drop
+
+        tcp dport { 443, 8080 } ct state new limit rate 30/second burst 60 packets accept
+    }
+
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+    }
+
+    chain output {
+        type filter hook output priority 0; policy accept;
+    }
+}
