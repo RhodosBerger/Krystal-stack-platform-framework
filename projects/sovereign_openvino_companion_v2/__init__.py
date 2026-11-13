@@ -94,6 +94,10 @@ from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b
 from projects.sovereign_openvino_companion_v2.oxygen_hybrid_mesh_crud_module import (
     DeterministicRelationalCrudDatabaseFlow,
     FourChipsetIsaHybridUxAndMeshSuite,
+    OperationalProcessSupervisorInspector,
+)
+from projects.sovereign_openvino_companion_v2.vulkan_memory_adaptability_lib import (
+    VulkanMemoryAdaptabilityLibrary,
 )
 from krystal_kernel.constants import VITAL_MAX_HP
 
@@ -176,4 +180,6 @@ __all__ = [
     "render_kernel_eshop_html",
     "FourChipsetIsaHybridUxAndMeshSuite",
     "DeterministicRelationalCrudDatabaseFlow",
+    "OperationalProcessSupervisorInspector",
+    "VulkanMemoryAdaptabilityLibrary",
 ]

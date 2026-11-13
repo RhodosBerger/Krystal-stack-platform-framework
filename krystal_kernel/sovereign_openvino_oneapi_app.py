@@ -1417,6 +1417,14 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(xml_bytes)
             return
+
+        if self.path.startswith("/api/v1/runtime/process_supervisor_inspector"):
+            from projects.sovereign_openvino_companion_v2.oxygen_hybrid_mesh_crud_module import (
+                OperationalProcessSupervisorInspector,
+            )
+
+            self._send_json(200, OperationalProcessSupervisorInspector().inspect())
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"

@@ -665,6 +665,7 @@ def test_morph_vision_os_microservices_sql_scales_and_sprint_kg(tmp_path: Path):
             "/api/v1/runtime/kernel_eshop",
             "/api/v1/runtime/adaptive_vision_usb_swap",
             "/api/v1/runtime/oxygen_hybrid_mesh_crud",
+            "/api/v1/runtime/process_supervisor_inspector",
         ):
             with urllib.request.urlopen(f"http://127.0.0.1:{port}{route}", timeout=5) as ep_resp:
                 assert ep_resp.status == 200
@@ -758,6 +759,7 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
         MeasuredPropertyProfileAndLexiconMethodology,
         MorseHardwareStateParser,
         MultipoleLatticeInferenceAndControllabilityEngine,
+        OperationalProcessSupervisorInspector,
         ProceduralSvgCacheGovernor,
         ProvenanceOriginAndCommercialStrategyEngine,
         RealtimeInspectorScoringGovernor,
@@ -769,6 +771,7 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
         UxPrivilegeMappingFramework,
         VisionLanguagePropaedeuticsVideoExporter,
         VulkanEndpointExtensionRuntime,
+        VulkanMemoryAdaptabilityLibrary,
         ZeroCopySocketObservationProcess,
         render_kernel_eshop_html,
     )
@@ -1086,6 +1089,23 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
     with pytest.raises(ContractViolation):
         crud_db.link_nodes("OX_HYBRID_ROOT", "NON_EXISTENT", "BAD_FK")
 
+    proc_insp = OperationalProcessSupervisorInspector().inspect()
+    assert proc_insp["vital_max_hp"] == 6
+    assert proc_insp["live_process_snapshot"]["pid"] > 0
+    assert len(proc_insp["five_connection_schemas"]) == 5
+    assert proc_insp["b2b_sdk_pricing_taxonomy"]["total_annual_integration_eur"] == 16200
+    assert proc_insp["crypto_ml_crowdfunding_and_edu"]["btc_strategy_ml_model"]["normalized_strategy_score"] > 0.0
+    assert OperationalProcessSupervisorInspector.compute_b2b_sdk_pricing_taxonomy(commercial_license=False)["total_eur"] == 0
+
+    vk_lib_out = VulkanMemoryAdaptabilityLibrary.evaluate_memory_operations()
+    assert vk_lib_out["vital_max_hp"] == 6
+    assert len(vk_lib_out["four_vulkan_memory_paradigms"]) == 4
+    geom_synth = vk_lib_out["deterministic_geometry_and_render_synthesis"]
+    assert len(geom_synth["five_public_visibility_endpoints"]) == 5
+    assert geom_synth["inverted_scalar_card"]["field_difficulty_coefficient"] > 0.0
+    with pytest.raises(ContractViolation):
+        VulkanMemoryAdaptabilityLibrary.evaluate_memory_operations(uma_utilization=0.90)
+
     # 9. End-to-end orchestrator + SovereignOpenVinoCompanionV2 + CLI + HTTP GET/POST
     comp = SovereignOpenVinoCompanionV2(log_dir=tmp_path / "rev_logs", reset_ledger=True)
     orch_out = comp.run_reversible_correlation_and_spatial_cruise()
@@ -1186,6 +1206,7 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
             "/api/v1/runtime/kernel_eshop",
             "/api/v1/runtime/adaptive_vision_usb_swap",
             "/api/v1/runtime/oxygen_hybrid_mesh_crud",
+            "/api/v1/runtime/process_supervisor_inspector",
         ):
             with urllib.request.urlopen(f"http://127.0.0.1:{port}{route}", timeout=5) as ep_resp:
                 assert ep_resp.status == 200
