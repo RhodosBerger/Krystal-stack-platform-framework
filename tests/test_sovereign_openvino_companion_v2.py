@@ -284,3 +284,151 @@ def test_markdown_performance_module_doc_query_knowledge_graph_and_http(tmp_path
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_constraint_composer_failure_guesser_non_numeric_authority_and_calibration(tmp_path: Path) -> None:
+    import http.server
+    import threading
+    import urllib.error
+    import urllib.request
+
+    from krystal_kernel.claims_lattice import EvidenceLatticePoint
+    from krystal_kernel.constants import CapabilityScope
+    from krystal_kernel.sovereign_openvino_oneapi_app import SovereignOpenVinoRequestHandler
+    from projects.sovereign_openvino_companion_v2 import (
+        AlternativeHorizonExplorer,
+        CohesiveNonScalarAuthorityAndProbabilisticEngine,
+        ConstraintNarrativeAndFactComposer,
+        FailureRegistryAndRedundantCognitiveGuesser,
+    )
+
+    v2 = SovereignOpenVinoCompanionV2(log_dir=tmp_path, reset_ledger=True)
+    composer = ConstraintNarrativeAndFactComposer()
+    comp_res = composer.compose_facts_and_narrative(logger=v2.logger)
+    assert len(comp_res["composed_facts"]) == 2
+    assert len(comp_res["quarantined_events"]) == 1
+    assert comp_res["quarantined_events"][0]["delta_s"] == 0
+    assert comp_res["render_mutates_state"] is False
+    assert len(comp_res["filtered_taxonomy_improvements"]) == 3
+
+    guesser = FailureRegistryAndRedundantCognitiveGuesser()
+    fail_res = guesser.register_failure_and_infer_redundant_guesses(logger=v2.logger)
+    assert len(fail_res["failure_registry_entries"]) == 4
+    assert all(g["can_self_certify"] is False for g in fail_res["redundant_cognitive_guesses"])
+    assert all(g["epistemic_status"] == "HYPOTHESIS_PATTERN_CANDIDATE" for g in fail_res["redundant_cognitive_guesses"])
+
+    alt_res = AlternativeHorizonExplorer().evaluate_horizon_alternatives()
+    assert alt_res["frozen_theory_nodes_untouched"] == 56
+    assert alt_res["node_57_added_to_frozen_theory"] is False
+    assert all(a["p7_directional_gate_pass"] is True for a in alt_res["alternatives_ranked_by_evoi"])
+
+    auth = CohesiveNonScalarAuthorityAndProbabilisticEngine()
+    ok_gate = auth.check_non_numeric_authority(
+        proposer_scope=CapabilityScope.CAN_PROPOSE,
+        verifier_scope=CapabilityScope.CAN_VERIFY,
+        lattice_point=EvidenceLatticePoint("IMPLEMENTED", "UNIT_TESTED", "CONTRACT_BOUND", "HOST_BENCHMARKED"),
+        vital_hp=6,
+    )
+    assert ok_gate["authority_admissible"] is True
+    assert ok_gate["is_scalar_weighted"] is False
+
+    veto_self = auth.check_non_numeric_authority(
+        proposer_scope=CapabilityScope.CAN_PROPOSE,
+        verifier_scope=CapabilityScope.CAN_PROPOSE,
+        lattice_point=EvidenceLatticePoint("IMPLEMENTED", "UNIT_TESTED", "CONTRACT_BOUND", "HOST_BENCHMARKED"),
+        vital_hp=6,
+    )
+    assert veto_self["authority_admissible"] is False
+
+    veto_gap = auth.check_non_numeric_authority(
+        proposer_scope=CapabilityScope.CAN_PROPOSE,
+        verifier_scope=CapabilityScope.CAN_VERIFY,
+        lattice_point=EvidenceLatticePoint("IMPLEMENTED", "UNIT_TESTED", "CONTRACT_BOUND", "HOST_BENCHMARKED"),
+        has_unestimated_critical_axis=True,
+    )
+    assert veto_gap["authority_admissible"] is False
+
+    with pytest.raises(ContractViolation):
+        auth.check_non_numeric_authority(
+            CapabilityScope.CAN_PROPOSE,
+            CapabilityScope.CAN_VERIFY,
+            EvidenceLatticePoint("IMPLEMENTED", "UNIT_TESTED", "CONTRACT_BOUND", "HOST_BENCHMARKED"),
+            vital_hp=5,
+        )
+
+    prob_ok = auth.evaluate_probabilistic_reasoning_patterns(authority_admissible=True, logger=v2.logger)
+    assert prob_ok["sample_size_n"] == 25
+    assert prob_ok["mean_brier_score"] < 0.20
+    assert prob_ok["expected_calibration_error_ece"] < 0.15
+    assert prob_ok["stdev_brier_score"] > 0.0
+    assert prob_ok["reasoning_vs_cost_and_variance_inhibitor"]["healthy_variance_status"] == "HEALTHY_BOUNDED_VARIANCE"
+    assert len(prob_ok["modular_challenge_graph_coordinates"]) == 4
+
+    prob_veto = auth.evaluate_probabilistic_reasoning_patterns(authority_admissible=False)
+    assert all(p["effective_commit_probability"] == 0.0 for p in prob_veto["pattern_posteriors"])
+
+    comp = auth.calculate_speedup_hierarchy_and_provider_competition()
+    assert len(comp["alternate_speedup_hierarchy"]) == 4
+    assert len(comp["provider_and_manufacturer_profiles"]) == 5
+    assert len(comp["objectives_and_model_friction_priorities"]) == 4
+    assert comp["boundary_friction_dissipation"]["concept_name"] == "Boundary Friction Dissipation"
+    assert len(comp["cross_model_quest_table"]["development_quests"]) == 4
+    assert comp["extended_qualified_statistics"]["calibration_summary"]["sample_size_n"] == 25
+    assert comp["extended_qualified_statistics"]["hardware_baseline_summary"]["evidence_classification"] == "LOCAL_MEASURED"
+
+    choice_log = auth.evaluate_choice_perspective_and_speculative_theory_log(authority_admissible=True)
+    assert len(choice_log["beneficial_agreement_log"]) == 2
+    assert len(choice_log["speculative_driven_theory_projections"]) == 2
+    assert choice_log["authoritative_state_mutated"] is False
+    refer = auth.build_behavioral_structure_refer()
+    assert refer["frozen_theory_nodes_untouched"] == 56
+    assert len(refer["new_behavioral_pillars"]) == 4
+
+    gov_conspect = auth.synthesize_custom_patterns_governor_and_parameter_conspect(authority_admissible=True)
+    assert len(gov_conspect["beneficial_cost_and_numa_consent"]) == 3
+    assert len(gov_conspect["socket_power_management_schemas"]) == 3
+    assert len(gov_conspect["conspect_parameter_workaround_model"]["workarounds"]) == 3
+    assert gov_conspect["characteristic_metrics_set"]["measured_local"]["ops_per_watt"] == 30.391
+
+    rc = v2_cli_main(
+        [
+            "--compose-constraints",
+            "--probabilistic-authority",
+            "--artifact-tree-query",
+            "--reset-ledger",
+            "--log-dir",
+            str(tmp_path / "cli_auth"),
+        ]
+    )
+    assert rc == 0
+
+    from projects.sovereign_openvino_companion_v2 import MarkdownBehavioralKnowledgeGraphModule
+    tree_q = MarkdownBehavioralKnowledgeGraphModule().query_beneficial_artifacts_in_tree()
+    assert tree_q["verified_artifacts_count"] == 8
+
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SovereignOpenVinoRequestHandler)
+    port = server.server_address[1]
+    th = threading.Thread(target=server.serve_forever, daemon=True)
+    th.start()
+    try:
+        with urllib.request.urlopen(
+            f"http://127.0.0.1:{port}/api/v1/runtime/probabilistic_authority_composer",
+            timeout=5,
+        ) as resp:
+            assert resp.status == 200
+            body = json.loads(resp.read().decode("utf-8"))
+            assert body["non_numeric_authority_gate"]["authority_admissible"] is True
+            assert body["probabilistic_reasoning_calibration"]["sample_size_n"] == 25
+
+        bad_req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/probabilistic_authority_composer",
+            data=json.dumps({"vital_hp": 5}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with pytest.raises(urllib.error.HTTPError) as http_err:
+            urllib.request.urlopen(bad_req, timeout=5)
+        assert http_err.value.code == 400
+    finally:
+        server.shutdown()
+        server.server_close()

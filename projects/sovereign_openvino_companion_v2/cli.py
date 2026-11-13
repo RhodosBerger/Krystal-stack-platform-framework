@@ -21,6 +21,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--compile-binary-ratios", action="store_true")
     parser.add_argument("--stack-flows", action="store_true")
     parser.add_argument("--doc-query", type=str, default="")
+    parser.add_argument("--artifact-tree-query", action="store_true")
+    parser.add_argument("--compose-constraints", action="store_true")
+    parser.add_argument("--probabilistic-authority", action="store_true")
     parser.add_argument("--emit-bin-dir", type=str, default="")
     parser.add_argument("--morph-factor", type=float, default=0.618034)
     parser.add_argument("--conflict-fork", action="store_true")
@@ -40,6 +43,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         or args.compile_binary_ratios
         or args.stack_flows
         or bool(args.doc_query.strip())
+        or args.artifact_tree_query
+        or args.compose_constraints
+        or args.probabilistic_authority
     )
     if args.run_session or not any_explicit:
         out["session"] = v2.run_smart_session(num_frames=args.frames)
@@ -76,6 +82,17 @@ def main(argv: Optional[List[str]] = None) -> int:
         chain_ok, audit = v2.logger.verify_chain_integrity()
         out["chain_valid"] = chain_ok
         out["log_audit"] = audit
+    if args.artifact_tree_query:
+        from projects.sovereign_openvino_companion_v2.markdown_kg_module import (
+            MarkdownBehavioralKnowledgeGraphModule,
+        )
+
+        out["beneficial_tree_artifacts"] = MarkdownBehavioralKnowledgeGraphModule().query_beneficial_artifacts_in_tree()
+    if args.compose_constraints or args.probabilistic_authority:
+        cap_out = v2.run_constraint_composer_and_probabilistic_authority()
+        out["constraint_authority_and_calibration"] = cap_out
+        out["chain_valid"] = cap_out["chain_valid"]
+        out["log_audit"] = cap_out["log_audit"]
     print(json.dumps(out, indent=2))
     return 0
 

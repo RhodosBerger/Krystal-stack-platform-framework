@@ -81,4 +81,17 @@ Implemented in [`projects/sovereign_openvino_companion_v2/markdown_kg_module.py`
 - **UNIX/WSL2 <-> Windows NT Coexistence (`64 B WNTC` + `4×4` Matrix):** `WslNtCoexistenceBinaryBridge` maps `/dev/shm <-> NT Section`, `cgroup v2 PSI <-> JobObject PL1`, `futex <-> WaitOnAddress`, and `VSOCK <-> Loopback HTTP (:8090)` inside a CRC32-verified single cache line.
 - **4-Tier Scripting & Paradigm Hierarchy (`SCRIPT_TIER_0 .. SCRIPT_TIER_3`):** Unifies binary ABI (`128 B` / `64 B` / `24 B`), kernel governor, v2 CLI/REST orchestration, and the `OntologicSolutionSynthesizer` Markdown Knowledge Graph, while marking hardware ring-0 RAPL and live WSL2 VSOCK tests explicitly as `[UNKNOWN / CDT Required]`.
 
+---
+
+## 7. Constraint Fact/Narrative Composer, Failure Guesser & Non-Numeric Authority Calibration
+
+Implemented in [`projects/sovereign_openvino_companion_v2/probabilistic_authority_and_constraint_composer.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/projects/sovereign_openvino_companion_v2/probabilistic_authority_and_constraint_composer.py):
+- **Constraint Composer & Filtered Taxonomy:** Composes RFC-8785 `compute_claim_semantic_digest` facts strictly from transitions satisfying `VITAL_MAX_HP == 6`, `I_Ohm <= 8.0 A`, `UMA < 0.78`, `Delta_H > 0`, and `PROPOSER != VERIFIER`, filtering general taxonomy updates without mutating state on veto (`Delta_S == 0`).
+- **Failure-to-Registry Cognitive Guesser & Alternative Horizon:** Logs failures permanently (`Execution failure != premise falsification`) to drive redundant fallback lanes (`CPU_VNNI_K4_REDUNDANT`, `P5_METABOLIC_CUTOFF_0_018MJ`) and `PROPOSER`-only `HYPOTHESIS_PATTERN_CANDIDATE` guesses alongside P7-gated next-horizon alternatives (`ALT_01..ALT_04`).
+- **5 Non-Numeric Cohesive Authority Rules + Calibrated Probabilistic Reasoning (`N=25`):** Enforces bitwise `CapabilityScope` orthogonality and 4D `EvidenceLatticePoint` poset dominance outside scalar arithmetic; computes Beta-Binomial posteriors with credal bounds, healthy variance inhibition (`floor_min_sigma <= stdev <= ceiling_max_sigma`), Brier Score, Brier `stdev`, and 5-bin ECE (`authority_admissible == False` clamps `effective_commit_probability = 0.0`).
+- **Speculative Speedup Hierarchy & Hardware Manufacturer Profiles:** Contrasts `LOCAL_MEASURED` Intel Core / Iris Xe (`2.7420 ms`, `30.391 ops/W @ 12W`) cleanly against `THEORETICAL_SPEC_UNMEASURED_LOCALLY` external vendor profiles without epistemic over-promotion.
+- **Boundary Friction Dissipation, Cross-Model Quests & Choice/Speculative-Theory Quarantine:** Separates cross-plane friction from raw bandwidth capacity, attaches missing RAPL/VSOCK slots explicitly as `UNKNOWN_NOT_MEASURED`, indexes `Q_01..Q_04` development quests with extended statistical bounds, maps choice to `EVOI/mJ` + P6 forks via independent beneficial-agreement logging, and quarantines speculative theories under `PROPOSER != VERIFIER` with `VITAL_MAX_HP == 6` (`56` frozen theory nodes untouched).
+- **Custom Patterns Governor, Parameter Workaround Conspect & Socket Power Management Schemas:** Computes net beneficial cost across predicted NUMA/UMA plans to calibrate parameter consent, binds `KrystalCustomPatternsGovernor` to the complete characteristic metrics set (`2.7420 ms`, `30.391 ops/W`, `12.0 W`, `Brier 0.1625`, `ECE 0.03`), models hard constraint workarounds (`ConspectParameterWorkaroundModel`), and defines `15.0W / 12.0W / 7.5W` socket power management schemas.
+
+
 

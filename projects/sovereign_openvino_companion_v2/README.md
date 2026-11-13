@@ -13,9 +13,13 @@ python -m projects.sovereign_openvino_companion_v2.cli --run-session --frames 16
 
 # Sensory Morphism + Binary Aspect-Ratio Compilation + Stack Flows & Matrix Governance
 python -m projects.sovereign_openvino_companion_v2.cli --morph-sense --compile-binary-ratios --stack-flows --emit-bin-dir artifacts/binaries/v2 --reset-ledger
+
+# Constraint Narrative/Fact Composer + Non-Numeric Authority + Calibrated Probabilistic Engine
+python -m projects.sovereign_openvino_companion_v2.cli --compose-constraints --probabilistic-authority --reset-ledger
 ```
 
 HTTP Endpoints on `krystal_kernel/sovereign_openvino_oneapi_app.py`:
 - `GET /api/v1/runtime/sovereign_openvino_companion_v2`
-- `GET /api/v1/runtime/sensory_binary_aspect_compiler`
-- `POST /api/v1/runtime/sensory_binary_aspect_compiler`
+- `GET|POST /api/v1/runtime/sensory_binary_aspect_compiler`
+- `GET|POST /api/v1/runtime/markdown_knowledge_graph`
+- `GET|POST /api/v1/runtime/probabilistic_authority_composer`

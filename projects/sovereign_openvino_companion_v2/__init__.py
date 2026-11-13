@@ -19,12 +19,22 @@ from projects.sovereign_openvino_companion_v2.markdown_kg_module import (
     OntologicSolutionSynthesizer,
     TraceMarkEngine,
 )
+from projects.sovereign_openvino_companion_v2.probabilistic_authority_and_constraint_composer import (
+    AlternativeHorizonExplorer,
+    CohesiveNonScalarAuthorityAndProbabilisticEngine,
+    ConstraintNarrativeAndFactComposer,
+    FailureRegistryAndRedundantCognitiveGuesser,
+)
 from krystal_kernel.constants import VITAL_MAX_HP
 
 __all__ = [
     "AdaptiveSpendingOptimizer",
+    "AlternativeHorizonExplorer",
     "BinaryParameterAspectCompiler",
     "BufferedComputationLogSystem",
+    "CohesiveNonScalarAuthorityAndProbabilisticEngine",
+    "ConstraintNarrativeAndFactComposer",
+    "FailureRegistryAndRedundantCognitiveGuesser",
     "MarkdownBehavioralKnowledgeGraphModule",
     "MarkdownPerformanceNode",
     "OntologicSolutionSynthesizer",

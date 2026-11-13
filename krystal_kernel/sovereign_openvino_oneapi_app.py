@@ -1244,6 +1244,18 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             kg_mod = MarkdownBehavioralKnowledgeGraphModule(logger=companion_v2.logger)
             self._send_json(200, kg_mod.derive_knowledge_graph_and_outcomes(query=q_str, companion_v2=companion_v2))
             return
+        if self.path.startswith("/api/v1/runtime/probabilistic_authority_composer"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+
+            qs = parse_qs(urlparse(self.path).query)
+            veto_flag = qs.get("veto", ["0"])[0] in ("1", "true", "True")
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            self._send_json(
+                200,
+                companion_v2.run_constraint_composer_and_probabilistic_authority(simulate_authority_veto=veto_flag),
+            )
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"
@@ -1514,6 +1526,31 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 res = kg_mod.derive_knowledge_graph_and_outcomes(
                     query=str(data.get("query", "")),
                     companion_v2=companion_v2,
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/runtime/probabilistic_authority_composer":
+            from krystal_kernel.constants import ContractViolation
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+
+            vital_hp = int(data.get("vital_hp", VITAL_MAX_HP))
+            if vital_hp != VITAL_MAX_HP:
+                self._send_json(
+                    400,
+                    {
+                        "error": f"Constitutional invariant breach: vital_hp={vital_hp} != 6",
+                        "violation_code": "ERR_CONSTITUTIONAL_INVARIANT_BREACH",
+                        "vital_max_hp": VITAL_MAX_HP,
+                    },
+                )
+                return
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            try:
+                res = companion_v2.run_constraint_composer_and_probabilistic_authority(
+                    simulate_authority_veto=bool(data.get("simulate_authority_veto", False))
                 )
                 self._send_json(200, res)
             except ContractViolation as exc:

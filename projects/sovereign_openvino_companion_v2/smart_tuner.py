@@ -675,3 +675,71 @@ class SovereignOpenVinoCompanionV2:
             "log_audit": audit,
             "vital_max_hp": VITAL_MAX_HP,
         }
+
+    def run_constraint_composer_and_probabilistic_authority(
+        self, simulate_authority_veto: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Executes ConstraintNarrativeAndFactComposer, FailureRegistryAndRedundantCognitiveGuesser,
+        AlternativeHorizonExplorer, CohesiveNonScalarAuthorityAndProbabilisticEngine (including
+        calibrated Brier/ECE metrics), and provider/hardware competition profiles.
+        """
+        from krystal_kernel.claims_lattice import EvidenceLatticePoint
+        from krystal_kernel.constants import CapabilityScope
+        from projects.sovereign_openvino_companion_v2.probabilistic_authority_and_constraint_composer import (
+            AlternativeHorizonExplorer,
+            CohesiveNonScalarAuthorityAndProbabilisticEngine,
+            ConstraintNarrativeAndFactComposer,
+            FailureRegistryAndRedundantCognitiveGuesser,
+        )
+
+        composer = ConstraintNarrativeAndFactComposer()
+        constraint_bundle = composer.compose_facts_and_narrative(logger=self.logger)
+
+        guesser = FailureRegistryAndRedundantCognitiveGuesser()
+        failure_bundle = guesser.register_failure_and_infer_redundant_guesses(logger=self.logger)
+
+        horizon = AlternativeHorizonExplorer().evaluate_horizon_alternatives()
+
+        auth_engine = CohesiveNonScalarAuthorityAndProbabilisticEngine()
+        verifier_scope = (
+            CapabilityScope.CAN_PROPOSE if simulate_authority_veto else CapabilityScope.CAN_VERIFY
+        )
+        auth_check = auth_engine.check_non_numeric_authority(
+            proposer_scope=CapabilityScope.CAN_PROPOSE,
+            verifier_scope=verifier_scope,
+            lattice_point=EvidenceLatticePoint("IMPLEMENTED", "UNIT_TESTED", "CONTRACT_BOUND", "HOST_BENCHMARKED"),
+            vital_hp=VITAL_MAX_HP,
+            contradictory=False,
+            has_unestimated_critical_axis=False,
+        )
+        prob_report = auth_engine.evaluate_probabilistic_reasoning_patterns(
+            authority_admissible=auth_check["authority_admissible"],
+            logger=self.logger,
+        )
+        provider_comp = auth_engine.calculate_speedup_hierarchy_and_provider_competition()
+        choice_spec_log = auth_engine.evaluate_choice_perspective_and_speculative_theory_log(
+            authority_admissible=auth_check["authority_admissible"],
+            logger=self.logger,
+        )
+        behavioral_refer = auth_engine.build_behavioral_structure_refer()
+        governor_conspect = auth_engine.synthesize_custom_patterns_governor_and_parameter_conspect(
+            authority_admissible=auth_check["authority_admissible"],
+        )
+
+        chain_ok, audit = self.logger.verify_chain_integrity()
+        return {
+            "project_name": "sovereign_openvino_companion_v2",
+            "constraint_narrative_and_facts": constraint_bundle,
+            "failure_registry_and_cognitive_guesser": failure_bundle,
+            "alternative_horizon_explorer": horizon,
+            "non_numeric_authority_gate": auth_check,
+            "probabilistic_reasoning_calibration": prob_report,
+            "speedup_hierarchy_and_provider_competition": provider_comp,
+            "choice_agreement_and_speculative_theories": choice_spec_log,
+            "behavioral_structure_refer": behavioral_refer,
+            "patterns_governor_and_socket_power": governor_conspect,
+            "chain_valid": chain_ok,
+            "log_audit": audit,
+            "vital_max_hp": VITAL_MAX_HP,
+        }
