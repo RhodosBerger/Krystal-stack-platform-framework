@@ -1207,6 +1207,10 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 ),
             )
             return
+        if self.path.startswith("/api/v1/runtime/ontologic_asset_objects"):
+            from krystal_kernel.ontologic_asset_object_registry import GLOBAL_ONTOLOGIC_ASSET_OBJECT_REGISTRY
+            self._send_json(200, GLOBAL_ONTOLOGIC_ASSET_OBJECT_REGISTRY.export_full_representation())
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"
