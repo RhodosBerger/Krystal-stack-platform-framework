@@ -659,6 +659,7 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
         DirectionValidationAndEmergingKnowledgeMapper,
         EpistemicMemoryPatternTransducerAndFourScaleEvaluator,
         ExplorationParameterBenchmarkRunner,
+        Gamesa3DGridVulkanStrategicParserEngine,
         GeneticLineageTestMethodologyEnhancer,
         GpuVisualMemoryCoordinateAndFieldDefragmenter,
         HexadimensionalLogInterpreterAndPowerMorpher,
@@ -853,6 +854,24 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
     with pytest.raises(ContractViolation):
         osc_suite.evaluate_combinatorial_wiring_and_oscillation_matrices(vital_hp=5)
 
+    gamesa_vk = Gamesa3DGridVulkanStrategicParserEngine()
+    vk_out = gamesa_vk.evaluate_gamesa_3d_grid_and_vulkan_parser()
+    assert vk_out["frozen_theory_nodes_match"] is True
+    assert vk_out["combinatorial_basis_sum"] == 56
+    assert vk_out["all_roundtrips_reversible_exact"] is True
+    assert len(vk_out["four_sdk_adoption_domains"]) == 4
+    assert len(vk_out["four_api_sdk_hierarchical_properties"]) == 4
+    assert len(vk_out["unified_process_flow_matrix"]) == 4
+    assert len(vk_out["airport_ops_sdk_blueprint"]["submodules"]) == 4
+    glob_agg = vk_out["global_hardware_2d_25d_3d_vulkan_aggregates"]
+    assert glob_agg["taxonomy_evidence_status"] == "SIMULATED_GLOBAL_HW_TAXONOMY"
+    assert set(glob_agg["dimensional_parametric_scales"].keys()) == {"2D", "2.5D", "3D"}
+    assert len(glob_agg["vulkan_abstract_kernel_aggregates"]) == 4
+    assert glob_agg["manhattan_l1_span_cells"] > 0
+    assert len(glob_agg["compiled_virtual_pixel_charsets"]) == 6
+    with pytest.raises(ContractViolation):
+        gamesa_vk.parse_vulkan_plan_reversible("BAD|TOKEN")
+
     # 9. End-to-end orchestrator + SovereignOpenVinoCompanionV2 + CLI + HTTP GET/POST
     comp = SovereignOpenVinoCompanionV2(log_dir=tmp_path / "rev_logs", reset_ledger=True)
     orch_out = comp.run_reversible_correlation_and_spatial_cruise()
@@ -879,6 +898,7 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
             "--geometric-sync-scales",
             "--morse-hardware-parser",
             "--oscillation-matrix-suite",
+            "--gamesa-3d-grid-vulkan-parser",
             "--reset-ledger",
             "--log-dir",
             str(tmp_path / "cli_rev_cruise"),

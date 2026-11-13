@@ -1359,6 +1359,7 @@ class ReversibleCorrelationAndCruiseOrchestrator:
             BinarySetMatrixEngine,
             CombinatorialWiringAndOscillationMatrixSuite,
             CrossParadigmCppTranspilerAndCognitionStandardsEngine,
+            Gamesa3DGridVulkanStrategicParserEngine,
             GeneticLineageTestMethodologyEnhancer,
             GpuVisualMemoryCoordinateAndFieldDefragmenter,
             IntenseThreadBurstMatrixViewBinder,
@@ -1380,6 +1381,9 @@ class ReversibleCorrelationAndCruiseOrchestrator:
         cpp_cognition_std_out = CrossParadigmCppTranspilerAndCognitionStandardsEngine().evaluate_cpp_gc_elimination_and_standards(vital_hp=vital_hp)
         morse_hw_out = MorseHardwareStateParser().evaluate_morse_roundtrip(vital_hp=vital_hp)
         oscillation_suite_out = CombinatorialWiringAndOscillationMatrixSuite().evaluate_combinatorial_wiring_and_oscillation_matrices(
+            vital_hp=vital_hp
+        )
+        gamesa_vulkan_parser_out = Gamesa3DGridVulkanStrategicParserEngine().evaluate_gamesa_3d_grid_and_vulkan_parser(
             vital_hp=vital_hp
         )
 
@@ -1440,6 +1444,7 @@ class ReversibleCorrelationAndCruiseOrchestrator:
             "cpp_gc_cognition_and_standards": cpp_cognition_std_out,
             "morse_hardware_state_parser": morse_hw_out,
             "combinatorial_wiring_and_oscillation_matrices": oscillation_suite_out,
+            "gamesa_3d_grid_vulkan_parser": gamesa_vulkan_parser_out,
             "chain_valid": chain_ok,
             "log_audit": audit,
         }

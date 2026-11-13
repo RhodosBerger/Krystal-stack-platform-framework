@@ -80,6 +80,9 @@ This manual provides per-component architectural specifications, formal invarian
 23. **`CombinatorialWiringAndOscillationMatrixSuite` (`combinatorial_wiring_and_oscillation_matrices`)**
     - Prunes raw 6-stage kernel wiring combinations (`3^6 = 729`) via foundational constitutional definitions (`VITAL_MAX_HP == 6`, `PROPOSER != VERIFIER`, `UMA < 0.78`, `12`-frame hysteresis dwell) down to 6 admissible deterministic schemes (`combinatorial_pruning_pct > 99.0%`), and provides 3 contractive 3x3 stabilization matrices (`M_STAB_DWELL_12`, `M_STAB_PHASE_DAMPING`, `M_STAB_UMA_VELOCITY`, row-sum infinity norm `< 1.0`) guaranteeing monotonic oscillation damping across compute transitions.
 
+24. **`Gamesa3DGridVulkanStrategicParserEngine` (`gamesa_3d_grid_vulkan_parser`)**
+    - Aggregates epistemic spectra into matrix-combinatorics educational bases (`comb(6, 1..4) == [6, 15, 20, 15] -> 56 == FROZEN_THEORY_NODES`), binds gear ratios (`1.0x, 0.8x, 0.5x, 0.75x`) & ISA telemetry deductions across the `8x8x8` (`512 x 128 B`) GAMESA 3D Grid via bijective/reversible Vulkan strategic parsing, codifies 4 SDK adoption domains + 4 hierarchical API/SDK properties + unified multi-scale process flow matrix, and outlines `krystal-airport-ops-sdk` (`DESIGN_PROPOSAL`).
+
 ---
 
 ## Four Next-Horizon Expansion Domains

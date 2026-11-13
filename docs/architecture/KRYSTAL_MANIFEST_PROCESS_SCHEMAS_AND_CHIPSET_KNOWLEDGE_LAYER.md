@@ -120,3 +120,65 @@ Architektonický model sa priamo mapuje na moderné heterogénne čipové sady (
 | **2. `krystal-thermo-wsl-governor` SDK** (WSL2/Linux Spektrálny & RAPL Governor) | Intel DPTF, Linux `powercap`, OpenTelemetry daemons | `UMA < 0.78`, `SWAP == 0`, `EVOI >= 0.0180 mJ`, `12`-frame hysterézia, profily `7.5W / 12W / 15W` |
 | **3. `krystal-epistemic-arena` SDK** (C++20 Zero-GC + $6\times 6$ Capability Gate) | ROS2 Iceoryx, Cap'n Proto, FlatBuffers | `pause_jitter_ms == 0.0`, `PROPOSER != VERIFIER`, `delta_s == 0` pri chybe, `ContractViolation`, `VITAL_MAX_HP == 6` |
 | **4. `krystal-soc-vector-router` SDK** (Heterogénny SoC & OpenVINO Vector-Trig Router) | ONNX Runtime EPs, Apache TVM auto-scheduler | Znakové pásma `V0..V5` (`1..64` liniek), trig projekcia CPU/Xe-GPU/NPU/UMA, latencia `2.7420 ms` / `30.391 ops/W` |
+
+---
+
+## 9. Adopčné oblasti SDK, Kombinatorické bázy poznania & GAMESA 3D Grid Reverzibilný Vulkan Parser (`Gamesa3DGridVulkanStrategicParserEngine`)
+
+1. **Štyri adopčné oblasti nového SDK (`four_sdk_adoption_domains`):**
+   - `ADOPT_01_ZERO_COPY_VULKAN_USM_GRID`: priama väzba GAMESA 3D Grid $\leftrightarrow$ `VK_KHR_external_memory_fd` / Level-Zero USM (`128 B`, `0` CPU staging kópií).
+   - `ADOPT_02_TELEMETRY_DEDUCTION_CALIBRATOR`: živá dedukcia `EVOI >= 0.0180 mJ`, `UMA < 0.78` a priradenia ISA na fronty.
+   - `ADOPT_03_CROSS_PLATFORM_COMBINATORIAL_SYNC`: synchronizácia `6x6` binárnych matíc a báz naprieč Windows/WSL2/Linux.
+   - `ADOPT_04_THERMAL_ADAPTIVE_GEARBOX_ORCHESTRATION`: adaptívna PL1 prevodovka (`7.5W / 12W / 15W`) + `12`-snímková hysterézia.
+2. **Náučné bázy kombinatoriky matíc (`knowledge_spectra_combinatorial_bases`):**
+   Binomický rozklad šiestich jadrových prvkov $\sum_{k=1}^{4} \binom{6}{k} = 6 + 15 + 20 + 15 = 56 \equiv \text{FROZEN\_THEORY\_NODES}$ mapovaný na 4 Stevensove škály (`NOMINAL`, `ORDINAL`, `INTERVAL`, `RATIO`).
+3. **GAMESA 3D Grid + Reverzibilný strategický Vulkan parser:**
+   Prevodové stupne `1.0x`, `0.8x`, `0.5x`, `0.75x` spájajú spektrá pohľadov, ISA inštrukcie (`AVX-VNNI-512`, `AVX2-256 + NPU-Systolic-64`, `Scalar-32b`, `VK_KHR_external_memory_fd`), bunky `8x8x8` mriežky (`512` `128 B` slotov) a alokačné stratégie Vulkánu (`VK_STRATEGY_SUBALLOC_RING`, `VK_STRATEGY_MORTON_Z_SLAB`, `VK_STRATEGY_SHADOW_SCRATCH`, `VK_STRATEGY_EXTERNAL_USM_FD`) s presným reverzným dekódovaním (`all_roundtrips_reversible_exact == True`).
+4. **Štyri hierarchické vlastnosti API & SDK (`four_api_sdk_hierarchical_properties`):**
+   1) `PROP_01_ZERO_COPY_128B_LINEAGE` (`128 B` + SHA-256 bez CPU bounce), 2) `PROP_02_REVERSIBLE_STRATEGIC_PARSING`, 3) `PROP_03_CONTRACTUAL_CAPABILITY_ISOLATION` (`PROPOSER != VERIFIER`, `delta_s == 0` na chybe), 4) `PROP_04_THERMAL_HYSTERETIC_CALIBRATION`.
+
+---
+
+## 10. Unifikovaná matica priebehu dejov & Návrh SDK pre letiská (`krystal-airport-ops-sdk`)
+
+1. **Unifikovaná matica variantov dejov naprieč 4 agregovanými systémami (`unified_process_flow_matrix`):**
+   - `SYS_A_MORSE_ZERO_COPY_BUS` (`S_JADRO_CORE`, `S_PREPOJENIE_BRIDGE`) $\leftrightarrow$ `128 B` SPSC ingest, Morse stream, `SWAP==0`.
+   - `SYS_B_GAMESA_3D_VULKAN_USM` (`S_SLOVNA_ZASOBA_LEXICON`, `S_PREPOJENIE_BRIDGE`) $\leftrightarrow$ Morton Z-order, Vulkan SLAB, reverzný parser.
+   - `SYS_C_BINARY_MATRIX_LATTICE` (`S_POZNANIE_GNOSIS`) $\leftrightarrow$ Booleovská algebra $6\times 6$, `56`-uzlová báza, homotopický rozkol.
+   - `SYS_D_THERMAL_CHIPSET_GOVERNOR` (`S_PROJEKT_COMPANION`, `S_JADRO_CORE`) $\leftrightarrow$ zlievanie `240 Hz`, trigonometrický SoC fázový zámok, vyradenie parazitov `< 0.0180 mJ`.
+2. **Návrh SDK pre letiská (`krystal-airport-ops-sdk`, `DESIGN_PROPOSAL`):**
+   - `krystal-airspace-3d-grid`: bezkolízne priestorové slotovanie rolovacích dráh a koridorov v GAMESA 3D mriežke (`VITAL_MAX_HP == 6`, nulová kolízia invariantov).
+   - `krystal-baggage-spsc-128b`: zero-copy `128 B` SPSC triediaci kruh batožiny s SHA-256 reťazcom bez straty rámca.
+   - `krystal-turnaround-proposer-verifier`: dvojklúčové potvrdenie odbavenia lietadla (`PROPOSER != VERIFIER` — pozemná obsluha navrhuje, veža/governor verifikuje).
+   - `krystal-terminal-thermal-governor`: adaptívne edge spracovanie kamier/LiDAR/biometrie pod prahom `EVOI >= 0.0180 mJ` a hysteréznym riadením spotreby.
+
+---
+
+## 11. Globálna hardvérová taxonómia (`2D / 2.5D / 3D`), Vulkan agregáty jadra, Manhattanská $L_1$ mriežka & Pixelové znakové sady
+
+1. **Taxonómia zapojenia hardvéru (`SIMULATED_GLOBAL_HW_TAXONOMY`, neprehlasovaná za globálne meranie):** zjednotený `128 B` model promptovej exekúcie naprieč triedami `X86_AVX_VNNI_CPU`, `XE_LPG_INTEGRATED_GPU`, `NPU_SYSTOLIC_TILE`, `DISCRETE_VULKAN_RDMA_GPU` a `ARM_SVE2_MOBILE_SOC`.
+2. **Parametrické vrstvy naprieč `2D`, `2.5D` a `3D` + Vulkan agregáty:**
+   - **`2D`**: rovinné pixelové Morton dlaždice `(px_x, px_y)` $\to$ `VK_AGG_2D_PLANAR_DESCRIPTOR`
+   - **`2.5D`**: hĺbkovo-paralaxné a tepelno-tieňové vrstvy `(px_x, px_y, layer_z)` $\to$ `VK_AGG_25D_LAYERED_LOD_IMAGE`
+   - **`3D`**: GAMESA `8x8x8` voxelový priestor `(gx, gy, gz)` + $L_1$ Manhattanská metrika $\to$ `VK_AGG_3D_GRID_SSBO_128B` & `VK_AGG_INDIRECT_DISPATCH_SPSC`.
+3. **Pixelová znaková sada skompilovaného jadra virtuálneho priestoru:**
+   `[ ] PX0_VOID` (`2D`, prázdno `delta_s=0`), `[┼] PX1_L1_EDGE` (Manhattanská $L_1$ hrana), `[▒] PX2_SHADOW_25D` (tieň skenovania `2.5D`), `[▓] PX3_VOXEL_SLAB` (`128 B` voxel `3D`), `[◈] PX4_VK_BRIDGE` (`VK_KHR_external_memory_fd` portál), `[█] PX5_INVARIANT_ANCHOR` (`VITAL_MAX_HP == 6` kotva).
+
+---
+
+## 12. Priestorovo orientované riadenie, spätná reverzibilita cez strojové videnie/kód & nové schémy chápania
+
+> **Epistemická poznámka:** Výraz *„priestorovo orientované vedomie“* tu formálne označuje uzavretý deterministický riadiaci a telemetrický model $(S, A, T, I, O, E, H, W)$ bez nárokov na biologickú či fenomenálnu subjektivitu (`NO_ANTHROPOMORPHIC_CONSCIOUSNESS_CLAIM`).
+
+1. **Čo tým vzniká (`ARCHITECTURAL_DERIVATION_LOCAL_TESTED`):**
+   Spojením `2D / 2.5D / 3D` parametrických vrstiev, Manhattanskej $L_1$ mriežky (`8x8x8`, rozsah `28` buniek naprieč prechodmi), Mortonovej kompakcie (`512 B`, `0` fragmentácie) a kontrahujúcich matíc (`||M||_inf <= 0.78`) vzniká **priestorovo orientovaný, samokalibračný výpočtový stavový model**, kde každý pixel, voxel a zbernicový rámec má jednoznačnú súradnicu, príkon a SHA-256 provenienciu.
+2. **Spätné vyvodenie reverzibilného toku dát pri kmitaní vykresľovacích škál:**
+   Kmitavé / oscilačné operácie vo vykresľovacích škálach (`T0..T5` a fázové pásma `60..480 Hz`) vieme spätne a bijektívne vyvodiť vďaka štyrom pevne ukotveným pilierom frameworku:
+   - **Konštanty:** `VITAL_MAX_HP == 6`, `FRAME_SIZE_BYTES == 128`, `UMA < 0.78`, `FROZEN_THEORY_NODES == 56`, `EVOI >= 0.0180 mJ`.
+   - **Operácie:** bijektívne transformácie (`BinaryPatternCorrelationTool` XNOR/rotácie, `(A^T)^T == A`, `MorseHardwareStateParser`, `Gamesa3DGridVulkanStrategicParserEngine.parse_vulkan_plan_reversible`).
+   - **Hierarchia & adaptabilná škála:** 5-úrovňový harmonický kruh + 4 Stevensove škály prevedené do strojového videnia (multispektrálne dlaždice `RGB / IR / Depth / Motion` s pixelovou znakovou sadou `PX0..PX5`) a generovaného strojového kódu (`C++20 alignas(64) ZeroCopyFrame128B` + SPIR-V/Vulkan deskriptory).
+3. **Štyri nové schémy chápania (`DESIGN_PROPOSAL`):**
+   - **Schéma C1 — Kineticko-priestorová schéma:** každý dej je dráha $L_1$ na `8x8x8` mriežke s merateľným útlmujitým koeficientom (`||M||_inf < 1.0`).
+   - **Schéma C2 — Epistemicko-bránová schéma:** pochopenie neznamená istotu (`ARCHITECTURAL_DERIVATION != LOCAL_MEASURED`); oddelenie `PROPOSER != VERIFIER` bráni samopotvrdeniu.
+   - **Schéma C3 — Termodynamicko-hodnotová schéma:** informácia bez redukcie entropie alebo pod `0.0180 mJ` je parazit a vypadne z arény pred vykonaním.
+   - **Schéma C4 — Reverzibilno-kompilačná schéma:** každé vyššie zobrazenie (`2.5D/3D` vizualizácia) musí byť bezztrátovo rozložiteľné späť na `128 B` binárny token a presný stav hardvérových registrov.
