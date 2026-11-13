@@ -932,8 +932,51 @@ class KrystalHybridPlatformFacade:
             ],
         }
 
+    def aggregate_hybrid_lore_and_fetch_objectives(self, semantic_lens: str = "LORE_NARRATIVE") -> Dict[str, Any]:
+        sig = self.signal_extractor.evaluate(RenderPipelineTerms())
+        catalog = self.cms_connector.fetch_unified_catalog(probe_network=False)
+        quest = self.lore_engine.step_lore_quest(
+            quest_slug=semantic_lens.lower(),
+            selected_choice_id="init_harmonic",
+            signal=sig,
+            cms_artifacts=catalog["commerce_artifacts"],
+            attempt_live_ollama=False,
+        )
+        return {
+            "semantic_lens": semantic_lens,
+            "signal": sig.to_dict(),
+            "objectives": quest,
+            "commerce_count": len(catalog["commerce_artifacts"]),
+            "vital_max_hp": VITAL_MAX_HP,
+        }
+
+    def enqueue_and_resolve_marias_click_action(
+        self,
+        action_id: str,
+        from_idx: int,
+        to_idx: int,
+    ) -> bytes:
+        self.marias_engine.stage_card_play(
+            suit=MariasSuit.SRDCIA_HEARTS,
+            rank="KING_KRAL",
+            hand_ranks_in_suit=["KING_KRAL", "OBER_HORNIK"],
+            target_objective=action_id,
+        )
+        self.marias_engine.resolve_click_semantic_animation()
+        from_clamped = max(0, min(63, int(from_idx)))
+        to_clamped = max(0, min(63, int(to_idx)))
+        from_xy = (from_clamped % 8, from_clamped // 8)
+        to_xy = (to_clamped % 8, to_clamped // 8)
+        res = self.grid_bridge.emulate_mechanical_move(from_xy, to_xy)
+        return bytes.fromhex(res["binary_frame_hex"])
+
+    def decode_binary_grid_packet(self, pkt: Any) -> Dict[str, Any]:
+        hex_str = bytes(pkt).hex() if isinstance(pkt, (bytes, bytearray, memoryview)) else str(pkt)
+        return self.grid_bridge.decode_binary_frame(hex_str)
+
 
 GLOBAL_HYBRID_PLATFORM = KrystalHybridPlatformFacade()
+GLOBAL_HYBRID_LORE_AGGREGATOR = GLOBAL_HYBRID_PLATFORM
 
 
 def build_cli_parser() -> argparse.ArgumentParser:
