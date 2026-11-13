@@ -52,3 +52,4 @@ Detailed guides on specific modules:
 - [Project Audit & Compute Patterns](PROJECT_AUDIT_AND_COMPUTE_PATTERNS.md) - measured progress, compute patterns, priorities, expertise map
 - [Project Intelligence API](PROJECT_INTELLIGENCE_API.md) - `/api/priorities`, `/api/expertise`, `/api/compute-patterns`, `/api/project/overview`
 - [Prompt Book: Nový Parametrický Render Set (NPRS v3.0)](research/PROMPT_BOOK_PARAMETRIC_RENDER_SET_AI_STUDIO.md)
+- [Vulkan Extensions, Zero-Copy Socket Differentials, 4-Scale Epistemic Memory Gearbox & Companion v2 Manual](architecture/VULKAN_ZERO_COPY_SOCKET_GEARBOX_AND_FOUR_SCALE_COMPONENT_MANUAL.md) - full 17-component reference & 4 next-horizon domains

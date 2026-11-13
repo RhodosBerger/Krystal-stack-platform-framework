@@ -1274,6 +1274,23 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 ),
             )
             return
+
+        if self.path.startswith("/api/v1/runtime/reversible_correlation_and_cruise"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+
+            qs = parse_qs(urlparse(self.path).query)
+            evoi_mj = float(qs.get("evoi_per_mj", ["0.145"])[0])
+            obs_ms = float(qs.get("observed_latency_ms", ["2.7420"])[0])
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            self._send_json(
+                200,
+                companion_v2.run_reversible_correlation_and_spatial_cruise(
+                    evoi_per_mj=evoi_mj,
+                    observed_latency_ms=obs_ms,
+                ),
+            )
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"
@@ -1596,6 +1613,33 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                     query=str(data.get("query", "Compare thermal survival and foveated vision routing")),
                     conditioning_z=float(data.get("conditioning_z", 0.65)),
                     scale_influence_z=float(data.get("scale_influence_z", 0.50)),
+                    vital_hp=vital_hp,
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/runtime/reversible_correlation_and_cruise":
+            from krystal_kernel.constants import ContractViolation
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+
+            vital_hp = int(data.get("vital_hp", VITAL_MAX_HP))
+            if vital_hp != VITAL_MAX_HP:
+                self._send_json(
+                    400,
+                    {
+                        "error": f"Constitutional invariant breach: vital_hp={vital_hp} != 6",
+                        "violation_code": "ERR_CONSTITUTIONAL_INVARIANT_BREACH",
+                        "vital_max_hp": VITAL_MAX_HP,
+                    },
+                )
+                return
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            try:
+                res = companion_v2.run_reversible_correlation_and_spatial_cruise(
+                    evoi_per_mj=float(data.get("evoi_per_mj", 0.145)),
+                    observed_latency_ms=float(data.get("observed_latency_ms", 2.7420)),
                     vital_hp=vital_hp,
                 )
                 self._send_json(200, res)

@@ -28,6 +28,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--thermodynamic-vision", action="store_true")
     parser.add_argument("--autonomous-os-microservices", action="store_true")
     parser.add_argument("--epistemic-sql-scales", action="store_true")
+    parser.add_argument("--reversible-binary-correlate", action="store_true")
+    parser.add_argument("--spatial-cruise-scheduler", action="store_true")
+    parser.add_argument("--realtime-inspector-governor", action="store_true")
+    parser.add_argument("--ux-privilege-framework", action="store_true")
+    parser.add_argument("--hexadim-log-morph", action="store_true")
+    parser.add_argument("--epistemic-memory-transducer", action="store_true")
+    parser.add_argument("--socket-thread-governance", action="store_true")
+    parser.add_argument("--exploration-benchmarks", action="store_true")
+    parser.add_argument("--tectonic-mesh-gearbox", action="store_true")
+    parser.add_argument("--vulkan-endpoint-extension", action="store_true")
+    parser.add_argument("--zero-copy-socket-observer", action="store_true")
     parser.add_argument("--conditioning-z", type=float, default=0.65)
     parser.add_argument("--scale-influence-z", type=float, default=0.50)
     parser.add_argument("--emit-bin-dir", type=str, default="")
@@ -56,6 +67,17 @@ def main(argv: Optional[List[str]] = None) -> int:
         or args.thermodynamic_vision
         or args.autonomous_os_microservices
         or args.epistemic_sql_scales
+        or args.reversible_binary_correlate
+        or args.spatial_cruise_scheduler
+        or args.realtime_inspector_governor
+        or args.ux_privilege_framework
+        or args.hexadim_log_morph
+        or args.epistemic_memory_transducer
+        or args.socket_thread_governance
+        or args.exploration_benchmarks
+        or args.tectonic_mesh_gearbox
+        or args.vulkan_endpoint_extension
+        or args.zero_copy_socket_observer
     )
     if args.run_session or not any_explicit:
         out["session"] = v2.run_smart_session(num_frames=args.frames)
@@ -117,6 +139,23 @@ def main(argv: Optional[List[str]] = None) -> int:
         out["morph_vision_sprint_kg"] = sprint_out
         out["chain_valid"] = sprint_out["chain_valid"]
         out["log_audit"] = sprint_out["log_audit"]
+    if (
+        args.reversible_binary_correlate
+        or args.spatial_cruise_scheduler
+        or args.realtime_inspector_governor
+        or args.ux_privilege_framework
+        or args.hexadim_log_morph
+        or args.epistemic_memory_transducer
+        or args.socket_thread_governance
+        or args.exploration_benchmarks
+        or args.tectonic_mesh_gearbox
+        or args.vulkan_endpoint_extension
+        or args.zero_copy_socket_observer
+    ):
+        rev_out = v2.run_reversible_correlation_and_spatial_cruise()
+        out["reversible_correlation_and_cruise"] = rev_out
+        out["chain_valid"] = rev_out["chain_valid"]
+        out["log_audit"] = rev_out["log_audit"]
     print(json.dumps(out, indent=2))
     return 0
 

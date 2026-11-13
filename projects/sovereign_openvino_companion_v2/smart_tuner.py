@@ -785,3 +785,22 @@ class SovereignOpenVinoCompanionV2:
             vital_hp=vital_hp,
             logger=self.logger,
         )
+
+    def run_reversible_correlation_and_spatial_cruise(
+        self,
+        evoi_per_mj: float = 0.145,
+        observed_latency_ms: float = 2.7420,
+        vital_hp: int = VITAL_MAX_HP,
+    ) -> Dict[str, Any]:
+        """Run reversible cross-system matrix, 128B correlator, ACC cruise, cadence/diction, UX privilege, and 6D log morpher."""
+        from projects.sovereign_openvino_companion_v2.reversible_correlation_and_spatial_cruise_scheduler import (
+            ReversibleCorrelationAndCruiseOrchestrator,
+        )
+
+        orchestrator = ReversibleCorrelationAndCruiseOrchestrator()
+        return orchestrator.orchestrate_all(
+            evoi_per_mj=evoi_per_mj,
+            observed_latency_ms=observed_latency_ms,
+            vital_hp=vital_hp,
+            logger=self.logger,
+        )

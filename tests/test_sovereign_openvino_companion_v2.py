@@ -637,3 +637,224 @@ def test_morph_vision_os_microservices_sql_scales_and_sprint_kg(tmp_path: Path):
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_scheduler(tmp_path: Path) -> None:
+    import http.server
+    import json
+    import threading
+    import urllib.error
+    import urllib.request
+
+    from krystal_kernel.constants import ContractViolation, VITAL_MAX_HP
+    from krystal_kernel.sovereign_openvino_oneapi_app import SovereignOpenVinoRequestHandler
+    from projects.sovereign_openvino_companion_v2 import (
+        BehavioralDeterminismAndCrossSystemMatrix,
+        BinaryPatternCorrelationTool,
+        CadenceDictionLogarithmicCoreEngine,
+        DeterministicSocketAndThreadFrequencyArchitect,
+        DirectionValidationAndEmergingKnowledgeMapper,
+        EpistemicMemoryPatternTransducerAndFourScaleEvaluator,
+        ExplorationParameterBenchmarkRunner,
+        GeneticLineageTestMethodologyEnhancer,
+        HexadimensionalLogInterpreterAndPowerMorpher,
+        MeasuredPropertyProfileAndLexiconMethodology,
+        MultipoleLatticeInferenceAndControllabilityEngine,
+        RealtimeInspectorScoringGovernor,
+        ReversibleCorrelationAndCruiseOrchestrator,
+        SovereignOpenVinoCompanionV2,
+        SpatialInvariantAdaptiveCruiseScheduler,
+        TectonicMeshMemoryGearboxAndUnitComparator,
+        UxPrivilegeMappingFramework,
+        VulkanEndpointExtensionRuntime,
+        ZeroCopySocketObservationProcess,
+    )
+    from projects.sovereign_openvino_companion_v2.cli import main as v2_cli_main
+
+    # 1. Involutive 6x6 matrix & cross-system reversibility + negative ContractViolation on wrong dimension
+    mat_engine = BehavioralDeterminismAndCrossSystemMatrix()
+    mat_out = mat_engine.evaluate_cross_system_reversibility()
+    assert mat_out["is_reversible"] is True
+    assert mat_out["matrix_involution_error"] <= 1e-12
+    assert mat_out["roundtrip_max_abs_error"] <= 1e-5
+    with pytest.raises(ContractViolation):
+        mat_engine.transform_a_to_b([1.0, 2.0])
+
+    # 2. 128B 'KCOR' frame encode/decode/correlate + CRC32/SHA-256 tamper rejection
+    corr = BinaryPatternCorrelationTool()
+    f_a = corr.encode_pattern_frame_128b(mat_out["state_a"], capability_mask=4, epoch=7, system_tag=1)
+    assert len(f_a) == 128
+    assert corr.decode_and_verify_frame_128b(f_a)["verified"] is True
+    tampered = bytearray(f_a)
+    tampered[20] ^= 0xFF
+    with pytest.raises(ContractViolation):
+        corr.decode_and_verify_frame_128b(bytes(tampered))
+
+    # 3. Measured profiles & 6-step lexicon + anti-promotion
+    prof = MeasuredPropertyProfileAndLexiconMethodology().evaluate_profiles_and_methodology()
+    assert prof["lexicon_step_count"] == 6
+    assert prof["anti_promotion_enforced"] is True
+    assert prof["profiles"][-1]["evidence_level"] == "ARCHITECTURAL_DERIVATION_PENDING_LINUX_CDT"
+
+    # 4. Multipole lattice (no scalar collapse) + anti-promotion join when verifier_clearance=False
+    mp_unverified = MultipoleLatticeInferenceAndControllabilityEngine().evaluate_lattice_and_multipole(
+        verifier_clearance=False
+    )
+    assert mp_unverified["scalar_collapsed"] is False
+    assert mp_unverified["guarded_lattice_join"]["measurement"] == "PENDING"
+    assert len(mp_unverified["multipole_poles"]) == 6
+
+    # 5. Real-time inspector scoring governor (bounds + rejection gates)
+    gov = RealtimeInspectorScoringGovernor()
+    gov_ok = gov.evaluate_inspectors(proposer_id="AGENT_A", verifier_id="AGENT_B", evoi_per_mj=0.145, observed_latency_ms=2.7420)
+    assert 0.0 < gov_ok["governor_score"] <= 100.0
+    assert gov_ok["delta_s"] == 1
+    assert gov_ok["scored_throughput_gain_pct"] > 0.0
+    gov_bad_sep = gov.evaluate_inspectors(proposer_id="SAME", verifier_id="SAME")
+    assert gov_bad_sep["governor_score"] == 0.0 and gov_bad_sep["delta_s"] == 0
+    gov_bad_evoi = gov.evaluate_inspectors(evoi_per_mj=0.0100)
+    assert gov_bad_evoi["governor_score"] == 0.0 and gov_bad_evoi["delta_s"] == 0
+
+    # 6. Spatial-invariant ACC cruise scheduler + hard boundary ContractViolation
+    acc = SpatialInvariantAdaptiveCruiseScheduler()
+    acc_out = acc.run_cruise_profile()
+    assert acc_out["cage_volume_m3"] == 215.6
+    assert len(acc_out["segments"]) == 5
+    assert acc_out["invariant_collisions"] == 0
+    with pytest.raises(ContractViolation):
+        acc.check_spatial_point(3.6, 0.0, 0.0)
+
+    # 7. Cadence/Diction logarithmic core & UX privilege framework
+    cad_out = CadenceDictionLogarithmicCoreEngine().evaluate_logarithmic_core()
+    assert cad_out["source_mode"] == "AUTOMATIC_CADENCE_DICTION"
+    assert cad_out["target_mode"] == "SEMI_AUTOMATIC_CADENCE"
+    assert cad_out["diction_polarity"] == +1
+    assert cad_out["cadence_polarity"] == -1
+    assert cad_out["higher_telemetry_knowledge_alone_grants_authority"] is False
+
+    ux_out = UxPrivilegeMappingFramework().evaluate_role_matrix()
+    assert ux_out["role_count"] == 5
+    assert ux_out["telemetry_escalation_blocked"] is True
+    assert ux_out["escalation_delta_s"] == 0
+
+    # 8. Hexadimensional log interpreter & power morpher (binary 1 -> 0.5 at max drop)
+    hex_out = HexadimensionalLogInterpreterAndPowerMorpher().concentrate_and_morph_logs()
+    assert hex_out["dimension_count"] == 6
+    assert hex_out["target_half_recorded_state"] == 0.5
+    assert hex_out["reached_half_state_at_min_power"] is True
+    assert hex_out["max_power_drop_morphed_state"] == 0.5
+
+    # 8b. Direction validation, Socket/Thread governance, Epistemic Memory Transducer, Exploration Benchmarks, Tectonic Gearbox
+    dir_out = DirectionValidationAndEmergingKnowledgeMapper().evaluate_direction_and_horizons()
+    assert dir_out["directional_test_metrics"]["direction_valid"] is True
+    assert len(dir_out["emerging_knowledge_horizons"]) == 4
+    assert all(not h["is_local_measured"] for h in dir_out["emerging_knowledge_horizons"])
+
+    sock_out = DeterministicSocketAndThreadFrequencyArchitect().design_socket_and_thread_governance()
+    assert sock_out["zero_copy_lane_bytes"] == 128
+    assert sock_out["thread_switching_governance"]["switch_reduction_12w_pct"] == 95.0
+
+    mem_out = EpistemicMemoryPatternTransducerAndFourScaleEvaluator().evaluate_four_scales_and_transducer()
+    assert set(mem_out["four_measurement_scales"].keys()) == {"NOMINAL", "ORDINAL", "INTERVAL", "RATIO"}
+    assert mem_out["transducer_batch"]["unauthorized_mutations"] == 0
+    assert mem_out["transducer_batch"]["deduplicated_hits"] >= 1
+
+    bench_out = ExplorationParameterBenchmarkRunner().run_exploration_benchmarks(trials=24)
+    assert bench_out["trials"] == 24
+    for stat_key in ("median_us", "p95_us", "p99_us", "stdev_us"):
+        assert stat_key in bench_out["governed_timing_us"]
+    assert bench_out["memory_bytes_saved_pct"] > 50.0
+    assert bench_out["energy_saved_pct"] > 80.0
+    assert bench_out["switch_reduction_pct"] == 95.0
+
+    tect_engine = TectonicMeshMemoryGearboxAndUnitComparator()
+    tect_out = tect_engine.evaluate_tectonic_mesh_gearbox()
+    assert tect_out["mesh_plate_count"] == 4
+    assert tect_out["adaptive_memory_gearbox_active"] is True
+    assert len(tect_out["phase_fingerprints"]) == 4
+    with pytest.raises(ContractViolation):
+        tect_engine.convert_unit(12.0, "W", "m")
+
+    # 8c. Vulkan endpoint extension runtime & higher-version kernel socket zero-copy observer
+    vk_out = VulkanEndpointExtensionRuntime().run_vulkan_extension_mapping()
+    assert vk_out["zero_touch_source_delta_bytes"] == 0
+    assert vk_out["endpoint_count"] == 5
+    assert vk_out["all_bound_kernels_present"] is True
+
+    obs_out = ZeroCopySocketObservationProcess().observe_gearbox_vs_divergent_differential()
+    assert obs_out["version_strictly_higher"] is True
+    assert obs_out["observer_write_authority"] is False
+    assert obs_out["low_record_signal_count"] == 4
+    assert all(tr["low_record_signal"] and tr["observer_delta_s"] == 0 for tr in obs_out["traces"])
+
+    gen_out = GeneticLineageTestMethodologyEnhancer().evaluate_genetic_test_methodology()
+    assert gen_out["fate_certainty_fabricated"] is False
+    assert gen_out["unknown_loci_quarantined"] == 1
+    assert gen_out["p6_conflict_branches_preserved"] == 1
+    assert gen_out["uma_bus_contention_eliminated"] is True
+
+    # 9. End-to-end orchestrator + SovereignOpenVinoCompanionV2 + CLI + HTTP GET/POST
+    comp = SovereignOpenVinoCompanionV2(log_dir=tmp_path / "rev_logs", reset_ledger=True)
+    orch_out = comp.run_reversible_correlation_and_spatial_cruise()
+    assert orch_out["vital_max_hp"] == VITAL_MAX_HP == 6
+    assert orch_out["frozen_theory_nodes_untouched"] == 56
+    assert orch_out["chain_valid"] is True
+    assert orch_out["binary_pattern_correlation_tool"]["roundtrip_identity"]["xnor_bit_similarity"] >= 0.999999
+
+    rc = v2_cli_main(
+        [
+            "--reversible-binary-correlate",
+            "--spatial-cruise-scheduler",
+            "--realtime-inspector-governor",
+            "--ux-privilege-framework",
+            "--hexadim-log-morph",
+            "--epistemic-memory-transducer",
+            "--socket-thread-governance",
+            "--exploration-benchmarks",
+            "--tectonic-mesh-gearbox",
+            "--vulkan-endpoint-extension",
+            "--zero-copy-socket-observer",
+            "--reset-ledger",
+            "--log-dir",
+            str(tmp_path / "cli_rev_cruise"),
+        ]
+    )
+    assert rc == 0
+
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SovereignOpenVinoRequestHandler)
+    port = server.server_address[1]
+    th = threading.Thread(target=server.serve_forever, daemon=True)
+    th.start()
+    try:
+        with urllib.request.urlopen(
+            f"http://127.0.0.1:{port}/api/v1/runtime/reversible_correlation_and_cruise?evoi_per_mj=0.145&observed_latency_ms=2.7420",
+            timeout=5,
+        ) as resp:
+            assert resp.status == 200
+            body = json.loads(resp.read().decode("utf-8"))
+            assert body["vital_max_hp"] == 6
+            assert body["frozen_theory_nodes_untouched"] == 56
+            assert body["hexadimensional_log_interpreter_and_power_morpher"]["reached_half_state_at_min_power"] is True
+
+        ok_post = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/reversible_correlation_and_cruise",
+            data=json.dumps({"vital_hp": 6, "evoi_per_mj": 0.145, "observed_latency_ms": 2.7420}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(ok_post, timeout=5) as resp_ok:
+            assert resp_ok.status == 200
+            assert json.loads(resp_ok.read().decode("utf-8"))["chain_valid"] is True
+
+        bad_post = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/reversible_correlation_and_cruise",
+            data=json.dumps({"vital_hp": 5}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with pytest.raises(urllib.error.HTTPError) as http_err:
+            urllib.request.urlopen(bad_post, timeout=5)
+        assert http_err.value.code == 400
+    finally:
+        server.shutdown()
+        server.server_close()

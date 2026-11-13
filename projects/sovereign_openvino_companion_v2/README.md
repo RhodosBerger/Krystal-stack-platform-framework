@@ -20,6 +20,9 @@ python -m projects.sovereign_openvino_companion_v2.cli --compose-constraints --p
 
 # Sprint 01..05 Morphing + Thermodynamic CV + Autonomous OS Superstructure + Epistemic SQL Scales
 python -m projects.sovereign_openvino_companion_v2.cli --sprint-kg-orchestrate --thermodynamic-vision --autonomous-os-microservices --epistemic-sql-scales --reset-ledger
+
+# Reversible Matrix + 128B Binary Correlator + Spatial Cruise + Inspector Governor + UX Privileges + 6D Log Morpher + Epistemic Memory + 4-Scale Socket Benchmarks + Tectonic Gearbox + Vulkan OSS + Socket Observer
+python -m projects.sovereign_openvino_companion_v2.cli --reversible-binary-correlate --spatial-cruise-scheduler --realtime-inspector-governor --ux-privilege-framework --hexadim-log-morph --epistemic-memory-transducer --socket-thread-governance --exploration-benchmarks --tectonic-mesh-gearbox --vulkan-endpoint-extension --zero-copy-socket-observer --reset-ledger
 ```
 
 HTTP Endpoints on `krystal_kernel/sovereign_openvino_oneapi_app.py`:
@@ -28,3 +31,4 @@ HTTP Endpoints on `krystal_kernel/sovereign_openvino_oneapi_app.py`:
 - `GET|POST /api/v1/runtime/markdown_knowledge_graph`
 - `GET|POST /api/v1/runtime/probabilistic_authority_composer`
 - `GET|POST /api/v1/runtime/morph_vision_sprint_kg`
+- `GET|POST /api/v1/runtime/reversible_correlation_and_cruise`
