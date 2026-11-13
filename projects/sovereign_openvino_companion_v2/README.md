@@ -6,6 +6,7 @@ Fine-tuned adaptive companion over `projects/sovereign_openvino_companion`:
 - `SensoryCoordinateMorphismEngine`: Bijective projection between 6D `OperatingCoordinatesVector` and 5D `SensoryManifoldCoordinates` with continuous morphing, P6 homotopic conflict isolation (`alpha perp beta`), and `20 B` `SMRP` encoding in slice `[108:128]`.
 - `BinaryParameterAspectCompiler`: Compiles and round-trip verifies `128 B` zero-copy frames across `21:6:5` (`84:24:20`), `79:49` Golden (`phi`), and `90:38` Silver (`delta_S`) ratios + `24 B` `KMB1` lockstep packets via `ArtifactGate` (`PROPOSER != VERIFIER`).
 - `StratifiedProcessMicroserviceFlowArchitect`: Audits Processes (`S0..S3`), Microservices (`CW_01..CW_06`), Stack-Defined Conclusions (`S9`), `FLOW_01..FLOW_06`, the `12 x 10 = 120`-cell Matrix Choice Palette, CPU Survival Governor metrics, and the Compute Motivation Core.
+- `MorphGovernanceVisionAndSprintKG`: Log-driven reversible component morphing, 5 subject-observation quantities, 4-bucket CPU preemption (`15W/12W/7.5W`), `EmergentLayerQueryInjector` with isolated per-branch SHA-256 logs, `VariableConditionedWeightNeuronModulator` (`W_0` immutable), `KrystalThermodynamicVisionFramework` (`128 B` tiles + `Code GENE` Bayer `4x4`), `AutonomousOsMicroserviceSynthesizer` (`Zero-Touch P1`), and `EpistemicSqlDataTypeScaleEngine` (`sqlite3 STRICT` scales & triggers).
 
 ```powershell
 # Session + Paired A/B Benchmark + Candidate Runtime Nodes
@@ -16,6 +17,9 @@ python -m projects.sovereign_openvino_companion_v2.cli --morph-sense --compile-b
 
 # Constraint Narrative/Fact Composer + Non-Numeric Authority + Calibrated Probabilistic Engine
 python -m projects.sovereign_openvino_companion_v2.cli --compose-constraints --probabilistic-authority --reset-ledger
+
+# Sprint 01..05 Morphing + Thermodynamic CV + Autonomous OS Superstructure + Epistemic SQL Scales
+python -m projects.sovereign_openvino_companion_v2.cli --sprint-kg-orchestrate --thermodynamic-vision --autonomous-os-microservices --epistemic-sql-scales --reset-ledger
 ```
 
 HTTP Endpoints on `krystal_kernel/sovereign_openvino_oneapi_app.py`:
@@ -23,3 +27,4 @@ HTTP Endpoints on `krystal_kernel/sovereign_openvino_oneapi_app.py`:
 - `GET|POST /api/v1/runtime/sensory_binary_aspect_compiler`
 - `GET|POST /api/v1/runtime/markdown_knowledge_graph`
 - `GET|POST /api/v1/runtime/probabilistic_authority_composer`
+- `GET|POST /api/v1/runtime/morph_vision_sprint_kg`

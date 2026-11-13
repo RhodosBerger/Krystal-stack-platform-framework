@@ -432,3 +432,208 @@ def test_constraint_composer_failure_guesser_non_numeric_authority_and_calibrati
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_morph_vision_os_microservices_sql_scales_and_sprint_kg(tmp_path: Path):
+    import http.server
+    import threading
+    import urllib.error
+    import urllib.request
+    from krystal_kernel.constants import ContractViolation, FRAME_SIZE_BYTES, VITAL_MAX_HP
+    from krystal_kernel.sovereign_openvino_oneapi_app import SovereignOpenVinoRequestHandler
+    from projects.sovereign_openvino_companion_v2 import (
+        AutonomousOsMicroserviceSynthesizer,
+        BeneficialHardwareBehaviorConstitution,
+        EmergentLayerQueryInjector,
+        EpistemicSqlDataTypeScaleEngine,
+        EpistemicVsGeneralTelemetryMapper,
+        FourBucketPreemptionAndCpuGovernor,
+        KrystalThermodynamicVisionFramework,
+        LinuxNativeFusionAndTelemetryProjector,
+        LogDrivenComponentMorpher,
+        SovereignOpenVinoCompanionV2,
+        VariableConditionedWeightNeuronModulator,
+    )
+    from projects.sovereign_openvino_companion_v2.cli import main as v2_cli_main
+
+    v2 = SovereignOpenVinoCompanionV2(log_dir=tmp_path / "morph_sprint", reset_ledger=True)
+
+    # 1. Log-Driven Component Morpher + Reversible Morph Lineage
+    morpher = LogDrivenComponentMorpher()
+    m1 = morpher.morph_from_logs(logger=v2.logger, vital_hp=VITAL_MAX_HP)
+    assert len(m1["morphed_operators"]) == 4
+    m2 = morpher.re_morph_to_state("STATE_V2_7_5W_VBLANK_SURVIVAL", vital_hp=VITAL_MAX_HP, logger=v2.logger)
+    assert m2["chain_verified"] is True
+    assert len(morpher.checkpoints) == 2
+    cp_before = len(morpher.checkpoints)
+    with pytest.raises(ContractViolation):
+        morpher.re_morph_to_state("STATE_ILLEGAL_HP5", vital_hp=5)
+    assert len(morpher.checkpoints) == cp_before  # ΔS == 0 on invalid HP
+
+    # 2. Epistemic vs General Telemetry + 5 Subject-Observation Mapping Quantities
+    tele = EpistemicVsGeneralTelemetryMapper().evaluate_telemetry_and_subject_quantities(logger=v2.logger)
+    qty = tele["subject_observation_quantities"]
+    assert qty["provenance_independence_rank"] == 3
+    assert qty["observer_perspective_entropy_nats"] > 0.0
+    assert qty["calibration_reliability_index"] == pytest.approx(0.8375, rel=1e-4)
+
+    # 3. Four-Bucket Preemption & CPU Governance
+    gov = FourBucketPreemptionAndCpuGovernor().quantify_four_buckets_and_govern(
+        uma_load=0.75, temp_c=72.5, scanout_active=True, logger=v2.logger
+    )
+    assert gov["operating_point"]["selected_target_watts"] == 7.5
+    assert gov["operating_point"]["selected_k_spec"] == 1
+    assert len(gov["four_buckets"]) == 4
+    assert all(item["delta_s"] == 0 for item in gov["four_buckets"]["REJECTED_NON_EXECUTED_PARASITE"])
+
+    # 4. Linux Native Projections (anti-promotion) + Code GENE & Unified Simulator Bridges + Constitution
+    proj = LinuxNativeFusionAndTelemetryProjector().project_linux_deployment_and_bridges()
+    assert proj["linux_native_projected_gains"]["classification"] == "ARCHITECTURAL_DERIVATION_PENDING_LINUX_CDT"
+    assert proj["code_gene_raster_bridge"]["bounded_cage_volume_m3"] == 215.6
+    assert proj["unified_simulator_bridge"]["render_mutates_state"] is False
+    const = BeneficialHardwareBehaviorConstitution().compile_constitution()
+    assert const["keyword_count"] == 10
+
+    # 5. Emergent Layer Query Injector with Per-Branch Isolated SHA-256 Log
+    inj = EmergentLayerQueryInjector()
+    inj_out = inj.execute_cloned_branches(
+        query="Compare same query across multiple lenses",
+        environment_id="ENV_TEST_V2",
+        logger=v2.logger,
+    )
+    assert inj_out["distinct_decisions_count"] == 4
+    assert inj_out["distinct_leaf_hashes_count"] == 4
+    for br in inj_out["branches"]:
+        assert br["base_layer_digest_sha256"] == inj_out["base_layer_digest_sha256"]
+        assert br["branch_log_verified"] is True
+        assert inj.verify_branch_log(br["branch_log"]) is True
+
+    # 6. Variable-Conditioned Weight & Neuron Modulator (W_0 immutable)
+    mod = VariableConditionedWeightNeuronModulator()
+    vec = [0.8, -0.4, 0.5, 0.3, -0.2, 0.7, 0.1, 0.6]
+    r15 = mod.forward_with_variable_z(vec, z=0.15)
+    r50 = mod.forward_with_variable_z(vec, z=0.50)
+    r85 = mod.forward_with_variable_z(vec, z=0.85)
+    assert r15["base_weights_mutated"] is False
+    assert r15["base_weights_sha256"] == r50["base_weights_sha256"] == r85["base_weights_sha256"]
+    assert r15["effective_weight_l1_norm"] != r85["effective_weight_l1_norm"]
+    assert r15["output_vector"] != r85["output_vector"]
+    with pytest.raises(ContractViolation):
+        mod.forward_with_variable_z(vec, z=1.5)
+    with pytest.raises(ContractViolation):
+        mod.forward_with_variable_z(vec, z=0.5, vital_hp=5)
+
+    # 7. Thermodynamic Computer Vision Framework (128B tiles + P5 0.0180 mJ skip + Code GENE)
+    vis = KrystalThermodynamicVisionFramework().process_pixel_stream(
+        width=16, height=8, conditioning_z=0.65, logger=v2.logger
+    )
+    assert vis["frame_bytes"] == FRAME_SIZE_BYTES == 128
+    assert vis["tiles_total"] == 8
+    assert vis["tiles_skipped_p5_cutoff"] >= 2
+    assert vis["tiles_executed"] >= 2
+    assert vis["render_mutates_state"] is False
+    assert vis["proposer_role"] != vis["verifier_role"]
+
+    # 8. Autonomous OS Microservice Synthesizer (Zero-Touch P1)
+    auto_os = AutonomousOsMicroserviceSynthesizer().synthesize_and_observe_microservices(logger=v2.logger)
+    assert auto_os["existing_source_delta_bytes"] == 0
+    assert auto_os["host_os_mutated"] is False
+    assert auto_os["proposer_role"] != auto_os["verifier_role"]
+    assert len(auto_os["synthesized_microservices"]) == 4
+    assert all(m["artifact_gate_receipt"]["proposer_neq_verifier"] for m in auto_os["synthesized_microservices"])
+
+    # 9. Epistemic SQL Data-Type Scale Engine (real SQLite STRICT + triggers)
+    sql_engine = EpistemicSqlDataTypeScaleEngine()
+    sql_low = sql_engine.compare_conventional_vs_epistemic_sql_patterns(scale_influence_z=0.10, logger=v2.logger)
+    sql_high = sql_engine.compare_conventional_vs_epistemic_sql_patterns(scale_influence_z=0.95, logger=v2.logger)
+    assert sql_low["vital_hp_trigger_verified"] is True
+    assert sql_low["anti_promotion_trigger_verified"] is True
+    assert sql_low["sql_delta_s_on_violation"] == 0
+    assert len(sql_low["pattern_comparison"]["krystal_epistemic_data_type_scale_sql_app"]["five_data_type_scales"]) == 5
+    bands_low = {r["claim_id"]: r["governed_scale_band"] for r in sql_low["classified_rows"]}
+    bands_high = {r["claim_id"]: r["governed_scale_band"] for r in sql_high["classified_rows"]}
+    assert bands_low["CLM_UMA_PREBRAKE"] == "PREEMPT_SWEETSPOT_12W"
+    assert bands_high["CLM_UMA_PREBRAKE"] == "STANDARD_ADMISSIBLE_12W"
+    assert bands_low["CLM_PARASITE_SPIN"] == "QUARANTINE_PARASITE_0_018MJ"
+
+    # 10. Full Orchestrator + CLI + HTTP Endpoint
+    orch_out = v2.run_morph_vision_and_sprint_kg_orchestration()
+    assert orch_out["dag_cycles"] == 0
+    assert orch_out["frozen_theory_nodes_untouched"] == 56
+    assert orch_out["chain_valid"] is True
+    assert len(orch_out["sprint_milestone_knowledge_graph"]["nodes"]) == 5
+    rev_calc = orch_out["reverse_engineering_residual_calculator"]
+    assert rev_calc["chip_capacity_overflow_policy"]["excess_events_hz"] == 2400.0
+    assert rev_calc["chip_capacity_overflow_policy"]["chip_overheat_prevented"] is True
+    assert len(rev_calc["missing_unmeasured_parts"]) == 2
+    assert all(p["status"] == "UNKNOWN_NOT_MEASURED" for p in rev_calc["missing_unmeasured_parts"])
+    rubik = orch_out["rubik_combinatorial_theory_branching"]
+    assert rubik["unpruned_cartesian_states"] == 4096
+    assert rubik["computable_admissible_frontier_states"] == 5
+    assert all(f["convex_averaged"] is False for f in rubik["combinatorial_forks"])
+    arb = orch_out["adaptive_scenario_arbitration_layer"]
+    assert arb["selected_scenario"] == "SCENARIO_PEAK_12W_SWEETSPOT_VISION"
+    assert arb["blind_scalar_prediction_blocked"] is True
+    assert len(arb["differentiation_microservices"]) == 3
+    sem_lib = orch_out["adaptive_datatype_differential_and_semantic_library"]
+    assert sem_lib["cross_domain_sql_delta_s_on_violation"] == 0
+    assert sem_lib["cross_domain_anti_self_cert_verified"] is True
+    assert len(sem_lib["morphed_semantic_library"]) == 6
+    assert sem_lib["differential_classifier_probes"]["interlock_hp"]["classified_scale"] == "CONSTITUTIONAL_INVARIANT_FIXED"
+    assert sem_lib["differential_classifier_probes"]["joule_draw_mj"]["classified_scale"] == "RATIO_THERMODYNAMIC_PHYSICAL"
+
+    rc = v2_cli_main(
+        [
+            "--sprint-kg-orchestrate",
+            "--thermodynamic-vision",
+            "--autonomous-os-microservices",
+            "--epistemic-sql-scales",
+            "--conditioning-z",
+            "0.75",
+            "--scale-influence-z",
+            "0.25",
+            "--reset-ledger",
+            "--log-dir",
+            str(tmp_path / "cli_sprint_kg"),
+        ]
+    )
+    assert rc == 0
+
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SovereignOpenVinoRequestHandler)
+    port = server.server_address[1]
+    th = threading.Thread(target=server.serve_forever, daemon=True)
+    th.start()
+    try:
+        with urllib.request.urlopen(
+            f"http://127.0.0.1:{port}/api/v1/runtime/morph_vision_sprint_kg?z=0.65&sql_z=0.50",
+            timeout=5,
+        ) as resp:
+            assert resp.status == 200
+            body = json.loads(resp.read().decode("utf-8"))
+            assert body["dag_cycles"] == 0
+            assert body["frozen_theory_nodes_untouched"] == 56
+            assert body["autonomous_os_microservices"]["host_os_mutated"] is False
+
+        ok_post = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/morph_vision_sprint_kg",
+            data=json.dumps({"vital_hp": 6, "conditioning_z": 0.75, "scale_influence_z": 0.40}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(ok_post, timeout=5) as resp_ok:
+            assert resp_ok.status == 200
+            post_body = json.loads(resp_ok.read().decode("utf-8"))
+            assert post_body["chain_valid"] is True
+
+        bad_post = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/morph_vision_sprint_kg",
+            data=json.dumps({"vital_hp": 5}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with pytest.raises(urllib.error.HTTPError) as http_err:
+            urllib.request.urlopen(bad_post, timeout=5)
+        assert http_err.value.code == 400
+    finally:
+        server.shutdown()
+        server.server_close()

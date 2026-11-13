@@ -24,6 +24,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--artifact-tree-query", action="store_true")
     parser.add_argument("--compose-constraints", action="store_true")
     parser.add_argument("--probabilistic-authority", action="store_true")
+    parser.add_argument("--sprint-kg-orchestrate", action="store_true")
+    parser.add_argument("--thermodynamic-vision", action="store_true")
+    parser.add_argument("--autonomous-os-microservices", action="store_true")
+    parser.add_argument("--epistemic-sql-scales", action="store_true")
+    parser.add_argument("--conditioning-z", type=float, default=0.65)
+    parser.add_argument("--scale-influence-z", type=float, default=0.50)
     parser.add_argument("--emit-bin-dir", type=str, default="")
     parser.add_argument("--morph-factor", type=float, default=0.618034)
     parser.add_argument("--conflict-fork", action="store_true")
@@ -46,6 +52,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         or args.artifact_tree_query
         or args.compose_constraints
         or args.probabilistic_authority
+        or args.sprint_kg_orchestrate
+        or args.thermodynamic_vision
+        or args.autonomous_os_microservices
+        or args.epistemic_sql_scales
     )
     if args.run_session or not any_explicit:
         out["session"] = v2.run_smart_session(num_frames=args.frames)
@@ -93,6 +103,20 @@ def main(argv: Optional[List[str]] = None) -> int:
         out["constraint_authority_and_calibration"] = cap_out
         out["chain_valid"] = cap_out["chain_valid"]
         out["log_audit"] = cap_out["log_audit"]
+    if (
+        args.sprint_kg_orchestrate
+        or args.thermodynamic_vision
+        or args.autonomous_os_microservices
+        or args.epistemic_sql_scales
+    ):
+        sprint_out = v2.run_morph_vision_and_sprint_kg_orchestration(
+            query=args.doc_query.strip() or "Compare thermal survival and foveated vision routing",
+            conditioning_z=args.conditioning_z,
+            scale_influence_z=args.scale_influence_z,
+        )
+        out["morph_vision_sprint_kg"] = sprint_out
+        out["chain_valid"] = sprint_out["chain_valid"]
+        out["log_audit"] = sprint_out["log_audit"]
     print(json.dumps(out, indent=2))
     return 0
 

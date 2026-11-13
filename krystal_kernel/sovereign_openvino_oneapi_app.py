@@ -1256,6 +1256,24 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 companion_v2.run_constraint_composer_and_probabilistic_authority(simulate_authority_veto=veto_flag),
             )
             return
+        if self.path.startswith("/api/v1/runtime/morph_vision_sprint_kg"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+
+            qs = parse_qs(urlparse(self.path).query)
+            q_str = qs.get("q", ["Compare thermal survival and foveated vision routing"])[0]
+            cond_z = float(qs.get("z", ["0.65"])[0])
+            sql_z = float(qs.get("sql_z", ["0.50"])[0])
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            self._send_json(
+                200,
+                companion_v2.run_morph_vision_and_sprint_kg_orchestration(
+                    query=q_str,
+                    conditioning_z=cond_z,
+                    scale_influence_z=sql_z,
+                ),
+            )
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"
@@ -1551,6 +1569,34 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             try:
                 res = companion_v2.run_constraint_composer_and_probabilistic_authority(
                     simulate_authority_veto=bool(data.get("simulate_authority_veto", False))
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/runtime/morph_vision_sprint_kg":
+            from krystal_kernel.constants import ContractViolation
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+
+            vital_hp = int(data.get("vital_hp", VITAL_MAX_HP))
+            if vital_hp != VITAL_MAX_HP:
+                self._send_json(
+                    400,
+                    {
+                        "error": f"Constitutional invariant breach: vital_hp={vital_hp} != 6",
+                        "violation_code": "ERR_CONSTITUTIONAL_INVARIANT_BREACH",
+                        "vital_max_hp": VITAL_MAX_HP,
+                    },
+                )
+                return
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            try:
+                res = companion_v2.run_morph_vision_and_sprint_kg_orchestration(
+                    query=str(data.get("query", "Compare thermal survival and foveated vision routing")),
+                    conditioning_z=float(data.get("conditioning_z", 0.65)),
+                    scale_influence_z=float(data.get("scale_influence_z", 0.50)),
+                    vital_hp=vital_hp,
                 )
                 self._send_json(200, res)
             except ContractViolation as exc:

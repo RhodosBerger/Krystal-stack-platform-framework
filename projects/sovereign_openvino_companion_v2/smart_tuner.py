@@ -676,6 +676,27 @@ class SovereignOpenVinoCompanionV2:
             "vital_max_hp": VITAL_MAX_HP,
         }
 
+    def run_morph_vision_and_sprint_kg_orchestration(
+        self,
+        query: str = "Compare thermal survival and foveated vision routing",
+        conditioning_z: float = 0.65,
+        scale_influence_z: float = 0.50,
+        vital_hp: int = VITAL_MAX_HP,
+    ) -> Dict[str, Any]:
+        """Run full Sprint 01..05 morphing, vision, autonomous OS & SQL scale orchestration."""
+        from projects.sovereign_openvino_companion_v2.morph_governance_vision_and_sprint_kg import (
+            SprintMilestoneKnowledgeGraphOrchestrator,
+        )
+
+        orchestrator = SprintMilestoneKnowledgeGraphOrchestrator()
+        return orchestrator.orchestrate_full_sprint_comparison(
+            query=query,
+            conditioning_z=conditioning_z,
+            scale_influence_z=scale_influence_z,
+            vital_hp=vital_hp,
+            logger=self.logger,
+        )
+
     def run_constraint_composer_and_probabilistic_authority(
         self, simulate_authority_veto: bool = False
     ) -> Dict[str, Any]:
@@ -743,3 +764,24 @@ class SovereignOpenVinoCompanionV2:
             "log_audit": audit,
             "vital_max_hp": VITAL_MAX_HP,
         }
+
+    def run_morph_vision_and_sprint_kg_orchestration(
+        self,
+        query: str = "Compare thermal survival and foveated vision routing",
+        conditioning_z: float = 0.65,
+        scale_influence_z: float = 0.50,
+        vital_hp: int = VITAL_MAX_HP,
+    ) -> Dict[str, Any]:
+        """Run full Sprint 01..05 morphing, vision, autonomous OS & SQL scale orchestration."""
+        from projects.sovereign_openvino_companion_v2.morph_governance_vision_and_sprint_kg import (
+            SprintMilestoneKnowledgeGraphOrchestrator,
+        )
+
+        orchestrator = SprintMilestoneKnowledgeGraphOrchestrator()
+        return orchestrator.orchestrate_full_sprint_comparison(
+            query=query,
+            conditioning_z=conditioning_z,
+            scale_influence_z=scale_influence_z,
+            vital_hp=vital_hp,
+            logger=self.logger,
+        )

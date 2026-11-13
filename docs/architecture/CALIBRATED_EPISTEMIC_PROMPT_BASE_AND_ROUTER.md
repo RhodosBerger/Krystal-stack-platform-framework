@@ -113,3 +113,18 @@ Router riadi alokáciu týchto samostatných mikropromptov:
 $$\text{assert } \text{VITAL\_MAX\_HP} == 6$$
 
 Všetky štruktúry (`EpistemicClaimCard`, `ModelPortfolioM0ToM7`, `EpistemicConflictNode`, `UnknownMechanismNode`, `EpistemicPromptRouter`) striktne validujú `vital_max_hp == 6` v `__post_init__`. Porušenie vyvoláva `ContractViolation`.
+
+---
+
+## 8. Hierarchia cieľových šprintov (`SPRINT_01..SPRINT_05`), objaviteľné uzly a most k orchestrátoru
+
+Implementované v [`projects/sovereign_openvino_companion_v2/morph_governance_vision_and_sprint_kg.py`](file:///c:/Users/dusan/Documents/GitHub/Krystal-stack-platform-framework/projects/sovereign_openvino_companion_v2/morph_governance_vision_and_sprint_kg.py):
+
+* **Acyklický šprintový graf (`dag_cycles == 0`):** `SprintMilestoneKnowledgeGraphOrchestrator` spája `EpistemicPromptRouter` (`CONSTITUTIONAL_AUDIT`, `UNKNOWN_MECHANISM_FORMULATION`, `PROMOTION_AUDIT_ROUTING`) s 5 šprintovými míľnikmi:
+  1. `SPRINT_01_LOG_MORPH_AND_TELEMETRY`: Reverzibilná dekompozícia `v1 -> v2` cez `LogDrivenComponentMorpher` a 5 veličín mapovania subjekt–pozorovanie (`EpistemicVsGeneralTelemetryMapper`).
+  2. `SPRINT_02_CPU_BUCKETS_AND_CONSTITUTION`: 4-vedrová preemptívna fronta (`FourBucketPreemptionAndCpuGovernor`, `15.0W / 12.0W / 7.5W`) a 10-článková ústava pozitívnych hardvérových zmien (`BeneficialHardwareBehaviorConstitution`).
+  3. `SPRINT_03_EMERGENT_INJECTOR_AND_WEIGHT_MODULATOR`: `EmergentLayerQueryInjector` s izolovaným SHA-256 logom na každú vetvu a `VariableConditionedWeightNeuronModulator` ($W_{\text{eff}}(z) = W_0 + (2z-1)UV^\top$ pri zachovaní nemennosti základných váh $W_0$).
+  4. `SPRINT_04_THERMODYNAMIC_CV_CODE_GENE_SIMULATOR`: `KrystalThermodynamicVisionFramework` (`128 B` dlaždice, P5 cutoff `0.0180 mJ`, most na **Code GENE** `4x4` Bayer / `215.6 m^3` a **Unified Simulator** `Render(S) != S`).
+  5. `SPRINT_05_AUTONOMOUS_OS_MICROSERVICES_AND_EPISTEMIC_SQL`: Autonómna bezdotyková nadstavba mikroslužieb OS (`AutonomousOsMicroserviceSynthesizer`, `Zero-Touch P1`, `host_os_mutated == False` v režime dry-run) a klasifikácia dátových typov na meracie škály v reálnom SQLite `STRICT` jadre (`EpistemicSqlDataTypeScaleEngine`).
+* **Objaviteľné neznáme uzly (`UnknownMechanismNode`):** `DISC_RAPL_RING0_LINUX`, `DISC_DRM_DMABUF_SCANOUT` a `DISC_SQL_ZERO_COPY_MMAP_WAL` ostávajú explicitne v stave `ARCHITECTURAL_DERIVATION_PENDING_LINUX_CDT` bez nepodloženého povýšenia a `56` zmrazených uzlov teórie zostáva nedotknutých.
+
