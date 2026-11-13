@@ -1404,6 +1404,19 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             res["sqlite_relational_crud_flow"] = DeterministicRelationalCrudDatabaseFlow().run_crud_roundtrip_demo()
             self._send_json(200, res)
             return
+
+        if self.path.startswith("/api/v1/runtime/rss_feed.xml"):
+            from projects.sovereign_openvino_companion_v2.oxygen_hybrid_mesh_crud_module import (
+                render_rss_feed_xml,
+            )
+
+            xml_bytes = render_rss_feed_xml().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/rss+xml; charset=utf-8")
+            self.send_header("Content-Length", str(len(xml_bytes)))
+            self.end_headers()
+            self.wfile.write(xml_bytes)
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"

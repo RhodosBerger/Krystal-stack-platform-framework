@@ -647,6 +647,13 @@ def test_morph_vision_os_microservices_sql_scales_and_sprint_kg(tmp_path: Path):
             assert eshop_ui.status == 200
             assert b"__KRYSTAL_FULLSTACK_VARS__" in eshop_ui.read()
 
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/v1/runtime/rss_feed.xml", timeout=5) as rss_resp:
+            import xml.etree.ElementTree as ET
+            assert rss_resp.status == 200
+            rss_root = ET.fromstring(rss_resp.read().decode("utf-8"))
+            assert rss_root.tag == "rss"
+            assert len(rss_root.findall("./channel/item")) == 4
+
         for route in (
             "/api/v1/runtime/blender_vray_sdk_pipeline",
             "/api/v1/runtime/inter_pause_cognitive_parser",
@@ -1160,6 +1167,13 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/kernel_eshop", timeout=5) as eshop_ui:
             assert eshop_ui.status == 200
             assert b"__KRYSTAL_FULLSTACK_VARS__" in eshop_ui.read()
+
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/v1/runtime/rss_feed.xml", timeout=5) as rss_resp:
+            import xml.etree.ElementTree as ET
+            assert rss_resp.status == 200
+            rss_root = ET.fromstring(rss_resp.read().decode("utf-8"))
+            assert rss_root.tag == "rss"
+            assert len(rss_root.findall("./channel/item")) == 4
 
         for route in (
             "/api/v1/runtime/blender_vray_sdk_pipeline",
