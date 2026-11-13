@@ -17,9 +17,11 @@ logging system (`ComputationLogSystem`).
   `companion_vblank`, and `gnosis_audit` with canonical IEEE-754 floats and SHA-256 chain linking,
   automatically tagging captured reasoning & anomalous patterns (`UMA_BANDWIDTH_PRESSURE_SPIKE`,
   `HYSTERETIC_DWELL_HOLD`, `MICRO_TENSOR_CPU_BYPASS`, `THERMAL_PARASITE_DECOUPLED`,
-  `HOMOTOPIC_CONFLICT_FORK`, `AUTHORITY_SEPARATION_QUARANTINE`).
+  `HOMOTOPIC_CONFLICT_FORK`, `AUTHORITY_SEPARATION_QUARANTINE`,
+  `SPECTRUM_COORDINATE_DRIFT_CORRECTED`, `COWORKER_QUORUM_MAINTENANCE_ISSUED`).
+- **Operating Coordinates Supervisor Community**: 4 Supervisor Super-Functions orchestrating 6 role-separated Co-Worker Microservices (`CW_01` Observer, `CW_02..03` Proposers, `CW_04..05` Verifiers, `CW_06` Executor) across the 5-Band Telemetry Spectrum to maintain canonical 6D operating coordinates.
 
 ## CLI Usage
 ```powershell
-python -m projects.sovereign_openvino_companion.cli --validate-env --run-session --frames 16 --benchmark 40 --verify-logs --reset-ledger
+python -m projects.sovereign_openvino_companion.cli --validate-env --supervise-coordinates --frames 8 --verify-logs --reset-ledger
 ```

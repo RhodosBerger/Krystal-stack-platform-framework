@@ -456,3 +456,56 @@ class SovereignOpenVinoCompanionProject:
             "gpu_dense_crossover_32kb": _stats(gpu_samples),
             "vital_max_hp": VITAL_MAX_HP,
         }
+
+    def run_supervised_community_maintenance(self, cycles: int = 8) -> Dict[str, Any]:
+        """
+        Convenes the 6-microservice OperatingCoordinatesSupervisorCommunity across
+        all 5 Telemetry Spectrum Bands (BAND_01..BAND_05) and executes verified
+        operating coordinate maintenance with cryptographic ledger provenance.
+        """
+        from projects.sovereign_openvino_companion.operating_coordinates_community import (
+            OperatingCoordinatesSupervisorCommunity,
+        )
+
+        community = OperatingCoordinatesSupervisorCommunity(self.logger)
+        sweep_profiles = [
+            # (target_xy, gpu_render_ms, uma_sat, payload_bytes, entropy_nats, conflict)
+            ((1, 1), 4.8, 0.22, 4096, 1.3689, False),   # BAND_01: Micro-tensor L1D CPU
+            ((2, 3), 4.8, 0.26, 32768, 1.3689, False),  # BAND_02: Dense GPU DP4A crossover
+            ((3, 4), 4.8, 0.84, 32768, 1.3689, False),  # BAND_05: UMA spike clamp (>= 0.78)
+            ((4, 4), 4.8, 0.28, 32768, 1.3689, False),  # BAND_03: 12-frame hysteresis dwell hold
+            ((5, 5), 4.8, 0.30, 32768, 1.3689, True),   # BAND_04: Homotopic conflict fork
+            ((6, 5), 4.8, 0.30, 32768, 0.0, False),     # BAND_05: Thermal parasite quarantine
+            ((6, 6), 4.8, 0.24, 4096, 1.3689, False),   # BAND_01: Recovery micro-tensor check
+            ((7, 6), 4.8, 0.24, 32768, 1.3689, False),  # BAND_03/02: Dwell tail step
+        ]
+
+        directives: List[Dict[str, Any]] = []
+        for idx in range(max(1, cycles)):
+            xy, r_ms, uma, p_bytes, ent, conflict = sweep_profiles[idx % len(sweep_profiles)]
+            res = community.superfn_execute_community_maintenance_cycle(
+                companion_project=self,
+                target_xy=xy,
+                gpu_render_duration_ms=r_ms,
+                uma_saturation=uma,
+                payload_bytes=p_bytes,
+                epistemic_entropy_nats=ent,
+                contradictory_evidence=conflict,
+            )
+            directives.append(res["maintenance_directive"])
+
+        summary = self.logger.write_summary_snapshot()
+        chain_ok, audit = self.logger.verify_chain_integrity()
+        return {
+            "supervisor_community": "OPERATING_COORDINATES_SUPERVISOR_COMMUNITY_V1",
+            "cycles_executed": len(directives),
+            "coworker_microservices": [cw.to_dict() for cw in community.coworkers],
+            "maintenance_directives": directives,
+            "last_committed_coordinates": (
+                community.last_committed_coordinates.to_dict() if community.last_committed_coordinates else None
+            ),
+            "log_audit": audit,
+            "log_summary": summary,
+            "chain_valid": chain_ok,
+            "vital_max_hp": VITAL_MAX_HP,
+        }

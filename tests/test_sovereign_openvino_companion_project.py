@@ -9,6 +9,7 @@ import http.server
 import json
 import math
 import threading
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -19,8 +20,12 @@ from krystal_kernel.sovereign_openvino_oneapi_app import SovereignOpenVinoReques
 from projects.sovereign_openvino_companion import (
     ComputationLogSystem,
     FROZEN_THEORY_NODES,
+    OperatingCoordinatesSupervisorCommunity,
+    OperatingCoordinatesVector,
     SovereignOpenVinoCompanionProject,
+    TelemetrySpectrumBand,
 )
+from krystal_kernel.epistemic_enlg_compiler import EnlgRole
 from projects.sovereign_openvino_companion.cli import main as cli_main
 
 
@@ -135,11 +140,17 @@ def test_full_live_http_stack_routes() -> None:
             ("GET", "/api/v1/runtime/ontologic_gnosis_strata?uma=0.75&conflict=1", None),
             ("GET", "/api/v1/runtime/ontologic_asset_objects", None),
             ("GET", "/api/v1/runtime/sovereign_openvino_companion", None),
+            ("GET", "/api/v1/runtime/operating_coordinates_supervisor", None),
             ("GET", "/studio", None),
             ("GET", "/static/audio/krystal_posledni_kmen_theme.wav", None),
             ("GET", "/static/img/krystal_hex_rubik_emblem.svg", None),
             ("POST", "/api/hybrid/fetch_objectives", {"semantic_lens": "LORE_NARRATIVE"}),
             ("POST", "/api/hybrid/marias_click", {"action_id": "ACT_MARIAS_TRUMP_MARRIAGE", "from_idx": 12, "to_idx": 28}),
+            (
+                "POST",
+                "/api/v1/runtime/operating_coordinates_supervisor",
+                {"x": 4, "y": 5, "gpu_render_duration_ms": 6.5, "uma_saturation": 0.28, "payload_bytes": 32768},
+            ),
         ]
 
         for method, path, body in routes:
@@ -155,6 +166,17 @@ def test_full_live_http_stack_routes() -> None:
                     assert decoded["magic"] == "KMB1"
                     assert decoded["crc_verified"] is True
                     assert decoded["vital_max_hp"] == 6
+
+        # Negative HTTP check: out-of-bounds grid coordinate returns HTTP 400 with ContractViolation
+        bad_req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/operating_coordinates_supervisor",
+            data=json.dumps({"x": 99, "y": 2}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with pytest.raises(urllib.error.HTTPError) as exc_info:
+            urllib.request.urlopen(bad_req, timeout=5)
+        assert exc_info.value.code == 400
     finally:
         srv.shutdown()
         srv.server_close()
@@ -164,8 +186,9 @@ def test_cli_runner_executes_cleanly(tmp_path: Path) -> None:
     rc = cli_main([
         "--validate-env",
         "--run-session",
+        "--supervise-coordinates",
         "--frames",
-        "10",
+        "8",
         "--verify-logs",
         "--reset-ledger",
         "--log-dir",
@@ -174,3 +197,54 @@ def test_cli_runner_executes_cleanly(tmp_path: Path) -> None:
     assert rc == 0
     assert VITAL_MAX_HP == 6
     assert FROZEN_THEORY_NODES == 56
+
+
+def test_supervisor_community_coworker_roles_bands_and_invariants(tmp_path: Path) -> None:
+    proj = SovereignOpenVinoCompanionProject(log_dir=tmp_path, reset_ledger=True)
+    community = OperatingCoordinatesSupervisorCommunity(proj.logger)
+
+    # 1. Non-overlapping PROPOSER vs VERIFIER across 6 coworkers
+    proposers = {cw.coworker_id for cw in community.coworkers if cw.enlg_role == EnlgRole.PROPOSER}
+    verifiers = {cw.coworker_id for cw in community.coworkers if cw.enlg_role == EnlgRole.VERIFIER}
+    assert len(community.coworkers) == 6
+    assert len(proposers & verifiers) == 0
+
+    # 2. All 5 TelemetrySpectrumBands classify deterministically
+    assert (
+        community.classify_spectrum_band(4096, 0.2, False, 4.82, 1.8, False)
+        == TelemetrySpectrumBand.BAND_01_ULTRA_LOW_LATENCY_L1D
+    )
+    assert (
+        community.classify_spectrum_band(32768, 0.25, False, 4.82, 1.8, False)
+        == TelemetrySpectrumBand.BAND_02_VBLANK_SHADOW_GPU_DP4A
+    )
+    assert (
+        community.classify_spectrum_band(32768, 0.30, True, 4.82, 1.8, False)
+        == TelemetrySpectrumBand.BAND_03_HYSTERETIC_DAMPING_GUARD
+    )
+    assert (
+        community.classify_spectrum_band(32768, 0.25, False, 4.82, 1.8, True)
+        == TelemetrySpectrumBand.BAND_04_HOMOTOPIC_BIFURCATION_SPECTRUM
+    )
+    assert (
+        community.classify_spectrum_band(32768, 0.85, False, 4.82, 1.8, False)
+        == TelemetrySpectrumBand.BAND_05_QUARANTINE_SURVIVAL_CLAMP
+    )
+
+    # 3. Boundary contract violations on OperatingCoordinatesVector
+    with pytest.raises(ContractViolation):
+        OperatingCoordinatesVector(0, 0, 0.2, 1.8, 15.0, 4.82, vital_hp_coordinate=5)
+    with pytest.raises(ContractViolation):
+        OperatingCoordinatesVector(9, 0, 0.2, 1.8, 15.0, 4.82, vital_hp_coordinate=6)
+
+    # 4. Run full 8-cycle sweep and verify new reasoning pattern tags + intact chain
+    summary = proj.run_supervised_community_maintenance(cycles=8)
+    assert summary["chain_valid"] is True
+    assert summary["vital_max_hp"] == 6
+    patterns = summary["log_audit"]["pattern_counts"]
+    assert patterns.get("SPECTRUM_COORDINATE_DRIFT_CORRECTED", 0) >= 1
+    assert patterns.get("COWORKER_QUORUM_MAINTENANCE_ISSUED", 0) >= 1
+    directives = {d["directive_code"]: d for d in summary["maintenance_directives"]}
+    assert "FORK_HOMOTOPIC_COORDINATE_BRANCHES" in directives
+    assert "QUARANTINE_PARASITE_HOLD_COORDINATES" in directives
+    assert directives["QUARANTINE_PARASITE_HOLD_COORDINATES"]["delta_coordinates_zero_held"] is True

@@ -49,6 +49,8 @@ REASONING_PATTERN_CATALOG: Dict[str, str] = {
     "THERMAL_PARASITE_DECOUPLED": "Delta_tau <= 0 epistemic entropy gain triggers instant P5 hypothesis quarantine",
     "HOMOTOPIC_CONFLICT_FORK": "Contradictory evidence (E_A perp E_B) forks alpha perp beta without convex averaging (P6)",
     "AUTHORITY_SEPARATION_QUARANTINE": "PROPOSER != VERIFIER or degraded/failed AepReceipt holds state delta at zero",
+    "SPECTRUM_COORDINATE_DRIFT_CORRECTED": "Telemetry spectrum drift triggers bounded operating-coordinate maintenance directive",
+    "COWORKER_QUORUM_MAINTENANCE_ISSUED": "Independent Proposer/Verifier co-worker microservice quorum authorizes coordinate maintenance",
 }
 
 DEFAULT_LOG_DIR: Path = (
@@ -161,6 +163,10 @@ class ComputationLogSystem:
             patterns.append("HOMOTOPIC_CONFLICT_FORK")
         if payload.get("quarantined_delta_zero") is True:
             patterns.append("AUTHORITY_SEPARATION_QUARANTINE")
+        if payload.get("coordinate_drift_corrected") is True:
+            patterns.append("SPECTRUM_COORDINATE_DRIFT_CORRECTED")
+        if payload.get("coworker_quorum_authorized") is True:
+            patterns.append("COWORKER_QUORUM_MAINTENANCE_ISSUED")
         return patterns
 
     def log_event(

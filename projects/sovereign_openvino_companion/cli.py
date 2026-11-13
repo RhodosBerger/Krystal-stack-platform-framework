@@ -19,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--validate-env", action="store_true", help="Verify OpenVINO devices & invariants")
     parser.add_argument("--run-session", action="store_true", help="Run a multi-phase 120Hz VBlank companion session")
     parser.add_argument("--frames", type=int, default=16, help="Number of frames for --run-session")
+    parser.add_argument("--supervise-coordinates", action="store_true", help="Run supervisor co-worker microservice coordinate maintenance")
     parser.add_argument("--benchmark", type=int, default=0, help="Run N warm iterations across CPU/GPU crossover")
     parser.add_argument("--verify-logs", action="store_true", help="Verify SHA-256 chain integrity of the ledger")
     parser.add_argument("--log-dir", type=str, default="", help="Optional custom directory for JSONL logs")
@@ -37,6 +38,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         out["environment"] = project.validate_environment()
     if args.run_session:
         out["session"] = project.run_companion_session(num_frames=args.frames)
+    if args.supervise_coordinates:
+        out["supervisor_community"] = project.run_supervised_community_maintenance(cycles=args.frames)
     if args.benchmark > 0:
         out["benchmark"] = project.run_statistical_benchmark(iterations=args.benchmark)
     if args.verify_logs:

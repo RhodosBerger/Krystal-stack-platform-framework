@@ -1216,6 +1216,11 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             companion = SovereignOpenVinoCompanionProject(reset_ledger=True)
             self._send_json(200, companion.run_companion_session(num_frames=16))
             return
+        if self.path.startswith("/api/v1/runtime/operating_coordinates_supervisor"):
+            from projects.sovereign_openvino_companion.companion_engine import SovereignOpenVinoCompanionProject
+            companion = SovereignOpenVinoCompanionProject(reset_ledger=True)
+            self._send_json(200, companion.run_supervised_community_maintenance(cycles=8))
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"
@@ -1417,6 +1422,30 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             to_idx = int(data.get("to_idx", 28))
             pkt = GLOBAL_HYBRID_LORE_AGGREGATOR.enqueue_and_resolve_marias_click_action(action_id, from_idx, to_idx)
             self._send_json(200, GLOBAL_HYBRID_LORE_AGGREGATOR.decode_binary_grid_packet(pkt))
+            return
+
+        if self.path == "/api/v1/runtime/operating_coordinates_supervisor":
+            from krystal_kernel.constants import ContractViolation
+            from projects.sovereign_openvino_companion.companion_engine import SovereignOpenVinoCompanionProject
+            from projects.sovereign_openvino_companion.operating_coordinates_community import (
+                OperatingCoordinatesSupervisorCommunity,
+            )
+
+            companion = SovereignOpenVinoCompanionProject(reset_ledger=True)
+            community = OperatingCoordinatesSupervisorCommunity(companion.logger)
+            try:
+                res = community.superfn_execute_community_maintenance_cycle(
+                    companion_project=companion,
+                    target_xy=(int(data.get("x", 4)), int(data.get("y", 5))),
+                    gpu_render_duration_ms=float(data.get("gpu_render_duration_ms", 6.5)),
+                    uma_saturation=float(data.get("uma_saturation", 0.28)),
+                    payload_bytes=int(data.get("payload_bytes", 32768)),
+                    epistemic_entropy_nats=float(data.get("epistemic_entropy_nats", 1.3689)),
+                    contradictory_evidence=bool(data.get("contradictory_evidence", False)),
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": 6})
             return
 
         from krystal_kernel.polymorphic_ingress_adapter import PolymorphicApiEndpointConnector
