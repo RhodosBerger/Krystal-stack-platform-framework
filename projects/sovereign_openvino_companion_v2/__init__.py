@@ -77,6 +77,20 @@ from projects.sovereign_openvino_companion_v2.vulkan_endpoint_extension_and_zero
     ZeroCopySocketDifferentialTrace,
     ZeroCopySocketObservationProcess,
 )
+from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+    AdaptiveVisionUsbSwapAndFileMatrixEngine,
+    AirportB2BCppCompiledSdkSuite,
+    BackOfficeHierarchyPromptSpectrumGovernor,
+    BlenderVRaySdkPipelineAndIsaCacheBridge,
+    CoreProcessesAndProductionConstellations,
+    InterPauseLatentInvariantParser,
+    KernelEshopAndContributorLicensingEngine,
+    ProceduralSvgCacheGovernor,
+    ProvenanceOriginAndCommercialStrategyEngine,
+    VisionLanguagePropaedeuticsVideoExporter,
+    render_blender_vray_ui_html,
+    render_kernel_eshop_html,
+)
 from krystal_kernel.constants import VITAL_MAX_HP
 
 __all__ = [
@@ -131,6 +145,7 @@ __all__ = [
     "GpuVisualMemoryCoordinateAndFieldDefragmenter",
     "HexadimensionalLogInterpreterAndPowerMorpher",
     "IntenseThreadBurstMatrixViewBinder",
+    "InterPauseLatentInvariantParser",
     "MeasuredPropertyProfileAndLexiconMethodology",
     "MorseHardwareStateParser",
     "MultipoleLatticeInferenceAndControllabilityEngine",
@@ -144,4 +159,15 @@ __all__ = [
     "VulkanOpenSourceKernelBinding",
     "ZeroCopySocketDifferentialTrace",
     "ZeroCopySocketObservationProcess",
+    "AirportB2BCppCompiledSdkSuite",
+    "AdaptiveVisionUsbSwapAndFileMatrixEngine",
+    "BackOfficeHierarchyPromptSpectrumGovernor",
+    "BlenderVRaySdkPipelineAndIsaCacheBridge",
+    "CoreProcessesAndProductionConstellations",
+    "KernelEshopAndContributorLicensingEngine",
+    "ProceduralSvgCacheGovernor",
+    "ProvenanceOriginAndCommercialStrategyEngine",
+    "VisionLanguagePropaedeuticsVideoExporter",
+    "render_blender_vray_ui_html",
+    "render_kernel_eshop_html",
 ]

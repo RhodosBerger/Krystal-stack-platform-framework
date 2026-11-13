@@ -54,3 +54,4 @@ Detailed guides on specific modules:
 - [Prompt Book: Nový Parametrický Render Set (NPRS v3.0)](research/PROMPT_BOOK_PARAMETRIC_RENDER_SET_AI_STUDIO.md)
 - [Vulkan Extensions, Zero-Copy Socket Differentials, 4-Scale Epistemic Memory Gearbox & Companion v2 Manual](architecture/VULKAN_ZERO_COPY_SOCKET_GEARBOX_AND_FOUR_SCALE_COMPONENT_MANUAL.md) - full 23-component reference & 4 next-horizon domains
 - [Krystal Manifestná Vrstva: Schémy riadených procesov, škály poznateľnosti & čipové sady](architecture/KRYSTAL_MANIFEST_PROCESS_SCHEMAS_AND_CHIPSET_KNOWLEDGE_LAYER.md) - manifestné polia, OpenVINO trajektórie a SoC kontrola kremíka
+- [Univerzálny Manifestačný Kernel pre Agentov (Prompt-Engineered Manifest v1)](architecture/KRYSTAL_UNIVERSAL_AGENT_KERNEL_MANIFEST.md) - škála poznateľnosti Spec-K0..K6, vstupné parametre čipu do klastru & 6 agentových promptov

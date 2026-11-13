@@ -1291,6 +1291,108 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 ),
             )
             return
+        if self.path in ("/blender_vray_ui", "/blender_vray_ui/"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                render_blender_vray_ui_html,
+            )
+
+            html_bytes = render_blender_vray_ui_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+        if self.path.startswith("/api/v1/runtime/blender_vray_sdk_pipeline"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                BlenderVRaySdkPipelineAndIsaCacheBridge,
+            )
+
+            self._send_json(200, BlenderVRaySdkPipelineAndIsaCacheBridge().evaluate_pipeline())
+            return
+        if self.path.startswith("/api/v1/runtime/inter_pause_cognitive_parser"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                InterPauseLatentInvariantParser,
+            )
+
+            self._send_json(200, InterPauseLatentInvariantParser().parse_inter_pause_state())
+            return
+        if self.path.startswith("/api/v1/runtime/back_office_prompt_spectrum"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                BackOfficeHierarchyPromptSpectrumGovernor,
+            )
+
+            self._send_json(200, BackOfficeHierarchyPromptSpectrumGovernor().evaluate_back_office_hierarchy())
+            return
+        if self.path.startswith("/api/v1/runtime/airport_b2b_cpp_sdk"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                AirportB2BCppCompiledSdkSuite,
+            )
+
+            self._send_json(200, AirportB2BCppCompiledSdkSuite().evaluate_b2b_sdk())
+            return
+        if self.path.startswith("/api/v1/runtime/core_processes_and_constellations"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                CoreProcessesAndProductionConstellations,
+            )
+
+            self._send_json(200, CoreProcessesAndProductionConstellations().evaluate())
+            return
+        if self.path.startswith("/api/v1/runtime/procedural_svg_cache_governor"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                ProceduralSvgCacheGovernor,
+            )
+
+            self._send_json(200, ProceduralSvgCacheGovernor().evaluate())
+            return
+        if self.path in ("/vision_propedeutics_video", "/vision_propedeutics_video/"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                VisionLanguagePropaedeuticsVideoExporter,
+            )
+
+            html_bytes = VisionLanguagePropaedeuticsVideoExporter.render_video_propedeutics_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+        if self.path.startswith("/api/v1/runtime/provenance_marketing_zones"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                ProvenanceOriginAndCommercialStrategyEngine,
+            )
+
+            self._send_json(200, ProvenanceOriginAndCommercialStrategyEngine().evaluate())
+            return
+
+        if self.path in ("/kernel_eshop", "/kernel_eshop/"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                render_kernel_eshop_html,
+            )
+
+            html_bytes = render_kernel_eshop_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/api/v1/runtime/kernel_eshop"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                KernelEshopAndContributorLicensingEngine,
+            )
+
+            self._send_json(200, KernelEshopAndContributorLicensingEngine().evaluate())
+            return
+
+        if self.path.startswith("/api/v1/runtime/adaptive_vision_usb_swap"):
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                AdaptiveVisionUsbSwapAndFileMatrixEngine,
+            )
+
+            self._send_json(200, AdaptiveVisionUsbSwapAndFileMatrixEngine().evaluate())
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"
@@ -1548,6 +1650,7 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             return
 
+
         if self.path == "/api/v1/runtime/markdown_knowledge_graph":
             from krystal_kernel.constants import ContractViolation
             from projects.sovereign_openvino_companion_v2.markdown_kg_module import (
@@ -1566,6 +1669,7 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             except ContractViolation as exc:
                 self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             return
+
 
         if self.path == "/api/v1/runtime/probabilistic_authority_composer":
             from krystal_kernel.constants import ContractViolation
@@ -1591,6 +1695,7 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             except ContractViolation as exc:
                 self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             return
+
 
         if self.path == "/api/v1/runtime/morph_vision_sprint_kg":
             from krystal_kernel.constants import ContractViolation
@@ -1620,6 +1725,7 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             return
 
+
         if self.path == "/api/v1/runtime/reversible_correlation_and_cruise":
             from krystal_kernel.constants import ContractViolation
             from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
@@ -1641,6 +1747,61 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                     evoi_per_mj=float(data.get("evoi_per_mj", 0.145)),
                     observed_latency_ms=float(data.get("observed_latency_ms", 2.7420)),
                     vital_hp=vital_hp,
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+
+        if self.path == "/api/v1/runtime/blender_vray_sdk_pipeline":
+            from krystal_kernel.constants import ContractViolation
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                BlenderVRaySdkPipelineAndIsaCacheBridge,
+            )
+
+            vital_hp = int(data.get("vital_hp", VITAL_MAX_HP))
+            try:
+                res = BlenderVRaySdkPipelineAndIsaCacheBridge().evaluate_pipeline(
+                    recipe_id=str(data.get("recipe_id", "")),
+                    resolution_x=int(data.get("resolution_x", 1920)),
+                    resolution_y=int(data.get("resolution_y", 1080)),
+                    vray_samples=int(data.get("vray_samples", 64)),
+                    power_w=float(data.get("power_w", 12.0)),
+                    uma_budget=float(data.get("uma_budget", 0.68)),
+                    isa_cache_tier=str(data.get("isa_cache_tier", "TIER_3_VK_EXTERNAL_FD_SPIRV")),
+                    vital_hp=vital_hp,
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+
+        if self.path == "/api/v1/runtime/kernel_eshop":
+            from krystal_kernel.constants import ContractViolation
+            from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+                KernelEshopAndContributorLicensingEngine,
+            )
+
+            try:
+                res = KernelEshopAndContributorLicensingEngine().evaluate(
+                    sku=str(data.get("sku", "KRYSTAL-SERVER-CLUSTER")),
+                    scale_key=str(data.get("scale_key", "RATIO_SPECTRAL_TENSOR")),
+                    target_device=str(data.get("target_device", "XR_HEADSET_NPU")),
+                    contributor_name=str(
+                        data.get("contributor_name", KernelEshopAndContributorLicensingEngine.PRIMARY_AUTHOR_IDENTITY)
+                    ),
+                    github_handle=str(
+                        data.get("github_handle", KernelEshopAndContributorLicensingEngine.PRIMARY_GITHUB_HANDLE)
+                    ),
+                    origin_url=str(
+                        data.get("origin_url", KernelEshopAndContributorLicensingEngine.AUTHORIZED_GITHUB_ORIGIN)
+                    ),
+                    author_agreement_signed=bool(data.get("author_agreement_signed", True)),
+                    github_collaborator_slots=int(data.get("github_collaborator_slots", 1)),
+                    commercial_server_deployments=int(data.get("commercial_server_deployments", 12)),
+                    payload_seed=int(data.get("payload_seed", 42)),
                 )
                 self._send_json(200, res)
             except ContractViolation as exc:

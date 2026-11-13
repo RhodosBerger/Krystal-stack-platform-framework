@@ -634,6 +634,80 @@ def test_morph_vision_os_microservices_sql_scales_and_sprint_kg(tmp_path: Path):
         with pytest.raises(urllib.error.HTTPError) as http_err:
             urllib.request.urlopen(bad_post, timeout=5)
         assert http_err.value.code == 400
+
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/blender_vray_ui", timeout=5) as ui_resp:
+            assert ui_resp.status == 200
+            assert b"Krystal Stack // Blender" in ui_resp.read()
+
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/vision_propedeutics_video", timeout=5) as vid_resp:
+            assert vid_resp.status == 200
+            assert b"Propedeutika" in vid_resp.read()
+
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/kernel_eshop", timeout=5) as eshop_ui:
+            assert eshop_ui.status == 200
+            assert b"__KRYSTAL_FULLSTACK_VARS__" in eshop_ui.read()
+
+        for route in (
+            "/api/v1/runtime/blender_vray_sdk_pipeline",
+            "/api/v1/runtime/inter_pause_cognitive_parser",
+            "/api/v1/runtime/back_office_prompt_spectrum",
+            "/api/v1/runtime/airport_b2b_cpp_sdk",
+            "/api/v1/runtime/core_processes_and_constellations",
+            "/api/v1/runtime/procedural_svg_cache_governor",
+            "/api/v1/runtime/provenance_marketing_zones",
+            "/api/v1/runtime/kernel_eshop",
+            "/api/v1/runtime/adaptive_vision_usb_swap",
+        ):
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}{route}", timeout=5) as ep_resp:
+                assert ep_resp.status == 200
+                assert json.loads(ep_resp.read().decode("utf-8"))["vital_max_hp"] == 6
+
+        eshop_post_ok = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/kernel_eshop",
+            data=json.dumps(
+                {
+                    "sku": "KRYSTAL-SERVER-CLUSTER",
+                    "scale_key": "RATIO_SPECTRAL_TENSOR",
+                    "contributor_name": "Dušan Kopecký",
+                    "github_handle": "RhodosBerger",
+                }
+            ).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(eshop_post_ok, timeout=5) as eshop_res:
+            assert eshop_res.status == 200
+            assert json.loads(eshop_res.read().decode("utf-8"))["identity_and_access_audit"]["github_handle"] == "RhodosBerger"
+
+        eshop_post_bad = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/kernel_eshop",
+            data=json.dumps({"contributor_name": "Unauthorized Rogue", "github_handle": "rogue"}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with pytest.raises(urllib.error.HTTPError) as eshop_err:
+            urllib.request.urlopen(eshop_post_bad, timeout=5)
+        assert eshop_err.value.code == 400
+
+        bv_post = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/blender_vray_sdk_pipeline",
+            data=json.dumps({"vital_hp": 6, "resolution_x": 1280, "resolution_y": 720, "vray_samples": 32}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(bv_post, timeout=5) as bv_ok:
+            assert bv_ok.status == 200
+            assert json.loads(bv_ok.read().decode("utf-8"))["pipeline_inputs"]["resolution"] == "1280x720"
+
+        bv_bad = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/blender_vray_sdk_pipeline",
+            data=json.dumps({"vital_hp": 5}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with pytest.raises(urllib.error.HTTPError) as bv_err:
+            urllib.request.urlopen(bv_bad, timeout=5)
+        assert bv_err.value.code == 400
     finally:
         server.shutdown()
         server.server_close()
@@ -649,11 +723,16 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
     from krystal_kernel.constants import ContractViolation, VITAL_MAX_HP
     from krystal_kernel.sovereign_openvino_oneapi_app import SovereignOpenVinoRequestHandler
     from projects.sovereign_openvino_companion_v2 import (
+        AdaptiveVisionUsbSwapAndFileMatrixEngine,
+        AirportB2BCppCompiledSdkSuite,
+        BackOfficeHierarchyPromptSpectrumGovernor,
         BehavioralDeterminismAndCrossSystemMatrix,
         BinaryPatternCorrelationTool,
         BinarySetMatrixEngine,
+        BlenderVRaySdkPipelineAndIsaCacheBridge,
         CadenceDictionLogarithmicCoreEngine,
         CombinatorialWiringAndOscillationMatrixSuite,
+        CoreProcessesAndProductionConstellations,
         CrossParadigmCppTranspilerAndCognitionStandardsEngine,
         DeterministicSocketAndThreadFrequencyArchitect,
         DirectionValidationAndEmergingKnowledgeMapper,
@@ -664,9 +743,13 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
         GpuVisualMemoryCoordinateAndFieldDefragmenter,
         HexadimensionalLogInterpreterAndPowerMorpher,
         IntenseThreadBurstMatrixViewBinder,
+        InterPauseLatentInvariantParser,
+        KernelEshopAndContributorLicensingEngine,
         MeasuredPropertyProfileAndLexiconMethodology,
         MorseHardwareStateParser,
         MultipoleLatticeInferenceAndControllabilityEngine,
+        ProceduralSvgCacheGovernor,
+        ProvenanceOriginAndCommercialStrategyEngine,
         RealtimeInspectorScoringGovernor,
         ReversibleCorrelationAndCruiseOrchestrator,
         SelfAnalyzingGeometricSyncScaleEngine,
@@ -674,8 +757,10 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
         SpatialInvariantAdaptiveCruiseScheduler,
         TectonicMeshMemoryGearboxAndUnitComparator,
         UxPrivilegeMappingFramework,
+        VisionLanguagePropaedeuticsVideoExporter,
         VulkanEndpointExtensionRuntime,
         ZeroCopySocketObservationProcess,
+        render_kernel_eshop_html,
     )
     from projects.sovereign_openvino_companion_v2.cli import main as v2_cli_main
 
@@ -872,6 +957,102 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
     with pytest.raises(ContractViolation):
         gamesa_vk.parse_vulkan_plan_reversible("BAD|TOKEN")
 
+    bv_pipe = BlenderVRaySdkPipelineAndIsaCacheBridge()
+    bv_out = bv_pipe.evaluate_pipeline()
+    assert len(bv_out["isa_portability_cache_tiers"]) == 5
+    assert len(bv_out["deduced_alternative_approaches"]) == 3
+    with pytest.raises(ContractViolation):
+        bv_pipe.evaluate_pipeline(uma_budget=0.90)
+
+    ip_parser = InterPauseLatentInvariantParser()
+    ip_out = ip_parser.parse_inter_pause_state()
+    assert ip_out["latent_invariants"]["all_invariants_valid"] is True
+    assert ip_out["eight_directional_vector_flow"]["direction_count"] == 8
+    assert ip_out["eight_directional_vector_flow"]["closed_loop_net_displacement"] == [0, 0]
+    with pytest.raises(ContractViolation):
+        ip_parser.parse_inter_pause_state(scanout_active=True)
+
+    bo_gov = BackOfficeHierarchyPromptSpectrumGovernor()
+    assert bo_gov.evaluate_back_office_hierarchy()["proposer_verifier_separation_enforced"] is True
+    b2b_out = AirportB2BCppCompiledSdkSuite().evaluate_b2b_sdk()
+    assert b2b_out["module_count"] == 4
+    const_out = CoreProcessesAndProductionConstellations().evaluate()
+    assert len(const_out["captured_core_processes"]) == 5
+    assert len(const_out["production_constellations"]) == 4
+
+    svg_gov = ProceduralSvgCacheGovernor()
+    svg_out = svg_gov.evaluate()
+    assert svg_out["replay_from_cache"] is True
+    assert svg_out["compression_saved_pct"] > 50.0
+    assert svg_out["svg_scene_markup"].startswith("<svg ")
+    with pytest.raises(ContractViolation):
+        svg_gov.evaluate(uma_precache_budget_ratio=0.90)
+
+    vid_exp = VisionLanguagePropaedeuticsVideoExporter()
+    avi_meta = vid_exp.generate_avi_video(tmp_path / "propedeutics.avi")
+    assert avi_meta["num_frames"] == 12
+    assert (tmp_path / "propedeutics.avi").exists()
+    assert (tmp_path / "propedeutics.avi").read_bytes()[:4] == b"RIFF"
+
+    prov_eng = ProvenanceOriginAndCommercialStrategyEngine()
+    prov_out = prov_eng.evaluate()
+    assert prov_out["authorized_origin_audit"]["authorized"] is True
+    assert prov_out["rust_bytecode_crate"]["toml_present"] is True
+    assert prov_out["rust_bytecode_crate"]["lib_present"] is True
+    assert len(prov_out["four_empirical_telemetry_zones"]) == 4
+    assert len(prov_out["five_recordable_telemetry_layers"]) == 5
+    assert len(prov_out["four_new_horizons"]) == 4
+    assert len(prov_out["five_gpl_acquisition_interest_domains"]) == 5
+    assert len(prov_out["commercial_phase1_marketing_domains"]) == 4
+    with pytest.raises(ContractViolation):
+        prov_eng.evaluate(origin_url="https://github.com/untrusted/clone")
+
+    eshop_eng = KernelEshopAndContributorLicensingEngine()
+    eshop_out = eshop_eng.evaluate()
+    assert eshop_out["vital_max_hp"] == 6
+    assert eshop_out["identity_and_access_audit"]["primary_author"] == "Dušan Kopecký"
+    assert eshop_out["identity_and_access_audit"]["github_handle"] == "RhodosBerger"
+    assert len(eshop_out["speculative_multithread_precache"]["precomputed_branches"]) == 4
+    assert eshop_out["github_license_quotas"]["sovereign_author_licenses"] == 1
+    assert eshop_out["fullstack_compiled_variables"]["krystal_github_handle"] == "RhodosBerger"
+    assert len(eshop_out["pattern_equity_acquisition_catalog"]) == 5
+    coauthor_out = eshop_eng.evaluate(contributor_name="Ivan Novikov", github_handle="", author_agreement_signed=True)
+    assert coauthor_out["identity_and_access_audit"]["role"] == "SIGNED_CO_AUTHOR_DELEGATE"
+    with pytest.raises(ContractViolation):
+        eshop_eng.evaluate(contributor_name="Ivan Novikov", github_handle="", author_agreement_signed=False)
+    with pytest.raises(ContractViolation):
+        eshop_eng.evaluate(contributor_name="Unauthorized Outsider", github_handle="rogue")
+    eshop_html = render_kernel_eshop_html(eshop_out)
+    assert "window.__KRYSTAL_FULLSTACK_VARS__" in eshop_html
+
+    usb_eng = AdaptiveVisionUsbSwapAndFileMatrixEngine()
+    usb_out = usb_eng.evaluate()
+    assert usb_out["vital_max_hp"] == 6
+    assert len(usb_out["five_adaptive_schemes"]["schemes"]) == 5
+    assert usb_out["linux_usb_swap_media"]["magic_header"] == "KRYSTAL_SWAPIMG_V1"
+    assert usb_out["linux_usb_swap_media"]["image_size_bytes"] == 4096
+    assert usb_out["utf8_ascii_redundant_compiler"]["all_rows_lossless_decoded"] is True
+    assert usb_out["eight_css_state_vector_scripts"]["script_count"] == 8
+    assert usb_out["eight_css_state_vector_scripts"]["all_fallback_self_verified"] is True
+    assert usb_out["krystal_file_format_and_frontend_runtime"]["file_magic"] == "KRYSTAL_FILE_V1"
+    assert len(usb_out["four_knowledge_materialization_domains"]) == 4
+    assert (
+        "4.19.183"
+        in usb_out["unified_isa_and_asus_rt_ax58u_v2"]["asus_rt_ax58u_v2_kernel_options"]["recommended_custom_firmware_and_kernel"]["linux_kernel_version"]
+    )
+    assert len(usb_out["cybersecurity_cross_channel_and_compliance"]["krystal_cybersecurity_protocols"]) == 4
+    with pytest.raises(ContractViolation):
+        usb_eng.evaluate(uma_utilization=0.92)
+    with pytest.raises(ContractViolation):
+        usb_eng.evaluate(allow_unpermitted_rf_mutation=True)
+    with pytest.raises(ContractViolation):
+        usb_eng.evaluate(github_registered=False)
+
+    manifest_md = Path("docs/architecture/KRYSTAL_UNIVERSAL_AGENT_KERNEL_MANIFEST.md")
+    assert manifest_md.exists()
+    manifest_text = manifest_md.read_text(encoding="utf-8")
+    assert "Spec-K6" in manifest_text and "AGENT_PROMPT_06_CYBERSECURITY_ZERO_MUTATION" in manifest_text
+
     # 9. End-to-end orchestrator + SovereignOpenVinoCompanionV2 + CLI + HTTP GET/POST
     comp = SovereignOpenVinoCompanionV2(log_dir=tmp_path / "rev_logs", reset_ledger=True)
     orch_out = comp.run_reversible_correlation_and_spatial_cruise()
@@ -899,6 +1080,7 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
             "--morse-hardware-parser",
             "--oscillation-matrix-suite",
             "--gamesa-3d-grid-vulkan-parser",
+            "--blender-vray-b2b-endpoints",
             "--reset-ledger",
             "--log-dir",
             str(tmp_path / "cli_rev_cruise"),
@@ -940,6 +1122,80 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
         with pytest.raises(urllib.error.HTTPError) as http_err:
             urllib.request.urlopen(bad_post, timeout=5)
         assert http_err.value.code == 400
+
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/blender_vray_ui", timeout=5) as ui_resp:
+            assert ui_resp.status == 200
+            assert b"Krystal Stack // Blender" in ui_resp.read()
+
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/vision_propedeutics_video", timeout=5) as vid_resp:
+            assert vid_resp.status == 200
+            assert b"Propedeutika" in vid_resp.read()
+
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/kernel_eshop", timeout=5) as eshop_ui:
+            assert eshop_ui.status == 200
+            assert b"__KRYSTAL_FULLSTACK_VARS__" in eshop_ui.read()
+
+        for route in (
+            "/api/v1/runtime/blender_vray_sdk_pipeline",
+            "/api/v1/runtime/inter_pause_cognitive_parser",
+            "/api/v1/runtime/back_office_prompt_spectrum",
+            "/api/v1/runtime/airport_b2b_cpp_sdk",
+            "/api/v1/runtime/core_processes_and_constellations",
+            "/api/v1/runtime/procedural_svg_cache_governor",
+            "/api/v1/runtime/provenance_marketing_zones",
+            "/api/v1/runtime/kernel_eshop",
+            "/api/v1/runtime/adaptive_vision_usb_swap",
+        ):
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}{route}", timeout=5) as ep_resp:
+                assert ep_resp.status == 200
+                assert json.loads(ep_resp.read().decode("utf-8"))["vital_max_hp"] == 6
+
+        eshop_post_ok = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/kernel_eshop",
+            data=json.dumps(
+                {
+                    "sku": "KRYSTAL-SERVER-CLUSTER",
+                    "scale_key": "RATIO_SPECTRAL_TENSOR",
+                    "contributor_name": "Dušan Kopecký",
+                    "github_handle": "RhodosBerger",
+                }
+            ).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(eshop_post_ok, timeout=5) as eshop_res:
+            assert eshop_res.status == 200
+            assert json.loads(eshop_res.read().decode("utf-8"))["identity_and_access_audit"]["github_handle"] == "RhodosBerger"
+
+        eshop_post_bad = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/kernel_eshop",
+            data=json.dumps({"contributor_name": "Unauthorized Rogue", "github_handle": "rogue"}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with pytest.raises(urllib.error.HTTPError) as eshop_err:
+            urllib.request.urlopen(eshop_post_bad, timeout=5)
+        assert eshop_err.value.code == 400
+
+        bv_post = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/blender_vray_sdk_pipeline",
+            data=json.dumps({"vital_hp": 6, "resolution_x": 1280, "resolution_y": 720, "vray_samples": 32}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(bv_post, timeout=5) as bv_ok:
+            assert bv_ok.status == 200
+            assert json.loads(bv_ok.read().decode("utf-8"))["pipeline_inputs"]["resolution"] == "1280x720"
+
+        bv_bad = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/v1/runtime/blender_vray_sdk_pipeline",
+            data=json.dumps({"vital_hp": 5}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with pytest.raises(urllib.error.HTTPError) as bv_err:
+            urllib.request.urlopen(bv_bad, timeout=5)
+        assert bv_err.value.code == 400
     finally:
         server.shutdown()
         server.server_close()

@@ -34,6 +34,12 @@
   Full architectural breakdown of the Adaptive Execution Processor (AEP) closed-loop orchestration above OpenVINO Runtime: [`docs/openvino/OPENVINO_INNOVATOR_VALIDATION_POSITIONING.md`](docs/openvino/OPENVINO_INNOVATOR_VALIDATION_POSITIONING.md).
 * **Verified 20.35x Vulkan Compute UMA Speedup & Zero-Copy Telemetry:**
   Hardware benchmark on Intel Iris Xe UMA (`0x8086:0x9a49`) reducing frame latency from `46.99 ms` (CPU baseline) to **`2.31 ms`** (`433.13 FPS`, `0.321 ms` kernel wait) and saving **`497.66 MB/s`** of memory bandwidth at 60 FPS: [`artifacts/VULKAN_IRIS_XE_BENCHMARK_RESULTS.json`](artifacts/VULKAN_IRIS_XE_BENCHMARK_RESULTS.json) & [`artifacts/GPU_ZERO_COPY_READBACK_BENCHMARK.json`](artifacts/GPU_ZERO_COPY_READBACK_BENCHMARK.json).
+* **Sovereign OpenVINO Companion v2, Manifest Knowledge Layer, Kernel E-Shop & Blender/V-Ray UI Pipeline:**
+  24+ deterministic runtime, Vulkan/USM 3D grid, binary matrix, C++20 Zero-GC, Morse hardware parser, contractive oscillation stabilization, ISA cache-tier portability, Kernel E-Shop (`/kernel_eshop`, `/api/v1/runtime/kernel_eshop`), USB `swap.img` / `.kryf` compiler & RT-AX58U V2 profile (`/api/v1/runtime/adaptive_vision_usb_swap`), and Blender + V-Ray / Airport B2B endpoints served via `/blender_vray_ui` and `/api/v1/runtime/blender_vray_sdk_pipeline`:
+  - [`projects/sovereign_openvino_companion_v2/README.md`](projects/sovereign_openvino_companion_v2/README.md)
+  - [`docs/architecture/KRYSTAL_UNIVERSAL_AGENT_KERNEL_MANIFEST.md`](docs/architecture/KRYSTAL_UNIVERSAL_AGENT_KERNEL_MANIFEST.md)
+  - [`docs/architecture/KRYSTAL_MANIFEST_PROCESS_SCHEMAS_AND_CHIPSET_KNOWLEDGE_LAYER.md`](docs/architecture/KRYSTAL_MANIFEST_PROCESS_SCHEMAS_AND_CHIPSET_KNOWLEDGE_LAYER.md)
+  - [`docs/architecture/VULKAN_ZERO_COPY_SOCKET_GEARBOX_AND_FOUR_SCALE_COMPONENT_MANUAL.md`](docs/architecture/VULKAN_ZERO_COPY_SOCKET_GEARBOX_AND_FOUR_SCALE_COMPONENT_MANUAL.md)
 
 ---
 

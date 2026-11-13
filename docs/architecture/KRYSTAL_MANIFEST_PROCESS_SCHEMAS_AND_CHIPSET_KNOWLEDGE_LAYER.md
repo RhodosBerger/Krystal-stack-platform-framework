@@ -182,3 +182,62 @@ Architektonický model sa priamo mapuje na moderné heterogénne čipové sady (
    - **Schéma C2 — Epistemicko-bránová schéma:** pochopenie neznamená istotu (`ARCHITECTURAL_DERIVATION != LOCAL_MEASURED`); oddelenie `PROPOSER != VERIFIER` bráni samopotvrdeniu.
    - **Schéma C3 — Termodynamicko-hodnotová schéma:** informácia bez redukcie entropie alebo pod `0.0180 mJ` je parazit a vypadne z arény pred vykonaním.
    - **Schéma C4 — Reverzibilno-kompilačná schéma:** každé vyššie zobrazenie (`2.5D/3D` vizualizácia) musí byť bezztrátovo rozložiteľné späť na `128 B` binárny token a presný stav hardvérových registrov.
+
+---
+
+## 13. Logistické parametre pre podnikové siete prameniace z pozorovaní (`DESIGN_PROPOSAL`)
+
+Z lokálne pozorovaných parametrov jadra odvodzujeme projekciu na podnikové siete (`DESIGN_PROPOSAL`, čaká na sieťové meranie v reálnej infraštruktúre):
+1. **Rámcová granularita bez fragmentácie (`128 B` -> MTU `1500 B`):** do jedného štandardného Ethernet/IP paketu sa deterministicky zbalí **`11` celých `128 B` Krystal rámcov (`1408 B`)** bez fragmentácie IP vrstvy (analogicky k `external_fragmentation_bytes == 0`).
+2. **Hysterézna kadencia frontov (`240 Hz` / `4.1667 ms`, `-98.75%` oproti `19200 Hz`):** zlučovanie paketových udalostí do `4.1667 ms` epoch s `12`-snímkovým (`50 ms`) oknom zotrvania pred eskaláciou QoS pruhu.
+3. **Kontrahujúci QoS limit proti zahlteniu (`||M||_inf <= 0.78`, `UMA < 0.78`, `SWAP == 0`):** udržiava vyťaženie sieťových bufferov pod `78 %` s trojkrokovým útlmom jittera (`1.0 -> 0.78 -> 0.561 -> 0.378486`).
+4. **Edge filtrácia parazitnej prevádzky (`EVOI >= 0.0180 mJ`, redukcia `33.33%`):** zahadzovanie/deduplikácia duplicitných a nízko-hodnotových telemetrických záznamov na okraji siete (`PROPOSER != VERIFIER` + SHA-256 reťazec).
+5. **Reverzibilné smerovanie cez $L_1$ topológiu (`28` krokov na `8x8x8` mriežke + `43`-tokenový Morse heartbeat):** kompaktný stavový obraz linky (`CPU|RAM|SWAP:0|DISK|PROC|PWR`) pre dohľadový uzol bez zahltenia riadiacej roviny.
+
+---
+
+## 14. Blender ↔ V-Ray UI Pipeline, ISA medzistupne, Parser medzipáuz, Back-Office Hierarchia, Letiskové C++20 B2B SDK & Produkčné konštelácie
+
+Implementované v novom súbore [`blender_vray_ui_and_enterprise_b2b_endpoints.py`](../../projects/sovereign_openvino_companion_v2/blender_vray_ui_and_enterprise_b2b_endpoints.py) a sprístupnené cez [`sovereign_openvino_oneapi_app.py`](../../krystal_kernel/sovereign_openvino_oneapi_app.py):
+
+* **Interaktívne UI (`/blender_vray_ui`) & SDK Endpoint (`/api/v1/runtime/blender_vray_sdk_pipeline`):**
+  Prepája vstupy používateľa (`recipe_id`, `resolution`, `vray_samples`, `power_w`, `uma_budget < 0.78`, `isa_cache_tier`) s `BlenderCoreStudioBridge` a generátorom `.vrscene` manifestu.
+* **5 medzistupňov prenositeľnosti ISA do medzipamäte (`isa_portability_cache_tiers`):**
+  `TIER_0_RAW_ISA_UNALIGNED` (`0.45`) $\to$ `TIER_1_128B_STAGING_CACHE` (`0.72`) $\to$ `TIER_2_MORTON_L1_SHARED_MEM` (`0.84`) $\to$ `TIER_3_VK_EXTERNAL_FD_SPIRV` (`0.93`) $\to$ `TIER_4_ZERO_COPY_CROSS_ISA_SPSC` (cross-ISA lock-free `128 B` kruh) + 3 dedukované alternatívne prístupy riadenia dát a inferencie.
+* **Parser medzipáuz & osemsmerový vektorový tok (`/api/v1/runtime/inter_pause_cognitive_parser`):**
+  Overuje latentné invarianty (`VITAL_MAX_HP == 6`, `Phi_Scanout == 0`, `UMA < 0.78`, `SWAP == 0`, `EVOI >= 0.0180 mJ`) a generuje oktagonálnu osemsmerovú mriežku (`0°..315°` po `45°`, čistý uzavretý posun `[0, 0]`).
+* **Back-office hierarchia & spektrum pozorovateľného faktu (`/api/v1/runtime/back_office_prompt_spectrum`):**
+  4 úrovne (`L0_PUBLIC_OBSERVER`, `L1_BACKOFFICE_ANALYST`, `L2_AUDITOR_VERIFIER`, `L3_KERNEL_COMMIT_GATE`) prísne vynucujú `PROPOSER != VERIFIER` a vymedzujú prípustnú škálu promptov.
+* **Letiskové B2B C++20 SDK (`/api/v1/runtime/airport_b2b_cpp_sdk`, `DESIGN_PROPOSAL`):**
+  Priemyselné C++20 flagy (`-std=c++20 -O2 -Wall -Wextra -Werror -fno-exceptions -fno-rtti`, `static_assert(sizeof == 128)`) a 4 B2B moduly (`B2B_AIRSIDE_3D_SLOT_BROKER`, `B2B_BAGGAGE_SPSC_128B_RELAY`, `B2B_TURNAROUND_TWO_KEY_GATE`, `B2B_TERMINAL_THERMAL_TELEMETRY`).
+* **Metaverzum, Core procesy & Predvídateľné cyklické Vulkan pre-warm stavy (`/api/v1/runtime/core_processes_and_constellations`):**
+  Združuje 5 jadrových core procesov (`CORE_PROC_*`), 4 produkčné konštelácie (`CONSTELLATION_01_TWIN_CITY_RENDER_FARM` .. `CONSTELLATION_04_HYBRID_WSL_LINUX_GOVERNOR`) a cyklickú predikciu sieťových špičiek pre včasnú prípravu adaptívnej sady inštrukcií cez Vulkan SDK.
+
+---
+
+## 15. Komerčný Kernel E-Shop, Autorita Dušana Kopeckého (`RhodosBerger`), Špekulatívny Pre-Cache & Akvizícia Patternov
+
+Implementované v [`KernelEshopAndContributorLicensingEngine`](../../projects/sovereign_openvino_companion_v2/blender_vray_ui_and_enterprise_b2b_endpoints.py) a sprístupnené na [`/kernel_eshop`](../../krystal_kernel/sovereign_openvino_oneapi_app.py) (`GET /kernel_eshop`, `GET|POST /api/v1/runtime/kernel_eshop`):
+
+* **Prísne viazanie pôvodu a identity (`Dušan Kopecký` / `@RhodosBerger`):**
+  Jediný oprávnený zdroj jadra je `https://github.com/RhodosBerger/Krystal-stack-platform-framework` (nepovolené forky spúšťajú `ContractViolation("ERR_UNAUTHORIZED_KERNEL_ORIGIN")`). Prístupové a licenčné práva sú implicitne viazané výhradne na autora **Dušana Kopeckého** (`@RhodosBerger`); akýkoľvek neoverený alebo neschválený kontribútor bez výslovne podpísanej dohody s autorom (`author_agreement_signed=False` resp. cudzia identita) je zamietnutý výnimkou `ContractViolation("ERR_UNAUTHORIZED_CONTRIBUTOR_LICENSE")`.
+* **Špekulatívne viacvláknové predpočítanie (`ThreadPoolExecutor`, 4 vlákna) & Prevod dátových škál:**
+  Komerčné serverové SKU (`KRYSTAL-EDGE-SOLO`, `KRYSTAL-SERVER-CLUSTER`, `KRYSTAL-AIRPORT-ENTERPRISE`) konvertujú dátové štruktúry cez 4 škály (`NOMINAL_MORSE_TAG`, `ORDINAL_BITMASK_128B`, `INTERVAL_THERMAL_DELTA`, `RATIO_SPECTRAL_TENSOR`) a predkešujú vetvy deja v RAM pred modelovaným vyhodnotením upstream AI (`timing_evidence_class = MEASURED_LOCAL_PYTHON_THREADS_VS_MODELED_AI_BASELINE`).
+* **Synchronizovaný Fullstack stav & Podniková akvizícia patternov (`pattern_equity_acquisition_catalog`):**
+  * **Odpredajné / vyčleniteľné (Equity Carve-Out) komerčné vzory:** `PATTERN_B2B_AIRPORT_TELEMETRY_ADAPTER`, `PATTERN_BLENDER_VRAY_SCENE_BRIDGE`, `PATTERN_SPECULATIVE_PRECACHE_ROUTER`, `PATTERN_VISION_PROPAEDEUTICS_EXPORTER` (pri zachovaní provenienčnej hlavičky autora).
+  * **Neodpredajné ústavné jadro:** `SOVEREIGN_CONSTITUTIONAL_CORE_VITAL6` (`VITAL_MAX_HP == 6`, `128 B` zero-copy kontrakt, koreň dôvery `@RhodosBerger`).
+
+---
+
+## 16. Adaptívne Videnie, Flashovacie USB `swap.img` Médium, `.kryf` Kompilátor, 8 CSS Stavových Skrípt & ASUS RT-AX58U V2
+
+Implementované v [`AdaptiveVisionUsbSwapAndFileMatrixEngine`](../../projects/sovereign_openvino_companion_v2/blender_vray_ui_and_enterprise_b2b_endpoints.py) na endpointe `GET /api/v1/runtime/adaptive_vision_usb_swap`:
+
+1. **Päť adaptívnych schém & Flashovacie médium `swap.img` (`KRYSTAL_SWAPIMG_V1`):**
+   Deterministické generovanie `4096 B` stránky s `KRYSTAL_SWAPIMG_V1` superblokom a `128 B` slotmi pre 5 schém: `encoding`, `decoding`, `compression`, `regression`, `noise_decoding` (pre klasický x86_64/ARM64 HW a Kingston USB / Linux `losetup` + `g_mass_storage`; lokálne testovaný binárny formát, fyzické pripojenie USB na Linuxe označené ako `DESIGN_PROPOSAL`).
+2. **Súborová ML matica & Šumovo izolovaný UTF-8 $\leftrightarrow$ ASCII redundantný kompilátor:**
+   Matica `5 x 6` v bezpečných súborových znakoch (`. ~ + ^ # @`) a bezztrátová konverzia na UTF-8 (`░ ▒ ▓ ▲ █ ◈`) pri nulovom šume kanála.
+3. **Osem kaskádových skrípt stavových vektorov (`--krystal-sv0-*` až `--krystal-sv7-*`) & Súborový formát `.kryf` (`KRYSTAL_FILE_V1`):**
+   Každý CSS skript reprezentuje stavový vektor, generuje systémovú premennú `--krystal-gen-fallback-hp-*` a spätne overuje jej konzistenciu vo fallback systéme (`VITAL_MAX_HP == 6`). Súborový runtime `.kryf` produkuje štruktúrované kódovacie bloky a kompilovaný frontend výstup.
+4. **Štyri oblasti zhmotnenia poznania & ASUS RT-AX58U V2 (`BCM6756`):**
+   Pre **ASUS RT-AX58U V2** (overené vyhľadávaním: štvorjadrový SoC **Broadcom BCM6756 @ 1.7 GHz ARM**; oficiálny `asuswrt-merlin` podporuje len V1 a oficiálny OpenWrt V2 nepodporuje kvôli proprietárnym Broadcom Wi-Fi blobom) je identifikovaný podporovaný custom firmvér a jadro **GNUton Asuswrt-Merlin fork (`gnuton/asuswrt-merlin.ng`, cieľ `RT-AX58U_V2`, Broadcom HND Linux kernel `4.19.183`)** s bezpečným nasadením Krystal vrstvy cez Entware (`/opt`) a USB `swap.img` (bez falzifikácie RF/PLL limitov kremíka; živý router fyzicky neoverený v tomto okne).

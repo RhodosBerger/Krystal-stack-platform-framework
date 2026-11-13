@@ -45,6 +45,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--morse-hardware-parser", action="store_true")
     parser.add_argument("--oscillation-matrix-suite", action="store_true")
     parser.add_argument("--gamesa-3d-grid-vulkan-parser", action="store_true")
+    parser.add_argument("--blender-vray-b2b-endpoints", action="store_true")
     parser.add_argument("--conditioning-z", type=float, default=0.65)
     parser.add_argument("--scale-influence-z", type=float, default=0.50)
     parser.add_argument("--emit-bin-dir", type=str, default="")
@@ -90,6 +91,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         or args.morse_hardware_parser
         or args.oscillation_matrix_suite
         or args.gamesa_3d_grid_vulkan_parser
+        or args.blender_vray_b2b_endpoints
     )
     if args.run_session or not any_explicit:
         out["session"] = v2.run_smart_session(num_frames=args.frames)
@@ -174,6 +176,30 @@ def main(argv: Optional[List[str]] = None) -> int:
         out["reversible_correlation_and_cruise"] = rev_out
         out["chain_valid"] = rev_out["chain_valid"]
         out["log_audit"] = rev_out["log_audit"]
+    if args.blender_vray_b2b_endpoints:
+        from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b_endpoints import (
+            AdaptiveVisionUsbSwapAndFileMatrixEngine,
+            AirportB2BCppCompiledSdkSuite,
+            BackOfficeHierarchyPromptSpectrumGovernor,
+            BlenderVRaySdkPipelineAndIsaCacheBridge,
+            CoreProcessesAndProductionConstellations,
+            InterPauseLatentInvariantParser,
+            KernelEshopAndContributorLicensingEngine,
+            ProceduralSvgCacheGovernor,
+            ProvenanceOriginAndCommercialStrategyEngine,
+        )
+
+        out["blender_vray_b2b_endpoints"] = {
+            "blender_vray_sdk_pipeline": BlenderVRaySdkPipelineAndIsaCacheBridge().evaluate_pipeline(),
+            "inter_pause_cognitive_parser": InterPauseLatentInvariantParser().parse_inter_pause_state(),
+            "back_office_prompt_spectrum": BackOfficeHierarchyPromptSpectrumGovernor().evaluate_back_office_hierarchy(),
+            "airport_b2b_cpp_sdk": AirportB2BCppCompiledSdkSuite().evaluate_b2b_sdk(),
+            "core_processes_and_constellations": CoreProcessesAndProductionConstellations().evaluate(),
+            "procedural_svg_cache_governor": ProceduralSvgCacheGovernor().evaluate(),
+            "provenance_marketing_zones": ProvenanceOriginAndCommercialStrategyEngine().evaluate(),
+            "kernel_eshop": KernelEshopAndContributorLicensingEngine().evaluate(),
+            "adaptive_vision_usb_swap": AdaptiveVisionUsbSwapAndFileMatrixEngine().evaluate(),
+        }
     print(json.dumps(out, indent=2))
     return 0
 

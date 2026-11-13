@@ -1,0 +1,10 @@
+[package]
+name = "krystal-sovereignty-bytecode"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Sovereign Krystal Stack bytecode VM & 128B zero-copy execution core preserving VITAL_MAX_HP == 6 and authorized GitHub provenance"
+
+[lib]
+name = "krystal_sovereignty_bytecode"
+path = "src/lib.rs"
