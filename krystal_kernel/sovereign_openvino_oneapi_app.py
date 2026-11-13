@@ -1221,6 +1221,11 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             companion = SovereignOpenVinoCompanionProject(reset_ledger=True)
             self._send_json(200, companion.run_supervised_community_maintenance(cycles=8))
             return
+        if self.path.startswith("/api/v1/runtime/sovereign_openvino_companion_v2"):
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            self._send_json(200, companion_v2.run_smart_session(num_frames=16))
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"
