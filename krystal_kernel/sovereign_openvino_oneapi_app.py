@@ -1393,6 +1393,17 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
 
             self._send_json(200, AdaptiveVisionUsbSwapAndFileMatrixEngine().evaluate())
             return
+
+        if self.path.startswith("/api/v1/runtime/oxygen_hybrid_mesh_crud"):
+            from projects.sovereign_openvino_companion_v2.oxygen_hybrid_mesh_crud_module import (
+                DeterministicRelationalCrudDatabaseFlow,
+                FourChipsetIsaHybridUxAndMeshSuite,
+            )
+
+            res = FourChipsetIsaHybridUxAndMeshSuite().evaluate()
+            res["sqlite_relational_crud_flow"] = DeterministicRelationalCrudDatabaseFlow().run_crud_roundtrip_demo()
+            self._send_json(200, res)
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"

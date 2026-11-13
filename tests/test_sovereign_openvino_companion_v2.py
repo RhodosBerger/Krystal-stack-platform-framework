@@ -657,6 +657,7 @@ def test_morph_vision_os_microservices_sql_scales_and_sprint_kg(tmp_path: Path):
             "/api/v1/runtime/provenance_marketing_zones",
             "/api/v1/runtime/kernel_eshop",
             "/api/v1/runtime/adaptive_vision_usb_swap",
+            "/api/v1/runtime/oxygen_hybrid_mesh_crud",
         ):
             with urllib.request.urlopen(f"http://127.0.0.1:{port}{route}", timeout=5) as ep_resp:
                 assert ep_resp.status == 200
@@ -735,9 +736,11 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
         CoreProcessesAndProductionConstellations,
         CrossParadigmCppTranspilerAndCognitionStandardsEngine,
         DeterministicSocketAndThreadFrequencyArchitect,
+        DeterministicRelationalCrudDatabaseFlow,
         DirectionValidationAndEmergingKnowledgeMapper,
         EpistemicMemoryPatternTransducerAndFourScaleEvaluator,
         ExplorationParameterBenchmarkRunner,
+        FourChipsetIsaHybridUxAndMeshSuite,
         Gamesa3DGridVulkanStrategicParserEngine,
         GeneticLineageTestMethodologyEnhancer,
         GpuVisualMemoryCoordinateAndFieldDefragmenter,
@@ -1053,6 +1056,29 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
     manifest_text = manifest_md.read_text(encoding="utf-8")
     assert "Spec-K6" in manifest_text and "AGENT_PROMPT_06_CYBERSECURITY_ZERO_MUTATION" in manifest_text
 
+    ox_suite = FourChipsetIsaHybridUxAndMeshSuite()
+    ox_out = ox_suite.evaluate()
+    assert len(ox_out["four_chipset_isa_hybrids"]) == 4
+    assert ox_out["adaptive_oxygen_composer"]["composer_name"] == "KrystalAdaptiveOxygenComposerV1"
+    assert ox_out["symbol_word_task_analysis"]["analogy_in_constants"]["constants"]["FRAME_SIZE_BYTES"] == 128
+    assert len(ox_out["ordinal_ram_frequency_synthesizer"]["four_key_elements"]) == 4
+    assert ox_out["ordinal_ram_frequency_synthesizer"]["interpolated_ordinal_slots"][-1]["speculative_freq_hz"] == 240.0
+    assert len(ox_out["discovered_instruction_sets"]["new_instruction_sets_catalog"]) == 4
+    assert len(ox_out["four_constitutional_symbolic_domains"]) == 4
+
+    crud_db = DeterministicRelationalCrudDatabaseFlow(tmp_path / "krystal_crud.db")
+    crud_res = crud_db.run_crud_roundtrip_demo()
+    assert crud_res["post_cascade_counts"]["nodes"] == 1
+    assert crud_res["post_cascade_counts"]["edges_cascaded_to_zero"] == 0
+    assert crud_res["read_after_update_seq"] == 2
+    assert crud_res["auditable_language_metrics"]["metric_constructs"]["metric_hash_chain_continuity_ratio"] == 1.0
+    assert len(crud_res["auditable_language_metrics"]["auditable_language_log_entries"]) >= 4
+    with pytest.raises(ContractViolation):
+        crud_db.create_node("BAD_HP", "TEST", {}, vital_hp=5)
+    assert crud_db.conn.execute("SELECT COUNT(*) FROM krystal_nodes").fetchone()[0] == 1
+    with pytest.raises(ContractViolation):
+        crud_db.link_nodes("OX_HYBRID_ROOT", "NON_EXISTENT", "BAD_FK")
+
     # 9. End-to-end orchestrator + SovereignOpenVinoCompanionV2 + CLI + HTTP GET/POST
     comp = SovereignOpenVinoCompanionV2(log_dir=tmp_path / "rev_logs", reset_ledger=True)
     orch_out = comp.run_reversible_correlation_and_spatial_cruise()
@@ -1145,6 +1171,7 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
             "/api/v1/runtime/provenance_marketing_zones",
             "/api/v1/runtime/kernel_eshop",
             "/api/v1/runtime/adaptive_vision_usb_swap",
+            "/api/v1/runtime/oxygen_hybrid_mesh_crud",
         ):
             with urllib.request.urlopen(f"http://127.0.0.1:{port}{route}", timeout=5) as ep_resp:
                 assert ep_resp.status == 200

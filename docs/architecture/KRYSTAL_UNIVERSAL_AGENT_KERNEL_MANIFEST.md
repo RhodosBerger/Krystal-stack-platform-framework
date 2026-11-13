@@ -118,3 +118,44 @@ Pravidlá:
 | **3. Etymológia technického žargónu** | Koreňové prefixy `KRYF-`, `SPSC-`, `UMA-`, `EVOI-`, `SWAPIMG-`, `--krystal-sv[0..7]-*` | Rozklad odborného žargónu na jednoznačný technický koreň (`KRYF` = štruktúrovaný súbor; `SPSC` = single-producer/single-consumer; `EVOI` = informačný zisk na mJ). |
 | **4. Ontologické poznanie cez názvoslovie** | `Spec-K0..K6`, `VITAL_MAX_HP == 6`, `PROPOSER != VERIFIER`, `SOVEREIGN_CONSTITUTIONAL_CORE_VITAL6` | Presné oddelenie projekcie od autority ($\text{Render}(S) \neq S$) a tvrdej lokálnej verifikácie od dizajnérskych návrhov. |
 
+---
+
+## 6. Špecifikácia Špekulácií vs. Vlastností, Analógia v Konštantách, 4 Čipset-ISA Hybridy & Relačný SQLite CRUD Tok
+
+Implementované v [`oxygen_hybrid_mesh_crud_module.py`](../../projects/sovereign_openvino_companion_v2/oxygen_hybrid_mesh_crud_module.py) na endpointe `/api/v1/runtime/oxygen_hybrid_mesh_crud`:
+
+* **Analógia v konštantách:**
+  $$\text{VITAL\_MAX\_HP } (6) : \text{len}(\text{SYMBOL\_ALPHABET}) (6) \;::\; \text{FRAME\_SIZE\_BYTES } (128) : \text{UMA\_SATURATION\_THRESHOLD } (0.78)$$
+* **Štyri pridružené ISA hybridy pre UX patterny, mesh náhľad & Adaptívny Oxygen Kompozér:**
+  `HYBRID_01_AVX2_FOVEATED_MESH_PREVIEW`, `HYBRID_02_NEON_ARM_VRAY_TILE_PREVIEW`, `HYBRID_03_SPIRV_OXYGEN_COMPOSER_BRIDGE`, `HYBRID_04_SPSC_ZERO_COPY_UX_CADENCE` mapované na `KrystalAdaptiveOxygenComposerV1` (`ox-section-foveated-hero` .. `ox-sticky-status-footer`).
+* **Relačná databázová sieť naprieč CRUD (`DeterministicRelationalCrudDatabaseFlow`):**
+  Vytvára sa cez reálne SQLite (`PRAGMA foreign_keys = ON`) relačné tabuľky `krystal_nodes` + `krystal_edges` (`ON DELETE CASCADE`) + SHA-256 reťazený ledger `crud_audit_ledger` s ACID rollbackom pri porušení `vital_hp == 6` (`ΔS == 0`), ako aj konštrukty metrík a spätne generované auditovateľné záznamy v reči (`evaluate_auditable_log_metrics()`).
+
+---
+
+## 7. Konkrétny Debugovací Prompt pre celé riešenie naprieč všetkými škálami (`DEBUG_PROMPT_ALL_SCALES_KRYSTAL_V1`)
+
+```text
+Rola: Krystal Full-Stack Cross-Scale Debugger & Verifier (PROPOSER != VERIFIER).
+Rozsah škál na overenie v jednom priechode:
+  1. Epistemic Scale (Spec-K0..K6): Oddeľ LOCAL_MEASURED od ARCHITECTURAL_DERIVATION_LOCAL_TESTED a DESIGN_PROPOSAL.
+  2. Data Scales (Stevens NOMINAL/ORDINAL/INTERVAL/RATIO + 128B/4096B swap.img + .kryf): Over bezstratovosť UTF-8 <-> ASCII (channel_noise=0) a zhodu CSS --krystal-sv0..sv7.
+  3. Compute & Memory Scale: Over ThreadPoolExecutor(4) pre-cache < UMA_SATURATION_THRESHOLD (0.78), Phi_Scanout == 0, EVOI >= 0.0180 mJ a VITAL_MAX_HP == 6.
+  4. ISA & Router Scale: Over lokálne x86_64/AVX2 (kernel32 probe), zatiaľ čo ASUS RT-AX58U V2 (BCM6756, GNUton kernel 4.19.183) a USB mount na Linuxe ponechaj označené ako unverified na fyzickom routeri.
+  5. Persistence & Security Scale: Over SQLite FK ACID rollback (Delta S == 0 pri vital_hp != 6), hash-chain ledger a blokovanie neoprávnených prispievateľov/originov mimo @RhodosBerger.
+Výstupný protokol pri každej chybe:
+  [Scale Layer] -> [Expected Contract] -> [Measured Value] -> [Smallest Falsifier CDT] -> [Exact Fix without side-effect] -> pytest exit 0.
+```
+
+---
+
+## 8. Názvoslovie pre vznik organizovanej reči v prompt engineeringu (`KRYF-NOM`)
+
+* **`KRYF-NOM-AXIOM` (Ústavná kotva):** Začiatok každej inštrukcie záväzným invariantom (`VITAL_MAX_HP == 6`, `PROPOSER != VERIFIER`).
+* **`KRYF-NOM-SPEC` (Trieda poznateľnosti):** Povinné označenie každej vety stupňom `Spec-K0..K6` bez miešania dizajnu a merania.
+* **`KRYF-NOM-SCALE` (Prechodový kanál):** Pomenovanie presnej škály (`Stevens`, `128B`, `swap.img`, `.kryf`, `--krystal-sv*`, `CUDA/AVX2/BCM6756`).
+* **`KRYF-NOM-CRUD-AUDIT` (Auditovateľná stopa v reči):** Spätné vygenerovanie vety priamo z hashovaného záznamu (`[AUDIT #n | HASH=...]: Operácia ...`).
+* **`KRYF-NOM-CDT` (Falzifikátor & STOP pravidlo):** Exaktná podmienka, čo tvrdenie vyvráti a kedy má vykonávanie zastaviť (`ΔS == 0`).
+
+
+

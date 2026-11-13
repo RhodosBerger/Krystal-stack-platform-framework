@@ -91,6 +91,10 @@ from projects.sovereign_openvino_companion_v2.blender_vray_ui_and_enterprise_b2b
     render_blender_vray_ui_html,
     render_kernel_eshop_html,
 )
+from projects.sovereign_openvino_companion_v2.oxygen_hybrid_mesh_crud_module import (
+    DeterministicRelationalCrudDatabaseFlow,
+    FourChipsetIsaHybridUxAndMeshSuite,
+)
 from krystal_kernel.constants import VITAL_MAX_HP
 
 __all__ = [
@@ -170,4 +174,6 @@ __all__ = [
     "VisionLanguagePropaedeuticsVideoExporter",
     "render_blender_vray_ui_html",
     "render_kernel_eshop_html",
+    "FourChipsetIsaHybridUxAndMeshSuite",
+    "DeterministicRelationalCrudDatabaseFlow",
 ]

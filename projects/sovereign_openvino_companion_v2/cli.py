@@ -189,6 +189,13 @@ def main(argv: Optional[List[str]] = None) -> int:
             ProvenanceOriginAndCommercialStrategyEngine,
         )
 
+        from projects.sovereign_openvino_companion_v2.oxygen_hybrid_mesh_crud_module import (
+            DeterministicRelationalCrudDatabaseFlow,
+            FourChipsetIsaHybridUxAndMeshSuite,
+        )
+
+        ox_out = FourChipsetIsaHybridUxAndMeshSuite().evaluate()
+        ox_out["sqlite_relational_crud_flow"] = DeterministicRelationalCrudDatabaseFlow().run_crud_roundtrip_demo()
         out["blender_vray_b2b_endpoints"] = {
             "blender_vray_sdk_pipeline": BlenderVRaySdkPipelineAndIsaCacheBridge().evaluate_pipeline(),
             "inter_pause_cognitive_parser": InterPauseLatentInvariantParser().parse_inter_pause_state(),
@@ -199,6 +206,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             "provenance_marketing_zones": ProvenanceOriginAndCommercialStrategyEngine().evaluate(),
             "kernel_eshop": KernelEshopAndContributorLicensingEngine().evaluate(),
             "adaptive_vision_usb_swap": AdaptiveVisionUsbSwapAndFileMatrixEngine().evaluate(),
+            "oxygen_hybrid_mesh_crud": ox_out,
         }
     print(json.dumps(out, indent=2))
     return 0
