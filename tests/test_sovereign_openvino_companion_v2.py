@@ -651,17 +651,24 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
     from projects.sovereign_openvino_companion_v2 import (
         BehavioralDeterminismAndCrossSystemMatrix,
         BinaryPatternCorrelationTool,
+        BinarySetMatrixEngine,
         CadenceDictionLogarithmicCoreEngine,
+        CombinatorialWiringAndOscillationMatrixSuite,
+        CrossParadigmCppTranspilerAndCognitionStandardsEngine,
         DeterministicSocketAndThreadFrequencyArchitect,
         DirectionValidationAndEmergingKnowledgeMapper,
         EpistemicMemoryPatternTransducerAndFourScaleEvaluator,
         ExplorationParameterBenchmarkRunner,
         GeneticLineageTestMethodologyEnhancer,
+        GpuVisualMemoryCoordinateAndFieldDefragmenter,
         HexadimensionalLogInterpreterAndPowerMorpher,
+        IntenseThreadBurstMatrixViewBinder,
         MeasuredPropertyProfileAndLexiconMethodology,
+        MorseHardwareStateParser,
         MultipoleLatticeInferenceAndControllabilityEngine,
         RealtimeInspectorScoringGovernor,
         ReversibleCorrelationAndCruiseOrchestrator,
+        SelfAnalyzingGeometricSyncScaleEngine,
         SovereignOpenVinoCompanionV2,
         SpatialInvariantAdaptiveCruiseScheduler,
         TectonicMeshMemoryGearboxAndUnitComparator,
@@ -793,6 +800,59 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
     assert gen_out["p6_conflict_branches_preserved"] == 1
     assert gen_out["uma_bus_contention_eliminated"] is True
 
+    # 8d. GPU visual-memory defragmenter, intense thread-burst binder, Binary Set Matrices, Geometric Sync Scales
+    gpu_defrag = GpuVisualMemoryCoordinateAndFieldDefragmenter()
+    defrag_out = gpu_defrag.project_defragment_and_name_processes()
+    assert defrag_out["external_fragmentation_bytes"] == 0
+    assert defrag_out["compaction_saved_bytes"] == 256
+    assert len(defrag_out["named_active_processes"]) == 4
+    with pytest.raises(ContractViolation):
+        gpu_defrag.project_defragment_and_name_processes([{"tile_id": "BAD_OOB", "u": 1.25, "v": 0.5, "d": 0.5, "evoi_per_mj": 0.14}])
+
+    burst_out = IntenseThreadBurstMatrixViewBinder().bind_views_under_intense_burst()
+    assert burst_out["bound_view_count"] == 4
+    assert burst_out["coalesced_switch_reduction_pct"] == 98.75
+    assert burst_out["view_synchronization_drift"] == 0.0
+
+    bsm = BinarySetMatrixEngine()
+    bsm_out = bsm.evaluate_binary_set_matrices()
+    assert bsm_out["idempotent_union_ok"] is True
+    assert bsm_out["idempotent_intersection_ok"] is True
+    assert bsm_out["double_transpose_exact"] is True
+    assert bsm_out["illegal_self_cert_cells"] == 0
+    bad_mat = [[2 if (r == 0 and c == 0) else 0 for c in range(6)] for r in range(6)]
+    with pytest.raises(ContractViolation):
+        bsm.validate_binary_matrix(bad_mat)
+
+    geom_out = SelfAnalyzingGeometricSyncScaleEngine().evaluate_geometric_scales_and_loop()
+    assert geom_out["strata_count"] == 5
+    assert geom_out["loop_step_count"] == 6
+    assert 0.0 <= geom_out["main_spectrum_coherence"] <= 1.0
+
+    cpp_std_out = CrossParadigmCppTranspilerAndCognitionStandardsEngine().evaluate_cpp_gc_elimination_and_standards()
+    assert cpp_std_out["gc_mode"] == "DETERMINISTIC_ZERO_GC_EPOCH_ARENA"
+    assert cpp_std_out["standard_count"] == 5
+    assert len(cpp_std_out["cognition_governance_schemas"]) == 4
+
+    morse_parser = MorseHardwareStateParser()
+    morse_out = morse_parser.evaluate_morse_roundtrip()
+    assert morse_out["roundtrip_exact"] is True
+    assert morse_out["swap_zero_preserved"] is True
+    with pytest.raises(ContractViolation):
+        morse_parser.parse_morse_to_hardware_image("........")
+
+    osc_suite = CombinatorialWiringAndOscillationMatrixSuite()
+    osc_out = osc_suite.evaluate_combinatorial_wiring_and_oscillation_matrices()
+    assert osc_out["admissible_scheme_count"] == 6
+    assert osc_out["combinatorial_pruning_pct"] > 99.0
+    assert osc_out["max_spectral_row_norm"] < 1.0
+    assert osc_out["monotonic_damping_ok"] is True
+    assert osc_out["strictly_ascending_lanes"] is True
+    assert len(osc_out["trigonometric_chipset_models"]) == 4
+    assert osc_out["trig_unit_circle_error_max"] < 1e-4
+    with pytest.raises(ContractViolation):
+        osc_suite.evaluate_combinatorial_wiring_and_oscillation_matrices(vital_hp=5)
+
     # 9. End-to-end orchestrator + SovereignOpenVinoCompanionV2 + CLI + HTTP GET/POST
     comp = SovereignOpenVinoCompanionV2(log_dir=tmp_path / "rev_logs", reset_ledger=True)
     orch_out = comp.run_reversible_correlation_and_spatial_cruise()
@@ -814,6 +874,11 @@ def test_reversible_matrix_binary_correlator_multipole_inspectors_and_cruise_sch
             "--tectonic-mesh-gearbox",
             "--vulkan-endpoint-extension",
             "--zero-copy-socket-observer",
+            "--gpu-visual-defrag",
+            "--binary-set-matrices",
+            "--geometric-sync-scales",
+            "--morse-hardware-parser",
+            "--oscillation-matrix-suite",
             "--reset-ledger",
             "--log-dir",
             str(tmp_path / "cli_rev_cruise"),

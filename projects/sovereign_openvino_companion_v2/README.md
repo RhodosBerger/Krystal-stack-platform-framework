@@ -22,7 +22,7 @@ python -m projects.sovereign_openvino_companion_v2.cli --compose-constraints --p
 python -m projects.sovereign_openvino_companion_v2.cli --sprint-kg-orchestrate --thermodynamic-vision --autonomous-os-microservices --epistemic-sql-scales --reset-ledger
 
 # Reversible Matrix + 128B Binary Correlator + Spatial Cruise + Inspector Governor + UX Privileges + 6D Log Morpher + Epistemic Memory + 4-Scale Socket Benchmarks + Tectonic Gearbox + Vulkan OSS + Socket Observer
-python -m projects.sovereign_openvino_companion_v2.cli --reversible-binary-correlate --spatial-cruise-scheduler --realtime-inspector-governor --ux-privilege-framework --hexadim-log-morph --epistemic-memory-transducer --socket-thread-governance --exploration-benchmarks --tectonic-mesh-gearbox --vulkan-endpoint-extension --zero-copy-socket-observer --reset-ledger
+python -m projects.sovereign_openvino_companion_v2.cli --reversible-binary-correlate --spatial-cruise-scheduler --realtime-inspector-governor --ux-privilege-framework --hexadim-log-morph --epistemic-memory-transducer --socket-thread-governance --exploration-benchmarks --tectonic-mesh-gearbox --vulkan-endpoint-extension --zero-copy-socket-observer --gpu-visual-defrag --binary-set-matrices --geometric-sync-scales --reset-ledger
 ```
 
 HTTP Endpoints on `krystal_kernel/sovereign_openvino_oneapi_app.py`:

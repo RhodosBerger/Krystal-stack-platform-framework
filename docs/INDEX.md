@@ -52,4 +52,5 @@ Detailed guides on specific modules:
 - [Project Audit & Compute Patterns](PROJECT_AUDIT_AND_COMPUTE_PATTERNS.md) - measured progress, compute patterns, priorities, expertise map
 - [Project Intelligence API](PROJECT_INTELLIGENCE_API.md) - `/api/priorities`, `/api/expertise`, `/api/compute-patterns`, `/api/project/overview`
 - [Prompt Book: Nový Parametrický Render Set (NPRS v3.0)](research/PROMPT_BOOK_PARAMETRIC_RENDER_SET_AI_STUDIO.md)
-- [Vulkan Extensions, Zero-Copy Socket Differentials, 4-Scale Epistemic Memory Gearbox & Companion v2 Manual](architecture/VULKAN_ZERO_COPY_SOCKET_GEARBOX_AND_FOUR_SCALE_COMPONENT_MANUAL.md) - full 17-component reference & 4 next-horizon domains
+- [Vulkan Extensions, Zero-Copy Socket Differentials, 4-Scale Epistemic Memory Gearbox & Companion v2 Manual](architecture/VULKAN_ZERO_COPY_SOCKET_GEARBOX_AND_FOUR_SCALE_COMPONENT_MANUAL.md) - full 23-component reference & 4 next-horizon domains
+- [Krystal Manifestná Vrstva: Schémy riadených procesov, škály poznateľnosti & čipové sady](architecture/KRYSTAL_MANIFEST_PROCESS_SCHEMAS_AND_CHIPSET_KNOWLEDGE_LAYER.md) - manifestné polia, OpenVINO trajektórie a SoC kontrola kremíka

@@ -39,6 +39,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--tectonic-mesh-gearbox", action="store_true")
     parser.add_argument("--vulkan-endpoint-extension", action="store_true")
     parser.add_argument("--zero-copy-socket-observer", action="store_true")
+    parser.add_argument("--gpu-visual-defrag", action="store_true")
+    parser.add_argument("--binary-set-matrices", action="store_true")
+    parser.add_argument("--geometric-sync-scales", action="store_true")
+    parser.add_argument("--morse-hardware-parser", action="store_true")
+    parser.add_argument("--oscillation-matrix-suite", action="store_true")
     parser.add_argument("--conditioning-z", type=float, default=0.65)
     parser.add_argument("--scale-influence-z", type=float, default=0.50)
     parser.add_argument("--emit-bin-dir", type=str, default="")
@@ -78,6 +83,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         or args.tectonic_mesh_gearbox
         or args.vulkan_endpoint_extension
         or args.zero_copy_socket_observer
+        or args.gpu_visual_defrag
+        or args.binary_set_matrices
+        or args.geometric_sync_scales
+        or args.morse_hardware_parser
+        or args.oscillation_matrix_suite
     )
     if args.run_session or not any_explicit:
         out["session"] = v2.run_smart_session(num_frames=args.frames)
@@ -151,6 +161,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         or args.tectonic_mesh_gearbox
         or args.vulkan_endpoint_extension
         or args.zero_copy_socket_observer
+        or args.gpu_visual_defrag
+        or args.binary_set_matrices
+        or args.geometric_sync_scales
+        or args.morse_hardware_parser
+        or args.oscillation_matrix_suite
     ):
         rev_out = v2.run_reversible_correlation_and_spatial_cruise()
         out["reversible_correlation_and_cruise"] = rev_out

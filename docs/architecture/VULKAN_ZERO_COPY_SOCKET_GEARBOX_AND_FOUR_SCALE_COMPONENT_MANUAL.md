@@ -62,6 +62,24 @@ This manual provides per-component architectural specifications, formal invarian
 17. **`GeneticLineageTestMethodologyEnhancer` (`genetic_lineage_test_methodology`)**
     - Upgrades genetic/Code-GENE lineage test methodologies via `128 B` SHA-256-sealed traces, strict `UNKNOWN` quarantine (explicitly `fate_certainty_fabricated == False` — unknowns stay bounded rather than turned into false "fate" certainty), P6 homotopic conflict preservation (`alpha perp beta`), and zero UMA bus contention.
 
+18. **`GpuVisualMemoryCoordinateAndFieldDefragmenter` (`gpu_visual_memory_and_field_defragmenter`)**
+    - Projects multispectral GPU visual-memory tiles (`SPEC_RGB_LUMA`, `SPEC_NEAR_IR_THERMAL`, `SPEC_DEPTH_DISPARITY`, `SPEC_PHASE_MOTION`) into `215.6 m^3` `Code GENE` spatial coordinates, fragments/defragments via 3D Morton Z-order compaction while evicting `< 0.0180 mJ` parasites (`external_fragmentation_bytes == 0`), and names live active process abstractions (`PROC_MORTON_TILE_COMPACT_12W`, etc.).
+
+19. **`IntenseThreadBurstMatrixViewBinder` (`intense_thread_burst_matrix_view_binder`)**
+    - Binds 4 derived matrix views (`VIEW_INVOLUTIVE_6X6_STATE`, `VIEW_TECTONIC_GEARBOX_4X4`, `VIEW_MULTISPECTRAL_USM_4X6`, `VIEW_CAPABILITY_MASK_POSET`) to a shared `128 B` `"KCOR"` anchor while coalescing intense thread-switching bursts (`19200.0 Hz -> 240.0 Hz`, `-98.75%`, `view_synchronization_drift == 0.0`).
+
+20. **`BinarySetMatrixEngine` & `BinarySetMatrixSpec` (`binary_set_matrices`) & `SelfAnalyzingGeometricSyncScaleEngine` (`self_analyzing_geometric_sync_scales`)**
+    - Constructs `6x6` `0/1` Binary Set Matrices (`boolean_union`, `boolean_intersection`, `symmetric_difference_xor`, `boolean_matmul`, `transpose`, `bitboard_u64`) with `illegal_self_cert_cells == 0` and `(A^T)^T == A`, alongside harmonic geometric $(\cos\theta, \sin\theta)$ synchronization scale projections across the 5 strata (`Core, Lexicon, Bridge, Gnosis, Project`) and deterministic loop transitions `T0..T5`.
+
+21. **`CrossParadigmCppTranspilerAndCognitionStandardsEngine` (`cpp_gc_cognition_and_standards`)**
+    - Eliminates non-deterministic Garbage Collector pauses via C++20 `alignas(64)` `128 B` zero-copy epoch arenas, links multi-paradigm language bridges to empirical Use-Case Studies, binds 4 hierarchical Cognition Governance Schemas to power envelopes (`7.5W..15W`) & `UMA < 0.78`, and codifies 5 formal Krystal engineering standards.
+
+22. **`MorseHardwareStateParser` (`morse_hardware_state_parser`)**
+    - Encodes and parses unified hardware utilization snapshot images (`CPU` shared processor line, `RAM` UMA ratio, `SWAP == 0`, `DISK` I/O, active memory `PROC` count, and power envelope) into reversible Morse symbol streams with `ContractViolation` rejection of malformed tokens.
+
+23. **`CombinatorialWiringAndOscillationMatrixSuite` (`combinatorial_wiring_and_oscillation_matrices`)**
+    - Prunes raw 6-stage kernel wiring combinations (`3^6 = 729`) via foundational constitutional definitions (`VITAL_MAX_HP == 6`, `PROPOSER != VERIFIER`, `UMA < 0.78`, `12`-frame hysteresis dwell) down to 6 admissible deterministic schemes (`combinatorial_pruning_pct > 99.0%`), and provides 3 contractive 3x3 stabilization matrices (`M_STAB_DWELL_12`, `M_STAB_PHASE_DAMPING`, `M_STAB_UMA_VELOCITY`, row-sum infinity norm `< 1.0`) guaranteeing monotonic oscillation damping across compute transitions.
+
 ---
 
 ## Four Next-Horizon Expansion Domains

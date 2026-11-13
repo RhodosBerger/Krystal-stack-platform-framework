@@ -1356,7 +1356,14 @@ class ReversibleCorrelationAndCruiseOrchestrator:
         tectonic_gearbox_out = TectonicMeshMemoryGearboxAndUnitComparator().evaluate_tectonic_mesh_gearbox(vital_hp=vital_hp)
 
         from projects.sovereign_openvino_companion_v2.vulkan_endpoint_extension_and_zero_copy_signal import (
+            BinarySetMatrixEngine,
+            CombinatorialWiringAndOscillationMatrixSuite,
+            CrossParadigmCppTranspilerAndCognitionStandardsEngine,
             GeneticLineageTestMethodologyEnhancer,
+            GpuVisualMemoryCoordinateAndFieldDefragmenter,
+            IntenseThreadBurstMatrixViewBinder,
+            MorseHardwareStateParser,
+            SelfAnalyzingGeometricSyncScaleEngine,
             VulkanEndpointExtensionRuntime,
             ZeroCopySocketObservationProcess,
         )
@@ -1366,6 +1373,15 @@ class ReversibleCorrelationAndCruiseOrchestrator:
             evoi_per_mj=evoi_per_mj, observed_latency_ms=observed_latency_ms, vital_hp=vital_hp
         )
         genetic_test_out = GeneticLineageTestMethodologyEnhancer().evaluate_genetic_test_methodology(vital_hp=vital_hp)
+        gpu_defrag_out = GpuVisualMemoryCoordinateAndFieldDefragmenter().project_defragment_and_name_processes(vital_hp=vital_hp)
+        burst_binder_out = IntenseThreadBurstMatrixViewBinder().bind_views_under_intense_burst(vital_hp=vital_hp)
+        binary_set_out = BinarySetMatrixEngine().evaluate_binary_set_matrices(vital_hp=vital_hp)
+        geom_scales_out = SelfAnalyzingGeometricSyncScaleEngine().evaluate_geometric_scales_and_loop(vital_hp=vital_hp)
+        cpp_cognition_std_out = CrossParadigmCppTranspilerAndCognitionStandardsEngine().evaluate_cpp_gc_elimination_and_standards(vital_hp=vital_hp)
+        morse_hw_out = MorseHardwareStateParser().evaluate_morse_roundtrip(vital_hp=vital_hp)
+        oscillation_suite_out = CombinatorialWiringAndOscillationMatrixSuite().evaluate_combinatorial_wiring_and_oscillation_matrices(
+            vital_hp=vital_hp
+        )
 
         active_logger.log_event(
             channel="telemetry",
@@ -1417,6 +1433,13 @@ class ReversibleCorrelationAndCruiseOrchestrator:
             "vulkan_endpoint_extension_runtime": vulkan_ext_out,
             "zero_copy_socket_observation_process": zero_copy_obs_out,
             "genetic_lineage_test_methodology": genetic_test_out,
+            "gpu_visual_memory_and_field_defragmenter": gpu_defrag_out,
+            "intense_thread_burst_matrix_view_binder": burst_binder_out,
+            "binary_set_matrices": binary_set_out,
+            "self_analyzing_geometric_sync_scales": geom_scales_out,
+            "cpp_gc_cognition_and_standards": cpp_cognition_std_out,
+            "morse_hardware_state_parser": morse_hw_out,
+            "combinatorial_wiring_and_oscillation_matrices": oscillation_suite_out,
             "chain_valid": chain_ok,
             "log_audit": audit,
         }
