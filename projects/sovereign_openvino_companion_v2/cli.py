@@ -17,19 +17,65 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--frames", type=int, default=16)
     parser.add_argument("--ab-benchmark", type=int, default=0)
     parser.add_argument("--candidate-nodes", action="store_true")
+    parser.add_argument("--morph-sense", action="store_true")
+    parser.add_argument("--compile-binary-ratios", action="store_true")
+    parser.add_argument("--stack-flows", action="store_true")
+    parser.add_argument("--doc-query", type=str, default="")
+    parser.add_argument("--emit-bin-dir", type=str, default="")
+    parser.add_argument("--morph-factor", type=float, default=0.618034)
+    parser.add_argument("--conflict-fork", action="store_true")
     parser.add_argument("--log-dir", type=str, default="")
     parser.add_argument("--reset-ledger", action="store_true")
     args = parser.parse_args(argv)
 
     log_dir = Path(args.log_dir) if args.log_dir else None
+    bin_dir = Path(args.emit_bin_dir) if args.emit_bin_dir else None
     v2 = SovereignOpenVinoCompanionV2(log_dir=log_dir, reset_ledger=args.reset_ledger)
     out: Dict[str, Any] = {}
-    if args.run_session or (args.ab_benchmark <= 0 and not args.candidate_nodes):
+    any_explicit = (
+        args.run_session
+        or args.ab_benchmark > 0
+        or args.candidate_nodes
+        or args.morph_sense
+        or args.compile_binary_ratios
+        or args.stack_flows
+        or bool(args.doc_query.strip())
+    )
+    if args.run_session or not any_explicit:
         out["session"] = v2.run_smart_session(num_frames=args.frames)
     if args.ab_benchmark > 0:
         out["ab_benchmark"] = v2.run_v1_vs_v2_ab_benchmark(iterations=args.ab_benchmark)
     if args.candidate_nodes:
         out["candidate_nodes"] = v2.prototype_candidate_runtime_nodes()
+    if args.morph_sense or args.compile_binary_ratios or args.stack_flows:
+        full_syn = v2.run_sensory_binary_and_flow_synthesis(
+            morph_factor=args.morph_factor,
+            contradictory_evidence=args.conflict_fork,
+            output_bin_dir=bin_dir,
+        )
+        if args.morph_sense:
+            out["sensory_morphism"] = full_syn["sensory_morphism"]
+        if args.compile_binary_ratios:
+            out["binary_aspect_ratios"] = full_syn["binary_aspect_ratios"]
+        if args.stack_flows:
+            out["process_microservice_conclusion_audit"] = full_syn["process_microservice_conclusion_audit"]
+            out["new_stack_flows"] = full_syn["new_stack_flows"]
+            out["hypervisor_matrix_and_knowledge"] = full_syn["hypervisor_matrix_and_knowledge"]
+            out["survival_governor_and_motivation"] = full_syn["survival_governor_and_motivation"]
+        out["chain_valid"] = full_syn["chain_valid"]
+        out["log_audit"] = full_syn["log_audit"]
+    if args.doc_query.strip():
+        from projects.sovereign_openvino_companion_v2.markdown_kg_module import (
+            MarkdownBehavioralKnowledgeGraphModule,
+        )
+
+        kg_mod = MarkdownBehavioralKnowledgeGraphModule(logger=v2.logger)
+        out["markdown_knowledge_graph"] = kg_mod.derive_knowledge_graph_and_outcomes(
+            query=args.doc_query.strip(), companion_v2=v2
+        )
+        chain_ok, audit = v2.logger.verify_chain_integrity()
+        out["chain_valid"] = chain_ok
+        out["log_audit"] = audit
     print(json.dumps(out, indent=2))
     return 0
 

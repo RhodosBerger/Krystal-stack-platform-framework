@@ -1226,6 +1226,24 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
             self._send_json(200, companion_v2.run_smart_session(num_frames=16))
             return
+        if self.path.startswith("/api/v1/runtime/sensory_binary_aspect_compiler"):
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            self._send_json(200, companion_v2.run_sensory_binary_and_flow_synthesis())
+            return
+        if self.path.startswith("/api/v1/runtime/markdown_knowledge_graph"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.sovereign_openvino_companion_v2.markdown_kg_module import (
+                MarkdownBehavioralKnowledgeGraphModule,
+            )
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+
+            qs = parse_qs(urlparse(self.path).query)
+            q_str = qs.get("q", ["behavioral pattern binary aspect ratio survival governor"])[0]
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            kg_mod = MarkdownBehavioralKnowledgeGraphModule(logger=companion_v2.logger)
+            self._send_json(200, kg_mod.derive_knowledge_graph_and_outcomes(query=q_str, companion_v2=companion_v2))
+            return
         if self.path in ("/studio", "/krystal_graphics_music_ui_studio.html"):
             from pathlib import Path
             html_file = Path(__file__).resolve().parent.parent / "krystal_web_hub" / "static" / "krystal_graphics_music_ui_studio.html"
@@ -1451,6 +1469,55 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(200, res)
             except ContractViolation as exc:
                 self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": 6})
+            return
+
+        if self.path == "/api/v1/runtime/sensory_binary_aspect_compiler":
+            from krystal_kernel.constants import ContractViolation
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+
+            vital_hp = int(data.get("vital_hp", VITAL_MAX_HP))
+            if vital_hp != VITAL_MAX_HP:
+                self._send_json(
+                    400,
+                    {
+                        "error": f"Constitutional invariant breach: vital_hp={vital_hp} != 6",
+                        "violation_code": "ERR_CONSTITUTIONAL_INVARIANT_BREACH",
+                        "vital_max_hp": VITAL_MAX_HP,
+                    },
+                )
+                return
+
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            try:
+                res = companion_v2.run_sensory_binary_and_flow_synthesis(
+                    morph_factor=float(data.get("morph_factor", 0.618034)),
+                    contradictory_evidence=bool(data.get("contradictory_evidence", False)),
+                    uma_utilization=float(data.get("uma_utilization", 0.28)),
+                    uma_velocity=float(data.get("uma_velocity", 0.04)),
+                    gnosis_yield_nats_per_mj=float(data.get("gnosis_yield_nats_per_mj", 4.8201)),
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/runtime/markdown_knowledge_graph":
+            from krystal_kernel.constants import ContractViolation
+            from projects.sovereign_openvino_companion_v2.markdown_kg_module import (
+                MarkdownBehavioralKnowledgeGraphModule,
+            )
+            from projects.sovereign_openvino_companion_v2.smart_tuner import SovereignOpenVinoCompanionV2
+
+            companion_v2 = SovereignOpenVinoCompanionV2(reset_ledger=True)
+            kg_mod = MarkdownBehavioralKnowledgeGraphModule(logger=companion_v2.logger)
+            try:
+                res = kg_mod.derive_knowledge_graph_and_outcomes(
+                    query=str(data.get("query", "")),
+                    companion_v2=companion_v2,
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             return
 
         from krystal_kernel.polymorphic_ingress_adapter import PolymorphicApiEndpointConnector
