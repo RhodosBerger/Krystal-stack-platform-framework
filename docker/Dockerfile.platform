@@ -1,0 +1,43 @@
+# Krystal platform server image (production model).
+# STATUS: written, NOT built — Docker is not installed on the authoring host.
+# Build:  docker build -f docker/Dockerfile.platform -t krystal-platform:local .
+# Run:    docker run --rm -p 127.0.0.1:8090:8090 -e KRYSTAL_ENV=production \
+#                    -e KRYSTAL_ADMIN_TOKEN=change-me krystal-platform:local
+
+FROM python:3.14-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    KRYSTAL_ENV=production \
+    KRYSTAL_HOST=0.0.0.0 \
+    KRYSTAL_PORT=8090
+
+# Minimal shared libs for opencv-headless / openvino on slim Debian.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libglib2.0-0 libgomp1 \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements-platform.txt .
+RUN pip install --no-cache-dir -r requirements-platform.txt
+
+# Only the packages the server imports; tests, docs, artifacts stay out of the image.
+COPY krystal_kernel/ krystal_kernel/
+COPY projects/ projects/
+COPY frontend/ frontend/
+COPY pyproject.toml README.md ./
+COPY .agents/rules/ .agents/rules/
+
+# Pinned Babylon.js 9.36.0 for the 3D simulation grid (SHA-256 verified; build fails on mismatch).
+RUN python -X utf8 -c "from projects.trigonometric_hybrid_platform_framework.simulation_grid_3d import ensure_babylon_vendor; print(ensure_babylon_vendor())"
+
+# Unprivileged user.
+RUN useradd --create-home --uid 10001 krystal && chown -R krystal:krystal /app
+USER krystal
+
+EXPOSE 8090
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
+  CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8090/healthz',timeout=2).status==200 else 1)"
+
+CMD ["python", "-X", "utf8", "-m", "krystal_kernel.sovereign_openvino_oneapi_app"]

@@ -1,0 +1,15 @@
+# Pinned runtime dependencies for the platform HTTP server
+# (krystal_kernel.sovereign_openvino_oneapi_app + projects.trigonometric_hybrid_platform_framework).
+# Versions taken from the verified local .venv (Python 3.14.7, Windows) on 2026-11-14.
+# Heavy ML stacks (torch, keras) stay in .venv-keras and are NOT part of this server image.
+numpy==2.5.4
+psutil==7.2.2
+z3-solver==5.4.1.0
+pydantic==2.14.3
+fastapi==0.162.7
+requests==2.34.2
+openvino==2026.4.1
+opencv-python-headless==5.0.0.93
+PyYAML==6.0.3
+py-cpuinfo==9.0.0
+pillow==13.0.0

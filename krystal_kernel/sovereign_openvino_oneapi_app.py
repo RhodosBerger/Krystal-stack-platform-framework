@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import dataclasses
 import hashlib
+import hmac
 import http.server
 import json
 import os
@@ -929,6 +930,10 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(html_bytes)
                 return
+        if self.path == "/healthz":
+            # Cheap liveness probe for reverse proxies / orchestrators (no subprocess, no AST, no Z3).
+            self._send_json(200, {"status": "ok", "vital_max_hp": VITAL_MAX_HP})
+            return
         if self.path == "/api/v1/hardware/status":
             self._send_json(200, self.app_instance.get_hardware_and_api_status())
             return
@@ -1503,6 +1508,34 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(html_bytes)
             return
 
+        if self.path.startswith("/simulation_grid_3d"):
+            from projects.trigonometric_hybrid_platform_framework.simulation_grid_3d import (
+                render_simulation_grid_3d_html,
+            )
+
+            html_bytes = render_simulation_grid_3d_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path == "/vendor/babylon.js":
+            from projects.trigonometric_hybrid_platform_framework.simulation_grid_3d import VENDOR_PATH
+
+            if not VENDOR_PATH.exists():
+                self._send_json(404, {"error": "babylon.js not vendored; run simulation_grid_3d export"})
+                return
+            js_bytes = VENDOR_PATH.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(js_bytes)))
+            self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+            self.end_headers()
+            self.wfile.write(js_bytes)
+            return
+
         if self.path.startswith("/adaptive_sync_grid"):
             from projects.trigonometric_hybrid_platform_framework.adaptive_sync_card_grid import (
                 render_adaptive_sync_card_grid_html,
@@ -1893,6 +1926,17 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 GLOBAL_TRIGONOMETRIC_HYBRID_PLATFORM,
             )
 
+            # Production guard: prompt edits mutate a process-global registry. In production
+            # they require KRYSTAL_ADMIN_TOKEN via the X-Krystal-Admin-Token header.
+            if data.get("prompt_edit") and os.environ.get("KRYSTAL_ENV", "").lower() == "production":
+                expected = os.environ.get("KRYSTAL_ADMIN_TOKEN", "")
+                provided = self.headers.get("X-Krystal-Admin-Token", "")
+                if not expected or not hmac.compare_digest(expected, provided):
+                    self._send_json(
+                        403,
+                        {"error": "prompt_edit requires admin token in production", "vital_max_hp": VITAL_MAX_HP},
+                    )
+                    return
             try:
                 res = GLOBAL_TRIGONOMETRIC_HYBRID_PLATFORM.evaluate_full_platform(
                     angle_deg=float(data.get("angle_deg", 58.282525)),
@@ -1926,4 +1970,9 @@ def run_server(host: str = "127.0.0.1", port: int = 8090) -> None:
 
 
 if __name__ == "__main__":
-    run_server()
+    # Production: KRYSTAL_HOST=0.0.0.0 inside a container behind a reverse proxy.
+    # Default stays loopback-only for local development.
+    run_server(
+        host=os.environ.get("KRYSTAL_HOST", "127.0.0.1"),
+        port=int(os.environ.get("KRYSTAL_PORT", "8090")),
+    )

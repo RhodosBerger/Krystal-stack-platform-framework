@@ -51,3 +51,5 @@ Thumbs.db
 
 # Platform Framework Specific
 *.stats
+# Vendored third-party JS (fetched + SHA-256 verified by simulation_grid_3d.ensure_babylon_vendor)
+frontend/vendor/

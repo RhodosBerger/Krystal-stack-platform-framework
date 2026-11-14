@@ -279,10 +279,13 @@ def simulate_adaptive_rollback(
     one_way_latency_ms: float = 40.0,
     jitter_sigma_ms: float = 6.0,
     seed: int = 6,
+    record_trace: bool = False,
 ) -> Dict[str, Any]:
     """Client A predicts remote inputs of B, rolls back on misprediction, stalls beyond horizon.
 
     Pass: zero checksum desync against the authoritative kernel trace on every tick.
+    With record_trace=True the per-tick kernel state, the client's first (possibly
+    mispredicted) state, the correction flag and the horizon are returned for replay.
     """
     rng = random.Random(seed)
     inputs_a = [rng.choice((0, 1, 2, 3)) for _ in range(ticks)]
@@ -291,10 +294,12 @@ def simulate_adaptive_rollback(
 
     state0: State = ((0, VITAL_MAX_HP), (9, VITAL_MAX_HP))
     kernel_sums: List[str] = []
+    kernel_states: List[State] = []
     s = state0
     for k in range(ticks):
         s = _step(s, (inputs_a[k], inputs_b[k]))
         kernel_sums.append(_checksum(s))
+        kernel_states.append(s)
 
     arrivals: Dict[int, List[int]] = {}
     for k in range(ticks):
@@ -309,6 +314,9 @@ def simulate_adaptive_rollback(
     stalls = rollbacks = resim_ticks = 0
     max_h = ctrl.horizon
     max_hp_seen = VITAL_MAX_HP
+    first_pred: List[State] = []
+    horizon_at: List[int] = []
+    sim_wall: List[int] = []
 
     def predict(k: int) -> int:
         for j in range(k - 1, -1, -1):
@@ -344,6 +352,9 @@ def simulate_adaptive_rollback(
                 nxt = _step(snapshots[t_local], (inputs_a[t_local], b_val))
                 max_hp_seen = max(max_hp_seen, nxt[0][1], nxt[1][1])
                 snapshots.append(nxt)
+                first_pred.append(nxt)
+                horizon_at.append(ctrl.horizon)
+                sim_wall.append(wall)
                 t_local += 1
             else:
                 stalls += 1
@@ -358,7 +369,7 @@ def simulate_adaptive_rollback(
         raise ContractViolation("HP invariant breached in simulation", violation_code="ERR_SYNC_HP_BREACH")
 
     desync = sum(1 for k in range(ticks) if _checksum(snapshots[k + 1]) != kernel_sums[k])
-    return {
+    result: Dict[str, Any] = {
         "ticks": ticks,
         "one_way_latency_ms": one_way_latency_ms,
         "jitter_sigma_ms": jitter_sigma_ms,
@@ -375,6 +386,17 @@ def simulate_adaptive_rollback(
         "client_final_checksum": _checksum(snapshots[-1]),
         "evidence_level": "SIMULATED_DETERMINISTIC_SYNTHETIC_LATENCY",
     }
+    if record_trace:
+        # Compact rows: [pa, ha, pb, hb] for kernel, first prediction and final client state.
+        result["trace"] = {
+            "kernel": [[st[0][0], st[0][1], st[1][0], st[1][1]] for st in kernel_states],
+            "first_prediction": [[st[0][0], st[0][1], st[1][0], st[1][1]] for st in first_pred],
+            "final_client": [[st[0][0], st[0][1], st[1][0], st[1][1]] for st in snapshots[1:]],
+            "corrected": [first_pred[k] != snapshots[k + 1] for k in range(ticks)],
+            "horizon": horizon_at,
+            "sim_wall_tick": sim_wall,
+        }
+    return result
 
 
 def describe_adaptive_sync_architecture() -> Dict[str, Any]:
