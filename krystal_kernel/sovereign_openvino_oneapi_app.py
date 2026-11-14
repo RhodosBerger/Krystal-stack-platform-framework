@@ -1503,6 +1503,19 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(html_bytes)
             return
 
+        if self.path.startswith("/adaptive_sync_grid"):
+            from projects.trigonometric_hybrid_platform_framework.adaptive_sync_card_grid import (
+                render_adaptive_sync_card_grid_html,
+            )
+
+            html_bytes = render_adaptive_sync_card_grid_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
         if self.path.startswith("/api/v1/runtime/trigonometric_hybrid_platform"):
             from urllib.parse import parse_qs, urlparse
             from projects.trigonometric_hybrid_platform_framework.platform_engine import (
