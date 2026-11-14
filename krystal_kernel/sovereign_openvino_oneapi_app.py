@@ -1487,6 +1487,40 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self._send_json(200, GLOBAL_HYBRID_LORE_AGGREGATOR.decode_binary_grid_packet(pkt))
             return
 
+        if self.path.startswith("/trigonometric_hybrid_platform"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.trigonometric_hybrid_platform_framework.platform_engine import (
+                render_trigonometric_platform_html,
+            )
+
+            qs = parse_qs(urlparse(self.path).query)
+            angle = float(qs.get("angle", ["58.282525"])[0])
+            html_bytes = render_trigonometric_platform_html(angle_deg=angle).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/api/v1/runtime/trigonometric_hybrid_platform"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.trigonometric_hybrid_platform_framework.platform_engine import (
+                GLOBAL_TRIGONOMETRIC_HYBRID_PLATFORM,
+            )
+
+            qs = parse_qs(urlparse(self.path).query)
+            angle = float(qs.get("angle", ["58.282525"])[0])
+            route = str(qs.get("route", ["zero_copy_uma_vulkan_trigonometry"])[0])
+            self._send_json(
+                200,
+                GLOBAL_TRIGONOMETRIC_HYBRID_PLATFORM.evaluate_full_platform(
+                    angle_deg=angle,
+                    task_route=route,
+                ),
+            )
+            return
+
         from krystal_kernel.polymorphic_ingress_adapter import PolymorphicApiEndpointConnector
         poly_conn = PolymorphicApiEndpointConnector()
         if f"GET {self.path}" in poly_conn.SUPPORTED_ENDPOINTS:
@@ -1838,6 +1872,28 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(200, res)
             except ContractViolation as exc:
                 self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/runtime/trigonometric_hybrid_platform":
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.platform_engine import (
+                GLOBAL_TRIGONOMETRIC_HYBRID_PLATFORM,
+            )
+
+            try:
+                res = GLOBAL_TRIGONOMETRIC_HYBRID_PLATFORM.evaluate_full_platform(
+                    angle_deg=float(data.get("angle_deg", 58.282525)),
+                    uma_utilization=float(data.get("uma_utilization", 0.56)),
+                    task_route=str(data.get("task_route", "zero_copy_uma_vulkan_trigonometry")),
+                    prompt_edit=data.get("prompt_edit"),
+                    vital_hp=int(data.get("vital_hp", VITAL_MAX_HP)),
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(
+                    400,
+                    {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP},
+                )
             return
 
         from krystal_kernel.polymorphic_ingress_adapter import PolymorphicApiEndpointConnector
