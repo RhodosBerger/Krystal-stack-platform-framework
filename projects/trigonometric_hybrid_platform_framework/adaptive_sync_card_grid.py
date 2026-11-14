@@ -10,6 +10,7 @@ Follows .agents/rules/krystal-ui-system-ai-style-contract.md:
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -47,6 +48,13 @@ SIM_PROFILES = (
     ("REGIONAL", 40.0, 6.0),
     ("WAN", 100.0, 20.0),
 )
+
+
+@lru_cache(maxsize=32)
+def _cached_simulation(ticks: int, latency_ms: float, jitter_ms: float, seed: int) -> Dict[str, Any]:
+    """The simulation is fully deterministic for a given argument tuple, so recomputing it
+    on every page request was redundant. Results are read-only for callers."""
+    return simulate_adaptive_rollback(ticks=ticks, one_way_latency_ms=latency_ms, jitter_sigma_ms=jitter_ms, seed=seed)
 
 
 def build_card_dataset(sim_ticks: int = 1000) -> Dict[str, Any]:
@@ -116,7 +124,7 @@ def build_card_dataset(sim_ticks: int = 1000) -> Dict[str, Any]:
 
     total_desync = 0
     for name, lat, jit in SIM_PROFILES:
-        r = simulate_adaptive_rollback(ticks=sim_ticks, one_way_latency_ms=lat, jitter_sigma_ms=jit, seed=6)
+        r = _cached_simulation(sim_ticks, lat, jit, 6)
         total_desync += r["desync_ticks"]
         cards.append({
             "id": f"SIM_{name}",
@@ -252,6 +260,17 @@ _TEMPLATE = r"""<!DOCTYPE html>
   .ks-hex.layer-TELEMETRY .hx-kind { color: var(--ks-green); }  /* status layer = green     */
   body.density-hex .ks-hexgrid { --hex-s: 128px; }
   @media (max-width: 720px) { .ks-hexgrid { --hex-s: 96px; } }
+
+  /* ── KS HEX GRID 3D ──────────────────────────────────────────────────────
+     Same hex lattice on a tilted plane. Each tile is lifted by --z (graph degree of the
+     card, capped at 10) * 8px. Depth is conveyed by perspective + elevation only:
+     no shadows, no glow, no blur (design manual §4). Motion 240ms (manual §8). */
+  .ks-hex3d-stage { perspective: 1200px; perspective-origin: 50% 0; padding: 48px 0 96px; overflow: hidden; }
+  .ks-hexgrid.ks-hex3d { transform: rotateX(52deg) rotateZ(-8deg); transform-origin: 50% 0; transform-style: preserve-3d; }
+  .ks-hex3d .ks-hex { transform: translateZ(calc(var(--z, 0) * 8px)); transition: transform 240ms, background 160ms; }
+  .ks-hex3d .ks-hex:hover,
+  .ks-hex3d .ks-hex.selected { transform: translateZ(calc(var(--z, 0) * 8px + 24px)); }
+  .ks-z-legend { font-family: var(--f-mono); font-size: 11px; color: var(--ks-muted); margin-bottom: 8px; }
 </style>
 </head>
 <body class="mode-hybrid density-grid">
@@ -275,6 +294,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
       <button data-v="grid" class="active">Grid</button>
       <button data-v="list">List</button>
       <button data-v="hex">Hex</button>
+      <button data-v="hex3d">Hex 3D</button>
     </div>
   </div>
 </nav>
@@ -322,16 +342,18 @@ function cardHtml(c) {
 function hexHtml(c) {
   const m = c.metrics[0];
   const short = c.kind === "CONNECTION" ? c.id : c.title;
-  return `<div class="ks-hex layer-${esc(c.layer)}${state.selected === c.id ? " selected" : ""}" data-id="${esc(c.id)}" title="${esc(c.title)}">
+  return `<div class="ks-hex layer-${esc(c.layer)}${state.selected === c.id ? " selected" : ""}" data-id="${esc(c.id)}" title="${esc(c.title)}" style="--z:${Math.min((c.links || []).length, 10)}">
       <div class="ks-hex-inner"><span class="hx-kind">${esc(c.kind)}</span><span class="hx-title">${esc(short)}</span>
       ${m ? `<span class="hx-metric">${esc(m.label)} ${esc(m.value)}</span>` : ""}</div></div>`;
 }
 
 function render() {
-  const hex = state.density === "hex";
+  const hex = state.density === "hex" || state.density === "hex3d";
+  const hex3d = state.density === "hex3d";
   document.getElementById("groups").innerHTML = groups().map(g => {
     const closed = state.collapsed.has(g.title);
-    const body = closed ? "" : (hex ? `<div class="ks-hexgrid">${g.cards.map(hexHtml).join("")}</div>`
+    const hexBody = `<div class="ks-hexgrid${hex3d ? " ks-hex3d" : ""}">${g.cards.map(hexHtml).join("")}</div>`;
+    const body = closed ? "" : (hex ? (hex3d ? `<div class="ks-z-legend">Výška Z = počet väzieb karty v grafe (× 8 px, max 10)</div><div class="ks-hex3d-stage">${hexBody}</div>` : hexBody)
                                      : `<div class="ks-grid">${g.cards.map(cardHtml).join("")}</div>`);
     return `<div class="ks-group"><div class="ks-chapter">${esc(g.eyebrow)} · ${g.cards.length}</div>
       <h2 class="ks-group-head" data-group="${esc(g.title)}">${closed ? "▸" : "▾"} ${esc(g.title)}</h2>${body}</div>`;
@@ -393,7 +415,7 @@ function bindSeg(id, fn) {
 }
 bindSeg("seg-hier", v => { state.hier = v; render(); });
 bindSeg("seg-mode", v => { document.body.classList.remove("mode-world","mode-arena","mode-hybrid"); document.body.classList.add("mode-" + v); });
-bindSeg("seg-density", v => { document.body.classList.remove("density-grid","density-list","density-hex"); document.body.classList.add("density-" + v); state.density = v; render(); });
+bindSeg("seg-density", v => { document.body.classList.remove("density-grid","density-list","density-hex","density-hex3d"); document.body.classList.add("density-" + v); state.density = v; render(); });
 render();
 </script>
 </body>
