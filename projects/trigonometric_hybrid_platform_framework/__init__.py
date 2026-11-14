@@ -13,6 +13,7 @@ Consolidates:
 from .catalog_gearbox_and_comm_kernel import (
     CatalogProliferationAndCarouselReconciler,
     ConstitutionalModeratorAndChoiceSolver,
+    CrossDisplayMultiGenreParameterMatrix,
     FamiliarHomeClassAndSevenProductSets,
     FrameworkNationsValidator,
     ProcessDrivenGearboxAndCommKernel,
@@ -32,6 +33,7 @@ __all__ = [
     "CatalogProliferationAndCarouselReconciler",
     "CodeDependencyGraphAnalyzer",
     "ConstitutionalModeratorAndChoiceSolver",
+    "CrossDisplayMultiGenreParameterMatrix",
     "FamiliarHomeClassAndSevenProductSets",
     "FrameworkNationsValidator",
     "HierarchyOfRelatedTermsEngine",

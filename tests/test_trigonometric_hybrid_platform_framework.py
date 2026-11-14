@@ -16,6 +16,7 @@ from projects.trigonometric_hybrid_platform_framework import (
     CatalogProliferationAndCarouselReconciler,
     CodeDependencyGraphAnalyzer,
     ConstitutionalModeratorAndChoiceSolver,
+    CrossDisplayMultiGenreParameterMatrix,
     FamiliarHomeClassAndSevenProductSets,
     FrameworkNationsValidator,
     HierarchyOfRelatedTermsEngine,
@@ -125,6 +126,14 @@ def test_nations_catalogs_carousels_gearbox_subprocess_and_moderator() -> None:
             commercial_cart=True,
             signed_agreement=False,
         )
+
+    cd_mg = CrossDisplayMultiGenreParameterMatrix.evaluate_cross_display_multi_genre_matrix()
+    assert cd_mg["display_surface_count"] == 5
+    assert cd_mg["genre_count"] == 5
+    assert cd_mg["universal_parameter_count"] == 10
+    assert cd_mg["z3_cross_play_display_verdict"] == "Z3_SAT_CROSS_GENRE_LOCKSTEP"
+    with pytest.raises(ContractViolation):
+        CrossDisplayMultiGenreParameterMatrix.evaluate_cross_display_multi_genre_matrix(vital_hp=3)
 
 
 def test_full_platform_and_live_http_endpoints() -> None:

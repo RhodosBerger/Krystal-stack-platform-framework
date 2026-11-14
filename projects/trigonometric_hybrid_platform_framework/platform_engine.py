@@ -834,6 +834,7 @@ class TrigonometricHybridPlatformFramework:
         from .catalog_gearbox_and_comm_kernel import (
             CatalogProliferationAndCarouselReconciler,
             ConstitutionalModeratorAndChoiceSolver,
+            CrossDisplayMultiGenreParameterMatrix,
             FamiliarHomeClassAndSevenProductSets,
             FrameworkNationsValidator,
             ProcessDrivenGearboxAndCommKernel,
@@ -856,6 +857,10 @@ class TrigonometricHybridPlatformFramework:
                 ),
                 "moderator_and_consistent_choice": ConstitutionalModeratorAndChoiceSolver.moderate_and_solve_consistent_choice(
                     vital_hp=vital_hp
+                ),
+                "cross_display_multi_genre_matrix": CrossDisplayMultiGenreParameterMatrix.evaluate_cross_display_multi_genre_matrix(
+                    uma_utilization=uma_utilization,
+                    vital_hp=vital_hp,
                 ),
             },
             vital_hp=vital_hp,
