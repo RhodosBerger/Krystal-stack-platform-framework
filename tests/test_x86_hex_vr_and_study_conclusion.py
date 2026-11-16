@@ -284,3 +284,20 @@ def test_new_http_endpoints_roundtrip() -> None:
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_cross_layer_pattern_demonstration() -> None:
+    from projects.trigonometric_hybrid_platform_framework.cross_layer_pattern_demo import (
+        run_cross_layer_pattern_demonstration,
+    )
+
+    demo = run_cross_layer_pattern_demonstration(uma_utilization=0.82, layout_angle_deg=64.0, write_reports=True)
+    assert demo["vital_max_hp"] == 6
+    assert demo["telemetry_and_hypervisor_snapshot"]["wsl2_modulated_ram_gb"] == 8
+    assert demo["layer_demonstrations"]["L1_zero_stutter_dcc"]["parasitic_task_decoupled"] is True
+    assert demo["layer_demonstrations"]["L2_verified_robotics_twin"]["conflict_emergency_stop"] is True
+    assert demo["layer_demonstrations"]["L3_self_tuning_workstation"]["committed_core_affinity"] == "CPU_4T_PHYSICAL_AVX512"
+    assert demo["layer_demonstrations"]["L3_self_tuning_workstation"]["anti_oscillation_jitter_blocked"] is True
+    assert demo["layer_demonstrations"]["L4_low_latency_ide_mesh"]["released_after_verifier_receipt"] is True
+    assert all(p["evidence_status"] in ("VERIFIED_WITH_SCOPE", "LOCAL_MEASURED") for p in demo["pattern_6_tuples"])
+
