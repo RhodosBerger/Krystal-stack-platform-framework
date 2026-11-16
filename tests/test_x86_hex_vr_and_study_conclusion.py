@@ -301,3 +301,24 @@ def test_cross_layer_pattern_demonstration() -> None:
     assert demo["layer_demonstrations"]["L4_low_latency_ide_mesh"]["released_after_verifier_receipt"] is True
     assert all(p["evidence_status"] in ("VERIFIED_WITH_SCOPE", "LOCAL_MEASURED") for p in demo["pattern_6_tuples"])
 
+
+def test_engine_point_and_function_parser_and_daily_md() -> None:
+    from projects.trigonometric_hybrid_platform_framework.engine_point_and_function_parser import (
+        build_engine_integration_and_export_daily_markdown,
+        parse_engine_spatial_points_and_directives,
+    )
+
+    out = build_engine_integration_and_export_daily_markdown()
+    assert out["vital_max_hp"] == 6
+    assert out["modules_scanned"] >= 20
+    assert out["public_functions_count"] >= 60
+    assert Path(out["markdown_path"]).exists()
+    assert Path(out["json_path"]).exists()
+
+    shadow = parse_engine_spatial_points_and_directives("HEX(1, -1); LAYER_MASK(0xfffff)", uma_utilization=0.85)
+    assert shadow["parsed_nodes"][1]["governed_hex"] == "0x1f"
+
+    with pytest.raises(ContractViolation):
+        parse_engine_spatial_points_and_directives("HEX(9, 9)")
+
+
