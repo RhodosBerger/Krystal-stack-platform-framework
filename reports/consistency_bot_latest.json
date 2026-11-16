@@ -1,0 +1,196 @@
+{
+  "vital_max_hp": 6,
+  "generated_at": "2026-11-16T09:58:14+0100",
+  "mode": "full",
+  "summary": {
+    "VERIFIED_WITH_SCOPE": 3,
+    "SUPPORTED_WITH_SCOPE": 1,
+    "MEASURED_WITH_SCOPE": 2,
+    "CONFLICT": 2
+  },
+  "checks": [
+    {
+      "check_id": "C01",
+      "claim": "Sync connection graph obeys authority rules",
+      "falsifier": "any edge bypasses STEP_GATE_PROXY",
+      "evidence_class": "STATIC_VALIDATION",
+      "verdict": "VERIFIED_WITH_SCOPE",
+      "elapsed_s": 0.0,
+      "measured": {
+        "node_count": 12,
+        "edge_count": 16,
+        "wire_edges": 9,
+        "graph_valid": true
+      }
+    },
+    {
+      "check_id": "C02",
+      "claim": "Adaptive rollback has zero desync on 3 latency profiles",
+      "falsifier": "any checksum desync",
+      "evidence_class": "SIMULATED",
+      "verdict": "SUPPORTED_WITH_SCOPE",
+      "elapsed_s": 0.05,
+      "measured": {
+        "desync_ticks": {
+          "LAN": 0,
+          "REGIONAL": 0,
+          "WAN": 0
+        },
+        "max_horizon": {
+          "LAN": 2,
+          "REGIONAL": 4,
+          "WAN": 8
+        },
+        "ticks": 1000
+      }
+    },
+    {
+      "check_id": "C03",
+      "claim": "OpenVINO conv pipeline matches NumPy reference on every device",
+      "falsifier": "rel error >= 1e-3 on any device",
+      "evidence_class": "LOCAL_MEASURED",
+      "verdict": "MEASURED_WITH_SCOPE",
+      "elapsed_s": 0.6,
+      "measured": {
+        "input_shape": [
+          1,
+          16,
+          128,
+          128
+        ],
+        "devices": {
+          "CPU": {
+            "device_name": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+            "compile_ms": 39.65,
+            "max_rel_error": 7.2e-07,
+            "median_ms": 3.519,
+            "p95_ms": 8.531,
+            "stdev_ms": 1.941,
+            "n": 30,
+            "verdict": "MEASURED_WITH_SCOPE"
+          },
+          "GPU": {
+            "device_name": "Intel(R) Iris(R) Xe Graphics (iGPU)",
+            "compile_ms": 187.48,
+            "max_rel_error": 0.0,
+            "median_ms": 3.24,
+            "p95_ms": 5.13,
+            "stdev_ms": 0.811,
+            "n": 30,
+            "verdict": "MEASURED_WITH_SCOPE"
+          }
+        }
+      }
+    },
+    {
+      "check_id": "C04",
+      "claim": "Transposed conv is the exact adjoint; linear layer is invertible",
+      "falsifier": "adjoint gap >= 1e-5 or inverse error >= 1e-3",
+      "evidence_class": "LOCAL_MEASURED_NUMERICAL",
+      "verdict": "VERIFIED_WITH_SCOPE",
+      "elapsed_s": 0.39,
+      "measured": {
+        "adjoint_gap": 3.393217504903013e-08,
+        "openvino_transpose": {
+          "used": true,
+          "max_rel_error_vs_numpy_adjoint": 2.2899010098692444e-07
+        },
+        "linear_inverse_error": 1.5025136501403053e-07,
+        "relu_inverse_error": 0.16323187459967603
+      }
+    },
+    {
+      "check_id": "C05",
+      "claim": "Summation-order fingerprint pattern holds over profiles",
+      "falsifier": "any hypothesis fails on a profile",
+      "evidence_class": "LOCAL_MEASURED",
+      "verdict": "CONFLICT",
+      "elapsed_s": 5.71,
+      "measured": {
+        "hypotheses": {
+          "P2_blas_is_fma_natural": {
+            "verdict": "CONFLICT",
+            "holds_in": 7,
+            "profiles_run": 8,
+            "failing_profiles": [
+              "P07_K576"
+            ]
+          },
+          "P1_gpu_is_fma_natural": {
+            "verdict": "SUPPORTED_WITH_SCOPE",
+            "holds_in": 8,
+            "profiles_run": 8,
+            "failing_profiles": []
+          },
+          "P3_cpu_matches_no_sequential_recipe": {
+            "verdict": "SUPPORTED_WITH_SCOPE",
+            "holds_in": 8,
+            "profiles_run": 8,
+            "failing_profiles": []
+          }
+        },
+        "kernels_seen": {
+          "CPU": [
+            "brgconv_avx512_f32"
+          ],
+          "GPU": [
+            "convolution_gpu_bfyx_os_iyx_osv16__f32"
+          ]
+        }
+      }
+    },
+    {
+      "check_id": "C06",
+      "claim": "Locate K where NumPy BLAS leaves sequential-FMA order",
+      "falsifier": "no threshold in bracket",
+      "evidence_class": "LOCAL_MEASURED",
+      "verdict": "MEASURED_WITH_SCOPE",
+      "elapsed_s": 0.55,
+      "measured": {
+        "last_equal_k": 448,
+        "threshold_k": 449,
+        "neighbour_check": {
+          "447": true,
+          "450": false
+        },
+        "matrix_shape_m_n": [
+          32,
+          1024
+        ]
+      }
+    },
+    {
+      "check_id": "C07",
+      "claim": "Card grid respects the Krystal UI design manual bans",
+      "falsifier": "shadow / blur / radius > 4px present",
+      "evidence_class": "STATIC_VALIDATION",
+      "verdict": "VERIFIED_WITH_SCOPE",
+      "elapsed_s": 0.01,
+      "measured": {
+        "violations": []
+      }
+    },
+    {
+      "check_id": "C08",
+      "claim": "Deployment configs agree on the server port",
+      "falsifier": "nginx upstream port != app port",
+      "evidence_class": "STATIC_VALIDATION",
+      "verdict": "CONFLICT",
+      "elapsed_s": 0.0,
+      "measured": {
+        "app_default_port": 8090,
+        "platform_conf_upstreams": [
+          8090
+        ],
+        "subdomain_conf_upstreams": [
+          80,
+          8089
+        ],
+        "mismatched_upstreams": [
+          8089
+        ],
+        "docker_build": "NOT_RUN (no Docker on host)"
+      }
+    }
+  ]
+}

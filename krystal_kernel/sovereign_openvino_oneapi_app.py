@@ -1508,6 +1508,46 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(html_bytes)
             return
 
+        if self.path.startswith("/api/v1/runtime/facts"):
+            from projects.trigonometric_hybrid_platform_framework.custom_allocator import check_ontology_integrity
+            from projects.trigonometric_hybrid_platform_framework.fact_synthesis_engine import run_fact_synthesis
+
+            syn = run_fact_synthesis(write=False)
+            syn["ontology_integrity"] = check_ontology_integrity(syn)
+            self._send_json(200, syn)
+            return
+
+        if self.path.startswith("/api/v1/runtime/allocate"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.trigonometric_hybrid_platform_framework.custom_allocator import FactDrivenAllocator
+
+            qs = parse_qs(urlparse(self.path).query)
+            try:
+                n = int(qs.get("n", ["100"])[0])
+                budget = float(qs.get("budget_ms", ["10"])[0])
+            except ValueError:
+                self._send_json(400, {"error": "n must be int, budget_ms must be float"})
+                return
+            current = qs.get("current", [None])[0]
+            self._send_json(200, FactDrivenAllocator().allocate(n, budget, current))
+            return
+
+        if self.path in ("/api/v1/runtime/consistency_bot", "/consistency_bot_report.png"):
+            from projects.trigonometric_hybrid_platform_framework.consistency_bot import REPORT_DIR
+
+            is_png = self.path.endswith(".png")
+            target = REPORT_DIR / ("consistency_bot_latest.png" if is_png else "consistency_bot_latest.json")
+            if not target.exists():
+                self._send_json(404, {"error": "no bot report yet; run python -m projects.trigonometric_hybrid_platform_framework.consistency_bot"})
+                return
+            body = target.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png" if is_png else "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
         if self.path.startswith("/simulation_grid_3d"):
             from projects.trigonometric_hybrid_platform_framework.simulation_grid_3d import (
                 render_simulation_grid_3d_html,

@@ -1,0 +1,806 @@
+{
+  "vital_max_hp": 6,
+  "fact_count": 42,
+  "rule_count": 4,
+  "perception": {
+    "ledger_files": 3,
+    "total_logged_duration_ms": 389.053,
+    "utilization_share_by_stratum": {
+      "S8_LOGOS_SEMANTIC_BIJECTION": 0.0005,
+      "S6_HYPOSTATIC_SUPERPOSITION_FORK": 0.0001,
+      "S9_SOVEREIGN_APOTHEOSIS_GATE": 0.4923,
+      "S3_VULKAN_THERMAL_WFC": 0.0022,
+      "S1_C_ABI_BINARY_CONTRACT": 0.4544,
+      "S8_ALEF_CAUSAL_PROVENANCE_SEAL": 0.0347,
+      "S9_ORCHESTRATION_DAG": 0.0159
+    },
+    "top_operations": [
+      {
+        "operation": "FRAME_TELEMETRY_COMMIT",
+        "count": 82,
+        "duration_ms": 191.152
+      },
+      {
+        "operation": "OPENVINO_VBLANK_SHADOW_INFERENCE",
+        "count": 82,
+        "duration_ms": 176.778
+      },
+      {
+        "operation": "GNOSIS_ARTIFACT_GATE_VERIFICATION",
+        "count": 82,
+        "duration_ms": 13.516
+      },
+      {
+        "operation": "TRACE_REVERSIBLE_CORR_CRUISE_COMMIT",
+        "count": 1,
+        "duration_ms": 4.417
+      },
+      {
+        "operation": "CROSSOVER_AND_HYSTERESIS_POLICY",
+        "count": 82,
+        "duration_ms": 0.858
+      },
+      {
+        "operation": "PROBABILISTIC_AUTHORITY_CALIBRATION",
+        "count": 1,
+        "duration_ms": 0.322
+      },
+      {
+        "operation": "MATRIX_CROSS_SYSTEM_MAP",
+        "count": 1,
+        "duration_ms": 0.25
+      },
+      {
+        "operation": "BINARY_KCOR_CORRELATION",
+        "count": 1,
+        "duration_ms": 0.25
+      }
+    ],
+    "detected_patterns": {
+      "MICRO_TENSOR_CPU_BYPASS": 82
+    },
+    "chains": [
+      {
+        "file": "artifacts\\logs\\final_cli_check\\computation_ledger.jsonl",
+        "entries": 4,
+        "prev_hash_links_consistent": true,
+        "unparseable_lines": 0
+      },
+      {
+        "file": "artifacts\\logs\\sovereign_openvino_companion_v2\\_v1_ab_tmp\\computation_ledger.jsonl",
+        "entries": 328,
+        "prev_hash_links_consistent": true,
+        "unparseable_lines": 0
+      },
+      {
+        "file": "artifacts\\logs\\sovereign_openvino_companion_v2\\computation_ledger.jsonl",
+        "entries": 8,
+        "prev_hash_links_consistent": true,
+        "unparseable_lines": 0
+      }
+    ],
+    "evidence_level": "LOG_REPORTED (durations as written by the logging code; hash links checked, entry hashes not recomputed)"
+  },
+  "rules": [
+    {
+      "rule_id": "R_GPU_RECIPE",
+      "statement": "GPU conv kernel computes sequential FMA in natural k order",
+      "verdict": "SUPPORTED_WITH_SCOPE",
+      "support": 8,
+      "counterexamples": [],
+      "scope_K": [
+        27,
+        576
+      ],
+      "derived_from": [
+        "F_SW_P01_tiny_GPU",
+        "F_SW_P02_baseline_GPU",
+        "F_SW_P03_seed_change_GPU",
+        "F_SW_P04_rgb_K27_GPU",
+        "F_SW_P05_K288_GPU",
+        "F_SW_P06_wide_out_GPU",
+        "F_SW_P07_K576_GPU",
+        "F_SW_P08_large_spatial_GPU"
+      ]
+    },
+    {
+      "rule_id": "R_CPU_RECIPE",
+      "statement": "CPU conv kernel matches no sequential summation recipe (blocked accumulation)",
+      "verdict": "SUPPORTED_WITH_SCOPE",
+      "support": 8,
+      "counterexamples": [],
+      "scope_K": [
+        27,
+        576
+      ],
+      "derived_from": [
+        "F_SW_P01_tiny_CPU",
+        "F_SW_P02_baseline_CPU",
+        "F_SW_P03_seed_change_CPU",
+        "F_SW_P04_rgb_K27_CPU",
+        "F_SW_P05_K288_CPU",
+        "F_SW_P06_wide_out_CPU",
+        "F_SW_P07_K576_CPU",
+        "F_SW_P08_large_spatial_CPU"
+      ]
+    },
+    {
+      "rule_id": "R_BRIDGE_BLAS_BOUNDARY",
+      "statement": "BLAS == sequential FMA iff K < 449 (matmul bisection) agrees with conv profile sweep",
+      "verdict": "SUPPORTED_WITH_SCOPE",
+      "support": 8,
+      "counterexamples": [],
+      "note": "two independent measurements (conv sweep vs. matmul bisection) of one mechanism",
+      "derived_from": [
+        "F_C06_threshold_k",
+        "F_SW_P01_tiny_blas_fma",
+        "F_SW_P02_baseline_blas_fma",
+        "F_SW_P03_seed_change_blas_fma",
+        "F_SW_P04_rgb_K27_blas_fma",
+        "F_SW_P05_K288_blas_fma",
+        "F_SW_P06_wide_out_blas_fma",
+        "F_SW_P07_K576_blas_fma",
+        "F_SW_P08_large_spatial_blas_fma"
+      ]
+    },
+    {
+      "rule_id": "R_ALLOC_BREAK_EVEN",
+      "statement": "Allocate the conv pipeline to GPU only when > 530 inferences run per compiled model; otherwise CPU",
+      "verdict": "DERIVED",
+      "break_even_inferences": 529.9,
+      "formula": "(compile_gpu - compile_cpu) / (median_cpu - median_gpu)",
+      "derived_from": [
+        "F_C03_GPU_compile_ms",
+        "F_C03_CPU_compile_ms",
+        "F_C03_GPU_median_ms",
+        "F_C03_CPU_median_ms"
+      ]
+    }
+  ],
+  "narrative": [
+    "[SUPPORTED_WITH_SCOPE] GPU conv kernel computes sequential FMA in natural k order. (sources: F_SW_P01_tiny_GPU, F_SW_P02_baseline_GPU, F_SW_P03_seed_change_GPU \u2026)",
+    "[SUPPORTED_WITH_SCOPE] CPU conv kernel matches no sequential summation recipe (blocked accumulation). (sources: F_SW_P01_tiny_CPU, F_SW_P02_baseline_CPU, F_SW_P03_seed_change_CPU \u2026)",
+    "[SUPPORTED_WITH_SCOPE] BLAS == sequential FMA iff K < 449 (matmul bisection) agrees with conv profile sweep. (sources: F_C06_threshold_k, F_SW_P01_tiny_blas_fma, F_SW_P02_baseline_blas_fma \u2026)",
+    "[DERIVED] Allocate the conv pipeline to GPU only when > 530 inferences run per compiled model; otherwise CPU. (sources: F_C03_GPU_compile_ms, F_C03_CPU_compile_ms, F_C03_GPU_median_ms \u2026)",
+    "[CONFLICT] Summation-order fingerprint pattern holds over profiles: CONFLICT (source: F_C05_verdict)",
+    "[CONFLICT] Deployment configs agree on the server port: CONFLICT (source: F_C08_verdict)",
+    "[LOG_REPORTED] Of 389.053 ms logged in 3 ledgers, stratum S9_SOVEREIGN_APOTHEOSIS_GATE took the largest share (49%)."
+  ],
+  "module_distance_hops": {
+    "adaptive_cross_genre_sync": {
+      "adaptive_cross_genre_sync": 0,
+      "adaptive_sync_card_grid": 1,
+      "catalog_gearbox_and_comm_kernel": 2,
+      "consistency_bot": 1,
+      "custom_allocator": 3,
+      "fact_synthesis_engine": 2,
+      "neurosymbolic_bridge": 3,
+      "pattern_profile_environment": 2,
+      "platform_engine": 2,
+      "simulation_grid_3d": 1,
+      "virtual_convolution_contra": 2,
+      "virtual_convolution_pipeline": 2
+    },
+    "adaptive_sync_card_grid": {
+      "adaptive_cross_genre_sync": 1,
+      "adaptive_sync_card_grid": 0,
+      "catalog_gearbox_and_comm_kernel": 2,
+      "consistency_bot": 1,
+      "custom_allocator": 3,
+      "fact_synthesis_engine": 2,
+      "neurosymbolic_bridge": 3,
+      "pattern_profile_environment": 2,
+      "platform_engine": 2,
+      "simulation_grid_3d": 2,
+      "virtual_convolution_contra": 2,
+      "virtual_convolution_pipeline": 2
+    },
+    "catalog_gearbox_and_comm_kernel": {
+      "adaptive_cross_genre_sync": 2,
+      "adaptive_sync_card_grid": 2,
+      "catalog_gearbox_and_comm_kernel": 0,
+      "consistency_bot": 2,
+      "custom_allocator": 3,
+      "fact_synthesis_engine": 2,
+      "neurosymbolic_bridge": 3,
+      "pattern_profile_environment": 2,
+      "platform_engine": 1,
+      "simulation_grid_3d": 2,
+      "virtual_convolution_contra": 2,
+      "virtual_convolution_pipeline": 2
+    },
+    "consistency_bot": {
+      "adaptive_cross_genre_sync": 1,
+      "adaptive_sync_card_grid": 1,
+      "catalog_gearbox_and_comm_kernel": 2,
+      "consistency_bot": 0,
+      "custom_allocator": 3,
+      "fact_synthesis_engine": 2,
+      "neurosymbolic_bridge": 3,
+      "pattern_profile_environment": 1,
+      "platform_engine": 2,
+      "simulation_grid_3d": 2,
+      "virtual_convolution_contra": 1,
+      "virtual_convolution_pipeline": 1
+    },
+    "custom_allocator": {
+      "adaptive_cross_genre_sync": 3,
+      "adaptive_sync_card_grid": 3,
+      "catalog_gearbox_and_comm_kernel": 3,
+      "consistency_bot": 3,
+      "custom_allocator": 0,
+      "fact_synthesis_engine": 1,
+      "neurosymbolic_bridge": 2,
+      "pattern_profile_environment": 3,
+      "platform_engine": 3,
+      "simulation_grid_3d": 3,
+      "virtual_convolution_contra": 3,
+      "virtual_convolution_pipeline": 3
+    },
+    "fact_synthesis_engine": {
+      "adaptive_cross_genre_sync": 2,
+      "adaptive_sync_card_grid": 2,
+      "catalog_gearbox_and_comm_kernel": 2,
+      "consistency_bot": 2,
+      "custom_allocator": 1,
+      "fact_synthesis_engine": 0,
+      "neurosymbolic_bridge": 1,
+      "pattern_profile_environment": 2,
+      "platform_engine": 2,
+      "simulation_grid_3d": 2,
+      "virtual_convolution_contra": 2,
+      "virtual_convolution_pipeline": 2
+    },
+    "neurosymbolic_bridge": {
+      "adaptive_cross_genre_sync": 3,
+      "adaptive_sync_card_grid": 3,
+      "catalog_gearbox_and_comm_kernel": 3,
+      "consistency_bot": 3,
+      "custom_allocator": 2,
+      "fact_synthesis_engine": 1,
+      "neurosymbolic_bridge": 0,
+      "pattern_profile_environment": 3,
+      "platform_engine": 3,
+      "simulation_grid_3d": 3,
+      "virtual_convolution_contra": 3,
+      "virtual_convolution_pipeline": 3
+    },
+    "pattern_profile_environment": {
+      "adaptive_cross_genre_sync": 2,
+      "adaptive_sync_card_grid": 2,
+      "catalog_gearbox_and_comm_kernel": 2,
+      "consistency_bot": 1,
+      "custom_allocator": 3,
+      "fact_synthesis_engine": 2,
+      "neurosymbolic_bridge": 3,
+      "pattern_profile_environment": 0,
+      "platform_engine": 2,
+      "simulation_grid_3d": 2,
+      "virtual_convolution_contra": 2,
+      "virtual_convolution_pipeline": 1
+    },
+    "platform_engine": {
+      "adaptive_cross_genre_sync": 2,
+      "adaptive_sync_card_grid": 2,
+      "catalog_gearbox_and_comm_kernel": 1,
+      "consistency_bot": 2,
+      "custom_allocator": 3,
+      "fact_synthesis_engine": 2,
+      "neurosymbolic_bridge": 3,
+      "pattern_profile_environment": 2,
+      "platform_engine": 0,
+      "simulation_grid_3d": 2,
+      "virtual_convolution_contra": 2,
+      "virtual_convolution_pipeline": 2
+    },
+    "simulation_grid_3d": {
+      "adaptive_cross_genre_sync": 1,
+      "adaptive_sync_card_grid": 2,
+      "catalog_gearbox_and_comm_kernel": 2,
+      "consistency_bot": 2,
+      "custom_allocator": 3,
+      "fact_synthesis_engine": 2,
+      "neurosymbolic_bridge": 3,
+      "pattern_profile_environment": 2,
+      "platform_engine": 2,
+      "simulation_grid_3d": 0,
+      "virtual_convolution_contra": 2,
+      "virtual_convolution_pipeline": 2
+    },
+    "virtual_convolution_contra": {
+      "adaptive_cross_genre_sync": 2,
+      "adaptive_sync_card_grid": 2,
+      "catalog_gearbox_and_comm_kernel": 2,
+      "consistency_bot": 1,
+      "custom_allocator": 3,
+      "fact_synthesis_engine": 2,
+      "neurosymbolic_bridge": 3,
+      "pattern_profile_environment": 2,
+      "platform_engine": 2,
+      "simulation_grid_3d": 2,
+      "virtual_convolution_contra": 0,
+      "virtual_convolution_pipeline": 1
+    },
+    "virtual_convolution_pipeline": {
+      "adaptive_cross_genre_sync": 2,
+      "adaptive_sync_card_grid": 2,
+      "catalog_gearbox_and_comm_kernel": 2,
+      "consistency_bot": 1,
+      "custom_allocator": 3,
+      "fact_synthesis_engine": 2,
+      "neurosymbolic_bridge": 3,
+      "pattern_profile_environment": 1,
+      "platform_engine": 2,
+      "simulation_grid_3d": 2,
+      "virtual_convolution_contra": 1,
+      "virtual_convolution_pipeline": 0
+    }
+  },
+  "facts": [
+    {
+      "fact_id": "F_C01_verdict",
+      "statement": "Sync connection graph obeys authority rules: VERIFIED_WITH_SCOPE",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C01].verdict",
+      "evidence": "STATIC_VALIDATION",
+      "value": "VERIFIED_WITH_SCOPE"
+    },
+    {
+      "fact_id": "F_C02_verdict",
+      "statement": "Adaptive rollback has zero desync on 3 latency profiles: SUPPORTED_WITH_SCOPE",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C02].verdict",
+      "evidence": "SIMULATED",
+      "value": "SUPPORTED_WITH_SCOPE"
+    },
+    {
+      "fact_id": "F_C03_verdict",
+      "statement": "OpenVINO conv pipeline matches NumPy reference on every device: MEASURED_WITH_SCOPE",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C03].verdict",
+      "evidence": "LOCAL_MEASURED",
+      "value": "MEASURED_WITH_SCOPE"
+    },
+    {
+      "fact_id": "F_C03_CPU_median_ms",
+      "statement": "CPU conv pipeline median_ms = 3.519",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C03].measured.devices.CPU.median_ms",
+      "evidence": "LOCAL_MEASURED",
+      "value": 3.519
+    },
+    {
+      "fact_id": "F_C03_CPU_p95_ms",
+      "statement": "CPU conv pipeline p95_ms = 8.531",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C03].measured.devices.CPU.p95_ms",
+      "evidence": "LOCAL_MEASURED",
+      "value": 8.531
+    },
+    {
+      "fact_id": "F_C03_CPU_compile_ms",
+      "statement": "CPU conv pipeline compile_ms = 39.65",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C03].measured.devices.CPU.compile_ms",
+      "evidence": "LOCAL_MEASURED",
+      "value": 39.65
+    },
+    {
+      "fact_id": "F_C03_CPU_max_rel_error",
+      "statement": "CPU conv pipeline max_rel_error = 7.2e-07",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C03].measured.devices.CPU.max_rel_error",
+      "evidence": "LOCAL_MEASURED",
+      "value": 7.2e-07
+    },
+    {
+      "fact_id": "F_C03_GPU_median_ms",
+      "statement": "GPU conv pipeline median_ms = 3.24",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C03].measured.devices.GPU.median_ms",
+      "evidence": "LOCAL_MEASURED",
+      "value": 3.24
+    },
+    {
+      "fact_id": "F_C03_GPU_p95_ms",
+      "statement": "GPU conv pipeline p95_ms = 5.13",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C03].measured.devices.GPU.p95_ms",
+      "evidence": "LOCAL_MEASURED",
+      "value": 5.13
+    },
+    {
+      "fact_id": "F_C03_GPU_compile_ms",
+      "statement": "GPU conv pipeline compile_ms = 187.48",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C03].measured.devices.GPU.compile_ms",
+      "evidence": "LOCAL_MEASURED",
+      "value": 187.48
+    },
+    {
+      "fact_id": "F_C03_GPU_max_rel_error",
+      "statement": "GPU conv pipeline max_rel_error = 0.0",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C03].measured.devices.GPU.max_rel_error",
+      "evidence": "LOCAL_MEASURED",
+      "value": 0.0
+    },
+    {
+      "fact_id": "F_C04_verdict",
+      "statement": "Transposed conv is the exact adjoint; linear layer is invertible: VERIFIED_WITH_SCOPE",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C04].verdict",
+      "evidence": "LOCAL_MEASURED_NUMERICAL",
+      "value": "VERIFIED_WITH_SCOPE"
+    },
+    {
+      "fact_id": "F_C05_verdict",
+      "statement": "Summation-order fingerprint pattern holds over profiles: CONFLICT",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C05].verdict",
+      "evidence": "LOCAL_MEASURED",
+      "value": "CONFLICT"
+    },
+    {
+      "fact_id": "F_C06_verdict",
+      "statement": "Locate K where NumPy BLAS leaves sequential-FMA order: MEASURED_WITH_SCOPE",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C06].verdict",
+      "evidence": "LOCAL_MEASURED",
+      "value": "MEASURED_WITH_SCOPE"
+    },
+    {
+      "fact_id": "F_C06_threshold_k",
+      "statement": "NumPy BLAS leaves sequential-FMA order at K = 449",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C06].measured.threshold_k",
+      "evidence": "LOCAL_MEASURED",
+      "value": 449
+    },
+    {
+      "fact_id": "F_C07_verdict",
+      "statement": "Card grid respects the Krystal UI design manual bans: VERIFIED_WITH_SCOPE",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C07].verdict",
+      "evidence": "STATIC_VALIDATION",
+      "value": "VERIFIED_WITH_SCOPE"
+    },
+    {
+      "fact_id": "F_C08_verdict",
+      "statement": "Deployment configs agree on the server port: CONFLICT",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C08].verdict",
+      "evidence": "STATIC_VALIDATION",
+      "value": "CONFLICT"
+    },
+    {
+      "fact_id": "F_C08_mismatched_upstreams",
+      "statement": "nginx upstream ports not matching app port: [8089]",
+      "source": "reports\\consistency_bot_latest.json",
+      "key_path": "checks[C08].measured.mismatched_upstreams",
+      "evidence": "STATIC_VALIDATION",
+      "value": [
+        8089
+      ]
+    },
+    {
+      "fact_id": "F_SW_P01_tiny_blas_fma",
+      "statement": "Profile P01_tiny (K=36): BLAS == sequential FMA is True",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P01_tiny].blas_equals_fma_natural",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 36,
+        "holds": true
+      }
+    },
+    {
+      "fact_id": "F_SW_P01_tiny_CPU",
+      "statement": "Profile P01_tiny (K=36): CPU kernel brgconv_avx512_f32 bit-identical to []",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P01_tiny].devices.CPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 36,
+        "device": "CPU",
+        "kernel": "brgconv_avx512_f32",
+        "identical_to": []
+      }
+    },
+    {
+      "fact_id": "F_SW_P01_tiny_GPU",
+      "statement": "Profile P01_tiny (K=36): GPU kernel convolution_gpu_bfyx_os_iyx_osv16__f32 bit-identical to ['numpy_einsum_blas', 'seq_natural_k_order_fma']",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P01_tiny].devices.GPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 36,
+        "device": "GPU",
+        "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+        "identical_to": [
+          "numpy_einsum_blas",
+          "seq_natural_k_order_fma"
+        ]
+      }
+    },
+    {
+      "fact_id": "F_SW_P02_baseline_blas_fma",
+      "statement": "Profile P02_baseline (K=144): BLAS == sequential FMA is True",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P02_baseline].blas_equals_fma_natural",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 144,
+        "holds": true
+      }
+    },
+    {
+      "fact_id": "F_SW_P02_baseline_CPU",
+      "statement": "Profile P02_baseline (K=144): CPU kernel brgconv_avx512_f32 bit-identical to []",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P02_baseline].devices.CPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 144,
+        "device": "CPU",
+        "kernel": "brgconv_avx512_f32",
+        "identical_to": []
+      }
+    },
+    {
+      "fact_id": "F_SW_P02_baseline_GPU",
+      "statement": "Profile P02_baseline (K=144): GPU kernel convolution_gpu_bfyx_os_iyx_osv16__f32 bit-identical to ['numpy_einsum_blas', 'seq_natural_k_order_fma']",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P02_baseline].devices.GPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 144,
+        "device": "GPU",
+        "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+        "identical_to": [
+          "numpy_einsum_blas",
+          "seq_natural_k_order_fma"
+        ]
+      }
+    },
+    {
+      "fact_id": "F_SW_P03_seed_change_blas_fma",
+      "statement": "Profile P03_seed_change (K=144): BLAS == sequential FMA is True",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P03_seed_change].blas_equals_fma_natural",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 144,
+        "holds": true
+      }
+    },
+    {
+      "fact_id": "F_SW_P03_seed_change_CPU",
+      "statement": "Profile P03_seed_change (K=144): CPU kernel brgconv_avx512_f32 bit-identical to []",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P03_seed_change].devices.CPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 144,
+        "device": "CPU",
+        "kernel": "brgconv_avx512_f32",
+        "identical_to": []
+      }
+    },
+    {
+      "fact_id": "F_SW_P03_seed_change_GPU",
+      "statement": "Profile P03_seed_change (K=144): GPU kernel convolution_gpu_bfyx_os_iyx_osv16__f32 bit-identical to ['numpy_einsum_blas', 'seq_natural_k_order_fma']",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P03_seed_change].devices.GPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 144,
+        "device": "GPU",
+        "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+        "identical_to": [
+          "numpy_einsum_blas",
+          "seq_natural_k_order_fma"
+        ]
+      }
+    },
+    {
+      "fact_id": "F_SW_P04_rgb_K27_blas_fma",
+      "statement": "Profile P04_rgb_K27 (K=27): BLAS == sequential FMA is True",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P04_rgb_K27].blas_equals_fma_natural",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 27,
+        "holds": true
+      }
+    },
+    {
+      "fact_id": "F_SW_P04_rgb_K27_CPU",
+      "statement": "Profile P04_rgb_K27 (K=27): CPU kernel brgconv_avx512_f32 bit-identical to []",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P04_rgb_K27].devices.CPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 27,
+        "device": "CPU",
+        "kernel": "brgconv_avx512_f32",
+        "identical_to": []
+      }
+    },
+    {
+      "fact_id": "F_SW_P04_rgb_K27_GPU",
+      "statement": "Profile P04_rgb_K27 (K=27): GPU kernel convolution_gpu_bfyx_os_iyx_osv16__f32 bit-identical to ['numpy_einsum_blas', 'seq_natural_k_order_fma']",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P04_rgb_K27].devices.GPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 27,
+        "device": "GPU",
+        "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+        "identical_to": [
+          "numpy_einsum_blas",
+          "seq_natural_k_order_fma"
+        ]
+      }
+    },
+    {
+      "fact_id": "F_SW_P05_K288_blas_fma",
+      "statement": "Profile P05_K288 (K=288): BLAS == sequential FMA is True",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P05_K288].blas_equals_fma_natural",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 288,
+        "holds": true
+      }
+    },
+    {
+      "fact_id": "F_SW_P05_K288_CPU",
+      "statement": "Profile P05_K288 (K=288): CPU kernel brgconv_avx512_f32 bit-identical to []",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P05_K288].devices.CPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 288,
+        "device": "CPU",
+        "kernel": "brgconv_avx512_f32",
+        "identical_to": []
+      }
+    },
+    {
+      "fact_id": "F_SW_P05_K288_GPU",
+      "statement": "Profile P05_K288 (K=288): GPU kernel convolution_gpu_bfyx_os_iyx_osv16__f32 bit-identical to ['numpy_einsum_blas', 'seq_natural_k_order_fma']",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P05_K288].devices.GPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 288,
+        "device": "GPU",
+        "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+        "identical_to": [
+          "numpy_einsum_blas",
+          "seq_natural_k_order_fma"
+        ]
+      }
+    },
+    {
+      "fact_id": "F_SW_P06_wide_out_blas_fma",
+      "statement": "Profile P06_wide_out (K=288): BLAS == sequential FMA is True",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P06_wide_out].blas_equals_fma_natural",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 288,
+        "holds": true
+      }
+    },
+    {
+      "fact_id": "F_SW_P06_wide_out_CPU",
+      "statement": "Profile P06_wide_out (K=288): CPU kernel brgconv_avx512_f32 bit-identical to []",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P06_wide_out].devices.CPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 288,
+        "device": "CPU",
+        "kernel": "brgconv_avx512_f32",
+        "identical_to": []
+      }
+    },
+    {
+      "fact_id": "F_SW_P06_wide_out_GPU",
+      "statement": "Profile P06_wide_out (K=288): GPU kernel convolution_gpu_bfyx_os_iyx_osv16__f32 bit-identical to ['numpy_einsum_blas', 'seq_natural_k_order_fma']",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P06_wide_out].devices.GPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 288,
+        "device": "GPU",
+        "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+        "identical_to": [
+          "numpy_einsum_blas",
+          "seq_natural_k_order_fma"
+        ]
+      }
+    },
+    {
+      "fact_id": "F_SW_P07_K576_blas_fma",
+      "statement": "Profile P07_K576 (K=576): BLAS == sequential FMA is False",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P07_K576].blas_equals_fma_natural",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 576,
+        "holds": false
+      }
+    },
+    {
+      "fact_id": "F_SW_P07_K576_CPU",
+      "statement": "Profile P07_K576 (K=576): CPU kernel brgconv_avx512_f32 bit-identical to []",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P07_K576].devices.CPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 576,
+        "device": "CPU",
+        "kernel": "brgconv_avx512_f32",
+        "identical_to": []
+      }
+    },
+    {
+      "fact_id": "F_SW_P07_K576_GPU",
+      "statement": "Profile P07_K576 (K=576): GPU kernel convolution_gpu_bfyx_os_iyx_osv16__f32 bit-identical to ['seq_natural_k_order_fma']",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P07_K576].devices.GPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 576,
+        "device": "GPU",
+        "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+        "identical_to": [
+          "seq_natural_k_order_fma"
+        ]
+      }
+    },
+    {
+      "fact_id": "F_SW_P08_large_spatial_blas_fma",
+      "statement": "Profile P08_large_spatial (K=144): BLAS == sequential FMA is True",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P08_large_spatial].blas_equals_fma_natural",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 144,
+        "holds": true
+      }
+    },
+    {
+      "fact_id": "F_SW_P08_large_spatial_CPU",
+      "statement": "Profile P08_large_spatial (K=144): CPU kernel brgconv_avx512_f32 bit-identical to []",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P08_large_spatial].devices.CPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 144,
+        "device": "CPU",
+        "kernel": "brgconv_avx512_f32",
+        "identical_to": []
+      }
+    },
+    {
+      "fact_id": "F_SW_P08_large_spatial_GPU",
+      "statement": "Profile P08_large_spatial (K=144): GPU kernel convolution_gpu_bfyx_os_iyx_osv16__f32 bit-identical to ['numpy_einsum_blas', 'seq_natural_k_order_fma']",
+      "source": "reports\\conv_fingerprint_profile_sweep.json",
+      "key_path": "rows[P08_large_spatial].devices.GPU",
+      "evidence": "LOCAL_MEASURED",
+      "value": {
+        "K": 144,
+        "device": "GPU",
+        "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+        "identical_to": [
+          "numpy_einsum_blas",
+          "seq_natural_k_order_fma"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,270 @@
+{
+  "vital_max_hp": 6,
+  "profiles_requested": 8,
+  "profiles_run": 8,
+  "errors": [],
+  "kernels_seen": {
+    "CPU": [
+      "brgconv_avx512_f32"
+    ],
+    "GPU": [
+      "convolution_gpu_bfyx_os_iyx_osv16__f32"
+    ]
+  },
+  "hypotheses": {
+    "P2_blas_is_fma_natural": {
+      "verdict": "CONFLICT",
+      "holds_in": 7,
+      "profiles_run": 8,
+      "failing_profiles": [
+        "P07_K576"
+      ]
+    },
+    "P1_gpu_is_fma_natural": {
+      "verdict": "SUPPORTED_WITH_SCOPE",
+      "holds_in": 8,
+      "profiles_run": 8,
+      "failing_profiles": []
+    },
+    "P3_cpu_matches_no_sequential_recipe": {
+      "verdict": "SUPPORTED_WITH_SCOPE",
+      "holds_in": 8,
+      "profiles_run": 8,
+      "failing_profiles": []
+    }
+  },
+  "rows": [
+    {
+      "profile": {
+        "profile_id": "P01_tiny",
+        "channels": 4,
+        "filters": 8,
+        "height": 16,
+        "width": 16,
+        "seed": 1
+      },
+      "K": 36,
+      "elapsed_s": 0.21,
+      "blas_equals_fma_natural": true,
+      "blas_vs_fma_mismatch_fraction": 0.0,
+      "devices": {
+        "CPU": {
+          "kernel": "brgconv_avx512_f32",
+          "bit_identical_to": [],
+          "max_abs_diff_vs_blas": 9.5367431640625e-07
+        },
+        "GPU": {
+          "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+          "bit_identical_to": [
+            "numpy_einsum_blas",
+            "seq_natural_k_order_fma"
+          ],
+          "max_abs_diff_vs_blas": 0.0
+        }
+      }
+    },
+    {
+      "profile": {
+        "profile_id": "P02_baseline",
+        "channels": 16,
+        "filters": 32,
+        "height": 64,
+        "width": 64,
+        "seed": 6
+      },
+      "K": 144,
+      "elapsed_s": 0.57,
+      "blas_equals_fma_natural": true,
+      "blas_vs_fma_mismatch_fraction": 0.0,
+      "devices": {
+        "CPU": {
+          "kernel": "brgconv_avx512_f32",
+          "bit_identical_to": [],
+          "max_abs_diff_vs_blas": 2.384185791015625e-06
+        },
+        "GPU": {
+          "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+          "bit_identical_to": [
+            "numpy_einsum_blas",
+            "seq_natural_k_order_fma"
+          ],
+          "max_abs_diff_vs_blas": 0.0
+        }
+      }
+    },
+    {
+      "profile": {
+        "profile_id": "P03_seed_change",
+        "channels": 16,
+        "filters": 32,
+        "height": 64,
+        "width": 64,
+        "seed": 7
+      },
+      "K": 144,
+      "elapsed_s": 0.55,
+      "blas_equals_fma_natural": true,
+      "blas_vs_fma_mismatch_fraction": 0.0,
+      "devices": {
+        "CPU": {
+          "kernel": "brgconv_avx512_f32",
+          "bit_identical_to": [],
+          "max_abs_diff_vs_blas": 2.384185791015625e-06
+        },
+        "GPU": {
+          "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+          "bit_identical_to": [
+            "numpy_einsum_blas",
+            "seq_natural_k_order_fma"
+          ],
+          "max_abs_diff_vs_blas": 0.0
+        }
+      }
+    },
+    {
+      "profile": {
+        "profile_id": "P04_rgb_K27",
+        "channels": 3,
+        "filters": 16,
+        "height": 96,
+        "width": 96,
+        "seed": 6
+      },
+      "K": 27,
+      "elapsed_s": 1.32,
+      "blas_equals_fma_natural": true,
+      "blas_vs_fma_mismatch_fraction": 0.0,
+      "devices": {
+        "CPU": {
+          "kernel": "brgconv_avx512_f32",
+          "bit_identical_to": [],
+          "max_abs_diff_vs_blas": 9.5367431640625e-07
+        },
+        "GPU": {
+          "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+          "bit_identical_to": [
+            "numpy_einsum_blas",
+            "seq_natural_k_order_fma"
+          ],
+          "max_abs_diff_vs_blas": 0.0
+        }
+      }
+    },
+    {
+      "profile": {
+        "profile_id": "P05_K288",
+        "channels": 32,
+        "filters": 32,
+        "height": 64,
+        "width": 64,
+        "seed": 6
+      },
+      "K": 288,
+      "elapsed_s": 2.09,
+      "blas_equals_fma_natural": true,
+      "blas_vs_fma_mismatch_fraction": 0.0,
+      "devices": {
+        "CPU": {
+          "kernel": "brgconv_avx512_f32",
+          "bit_identical_to": [],
+          "max_abs_diff_vs_blas": 2.86102294921875e-06
+        },
+        "GPU": {
+          "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+          "bit_identical_to": [
+            "numpy_einsum_blas",
+            "seq_natural_k_order_fma"
+          ],
+          "max_abs_diff_vs_blas": 0.0
+        }
+      }
+    },
+    {
+      "profile": {
+        "profile_id": "P06_wide_out",
+        "channels": 32,
+        "filters": 64,
+        "height": 32,
+        "width": 32,
+        "seed": 6
+      },
+      "K": 288,
+      "elapsed_s": 1.43,
+      "blas_equals_fma_natural": true,
+      "blas_vs_fma_mismatch_fraction": 0.0,
+      "devices": {
+        "CPU": {
+          "kernel": "brgconv_avx512_f32",
+          "bit_identical_to": [],
+          "max_abs_diff_vs_blas": 3.337860107421875e-06
+        },
+        "GPU": {
+          "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+          "bit_identical_to": [
+            "numpy_einsum_blas",
+            "seq_natural_k_order_fma"
+          ],
+          "max_abs_diff_vs_blas": 0.0
+        }
+      }
+    },
+    {
+      "profile": {
+        "profile_id": "P07_K576",
+        "channels": 64,
+        "filters": 32,
+        "height": 32,
+        "width": 32,
+        "seed": 6
+      },
+      "K": 576,
+      "elapsed_s": 1.39,
+      "blas_equals_fma_natural": false,
+      "blas_vs_fma_mismatch_fraction": 0.9117431640625,
+      "devices": {
+        "CPU": {
+          "kernel": "brgconv_avx512_f32",
+          "bit_identical_to": [],
+          "max_abs_diff_vs_blas": 3.814697265625e-06
+        },
+        "GPU": {
+          "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+          "bit_identical_to": [
+            "seq_natural_k_order_fma"
+          ],
+          "max_abs_diff_vs_blas": 3.933906555175781e-06
+        }
+      }
+    },
+    {
+      "profile": {
+        "profile_id": "P08_large_spatial",
+        "channels": 16,
+        "filters": 16,
+        "height": 128,
+        "width": 128,
+        "seed": 11
+      },
+      "K": 144,
+      "elapsed_s": 2.65,
+      "blas_equals_fma_natural": true,
+      "blas_vs_fma_mismatch_fraction": 0.0,
+      "devices": {
+        "CPU": {
+          "kernel": "brgconv_avx512_f32",
+          "bit_identical_to": [],
+          "max_abs_diff_vs_blas": 2.6226043701171875e-06
+        },
+        "GPU": {
+          "kernel": "convolution_gpu_bfyx_os_iyx_osv16__f32",
+          "bit_identical_to": [
+            "numpy_einsum_blas",
+            "seq_natural_k_order_fma"
+          ],
+          "max_abs_diff_vs_blas": 0.0
+        }
+      }
+    }
+  ],
+  "scope": "this host only (i5-1135G7 + Iris Xe, OpenVINO 2026.4.1, NumPy BLAS of the local .venv), FP32, 3x3, stride 1"
+}
