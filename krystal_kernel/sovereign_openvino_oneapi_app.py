@@ -1508,6 +1508,29 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(html_bytes)
             return
 
+        if self.path.startswith("/clash_arena"):
+            from projects.trigonometric_hybrid_platform_framework.clash_arena_page import render_clash_arena_html
+
+            html_bytes = render_clash_arena_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/api/v1/runtime/clash/state"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.clash_battle_royale import GLOBAL_CLASH_REGISTRY
+
+            gid = parse_qs(urlparse(self.path).query).get("game_id", [""])[0]
+            try:
+                self._send_json(200, {"game_id": gid, "state": GLOBAL_CLASH_REGISTRY.get(gid).public_state()})
+            except ContractViolation as exc:
+                self._send_json(404, {"error": str(exc), "violation_code": exc.violation_code})
+            return
+
         if self.path.startswith("/api/v1/runtime/facts"):
             from projects.trigonometric_hybrid_platform_framework.custom_allocator import check_ontology_integrity
             from projects.trigonometric_hybrid_platform_framework.fact_synthesis_engine import run_fact_synthesis
@@ -1958,6 +1981,30 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(200, res)
             except ContractViolation as exc:
                 self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path in ("/api/v1/runtime/clash/new", "/api/v1/runtime/clash/action"):
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.clash_battle_royale import GLOBAL_CLASH_REGISTRY
+
+            try:
+                if self.path.endswith("/new"):
+                    gid, game = GLOBAL_CLASH_REGISTRY.new(str(data.get("faction", "SYNC")), int(data.get("seed", 6)))
+                    self._send_json(200, {"game_id": gid, "state": game.public_state()})
+                    return
+                gid = str(data.get("game_id", ""))
+                game = GLOBAL_CLASH_REGISTRY.get(gid)
+                action = data.get("action") or {}
+                if not isinstance(action, dict):
+                    raise ContractViolation("action must be an object", violation_code="ERR_CLASH_ACTION")
+                pre = game.state_hash()
+                receipt = game.apply(action)
+                self._send_json(200, {"game_id": gid, "receipt": receipt, "pre_state_sha256": pre,
+                                      "state": game.public_state()})
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            except (TypeError, ValueError) as exc:
+                self._send_json(400, {"error": f"bad request: {exc}"})
             return
 
         if self.path == "/api/v1/runtime/trigonometric_hybrid_platform":
