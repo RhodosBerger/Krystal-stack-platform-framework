@@ -1,0 +1,42 @@
+{
+  "vital_max_hp": 6,
+  "total_token_budget": 10000,
+  "tokens_spent": 7400,
+  "tokens_remaining": 2600,
+  "halted_for_token_reserve": true,
+  "completed_count": 3,
+  "deferred_steps": [
+    "STEP_04_DEFERRED_OVERNIGHT_ENDURANCE"
+  ],
+  "handoff_micro_prompt": "MP_08_TOKEN_CAP_HANDOFF_GUARD",
+  "completed_steps": [
+    {
+      "step_id": "STEP_01_PARSE_MULTI_TILE_SCENE",
+      "routed_prompt_id": "MP_02_DSL_AND_AST_GATE",
+      "tokens_spent": 2200,
+      "elapsed_ms": 0.49,
+      "result_summary": {
+        "clauses": 6
+      }
+    },
+    {
+      "step_id": "STEP_02_UMA_SHADOW_CLAMP_VERIFY",
+      "routed_prompt_id": "MP_04_UMA_HYPERVISOR_BACKBRANCH",
+      "tokens_spent": 2400,
+      "elapsed_ms": 0.083,
+      "result_summary": {
+        "shadow_mask": "0x1f"
+      }
+    },
+    {
+      "step_id": "STEP_03_CROSS_LAYER_XLP_SWEEP",
+      "routed_prompt_id": "MP_05_CROSS_LAYER_COPILOT_AUDIT",
+      "tokens_spent": 2800,
+      "elapsed_ms": 583.635,
+      "result_summary": {
+        "verified_patterns": 4
+      }
+    }
+  ],
+  "checkpoint_sha256": "3b842e287b25837cbed8c3b09efdf5f67311678e7d11c8334c997b8990149677"
+}

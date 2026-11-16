@@ -1,0 +1,221 @@
+{
+  "bridge_id": "DEP_BRIDGE_03_VISUAL_STORY_GENERATORS",
+  "vital_max_hp": 6,
+  "svg_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\reports\\visual_storyline_strip.svg",
+  "hex_siege_frames": [
+    {
+      "frame_index": 0,
+      "beat_code": "VYKRESTENIE_VYSADKU",
+      "caption_sk": "Jednotka C01 obsadzuje hex (-2,1), lúč 30°",
+      "uma_utilization": 0.31,
+      "visual_style": "HOLOGRAM_FULL_STATE_B",
+      "godot_layer_mask": "0x3ff",
+      "theta_deg": 30.0,
+      "goniometric_heading_xy": [
+        0.8660254037844387,
+        0.49999999999999994
+      ],
+      "unit_hex": [
+        -2,
+        1
+      ],
+      "target_hex": [
+        0,
+        0
+      ],
+      "mortar_arc_height_m": 0.0,
+      "rig_foot_xy": [
+        -0.25857781963677645,
+        -0.7809645165148231
+      ],
+      "enemy_hp_of_6": 6,
+      "packet_sha256": "9563cdaf16c2f50fb486fc97d5d9e2e62723b1a085f10d5ff221e8e1662e7611"
+    },
+    {
+      "frame_index": 1,
+      "beat_code": "GONIOMETRICKY_ZAMER",
+      "caption_sk": "Natočenie lúča na klin #0 (FLANK_INTERCEPT)",
+      "uma_utilization": 0.36,
+      "visual_style": "HOLOGRAM_FULL_STATE_B",
+      "godot_layer_mask": "0x3ff",
+      "theta_deg": 58.3,
+      "goniometric_heading_xy": [
+        0.5254716510722678,
+        0.8508111094240512
+      ],
+      "unit_hex": [
+        -1,
+        1
+      ],
+      "target_hex": [
+        0,
+        0
+      ],
+      "mortar_arc_height_m": 1.536,
+      "rig_foot_xy": [
+        0.005105965492803816,
+        -0.8351936058847558
+      ],
+      "enemy_hp_of_6": 6,
+      "packet_sha256": "26c8d8335ec77b6acde68a2300e1756317ab2a47966dbb1b06a0a201ef2e6856"
+    },
+    {
+      "frame_index": 2,
+      "beat_code": "BALISTICKY_OBLUK",
+      "caption_sk": "Mínometná krivka letu nad stredovým hexom",
+      "uma_utilization": 0.48,
+      "visual_style": "HOLOGRAM_FULL_STATE_B",
+      "godot_layer_mask": "0x3ff",
+      "theta_deg": 58.3,
+      "goniometric_heading_xy": [
+        0.5254716510722678,
+        0.8508111094240512
+      ],
+      "unit_hex": [
+        -1,
+        0
+      ],
+      "target_hex": [
+        0,
+        0
+      ],
+      "mortar_arc_height_m": 2.304,
+      "rig_foot_xy": [
+        0.05780151030137922,
+        -0.8519093803963478
+      ],
+      "enemy_hp_of_6": 6,
+      "packet_sha256": "ed55db87bf57654108e46c5faaa241a80cd2d0bd00bd8c6ccc403433b94d5541"
+    },
+    {
+      "frame_index": 3,
+      "beat_code": "NARAZ_A_STIT_AI",
+      "caption_sk": "Zásah za 2 HP -> AI dvíha HORIZON_SHIELD (HP 4/6)",
+      "uma_utilization": 0.62,
+      "visual_style": "HOLOGRAM_FULL_STATE_B",
+      "godot_layer_mask": "0x3ff",
+      "theta_deg": 64.0,
+      "goniometric_heading_xy": [
+        0.43837114678907746,
+        0.898794046299167
+      ],
+      "unit_hex": [
+        -1,
+        0
+      ],
+      "target_hex": [
+        0,
+        0
+      ],
+      "mortar_arc_height_m": 2.304,
+      "rig_foot_xy": [
+        -0.1725640649357258,
+        -0.8416441645145291
+      ],
+      "enemy_hp_of_6": 4,
+      "packet_sha256": "8bbb730f7641fa20f4cf1f9606bf9de45d04e12a1bbaad745a683581acdaaf65"
+    },
+    {
+      "frame_index": 4,
+      "beat_code": "SPICKA_UMA_TIEN",
+      "caption_sk": "UMA 0.84 >= 0.78 -> OP_01 drôtený režim (5/20 vrstiev)",
+      "uma_utilization": 0.84,
+      "visual_style": "WIREFRAME_SHADOW_STATE_A",
+      "godot_layer_mask": "0x1f",
+      "theta_deg": 120.0,
+      "goniometric_heading_xy": [
+        -0.4999999999999998,
+        0.8660254037844387
+      ],
+      "unit_hex": [
+        0,
+        -1
+      ],
+      "target_hex": [
+        0,
+        0
+      ],
+      "mortar_arc_height_m": 1.5359999999999996,
+      "rig_foot_xy": [
+        -0.4138717131026479,
+        -0.7418886169707701
+      ],
+      "enemy_hp_of_6": 4,
+      "packet_sha256": "ea47497cf0b6da591a4922f70ab88b2dcdadd67e8b8a0c743c6834eb4875aa97"
+    },
+    {
+      "frame_index": 5,
+      "beat_code": "ZUZENIE_ZONY_POTVRD",
+      "caption_sk": "Pokles UMA -> návrat 10/20 vrstiev + 128B SHA-256 pečiatka",
+      "uma_utilization": 0.38,
+      "visual_style": "HOLOGRAM_FULL_STATE_B",
+      "godot_layer_mask": "0x3ff",
+      "theta_deg": 150.0,
+      "goniometric_heading_xy": [
+        -0.8660254037844387,
+        0.49999999999999994
+      ],
+      "unit_hex": [
+        0,
+        -1
+      ],
+      "target_hex": [
+        0,
+        0
+      ],
+      "mortar_arc_height_m": 0.0,
+      "rig_foot_xy": [
+        -0.40999976349354716,
+        -0.7211873827253805
+      ],
+      "enemy_hp_of_6": 4,
+      "packet_sha256": "c83229ef67b84064d54cd408663fe856d190d49537772ab0afa5d22eb91c3cc6"
+    }
+  ],
+  "robotics_conflict_frames": [
+    {
+      "frame_index": 0,
+      "beat_code": "PRIbLIZENIE_NOMINAL",
+      "caption_sk": "Kamera (3,6 m) a LiDAR (3,4 m) v zhode -> plynulý pohyb 1,0 m/s",
+      "camera_m": 3.6,
+      "lidar_m": 3.4,
+      "sensor_gap_m": 0.2,
+      "conflict_halt": false,
+      "velocity_mps": 1.0,
+      "vital_max_hp": 6
+    },
+    {
+      "frame_index": 1,
+      "beat_code": "ROZPOR_SENZOROV",
+      "caption_sk": "Rozpor 3,4 m > 1,0 m -> zákaz priemeru, bifurkácia a STOP (0,0 m/s)",
+      "camera_m": 4.2,
+      "lidar_m": 0.8,
+      "sensor_gap_m": 3.4,
+      "conflict_halt": true,
+      "velocity_mps": 0.0,
+      "vital_max_hp": 6
+    },
+    {
+      "frame_index": 2,
+      "beat_code": "CDT_FYZICKA_SONDA",
+      "caption_sk": "Fyzická CDT sonda potvrdzuje prekážku na 0,8 m v tieni VBlank",
+      "camera_m": 4.2,
+      "lidar_m": 0.8,
+      "sensor_gap_m": 3.4,
+      "conflict_halt": true,
+      "velocity_mps": 0.0,
+      "vital_max_hp": 6
+    },
+    {
+      "frame_index": 3,
+      "beat_code": "BEZPECNY_OBCHVAT",
+      "caption_sk": "Kolaps superpozície na LiDAR -> opatrný obchvat 0,2 m/s (HP 6/6)",
+      "camera_m": 1.9,
+      "lidar_m": 1.8,
+      "sensor_gap_m": 0.1,
+      "conflict_halt": false,
+      "velocity_mps": 0.2,
+      "vital_max_hp": 6
+    }
+  ]
+}

@@ -1,0 +1,535 @@
+{
+  "vital_max_hp": 6,
+  "uma_ceiling": 0.78,
+  "marketing_positioning": {
+    "primary_field": "Suverénny lokálny real-time engine a neurosymbolický kopilot pre integrované x86/UMA pracovné stanice, herné štúdiá, 3D DCC a robotické dvojčatá — s garantovaným 60/120 Hz vykresľovaním, kryptografickou auditovateľnosťou 128 B rámcov a nulovou závislosťou od cloudu či OpenAI.",
+    "target_segments": [
+      "Nezávislé a technické herné štúdiá (Godot 4, WebXR, ťahové a taktické 60/120 Hz arény)",
+      "3D DCC a procedurálne pracoviská (Blender, multi-mesh generátory bez trhania viewportu)",
+      "Sim-to-Real robotika a priemyselné dvojčatá (ROS 2 / Gazebo s prísnym zákazom priemerovania senzorov)",
+      "Suverénne podnikové a vývojárske intranety (WSL2 + lokálne OpenVINO / Gemma modely bez úniku dát)"
+    ],
+    "four_core_advices": [
+      {
+        "id": "ADV_01_UMA_BUDGET_GUARD",
+        "advice": "Udržuj zdieľanú pamäťovú zbernicu pod prahom UMA < 0.78 s nulovým oneskorením zoskoku.",
+        "achieved_by": "Spätná inštrukcia OP_01_BACKBRANCH_UMA_FALLBACK + 12-vzorková hysterézia P8 + krátenie vrstiev Godot 10 -> 5 (0x3ff -> 0x1f)."
+      },
+      {
+        "id": "ADV_02_BINARY_128B_IPC",
+        "advice": "Nahraď textový JSON v kritickej slučke pevnými 128 B binárnymi paketmi zarovnanými na cache riadky.",
+        "achieved_by": "Protokol KPKT cez 2 x 64 B cache riadky + 32 B SHA-256 (zmerané 5,04x zrýchlenie, 637 349 rámcov/s, 77,8 MB/s)."
+      },
+      {
+        "id": "ADV_03_SUBNORMAL_SANITIZATION",
+        "advice": "Sanitizuj každé číslo s pohyblivou rádovou čiarkou pred vstupom do SIMD a OpenVINO uzlov.",
+        "achieved_by": "Brána canonicalize_float32 na vstupe DSL parsera a senzorov (odstraňuje 14,00x NumPy a 37,37x OpenVINO CPU subnormálny zásek)."
+      },
+      {
+        "id": "ADV_04_SEPARATED_VERIFICATION_AND_LANES",
+        "advice": "Oddeľ navrhovateľa od overovateľa a priraď vlákna podľa veľkosti dávky n.",
+        "achieved_by": "PROPOSER != VERIFIER (Freivalds O(n²) + ArtifactGate) a výber CPU_4T pre n=1 (34,64 ms) oproti CPU_8T / teplej Iris Xe CACHE_DIR pre dávky."
+      }
+    ]
+  },
+  "inventory_totals": {
+    "modules_scanned": 39,
+    "public_functions": 143,
+    "public_classes": 40,
+    "bound_nomenclature_terms": 63,
+    "unresolved_nomenclature_terms": 0,
+    "governed_transitions_count": 6,
+    "operational_events_count": 15,
+    "ranked_keywords_count": 20,
+    "realtime_tick_sum_ms": 3.315,
+    "realtime_tick_frames_128b": 14,
+    "fits_120hz_budget_8_33ms": true,
+    "fits_60hz_budget_16_67ms": true
+  },
+  "roadmap_phases_evaluation": [
+    {
+      "phase_id": "PHASE_R1_SILICON_FOUNDATION",
+      "order": 1,
+      "title": "R1 · Kremíková a numerická základňa (x86-64 & OpenVINO)",
+      "readiness_pct": 100,
+      "epistemic_status": "LOCAL_MEASURED",
+      "summary": "Sondy X01..X05, prah OpenBLAS K=449, sanitizácia subnormálov a teplá CACHE_DIR pre Iris Xe.",
+      "events_count": 3,
+      "keywords_count": 5,
+      "mean_keyword_adaptation_score": 150.75
+    },
+    {
+      "phase_id": "PHASE_R2_KERNEL_AND_AST_PARSER",
+      "order": 2,
+      "title": "R2 · Autoritatívne jadro, 128 B KPKT a parser bodov/funkcií",
+      "readiness_pct": 100,
+      "epistemic_status": "VERIFIED_WITH_SCOPE",
+      "summary": "ClashGame (HP==6), 63 viazaných pojmov, DSL/AST parser (33 modulov, 131 funkcií) a goniometrické jadro.",
+      "events_count": 5,
+      "keywords_count": 4,
+      "mean_keyword_adaptation_score": 154.38
+    },
+    {
+      "phase_id": "PHASE_R3_GODOT_VR_AND_VISUAL_STUDIOS",
+      "order": 3,
+      "title": "R3 · Godot 4 MultiMesh, .kopt optika a živé štúdiá (:8090)",
+      "readiness_pct": 92,
+      "epistemic_status": "VERIFIED_WITH_SCOPE",
+      "summary": "10/20 vrstiev v reálnom čase, vodotesný 3D .obj generátor terénu a 4 odľahčené webové/HUD pohľady.",
+      "events_count": 2,
+      "keywords_count": 3,
+      "mean_keyword_adaptation_score": 92.29
+    },
+    {
+      "phase_id": "PHASE_R4_CROSS_LAYER_COPILOTS",
+      "order": 4,
+      "title": "R4 · Medzivrstvové kopiloty (DCC, Robotika, WSL2, 120 Hz IDE)",
+      "readiness_pct": 88,
+      "epistemic_status": "VERIFIED_WITH_SCOPE",
+      "summary": "Premostenie XLP_01..04 s kalorimetrom, bifurkáciou senzorov, VBlank sondou a karanténou AI kódu.",
+      "events_count": 4,
+      "keywords_count": 5,
+      "mean_keyword_adaptation_score": 102.15
+    },
+    {
+      "phase_id": "PHASE_R5_LOCAL_2B_TRAINING_AND_RING0",
+      "order": 5,
+      "title": "R5 · Plný lokálny tréning 2B/12B Gemma & Ring-0 MSR telemetria",
+      "readiness_pct": 64,
+      "epistemic_status": "DERIVED_ROADMAP_TARGET",
+      "summary": "Dotrénovanie váh Gemma nad 4 disjunktnými sadami + voliteľný jadrový ovládač pre priame RAPL Joule a teploty.",
+      "events_count": 1,
+      "keywords_count": 3,
+      "mean_keyword_adaptation_score": 45.7
+    }
+  ],
+  "governed_transitions": [
+    {
+      "transition_id": "TR_01_COLD_TO_WARM_HETERO",
+      "from_state": "TPL_S0_COLD_UNPRIMED",
+      "to_state": "TPL_S2_GPU_IRIS_XE_WARM_THROUGHPUT",
+      "roadmap_bridge": "R1 -> R2",
+      "guard": "warm_cache_blobs > 0 and uma < 0.78 and payload_bytes >= 16384",
+      "rollback_on_fail": "Zostať na CPU_4T_PHYSICAL_AVX512 (Delta_S == 0)"
+    },
+    {
+      "transition_id": "TR_02_DSL_INGEST_TO_KERNEL_COMMIT",
+      "from_state": "RAW_DSL_SCRIPT",
+      "to_state": "VERIFIED_128B_ARENA_STATE",
+      "roadmap_bridge": "R2 -> R3",
+      "guard": "syntax_ok and hex_dist <= 3 and VITAL_MAX_HP == 6 and CALL in AST_catalog",
+      "rollback_on_fail": "ContractViolation pred zápisom, stav arény nezmenený (Delta_S == 0)"
+    },
+    {
+      "transition_id": "TR_03_NOMINAL_TO_UMA_SHADOW",
+      "from_state": "NOMINAL_HETERO (10 vrstiev, 16 rámcov, 10 GB WSL2)",
+      "to_state": "UMA_SHADOW_FALLBACK (5 vrstiev, 8 rámcov, 8 GB WSL2)",
+      "roadmap_bridge": "R3 <-> R4",
+      "guard": "uma >= 0.78 (spätná inštrukcia OP_01_BACKBRANCH_UMA_FALLBACK)",
+      "rollback_on_fail": "Návrat do NOMINAL_HETERO až po 12 čistých vzorkách pod prahom (P8 hysterézia)"
+    },
+    {
+      "transition_id": "TR_04_SENSOR_AGREEMENT_TO_BIFURCATION",
+      "from_state": "NOMINAL_ROBOT_NAVIGATION",
+      "to_state": "BIFURCATED_EMERGENCY_STOP (v = 0.0 m/s)",
+      "roadmap_bridge": "R2 -> R4",
+      "guard": "|d_sim - d_lidar| > 1.0 m (zákaz konvexného priemeru P6)",
+      "rollback_on_fail": "Kolaps superpozície výhradne po prijatí fyzického CDT ReceiptContract"
+    },
+    {
+      "transition_id": "TR_05_AI_PROPOSAL_TO_RELEASED_ARTIFACT",
+      "from_state": "QUARANTINED_PROPOSER_OUTPUT",
+      "to_state": "VERIFIED_RELEASED_CODE_OR_FACT",
+      "roadmap_bridge": "R4 -> R5",
+      "guard": "evaluator_role == VERIFIER and pytest_receipt_valid and citations_present",
+      "rollback_on_fail": "Trvalá karanténa v ArtifactGate bez povýšenia na fakt"
+    },
+    {
+      "transition_id": "TR_06_VBLANK_PROBE_TO_AFFINITY_COMMIT",
+      "from_state": "BASELINE_THREAD_PROFILE",
+      "to_state": "COMMITTED_4T_OR_8T_PROFILE",
+      "roadmap_bridge": "R1 -> R4 -> R5",
+      "guard": "probe_ms <= remaining_vblank_ms and measured_gain >= expected_gain and momentum_admissible",
+      "rollback_on_fail": "Odmietnutie hypotézy s nulovým zápisom (ochrana pred kmitaním P8)"
+    }
+  ],
+  "operational_events": [
+    {
+      "event_id": "EV_01_SUBNORMAL_CANONICALIZE",
+      "title": "Sanitizácia float32 a kontrola konečnosti",
+      "phase_id": "PHASE_R1_SILICON_FOUNDATION",
+      "median_latency_ms": 0.04,
+      "frames_128b": 0,
+      "uma_delta": -0.02,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_02_CACHE_BLOB_WARM_LOAD",
+      "title": "Načítanie skompilovaného OpenVINO GPU blobu z CACHE_DIR",
+      "phase_id": "PHASE_R1_SILICON_FOUNDATION",
+      "median_latency_ms": 11.8,
+      "frames_128b": 1,
+      "uma_delta": 0.06,
+      "in_realtime_60hz_tick": false
+    },
+    {
+      "event_id": "EV_03_K449_TILED_REDUCTION",
+      "title": "Dlaždicová maticová redukcia pod prahom K = 449",
+      "phase_id": "PHASE_R1_SILICON_FOUNDATION",
+      "median_latency_ms": 0.48,
+      "frames_128b": 1,
+      "uma_delta": 0.01,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_04_DSL_AND_AST_PARSE",
+      "title": "Deterministický rozbor HEX/PT3/RAY/LAYER_MASK/CALL",
+      "phase_id": "PHASE_R2_KERNEL_AND_AST_PARSER",
+      "median_latency_ms": 0.21,
+      "frames_128b": 1,
+      "uma_delta": 0.0,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_05_GONIOMETRIC_SECTOR_SHIFT",
+      "title": "Výpočet (cos θ, sin θ), klinu 0..5 a pomeru soketov",
+      "phase_id": "PHASE_R2_KERNEL_AND_AST_PARSER",
+      "median_latency_ms": 0.03,
+      "frames_128b": 1,
+      "uma_delta": 0.0,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_06_TENSOR_DIFFUSION_MOVE",
+      "title": "OpenVINO difúzia potenciálu D⁻¹A pre 37 polí arény",
+      "phase_id": "PHASE_R2_KERNEL_AND_AST_PARSER",
+      "median_latency_ms": 0.48,
+      "frames_128b": 1,
+      "uma_delta": 0.01,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_07_CLASH_AUTHORITATIVE_COMMIT",
+      "title": "Potvrdenie ťahu arény s kontrolou HP <= 6 a reaktívnou AI",
+      "phase_id": "PHASE_R2_KERNEL_AND_AST_PARSER",
+      "median_latency_ms": 0.075,
+      "frames_128b": 2,
+      "uma_delta": 0.0,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_08_FREIVALDS_RESIDUAL_CHECK",
+      "title": "Pravdepodobnostné overenie maticového súčinu O(n²)",
+      "phase_id": "PHASE_R2_KERNEL_AND_AST_PARSER",
+      "median_latency_ms": 0.19,
+      "frames_128b": 1,
+      "uma_delta": 0.0,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_09_KOPT_FRESNEL_DISPATCH",
+      "title": "Dekódovanie 32 B .kopt optických záznamov a Schlick Fresnel",
+      "phase_id": "PHASE_R3_GODOT_VR_AND_VISUAL_STUDIOS",
+      "median_latency_ms": 0.12,
+      "frames_128b": 1,
+      "uma_delta": 0.02,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_10_GODOT_MULTIMESH_SYNC",
+      "title": "Zápis inštancovanej masky vrstiev (0x3ff / 0x1f) do scény",
+      "phase_id": "PHASE_R3_GODOT_VR_AND_VISUAL_STUDIOS",
+      "median_latency_ms": 1.35,
+      "frames_128b": 2,
+      "uma_delta": 0.08,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_11_UMA_SHADOW_BACKBRANCH",
+      "title": "Spätný zoskok OP_01 pri UMA >= 0.78 (16->8 rámcov, WSL2 -2 GB)",
+      "phase_id": "PHASE_R4_CROSS_LAYER_COPILOTS",
+      "median_latency_ms": 0.05,
+      "frames_128b": 1,
+      "uma_delta": -0.18,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_12_DCC_PARASITE_DECOUPLE",
+      "title": "Odpojenie parazitného pozadia pri Delta_tau == 0 v kalorimetri",
+      "phase_id": "PHASE_R4_CROSS_LAYER_COPILOTS",
+      "median_latency_ms": 0.09,
+      "frames_128b": 1,
+      "uma_delta": -0.12,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_13_ROBOT_CONFLICT_HALT",
+      "title": "Bifurkácia rozporných senzorov Kamera ⊥ LiDAR do zastavenia v=0",
+      "phase_id": "PHASE_R4_CROSS_LAYER_COPILOTS",
+      "median_latency_ms": 0.14,
+      "frames_128b": 1,
+      "uma_delta": 0.0,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_14_IDE_TYPING_QOS_THROTTLE",
+      "title": "80 % priškrtenie kompilátora počas písania (<150 ms) + karanténa AI",
+      "phase_id": "PHASE_R4_CROSS_LAYER_COPILOTS",
+      "median_latency_ms": 0.06,
+      "frames_128b": 1,
+      "uma_delta": -0.1,
+      "in_realtime_60hz_tick": true
+    },
+    {
+      "event_id": "EV_15_GEMMA_DISJOINT_FINETUNE",
+      "title": "Príprava a validácia 4 disjunktných tréningových sád bez priesaku",
+      "phase_id": "PHASE_R5_LOCAL_2B_TRAINING_AND_RING0",
+      "median_latency_ms": 8.4,
+      "frames_128b": 2,
+      "uma_delta": 0.05,
+      "in_realtime_60hz_tick": false
+    }
+  ],
+  "ranked_keywords": [
+    {
+      "keyword": "VITAL_MAX_HP",
+      "phase_id": "PHASE_R2_KERNEL_AND_AST_PARSER",
+      "source_occurrences": 257,
+      "relevance": 6.0,
+      "info_gain": 5.5,
+      "falsifier_power": 6.0,
+      "cost": 1.0,
+      "adaptation_score": 198.0,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 1
+    },
+    {
+      "keyword": "canonicalize_float32",
+      "phase_id": "PHASE_R1_SILICON_FOUNDATION",
+      "source_occurrences": 35,
+      "relevance": 6.0,
+      "info_gain": 5.8,
+      "falsifier_power": 6.0,
+      "cost": 1.1,
+      "adaptation_score": 189.82,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 2
+    },
+    {
+      "keyword": "UMA_SATURATION_THRESHOLD",
+      "phase_id": "PHASE_R1_SILICON_FOUNDATION",
+      "source_occurrences": 44,
+      "relevance": 6.0,
+      "info_gain": 5.6,
+      "falsifier_power": 5.8,
+      "cost": 1.2,
+      "adaptation_score": 162.4,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 3
+    },
+    {
+      "keyword": "KPKT_128B_PACKET",
+      "phase_id": "PHASE_R2_KERNEL_AND_AST_PARSER",
+      "source_occurrences": 1,
+      "relevance": 5.9,
+      "info_gain": 5.5,
+      "falsifier_power": 5.8,
+      "cost": 1.2,
+      "adaptation_score": 156.84,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 4
+    },
+    {
+      "keyword": "CACHE_DIR",
+      "phase_id": "PHASE_R1_SILICON_FOUNDATION",
+      "source_occurrences": 77,
+      "relevance": 5.7,
+      "info_gain": 5.6,
+      "falsifier_power": 5.5,
+      "cost": 1.2,
+      "adaptation_score": 146.3,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 5
+    },
+    {
+      "keyword": "OP_01_BACKBRANCH_UMA_FALLBACK",
+      "phase_id": "PHASE_R4_CROSS_LAYER_COPILOTS",
+      "source_occurrences": 7,
+      "relevance": 5.9,
+      "info_gain": 5.4,
+      "falsifier_power": 5.7,
+      "cost": 1.3,
+      "adaptation_score": 139.69,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 6
+    },
+    {
+      "keyword": "freivalds_verify",
+      "phase_id": "PHASE_R2_KERNEL_AND_AST_PARSER",
+      "source_occurrences": 14,
+      "relevance": 5.6,
+      "info_gain": 5.4,
+      "falsifier_power": 5.9,
+      "cost": 1.3,
+      "adaptation_score": 137.24,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 7
+    },
+    {
+      "keyword": "CPU_4T_PHYSICAL_AVX512",
+      "phase_id": "PHASE_R1_SILICON_FOUNDATION",
+      "source_occurrences": 5,
+      "relevance": 5.8,
+      "info_gain": 5.3,
+      "falsifier_power": 5.4,
+      "cost": 1.3,
+      "adaptation_score": 127.69,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 8
+    },
+    {
+      "keyword": "OPENBLAS_K449_THRESHOLD",
+      "phase_id": "PHASE_R1_SILICON_FOUNDATION",
+      "source_occurrences": 1,
+      "relevance": 5.4,
+      "info_gain": 5.7,
+      "falsifier_power": 5.8,
+      "cost": 1.4,
+      "adaptation_score": 127.52,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 9
+    },
+    {
+      "keyword": "GONIOMETRIC_KERNEL",
+      "phase_id": "PHASE_R2_KERNEL_AND_AST_PARSER",
+      "source_occurrences": 1,
+      "relevance": 5.6,
+      "info_gain": 5.2,
+      "falsifier_power": 5.6,
+      "cost": 1.3,
+      "adaptation_score": 125.44,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 10
+    },
+    {
+      "keyword": "PROPOSER_NEQ_VERIFIER",
+      "phase_id": "PHASE_R4_CROSS_LAYER_COPILOTS",
+      "source_occurrences": 1,
+      "relevance": 6.0,
+      "info_gain": 5.2,
+      "falsifier_power": 6.0,
+      "cost": 1.5,
+      "adaptation_score": 124.8,
+      "adaptation_tier": "OKAMŽITÁ JADROVÁ KOTVA",
+      "rank": 11
+    },
+    {
+      "keyword": "GODOT_10_OF_20_LAYERS",
+      "phase_id": "PHASE_R3_GODOT_VR_AND_VISUAL_STUDIOS",
+      "source_occurrences": 1,
+      "relevance": 5.5,
+      "info_gain": 5.0,
+      "falsifier_power": 5.2,
+      "cost": 1.5,
+      "adaptation_score": 95.33,
+      "adaptation_tier": "AKTÍVNA INTEGRÁCIA",
+      "rank": 12
+    },
+    {
+      "keyword": "ANTIGRAVITY_CARBON_BRIDGE",
+      "phase_id": "PHASE_R3_GODOT_VR_AND_VISUAL_STUDIOS",
+      "source_occurrences": 1,
+      "relevance": 5.5,
+      "info_gain": 4.8,
+      "falsifier_power": 5.2,
+      "cost": 1.5,
+      "adaptation_score": 91.52,
+      "adaptation_tier": "AKTÍVNA INTEGRÁCIA",
+      "rank": 13
+    },
+    {
+      "keyword": "BIFURCATED_CONFLICT_RING",
+      "phase_id": "PHASE_R4_CROSS_LAYER_COPILOTS",
+      "source_occurrences": 1,
+      "relevance": 5.6,
+      "info_gain": 5.1,
+      "falsifier_power": 5.7,
+      "cost": 1.8,
+      "adaptation_score": 90.44,
+      "adaptation_tier": "AKTÍVNA INTEGRÁCIA",
+      "rank": 14
+    },
+    {
+      "keyword": "KOPT_OPTICAL_BINARY",
+      "phase_id": "PHASE_R3_GODOT_VR_AND_VISUAL_STUDIOS",
+      "source_occurrences": 1,
+      "relevance": 5.2,
+      "info_gain": 4.9,
+      "falsifier_power": 5.3,
+      "cost": 1.5,
+      "adaptation_score": 90.03,
+      "adaptation_tier": "AKTÍVNA INTEGRÁCIA",
+      "rank": 15
+    },
+    {
+      "keyword": "VBLANK_SHADOW_PROBE",
+      "phase_id": "PHASE_R4_CROSS_LAYER_COPILOTS",
+      "source_occurrences": 1,
+      "relevance": 5.4,
+      "info_gain": 5.0,
+      "falsifier_power": 5.4,
+      "cost": 1.8,
+      "adaptation_score": 81.0,
+      "adaptation_tier": "AKTÍVNA INTEGRÁCIA",
+      "rank": 16
+    },
+    {
+      "keyword": "WSL2_HYPERVISOR_QUOTA",
+      "phase_id": "PHASE_R4_CROSS_LAYER_COPILOTS",
+      "source_occurrences": 1,
+      "relevance": 5.3,
+      "info_gain": 4.8,
+      "falsifier_power": 5.0,
+      "cost": 1.7,
+      "adaptation_score": 74.82,
+      "adaptation_tier": "AKTÍVNA INTEGRÁCIA",
+      "rank": 17
+    },
+    {
+      "keyword": "HENC_MICRO_TRANSFORMER",
+      "phase_id": "PHASE_R5_LOCAL_2B_TRAINING_AND_RING0",
+      "source_occurrences": 1,
+      "relevance": 5.1,
+      "info_gain": 5.2,
+      "falsifier_power": 5.0,
+      "cost": 2.4,
+      "adaptation_score": 55.25,
+      "adaptation_tier": "VÝSKUMNÉ ROZŠÍRENIE",
+      "rank": 18
+    },
+    {
+      "keyword": "GEMMA_DISJOINT_SETS",
+      "phase_id": "PHASE_R5_LOCAL_2B_TRAINING_AND_RING0",
+      "source_occurrences": 1,
+      "relevance": 5.2,
+      "info_gain": 5.0,
+      "falsifier_power": 4.9,
+      "cost": 2.6,
+      "adaptation_score": 49.0,
+      "adaptation_tier": "VÝSKUMNÉ ROZŠÍRENIE",
+      "rank": 19
+    },
+    {
+      "keyword": "RING0_RAPL_MSR_TELEMETRY",
+      "phase_id": "PHASE_R5_LOCAL_2B_TRAINING_AND_RING0",
+      "source_occurrences": 1,
+      "relevance": 4.8,
+      "info_gain": 5.5,
+      "falsifier_power": 5.6,
+      "cost": 4.5,
+      "adaptation_score": 32.85,
+      "adaptation_tier": "VÝSKUMNÉ ROZŠÍRENIE",
+      "rank": 20
+    }
+  ]
+}

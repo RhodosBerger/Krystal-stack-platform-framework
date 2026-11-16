@@ -26,7 +26,7 @@ from typing import Any, Dict, List
 
 import numpy as np
 
-from krystal_kernel.constants import CACHE_LINE_BYTES, FRAME_SIZE_BYTES, VITAL_MAX_HP
+from krystal_kernel.constants import CACHE_LINE_BYTES, FRAME_SIZE_BYTES, VITAL_MAX_HP, ContractViolation
 
 from .combat_turn_planner import DEFAULT_CACHE_DIR, get_cached_hw_profile, probe_isa_flags
 from .fact_synthesis_engine import REPORTS
@@ -209,7 +209,8 @@ def measure_x03_subnormal_assist_vs_mxcsr_ftz(runs: int = 30) -> Dict[str, Any]:
         if out_sub is None:
             out_sub = np.array(res_s[compiled.output(0)], copy=True)
 
-    assert out_sub is not None
+    if out_sub is None:
+        raise ContractViolation("Missing subnormal OpenVINO output", violation_code="ERR_X03_OUT_NONE")
     ov_flushed_to_zero = bool(np.all(out_sub == 0.0))
     np_n_stat, np_s_stat = _stats(np_norm_ms), _stats(np_sub_ms)
     ov_n_stat, ov_s_stat = _stats(ov_norm_ms), _stats(ov_sub_ms)
@@ -293,7 +294,8 @@ def measure_x05_128b_binary_frame_vs_json(runs: int = 30, batch: int = 500) -> D
     """X05: Compare x86 little-endian struct.pack 128 B frame + SHA256 vs JSON serialization + SHA256."""
     # Little-endian 96 B header+payload (<4I2f72s = 16 + 8 + 72 = 96 B) + 32 B SHA-256 = 128 B
     fmt = "<4I2f72s"
-    assert struct.calcsize(fmt) == 96
+    if struct.calcsize(fmt) != 96:
+        raise ContractViolation("X05 binary header+payload != 96 B", violation_code="ERR_X05_FMT")
     bin_ms: List[float] = []
     json_ms: List[float] = []
 
@@ -314,7 +316,8 @@ def measure_x05_128b_binary_frame_vs_json(runs: int = 30, batch: int = 500) -> D
             raw96 = struct.pack(fmt, 0x4B525953, k, VITAL_MAX_HP, 4, 0.35, 3.24, action_bytes)
             frame128 = raw96 + hashlib.sha256(raw96).digest()
         bin_ms.append((time.perf_counter() - t0) * 1000.0)
-        assert len(frame128) == FRAME_SIZE_BYTES
+        if len(frame128) != FRAME_SIZE_BYTES:
+            raise ContractViolation("X05 frame != 128 B", violation_code="ERR_X05_FRAME")
 
         t1 = time.perf_counter()
         for k in range(batch):

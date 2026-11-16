@@ -49,10 +49,10 @@ flowchart LR
 
 ## 3. Deterministický parser bodov a AST katalóg funkcií frameworku
 
-- **Prehľadané moduly balíka:** `33`
-- **Verejné funkcie extrahované cez `ast`:** `131`
-- **Verejné triedy extrahované cez `ast`:** `38`
-- **Overené medzifunkčné hrán volaní:** `163`
+- **Prehľadané moduly balíka:** `35`
+- **Verejné funkcie extrahované cez `ast`:** `133`
+- **Verejné triedy extrahované cez `ast`:** `40`
+- **Overené medzifunkčné hrán volaní:** `168`
 
 ### Ukážka spracovania bodov a príkazov enginu (`parse_engine_spatial_points_and_directives`)
 Vstupný skript: `HEX(2, -1); PT3(1.5, 0.42, -2.0); RAY(58.2825, 3.0); LAYER_MASK(0x3ff); CALL(compute_algebraic_tensor_move); CALL(resolve_action_with_world_and_ai_chain)`
@@ -138,6 +138,7 @@ Vstupný skript: `HEX(2, -1); PT3(1.5, 0.42, -2.0); RAY(58.2825, 3.0); LAYER_MAS
 | `adaptive_cross_genre_sync.py` | `4` | `join_sync_policy`, `validate_connection_graph`, `simulate_adaptive_rollback`, `describe_adaptive_sync_architecture` |
 | `adaptive_sync_card_grid.py` | `3` | `build_card_dataset`, `render_adaptive_sync_card_grid_html`, `export_standalone_html` |
 | `arena_cache_optical_sockets_and_consumption.py` | `6` | `evaluate_compact_model_interaction_scaffolding`, `run_multiplayer_entity_script_round`, `synthesize_and_write_optical_binary`, `read_optical_binary`, `build_option_geometry_holograms` *(+1 ďalších)* |
+| `autonomous_day_planner_and_prompt_router.py` | `1` | `execute_programmed_next_stages_and_export_practices_md` |
 | `clash_arena_page.py` | `1` | `render_clash_arena_html` |
 | `clash_battle_royale.py` | `2` | `hex_distance`, `board_cells` |
 | `cluster_pid_gemma_finetune_and_mesh_ml.py` | `7` | `train_and_duplicate_satellite_3d_mesh`, `build_cluster_entity_pid_registry`, `pack_intranet_128b_packet`, `unpack_intranet_128b_packet`, `run_neurosymbolic_datalink_and_hypervisor_exchange` *(+2 ďalších)* |
@@ -159,6 +160,7 @@ Vstupný skript: `HEX(2, -1); PT3(1.5, 0.42, -2.0); RAY(58.2825, 3.0); LAYER_MAS
 | `pattern_profile_environment.py` | `1` | `run_pattern_sweep` |
 | `platform_engine.py` | `1` | `render_trigonometric_platform_html` |
 | `playable_fieldlines_and_game_theory.py` | `9` | `generate_operational_field_lines_and_learn`, `execute_syntactic_function_chain`, `render_playable_syntactic_studio_html`, `evaluate_standardized_digital_game_theory`, `solve_algebraic_tensor_word_problems` *(+4 ďalších)* |
+| `roadmap_transitions_events_and_keywords.py` | `1` | `compute_roadmap_transitions_events_and_keywords` |
 | `simulation_grid_3d.py` | `5` | `ensure_babylon_vendor`, `hex_spiral_axial`, `build_trace_dataset`, `render_simulation_grid_3d_html`, `export_standalone_html` |
 | `spatial_coordinators_and_vr_hologram_compositor.py` | `5` | `evaluate_spatial_coordinators_and_procedural_render`, `compile_cycle_driven_ui_schema`, `build_and_trace_hologram_scene`, `render_vr_hologram_profiler_html`, `synthesize_vision_sensory_mindmap` |
 | `tensor_prompt_branch_and_kb.py` | `4` | `encode_prompt_to_feature_row`, `build_openapi_31_strategy_spec`, `coordinate_operations_from_turn`, `sync_master_knowledge_base` |

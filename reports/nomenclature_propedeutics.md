@@ -68,12 +68,13 @@ Verdict: **VERIFIED_WITH_SCOPE**
 | Intranet 128B packet bus | Binary KPKT 128 B SHA-256 inter-module packets modulating presets and WSL2 quotas. | `cluster_pid_gemma_finetune_and_mesh_ml:run_neurosymbolic_datalink_and_hypervisor_exchange` | `tests/test_x86_hex_vr_and_study_conclusion.py` | RESOLVED |
 | Gemma fine-tuning sets | Gemma chat-formatted abstraction variants and four leak-free train/eval sets. | `cluster_pid_gemma_finetune_and_mesh_ml:build_gemma_abstraction_variants_and_finetune_sets` | `tests/test_x86_hex_vr_and_study_conclusion.py` | RESOLVED |
 
-Public symbols without a term: 102
+Public symbols without a term: 120
 
 - `adaptive_2b_spatial_linguistic_trainer`: calibrate_new_shapes_and_model_catalog, build_spatial_and_linguistic_2b_kb, EpisodicResidualMemoryBank, compute_four_core_project_summary_and_roadmap
 - `adaptive_cross_genre_sync`: SyncMode, SyncNode, SyncConnection, describe_adaptive_sync_architecture
 - `adaptive_sync_card_grid`: build_card_dataset, export_standalone_html
 - `arena_cache_optical_sockets_and_consumption`: evaluate_compact_model_interaction_scaffolding, run_multiplayer_entity_script_round, read_optical_binary, build_option_geometry_holograms, render_wireframe_sockets_and_holograms_html
+- `autonomous_day_planner_and_prompt_router`: EpistemicMicroPromptRouter, TokenBudgetedAutonomousExecutor, execute_programmed_next_stages_and_export_practices_md
 - `catalog_gearbox_and_comm_kernel`: FrameworkNationsValidator, CatalogProliferationAndCarouselReconciler, FamiliarHomeClassAndSevenProductSets, ProcessDrivenGearboxAndCommKernel, ConstitutionalModeratorAndChoiceSolver, CrossDisplayMultiGenreParameterMatrix
 - `clash_arena_page`: render_clash_arena_html
 - `clash_battle_royale`: hex_distance, board_cells, ClashGame, ClashRegistry
@@ -81,6 +82,11 @@ Public symbols without a term: 102
 - `combat_turn_planner`: get_cached_hw_profile, probe_isa_flags
 - `configurator_and_dxdiag`: prewarm_heterogeneous_blob_pair, extract_pattern_candidates_from_diagnostics, export_dxdiag_txt, render_dxdiag_profile_html
 - `consistency_bot`: BotCheck
+- `cross_layer_pattern_demo`: run_cross_layer_pattern_demonstration
+- `dep_bridge_numeric_and_packet_abi`: sanitize_vector_f32, emit_governed_128b_event, verify_abi_and_optical_dependencies
+- `dep_bridge_symbolic_geometry_and_openvino`: build_bridged_geometry_and_rig_state
+- `dep_bridge_visual_story_generators`: generate_hex_siege_visual_story, generate_robotics_conflict_visual_story, export_visual_storyline_artifacts
+- `engine_point_and_function_parser`: parse_engine_spatial_points_and_directives, parse_framework_functions_and_topology, build_engine_integration_and_export_daily_markdown
 - `fact_synthesis_engine`: synthesize_facts, induce_rules, module_distance_matrix, narrate
 - `hex_combat_bandwidth_and_world_ai`: hex_cell_count, hex_undirected_edge_count, verify_hex_combinatorial_identities, measure_clash_engine_action_throughput, instantiate_combat_preset, evaluate_all_faction_duel_combinations, generate_world_hex_influences
 - `intel_accelerator_and_power_thread_governor`: IntelDeviceProperties, IntelStream, get_shared_ov_core
@@ -93,6 +99,8 @@ Public symbols without a term: 102
 - `pattern_profile_environment`: ProfileSpec
 - `platform_engine`: TrigonometricHarmonicStateStruct, ZeroCopy128BContractStruct, ReloadedTrigonometricPatternStructures, SchemaConsistencySolver, CodeDependencyGraphAnalyzer, MasterPromptRouterConsolidator, StepExecutionGateProxy, HierarchyOfRelatedTermsEngine, TrigonometricHybridPlatformFramework, render_trigonometric_platform_html
 - `playable_fieldlines_and_game_theory`: render_playable_syntactic_studio_html, solve_algebraic_tensor_word_problems, build_llm_engine_tool_integrations, fetch_staged_processes_and_rig_skeleton_animations, render_lightweight_bot_perception_hud, run_engine_node_benchmark_and_recommend_preset
+- `priority_tabular_synthetic_logger`: generate_priority_stratified_log_table, compute_multiclass_calibration_metrics, train_and_calibrate_models_on_priority_trace
+- `roadmap_transitions_events_and_keywords`: compute_roadmap_transitions_events_and_keywords
 - `simulation_grid_3d`: ensure_babylon_vendor, hex_spiral_axial, build_trace_dataset, export_standalone_html
 - `spatial_coordinators_and_vr_hologram_compositor`: compile_cycle_driven_ui_schema, render_vr_hologram_profiler_html
 - `tensor_prompt_branch_and_kb`: encode_prompt_to_feature_row, build_openapi_31_strategy_spec

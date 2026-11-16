@@ -322,3 +322,77 @@ def test_engine_point_and_function_parser_and_daily_md() -> None:
         parse_engine_spatial_points_and_directives("HEX(9, 9)")
 
 
+def test_roadmap_transitions_practices_and_token_budget_executor() -> None:
+    from projects.trigonometric_hybrid_platform_framework.autonomous_day_planner_and_prompt_router import (
+        EpistemicMicroPromptRouter,
+        execute_programmed_next_stages_and_export_practices_md,
+    )
+    from projects.trigonometric_hybrid_platform_framework.roadmap_transitions_events_and_keywords import (
+        compute_roadmap_transitions_events_and_keywords,
+    )
+
+    rm = compute_roadmap_transitions_events_and_keywords()
+    assert rm["vital_max_hp"] == 6
+    assert rm["inventory_totals"]["fits_120hz_budget_8_33ms"] is True
+    assert rm["inventory_totals"]["governed_transitions_count"] == 6
+    assert rm["inventory_totals"]["operational_events_count"] == 15
+    assert rm["inventory_totals"]["ranked_keywords_count"] == 20
+    assert rm["ranked_keywords"][0]["adaptation_score"] >= rm["ranked_keywords"][-1]["adaptation_score"]
+
+    res = execute_programmed_next_stages_and_export_practices_md()
+    assert Path(res["practices_md_path"]).exists()
+    assert Path(res["roadmap_md_path"]).exists()
+    assert res["checkpoint"]["completed_count"] == 3
+    assert res["checkpoint"]["halted_for_token_reserve"] is True
+    assert res["checkpoint"]["handoff_micro_prompt"] == "MP_08_TOKEN_CAP_HANDOFF_GUARD"
+
+    router = EpistemicMicroPromptRouter()
+    assert router.route("silicon_benchmark", remaining_token_ratio=0.10)["prompt_id"] == "MP_08_TOKEN_CAP_HANDOFF_GUARD"
+    with pytest.raises(ContractViolation):
+        router.route("nonexistent_type")
+
+
+def test_priority_logger_dependency_bridges_visual_story_and_zero_bare_asserts() -> None:
+    import ast
+
+    from projects.trigonometric_hybrid_platform_framework.dep_bridge_numeric_and_packet_abi import (
+        verify_abi_and_optical_dependencies,
+    )
+    from projects.trigonometric_hybrid_platform_framework.dep_bridge_symbolic_geometry_and_openvino import (
+        build_bridged_geometry_and_rig_state,
+    )
+    from projects.trigonometric_hybrid_platform_framework.dep_bridge_visual_story_generators import (
+        export_visual_storyline_artifacts,
+    )
+    from projects.trigonometric_hybrid_platform_framework.priority_tabular_synthetic_logger import (
+        train_and_calibrate_models_on_priority_trace,
+    )
+
+    cal = train_and_calibrate_models_on_priority_trace(target_rows=180)
+    assert cal["vital_max_hp"] == 6
+    assert cal["dataset_summary"]["volume_reduction_vs_5000_raw_ticks_ratio"] > 30.0
+    assert (
+        cal["model_comparison_test_split"]["M2_TEMP_CALIBRATED_MLP"]["accuracy"]
+        > cal["model_comparison_test_split"]["M0_NAIVE_PRIOR"]["accuracy"]
+    )
+
+    b1 = verify_abi_and_optical_dependencies()
+    b2 = build_bridged_geometry_and_rig_state()
+    b3 = export_visual_storyline_artifacts()
+    assert b1["kopt_verified"] is True and b1["packet_verified"] is True
+    assert b2["symbolic_hex_cells"] == 37 and b2["hex_prism_mesh"]["is_watertight"] is True
+    assert len(b3["hex_siege_frames"]) == 6 and len(b3["robotics_conflict_frames"]) == 4
+    assert Path(b3["svg_path"]).exists()
+
+    pkg = Path("projects/trigonometric_hybrid_platform_framework")
+    bare_asserts = [
+        f"{p.name}:{n.lineno}"
+        for p in sorted(pkg.glob("*.py"))
+        for n in ast.walk(ast.parse(p.read_text(encoding="utf-8")))
+        if isinstance(n, ast.Assert)
+    ]
+    assert bare_asserts == []
+
+
+
+

@@ -314,7 +314,8 @@ def synthesize_and_write_optical_binary(
     path: Path = REPORTS / "krystal_arena_optical.kopt",
 ) -> Dict[str, Any]:
     """Compute Schlick Fresnel + hologram LOD optical records and pack into a SHA-256-verified .kopt binary."""
-    assert struct.calcsize(KOPT_RECORD_FMT) == 32
+    if struct.calcsize(KOPT_RECORD_FMT) != 32:
+        raise ContractViolation("KOPT_RECORD_FMT size != 32 B", violation_code="ERR_KOPT_FMT_SIZE")
     materials = [
         ("BASALT_HEX_MATTE", 1.52, 0.75, 0, 8, 240, 1),
         ("CYAN_HOLOGRAM_GLASS", 1.45, 0.35, 0, 20, 480, 3),

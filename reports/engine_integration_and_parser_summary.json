@@ -71,10 +71,10 @@
     }
   },
   "ast_catalog_summary": {
-    "modules_scanned": 33,
-    "public_functions_count": 131,
-    "public_classes_count": 38,
-    "cross_function_call_edges_count": 163
+    "modules_scanned": 35,
+    "public_functions_count": 133,
+    "public_classes_count": 40,
+    "cross_function_call_edges_count": 168
   },
   "advanced_engine_stages": [
     {

@@ -1,0 +1,389 @@
+{
+  "vital_max_hp": 6,
+  "dataset_summary": {
+    "rows_generated": 180,
+    "suppressed_redundant_rows": 26,
+    "train_rows": 108,
+    "val_rows": 36,
+    "test_rows": 36,
+    "csv_size_kb": 33.87,
+    "volume_reduction_vs_5000_raw_ticks_ratio": 40.37,
+    "class_balance": {
+      "CFG_01_ECO_1T": 34,
+      "CFG_02_CPU_4T_LATENCY": 39,
+      "CFG_03_HETERO_IRIS_XE": 33,
+      "CFG_04_UMA_SHADOW_FALLBACK": 36,
+      "CFG_05_CONFLICT_HALT_AUDIT": 38
+    },
+    "csv_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\reports\\bot_priority_calibration_trace.csv",
+    "jsonl_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\reports\\bot_priority_calibration_trace.jsonl",
+    "head_trace_sha256": "43f5e122e4763ce859cd2268efe26b330a0dc78b85a3047e6dc1a1adbc17df4e"
+  },
+  "model_comparison_test_split": {
+    "M0_NAIVE_PRIOR": {
+      "accuracy": 0.2222,
+      "macro_f1": 0.0727,
+      "brier_score": 0.8002,
+      "ece": 0.0093,
+      "confusion_matrix": [
+        [
+          0,
+          7,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          8,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          7,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          6,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          8,
+          0,
+          0,
+          0
+        ]
+      ],
+      "reliability_bins": [
+        {
+          "bin_lo": 0.12,
+          "bin_hi": 0.25,
+          "count": 36,
+          "conf": 0.2315,
+          "acc": 0.2222
+        }
+      ]
+    },
+    "M1_REGULARIZED_LINEAR": {
+      "accuracy": 0.9167,
+      "macro_f1": 0.916,
+      "brier_score": 0.1404,
+      "ece": 0.0715,
+      "confusion_matrix": [
+        [
+          7,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          6,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          7,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          6,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0,
+          7
+        ]
+      ],
+      "reliability_bins": [
+        {
+          "bin_lo": 0.5,
+          "bin_hi": 0.62,
+          "count": 4,
+          "conf": 0.5773,
+          "acc": 0.5
+        },
+        {
+          "bin_lo": 0.62,
+          "bin_hi": 0.75,
+          "count": 1,
+          "conf": 0.7097,
+          "acc": 1.0
+        },
+        {
+          "bin_lo": 0.75,
+          "bin_hi": 0.88,
+          "count": 11,
+          "conf": 0.8006,
+          "acc": 0.9091
+        },
+        {
+          "bin_lo": 0.88,
+          "bin_hi": 1.0,
+          "count": 20,
+          "conf": 0.961,
+          "acc": 1.0
+        }
+      ]
+    },
+    "M2_UNCALIBRATED_MLP": {
+      "accuracy": 0.9167,
+      "macro_f1": 0.916,
+      "brier_score": 0.1361,
+      "ece": 0.0557,
+      "confusion_matrix": [
+        [
+          7,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          6,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          7,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          6,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0,
+          7
+        ]
+      ],
+      "reliability_bins": [
+        {
+          "bin_lo": 0.5,
+          "bin_hi": 0.62,
+          "count": 1,
+          "conf": 0.5545,
+          "acc": 0.0
+        },
+        {
+          "bin_lo": 0.62,
+          "bin_hi": 0.75,
+          "count": 3,
+          "conf": 0.688,
+          "acc": 0.6667
+        },
+        {
+          "bin_lo": 0.75,
+          "bin_hi": 0.88,
+          "count": 5,
+          "conf": 0.8001,
+          "acc": 1.0
+        },
+        {
+          "bin_lo": 0.88,
+          "bin_hi": 1.0,
+          "count": 27,
+          "conf": 0.9773,
+          "acc": 0.963
+        }
+      ]
+    },
+    "M2_TEMP_CALIBRATED_MLP": {
+      "accuracy": 0.9167,
+      "macro_f1": 0.916,
+      "brier_score": 0.1359,
+      "ece": 0.0517,
+      "confusion_matrix": [
+        [
+          7,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          6,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          7,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          6,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0,
+          7
+        ]
+      ],
+      "reliability_bins": [
+        {
+          "bin_lo": 0.5,
+          "bin_hi": 0.62,
+          "count": 1,
+          "conf": 0.5448,
+          "acc": 0.0
+        },
+        {
+          "bin_lo": 0.62,
+          "bin_hi": 0.75,
+          "count": 4,
+          "conf": 0.6953,
+          "acc": 0.75
+        },
+        {
+          "bin_lo": 0.75,
+          "bin_hi": 0.88,
+          "count": 4,
+          "conf": 0.7961,
+          "acc": 1.0
+        },
+        {
+          "bin_lo": 0.88,
+          "bin_hi": 1.0,
+          "count": 27,
+          "conf": 0.9734,
+          "acc": 0.963
+        }
+      ],
+      "optimal_temperature_T": 1.05,
+      "bootstrap_accuracy_ci95": [
+        0.8056,
+        1.0
+      ],
+      "bootstrap_brier_stdev": 0.0664,
+      "bootstrap_ece_stdev": 0.0251
+    }
+  },
+  "sample_rows_preview": [
+    {
+      "seq_id": 0,
+      "vital_max_hp": 6,
+      "priority_rank": 2,
+      "priority_keyword": "canonicalize_float32",
+      "priority_score": 189.82,
+      "uma_utilization": 0.4921,
+      "log10_batch_n": 0.4339,
+      "log10_payload_bytes": 0.8339,
+      "reduction_k_norm": 0.556,
+      "sensor_gap_m": 0.3683,
+      "warm_cache_ready": 0,
+      "cos_theta": 0.99689,
+      "sin_theta": -0.0788,
+      "batch_n_raw": 33,
+      "payload_bytes_raw": 100746,
+      "reduction_k_raw": 427,
+      "target_regime_id": 1,
+      "target_regime": "CFG_02_CPU_4T_LATENCY",
+      "trace_sha256": "330e5de156c4f8a4c6a5c7cc04c285f236e228469a4df9c47f257a20a2648033"
+    },
+    {
+      "seq_id": 1,
+      "vital_max_hp": 6,
+      "priority_rank": 3,
+      "priority_keyword": "UMA_SATURATION_THRESHOLD",
+      "priority_score": 162.4,
+      "uma_utilization": 0.5533,
+      "log10_batch_n": 0.8694,
+      "log10_payload_bytes": 0.9258,
+      "reduction_k_norm": 0.4609,
+      "sensor_gap_m": 0.6523,
+      "warm_cache_ready": 1,
+      "cos_theta": 0.71606,
+      "sin_theta": 0.69804,
+      "batch_n_raw": 1104,
+      "payload_bytes_raw": 358875,
+      "reduction_k_raw": 354,
+      "target_regime_id": 2,
+      "target_regime": "CFG_03_HETERO_IRIS_XE",
+      "trace_sha256": "4a3afe01303787d1430cc34e9d0d56a9ed57d999540fda6af002141e9cf16a3c"
+    },
+    {
+      "seq_id": 2,
+      "vital_max_hp": 6,
+      "priority_rank": 4,
+      "priority_keyword": "KPKT_128B_PACKET",
+      "priority_score": 156.84,
+      "uma_utilization": 0.7893,
+      "log10_batch_n": 0.8333,
+      "log10_payload_bytes": 0.9446,
+      "reduction_k_norm": 0.5078,
+      "sensor_gap_m": 0.0283,
+      "warm_cache_ready": 1,
+      "cos_theta": 0.46517,
+      "sin_theta": -0.88522,
+      "batch_n_raw": 825,
+      "payload_bytes_raw": 464952,
+      "reduction_k_raw": 390,
+      "target_regime_id": 3,
+      "target_regime": "CFG_04_UMA_SHADOW_FALLBACK",
+      "trace_sha256": "c7706ea5e37c997da20a73575bc53e100185ddbe653651f4bcf88d44c49d2842"
+    },
+    {
+      "seq_id": 3,
+      "vital_max_hp": 6,
+      "priority_rank": 5,
+      "priority_keyword": "CACHE_DIR",
+      "priority_score": 146.3,
+      "uma_utilization": 0.7611,
+      "log10_batch_n": 0.877,
+      "log10_payload_bytes": 0.7735,
+      "reduction_k_norm": 0.6042,
+      "sensor_gap_m": 0.2367,
+      "warm_cache_ready": 1,
+      "cos_theta": -0.91139,
+      "sin_theta": 0.41154,
+      "batch_n_raw": 1174,
+      "payload_bytes_raw": 43726,
+      "reduction_k_raw": 464,
+      "target_regime_id": 4,
+      "target_regime": "CFG_05_CONFLICT_HALT_AUDIT",
+      "trace_sha256": "3c3cb2ae85f6d32ae3e81b0695d014095e4e82f51df3929d1f88cfe0f661b945"
+    }
+  ],
+  "evidence": "SIMULATED_SYNTHETIC_TRACE + LOCAL_MEASURED_CALIBRATION"
+}

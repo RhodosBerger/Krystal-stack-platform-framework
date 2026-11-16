@@ -265,7 +265,8 @@ class CapabilityCombatTurnPlanner:
                 if score > best_score:
                     best_score = score
                     best_target = (e, dmg, lethal)
-            assert best_target is not None
+            if best_target is None:
+                raise ContractViolation("Expected non-empty enemy target", violation_code="ERR_TARGET_NONE")
             e, dmg, lethal = best_target
             return (
                 {"type": "attack", "unit": uid, "target": e["unit_id"]},

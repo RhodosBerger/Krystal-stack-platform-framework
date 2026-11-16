@@ -214,7 +214,8 @@ KB_PLATFORM_EXPANSION_DOMAINS: Tuple[Dict[str, str], ...] = (
 
 
 def pack_intranet_128b_packet(pkt_type: int, src_pid: int, dst_pid: int, uma: float, body_str: str) -> bytes:
-    assert struct.calcsize(INTRANET_PKT_FMT) == 96
+    if struct.calcsize(INTRANET_PKT_FMT) != 96:
+        raise ContractViolation("INTRANET_PKT_FMT size != 96 B", violation_code="ERR_PKT_FMT_SIZE")
     if pkt_type not in PACKET_TEMPLATES:
         raise ContractViolation(f"Unknown packet template {pkt_type}", violation_code="ERR_PKT_TYPE")
     raw96 = struct.pack(
