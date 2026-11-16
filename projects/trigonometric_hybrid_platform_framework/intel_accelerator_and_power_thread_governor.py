@@ -328,19 +328,15 @@ _OV_CORE_MEMO: Dict[str, Any] = {}
 
 
 def get_shared_ov_core(cache_dir: Path = DEFAULT_CACHE_DIR) -> Tuple[Any, Any, List[str]]:
-    """Return process-shared (openvino_module, ov.Core, available_devices) to avoid OpenCL re-probing."""
+    """Return process-shared (openvino_module, ov.Core, available_devices) without global CPU CACHE_DIR mutation."""
     if "core" not in _OV_CORE_MEMO:
         import openvino as ov
 
         cache_dir.mkdir(parents=True, exist_ok=True)
         core = ov.Core()
-        core.set_property({"CACHE_DIR": str(cache_dir)})
         _OV_CORE_MEMO["ov"] = ov
         _OV_CORE_MEMO["core"] = core
         _OV_CORE_MEMO["devices"] = list(core.available_devices)
-    else:
-        cache_dir.mkdir(parents=True, exist_ok=True)
-        _OV_CORE_MEMO["core"].set_property({"CACHE_DIR": str(cache_dir)})
     return _OV_CORE_MEMO["ov"], _OV_CORE_MEMO["core"], list(_OV_CORE_MEMO["devices"])
 
 
@@ -412,6 +408,9 @@ class IntelOneApiAccelerator:
             raise ContractViolation(f"Cannot compile for missing device {dev}", violation_code="ERR_INTEL_COMPILE")
         key = (dev, f"{shape}:{filters}:{threads}")
         props: Dict[str, Any] = {"INFERENCE_PRECISION_HINT": "f32"}
+        if dev.startswith("GPU"):
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            props["CACHE_DIR"] = str(self.cache_dir)
         if dev.startswith("CPU") and threads is not None:
             props["INFERENCE_NUM_THREADS"] = max(1, int(threads))
         w1 = _weights(shape[1], filters, 6)

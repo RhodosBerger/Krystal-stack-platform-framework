@@ -1,0 +1,236 @@
+{
+  "vital_max_hp": 6,
+  "generated_at": "2026-11-16T13:24:44.188110+00:00",
+  "platform": {
+    "arch": "AMD64",
+    "byte_order": "little",
+    "cpu_name": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+    "physical_cores": 4,
+    "logical_cores": 8,
+    "ram_gb": 23.7,
+    "os": "Windows 11",
+    "python": "3.14.7",
+    "isa_flags": {
+      "SSE2": true,
+      "SSE3": true,
+      "AVX": true,
+      "AVX2": true,
+      "AVX512F": true
+    }
+  },
+  "findings": {
+    "X01_cache_hierarchy": {
+      "finding_id": "X01_CACHE_HIERARCHY_CLIFF",
+      "tiers": {
+        "L1d_32KB": {
+          "working_set_kb": 32.0,
+          "logical_gbps_median": 24.98,
+          "logical_gbps_p95": 25.23,
+          "timing": {
+            "n": 15,
+            "median_ms": 0.3127,
+            "p95_ms": 0.3477,
+            "p99_ms": 0.3477,
+            "stdev_ms": 0.0096,
+            "jitter_p95_over_median": 1.112
+          },
+          "checksum_guard": 63447.271,
+          "bytes_formula_note": "8 B/elem across two contiguous float32 vectors in native SIMD sdot"
+        },
+        "L2_512KB": {
+          "working_set_kb": 512.0,
+          "logical_gbps_median": 55.1,
+          "logical_gbps_p95": 58.87,
+          "timing": {
+            "n": 15,
+            "median_ms": 0.2836,
+            "p95_ms": 0.6506,
+            "p99_ms": 0.6506,
+            "stdev_ms": 0.127,
+            "jitter_p95_over_median": 2.294
+          },
+          "checksum_guard": -36914.419,
+          "bytes_formula_note": "8 B/elem across two contiguous float32 vectors in native SIMD sdot"
+        },
+        "L3_4MB": {
+          "working_set_kb": 4096.0,
+          "logical_gbps_median": 34.56,
+          "logical_gbps_p95": 35.54,
+          "timing": {
+            "n": 15,
+            "median_ms": 0.6782,
+            "p95_ms": 2.4014,
+            "p99_ms": 2.4014,
+            "stdev_ms": 0.4493,
+            "jitter_p95_over_median": 3.541
+          },
+          "checksum_guard": 46208.529,
+          "bytes_formula_note": "8 B/elem across two contiguous float32 vectors in native SIMD sdot"
+        },
+        "DRAM_32MB": {
+          "working_set_kb": 32768.0,
+          "logical_gbps_median": 17.81,
+          "logical_gbps_p95": 19.43,
+          "timing": {
+            "n": 15,
+            "median_ms": 3.5096,
+            "p95_ms": 6.0148,
+            "p99_ms": 6.0148,
+            "stdev_ms": 1.0771,
+            "jitter_p95_over_median": 1.714
+          },
+          "checksum_guard": -55042.385,
+          "bytes_formula_note": "8 B/elem across two contiguous float32 vectors in native SIMD sdot"
+        }
+      },
+      "l1d_over_dram_bandwidth_ratio": 1.4,
+      "evidence": "LOCAL_MEASURED"
+    },
+    "X02_smt_vs_physical_avx512": {
+      "finding_id": "X02_PHYSICAL_VS_SMT_AVX512_SCALING",
+      "cpu_kernel": "brgconv_avx512_f32",
+      "physical_cores": 4,
+      "logical_cores": 8,
+      "threads_table": {
+        "1T": {
+          "n": 15,
+          "median_ms": 5.132,
+          "p95_ms": 5.938,
+          "p99_ms": 5.938,
+          "stdev_ms": 0.4355,
+          "jitter_p95_over_median": 1.157
+        },
+        "2T": {
+          "n": 15,
+          "median_ms": 3.0701,
+          "p95_ms": 4.3525,
+          "p99_ms": 4.3525,
+          "stdev_ms": 0.6304,
+          "jitter_p95_over_median": 1.418
+        },
+        "4T": {
+          "n": 15,
+          "median_ms": 2.2664,
+          "p95_ms": 4.4992,
+          "p99_ms": 4.4992,
+          "stdev_ms": 0.8776,
+          "jitter_p95_over_median": 1.985
+        },
+        "8T": {
+          "n": 15,
+          "median_ms": 2.0069,
+          "p95_ms": 4.9167,
+          "p99_ms": 4.9167,
+          "stdev_ms": 1.2164,
+          "jitter_p95_over_median": 2.45
+        }
+      },
+      "speedup_1T_to_physical": 2.264,
+      "speedup_physical_to_smt": 1.129,
+      "smt_faster_than_physical": true,
+      "evidence": "LOCAL_MEASURED"
+    },
+    "X03_subnormals_and_ftz_daz": {
+      "finding_id": "X03_SUBNORMAL_ASSIST_VS_FTZ_DAZ",
+      "subnormal_input_nonzero": true,
+      "numpy_vector_fma": {
+        "normal": {
+          "n": 15,
+          "median_ms": 0.1172,
+          "p95_ms": 0.2588,
+          "p99_ms": 0.2588,
+          "stdev_ms": 0.0452,
+          "jitter_p95_over_median": 2.208
+        },
+        "subnormal": {
+          "n": 15,
+          "median_ms": 1.6413,
+          "p95_ms": 2.0841,
+          "p99_ms": 2.0841,
+          "stdev_ms": 0.1464,
+          "jitter_p95_over_median": 1.27
+        },
+        "subnormal_slowdown_ratio": 14.004,
+        "preserves_ieee754_subnormals": true
+      },
+      "openvino_onednn_cpu": {
+        "normal": {
+          "n": 15,
+          "median_ms": 0.3689,
+          "p95_ms": 0.7981,
+          "p99_ms": 0.7981,
+          "stdev_ms": 0.139,
+          "jitter_p95_over_median": 2.163
+        },
+        "subnormal": {
+          "n": 15,
+          "median_ms": 13.7846,
+          "p95_ms": 15.1264,
+          "p99_ms": 15.1264,
+          "stdev_ms": 0.4386,
+          "jitter_p95_over_median": 1.097
+        },
+        "subnormal_slowdown_ratio": 37.367,
+        "flushes_subnormals_to_zero_ftz_daz": false
+      },
+      "evidence": "LOCAL_MEASURED"
+    },
+    "X04_cacheline_stride_and_alignment": {
+      "finding_id": "X04_CACHELINE_64B_STRIDE_AND_ALIGNMENT",
+      "cache_line_bytes": 64,
+      "elements_summed": 262144,
+      "stride_1_contiguous": {
+        "n": 15,
+        "median_ms": 0.1044,
+        "p95_ms": 0.3312,
+        "p99_ms": 0.3312,
+        "stdev_ms": 0.0621,
+        "jitter_p95_over_median": 3.172
+      },
+      "stride_16_every_64B_line": {
+        "n": 15,
+        "median_ms": 1.0008,
+        "p95_ms": 2.2097,
+        "p99_ms": 2.2097,
+        "stdev_ms": 0.3871,
+        "jitter_p95_over_median": 2.208
+      },
+      "stride_16_slowdown_ratio": 9.586,
+      "ov_tensor_64B_aligned_zero_copy": true,
+      "ov_tensor_plus4B_offset_zero_copy": true,
+      "ov_alignment_note": "shared_memory=True accepted +4B offset",
+      "evidence": "LOCAL_MEASURED"
+    },
+    "X05_binary_128b_vs_json": {
+      "finding_id": "X05_LITTLE_ENDIAN_128B_VS_JSON",
+      "byte_order": "little",
+      "frame_bytes": 128,
+      "cache_lines_per_frame": 2,
+      "batch_frames": 500,
+      "binary_128B_struct_sha256": {
+        "n": 15,
+        "median_ms": 0.7845,
+        "p95_ms": 2.6624,
+        "p99_ms": 2.6624,
+        "stdev_ms": 0.5348,
+        "jitter_p95_over_median": 3.394
+      },
+      "utf8_json_sha256": {
+        "n": 15,
+        "median_ms": 3.9524,
+        "p95_ms": 6.976,
+        "p99_ms": 6.976,
+        "stdev_ms": 1.0829,
+        "jitter_p95_over_median": 1.765
+      },
+      "binary_speedup_over_json": 5.038,
+      "binary_frames_per_sec_median": 637348.6,
+      "binary_throughput_mb_per_sec": 77.8,
+      "evidence": "LOCAL_MEASURED"
+    }
+  },
+  "unmeasured_boundaries": [
+    "Priame hardvérové počítadlá RAPL (Joule) a IMC šírky pásma nie sú v používateľskom priestore Windows čítané (UNKNOWN).",
+    "Frekvencia jednotlivých jadier pod AVX-512 downclockingom nie je odčítaná z MSR IA32_PERF_STATUS (UNKNOWN)."
+  ]
+}

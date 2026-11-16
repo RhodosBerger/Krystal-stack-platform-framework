@@ -1,0 +1,7 @@
+[gd_scene load_steps=3 format=3 uid="uid://krystal_hex_arena"]
+[ext_resource type="ArrayMesh" path="res://reports/krystal_satellite_arena_clone.obj" id="1_mesh"]
+[node name="KrystalArenaRoot" type="Node3D"]
+[node name="HexTerrainMultiMesh" type="MultiMeshInstance3D" parent="."]
+layers = 1023
+[node name="SatelliteClonePatch" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_mesh")

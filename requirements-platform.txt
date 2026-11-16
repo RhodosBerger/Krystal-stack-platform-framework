@@ -13,3 +13,6 @@ opencv-python-headless==5.0.0.93
 PyYAML==6.0.3
 py-cpuinfo==9.0.0
 pillow==13.0.0
+trimesh==5.2.1
+sympy==1.14.0
+networkx==3.7

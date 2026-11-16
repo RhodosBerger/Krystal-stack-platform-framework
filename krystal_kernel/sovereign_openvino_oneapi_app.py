@@ -1586,6 +1586,150 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self._send_json(200, build_openapi_31_strategy_spec())
             return
 
+        if self.path.startswith("/vr_hologram_profiler"):
+            from projects.trigonometric_hybrid_platform_framework.spatial_coordinators_and_vr_hologram_compositor import (
+                render_vr_hologram_profiler_html,
+            )
+
+            html_bytes = render_vr_hologram_profiler_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/arena_wireframe_sockets"):
+            from projects.trigonometric_hybrid_platform_framework.arena_cache_optical_sockets_and_consumption import (
+                render_wireframe_sockets_and_holograms_html,
+            )
+
+            html_bytes = render_wireframe_sockets_and_holograms_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/api/v1/runtime/x86_findings"):
+            from projects.trigonometric_hybrid_platform_framework.x86_platform_findings import (
+                run_x86_platform_findings_computation,
+            )
+
+            self._send_json(200, run_x86_platform_findings_computation(runs=8, write_reports=False))
+            return
+
+        if self.path.startswith("/api/v1/runtime/hex_combat_bandwidth"):
+            from projects.trigonometric_hybrid_platform_framework.hex_combat_bandwidth_and_world_ai import (
+                compute_full_combat_bandwidth_solution,
+                evaluate_all_faction_duel_combinations,
+            )
+
+            self._send_json(
+                200,
+                {
+                    "bandwidth": compute_full_combat_bandwidth_solution(),
+                    "duels_and_presets": evaluate_all_faction_duel_combinations(),
+                },
+            )
+            return
+
+        if self.path.startswith("/api/v1/runtime/study_conclusion"):
+            from projects.trigonometric_hybrid_platform_framework.adaptive_2b_spatial_linguistic_trainer import (
+                compile_convolutional_study_conclusion,
+            )
+
+            self._send_json(200, compile_convolutional_study_conclusion(x86_runs=6))
+            return
+
+        if self.path.startswith("/syntactic_playable_studio"):
+            from projects.trigonometric_hybrid_platform_framework.playable_fieldlines_and_game_theory import (
+                render_playable_syntactic_studio_html,
+            )
+
+            html_bytes = render_playable_syntactic_studio_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/bot_perception_hud"):
+            from projects.trigonometric_hybrid_platform_framework.playable_fieldlines_and_game_theory import (
+                render_lightweight_bot_perception_hud,
+            )
+
+            html_bytes = render_lightweight_bot_perception_hud()["html"].encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/api/v1/runtime/game_theory"):
+            from projects.trigonometric_hybrid_platform_framework.playable_fieldlines_and_game_theory import (
+                evaluate_standardized_digital_game_theory,
+            )
+
+            self._send_json(200, evaluate_standardized_digital_game_theory())
+            return
+
+        if self.path.startswith("/api/v1/runtime/geotile_vulkan_arena"):
+            from projects.trigonometric_hybrid_platform_framework.wsl_hypervisor_mortar_and_geotile_adapter import (
+                adapt_integrations_to_four_geospatial_tiles,
+                compile_vulkan_spirv_shader_sets_and_isomorphisms,
+                configure_wsl_ubuntu_hypervisor_bridge,
+                convert_geotile_location_to_3d_arena_replica,
+            )
+
+            self._send_json(
+                200,
+                {
+                    "wsl_hypervisor": configure_wsl_ubuntu_hypervisor_bridge(),
+                    "geotiles": adapt_integrations_to_four_geospatial_tiles(),
+                    "arena_replica": convert_geotile_location_to_3d_arena_replica(),
+                    "vulkan_isomorphisms": compile_vulkan_spirv_shader_sets_and_isomorphisms(),
+                },
+            )
+            return
+
+        if self.path.startswith("/api/v1/runtime/cluster_pid_and_gemma"):
+            from projects.trigonometric_hybrid_platform_framework.cluster_pid_gemma_finetune_and_mesh_ml import (
+                build_cluster_entity_pid_registry,
+                build_gemma_abstraction_variants_and_finetune_sets,
+                run_neurosymbolic_datalink_and_hypervisor_exchange,
+            )
+
+            self._send_json(
+                200,
+                {
+                    "cluster_pids": build_cluster_entity_pid_registry(),
+                    "datalink_packets": run_neurosymbolic_datalink_and_hypervisor_exchange(),
+                    "gemma_sets": build_gemma_abstraction_variants_and_finetune_sets(),
+                },
+            )
+            return
+
+        if self.path.startswith("/api/v1/runtime/rig_and_llm_tools"):
+            from projects.trigonometric_hybrid_platform_framework.playable_fieldlines_and_game_theory import (
+                build_llm_engine_tool_integrations,
+                fetch_staged_processes_and_rig_skeleton_animations,
+                solve_algebraic_tensor_word_problems,
+            )
+
+            self._send_json(
+                200,
+                {
+                    "llm_tools": build_llm_engine_tool_integrations(),
+                    "rig_animations": fetch_staged_processes_and_rig_skeleton_animations(),
+                    "word_problems": solve_algebraic_tensor_word_problems(),
+                },
+            )
+            return
+
         if self.path.startswith("/api/v1/runtime/clash/state"):
             from urllib.parse import parse_qs, urlparse
             from krystal_kernel.constants import ContractViolation
@@ -2098,6 +2242,23 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                     device=str(data.get("device", "CPU")),
                     uma_utilization=float(data.get("uma", 0.35)),
                     reduction_k=int(data.get("reduction_k", 288)),
+                )
+                self._send_json(200, res)
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/runtime/syntactic_chain":
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.playable_fieldlines_and_game_theory import (
+                execute_syntactic_function_chain,
+            )
+
+            try:
+                res = execute_syntactic_function_chain(
+                    chain=data.get("chain"),
+                    uma_utilization=float(data.get("uma", 0.35)),
+                    viewport_px=int(data.get("viewport_px", 1440)),
                 )
                 self._send_json(200, res)
             except (ContractViolation, ValueError) as exc:
