@@ -56,6 +56,85 @@ def build_openvino_model(shape: tuple, w1: np.ndarray, w2: np.ndarray):
     return ov.Model([r2], [param], "krystal_virtual_conv_pipeline")
 
 
+def _conv_sequential(x: np.ndarray, w: np.ndarray, reverse: bool = False, fma: bool = False) -> np.ndarray:
+    """FP32 conv with an explicit, fixed summation order over k = (c, ky, kx).
+
+    fma=False: multiply rounds to f32, then add rounds to f32.
+    fma=True : emulated fused multiply-add — the f32*f32 product is exact in f64 and the
+               sum is rounded once to f32 (rare double-rounding differences possible).
+    Used only as a summation-order fingerprint, not as the main verifier.
+    """
+    n, c, h, wd = x.shape
+    xp = np.pad(x, ((0, 0), (0, 0), (1, 1), (1, 1))).astype(np.float32)
+    f = w.shape[0]
+    order = [(ci, i, j) for ci in range(c) for i in range(3) for j in range(3)]
+    if reverse:
+        order.reverse()
+    acc = np.zeros((n, f, h, wd), dtype=np.float32)
+    for ci, i, j in order:
+        patch = xp[:, ci:ci + 1, i:i + h, j:j + wd]                      # [n,1,h,w]
+        wk = w[None, :, ci, i, j, None, None]
+        if fma:
+            acc = (acc.astype(np.float64) + wk.astype(np.float64) * patch.astype(np.float64)).astype(np.float32)
+        else:
+            acc = (acc + (wk * patch).astype(np.float32)).astype(np.float32)
+    return acc
+
+
+def diagnose_bit_identity(channels: int = 16, filters: int = 32, height: int = 64, width: int = 64,
+                          seed: int = 6) -> Dict[str, Any]:
+    """PATTERN_CANDIDATE 'summation-order fingerprint'.
+
+    Question: why is one device bit-identical to the NumPy reference while another is not?
+    H1 same summation order (both sum k sequentially in natural order) -> device == seq_natural.
+    H2 flawed comparison (aliasing / same buffer)                        -> device == every variant.
+    H3 genuine independent agreement by chance                          -> no structural match.
+    Observation: OpenVINO runtime model reports which kernel (primitiveType) each device used.
+    """
+    import openvino as ov
+
+    rng = np.random.default_rng(seed)
+    shape = (1, channels, height, width)
+    x = rng.standard_normal(shape).astype(np.float32)
+    w = _weights(channels, filters, seed + 1)
+
+    variants = {
+        "numpy_einsum_blas": conv2d_reference(x, w),
+        "seq_natural_k_order": _conv_sequential(x, w, reverse=False),
+        "seq_natural_k_order_fma": _conv_sequential(x, w, reverse=False, fma=True),
+        "seq_reversed_k_order": _conv_sequential(x, w, reverse=True),
+        "seq_reversed_k_order_fma": _conv_sequential(x, w, reverse=True, fma=True),
+    }
+    import openvino.opset13 as ops
+
+    param = ops.parameter(list(shape), np.float32, name="input")
+    model = ov.Model([ops.convolution(param, ops.constant(w), [1, 1], [1, 1], [1, 1], [1, 1])], [param], "single_conv")
+
+    core = ov.Core()
+    devices: Dict[str, Any] = {}
+    for dev in core.available_devices:
+        compiled = core.compile_model(model, dev, {"INFERENCE_PRECISION_HINT": "f32"})
+        out = np.array(compiled.create_infer_request().infer({0: x})[compiled.output(0)], copy=True)
+        kernels = []
+        for op in compiled.get_runtime_model().get_ordered_ops():
+            rt = op.get_rt_info()
+            if "layerType" in rt and str(rt["layerType"].astype(str)).lower().startswith("conv"):
+                kernels.append({k: str(rt[k].astype(str)) for k in ("layerType", "primitiveType", "runtimePrecision") if k in rt})
+        devices[dev] = {
+            "kernels": kernels,
+            "bit_identical_to": [name for name, ref in variants.items() if np.array_equal(out, ref)],
+            "max_abs_diff": {name: float(np.max(np.abs(out - ref))) for name, ref in variants.items()},
+        }
+    variant_cross = {
+        "einsum_equals_seq_natural": bool(np.array_equal(variants["numpy_einsum_blas"], variants["seq_natural_k_order"])),
+        "einsum_equals_seq_natural_fma": bool(np.array_equal(variants["numpy_einsum_blas"], variants["seq_natural_k_order_fma"])),
+        "einsum_vs_seq_natural_fma_mismatch_fraction": float(np.mean(variants["numpy_einsum_blas"] != variants["seq_natural_k_order_fma"])),
+        "seq_natural_equals_seq_reversed": bool(np.array_equal(variants["seq_natural_k_order"], variants["seq_reversed_k_order"])),
+    }
+    return {"input_shape": list(shape), "filters": filters, "variant_cross_check": variant_cross, "devices": devices,
+            "status": "PATTERN_CANDIDATE"}
+
+
 def run_virtual_convolution_pipeline(
     channels: int = 16,
     filters: int = 32,

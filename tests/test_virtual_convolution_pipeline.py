@@ -40,3 +40,15 @@ def test_bounds() -> None:
         run_virtual_convolution_pipeline(vital_hp=5)
     with pytest.raises(ContractViolation):
         run_virtual_convolution_pipeline(channels=512, height=256, width=256)
+
+
+def test_summation_order_fingerprint_discriminates_orders() -> None:
+    pytest.importorskip("openvino")
+    from projects.trigonometric_hybrid_platform_framework.virtual_convolution_pipeline import diagnose_bit_identity
+
+    r = diagnose_bit_identity(channels=4, filters=8, height=16, width=16)
+    assert r["status"] == "PATTERN_CANDIDATE"
+    # Different summation orders must be distinguishable, otherwise the fingerprint has no power.
+    assert r["variant_cross_check"]["seq_natural_equals_seq_reversed"] is False
+    for dev in r["devices"].values():
+        assert dev["kernels"], "runtime model must report the convolution kernel"
