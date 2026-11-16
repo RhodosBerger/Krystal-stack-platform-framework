@@ -1,0 +1,572 @@
+{
+  "vital_max_hp": 6,
+  "generated_at": "2026-11-16T10:32:01.645874+00:00",
+  "ontology_integrity": {
+    "verdict": "VERIFIED_WITH_SCOPE",
+    "duplicate_fact_ids": [],
+    "missing_sources": [],
+    "dangling_rule_citations": {},
+    "facts_without_evidence_label": [],
+    "facts_checked": 42,
+    "rules_checked": 4
+  },
+  "facts_count": 42,
+  "induced_rules": [
+    {
+      "rule_id": "R_GPU_RECIPE",
+      "statement": "GPU conv kernel computes sequential FMA in natural k order",
+      "verdict": "SUPPORTED_WITH_SCOPE",
+      "support": 8,
+      "counterexamples": [],
+      "scope_K": [
+        27,
+        576
+      ],
+      "derived_from": [
+        "F_SW_P01_tiny_GPU",
+        "F_SW_P02_baseline_GPU",
+        "F_SW_P03_seed_change_GPU",
+        "F_SW_P04_rgb_K27_GPU",
+        "F_SW_P05_K288_GPU",
+        "F_SW_P06_wide_out_GPU",
+        "F_SW_P07_K576_GPU",
+        "F_SW_P08_large_spatial_GPU"
+      ]
+    },
+    {
+      "rule_id": "R_CPU_RECIPE",
+      "statement": "CPU conv kernel matches no sequential summation recipe (blocked accumulation)",
+      "verdict": "SUPPORTED_WITH_SCOPE",
+      "support": 8,
+      "counterexamples": [],
+      "scope_K": [
+        27,
+        576
+      ],
+      "derived_from": [
+        "F_SW_P01_tiny_CPU",
+        "F_SW_P02_baseline_CPU",
+        "F_SW_P03_seed_change_CPU",
+        "F_SW_P04_rgb_K27_CPU",
+        "F_SW_P05_K288_CPU",
+        "F_SW_P06_wide_out_CPU",
+        "F_SW_P07_K576_CPU",
+        "F_SW_P08_large_spatial_CPU"
+      ]
+    },
+    {
+      "rule_id": "R_BRIDGE_BLAS_BOUNDARY",
+      "statement": "BLAS == sequential FMA iff K < 449 (matmul bisection) agrees with conv profile sweep",
+      "verdict": "SUPPORTED_WITH_SCOPE",
+      "support": 8,
+      "counterexamples": [],
+      "note": "two independent measurements (conv sweep vs. matmul bisection) of one mechanism",
+      "derived_from": [
+        "F_C06_threshold_k",
+        "F_SW_P01_tiny_blas_fma",
+        "F_SW_P02_baseline_blas_fma",
+        "F_SW_P03_seed_change_blas_fma",
+        "F_SW_P04_rgb_K27_blas_fma",
+        "F_SW_P05_K288_blas_fma",
+        "F_SW_P06_wide_out_blas_fma",
+        "F_SW_P07_K576_blas_fma",
+        "F_SW_P08_large_spatial_blas_fma"
+      ]
+    },
+    {
+      "rule_id": "R_ALLOC_BREAK_EVEN",
+      "statement": "Allocate the conv pipeline to GPU only when > 530 inferences run per compiled model; otherwise CPU",
+      "verdict": "DERIVED",
+      "break_even_inferences": 529.9,
+      "formula": "(compile_gpu - compile_cpu) / (median_cpu - median_gpu)",
+      "derived_from": [
+        "F_C03_GPU_compile_ms",
+        "F_C03_CPU_compile_ms",
+        "F_C03_GPU_median_ms",
+        "F_C03_CPU_median_ms"
+      ]
+    }
+  ],
+  "computing_theory_axioms": [
+    {
+      "axiom_id": "TH_01_IEEE754_NON_ASSOCIATIVITY",
+      "law": "(a + b) + c != a + (b + c) vo float32; FMA zaokrúhľuje raz, bloková akumulácia mení strom sčítania.",
+      "local_proof": "Iris Xe = seq_natural_k_order_fma (8/8 profilov); NumPy OpenBLAS opúšťa tento poriadok pri K = 449.",
+      "evidence": "LOCAL_MEASURED"
+    },
+    {
+      "axiom_id": "TH_02_ADJOINT_AND_PIECEWISE_RANK_LOSS",
+      "law": "<Kx, y> == <x, K^T y> pre lineárnu konvolúciu; ReLU nuluje záporné polpriestory a robí inverziu nejednoznačnou.",
+      "local_proof": "Adjoint gap 3.39e-8, CGLS inverzia 1.50e-7, ReLU parciálna inverzia 16.32% pri ~50.7% nulovaných rovníc.",
+      "evidence": "VERIFIED_WITH_SCOPE"
+    },
+    {
+      "axiom_id": "TH_03_FREIVALDS_RANDOMIZED_VERIFICATION",
+      "law": "Pravdepodobnostná kontrola A(Br) == Cr v čase O(k * n^2) zachytí chybný súčin s chybou <= 2^-k.",
+      "local_proof": "Pri k = 6 pokusoch je horná hranica falošného prijatia <= 1.5625% bez O(n^3) prepočtu.",
+      "evidence": "VERIFIED_WITH_SCOPE"
+    },
+    {
+      "axiom_id": "TH_04_AMORTIZED_COMPILE_CROSSOVER",
+      "law": "Celková cena C(d, n) = T_compile(d) + n * T_median(d) určuje bod zlomu n* medzi zariadeniami.",
+      "local_proof": "Studený compile GPU posúva n* ~ 530; perzistentná CACHE_DIR zráža T_compile(GPU) pod CPU.",
+      "evidence": "DERIVED_FROM_LOCAL_MEASURED"
+    },
+    {
+      "axiom_id": "TH_05_HYSTERETIC_SEMI_VARIANCE_CONTROL",
+      "law": "Okamžitý zostup pri prekročení prahu a 12-kroková zotrvačnosť pri návrate bránia kmitaniu (chattering).",
+      "local_proof": "Horná semivariancia ignoruje pokles latencie; 0 desync naprieč syntetickými profilmi RTT.",
+      "evidence": "SUPPORTED_WITH_SCOPE"
+    },
+    {
+      "axiom_id": "TH_06_SEPARATION_OF_PROPOSER_AND_AUTHORITY",
+      "law": "Render(S) != S a Proposer != Verifier; neplatný návrh garantuje Delta S == 0.",
+      "local_proof": "ClashGame, ShellCommandVerifier aj neurosymbolic_bridge odmietajú neoverené vstupy bez mutácie stavu.",
+      "evidence": "VERIFIED_WITH_SCOPE"
+    }
+  ],
+  "four_application_fields": [
+    {
+      "field_id": "FIELD_01_REALTIME_SIMULATION_AND_NETCODE",
+      "title": "Deterministické hry, arény a multi-žánrová synchronizácia",
+      "core_primitives": [
+        "AdaptiveHorizonController",
+        "join_sync_policy",
+        "ClashGame 128B frames"
+      ],
+      "measurable_value": "0 checksum desync na profiloch LAN/REGIONAL/WAN (SIMULATED) a ochrana scanoutu pri UMA < 0.78."
+    },
+    {
+      "field_id": "FIELD_02_EDGE_VISION_AND_CAD_COMPUTE",
+      "title": "Lokálne spracovanie obrazu, konvolúcií a 3D scén na Intel CPU + Iris Xe",
+      "core_primitives": [
+        "IntelOneApiAccelerator",
+        "CACHE_DIR warm blobs",
+        "K=449 drift guard"
+      ],
+      "measurable_value": "Pokles kompilácie iGPU z ~187-215 ms na ~9-15 ms pri teplej cache a kontrola odchýlky < 1e-3."
+    },
+    {
+      "field_id": "FIELD_03_SOVEREIGN_LLM_CLI_AUTOMATION",
+      "title": "Riadený neuro-symbolický CLI shell a lokálni kopiloti bez halucinácií",
+      "core_primitives": [
+        "KrystalOneApiHeterogeneousShell",
+        "verify_answer",
+        "ShellCommandVerifier"
+      ],
+      "measurable_value": "PROPOSER != VERIFIER: každý príkaz aj citovaná veta prechádza bázou faktov a zmluvnou bránou."
+    },
+    {
+      "field_id": "FIELD_04_SELF_AUDITING_SILICON_DIAGNOSTICS",
+      "title": "Priemyselná diagnostika tokov pamäte (DxDiag profil) a kontinuálny audit CI",
+      "core_primitives": [
+        "consistency_bot",
+        "freivalds_verify",
+        "build_dxdiag_memory_profile"
+      ],
+      "measurable_value": "O(n^2) kontrola maticových súčinov a okamžité odhalenie konfliktov konfigurácie (napr. C08 porty)."
+    }
+  ],
+  "state_pattern_templates": {
+    "vital_max_hp": 6,
+    "observed_context": {
+      "devices": [
+        "CPU",
+        "GPU"
+      ],
+      "avx512f": true,
+      "warm_cache_blobs": 11,
+      "uma_utilization": 0.35,
+      "payload_bytes": 262144,
+      "reduction_k": 288,
+      "llm_online": false,
+      "active_conflicts": 2
+    },
+    "active_template_ids": [
+      "TPL_S2_GPU_IRIS_XE_WARM_THROUGHPUT",
+      "TPL_S4_NUMERICAL_BOUNDARY_AUDIT",
+      "TPL_S5_OFFLINE_LLM_AST_FALLBACK"
+    ],
+    "templates": [
+      {
+        "pattern_id": "TPL_S0_COLD_UNPRIMED",
+        "state_name": "COLD_BOOT_CACHE_EMPTY",
+        "condition": "warm_cache_blobs == 0",
+        "hardware_signature": "CPU active; GPU shader/OpenCL cache unprimed (compile ~187..215 ms)",
+        "memory_flow": "Host NumPy -> CPU L1d/L2; zero GPU blob hits",
+        "governed_transition": "Run background warm-compile into artifacts/cache/openvino_blobs; keep live traffic on CPU.",
+        "falsifier": "GPU selected for short batch (< 530 inferences) while warm_cache_blobs == 0",
+        "evidence_status": "VERIFIED_EMPIRICAL"
+      },
+      {
+        "pattern_id": "TPL_S1_CPU_AVX512_LOW_LATENCY",
+        "state_name": "CPU_PHYSICAL_CORES_DETERMINISTIC",
+        "condition": "payload_bytes < 16384 or expected_inferences < break_even",
+        "hardware_signature": "oneDNN brgconv_avx512_f32 on physical cores (AVX512F=True)",
+        "memory_flow": "ov.Tensor(shared_memory=True) host view -> L1d/L2 blocked accumulation",
+        "governed_transition": "Pin INFERENCE_NUM_THREADS = physical_cores; hold CPU with 10% switch margin.",
+        "falsifier": "p95_ms > latency_budget_ms or numeric rel_error >= 1e-3",
+        "evidence_status": "LOCAL_MEASURED"
+      },
+      {
+        "pattern_id": "TPL_S2_GPU_IRIS_XE_WARM_THROUGHPUT",
+        "state_name": "GPU_WARM_CACHE_ACTIVE",
+        "condition": "GPU in devices and warm_cache_blobs > 0 and uma_utilization < 0.78 and payload_bytes >= 16384",
+        "hardware_signature": "Iris Xe convolution_gpu_bfyx_os_iyx_osv16__f32 (warm compile ~9..15 ms, sequential FMA)",
+        "memory_flow": "Host buffer -> UMA OpenCL/oneAPI surface -> 96 EU FMA pipeline",
+        "governed_transition": "Enable GPU_ALLOCATE card & IntelStream async queue; verify cross-device drift < 1e-3.",
+        "falsifier": "uma_utilization >= 0.78 or cross-device rel_error >= 1e-3",
+        "evidence_status": "LOCAL_MEASURED"
+      },
+      {
+        "pattern_id": "TPL_S3_UMA_SHADOW_THROTTLE",
+        "state_name": "CHRONOMETRIC_SHADOW_PROTECTION",
+        "condition": "uma_utilization >= 0.78",
+        "hardware_signature": "Shared UMA bus saturated by scanout / memory traffic",
+        "memory_flow": "GPU_ALLOCATE vetoed; Clash 128 B ring budget throttled 16 -> 8 frames/round",
+        "governed_transition": "Immediate fallback to CPU (0-frame delay); require 12 clean samples before GPU upscale.",
+        "falsifier": "Any GPU kernel dispatch or GPU_ALLOCATE commit while uma_utilization >= 0.78",
+        "evidence_status": "VERIFIED_WITH_SCOPE"
+      },
+      {
+        "pattern_id": "TPL_S4_NUMERICAL_BOUNDARY_AUDIT",
+        "state_name": "REDUCTION_K449_OR_CONFLICT_REPAIR",
+        "condition": "reduction_K >= 449 or active_conflict_checks > 0",
+        "hardware_signature": "OpenBLAS leaves sequential FMA at K >= 449; CPU vs GPU rounding diverges ~2.5e-6",
+        "memory_flow": "Dual-reference check: relative L2 norm (< 1e-3) + Freivalds O(n^2) projection",
+        "governed_transition": "Forbid bit-identity assertion across devices for K >= 449; unlock FREIVALDS_AUDIT in arena.",
+        "falsifier": "Freivalds false-accept rate > 2^-k or rel_error >= 1e-3",
+        "evidence_status": "LOCAL_MEASURED"
+      },
+      {
+        "pattern_id": "TPL_S5_OFFLINE_LLM_AST_FALLBACK",
+        "state_name": "ONEAPI_SYMBOLIC_COMMAND_FALLBACK",
+        "condition": "lm_studio_port_1234_online == False",
+        "hardware_signature": "External LLM (:1234/v1) unreachable; local OpenVINO Cortex + AST parser online",
+        "memory_flow": "Natural-language intent -> deterministic grammar -> ShellCommandVerifier -> 128 B receipt",
+        "governed_transition": "Tag output ONEAPI_AST_FALLBACK_LLM_OFFLINE; never fabricate LLM prose.",
+        "falsifier": "Any unverified CLI verb executed or offline fallback mislabeled as live LLM output",
+        "evidence_status": "VERIFIED_WITH_SCOPE"
+      }
+    ]
+  },
+  "tensor_prompt_branch_synthesis": {
+    "vital_max_hp": 6,
+    "proposer": "OpenVINO opset13 MatMul+Softmax on CPU",
+    "verifier": "freivalds_verify(k=6) + SymbolicChipsetCoherenceGate",
+    "execution_device": "CPU",
+    "compile_ms": 30.924,
+    "infer_ms": 0.681,
+    "freivalds_audit": {
+      "accepted": true,
+      "rounds": 6,
+      "worst_rel_gap": 1.7226571077276022e-07,
+      "false_accept_bound_exact_arithmetic": 0.015625
+    },
+    "prompt_matrix_shape": [
+      3,
+      8
+    ],
+    "branch_trees": [
+      {
+        "prompt": "Nízka latencia pre mikro-tenzor na fyzických jadrách AVX-512",
+        "feature_vector": [
+          0.55,
+          0.6505,
+          0.35,
+          0.9,
+          1.0,
+          0.65,
+          1.0,
+          0.25
+        ],
+        "vetoes": [],
+        "scaled_solutions": [
+          {
+            "branch_id": "B4_DUAL_FREIVALDS_AUDIT",
+            "tensor_probability": 0.6218,
+            "device": "CPU",
+            "threads": 2,
+            "pl1_watts_envelope": 15.0,
+            "frames_cost": 5,
+            "complete_solution": {
+              "step_1_compile": "OpenVINO CACHE_DIR (CPU -> CPU)",
+              "step_2_execute": "Kontrolná vetva s Freivalds O(n^2) projekciou pri K >= 449 alebo stave CONFLICT.",
+              "step_3_verify": "Freivalds O(n^2) + rel_L2 < 1e-3 + VITAL_MAX_HP == 6",
+              "step_4_rollback": "Hold previous compiled context (Delta S == 0 on violation)"
+            }
+          },
+          {
+            "branch_id": "B3_GPU_IRIS_XE_WARM_STREAM",
+            "tensor_probability": 0.1597,
+            "device": "GPU",
+            "threads": 2,
+            "pl1_watts_envelope": 28.0,
+            "frames_cost": 8,
+            "complete_solution": {
+              "step_1_compile": "OpenVINO CACHE_DIR (CPU -> GPU)",
+              "step_2_execute": "Asynchrónna iGPU Iris Xe vetva s teplou CACHE_DIR pre dávkové konvolúcie (>= 16 KB).",
+              "step_3_verify": "Freivalds O(n^2) + rel_L2 < 1e-3 + VITAL_MAX_HP == 6",
+              "step_4_rollback": "Hold previous compiled context (Delta S == 0 on violation)"
+            }
+          }
+        ]
+      },
+      {
+        "prompt": "Vysoká priepustnosť konvolúcie cez teplú cache na GPU Iris Xe",
+        "feature_vector": [
+          1.0,
+          0.9005,
+          0.35,
+          0.35,
+          1.0,
+          0.65,
+          1.0,
+          0.25
+        ],
+        "vetoes": [],
+        "scaled_solutions": [
+          {
+            "branch_id": "B4_DUAL_FREIVALDS_AUDIT",
+            "tensor_probability": 0.4507,
+            "device": "CPU",
+            "threads": 2,
+            "pl1_watts_envelope": 15.0,
+            "frames_cost": 5,
+            "complete_solution": {
+              "step_1_compile": "OpenVINO CACHE_DIR (CPU -> CPU)",
+              "step_2_execute": "Kontrolná vetva s Freivalds O(n^2) projekciou pri K >= 449 alebo stave CONFLICT.",
+              "step_3_verify": "Freivalds O(n^2) + rel_L2 < 1e-3 + VITAL_MAX_HP == 6",
+              "step_4_rollback": "Hold previous compiled context (Delta S == 0 on violation)"
+            }
+          },
+          {
+            "branch_id": "B3_GPU_IRIS_XE_WARM_STREAM",
+            "tensor_probability": 0.3942,
+            "device": "GPU",
+            "threads": 2,
+            "pl1_watts_envelope": 28.0,
+            "frames_cost": 8,
+            "complete_solution": {
+              "step_1_compile": "OpenVINO CACHE_DIR (CPU -> GPU)",
+              "step_2_execute": "Asynchrónna iGPU Iris Xe vetva s teplou CACHE_DIR pre dávkové konvolúcie (>= 16 KB).",
+              "step_3_verify": "Freivalds O(n^2) + rel_L2 < 1e-3 + VITAL_MAX_HP == 6",
+              "step_4_rollback": "Hold previous compiled context (Delta S == 0 on violation)"
+            }
+          }
+        ]
+      },
+      {
+        "prompt": "Overenie maticovej presnosti pri redukcii nad K=449 a oprava konfliktu",
+        "feature_vector": [
+          0.8,
+          0.6505,
+          0.35,
+          0.35,
+          1.0,
+          1.0,
+          1.0,
+          0.25
+        ],
+        "vetoes": [],
+        "scaled_solutions": [
+          {
+            "branch_id": "B4_DUAL_FREIVALDS_AUDIT",
+            "tensor_probability": 0.7776,
+            "device": "CPU",
+            "threads": 2,
+            "pl1_watts_envelope": 15.0,
+            "frames_cost": 5,
+            "complete_solution": {
+              "step_1_compile": "OpenVINO CACHE_DIR (CPU -> CPU)",
+              "step_2_execute": "Kontrolná vetva s Freivalds O(n^2) projekciou pri K >= 449 alebo stave CONFLICT.",
+              "step_3_verify": "Freivalds O(n^2) + rel_L2 < 1e-3 + VITAL_MAX_HP == 6",
+              "step_4_rollback": "Hold previous compiled context (Delta S == 0 on violation)"
+            }
+          },
+          {
+            "branch_id": "B3_GPU_IRIS_XE_WARM_STREAM",
+            "tensor_probability": 0.1224,
+            "device": "GPU",
+            "threads": 2,
+            "pl1_watts_envelope": 28.0,
+            "frames_cost": 8,
+            "complete_solution": {
+              "step_1_compile": "OpenVINO CACHE_DIR (CPU -> GPU)",
+              "step_2_execute": "Asynchrónna iGPU Iris Xe vetva s teplou CACHE_DIR pre dávkové konvolúcie (>= 16 KB).",
+              "step_3_verify": "Freivalds O(n^2) + rel_L2 < 1e-3 + VITAL_MAX_HP == 6",
+              "step_4_rollback": "Hold previous compiled context (Delta S == 0 on violation)"
+            }
+          }
+        ]
+      }
+    ],
+    "coherent_chipset_synthesis": {
+      "coherent": true,
+      "admitted_branches": [
+        "B4_DUAL_FREIVALDS_AUDIT",
+        "B3_GPU_IRIS_XE_WARM_STREAM"
+      ],
+      "deferred_to_next_tick": [],
+      "total_frames_allocated": 13,
+      "frame_budget_cap": 16,
+      "coordinated_cpu_threads": 2,
+      "coordinated_pl1_watts_envelope": 28.0,
+      "gpu_concurrent_streams": 1
+    },
+    "evidence": "LOCAL_MEASURED (tensor & Freivalds) + DERIVED (branch synthesis)"
+  },
+  "turn_coordinated_operations": {
+    "faction": "VERIFY",
+    "frames_used": 10,
+    "operations": [
+      {
+        "trigger_action": {
+          "type": "card",
+          "card": "GPU_ALLOCATE",
+          "target": "C06"
+        },
+        "operation": "PREWARM_GPU_AND_SELECT_BURST_STRATEGY",
+        "result": {
+          "strategy_id": "IRIS_XE_HETERO_BURST",
+          "preferred_device": "GPU"
+        }
+      },
+      {
+        "trigger_action": {
+          "type": "move",
+          "unit": "C05",
+          "to": [
+            -2,
+            -1
+          ]
+        },
+        "operation": "COMMIT_128B_RING_POSITION_OR_COMBAT_DELTA",
+        "result": {
+          "unit": "C05",
+          "action_type": "move",
+          "verified": true
+        }
+      },
+      {
+        "trigger_action": {
+          "type": "move",
+          "unit": "C06",
+          "to": [
+            -1,
+            -1
+          ]
+        },
+        "operation": "COMMIT_128B_RING_POSITION_OR_COMBAT_DELTA",
+        "result": {
+          "unit": "C06",
+          "action_type": "move",
+          "verified": true
+        }
+      }
+    ]
+  },
+  "hardware_dispositions": {
+    "vital_max_hp": 6,
+    "cpu_name": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+    "physical_cores": 4,
+    "logical_cores": 8,
+    "ram_gb": 23.7,
+    "openvino_devices": [
+      "CPU",
+      "GPU"
+    ],
+    "npu_present": false,
+    "isa": {
+      "flags": {
+        "SSE2": true,
+        "SSE3": true,
+        "AVX": true,
+        "AVX2": true,
+        "AVX512F": true
+      },
+      "source": "WIN32_IsProcessorFeaturePresent",
+      "evidence": "LOCAL_MEASURED"
+    },
+    "uma_utilization": 0.35,
+    "uma_ceiling": 0.78,
+    "uma_headroom_ok": true,
+    "usable_frame_budget": 16,
+    "reserved_uma_frames": 0,
+    "cache_dir": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\artifacts\\cache\\openvino_blobs",
+    "warm_cache_blob_count": 11,
+    "warm_cache_bytes": 1497832,
+    "allocator_recommendation": {
+      "verdict": "DERIVED",
+      "device": "GPU",
+      "reason": "minimal total cost among feasible devices",
+      "expected_inferences": 600,
+      "latency_budget_ms": 10.0,
+      "table": {
+        "CPU": {
+          "cost_ms": 2151.05,
+          "feasible": true,
+          "median_ms": 3.519,
+          "p95_ms": 8.531,
+          "compile_ms": 39.65,
+          "cited_facts": [
+            "F_C03_CPU_median_ms",
+            "F_C03_CPU_p95_ms",
+            "F_C03_CPU_compile_ms"
+          ]
+        },
+        "GPU": {
+          "cost_ms": 2131.48,
+          "feasible": true,
+          "median_ms": 3.24,
+          "p95_ms": 5.13,
+          "compile_ms": 187.48,
+          "cited_facts": [
+            "F_C03_GPU_median_ms",
+            "F_C03_GPU_p95_ms",
+            "F_C03_GPU_compile_ms"
+          ]
+        }
+      }
+    },
+    "ontology_integrity": "VERIFIED_WITH_SCOPE",
+    "check_verdicts": {
+      "C01": "VERIFIED_WITH_SCOPE",
+      "C02": "SUPPORTED_WITH_SCOPE",
+      "C03": "MEASURED_WITH_SCOPE",
+      "C04": "VERIFIED_WITH_SCOPE",
+      "C05": "CONFLICT",
+      "C06": "MEASURED_WITH_SCOPE",
+      "C07": "VERIFIED_WITH_SCOPE",
+      "C08": "CONFLICT"
+    },
+    "card_gates": {
+      "GPU_ALLOCATE": {
+        "unlocked": true,
+        "reason": "GPU Iris Xe present and UMA < 0.78"
+      },
+      "FREIVALDS_AUDIT": {
+        "unlocked": true,
+        "reason": "Freivalds O(n^2) verifier active; applies only to own CONFLICT units with HP < 6"
+      },
+      "STRICT_JOIN": {
+        "unlocked": true,
+        "reason": "C01 sync authority verified"
+      },
+      "HORIZON_SHIELD": {
+        "unlocked": true,
+        "reason": "AdaptiveHorizonController active (12-tick downshift hysteresis)"
+      }
+    },
+    "evidence": "LOCAL_MEASURED"
+  },
+  "openapi_31_endpoints": [
+    "/api/v1/runtime/opus_intersections",
+    "/api/v1/runtime/configurator",
+    "/api/v1/runtime/dxdiag_profile",
+    "/api/v1/runtime/master_kb",
+    "/api/v1/runtime/clash/plan",
+    "/api/v1/runtime/tensor_branch",
+    "/api/v1/runtime/oneapi_shell"
+  ]
+}

@@ -1,0 +1,41 @@
+==============================================================================
+KRYSTAL STACK DIAGNOSTIC PROFILE (DXDIAG-STYLE MEMORY & SILICON REPORT)
+==============================================================================
+Constitutional Invariant : VITAL_MAX_HP == 6
+
+------------------ 1. Systém, ISA & Akcelerátory (System & Silicon) ------------------
+Processor        : 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz
+Topology         : 4 fyzické / 8 logické
+Memory (RAM)     : 23.7 GB total / 5.72 GB free (75.9% used)
+Process RSS      : 633.54 MB
+ISA Extensions   : {"SSE2": true, "SSE3": true, "AVX": true, "AVX2": true, "AVX512F": true}
+OpenVINO Devices : CPU, GPU (NPU=False)
+Warm Blob Cache  : 11 files (1462.7 KB)
+Notes            : Zistený procesor 11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz s potvrdeným AVX-512F=True. | Aktívne OpenVINO/oneAPI zariadenia: CPU, GPU (NPU prítomné: False).
+
+------------------ 2. Toky v pamäti & 128 B Rámce (Memory Flows) ------------------
+[F1_HOST_TO_OPENVINO_TENSOR] (CPU_SHARED_INPUT_CAPABLE / OUTPUT_EXPLICIT_COPY)
+  Path   : NumPy float32 [1,16,128,128] (1.00 MB) -> OpenVINO InferRequest
+  Report : Vstup na CPU vie zdieľať pamäť hostiteľa (ov.Tensor shared_memory=True); výstup vo virtual_convolution_pipeline.py používa copy=True pre bezpečné oddelenie od buffera.
+[F2_UMA_SHARED_BUS] (NOMINAL_HEADROOM)
+  Path   : Systémová DDR4/LPDDR4x <-> Intel Iris Xe (96 EU) zdieľaná zbernica
+  Report : Zaťaženie UMA=0.35 je pod stropom 0.78; prenosy >= 16 KB môžu ísť na Iris Xe.
+[F3_CACHE_DIR_BLOB_STREAM] (WARM_READY)
+  Path   : Disk artifacts/cache/openvino_blobs -> OpenVINO runtime
+  Report : V cache je 11 predkompilovaných súborov (1462.7 KB); opakovaná kompilácia iGPU sa skracuje zo ~187-215 ms na ~9-15 ms.
+[F4_ARENA_128B_RING] (BUDGET_16_OF_16_FRAMES)
+  Path   : Klient / Plánovač -> STEP_GATE_PROXY -> 128 B rámec (96 B dáta + 32 B SHA-256)
+  Report : Každý platný ťah sa balí do presne 128 B so SHA-256; v tomto kole je povolených 16 rámcov (2048 B).
+
+------------------ 3. Brány krokov, Rollback & Koordinácia ťahu (Gates & Turn Coordinator) ------------------
+Authority Chain  : PROPOSER (UI / LLM / OpenVINO) -> STEP_GATE_PROXY (VERIFIER) -> KERNEL_STATE
+Ontology Verdict : VERIFIED_WITH_SCOPE | Active Conflicts: C05, C08
+State Templates  : TPL_S2_GPU_IRIS_XE_WARM_THROUGHPUT, TPL_S4_NUMERICAL_BOUNDARY_AUDIT, TPL_S5_OFFLINE_LLM_AST_FALLBACK
+Turn Operations  : PREWARM_GPU_AND_SELECT_BURST_STRATEGY, COMMIT_128B_RING_POSITION_OR_COMBAT_DELTA, COMMIT_128B_RING_POSITION_OR_COMBAT_DELTA
+
+------------------ 4. Extraktor vzorov (PATTERN_CANDIDATE Extractor) ------------------
+Basis            : Vzory sa extrahujú zo spárovaných záznamov (Vstupná záťaž, Stav kremíka, Stopa toku v pamäti, Rezíduum/ Konflikt, Verdikt brány) — všade tam, kde meranie odhalí skok (napr. K=449, CACHE_DIR, copy=True).
+* PC_01_WARM_BLOB_FAST_SWAP [VERIFIED_EMPIRICAL]: Predkompilované bloby v CACHE_DIR (11 súborov) znižujú kompiláciu iGPU pod prah okamžitého prepnutia. (Scope: Intel Iris Xe OpenVINO GPU plugin na rovnakom ovládači)
+* PC_02_TILED_K448_SEQUENTIAL_FMA [PATTERN_CANDIDATE]: Rozdelenie redukčnej osi K na bloky <= 448 drží NumPy OpenBLAS v sekvenčnom FMA režime. (Scope: FP32 maticové a im2col súčiny s OpenBLAS 0.3.34)
+* PC_03_CPU_SHARED_TENSOR_ELISION [PATTERN_CANDIDATE]: ov.Tensor(arr, shared_memory=True) odstraňuje vstupnú kópiu na CPU, kým výstup copy=True ju stále robí. (Scope: Contiguous C-order np.float32 polia na CPU oneDNN)
+* PC_04_UMA_COUPLED_ARENA_RING_BUDGET [SUPPORTED_WITH_SCOPE]: Zníženie rozpočtu 128 B rámcov (16 -> 8) pri UMA >= 0.78 spája hernú bránu s ochranou zbernice. (Scope: Integrovaná grafika zdieľajúca systémovú RAM s CPU)

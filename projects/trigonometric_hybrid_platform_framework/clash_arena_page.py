@@ -54,6 +54,8 @@ _TEMPLATE = r"""<!DOCTYPE html>
   <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
     <select id="faction"><option>SYNC</option><option>COMPUTE</option><option>VERIFY</option><option>OPS</option></select>
     <button class="gold" id="newGame">Nová hra</button>
+    <button id="planTurn">Navrhnúť ťah</button>
+    <button id="execPlan">Vykonať plán</button>
     <button id="endTurn">Koniec kola</button>
   </div>
 </nav>
@@ -63,6 +65,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
     <div class="chapter">Kolo · zóna · pamäťový rozpočet (128 B rámce)</div>
     <div id="status"></div><div class="budget" id="budget"></div>
     <div class="err" id="err"></div>
+    <div class="chapter">Plánovač ťahov (disponované vlastnosti HW)</div><div class="term" id="planBox">Klikni na „Navrhnúť ťah“.</div>
     <div class="chapter">Vybraná jednotka</div><div id="unit">Klikni na svoju jednotku.</div>
     <div class="chapter" style="margin-top:16px">Karty = konfigurovateľné prvky frameworku</div><div id="cards"></div>
     <div class="chapter" style="margin-top:16px">Potvrdenia ťahov (receipts)</div><div class="term" id="log"></div>
@@ -172,6 +175,17 @@ _TEMPLATE = r"""<!DOCTYPE html>
   document.addEventListener("click", (e) => { const c = e.target.closest("[data-card]"); if (c) { selCard = selCard === c.dataset.card ? null : c.dataset.card; render(); } });
   $("newGame").onclick = newGame;
   $("endTurn").onclick = () => act({ type: "end_turn" });
+  async function runPlanner(commit) {
+    try {
+      const d = await post("/api/v1/runtime/clash/plan", { game_id: gameId, commit, uma: 0.35 });
+      if (commit && d.state) S = d.state;
+      $("err").textContent = "";
+      $("planBox").innerHTML = d.plan.rationale.map(esc).join("<br/>") || "Žiadne platné kroky v tomto kole.";
+    } catch (e) { $("err").textContent = `${e.violation_code || "ERROR"}: ${e.error || e}`; }
+    render();
+  }
+  $("planTurn").onclick = () => runPlanner(false);
+  $("execPlan").onclick = () => runPlanner(true);
 
   async function controlCenter() {
     try {

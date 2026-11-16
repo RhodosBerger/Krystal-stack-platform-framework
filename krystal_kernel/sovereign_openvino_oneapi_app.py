@@ -1519,6 +1519,73 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(html_bytes)
             return
 
+        if self.path.startswith("/dxdiag_profile"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.trigonometric_hybrid_platform_framework.configurator_and_dxdiag import render_dxdiag_profile_html
+
+            qs = parse_qs(urlparse(self.path).query)
+            uma = float(qs.get("uma", ["0.35"])[0])
+            html_bytes = render_dxdiag_profile_html(uma_utilization=uma).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/api/v1/runtime/dxdiag_profile"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.trigonometric_hybrid_platform_framework.configurator_and_dxdiag import build_dxdiag_memory_profile
+
+            qs = parse_qs(urlparse(self.path).query)
+            uma = float(qs.get("uma", ["0.35"])[0])
+            self._send_json(200, build_dxdiag_memory_profile(uma_utilization=uma))
+            return
+
+        if self.path.startswith("/api/v1/runtime/opus_intersections"):
+            from projects.trigonometric_hybrid_platform_framework.configurator_and_dxdiag import analyze_opus_and_build_intersections
+
+            self._send_json(200, analyze_opus_and_build_intersections())
+            return
+
+        if self.path.startswith("/api/v1/runtime/configurator"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.configurator_and_dxdiag import build_validated_configuration
+
+            qs = parse_qs(urlparse(self.path).query)
+            try:
+                res = build_validated_configuration(
+                    goal=str(qs.get("goal", ["low_latency_realtime"])[0]),
+                    expected_inferences=int(qs.get("n", ["300"])[0]),
+                    latency_budget_ms=float(qs.get("budget_ms", ["10.0"])[0]),
+                    uma_utilization=float(qs.get("uma", ["0.35"])[0]),
+                    rtt_ms=float(qs.get("rtt_ms", ["25.0"])[0]),
+                    environment=str(qs.get("env", ["development"])[0]),
+                )
+                self._send_json(200, res)
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path.startswith("/api/v1/runtime/blender_schema"):
+            from projects.trigonometric_hybrid_platform_framework.configurator_and_dxdiag import build_blender_system_workflow_schema
+
+            self._send_json(200, build_blender_system_workflow_schema())
+            return
+
+        if self.path.startswith("/api/v1/runtime/master_kb"):
+            from projects.trigonometric_hybrid_platform_framework.tensor_prompt_branch_and_kb import sync_master_knowledge_base
+
+            self._send_json(200, sync_master_knowledge_base(write_files=False))
+            return
+
+        if self.path == "/api/v1/runtime/openapi_strategies.json":
+            from projects.trigonometric_hybrid_platform_framework.tensor_prompt_branch_and_kb import build_openapi_31_strategy_spec
+
+            self._send_json(200, build_openapi_31_strategy_spec())
+            return
+
         if self.path.startswith("/api/v1/runtime/clash/state"):
             from urllib.parse import parse_qs, urlparse
             from krystal_kernel.constants import ContractViolation
@@ -1983,14 +2050,27 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             return
 
-        if self.path in ("/api/v1/runtime/clash/new", "/api/v1/runtime/clash/action"):
+        if self.path in ("/api/v1/runtime/clash/new", "/api/v1/runtime/clash/action", "/api/v1/runtime/clash/plan"):
             from krystal_kernel.constants import ContractViolation
             from projects.trigonometric_hybrid_platform_framework.clash_battle_royale import GLOBAL_CLASH_REGISTRY
+            from projects.trigonometric_hybrid_platform_framework.combat_turn_planner import CapabilityCombatTurnPlanner
 
             try:
                 if self.path.endswith("/new"):
                     gid, game = GLOBAL_CLASH_REGISTRY.new(str(data.get("faction", "SYNC")), int(data.get("seed", 6)))
                     self._send_json(200, {"game_id": gid, "state": game.public_state()})
+                    return
+                if self.path.endswith("/plan"):
+                    gid = str(data.get("game_id", ""))
+                    game = GLOBAL_CLASH_REGISTRY.get(gid)
+                    plan = CapabilityCombatTurnPlanner().plan_turn(
+                        game,
+                        faction=data.get("faction"),
+                        uma_utilization=float(data.get("uma", 0.35)),
+                        expected_inferences=int(data.get("expected_inferences", 600)),
+                        commit=bool(data.get("commit", False)),
+                    )
+                    self._send_json(200, {"game_id": gid, "plan": plan, "state": game.public_state()})
                     return
                 gid = str(data.get("game_id", ""))
                 game = GLOBAL_CLASH_REGISTRY.get(gid)
@@ -2005,6 +2085,43 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             except (TypeError, ValueError) as exc:
                 self._send_json(400, {"error": f"bad request: {exc}"})
+            return
+
+        if self.path == "/api/v1/runtime/tensor_branch":
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.tensor_prompt_branch_and_kb import TensorPromptBranchEngine
+
+            try:
+                prompts = data.get("prompts") or ["Optimalizuj heterogénnu konvolúciu"]
+                res = TensorPromptBranchEngine().evaluate_prompt_matrix_branches(
+                    [str(p) for p in prompts],
+                    device=str(data.get("device", "CPU")),
+                    uma_utilization=float(data.get("uma", 0.35)),
+                    reduction_k=int(data.get("reduction_k", 288)),
+                )
+                self._send_json(200, res)
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/runtime/oneapi_shell":
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.oneapi_llm_heterogeneous_shell import (
+                get_global_oneapi_shell,
+            )
+
+            if os.environ.get("KRYSTAL_ENV", "").lower() == "production":
+                expected = os.environ.get("KRYSTAL_ADMIN_TOKEN", "")
+                provided = self.headers.get("X-Krystal-Admin-Token", "")
+                if not expected or not hmac.compare_digest(expected, provided):
+                    self._send_json(403, {"error": "oneapi_shell requires admin token in production", "vital_max_hp": VITAL_MAX_HP})
+                    return
+            try:
+                cmd_line = str(data.get("command", "probe"))
+                res = get_global_oneapi_shell().execute_line(cmd_line)
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             return
 
         if self.path == "/api/v1/runtime/trigonometric_hybrid_platform":

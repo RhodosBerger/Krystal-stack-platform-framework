@@ -208,9 +208,14 @@ def _import_graph(package_dir: Path = PACKAGE_DIR) -> Dict[str, set]:
     return graph
 
 
-def fetch_distance_between_modules(a: str, b: str, package_dir: Path = PACKAGE_DIR) -> Dict[str, Any]:
+def fetch_distance_between_modules(
+    a: str,
+    b: str,
+    package_dir: Path = PACKAGE_DIR,
+    graph: Optional[Dict[str, set]] = None,
+) -> Dict[str, Any]:
     """Shortest path length in the undirected import graph (hops) + Jaccard distance of neighbour sets."""
-    g = _import_graph(package_dir)
+    g = graph if graph is not None else _import_graph(package_dir)
     if a not in g or b not in g:
         return {"a": a, "b": b, "hops": None, "path": None, "jaccard_distance": None, "note": "module not in graph"}
     prev = {a: None}
@@ -236,8 +241,9 @@ def fetch_distance_between_modules(a: str, b: str, package_dir: Path = PACKAGE_D
 
 
 def module_distance_matrix(package_dir: Path = PACKAGE_DIR) -> Dict[str, Any]:
+    g = _import_graph(package_dir)
     mods = sorted(p.stem for p in package_dir.glob("*.py") if p.stem != "__init__")
-    return {a: {b: fetch_distance_between_modules(a, b, package_dir)["hops"] for b in mods} for a in mods}
+    return {a: {b: fetch_distance_between_modules(a, b, package_dir, graph=g)["hops"] for b in mods} for a in mods}
 
 
 # ---------------------------------------------------------------------------
