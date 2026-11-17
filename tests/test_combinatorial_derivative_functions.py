@@ -275,6 +275,7 @@ def test_observable_ml_study_glmark_fhd_4k_and_adrenalin_cms() -> None:
     assert gl["resolutions"]["FHD_1920x1080"]["speedup_x"] > 1.1
     assert gl["resolutions"]["UHD_4K_3840x2160"]["speedup_x"] > 1.1
     assert len(bundle["fair_licensing_system"]["fair_price_to_performance_tiers"]) == 4
+    assert bundle["fair_licensing_system"]["authorized_partner_addendum"]["grantee"] == "Ivan Novikov"
     assert Path(bundle["summary_json_path"]).exists()
     assert Path(bundle["study_md_path"]).exists()
 

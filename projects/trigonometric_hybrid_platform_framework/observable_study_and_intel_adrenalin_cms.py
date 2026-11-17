@@ -485,6 +485,14 @@ class IntelAdrenalinKrystalCmsEngine:
                 "github": "https://github.com/RhodosBerger",
                 "email": "dusan.kopecky0101@gmail.com",
             },
+            "authorized_partner_addendum": {
+                "grantee": "Ivan Novikov",
+                "organization_and_project": "XERJ (https://xerj.org | https://github.com/xerj-org/xerj)",
+                "grant_scope_sk": (
+                    "Ivan Novikov má na základe vzájomnej dohody s majiteľom codebase Dušanom Kopeckým "
+                    "výslovne povolené používať novodopracované funkcie a nadstavby frameworku na svojom projekte."
+                ),
+            },
             "fair_price_to_performance_tiers": [
                 {
                     "tier_id": "LIC_01_PERSONAL_CONSENT",

@@ -99,9 +99,9 @@
   "glmark_fhd_and_4k_benchmark": {
     "vital_max_hp": 6,
     "opengl_driver_probe": {
-      "gl_vendor": "Microsoft Corporation",
-      "gl_renderer": "GDI Generic",
-      "gl_version": "1.1.0",
+      "gl_vendor": "Intel",
+      "gl_renderer": "Intel(R) Iris(R) Xe Graphics",
+      "gl_version": "4.6.0 - Build 32.0.101.7092",
       "status": "HARDWARE_WGL_ACTIVE"
     },
     "monitored_frames_logged": 16,
@@ -112,14 +112,14 @@
         "height": 1080,
         "framebuffer_fp32_mb": 23.73,
         "executed_on_device": "GPU",
-        "stock_median_ms": 35.673,
-        "krystal_median_ms": 24.853,
-        "stock_fps": 28.03,
-        "krystal_fps": 40.24,
-        "stock_glmark_equivalent_score": 280,
-        "krystal_glmark_equivalent_score": 402,
-        "speedup_x": 1.44,
-        "fps_gain_pct": 43.53,
+        "stock_median_ms": 30.869,
+        "krystal_median_ms": 22.453,
+        "stock_fps": 32.39,
+        "krystal_fps": 44.54,
+        "stock_glmark_equivalent_score": 324,
+        "krystal_glmark_equivalent_score": 445,
+        "speedup_x": 1.37,
+        "fps_gain_pct": 37.48,
         "epistemic_status": "LOCAL_MEASURED"
       },
       "UHD_4K_3840x2160": {
@@ -127,14 +127,14 @@
         "height": 2160,
         "framebuffer_fp32_mb": 94.92,
         "executed_on_device": "GPU",
-        "stock_median_ms": 151.987,
-        "krystal_median_ms": 108.325,
-        "stock_fps": 6.58,
-        "krystal_fps": 9.23,
+        "stock_median_ms": 150.878,
+        "krystal_median_ms": 105.794,
+        "stock_fps": 6.63,
+        "krystal_fps": 9.45,
         "stock_glmark_equivalent_score": 66,
-        "krystal_glmark_equivalent_score": 92,
-        "speedup_x": 1.4,
-        "fps_gain_pct": 40.31,
+        "krystal_glmark_equivalent_score": 95,
+        "speedup_x": 1.43,
+        "fps_gain_pct": 42.62,
         "epistemic_status": "LOCAL_MEASURED"
       }
     }
@@ -218,7 +218,7 @@
   "driver_and_os_opportunities": {
     "vital_max_hp": 6,
     "live_host_snapshot": {
-      "available_ram_gb": 2.89,
+      "available_ram_gb": 2.93,
       "cpu_affinity_threads": 8,
       "warm_driver_blobs": 25,
       "gpu_usm_device_mb": 70.09
@@ -239,7 +239,7 @@
       {
         "opportunity_id": "OPP_OS_02_LOW_RAM_COMPACT_ARENA_GUARD",
         "target_plane": "OPERAČNÝ_SYSTÉM_VIRTUÁLNA_PAMÄŤ",
-        "trigger_observed": "Voľná systémová RAM je iba 2.89 GB (< 4,5 GB prah)",
+        "trigger_observed": "Voľná systémová RAM je iba 2.93 GB (< 4,5 GB prah)",
         "proposed_action_sk": "Aktivovať kompaktnú 64 MB zero-copy arénu a 40,37x kompresiu logov na zabránenie stránkovania na NVMe disk.",
         "tier": "P0",
         "utility": 94.0,
@@ -284,10 +284,10 @@
     "arbitrated_execution": {
       "vital_max_hp": 6,
       "shadow_prices": {
-        "lambda_uma": 3.366,
+        "lambda_uma": 3.355,
         "lambda_watt": 0.036
       },
-      "final_committed_uma": 0.6929,
+      "final_committed_uma": 0.6919,
       "remaining_watt_headroom": 18.0,
       "accepted_agents": [
         {
@@ -300,20 +300,20 @@
           "uma_delta": 0.01,
           "watts": 0.5,
           "preferred_unit": "CPU_VSYNC_CORE",
-          "arbitration_score": 178582.369,
+          "arbitration_score": 178974.633,
           "decision": "GRANTED_IMMEDIATE"
         },
         {
           "opportunity_id": "OPP_OS_02_LOW_RAM_COMPACT_ARENA_GUARD",
           "target_plane": "OPERAČNÝ_SYSTÉM_VIRTUÁLNA_PAMÄŤ",
-          "trigger_observed": "Voľná systémová RAM je iba 2.89 GB (< 4,5 GB prah)",
+          "trigger_observed": "Voľná systémová RAM je iba 2.93 GB (< 4,5 GB prah)",
           "proposed_action_sk": "Aktivovať kompaktnú 64 MB zero-copy arénu a 40,37x kompresiu logov na zabránenie stránkovania na NVMe disk.",
           "tier": "P0",
           "utility": 94.0,
           "uma_delta": 0.02,
           "watts": 1.0,
           "preferred_unit": "CPU_VSYNC_CORE",
-          "arbitration_score": 91233.183,
+          "arbitration_score": 91433.582,
           "decision": "GRANTED_IMMEDIATE"
         },
         {
@@ -326,7 +326,7 @@
           "uma_delta": 0.03,
           "watts": 2.0,
           "preferred_unit": "CPU_4P_AVX512",
-          "arbitration_score": 4988.235,
+          "arbitration_score": 4998.055,
           "decision": "GRANTED_IMMEDIATE"
         },
         {
@@ -339,7 +339,7 @@
           "uma_delta": 0.07,
           "watts": 3.0,
           "preferred_unit": "IRIS_XE_768_SP",
-          "arbitration_score": 2450.732,
+          "arbitration_score": 2456.396,
           "decision": "GRANTED_IMMEDIATE"
         },
         {
@@ -352,7 +352,7 @@
           "uma_delta": 0.08,
           "watts": 3.5,
           "preferred_unit": "IRIS_XE_768_SP",
-          "arbitration_score": 2257.333,
+          "arbitration_score": 2262.516,
           "decision": "GRANTED_IMMEDIATE"
         }
       ],
@@ -493,6 +493,11 @@
       "owner_name": "Dušan Kopecký",
       "github": "https://github.com/RhodosBerger",
       "email": "dusan.kopecky0101@gmail.com"
+    },
+    "authorized_partner_addendum": {
+      "grantee": "Ivan Novikov",
+      "organization_and_project": "XERJ (https://xerj.org | https://github.com/xerj-org/xerj)",
+      "grant_scope_sk": "Ivan Novikov má na základe vzájomnej dohody s majiteľom codebase Dušanom Kopeckým výslovne povolené používať novodopracované funkcie a nadstavby frameworku na svojom projekte."
     },
     "fair_price_to_performance_tiers": [
       {

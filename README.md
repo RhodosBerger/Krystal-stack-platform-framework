@@ -56,6 +56,7 @@
   - [`docs/research/OBSERVABLE_STUDY_SYNTHETIC_ML_THEORY_ENGINEERING_REPORT.md`](docs/research/OBSERVABLE_STUDY_SYNTHETIC_ML_THEORY_ENGINEERING_REPORT.md)
 * **⚖️ Proprietary Extensions & Fair Commercial / Personal Licensing Notice (All Rights Reserved — Dušan Kopecký):**
   All proprietary Krystal Stack extensions (`Intel Adrenalin Panel + Krystal CMS`, `16 KB mmap` MMIO Kernel, Shadow-Price Resource Arbitration, and Driver-Assist Layers) have **All Rights Reserved by codebase owner Dušan Kopecký (`dusan.kopecky0101@gmail.com` · `@RhodosBerger`)**. Personal use requires prior owner consent; commercial deployment requires contacting the owner and submitting a commercial licensing proposal (with fair high-ROI tiers starting from Indie `€19/mo` up to value-shared Enterprise agreements).
+  * **Authorized Partner Addendum (`XERJ` / `xerj.org`):** **Ivan Novikov** is expressly granted permission by codebase owner **Dušan Kopecký** to use the newly delivered Krystal Stack features and architectural extensions on his project (**XERJ**, `xerj.org` / `github.com/xerj-org/xerj`) in accordance with their mutual agreement, with appreciation for the collaboration with `xerj.org`.
 
 ---
 
