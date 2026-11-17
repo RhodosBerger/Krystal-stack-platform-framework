@@ -27,10 +27,12 @@ pub mod unified_core;
 pub mod cinematic_bridge;
 pub mod epistemic_abi;
 pub mod unix_windows_vulkan_driver_core;
+pub mod universal_mmio_kernel;
 
 pub use types::*;
 pub use epistemic_abi::*;
 pub use unix_windows_vulkan_driver_core::*;
+pub use universal_mmio_kernel::*;
 pub use config::Config;
 pub use events::{Event, EventBus};
 pub use trust::{TrustEngine, TrustedDecision};

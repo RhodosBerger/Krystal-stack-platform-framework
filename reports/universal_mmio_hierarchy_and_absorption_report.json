@@ -1,0 +1,398 @@
+{
+  "schema_version": "1.0.0",
+  "vital_max_hp": 6,
+  "aperture_layout": {
+    "total_bytes": 16384,
+    "bar0_control_window": "0x0000..0x0FFF (4096 B)",
+    "in_memory_hierarchy_window": "0x1000..0x1FFF (64 x 64 B nodes)",
+    "unit_absorption_bus_window": "0x2000..0x3FFF (64 x 128 B slots)"
+  },
+  "phase_1_in_memory_hardware_hierarchy": [
+    {
+      "node_index": 0,
+      "parent_index": null,
+      "aperture_memory_offset_hex": "0x1000",
+      "tier_level": 0,
+      "pci_vendor_device_hex": "0x80869a14",
+      "device_base_address_hex": "0x00000000",
+      "span_mb": 16384.0,
+      "bandwidth_gbps": 34.13,
+      "child_bitmask_hex": "0x001e",
+      "tag": "ROOT_SOC_HOST_BRIDGE"
+    },
+    {
+      "node_index": 1,
+      "parent_index": 0,
+      "aperture_memory_offset_hex": "0x1040",
+      "tier_level": 1,
+      "pci_vendor_device_hex": "0x80869a14",
+      "device_base_address_hex": "0x00010000",
+      "span_mb": 0.25,
+      "bandwidth_gbps": 88.0,
+      "child_bitmask_hex": "0x0020",
+      "tag": "CPU_4C_8T_AVX512"
+    },
+    {
+      "node_index": 2,
+      "parent_index": 0,
+      "aperture_memory_offset_hex": "0x1080",
+      "tier_level": 1,
+      "pci_vendor_device_hex": "0x80869a14",
+      "device_base_address_hex": "0x00100000",
+      "span_mb": 0.5,
+      "bandwidth_gbps": 55.1,
+      "child_bitmask_hex": "0x0040",
+      "tag": "L2_CACHE_512KB_SRAM"
+    },
+    {
+      "node_index": 3,
+      "parent_index": 0,
+      "aperture_memory_offset_hex": "0x10c0",
+      "tier_level": 1,
+      "pci_vendor_device_hex": "0x80869a14",
+      "device_base_address_hex": "0x01000000",
+      "span_mb": 16384.0,
+      "bandwidth_gbps": 17.81,
+      "child_bitmask_hex": "0x0080",
+      "tag": "UMA_DRAM_CONTROLLER"
+    },
+    {
+      "node_index": 4,
+      "parent_index": 0,
+      "aperture_memory_offset_hex": "0x1100",
+      "tier_level": 1,
+      "pci_vendor_device_hex": "0x80869a49",
+      "device_base_address_hex": "0x10000000",
+      "span_mb": 256.0,
+      "bandwidth_gbps": 34.13,
+      "child_bitmask_hex": "0x0100",
+      "tag": "IGPU_IRIS_XE_96EU_BAR"
+    },
+    {
+      "node_index": 5,
+      "parent_index": 1,
+      "aperture_memory_offset_hex": "0x1140",
+      "tier_level": 2,
+      "pci_vendor_device_hex": "0x80869a14",
+      "device_base_address_hex": "0x20000000",
+      "span_mb": 64.0,
+      "bandwidth_gbps": 55.1,
+      "child_bitmask_hex": "0x0000",
+      "tag": "ONEDNN_ONETBB_4T_TILE"
+    },
+    {
+      "node_index": 6,
+      "parent_index": 2,
+      "aperture_memory_offset_hex": "0x1180",
+      "tier_level": 2,
+      "pci_vendor_device_hex": "0x80869a49",
+      "device_base_address_hex": "0x30000000",
+      "span_mb": 256.0,
+      "bandwidth_gbps": 34.13,
+      "child_bitmask_hex": "0x0000",
+      "tag": "OPENVINO_LEVELZERO_USM"
+    },
+    {
+      "node_index": 7,
+      "parent_index": 3,
+      "aperture_memory_offset_hex": "0x11c0",
+      "tier_level": 2,
+      "pci_vendor_device_hex": "0x10de2684",
+      "device_base_address_hex": "0x40000000",
+      "span_mb": 512.0,
+      "bandwidth_gbps": 31.5,
+      "child_bitmask_hex": "0x0000",
+      "tag": "PCIE_REBAR_DGPU_SLOT"
+    },
+    {
+      "node_index": 8,
+      "parent_index": 4,
+      "aperture_memory_offset_hex": "0x1200",
+      "tier_level": 2,
+      "pci_vendor_device_hex": "0x1af41050",
+      "device_base_address_hex": "0x50000000",
+      "span_mb": 16.0,
+      "bandwidth_gbps": 12.0,
+      "child_bitmask_hex": "0x0000",
+      "tag": "WSL2_WNTC_VPP_HIL_BRIDGE"
+    }
+  ],
+  "phase_2_absorption_options": [
+    {
+      "option_id": "ABS_OPT_01_READONLY_HIERARCHY_MIRROR",
+      "title_sk": "Pasívne zrkadlo hierarchie v pamäti (Read-Only Shadow Aperture)",
+      "mutation_scope": "READ_ONLY (Delta_S == 0)",
+      "mechanism_sk": "Jadro načíta PCI/UMA/Cache/OpenVINO topológiu do 64B slotov v `0x1000..0x1FFF`; všetky existujúce moduly čítajú topológiu bez priameho zápisu do registrov.",
+      "absorbs_all_units": true,
+      "recommended_for": "Fáza L0 auditu, diagnostika, bezpečné UI projekcie (`UAP_01`).",
+      "verdict": "SUPPORTED_FOR_DISCOVERY"
+    },
+    {
+      "option_id": "ABS_OPT_02_ZERO_TOUCH_DECORATOR_BRIDGE",
+      "title_sk": "Neinvazívna federácia cez hraničné adaptéry (`P1` Zero-Touch)",
+      "mutation_scope": "BOUNDARY_ADAPTER_ONLY (SourceCodeDelta == 0)",
+      "mechanism_sk": "Existujúce moduly ostávajú nedotknuté a pripájajú sa cez `dep_bridge_*` a `@kuInjectSimplifiedKernelOp` na zdieľané 64B UMA okná.",
+      "absorbs_all_units": true,
+      "recommended_for": "Rýchla integrácia externých Python/OpenVINO/C++ knižníc bez zásahu do ich kódu.",
+      "verdict": "SUPPORTED_WITH_SCOPE"
+    },
+    {
+      "option_id": "ABS_OPT_03_UNIFIED_MMIO_BAR0_AND_128B_BUS",
+      "title_sk": "Jednotná 16 KB `mmap` apertúra (`BAR0` + `64B` Hierarchia + `128B` Zbernica celkov)",
+      "mutation_scope": "CAPABILITY_GATED_ZERO_COPY",
+      "mechanism_sk": "Spája `4 KB` riadiacu stránku `BAR0`, `4 KB` binárnu tabuľku hardvérovej hierarchie v pamäti a `8 KB` `O(1)` Bitmap-64 zbernicu absorbujúcu všetkých 9 rodín celkov repozitára s ústavnou bránou `VITAL_MAX_HP == 6` a `UMA < 0.78`.",
+      "absorbs_all_units": true,
+      "recommended_for": "Hlavná produkčná architektúra Krystal Stacku (Windows + Linux/Unix + Rust + Vulkan + OpenVINO).",
+      "verdict": "RECOMMENDED_PRIMARY_ARCHITECTURE"
+    },
+    {
+      "option_id": "ABS_OPT_04_MONOLITHIC_RING0_KERNEL_FUSION",
+      "title_sk": "Monolitická fúzia všetkých modulov priamo v privilegovanom Ring-0 ovládači",
+      "mutation_scope": "UNBOUNDED_RING0 (Vysoké riziko BSOD / Kernel Panic)",
+      "mechanism_sk": "Zlúčenie aplikačných, AI a scénických celkov do jadrového priestoru OS s priamym `/dev/mem` alebo `MmMapIoSpace` bez používateľskej izolačnej brány.",
+      "absorbs_all_units": false,
+      "recommended_for": "Zamietnuté pre štandardnú prevádzku — porušuje suverénny princíp P1 a zvyšuje pádové riziko.",
+      "verdict": "REJECTED_BY_SAFETY_GATE"
+    }
+  ],
+  "phase_2_executed_absorption": {
+    "vital_max_hp": 6,
+    "selected_primary_option": "ABS_OPT_03_UNIFIED_MMIO_BAR0_AND_128B_BUS",
+    "total_unit_families_absorbed": 9,
+    "total_repository_files_indexed": 375,
+    "doorbell_completed_fence": 1,
+    "aperture_attestation_sha256": "5524b7c9331aee79c220f551b4295bc4d38dfaf005ef38dccea088fbe49d11bd",
+    "absorbed_units": [
+      {
+        "slot_id": 0,
+        "unit_id": "UNIT_01_KRYSTAL_KERNEL_CORE",
+        "bus_memory_offset_hex": "0x2000",
+        "bound_hardware_node_index": 1,
+        "bound_hardware_tag": "CPU_4C_8T_AVX512",
+        "discovered_files_count": 248,
+        "sample_artifacts": [
+          "__init__.py",
+          "__main__.py",
+          "adaptive_genetic_taxonomy_scenario_engine.py",
+          "adaptive_telemetry_resolution.py"
+        ],
+        "sha256_attestation_hex": "489cce5120941b50",
+        "vital_max_hp": 6
+      },
+      {
+        "slot_id": 1,
+        "unit_id": "UNIT_02_TRIGONOMETRIC_HYBRID_PKG",
+        "bus_memory_offset_hex": "0x2080",
+        "bound_hardware_node_index": 6,
+        "bound_hardware_tag": "OPENVINO_LEVELZERO_USM",
+        "discovered_files_count": 51,
+        "sample_artifacts": [
+          "__init__.py",
+          "adaptive_2b_spatial_linguistic_trainer.py",
+          "adaptive_cross_genre_sync.py",
+          "adaptive_sync_card_grid.py"
+        ],
+        "sha256_attestation_hex": "e48674e756d69fef",
+        "vital_max_hp": 6
+      },
+      {
+        "slot_id": 2,
+        "unit_id": "UNIT_03_SOVEREIGN_OPENVINO_V2",
+        "bus_memory_offset_hex": "0x2100",
+        "bound_hardware_node_index": 4,
+        "bound_hardware_tag": "IGPU_IRIS_XE_96EU_BAR",
+        "discovered_files_count": 13,
+        "sample_artifacts": [
+          "__init__.py",
+          "blender_vray_ui_and_enterprise_b2b_endpoints.py",
+          "cli.py",
+          "markdown_kg_module.py"
+        ],
+        "sha256_attestation_hex": "547e2d1099baaa4a",
+        "vital_max_hp": 6
+      },
+      {
+        "slot_id": 3,
+        "unit_id": "UNIT_04_C11_ABI_MMIO_HEADERS",
+        "bus_memory_offset_hex": "0x2180",
+        "bound_hardware_node_index": 0,
+        "bound_hardware_tag": "ROOT_SOC_HOST_BRIDGE",
+        "discovered_files_count": 12,
+        "sample_artifacts": [
+          "kr_authority_bits.h",
+          "krystal_bytecode_nss_bridge.h",
+          "krystal_godot_llm_vram_bridge.h",
+          "krystal_iris_xe_asahi_bridge.h"
+        ],
+        "sha256_attestation_hex": "cf289264ed683798",
+        "vital_max_hp": 6
+      },
+      {
+        "slot_id": 4,
+        "unit_id": "UNIT_05_C_SIMD_SPSC_RUNTIME",
+        "bus_memory_offset_hex": "0x2200",
+        "bound_hardware_node_index": 2,
+        "bound_hardware_tag": "L2_CACHE_512KB_SRAM",
+        "discovered_files_count": 5,
+        "sample_artifacts": [
+          "gamesa_kernel.c",
+          "krystal_spsc_benchmark.c",
+          "rpg_craft_system.c",
+          "taxonomy_simd.c"
+        ],
+        "sha256_attestation_hex": "a6c3d801facab064",
+        "vital_max_hp": 6
+      },
+      {
+        "slot_id": 5,
+        "unit_id": "UNIT_06_RUST_GUARDIAN_ALLOCATOR",
+        "bus_memory_offset_hex": "0x2280",
+        "bound_hardware_node_index": 3,
+        "bound_hardware_tag": "UMA_DRAM_CONTROLLER",
+        "discovered_files_count": 12,
+        "sample_artifacts": [
+          "action_gate.rs",
+          "allocation.rs",
+          "contracts.rs",
+          "economic_engine.rs"
+        ],
+        "sha256_attestation_hex": "26fb564862d04a9e",
+        "vital_max_hp": 6
+      },
+      {
+        "slot_id": 6,
+        "unit_id": "UNIT_07_RUST_BOT_VULKAN_MMIO",
+        "bus_memory_offset_hex": "0x2300",
+        "bound_hardware_node_index": 4,
+        "bound_hardware_tag": "IGPU_IRIS_XE_96EU_BAR",
+        "discovered_files_count": 23,
+        "sample_artifacts": [
+          "cinematic_bridge.rs",
+          "combat_latency_policy.rs",
+          "config.rs",
+          "cpu_governor.rs"
+        ],
+        "sha256_attestation_hex": "b863685d0c121ec7",
+        "vital_max_hp": 6
+      },
+      {
+        "slot_id": 7,
+        "unit_id": "UNIT_08_JSON_AUTHORITY_SCHEMAS",
+        "bus_memory_offset_hex": "0x2380",
+        "bound_hardware_node_index": 0,
+        "bound_hardware_tag": "ROOT_SOC_HOST_BRIDGE",
+        "discovered_files_count": 10,
+        "sample_artifacts": [
+          "authority_profile_bits.schema.json",
+          "cnc_adaptive_thermal_and_fault_recovery.schema.json",
+          "cyclic_architecture_schema.json",
+          "inter_module_protocol_and_reasoning.schema.json"
+        ],
+        "sha256_attestation_hex": "734bf138546b90a5",
+        "vital_max_hp": 6
+      },
+      {
+        "slot_id": 8,
+        "unit_id": "UNIT_09_ONEAPI_CONDA_CONFIGS",
+        "bus_memory_offset_hex": "0x2400",
+        "bound_hardware_node_index": 5,
+        "bound_hardware_tag": "ONEDNN_ONETBB_4T_TILE",
+        "discovered_files_count": 1,
+        "sample_artifacts": [
+          "conda_krystal_oneapi_llm_presets.yaml"
+        ],
+        "sha256_attestation_hex": "488e0b7a541348ee",
+        "vital_max_hp": 6
+      }
+    ]
+  },
+  "constitutional_safety_verification": {
+    "read_only_vital_hp_write_blocked": true,
+    "vital_hp_before_and_after": [
+      6,
+      6
+    ],
+    "rejected_noop_counter": 1,
+    "zero_copy_64b_aligned_probe": true
+  },
+  "mmio_vs_stock_lookup_benchmark": {
+    "stock_median_ns_per_query": 7057.08,
+    "krystal_mmio_median_ns_per_query": 119.24,
+    "difference_ns": -6937.84,
+    "speedup_x": 59.18,
+    "epistemic_status": "LOCAL_MEASURED"
+  },
+  "coprocessor_end_to_end_benchmark": {
+    "workload": "Conv2D(16->32, 3x3) + ReLU + Conv2D(32->32, 3x3) @ [1, 16, 96, 96]",
+    "coprocessor_device": "GPU_INTEL_IRIS_XE_96EU",
+    "stock_cpu1t_copy_json_median_ms": 4.644,
+    "krystal_cpu4t_mmio_zerocopy_median_ms": 1.75,
+    "krystal_coprocessor_gpu_mmio_median_ms": 1.773,
+    "cpu4t_speedup_vs_stock_x": 2.65,
+    "coprocessor_gpu_speedup_vs_stock_x": 2.62,
+    "optimal_hetero_speedup_vs_stock_x": 2.65,
+    "verified_vulkan_compute_shader_speedup_x": 20.35,
+    "epistemic_status": "LOCAL_MEASURED"
+  },
+  "cross_isa_and_hardware_configurations": [
+    {
+      "config_id": "CFG_01_X86_64_AVX512_VNNI_IRIS_XE_UMA",
+      "isa_and_simd": "x86-64 · AVX-512F/VNNI (512-bit ZMM) · TZCNT (3 cykly) · TSO model",
+      "hardware_topology": "Intel Core i5-1135G7 (4C/8T) + Iris Xe 96 EUs UMA (17.81 GB/s DRAM, 55.10 GB/s L2)",
+      "mmio_address_benefit_x": 59.18,
+      "coprocessor_compute_benefit_x": "2.62x (OpenVINO Conv) / 20.35x (Vulkan Compute)",
+      "isa_specific_adaptation": "Sanitizácia denormálov (18.05x-37.37x ochrana), brána UMA < 0.78, TSO poradie bez drahých bariér.",
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "config_id": "CFG_02_X86_64_AVX2_ZEN4_PCIE_REBAR_DGPU",
+      "isa_and_simd": "x86-64 · AVX2 / AVX-512 · TZCNT · PCIe Gen4x16 Resizable BAR",
+      "hardware_topology": "8C/16T Workstation CPU + Diskrétna GPU karta (GDDR6X 504-1008 GB/s VRAM)",
+      "mmio_address_benefit_x": 56.2,
+      "coprocessor_compute_benefit_x": "35.0x - 85.0x pre dávky >= 256 KB; ~0.6x pod 32 KB kvôli ~10 us PCIe latencii",
+      "isa_specific_adaptation": "Write-Combining ReBAR + asynchrónny DMA ring; mizne UMA kolízia s displejom, pribudne PCIe prah.",
+      "epistemic_status": "DERIVED_ROOFLINE"
+    },
+    {
+      "config_id": "CFG_03_ARM64_NEON_SVE2_APPLE_ASAHI_UMA",
+      "isa_and_simd": "ARM64 (AArch64) · NEON 128b / SVE2 · RBIT+CLZ · LDAR/STLR · 128B Cache Line",
+      "hardware_topology": "Unifikovaný ARM64 SoC (Apple M-series / Asahi, 100-400 GB/s LPDDR5X UMA + GPU/ANE)",
+      "mmio_address_benefit_x": 68.1,
+      "coprocessor_compute_benefit_x": "12.0x - 32.0x cez vysokopriepustnú unifikovanú UMA",
+      "isa_specific_adaptation": "128B sloty lícujú s natívnym 128B cache riadkom; FPCR.FZ v kremíku, vyžaduje `STLR`/`LDAR` pri Doorbelle.",
+      "epistemic_status": "DERIVED_ROOFLINE"
+    },
+    {
+      "config_id": "CFG_04_ARM64_CORTEX_EMBEDDED_EDGE_NO_GPU",
+      "isa_and_simd": "ARMv8-A · 128b NEON · CLZ · úzka LPDDR4 (6.4-12.8 GB/s), bez GPU",
+      "hardware_topology": "Priemyselný Edge / Router uzol (Cortex-A53/A76, 512 MB - 4 GB RAM)",
+      "mmio_address_benefit_x": 79.9,
+      "coprocessor_compute_benefit_x": "1.0x GPU (maskované v BAR0), 2.4x - 3.1x 4T NEON oproti 1T",
+      "isa_specific_adaptation": "BAR0 zamietne GPU Doorbell (`Delta_S == 0`), zmenší arénu na 32-64 MB; najvyšší relatívny zisk voči JSON.",
+      "epistemic_status": "DERIVED_ROOFLINE"
+    },
+    {
+      "config_id": "CFG_05_RISCV_RV64GC_RVV10_DEVICETREE_NPU",
+      "isa_and_simd": "RISC-V RV64GC + RVV 1.0 (`vsetvli`) + Zbb (`ctz`) · RVWMO (`fence w, io`)",
+      "hardware_topology": "Otvorený RISC-V SoC s pevne mapovaným AXI4-Lite NPU koprocesorom v DeviceTree (`.dtb`)",
+      "mmio_address_benefit_x": 71.0,
+      "coprocessor_compute_benefit_x": "8.0x - 22.0x cez priamy AXI4/DMA adresný priestor INT8 NPU",
+      "isa_specific_adaptation": "Natívne DeviceTree MMIO adresy bez ACPI; De Bruijn fallback ak chýba `Zbb`, povinná `fence w, o` bariéra.",
+      "epistemic_status": "DERIVED_ROOFLINE"
+    },
+    {
+      "config_id": "CFG_06_X86_64_LEGACY_SSE42_SCALAR_HOST",
+      "isa_and_simd": "x86-64 · SSE4.2 (128-bit XMM, bez AVX2/AVX-512) · BSF namiesto TZCNT",
+      "hardware_topology": "Starší x86-64 server / VM uzol bez AI koprocesora",
+      "mmio_address_benefit_x": 50.3,
+      "coprocessor_compute_benefit_x": "1.0x koprocesor (neprítomný), ~0.31x tenzorový výkon voči AVX-512 VNNI",
+      "isa_specific_adaptation": "100% binárna kompatibilita 16 KB `mmap` apertúry a SPSC zbernice, tenzorový fallback na SSE4.2.",
+      "epistemic_status": "DERIVED_ROOFLINE"
+    }
+  ],
+  "c11_and_rust_bindings": {
+    "c11_header": "include/krystal_universal_mmio_aperture.h",
+    "rust_module": "src/rust-bot/src/universal_mmio_kernel.rs",
+    "epistemic_status_native": "CODE_PRESENT"
+  }
+}

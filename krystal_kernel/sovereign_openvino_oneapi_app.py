@@ -1650,6 +1650,18 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
             return
 
+        if self.path.startswith("/api/v1/runtime/universal_mmio_kernel"):
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.universal_hardware_mmio_aperture_kernel import (
+                build_universal_mmio_hierarchy_and_absorption_report,
+            )
+
+            try:
+                self._send_json(200, build_universal_mmio_hierarchy_and_absorption_report())
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
         if self.path.startswith("/vr_hologram_profiler"):
             from projects.trigonometric_hybrid_platform_framework.spatial_coordinators_and_vr_hologram_compositor import (
                 render_vr_hologram_profiler_html,

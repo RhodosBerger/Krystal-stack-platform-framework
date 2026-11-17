@@ -175,6 +175,27 @@ def test_stock_vs_krystal_platform_benchmark_suite() -> None:
     assert Path(ledger["md_path"]).exists()
 
 
+def test_universal_mmio_hierarchy_coprocessor_and_isa_matrix() -> None:
+    from projects.trigonometric_hybrid_platform_framework.universal_hardware_mmio_aperture_kernel import (
+        build_universal_mmio_hierarchy_and_absorption_report,
+    )
+
+    rep = build_universal_mmio_hierarchy_and_absorption_report()
+    assert rep["vital_max_hp"] == 6
+    assert len(rep["phase_1_in_memory_hardware_hierarchy"]) == 9
+    assert len(rep["phase_2_absorption_options"]) == 4
+    assert rep["phase_2_executed_absorption"]["total_unit_families_absorbed"] == 9
+    assert rep["phase_2_executed_absorption"]["total_repository_files_indexed"] > 100
+    assert rep["constitutional_safety_verification"]["read_only_vital_hp_write_blocked"] is True
+    assert rep["constitutional_safety_verification"]["vital_hp_before_and_after"] == [6, 6]
+    assert rep["mmio_vs_stock_lookup_benchmark"]["speedup_x"] > 2.0
+    assert rep["coprocessor_end_to_end_benchmark"]["optimal_hetero_speedup_vs_stock_x"] > 1.5
+    assert len(rep["cross_isa_and_hardware_configurations"]) == 6
+    assert Path(rep["json_path"]).exists()
+    assert Path(rep["md_path"]).exists()
+
+
+
 
 
 
