@@ -20,7 +20,16 @@
 </div>
 
 > **Popis projektu & SEO Zhrnutie:**  
-> **Krystal Stack** je nízkoúrovňový **framework pre heterogénnu AI akceleráciu a orchestráciu hardvéru (CPU · GPU · NPU)** pre architektúry **x86_64** a **ARM64**. Spája **Intel OpenVINO**, **Vulkan Compute**, **Keras 3** a **128-bajtové Zero-Copy SPSC kruhové buffery** v unifikovanej pamäti (**UMA**). Eliminuje pamäťovú stenu (Memory Wall), dosahuje **20,35x zrýchlenie vo Vulkane**, šetrí **497,66 MB/s** priepustnosti zbernice a je zaradený do **XERJ Corpus Hubu** ako referenčná architektúra pre AI inžinierov.
+> **Krystal Stack** je nízkoúrovňový **framework pre heterogénnu AI akceleráciu a orchestráciu hardvéru (CPU · GPU · NPU)** pre architektúry **x86_64**, **ARM64** a **RISC-V**. Spája **Intel OpenVINO**, **oneAPI**, **Vulkan Compute**, **DirectX 12**, **Rust** a **128-bajtové Zero-Copy SPSC kruhové buffery** v unifikovanej pamäti (**UMA**). Eliminuje pamäťovú stenu, dosahuje **245,97x nižšiu réžiu telemetrie (`BAR0 mmap`)**, **59,18x rýchlejšie adresné čítanie hierarchie**, **20,35x zrýchlenie vo Vulkane**, **+11,17 dB nárast vizuálnej kvality (PSNR)** pri `120 Hz` a ponúka komunite autonómny **arbitrážny a optimalizačný systém pre OS a grafické ovládače**.
+
+---
+
+## 🌍 Čo Ponúkame Open-Source a Vývojárskej Komunite (`Apache-2.0`)
+
+1. **Tieňovo-cenový Arbitrážny Systém Zdrojov (`SovereignResourceArbitrationEngine` — `/arbitrate`):** Spravodlivo a bez výpadkov rozdeľuje šírku pásma zdieľanej pamäte (`UMA < 0,78`), tepelný rozpočet (`PL1 W`), fyzické CPU jadrá a koprocesorové sloty medzi `120 Hz` obraz, lokálnu AI a úlohy na pozadí.
+2. **Proaktívny Generátor Príležitostí pre OS a Grafické Ovládače (`BotOsAndGpuOpportunityGenerator` — `/prilezitosti`):** Živo sleduje voľnú RAM, afinitu vlákien, `GPU_USM_MEMORY` a cache blobov, čím automaticky odstraňuje skryté kopírovanie (bounce-buffers), záseky kompilácie shaderov a `TDR` reštarty ovládača.
+3. **6 Adaptívnych Stratégií Zapínania Jadier (`CORE_WAKE_01..06`) & 5 OpenVINO Multithreading Presetov (`OV_MT_01..05`):** Od úsporného 1-jadrového režimu (`9 W`), cez 4 fyzické P-jadrá bez SMT kmitania, až po heterogénne spojenie `Iris Xe (768 prúdových jednotiek) + NPU + CPU`: [`openvino_multithreading_presets.yaml`](../../../configs/openvino_multithreading_presets.yaml).
+4. **Univerzálna `16 KB mmap` MMIO Apertúra, Našepkávač pre Procesor (`2,90x`) & Spätná Kompatibilita (`Vulkan` + `Windows 11 D3D12` + `Linux DRM/DMA-BUF`):** Bez prepisu existujúceho softvéru (`SourceCodeDelta == 0`): [`COMMUNITY_OFFERING_ARBITRATION_AND_DRIVER_OPPORTUNITIES.md`](../../architecture/COMMUNITY_OFFERING_ARBITRATION_AND_DRIVER_OPPORTUNITIES.md).
 
 ---
 

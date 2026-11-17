@@ -251,6 +251,14 @@ def test_bot_integrated_efficiency_overseer_and_core_activation() -> None:
         assert msg["ok"] is True
         assert "CORE_WAKE_06_BATCH_BURST_8T_ALL_THREADS" in msg["reply"]
 
+        arb_msg = svc.message("/arbitrate", channel="cli", sender="local")
+        assert arb_msg["ok"] is True
+        assert "UI_120HZ_SCANOUT_GUARD" in arb_msg["reply"]
+
+        opp_msg = svc.message("/prilezitosti", channel="cli", sender="local")
+        assert opp_msg["ok"] is True
+        assert "OPP_GPU_01_ZERO_BOUNCE_64KB_USM_BRIDGE" in opp_msg["reply"]
+
 
 
 

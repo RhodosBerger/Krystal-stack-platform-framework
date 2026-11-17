@@ -79,3 +79,20 @@ openvino_multithreading_presets:
     allocator_policy:
       arena_cap_mb: 64
       shed_p2_diagnostic_logs: true
+
+adaptive_core_activation_strategies:
+  CORE_WAKE_01_IDLE_1C_DEEP_SLEEP: { active_cores: [0], igpu: false, npu: false, pl1_watts: 9.0 }
+  CORE_WAKE_02_UMA_THERMAL_SHIELD_2C: { active_cores: [0, 1], igpu: false, npu: false, pl1_watts: 15.0 }
+  CORE_WAKE_03_REALTIME_4P_ZERO_JITTER: { active_cores: [0, 1, 2, 3], igpu: false, npu: false, pl1_watts: 22.0 }
+  CORE_WAKE_04_HETERO_3P_1VSYNC_IRIS_XE: { active_cores: [0, 1, 2, 3], igpu: true, npu: false, pl1_watts: 28.0 }
+  CORE_WAKE_05_HYBRID_GEN12_PCORE_ECORE_NPU: { active_cores: [0, 1, 2, 3], igpu: true, npu: true, pl1_watts: 20.0 }
+  CORE_WAKE_06_BATCH_BURST_8T_ALL_THREADS: { active_cores: [0, 1, 2, 3, 4, 5, 6, 7], igpu: true, npu: false, pl1_watts: 28.0 }
+
+arbitration_policy:
+  uma_hard_ceiling: 0.78
+  thermal_soft_cap_c: 85.0
+  tier_weights:
+    P0_CONSTITUTIONAL: 100.0
+    P1_ACTIVE_WORKLOAD: 10.0
+    P2_BACKGROUND_DEFERRABLE: 1.0
+
