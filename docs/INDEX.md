@@ -55,3 +55,10 @@ Detailed guides on specific modules:
 - [Vulkan Extensions, Zero-Copy Socket Differentials, 4-Scale Epistemic Memory Gearbox & Companion v2 Manual](architecture/VULKAN_ZERO_COPY_SOCKET_GEARBOX_AND_FOUR_SCALE_COMPONENT_MANUAL.md) - full 23-component reference & 4 next-horizon domains
 - [Krystal Manifestná Vrstva: Schémy riadených procesov, škály poznateľnosti & čipové sady](architecture/KRYSTAL_MANIFEST_PROCESS_SCHEMAS_AND_CHIPSET_KNOWLEDGE_LAYER.md) - manifestné polia, OpenVINO trajektórie a SoC kontrola kremíka
 - [Univerzálny Manifestačný Kernel pre Agentov (Prompt-Engineered Manifest v1)](architecture/KRYSTAL_UNIVERSAL_AGENT_KERNEL_MANIFEST.md) - škála poznateľnosti Spec-K0..K6, vstupné parametre čipu do klastru & 6 agentových promptov
+- [Trigonometric Hybrid Platform Framework — Coherent Master README](../projects/trigonometric_hybrid_platform_framework/README.md) - all 10+ invention domains, inter-sprint axioms (`AX_S1..06`), `MON_CAP_01..05`, `OPT_A..D`, and `PH_D1..D5` OpenVINO add-on
+- [Publication: XERJ Neurosymbolic Architecture, Krystal-UMA-CUDA (`ku*`) & Seasonal Scrum KB](architecture/PUBLICATION_XERJ_NEUROSYMBOLIC_UMA_CUDA_AND_SEASONAL_SCRUM.md) - Ivan Novikov XERJ alignment, `kuMallocUMA`/`kuAdviseAndDefend`, and `S7..S10` Scrum governance
+- [Unix/Linux Big-Query Synthesis, Strict Hardware-Limit Allocation, Kernel Data Structures & Lightweight Rust+Vulkan Drivers](architecture/UNIX_RUST_VULKAN_LIGHTWEIGHT_DRIVERS_AND_KERNEL_DATA_STRUCTURES.md) - `UT_01..06`, `O(1)` Bitmap-64 zero-copy slab, 4T sharded SPSC logger, oneAPI/Conda LLM symmetry
+- [Neurosymbolic Pipeline Theories (`TH_01..04`) & 6-Stage End-to-End Case Study](architecture/NEUROSYMBOLIC_PIPELINE_THEORIES_AND_CASE_STUDY.md)
+- [Combinatorial Derivative Functions (`DF_01..05`) & Incremental Knowledge Ledger](architecture/COMBINATORIAL_DERIVATIVE_FUNCTIONS_AND_CHANGES.md)
+- [Unified Backend-to-UI Access Gateway & Multi-Sprint Prompt Corpus (`W1..W6`)](architecture/UNIFIED_BACKEND_UI_ACCESS_AND_SPRINT_PROMPT_CORPUS.md)
+- [Master Report: All Inventions, Monetization & Global Stack Optimization](../reports/README_ALL_INVENTIONS_AND_MONETIZATION_REPORT.md)

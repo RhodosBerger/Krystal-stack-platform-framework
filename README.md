@@ -40,6 +40,12 @@
   - [`docs/architecture/KRYSTAL_UNIVERSAL_AGENT_KERNEL_MANIFEST.md`](docs/architecture/KRYSTAL_UNIVERSAL_AGENT_KERNEL_MANIFEST.md)
   - [`docs/architecture/KRYSTAL_MANIFEST_PROCESS_SCHEMAS_AND_CHIPSET_KNOWLEDGE_LAYER.md`](docs/architecture/KRYSTAL_MANIFEST_PROCESS_SCHEMAS_AND_CHIPSET_KNOWLEDGE_LAYER.md)
   - [`docs/architecture/VULKAN_ZERO_COPY_SOCKET_GEARBOX_AND_FOUR_SCALE_COMPONENT_MANUAL.md`](docs/architecture/VULKAN_ZERO_COPY_SOCKET_GEARBOX_AND_FOUR_SCALE_COMPONENT_MANUAL.md)
+* **Trigonometric Hybrid Platform, `Krystal-UMA-CUDA` (`ku*`), XERJ Publication, OpenVINO Add-On Kernel & Lightweight Rust+Vulkan Drivers:**
+  Unified XERJ zero-token AST synthesis, `kuMallocUMA` / `kuAdviseAndDefend` (`UMA < 0.78`, `K < 449`), 5-phase OpenVINO telemetry add-on kernel (`PH_D1..D5`), `O(1)` 64-bit bitmap slab & 4T sharded `128 B` SPSC connection logger, symmetric oneAPI + Conda LLM presets (`configs/conda_krystal_oneapi_llm_presets.yaml`), and Windows/Unix lightweight Rust+Vulkan drivers:
+  - [`projects/trigonometric_hybrid_platform_framework/README.md`](projects/trigonometric_hybrid_platform_framework/README.md)
+  - [`docs/architecture/PUBLICATION_XERJ_NEUROSYMBOLIC_UMA_CUDA_AND_SEASONAL_SCRUM.md`](docs/architecture/PUBLICATION_XERJ_NEUROSYMBOLIC_UMA_CUDA_AND_SEASONAL_SCRUM.md)
+  - [`docs/architecture/UNIX_RUST_VULKAN_LIGHTWEIGHT_DRIVERS_AND_KERNEL_DATA_STRUCTURES.md`](docs/architecture/UNIX_RUST_VULKAN_LIGHTWEIGHT_DRIVERS_AND_KERNEL_DATA_STRUCTURES.md)
+  - [`reports/README_ALL_INVENTIONS_AND_MONETIZATION_REPORT.md`](reports/README_ALL_INVENTIONS_AND_MONETIZATION_REPORT.md)
 
 ---
 

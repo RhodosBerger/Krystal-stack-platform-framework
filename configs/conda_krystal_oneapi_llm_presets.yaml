@@ -1,0 +1,85 @@
+# Krystal Stack — Symmetric oneAPI + OpenVINO + Vulkan + Rust LLM Conda Environment Presets
+# Constitutional Invariant: VITAL_MAX_HP == 6 | UMA_SATURATION_THRESHOLD == 0.78 | ZERO_OPENAI == true
+
+schema_version: "1.0.0"
+vital_max_hp: 6
+uma_saturation_threshold: 0.78
+
+presets:
+  krystal-edge-uma-llm:
+    target_topology: "Integrated UMA SoC (Intel Core i5-1135G7 + Iris Xe 96 EUs, 16 GB RAM)"
+    python_version: "3.11"
+    channels:
+      - conda-forge
+      - intel
+    packages:
+      - openvino>=2024.4
+      - onednn>=3.5
+      - level-zero
+      - tbb>=2021.13
+      - numpy>=1.26
+      - pyyaml>=6.0
+      - jsonschema>=4.22
+    environment_variables:
+      KRYSTAL_VITAL_MAX_HP: "6"
+      KRYSTAL_UMA_QUOTIENT_MB: "256"
+      KRYSTAL_SUBGROUP_K_LIMIT: "449"
+      OMP_NUM_THREADS: "4"
+      ONEDNN_MAX_CPU_ISA: "AVX512_CORE_VNNI"
+      OV_CPU_DENORMALS_OPTIMIZATION: "YES"
+      SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS: "1"
+    llm_allocation_policy:
+      weights_precision: "INT4_SYM"
+      kv_cache_precision: "INT8"
+      max_context_tokens: 4096
+      strict_pinned_arena_mb: 256
+      physical_core_threads: 4
+
+  krystal-workstation-dgpu-vulkan:
+    target_topology: "Discrete PCIe Gen4/Gen5 Resizable-BAR GPU + Multi-Core Host (32-64 GB RAM)"
+    python_version: "3.11"
+    channels:
+      - conda-forge
+      - intel
+    packages:
+      - openvino>=2024.4
+      - onednn>=3.5
+      - level-zero
+      - dpcpp-cpp-rt
+      - tbb>=2021.13
+      - vulkan-tools
+      - numpy>=1.26
+    environment_variables:
+      KRYSTAL_VITAL_MAX_HP: "6"
+      KRYSTAL_UMA_QUOTIENT_MB: "512"
+      KRYSTAL_SUBGROUP_K_LIMIT: "449"
+      OMP_NUM_THREADS: "8"
+      VK_LOADER_LAYERS_ENABLE: "VK_LAYER_KRYSTAL_RUST_LIGHTWEIGHT"
+      SYCL_CACHE_PERSISTENT: "1"
+    llm_allocation_policy:
+      weights_precision: "FP16"
+      kv_cache_precision: "FP16"
+      max_context_tokens: 16384
+      strict_pinned_arena_mb: 512
+      physical_core_threads: 8
+
+  krystal-minimal-cpu-deterministic:
+    target_topology: "Air-Gapped Sovereign CPU-Only Appliance (x86-64 AVX-512/AVX2 or ARM64)"
+    python_version: "3.11"
+    channels:
+      - conda-forge
+    packages:
+      - openvino>=2024.4
+      - tbb>=2021.13
+      - numpy>=1.26
+    environment_variables:
+      KRYSTAL_VITAL_MAX_HP: "6"
+      KRYSTAL_UMA_QUOTIENT_MB: "64"
+      OMP_NUM_THREADS: "4"
+      OV_CPU_DENORMALS_OPTIMIZATION: "YES"
+    llm_allocation_policy:
+      weights_precision: "INT8_SYM"
+      kv_cache_precision: "INT8"
+      max_context_tokens: 2048
+      strict_pinned_arena_mb: 64
+      physical_core_threads: 4

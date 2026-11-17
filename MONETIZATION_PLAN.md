@@ -200,6 +200,17 @@ To facilitate rapid enterprise adoption without introducing operational risk int
 - **Failure Lifecycle Assurance**: Pre-actuation vetos execute `REJECT_NOOP` (zero mutation); post-prepare timeouts trigger `ABORT_STAGED_STATE`; any hardware divergence triggers automated `COMPENSATE` rollbacks.
 - **Commercial Conversion**: Achievement of agreed KPI targets ($> 25\%$ density improvement, zero P99 SLA breaches) triggers conversion to an annual **PROT Enterprise Cluster License**.
 
+### Stream 7: `Krystal-UMA-CUDA` (`ku*`), XERJ Sovereign Appliance, OpenVINO Add-On & Declarative Corporate Rules
+- **Core Monetization Capabilities (`MON_CAP_01..05`)**:
+  1. `MON_CAP_01` (`PRODUCTION_AVAILABLE`): Per-Frame `192 B` (`64 B WNTC` + `128 B KPKT`) Cryptographic Compute Metering & Billing Ledger.
+  2. `MON_CAP_02` (`PRODUCTION_AVAILABLE`): `Krystal-UMA-CUDA` (`ku*`) Commercial SDK, Lightweight Rust+Vulkan Driver Layer (`VK_LAYER_KRYSTAL_RUST_LIGHTWEIGHT`), & Symmetric oneAPI/Conda LLM Presets.
+  3. `MON_CAP_03` (`PILOT_AVAILABLE`): Air-Gapped XERJ + HENC Neurosymbolic Sovereign Agent Appliance (`0` OpenAI dependencies).
+  4. `MON_CAP_04` (`PRODUCTION_AVAILABLE`): Godot 4 / Blender / V-Ray Deterministic Procedural Twin & VR Studio Suite.
+  5. `MON_CAP_05` (`EXPERIMENTALLY_VALIDATED`): Multi-Tenant Hypervisor `StepExecutionGateProxy` & Corporate Governance Engine.
+- **Declarative Corporate Onboarding Options (`OPT_A..OPT_D` across `INC_L0..INC_L3`)**:
+  - `OPT_A_STRICT_RING_AND_BUDGET_GATE` (Safety-critical / Industrial) · `OPT_B_HYBRID_SHADOW_TO_CANARY` (Enterprise default) · `OPT_C_RAPID_GAME_AND_DCC_STUDIO` (Studios) · `OPT_D_SOVEREIGN_AIRGAPPED_FEDERATION` (Defense / FinTech).
+  - Full technical & commercial report: [`reports/README_ALL_INVENTIONS_AND_MONETIZATION_REPORT.md`](reports/README_ALL_INVENTIONS_AND_MONETIZATION_REPORT.md).
+
 ---
 
 ## 7. Commercial Contact & Engagement

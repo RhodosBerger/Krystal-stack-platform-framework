@@ -107,4 +107,59 @@ def test_uma_cuda_vulkan_scrum_publication_and_universal_kb_kernel() -> None:
     assert sol["protocol_solution_envelope"]["scope_environment"]["superglobal_scope"]["vital_max_hp"] == 6
 
 
+def test_monetization_corporate_rules_and_openvino_addon_kernel() -> None:
+    from projects.trigonometric_hybrid_platform_framework.monetization_corporate_and_openvino_addon_kernel import (
+        ComputeHierarchyOpenVinoTelemetryAddonKernel,
+        decide_corporate_declarative_rule_option,
+    )
+
+    corp = decide_corporate_declarative_rule_option(airgapped_required=True, multi_tenant_hypervisor=False)
+    assert corp["vital_max_hp"] == 6
+    assert corp["selected_option_id"] == "OPT_A_AIRGAPPED_DEFENSE_FINANCE"
+    assert len(corp["incremental_onboarding_ladder"]) == 4
+
+    addon = ComputeHierarchyOpenVinoTelemetryAddonKernel().execute_five_phases_over_existing_data(
+        uma_utilization=0.36,
+        airgapped_company=True,
+    )
+    assert addon["vital_max_hp"] == 6
+    assert len(addon["inter_sprint_axioms"]) == 6
+    assert len(addon["monetization_capabilities"]) == 5
+    assert len(addon["phases"]) == 5
+    assert addon["phases"][4]["datagram_bytes"] == 192
+    assert addon["phases"][4]["wntc_crc32_ok"] is True
+    assert addon["phases"][4]["kpkt_sha256_ok"] is True
+
+
+def test_unix_rust_vulkan_drivers_kernel_ds_and_ai_chip_automation() -> None:
+    import ast
+    from projects.trigonometric_hybrid_platform_framework.unix_rust_vulkan_driver_and_kernel_ds_framework import (
+        build_full_unix_rust_vulkan_oneapi_framework_report,
+    )
+
+    rep = build_full_unix_rust_vulkan_oneapi_framework_report()
+    assert rep["vital_max_hp"] == 6
+    assert len(rep["unix_linux_big_query_theories"]) == 6
+    assert len(rep["strict_allocation_hardware_limits"]["exposed_hardware_limits"]) == 7
+    assert rep["kernel_data_structure_benchmark"]["bitmap_zero_copy_speedup_vs_legacy_x"] > 1.5
+    assert rep["dynamic_threading_log_benchmark"]["speedup_sharded_vs_mutex_x"] > 1.2
+    assert rep["dynamic_threading_log_benchmark"]["krystal_sharded_spsc_128b_priority_log"]["p0_constitutional_frames_dropped"] == 0
+    assert len(rep["lightweight_rust_vulkan_drivers"]) == 4
+    assert rep["hardware_ai_chip_automation"]["logged_connections_count"] == 3
+    assert Path(rep["report_json_path"]).exists()
+    assert Path(rep["architecture_md_path"]).exists()
+    assert Path("src/rust-bot/src/unix_windows_vulkan_driver_core.rs").exists()
+
+    # Zero bare `assert` audit across all production modules in trigonometric_hybrid_platform_framework
+    pkg_dir = Path("projects/trigonometric_hybrid_platform_framework")
+    bare_asserts = []
+    for py_file in sorted(pkg_dir.glob("*.py")):
+        tree = ast.parse(py_file.read_text(encoding="utf-8"), filename=str(py_file))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assert):
+                bare_asserts.append(f"{py_file.name}:{node.lineno}")
+    assert bare_asserts == []
+
+
+
 
