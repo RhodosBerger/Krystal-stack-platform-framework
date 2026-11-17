@@ -161,5 +161,20 @@ def test_unix_rust_vulkan_drivers_kernel_ds_and_ai_chip_automation() -> None:
     assert bare_asserts == []
 
 
+def test_stock_vs_krystal_platform_benchmark_suite() -> None:
+    from projects.trigonometric_hybrid_platform_framework.stock_vs_krystal_platform_benchmark_suite import (
+        run_stock_vs_krystal_benchmark_suite,
+    )
+
+    ledger = run_stock_vs_krystal_benchmark_suite()
+    assert ledger["vital_max_hp"] == 6
+    assert ledger["summary"]["total_benchmarks"] == 8
+    assert ledger["summary"]["krystal_wins"] >= 7
+    assert Path(ledger["json_path"]).exists()
+    assert Path(ledger["csv_path"]).exists()
+    assert Path(ledger["md_path"]).exists()
+
+
+
 
 

@@ -62,3 +62,4 @@ Detailed guides on specific modules:
 - [Combinatorial Derivative Functions (`DF_01..05`) & Incremental Knowledge Ledger](architecture/COMBINATORIAL_DERIVATIVE_FUNCTIONS_AND_CHANGES.md)
 - [Unified Backend-to-UI Access Gateway & Multi-Sprint Prompt Corpus (`W1..W6`)](architecture/UNIFIED_BACKEND_UI_ACCESS_AND_SPRINT_PROMPT_CORPUS.md)
 - [Master Report: All Inventions, Monetization & Global Stack Optimization](../reports/README_ALL_INVENTIONS_AND_MONETIZATION_REPORT.md)
+- [Stock Baseline Solutions vs. Krystal Stack Platform — 8-Domain Measured Benchmark Comparison](architecture/STOCK_VS_KRYSTAL_PLATFORM_BENCHMARK_COMPARISON.md) - `BM_01..BM_08` head-to-head JSON/CSV/MD difference ledger (`scripts/run_stock_vs_krystal_benchmarks.py`)

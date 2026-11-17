@@ -1,0 +1,287 @@
+{
+  "schema_version": "1.0.0",
+  "vital_max_hp": 6,
+  "timestamp_utc": "2026-11-17T14:41:16Z",
+  "hardware_scope": {
+    "cpu_brand": "x86_64",
+    "physical_cores": 4,
+    "logical_cores": 8,
+    "openvino_devices": [
+      "CPU",
+      "GPU"
+    ]
+  },
+  "summary": {
+    "total_benchmarks": 8,
+    "krystal_wins": 7,
+    "stock_wins": 1,
+    "geometric_mean_ratio_x": 3.72,
+    "epistemic_note": "All latencies/counts measured head-to-head on identical local silicon (`LOCAL_MEASURED`). Where Krystal performs stricter AST safety/catalog validation than a raw string dump (e.g. BM_07 local envelope), both raw microsecond cost and the ~980->0 LLM token elimination are reported without cherry-picking."
+  },
+  "benchmarks": [
+    {
+      "benchmark_id": "BM_01_OPENVINO_ZERO_COPY_4T_INFER",
+      "domain": "OpenVINO Inference & Memory Handoff (`[64x512] -> [64x256]`)",
+      "stock_solution": "Stock `compiled([np.copy])` + host output copy + default SMT threads",
+      "krystal_solution": "Krystal `kuMallocUMA` 64B zero-copy `ov.Tensor` + pinned 4T reusable `InferRequest`",
+      "unit": "ms",
+      "lower_is_better": true,
+      "stock_stats": {
+        "n": 24,
+        "unit": "ms",
+        "median": 0.2618,
+        "p95": 1.36,
+        "p99": 1.7013,
+        "std": 0.379
+      },
+      "krystal_stats": {
+        "n": 24,
+        "unit": "ms",
+        "median": 0.1511,
+        "p95": 0.5377,
+        "p99": 0.7047,
+        "std": 0.1604
+      },
+      "difference_krystal_minus_stock": -0.1107,
+      "speedup_or_gain_x": 1.73,
+      "relative_improvement_pct": 42.28,
+      "winner": "KRYSTAL_PLATFORM",
+      "extra_metrics": {
+        "aligned_64b": true,
+        "physical_cores_pinned": 4
+      },
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "benchmark_id": "BM_02_IEEE754_SUBNORMAL_BOUNDARY_GUARD",
+      "domain": "x86-64 FPU / SIMD Underflow & Decay Resilience (`N = 16,384`)",
+      "stock_solution": "Stock unguarded float32 vector (`~1e-41` subnormals hitting microcode assist)",
+      "krystal_solution": "Krystal `kuMallocUMA` / `canonicalize_float32` boundary-flushed zero-copy buffer",
+      "unit": "us",
+      "lower_is_better": true,
+      "stock_stats": {
+        "n": 20,
+        "unit": "us",
+        "median": 114.3,
+        "p95": 136.9,
+        "p99": 136.9,
+        "std": 5.7859
+      },
+      "krystal_stats": {
+        "n": 20,
+        "unit": "us",
+        "median": 6.75,
+        "p95": 12.9,
+        "p99": 12.9,
+        "std": 1.3979
+      },
+      "difference_krystal_minus_stock": -107.55,
+      "speedup_or_gain_x": 16.93,
+      "relative_improvement_pct": 94.09,
+      "winner": "KRYSTAL_PLATFORM",
+      "extra_metrics": {
+        "canonical_scalar_check": false
+      },
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "benchmark_id": "BM_03_FREIVALDS_AUDIT_VS_FULL_RECOMPUTE",
+      "domain": "Epistemic Tensor Result Verification (`256 x 256` GEMM Audit)",
+      "stock_solution": "Stock `O(N^3)` full host re-multiplication check",
+      "krystal_solution": "Krystal `k=3` Freivalds `O(N^2)` projection gate (`TH_02`)",
+      "unit": "us",
+      "lower_is_better": true,
+      "stock_stats": {
+        "n": 20,
+        "unit": "us",
+        "median": 660.05,
+        "p95": 1826.8,
+        "p99": 1826.8,
+        "std": 325.4064
+      },
+      "krystal_stats": {
+        "n": 20,
+        "unit": "us",
+        "median": 150.8,
+        "p95": 449.9,
+        "p99": 449.9,
+        "std": 92.5902
+      },
+      "difference_krystal_minus_stock": -509.25,
+      "speedup_or_gain_x": 4.38,
+      "relative_improvement_pct": 77.15,
+      "winner": "KRYSTAL_PLATFORM",
+      "extra_metrics": {
+        "matrix_dim": 256,
+        "freivalds_probes_k": 3
+      },
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "benchmark_id": "BM_04_IPC_JSON_VS_192B_HYPERTRANSPORT",
+      "domain": "Cross-Boundary IPC Serialization & Cryptographic Attestation",
+      "stock_solution": "Stock UTF-8 JSON (`194 B` variable string + SHA-256 + `json.loads`)",
+      "krystal_solution": "Krystal `192 B` (`64 B WNTC + 128 B KPKT`, 3 cache lines) binary `pack_into` + `CRC32/SHA-256`",
+      "unit": "ns/frame",
+      "lower_is_better": true,
+      "stock_stats": {
+        "n": 24,
+        "unit": "ns/frame",
+        "median": 23350.9766,
+        "p95": 29714.4531,
+        "p99": 30705.0781,
+        "std": 3192.8944
+      },
+      "krystal_stats": {
+        "n": 24,
+        "unit": "ns/frame",
+        "median": 2681.6406,
+        "p95": 3978.9062,
+        "p99": 4018.3594,
+        "std": 647.6435
+      },
+      "difference_krystal_minus_stock": -20669.336,
+      "speedup_or_gain_x": 8.71,
+      "relative_improvement_pct": 88.52,
+      "winner": "KRYSTAL_PLATFORM",
+      "extra_metrics": {
+        "stock_json_bytes": 194,
+        "krystal_fixed_bytes": 192
+      },
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "benchmark_id": "BM_05_KERNEL_ALLOCATOR_HEAP_VS_BITMAP64_SLAB",
+      "domain": "Kernel Resource Slot Allocation & Bitwise Authority Gate (`64` Slots)",
+      "stock_solution": "Stock `HashMap + Sorted FreeList` heap objects (`~416 B/slot`)",
+      "krystal_solution": "Krystal `O(1)` 64-bit Bitmap Zero-Copy `128 B` Aligned Slab (`memoryview`)",
+      "unit": "ns/op",
+      "lower_is_better": true,
+      "stock_stats": {
+        "n": 24,
+        "unit": "ns/op",
+        "median": 1796.9727,
+        "p95": 2646.9727,
+        "p99": 3186.5234,
+        "std": 471.5448
+      },
+      "krystal_stats": {
+        "n": 24,
+        "unit": "ns/op",
+        "median": 763.6719,
+        "p95": 1494.7266,
+        "p99": 2138.5742,
+        "std": 388.3145
+      },
+      "difference_krystal_minus_stock": -1033.3008,
+      "speedup_or_gain_x": 2.35,
+      "relative_improvement_pct": 57.5,
+      "winner": "KRYSTAL_PLATFORM",
+      "extra_metrics": {
+        "slot_bytes_stock": 416,
+        "slot_bytes_krystal": 128
+      },
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "benchmark_id": "BM_06_DYNAMIC_4T_LOGGING_MUTEX_VS_SHARDED_SPSC",
+      "domain": "4-Thread Concurrent Telemetry & AI-Chip Connection Logging (`2,048` Events)",
+      "stock_solution": "Stock global `threading.Lock` + JSON string log buffer",
+      "krystal_solution": "Krystal per-thread lock-free `128 B` SPSC shards + `P2` thrash shedding (`0` P0 drops)",
+      "unit": "ms",
+      "lower_is_better": true,
+      "stock_stats": {
+        "n": 10,
+        "unit": "ms",
+        "median": 16.1976,
+        "p95": 51.1301,
+        "p99": 51.1301,
+        "std": 11.2946
+      },
+      "krystal_stats": {
+        "n": 10,
+        "unit": "ms",
+        "median": 3.3446,
+        "p95": 6.99,
+        "p99": 6.99,
+        "std": 1.3973
+      },
+      "difference_krystal_minus_stock": -12.853,
+      "speedup_or_gain_x": 4.84,
+      "relative_improvement_pct": 79.35,
+      "winner": "KRYSTAL_PLATFORM",
+      "extra_metrics": {
+        "worker_threads": 4,
+        "p0_constitutional_drops": 0
+      },
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "benchmark_id": "BM_07_XERJ_AST_FASTPATH_VS_STOCK_RAG_ENVELOPE",
+      "domain": "Agent Command Compilation & Token Footprint (Local Envelope + Parse)",
+      "stock_solution": "Stock 18-chunk RAG JSON prompt assembly (`~1019` LLM prefill tokens, excl. LLM wait)",
+      "krystal_solution": "Krystal XERJ-aligned deterministic AST/DSL compiler (`0` LLM tokens + live AST catalog check)",
+      "unit": "us",
+      "lower_is_better": true,
+      "stock_stats": {
+        "n": 20,
+        "unit": "us",
+        "median": 48.45,
+        "p95": 116.1,
+        "p99": 116.1,
+        "std": 16.144
+      },
+      "krystal_stats": {
+        "n": 20,
+        "unit": "us",
+        "median": 134.9,
+        "p95": 827.4,
+        "p99": 827.4,
+        "std": 160.1392
+      },
+      "difference_krystal_minus_stock": 86.45,
+      "speedup_or_gain_x": 0.36,
+      "relative_improvement_pct": -178.43,
+      "winner": "STOCK_SOLUTION",
+      "extra_metrics": {
+        "stock_prefill_tokens_est": 1019,
+        "krystal_llm_tokens_used": 0,
+        "note": "Stock excludes 80-450 ms LLM inference latency; Krystal executes AST verified call deterministically in microseconds."
+      },
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "benchmark_id": "BM_08_HYPERVISOR_JITTER_THRASH_TRANSITIONS",
+      "domain": "64-Frame Noisy OS Telemetry Stability (8 Isolated 1-Tick `0.82` Jitter Spikes)",
+      "stock_solution": "Stock memoryless threshold (`uma >= 0.78` immediate mode flip-flop)",
+      "krystal_solution": "Krystal OpenVINO `ConvolutionalHypervisorStepBridge` + `P8` 12-Sample Dwell Hysteresis",
+      "unit": "mode_flips",
+      "lower_is_better": true,
+      "stock_stats": {
+        "n": 5,
+        "unit": "mode_flips",
+        "median": 16.0,
+        "p95": 16.0,
+        "p99": 16.0,
+        "std": 0.0
+      },
+      "krystal_stats": {
+        "n": 5,
+        "unit": "mode_flips",
+        "median": 2.0,
+        "p95": 2.0,
+        "p99": 2.0,
+        "std": 0.0
+      },
+      "difference_krystal_minus_stock": -14.0,
+      "speedup_or_gain_x": 8.0,
+      "relative_improvement_pct": 87.5,
+      "winner": "KRYSTAL_PLATFORM",
+      "extra_metrics": {
+        "isolated_jitter_spikes_injected": 8,
+        "conv_bridge_vital_hp": 6
+      },
+      "epistemic_status": "LOCAL_MEASURED"
+    }
+  ]
+}
