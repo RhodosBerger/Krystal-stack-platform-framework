@@ -1,7 +1,7 @@
 # Unified Backend-to-UI Access, Actual-State Documentation Standards & Multi-Sprint Prompt Corpus
 
-- **Constitutional Invariant:** `VITAL_MAX_HP == 6` · Corpus `SHA-256 = 3e0cf19b56291ce27c13...`
-- **Live Codebase Inventory:** `46` modules · `158` public functions · `44` classes · `63` bound terms (`0` unresolved) · `69` architecture `.md` specs
+- **Constitutional Invariant:** `VITAL_MAX_HP == 6` · Corpus `SHA-256 = 8d476c031a1617888ce1...`
+- **Live Codebase Inventory:** `48` modules · `165` public functions · `46` classes · `63` bound terms (`0` unresolved) · `70` architecture `.md` specs
 
 ---
 

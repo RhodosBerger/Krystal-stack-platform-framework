@@ -1,13 +1,13 @@
 {
   "vital_max_hp": 6,
   "actual_codebase_state": {
-    "platform_modules_count": 46,
-    "public_functions_count": 158,
-    "public_classes_count": 44,
-    "cross_function_call_edges": 213,
+    "platform_modules_count": 48,
+    "public_functions_count": 165,
+    "public_classes_count": 46,
+    "cross_function_call_edges": 217,
     "bound_nomenclature_terms": 63,
     "unresolved_nomenclature_terms": 0,
-    "architecture_markdown_docs_count": 69,
+    "architecture_markdown_docs_count": 70,
     "architecture_markdown_docs": [
       "ADAPTIVE_2B_NEUROSYMBOLIC_METHODOLOGY_AND_ROADMAP.md",
       "AEP_CANONICAL_SPEC.md",
@@ -64,6 +64,7 @@
       "PRACTICES_PROCEDURES_PLANS_AND_GOALS.md",
       "PRODUCTION_DEPLOYMENT_MODEL.md",
       "PROOF_CARRYING_GOVERNED_RUNTIME.md",
+      "PUBLICATION_XERJ_NEUROSYMBOLIC_UMA_CUDA_AND_SEASONAL_SCRUM.md",
       "REVERSE_ENGINEERING_SCHEMA_AND_NOMENCLATURE.md",
       "ROADMAP_TRANSITIONS_EVENTS_AND_KEYWORDS.md",
       "SECONDARY_INNOVATION_LOOPS_SPEC.md",
@@ -217,7 +218,7 @@
     "ascii_survival_hud": {
       "ui_route": "/bot_perception_hud",
       "doc_anchor": "docs/architecture/PRACTICES_PROCEDURES_PLANS_AND_GOALS.md",
-      "state_sha256": "e319a65c9133f92a09a46db75f2405ce73939b3bf741f8c3212f0c80a17f328f"
+      "state_sha256": "1611386ac32711cd795d06616aa18e986991e4cc710357d2b7450035fd7fac11"
     },
     "rust_u64_bitboard": {
       "ui_route": "/syntactic_playable_studio",
@@ -294,5 +295,5 @@
     }
   ],
   "next_layer_prompt_seed": "SYSTEM ANCHOR [KRYSTAL STACK PROMPT LAYER v2026.11.17]:\n1. Lock constitutional invariants: VITAL_MAX_HP == 6, UMA < 0.78, PROPOSER != VERIFIER, ~Valid => Delta_S == 0, 0 bare asserts.\n2. Route every operation window (1x6x1x16, canonicalize_float32) through ConvolutionalHypervisorStepBridge -> StepExecutionGateProxy.\n3. Use binary cache-line multiples internally (64B WNTC, 128B KPKT, 192B Dual-OS, 32B .kopt) and expose UI strictly via UAP_01 Projection Envelopes.\n4. Treat every new cross-module synthesis as PATTERN_CANDIDATE until an isolated CDT + pytest receipt promotes it to VERIFIED_WITH_SCOPE.\n5. Stratify claims into LOCAL_MEASURED, VERIFIED_WITH_SCOPE, DERIVED, or UNKNOWN; never invoke OpenAI endpoints.",
-  "corpus_sha256": "3e0cf19b56291ce27c13e0b4b68853ea47ab455114388ffb1bbe520c50fd9e74"
+  "corpus_sha256": "8d476c031a1617888ce18077fa0530dc018c3ba302e6d1e20689d54ccaac5d3c"
 }

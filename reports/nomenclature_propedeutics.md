@@ -68,7 +68,7 @@ Verdict: **VERIFIED_WITH_SCOPE**
 | Intranet 128B packet bus | Binary KPKT 128 B SHA-256 inter-module packets modulating presets and WSL2 quotas. | `cluster_pid_gemma_finetune_and_mesh_ml:run_neurosymbolic_datalink_and_hypervisor_exchange` | `tests/test_x86_hex_vr_and_study_conclusion.py` | RESOLVED |
 | Gemma fine-tuning sets | Gemma chat-formatted abstraction variants and four leak-free train/eval sets. | `cluster_pid_gemma_finetune_and_mesh_ml:build_gemma_abstraction_variants_and_finetune_sets` | `tests/test_x86_hex_vr_and_study_conclusion.py` | RESOLVED |
 
-Public symbols without a term: 139
+Public symbols without a term: 148
 
 - `adaptive_2b_spatial_linguistic_trainer`: calibrate_new_shapes_and_model_catalog, build_spatial_and_linguistic_2b_kb, EpisodicResidualMemoryBank, compute_four_core_project_summary_and_roadmap
 - `adaptive_cross_genre_sync`: SyncMode, SyncNode, SyncConnection, describe_adaptive_sync_architecture
@@ -94,6 +94,7 @@ Public symbols without a term: 139
 - `intel_accelerator_and_power_thread_governor`: IntelDeviceProperties, IntelStream, get_shared_ov_core
 - `krystal_uma_cuda_vulkan_library`: UMADeviceAssetBuffer, kuMallocUMA, kuAdviseAndDefend, kuLaunchMatMulDefended, kuInjectSimplifiedKernelOp, coordinate_existing_schemas_and_scripts
 - `matrix_control_processes`: freivalds_verify, run_operator_mashup
+- `monetization_corporate_and_openvino_addon_kernel`: decide_corporate_declarative_rule_option, ComputeHierarchyOpenVinoTelemetryAddonKernel
 - `neurosymbolic_bridge`: build_grounded_prompt, ask_llm, build_compendium
 - `neurosymbolic_genesis_discipline_and_llm`: build_henc_discipline_and_train_demo
 - `neurosymbolic_theories_case_study_and_kb`: run_neurosymbolic_pipeline_case_study_and_build_kb
@@ -111,6 +112,7 @@ Public symbols without a term: 139
 - `tensor_prompt_branch_and_kb`: encode_prompt_to_feature_row, build_openapi_31_strategy_spec
 - `unified_backend_ui_gateway_and_sprint_corpus`: decide_best_derivative_study_choices, UnifiedBackendUiAccessGateway, build_unified_gateway_and_sprint_prompt_corpus
 - `universal_kb_hierarchy_kernel`: UniversalKnowledgeHierarchyKernel
+- `unix_rust_vulkan_driver_and_kernel_ds_framework`: analyze_strict_allocation_hardware_limits, benchmark_kernel_data_structures, benchmark_dynamic_threading_over_log_system, synthesize_lightweight_rust_vulkan_drivers, deploy_llm_oneapi_conda_symmetric_allocation, HardwareAiChipAutomationKernel, build_full_unix_rust_vulkan_oneapi_framework_report
 - `virtual_convolution_contra`: conv2d_transpose_reference, openvino_transpose_conv
 - `virtual_convolution_pipeline`: conv2d_reference, reference_pipeline, build_openvino_model
 - `wsl_hypervisor_mortar_and_geotile_adapter`: define_os_call_visual_semantics, evaluate_decision_tensor_ui_and_2b_bridge, adapt_integrations_to_four_geospatial_tiles, wsl_hypervisor_render_dispatch

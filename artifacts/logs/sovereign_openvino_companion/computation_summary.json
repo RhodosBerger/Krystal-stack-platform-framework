@@ -1,0 +1,41 @@
+{
+  "schema_version": "COMPUTATION_LOG_SUMMARY_V1",
+  "vital_max_hp": 6,
+  "total_entries": 56,
+  "head_sha256": "446b827feb6205934442da901881efbb6e08c8689ce4e5f56d442e2fe7e14f5d",
+  "ledger_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\artifacts\\logs\\sovereign_openvino_companion\\computation_ledger.jsonl",
+  "channel_counts": {
+    "system": 0,
+    "telemetry": 8,
+    "planning": 8,
+    "policy": 16,
+    "inference": 16,
+    "companion_vblank": 0,
+    "gnosis_audit": 8
+  },
+  "detected_reasoning_patterns": {
+    "MICRO_TENSOR_CPU_BYPASS": 4,
+    "COWORKER_QUORUM_MAINTENANCE_ISSUED": 7,
+    "SPECTRUM_COORDINATE_DRIFT_CORRECTED": 7,
+    "UMA_BANDWIDTH_PRESSURE_SPIKE": 4,
+    "AUTHORITY_SEPARATION_QUARANTINE": 6,
+    "HYSTERETIC_DWELL_HOLD": 15,
+    "HOMOTOPIC_CONFLICT_FORK": 4,
+    "THERMAL_PARASITE_DECOUPLED": 2
+  },
+  "pattern_catalog": {
+    "UMA_BANDWIDTH_PRESSURE_SPIKE": "bus_pressure >= 0.78 triggers immediate CPU fallback and K_spec=8->1 compression",
+    "HYSTERETIC_DWELL_HOLD": "Schmitt-trigger 12-frame dwell blocks premature GPU upscale oscillation (Sovereign P8)",
+    "MICRO_TENSOR_CPU_BYPASS": "payload < 16384 B routes to CPU VNNI avoiding 403 us iGPU queue dispatch latency",
+    "THERMAL_PARASITE_DECOUPLED": "Delta_tau <= 0 epistemic entropy gain triggers instant P5 hypothesis quarantine",
+    "HOMOTOPIC_CONFLICT_FORK": "Contradictory evidence (E_A perp E_B) forks alpha perp beta without convex averaging (P6)",
+    "AUTHORITY_SEPARATION_QUARANTINE": "PROPOSER != VERIFIER or degraded/failed AepReceipt holds state delta at zero",
+    "SPECTRUM_COORDINATE_DRIFT_CORRECTED": "Telemetry spectrum drift triggers bounded operating-coordinate maintenance directive",
+    "COWORKER_QUORUM_MAINTENANCE_ISSUED": "Independent Proposer/Verifier co-worker microservice quorum authorizes coordinate maintenance"
+  },
+  "duration_stats_ms": {
+    "total_ms": 12.0819,
+    "median_ms": 0.1008,
+    "p95_ms": 0.8222
+  }
+}

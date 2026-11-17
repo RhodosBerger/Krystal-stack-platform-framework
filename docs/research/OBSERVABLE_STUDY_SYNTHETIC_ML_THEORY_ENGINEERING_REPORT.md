@@ -1,6 +1,6 @@
 # Observabilná Reportáž a Výskumná Štúdia: Syntéza Hybridných Poznatkov, Percepčné Strojové Učenie a Monitorovaný Full HD / 4K Benchmark
 
-> **Ústavný invariant:** `VITAL_MAX_HP == 6` (`\neg Valid \implies \Delta S = 0`) | **Grafický čip (WGL/OpenVINO):** `GDI Generic`
+> **Ústavný invariant:** `VITAL_MAX_HP == 6` (`\neg Valid \implies \Delta S = 0`) | **Grafický čip (WGL/OpenVINO):** `Intel(R) Iris(R) Xe Graphics`
 
 ## 1. Východiskové tvrdenie a cieľ novej štúdie
 Táto štúdia spája doterajšie čiastkové merania pamäťovej hierarchie (`BAR0 mmap`, `64 B / 128 B` zarovnanie), prúdových koprocesorov (`768` FP32 jednotiek Intel Iris Xe), bez-zámkového logovania a tieňovo-cenovej arbitráže do **jednotných syntetických prác**. Tie následne vyhodnocuje kalibrovaný model strojového učenia, ktorý sa učí rozlišovať, kedy prepojenie teoretickej abstrakcie so všeobecným inžinierstvom prináša skutočný prenositeľný výkonnostný zisk.
@@ -20,10 +20,10 @@ Táto štúdia spája doterajšie čiastkové merania pamäťovej hierarchie (`B
 - **`PROC_DEF_05_PERCEPTUAL_THEORY_ENGINEERING_COUPLING` — Percepčné nadpojenie teórie na inžiniering (Perceptual Theory-to-Engineering Coupling)** (`f_ML(SyntetickaPraca_i) -> P(PrenositelnyInzinierskyZisk | Invarianty == True)`): Schopnosť kalibrovaného modelu strojového učenia vyhodnotiť zo štrukturálnych čŕt teoretického návrhu (zarovnanie, počet zámkov, hustota kópií, hysterézia), či návrh prinesie reálne zrýchlenie a vizuálnu stabilitu.
 
 ## 4. Monitorovaný graficko-výpočtový benchmark vo Full HD (`1920×1080`) a 4K (`3840×2160`)
-- **OpenGL / WGL Hardvérová sonda:** `Microsoft Corporation` · `GDI Generic` (`1.1.0`)
+- **OpenGL / WGL Hardvérová sonda:** `Intel` · `Intel(R) Iris(R) Xe Graphics` (`4.6.0 - Build 32.0.101.7092`)
 - **Priebežný záznam snímok:** `C:\Users\dusan\Documents\GitHub\Krystal-stack-platform-framework\reports\glmark_fhd_4k_monitored_trace.jsonl` (`16` monitorovaných snímok)
 
 | Rozlíšenie | Veľkosť snímku (FP32) | Stock Latencia (`FPS`) | Krystal Zero-Copy Latencia (`FPS`) | GLMark-Ekvivalent Skóre (`Stock -> Krystal`) | Zrýchlenie |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Full HD (`1920×1080`)** | `23.73 MB` | `35.673 ms` (`28.03 FPS`) | **`24.853 ms`** (**`40.24 FPS`**) | `280 -> 402` | **`1.44×` (`+43.53 %`)** |
-| **4K UHD (`3840×2160`)** | `94.92 MB` | `151.987 ms` (`6.58 FPS`) | **`108.325 ms`** (**`9.23 FPS`**) | `66 -> 92` | **`1.4×` (`+40.31 %`)** |
+| **Full HD (`1920×1080`)** | `23.73 MB` | `30.869 ms` (`32.39 FPS`) | **`22.453 ms`** (**`44.54 FPS`**) | `324 -> 445` | **`1.37×` (`+37.48 %`)** |
+| **4K UHD (`3840×2160`)** | `94.92 MB` | `150.878 ms` (`6.63 FPS`) | **`105.794 ms`** (**`9.45 FPS`**) | `66 -> 95` | **`1.43×` (`+42.62 %`)** |
