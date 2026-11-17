@@ -68,7 +68,7 @@ Verdict: **VERIFIED_WITH_SCOPE**
 | Intranet 128B packet bus | Binary KPKT 128 B SHA-256 inter-module packets modulating presets and WSL2 quotas. | `cluster_pid_gemma_finetune_and_mesh_ml:run_neurosymbolic_datalink_and_hypervisor_exchange` | `tests/test_x86_hex_vr_and_study_conclusion.py` | RESOLVED |
 | Gemma fine-tuning sets | Gemma chat-formatted abstraction variants and four leak-free train/eval sets. | `cluster_pid_gemma_finetune_and_mesh_ml:build_gemma_abstraction_variants_and_finetune_sets` | `tests/test_x86_hex_vr_and_study_conclusion.py` | RESOLVED |
 
-Public symbols without a term: 120
+Public symbols without a term: 139
 
 - `adaptive_2b_spatial_linguistic_trainer`: calibrate_new_shapes_and_model_catalog, build_spatial_and_linguistic_2b_kb, EpisodicResidualMemoryBank, compute_four_core_project_summary_and_roadmap
 - `adaptive_cross_genre_sync`: SyncMode, SyncNode, SyncConnection, describe_adaptive_sync_architecture
@@ -80,8 +80,10 @@ Public symbols without a term: 120
 - `clash_battle_royale`: hex_distance, board_cells, ClashGame, ClashRegistry
 - `cluster_pid_gemma_finetune_and_mesh_ml`: pack_intranet_128b_packet, unpack_intranet_128b_packet, build_godot_scene_and_goniometric_behavioral_kernel
 - `combat_turn_planner`: get_cached_hw_profile, probe_isa_flags
+- `combinatorial_derivative_functions_engine`: derive_192b_wntc_kpkt_hypervisor_datagram, derive_conv_paced_double_time_schedule, derive_godot_animation_track_from_story, derive_ascii_survival_hud_projection, derive_bitboard_u64_hex_mask, build_combinatorial_incremental_knowledge_ledger
 - `configurator_and_dxdiag`: prewarm_heterogeneous_blob_pair, extract_pattern_candidates_from_diagnostics, export_dxdiag_txt, render_dxdiag_profile_html
 - `consistency_bot`: BotCheck
+- `convolutional_hypervisor_step_bridge`: ConvolutionalHypervisorStepBridge
 - `cross_layer_pattern_demo`: run_cross_layer_pattern_demonstration
 - `dep_bridge_numeric_and_packet_abi`: sanitize_vector_f32, emit_governed_128b_event, verify_abi_and_optical_dependencies
 - `dep_bridge_symbolic_geometry_and_openvino`: build_bridged_geometry_and_rig_state
@@ -90,9 +92,11 @@ Public symbols without a term: 120
 - `fact_synthesis_engine`: synthesize_facts, induce_rules, module_distance_matrix, narrate
 - `hex_combat_bandwidth_and_world_ai`: hex_cell_count, hex_undirected_edge_count, verify_hex_combinatorial_identities, measure_clash_engine_action_throughput, instantiate_combat_preset, evaluate_all_faction_duel_combinations, generate_world_hex_influences
 - `intel_accelerator_and_power_thread_governor`: IntelDeviceProperties, IntelStream, get_shared_ov_core
+- `krystal_uma_cuda_vulkan_library`: UMADeviceAssetBuffer, kuMallocUMA, kuAdviseAndDefend, kuLaunchMatMulDefended, kuInjectSimplifiedKernelOp, coordinate_existing_schemas_and_scripts
 - `matrix_control_processes`: freivalds_verify, run_operator_mashup
 - `neurosymbolic_bridge`: build_grounded_prompt, ask_llm, build_compendium
 - `neurosymbolic_genesis_discipline_and_llm`: build_henc_discipline_and_train_demo
+- `neurosymbolic_theories_case_study_and_kb`: run_neurosymbolic_pipeline_case_study_and_build_kb
 - `nomenclature_registry`: validate_nomenclature, export_glossary
 - `object_library_texture_nodes_and_synthetic_network`: render_object_from_code_sample, PreallocatedPhaseRenderPool, compile_carbon_environment_script
 - `oneapi_llm_heterogeneous_shell`: main, get_global_oneapi_shell
@@ -101,9 +105,12 @@ Public symbols without a term: 120
 - `playable_fieldlines_and_game_theory`: render_playable_syntactic_studio_html, solve_algebraic_tensor_word_problems, build_llm_engine_tool_integrations, fetch_staged_processes_and_rig_skeleton_animations, render_lightweight_bot_perception_hud, run_engine_node_benchmark_and_recommend_preset
 - `priority_tabular_synthetic_logger`: generate_priority_stratified_log_table, compute_multiclass_calibration_metrics, train_and_calibrate_models_on_priority_trace
 - `roadmap_transitions_events_and_keywords`: compute_roadmap_transitions_events_and_keywords
+- `seasonal_scrum_prompt_kb_engine`: build_seasonal_scrum_kb_and_publication
 - `simulation_grid_3d`: ensure_babylon_vendor, hex_spiral_axial, build_trace_dataset, export_standalone_html
 - `spatial_coordinators_and_vr_hologram_compositor`: compile_cycle_driven_ui_schema, render_vr_hologram_profiler_html
 - `tensor_prompt_branch_and_kb`: encode_prompt_to_feature_row, build_openapi_31_strategy_spec
+- `unified_backend_ui_gateway_and_sprint_corpus`: decide_best_derivative_study_choices, UnifiedBackendUiAccessGateway, build_unified_gateway_and_sprint_prompt_corpus
+- `universal_kb_hierarchy_kernel`: UniversalKnowledgeHierarchyKernel
 - `virtual_convolution_contra`: conv2d_transpose_reference, openvino_transpose_conv
 - `virtual_convolution_pipeline`: conv2d_reference, reference_pipeline, build_openvino_model
 - `wsl_hypervisor_mortar_and_geotile_adapter`: define_os_call_visual_semantics, evaluate_decision_tensor_ui_and_2b_bridge, adapt_integrations_to_four_geospatial_tiles, wsl_hypervisor_render_dispatch

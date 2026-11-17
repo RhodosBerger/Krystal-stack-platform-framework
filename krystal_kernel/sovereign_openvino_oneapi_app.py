@@ -1610,6 +1610,46 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self._send_json(200, build_openapi_31_strategy_spec())
             return
 
+        if self.path.startswith("/api/v1/runtime/unified_gateway"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.unified_backend_ui_gateway_and_sprint_corpus import (
+                UnifiedBackendUiAccessGateway,
+            )
+
+            qs = parse_qs(urlparse(self.path).query)
+            cap = str(qs.get("cap", ["wntc_kpkt_192b"])[0])
+            uma = float(qs.get("uma", ["0.35"])[0])
+            try:
+                self._send_json(200, UnifiedBackendUiAccessGateway().project_for_ui(cap, uma_utilization=uma))
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path.startswith("/api/v1/runtime/krystal_uma_cuda"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.universal_kb_hierarchy_kernel import (
+                UniversalKnowledgeHierarchyKernel,
+            )
+
+            qs = parse_qs(urlparse(self.path).query)
+            dom = str(qs.get("domain", ["xerj_vulkan_mesh_copilot"])[0])
+            uma = float(qs.get("uma", ["0.35"])[0])
+            k_dim = int(qs.get("k", ["512"])[0])
+            try:
+                self._send_json(
+                    200,
+                    UniversalKnowledgeHierarchyKernel().push_custom_engineering_solution(
+                        problem_domain=dom,
+                        reduction_k=k_dim,
+                        uma_utilization=uma,
+                    ),
+                )
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
         if self.path.startswith("/vr_hologram_profiler"):
             from projects.trigonometric_hybrid_platform_framework.spatial_coordinators_and_vr_hologram_compositor import (
                 render_vr_hologram_profiler_html,

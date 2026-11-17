@@ -1,0 +1,10 @@
+[gd_resource type="Animation" format=3 uid="uid://krystal_siege_anim"]
+[resource]
+resource_name = "hex_mortar_siege_6f"
+length = 2.50
+tracks/0/type = "value"
+tracks/0/path = NodePath("MortarShell:position:y")
+tracks/0/keys = {"times": PackedFloat32Array(0.00, 0.50, 1.00, 1.50, 2.00, 2.50), "values": [0.000, 1.536, 2.304, 2.304, 1.536, 0.000]}
+tracks/1/type = "value"
+tracks/1/path = NodePath("HexTerrainMultiMesh:layers")
+tracks/1/keys = {"times": PackedFloat32Array(0.00, 0.50, 1.00, 1.50, 2.00, 2.50), "values": [1023, 1023, 1023, 1023, 31, 1023]}

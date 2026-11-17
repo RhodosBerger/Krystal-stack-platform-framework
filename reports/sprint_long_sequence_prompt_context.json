@@ -1,0 +1,298 @@
+{
+  "vital_max_hp": 6,
+  "actual_codebase_state": {
+    "platform_modules_count": 46,
+    "public_functions_count": 158,
+    "public_classes_count": 44,
+    "cross_function_call_edges": 213,
+    "bound_nomenclature_terms": 63,
+    "unresolved_nomenclature_terms": 0,
+    "architecture_markdown_docs_count": 69,
+    "architecture_markdown_docs": [
+      "ADAPTIVE_2B_NEUROSYMBOLIC_METHODOLOGY_AND_ROADMAP.md",
+      "AEP_CANONICAL_SPEC.md",
+      "AEP_CONTROL_METRICS_V1_SPEC.md",
+      "AEP_CONTROL_METRICS_V2_SPEC.md",
+      "AMPLITUDE_STATE_CV_VULKAN_BLUEPRINT.md",
+      "AUTONOMOUS_EPISTEMIC_RESEARCH_CYCLE_AND_KNOWLEDGE_GRAPH.md",
+      "BOT_GENERATION_TUTORIAL_AND_DATA_CYCLES.md",
+      "CALIBRATED_EPISTEMIC_PROMPT_BASE_AND_ROUTER.md",
+      "COMBINATORIAL_DERIVATIVE_FUNCTIONS_AND_CHANGES.md",
+      "COMPOSABLE_OPEN_SOURCE_SUPERSTRUCTURE_MESH.md",
+      "CONSPECTUS_BRIDGING_FEATURES_AND_NEW_INVENTIONS.md",
+      "CONTROL_METRICS_LAYER_SPEC.md",
+      "DAILY_IMPROVEMENTS_PARSER_AND_ENGINE_INTEGRATION_2026_11_16.md",
+      "DEEP_RESEARCH_EPISTEMIC_PLANNER_AND_PORTFOLIO_PROTOCOL.md",
+      "EFFECTIVE_COMPUTE_POTENTIAL_AND_EHU_SPEC.md",
+      "EPISTEMICKY_KOMPILATOR_PAMATOVA_BARIERA_JAZYKA.md",
+      "EPISTEMIC_NATIVE_RUNTIME_AND_FEATURE_HORIZON.md",
+      "EPISTEMIC_PARADOX_REGISTRY_AND_SYSTEMIC_FALSIFICATION.md",
+      "EPISTEMIC_PLANNING_AND_DETERMINISTIC_AUTHORITY_MATRIX.md",
+      "GENESIS_PROMPTS_FROM_UNVALIDATED_CHARACTERISTICS.md",
+      "HARDWARE_EPISTEMIC_NEUROSYMBOLIC_ML_DISCIPLINE.md",
+      "HETEROGENEOUS_ONEAPI_SHELL_AND_STATE_PATTERNS.md",
+      "INFERENCE_WORKLOAD.md",
+      "INTEL_CORE_OPENVINO_DISCLOSURE_AND_MULTI_PLATFORM_PROTOCOL.md",
+      "KARAF_ADAPTIVE_RUNTIME_ALGORITHM_FABRIC.md",
+      "KCB_KMUISA_KMUASM_CONTROL_SERIES_SPEC.md",
+      "KRYSTAL_EPISTEMIC_NEUROLINGUISTIC_GRAMMAR.md",
+      "KRYSTAL_FRAMEWORK_CAPABILITIES_AND_VISION_ARTICLE.md",
+      "KRYSTAL_GENESIS_ONTOLOGICAL_AND_CAUSAL_BLUEPRINT.md",
+      "KRYSTAL_MANIFEST_PROCESS_SCHEMAS_AND_CHIPSET_KNOWLEDGE_LAYER.md",
+      "KRYSTAL_NEXUS_REVOLUTIONARY_PRODUCT.md",
+      "KRYSTAL_RAG_CONDITIONED_LLM_TRAINING_FABRIC.md",
+      "KRYSTAL_SOVEREIGN_PRINCIPLE_PACK.md",
+      "KRYSTAL_STACK_ARCHITECTURAL_ARCHAEOLOGY_AND_REFERENCE_GUIDE.md",
+      "KRYSTAL_TEMPLATE_SYSTEM_AND_LATENCY_OPTIMIZATION_FRAMEWORK.md",
+      "KRYSTAL_UNIVERSAL_AGENT_KERNEL_MANIFEST.md",
+      "KRYSTAL_VINO_POETIC_ALGEBRA_AND_ONEAPI_MULTI_ENDPOINT_RUNTIME.md",
+      "KSAA_HARDWARE_ADAPTIVE_PROCESSOR_SPEC.md",
+      "KSAC1_HETEROGENEOUS_RISCV_SOC_SPEC.md",
+      "KSAC_M4_1_PHYSICAL_VALIDATION_PROTOCOL.md",
+      "KSAC_SILICON_AND_SYSTEM_CALCULATIONS.md",
+      "KSL_KRYSTAL_SYSTEMS_LANGUAGE_SPEC.md",
+      "LLM_GOVERNOR_EXTENSION.md",
+      "LLM_MODULE_INTERCONNECTION_SCHEMAS_SPEC.md",
+      "MASTER_BLUEPRINT_KRYSTAL_STACK_SOVEREIGN_OMNI_SYSTEM.md",
+      "MILESTONE_KSAC_M4_1_VHL_PHYSICAL_VALIDATION_CHARTER.md",
+      "MODULAR_ORCHESTRATION_PATTERNS_AND_BINARY_ARCHITECTURE_CONCLUSION.md",
+      "NEUROSYMBOLIC_PIPELINE_THEORIES_AND_CASE_STUDY.md",
+      "NEXTGEN_PREDICTIVE_DEPENDENCIES_AND_CUSTOM_TAXONOMIES.md",
+      "NON_INVASIVE_OS_COORDINATION_AND_REVERSIBLE_POLICY_ENGINE.md",
+      "PERFORMANCE_MODE_VELOCITY_LOOP_AND_MULTI_MODEL_FALSIFICATION.md",
+      "POLYMORPHIC_INGRESS_AND_UNEXPECTED_INFERENCE_SPEC.md",
+      "PRACTICES_PROCEDURES_PLANS_AND_GOALS.md",
+      "PRODUCTION_DEPLOYMENT_MODEL.md",
+      "PROOF_CARRYING_GOVERNED_RUNTIME.md",
+      "REVERSE_ENGINEERING_SCHEMA_AND_NOMENCLATURE.md",
+      "ROADMAP_TRANSITIONS_EVENTS_AND_KEYWORDS.md",
+      "SECONDARY_INNOVATION_LOOPS_SPEC.md",
+      "SLOVAK_ADAPTIVE_LLM_PILOT.md",
+      "SOVEREIGN_SPECULATIVE_SOCKET_GTD_AND_UNIFIED_TRANSITION_SPEC.md",
+      "STANDARDIZED_DIGITAL_GAME_THEORY.md",
+      "TABULAR_PRIORITY_LOGGER_AND_CALIBRATION.md",
+      "THEORY_OF_PHASE_LOCKED_EPISTEMIC_ACTION.md",
+      "TRIGONOMETRIC_HYBRID_MARKET_PLATFORM_CHARTER.md",
+      "UNIFIED_BACKEND_UI_ACCESS_AND_SPRINT_PROMPT_CORPUS.md",
+      "UNIFORM_CROSS_ENGINE_INTERPOSITION_AND_PROCESS_GOVERNANCE.md",
+      "VEDECKY_PROTOKOL_A_MAPA_EVIDENCIE.md",
+      "VSEOBECNE_VYCHODISKA_EPISTEMICKY_DEBUG_A_REVIZIA_PATTERNOV.md",
+      "VULKAN_ZERO_COPY_SOCKET_GEARBOX_AND_FOUR_SCALE_COMPONENT_MANUAL.md"
+    ],
+    "combinatorial_subsets_6_pillars": {
+      "pillars_n": 6,
+      "pairwise_c_6_2": 15,
+      "triadic_c_6_3": 20,
+      "total_multi_pillar_subsets": 57
+    },
+    "neurosymbolic_kb_records": 11
+  },
+  "derivative_decision_ranking": {
+    "vital_max_hp": 6,
+    "decision_rule": "Maximize (EVOI * BoundedGain) / (Risk * CoupledModules); prefer 2-module C-ABI/128B bridges over >=4-way monoliths.",
+    "top_recommended_choice": "DF_01_192B_WNTC_KPKT_DATAGRAM",
+    "ranked_choices": [
+      {
+        "choice_id": "DF_01_192B_WNTC_KPKT_DATAGRAM",
+        "title": "192 B (64 B WNTC + 128 B KPKT) Dual-OS Binary IPC",
+        "throughput_gain_x": 5.04,
+        "duty_cycle": 1.0,
+        "implementation_risk": 1.1,
+        "coupling_modules": 2,
+        "evoi_score": 9.6,
+        "why_best": "Eliminates JSON DTO overhead across Windows <-> WSL2 in exactly 3 x 64B cache lines with dual CRC32 + SHA-256.",
+        "composite_decision_index": 7.663,
+        "rank": 1
+      },
+      {
+        "choice_id": "DF_02_CONV_PACED_DOUBLE_TIME",
+        "title": "OpenVINO 1x3 Convolution-Paced 120 Hz Double-Time Scheduler",
+        "throughput_gain_x": 3.8,
+        "duty_cycle": 1.0,
+        "implementation_risk": 1.2,
+        "coupling_modules": 2,
+        "evoi_score": 9.2,
+        "why_best": "Prevents 1-tick noise thrashing while guaranteeing 0.00 ms VSync overrun at 120 Hz (k=2) and 0-frame halt at UMA >= 0.78.",
+        "composite_decision_index": 6.018,
+        "rank": 2
+      },
+      {
+        "choice_id": "DF_05_U64_HEX_BITBOARD_FFI_MASK",
+        "title": "Bijective 37-Bit uint64 Hex Bitboard for Rust Zero-GC FFI",
+        "throughput_gain_x": 18.0,
+        "duty_cycle": 0.9,
+        "implementation_risk": 1.8,
+        "coupling_modules": 2,
+        "evoi_score": 9.4,
+        "why_best": "Fits the entire R=3 hex board (37 cells) inside a single 64-bit CPU register with zero heap allocations.",
+        "composite_decision_index": 5.875,
+        "rank": 3
+      },
+      {
+        "choice_id": "DF_03_GODOT_ANIMATION_TRES_COMPILER",
+        "title": "Native Godot 4 Animation (.tres) Keyframe & Layer-Mask Compiler",
+        "throughput_gain_x": 4.2,
+        "duty_cycle": 0.8,
+        "implementation_risk": 1.5,
+        "coupling_modules": 2,
+        "evoi_score": 8.1,
+        "why_best": "Turns deterministic simulation & robotics traces directly into playable Godot 4 scenes without manual keyframing.",
+        "composite_decision_index": 3.521,
+        "rank": 4
+      },
+      {
+        "choice_id": "DF_04_NEURAL_ASCII_SURVIVAL_HUD",
+        "title": "Deterministic < 2 KB Glyph Survival HUD under UMA >= 0.78",
+        "throughput_gain_x": 20.0,
+        "duty_cycle": 0.35,
+        "implementation_risk": 1.3,
+        "coupling_modules": 2,
+        "evoi_score": 8.5,
+        "why_best": "Cuts viewport bandwidth > 95% (< 300 B payload, < 0.5 ms CPU) when iGPU/UMA is saturated.",
+        "composite_decision_index": 2.861,
+        "rank": 5
+      }
+    ]
+  },
+  "ui_module_access_patterns": [
+    {
+      "pattern_id": "UAP_01_PROJECTION_ENVELOPE_READ",
+      "principle": "Render(S) != S (Read-Only Signed Projection Envelope)",
+      "contract": "Every backend module exposes UI state via a uniform envelope {vital_max_hp, state_sha256, uma_utilization, evidence_class, doc_anchor, view_tokens, payload}; UI never mutates authoritative state directly."
+    },
+    {
+      "pattern_id": "UAP_02_INTENT_ACTION_STEP_GATE",
+      "principle": "~Valid(Action) => Delta_S == 0 (Governed Command Ingress)",
+      "contract": "All UI clicks, DSL scripts, and CLI commands enter through StepExecutionGateProxy / ContractViolation with proposer != verifier before touching kernel state."
+    },
+    {
+      "pattern_id": "UAP_03_STATE_AB_CSS_TOKEN_ADAPTER",
+      "principle": "Zero-Reallocation UMA-Adaptive Visual Tiering",
+      "contract": "Backend emits discrete tier tokens (HOLOGRAM_FULL_0x3ff vs WIREFRAME_SHADOW_0x1f vs ASCII_SURVIVAL) mapped to CSS custom properties and BP_360..1920 sockets without DOM rebuilds."
+    },
+    {
+      "pattern_id": "UAP_04_DOC_LINKED_CAPABILITY_MANIFEST",
+      "principle": "Self-Describing Backend Over Actual-State Documentation",
+      "contract": "Every registered endpoint binds its live Python callable, AST signature, pytest anchor, and architecture Markdown path; startup/CI audits parity so docs never drift from live code."
+    }
+  ],
+  "backend_opening_best_practices": [
+    {
+      "id": "BOP_01_SINGLE_CAPABILITY_CATALOG",
+      "practice": "Expose a single read-only `/api/v1/runtime/unified_gateway` manifest indexing all modules, UI views, and live `.md` anchors."
+    },
+    {
+      "id": "BOP_02_DOC_STATE_PARITY_GATE",
+      "practice": "Verify on every release that every `.md` architecture file referenced by the gateway exists on disk and matches live invariants (`HP==6`, `0` bare asserts)."
+    },
+    {
+      "id": "BOP_03_TYPED_ERROR_BOUNDARIES",
+      "practice": "Map `ContractViolation` and `ValueError` deterministically to HTTP `400` JSON with `vital_max_hp: 6` and `delta_s: 0` — never leak raw stack traces or silently coerce invalid inputs."
+    },
+    {
+      "id": "BOP_04_BINARY_INTERNAL_JSON_EDGE",
+      "practice": "Keep internal module/hypervisor rings strictly binary (`64B WNTC`, `128B KPKT`, `32B .kopt`) and project to UTF-8 JSON/SVG only at the outer HTTP/UI view edge."
+    },
+    {
+      "id": "BOP_05_EPISTEMIC_BADGING_IN_PAYLOAD",
+      "practice": "Tag every backend field with `LOCAL_MEASURED`, `VERIFIED_WITH_SCOPE`, `DERIVED`, or `UNKNOWN` so neither UI nor downstream prompts over-claim."
+    }
+  ],
+  "verified_gateway_projections": {
+    "wntc_kpkt_192b": {
+      "ui_route": "/studio",
+      "doc_anchor": "docs/architecture/COMBINATORIAL_DERIVATIVE_FUNCTIONS_AND_CHANGES.md",
+      "state_sha256": "a9fb275c23193bd3d4b2986c50b7eb4674e0292700e15e1c9ec83ddef6a462fa"
+    },
+    "conv_double_time": {
+      "ui_route": "/api/v1/compositor/double_time",
+      "doc_anchor": "docs/architecture/CONSPECTUS_BRIDGING_FEATURES_AND_NEW_INVENTIONS.md",
+      "state_sha256": "e7e5dcff3b779552f803b00e8bc89d9f10f6c6ff4f435165d04e9ccb78aaac18"
+    },
+    "godot_anim_tres": {
+      "ui_route": "/vr_hologram_profiler",
+      "doc_anchor": "docs/architecture/DAILY_IMPROVEMENTS_PARSER_AND_ENGINE_INTEGRATION_2026_11_16.md",
+      "state_sha256": "3459a5adff1779fa3240e5f85431ca4a0077397f38693feea3288a6678e5262e"
+    },
+    "ascii_survival_hud": {
+      "ui_route": "/bot_perception_hud",
+      "doc_anchor": "docs/architecture/PRACTICES_PROCEDURES_PLANS_AND_GOALS.md",
+      "state_sha256": "e319a65c9133f92a09a46db75f2405ce73939b3bf741f8c3212f0c80a17f328f"
+    },
+    "rust_u64_bitboard": {
+      "ui_route": "/syntactic_playable_studio",
+      "doc_anchor": "docs/architecture/STANDARDIZED_DIGITAL_GAME_THEORY.md",
+      "state_sha256": "c61f1f9385cede64da9f335f428bb92cb1e33116d896e04e73412b7ab5787f13"
+    }
+  },
+  "cross_module_theories_ids": [
+    "TH_01_SUBNORMAL_INGRESS_ISOMORPHISM",
+    "TH_02_CACHELINE_QUOTIENT_PROVENANCE",
+    "TH_03_CONVOLUTIONAL_INERTIAL_NON_THRASHING",
+    "TH_04_ORTHOGONAL_VERIFIER_SAFETY_ENVELOPE"
+  ],
+  "multi_sprint_long_sequence": [
+    {
+      "sprint_wave": "SPRINT_W1_NOV06_TO_NOV08",
+      "commits": "5f62dad6 .. d5bfb828",
+      "theme": "20-Layer Glyph-Trigonometric Coherent Runtime, Zero-GC Synthesis & Ubuntu GPU CI",
+      "core_artifacts": [
+        "17/20-layer glyph-acoustic-Bezier compiler & Joule amplitude engine",
+        "Eliminated 2s LM Studio TCP stall & wired executable Rust/C++/Python synthesis on :8090",
+        "Normalized GHCR Docker pipeline & enabled CrystalSec v3 / Iris Xe GPU test jobs"
+      ]
+    },
+    {
+      "sprint_wave": "SPRINT_W2_NOV09_TO_NOV10",
+      "commits": "4bfe17d1 .. 7e477f3e",
+      "theme": "5-Stratum S0..S4 Automaton, 16 Wire Parameters (84B/128B), Rubik S_48 & GA Recompiler",
+      "core_artifacts": [
+        "Deterministic 8-bit intent automaton + Intel 11th-15th Gen ISA/socket adaptive kernel",
+        "Grid-to-Logic Semantic Mirror & 4-Act Blender-Godot-Oxygen scenario",
+        "Rubik's Cube G_Rubik subset S_48 choice mechanics & adaptive GA taxonomy optimizer"
+      ]
+    },
+    {
+      "sprint_wave": "SPRINT_W3_NOV11_TO_NOV12",
+      "commits": "240317f8 .. cc7be983",
+      "theme": "Material-Phi (1.618) /studio Multimedia Hub, 3D Rubik + Marias Projection & S5..S9 Gnosis",
+      "core_artifacts": [
+        "Procedural WAV soundtrack, SVG emblem, 3D Rubik renderer & 24B KMB1 Lockstep Multiplexer",
+        "4 Marias playing-card projection lenses (Render(S) = Pi_Marias(S) != S) & Blizzard tactile card manual",
+        "S5..S9 Ontologic Gnosis strata with 24B GNOS binary descriptor & K8s/nftables zero-trust configs"
+      ]
+    },
+    {
+      "sprint_wave": "SPRINT_W4_NOV13_TO_NOV14",
+      "commits": "0980c68e .. a95b9ae4",
+      "theme": "Sovereign OpenVINO Companion v1/v2, 64B WNTC WSL2-NT Bridge & Trigonometric Hybrid Platform",
+      "core_artifacts": [
+        "Hash-chained ComputationLogSystem, 6-microservice Supervisor Community & Brier/ECE calibration",
+        "64B WNTC single-cache-line WSL2<->NT descriptor & 120-cell Hypervisor Matrix Choice Palette",
+        "Z3 CrossDisplayMultiGenreParameterMatrix, StepExecutionGateProxy, adaptive rollback sync & Babylon 3D grid"
+      ]
+    },
+    {
+      "sprint_wave": "SPRINT_W5_NOV16",
+      "commits": "82c28a59 .. 56ef041d",
+      "theme": "OpenVINO FMA/K=449 Proof, x86-64 X01..X05, Clash 37-Hex Arena, Godot/VR, AST Parser & 40.4x Priority Logger",
+      "core_artifacts": [
+        "Proved Iris Xe sequential FMA bit-identity, localized OpenBLAS K=449 transition & achieved 126.4x AST speedup",
+        "Measured X01..X05 (L2 55.1 GB/s, 14x/37.4x subnormal cliff, 5.04x 128B KPKT speedup, 13,362.7 arena commits/s)",
+        "Built Goniometric Kernel DESC_01..03, Godot 10/20 layers, HENC micro-LLM, XLP_01..04 copilots, 3 dependency bridges, visual story generators & 0-bare-assert production gate"
+      ]
+    },
+    {
+      "sprint_wave": "SPRINT_W6_NOV17_CURRENT",
+      "commits": "22b3d96a .. HEAD",
+      "theme": "Double-Time 120Hz/128B Bugfixes, Convolutional Hypervisor Interposer, C(6,2) Derivatives & Unified Gateway",
+      "core_artifacts": [
+        "Fixed 5 Double-Time bugs: 120Hz k=2 clamping, non-overlapping 128B BUF_00/01, eta_crit=1.72, UMA>=0.78 halt & HTTP query params",
+        "Added OpenVINO ConvolutionalHypervisorStepBridge (1x6x1x16 -> Conv1x3 -> StepExecutionGateProxy + 64B WNTC + 128B KPKT)",
+        "Synthesized DF_01..DF_05 combinatorial derivatives, TH_01..TH_04 cross-module theories, Neurosymbolic KB & UnifiedBackendUiAccessGateway"
+      ]
+    }
+  ],
+  "next_layer_prompt_seed": "SYSTEM ANCHOR [KRYSTAL STACK PROMPT LAYER v2026.11.17]:\n1. Lock constitutional invariants: VITAL_MAX_HP == 6, UMA < 0.78, PROPOSER != VERIFIER, ~Valid => Delta_S == 0, 0 bare asserts.\n2. Route every operation window (1x6x1x16, canonicalize_float32) through ConvolutionalHypervisorStepBridge -> StepExecutionGateProxy.\n3. Use binary cache-line multiples internally (64B WNTC, 128B KPKT, 192B Dual-OS, 32B .kopt) and expose UI strictly via UAP_01 Projection Envelopes.\n4. Treat every new cross-module synthesis as PATTERN_CANDIDATE until an isolated CDT + pytest receipt promotes it to VERIFIED_WITH_SCOPE.\n5. Stratify claims into LOCAL_MEASURED, VERIFIED_WITH_SCOPE, DERIVED, or UNKNOWN; never invoke OpenAI endpoints.",
+  "corpus_sha256": "3e0cf19b56291ce27c13e0b4b68853ea47ab455114388ffb1bbe520c50fd9e74"
+}

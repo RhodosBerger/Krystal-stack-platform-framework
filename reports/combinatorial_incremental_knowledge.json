@@ -1,0 +1,201 @@
+{
+  "vital_max_hp": 6,
+  "combinatorics": {
+    "pillars_n": 6,
+    "pairwise_c_6_2": 15,
+    "triadic_c_6_3": 20,
+    "total_multi_pillar_subsets": 57
+  },
+  "conspected_pillars": [
+    {
+      "pillar_id": "P1_CONV_INTERPOSER",
+      "module": "projects/trigonometric_hybrid_platform_framework/convolutional_hypervisor_step_bridge.py",
+      "commit_ref": "0496bc4e",
+      "capability": "OpenVINO opset13 1x6x1x16 -> Conv1x3 -> StepExecutionGateProxy"
+    },
+    {
+      "pillar_id": "P2_DUAL_OS_BINARY",
+      "module": "projects/sovereign_openvino_companion_v2/sensory_morphism_binary_compiler.py",
+      "commit_ref": "85e45bc3 + 56ef041d",
+      "capability": "64B WNTC (CRC32) + 128B KPKT (SHA-256) zero-JSON binary contracts"
+    },
+    {
+      "pillar_id": "P3_DOUBLE_TIME_RING",
+      "module": "krystal_kernel/epistemic_cognition_compositor.py",
+      "commit_ref": "22b3d96a",
+      "capability": "60/120Hz Double-Time tau_real + tau_spec over non-overlapping 128B BUF_00/01"
+    },
+    {
+      "pillar_id": "P4_GONIO_GODOT_OPTICS",
+      "module": "projects/trigonometric_hybrid_platform_framework/cluster_pid_gemma_finetune_and_mesh_ml.py",
+      "commit_ref": "123a0d6b",
+      "capability": "Goniometric descriptors DESC_01..03, Godot 10/20 layer mask & .kopt Fresnel"
+    },
+    {
+      "pillar_id": "P5_SYMPY_RIG_VISUAL_GEN",
+      "module": "projects/trigonometric_hybrid_platform_framework/dep_bridge_visual_story_generators.py",
+      "commit_ref": "56ef041d",
+      "capability": "Streaming keyframe visual story generators + SymPy/NetworkX/Trimesh bridge"
+    },
+    {
+      "pillar_id": "P6_CALIBRATED_TABULAR_LOG",
+      "module": "projects/trigonometric_hybrid_platform_framework/priority_tabular_synthetic_logger.py",
+      "commit_ref": "56ef041d",
+      "capability": "40.37x compact priority-stratified trace + T*=1.05 ECE/Brier calibration"
+    }
+  ],
+  "pairwise_combinations": [
+    {
+      "pair_index": 1,
+      "a": "P1_CONV_INTERPOSER",
+      "b": "P2_DUAL_OS_BINARY"
+    },
+    {
+      "pair_index": 2,
+      "a": "P1_CONV_INTERPOSER",
+      "b": "P3_DOUBLE_TIME_RING"
+    },
+    {
+      "pair_index": 3,
+      "a": "P1_CONV_INTERPOSER",
+      "b": "P4_GONIO_GODOT_OPTICS"
+    },
+    {
+      "pair_index": 4,
+      "a": "P1_CONV_INTERPOSER",
+      "b": "P5_SYMPY_RIG_VISUAL_GEN"
+    },
+    {
+      "pair_index": 5,
+      "a": "P1_CONV_INTERPOSER",
+      "b": "P6_CALIBRATED_TABULAR_LOG"
+    },
+    {
+      "pair_index": 6,
+      "a": "P2_DUAL_OS_BINARY",
+      "b": "P3_DOUBLE_TIME_RING"
+    },
+    {
+      "pair_index": 7,
+      "a": "P2_DUAL_OS_BINARY",
+      "b": "P4_GONIO_GODOT_OPTICS"
+    },
+    {
+      "pair_index": 8,
+      "a": "P2_DUAL_OS_BINARY",
+      "b": "P5_SYMPY_RIG_VISUAL_GEN"
+    },
+    {
+      "pair_index": 9,
+      "a": "P2_DUAL_OS_BINARY",
+      "b": "P6_CALIBRATED_TABULAR_LOG"
+    },
+    {
+      "pair_index": 10,
+      "a": "P3_DOUBLE_TIME_RING",
+      "b": "P4_GONIO_GODOT_OPTICS"
+    },
+    {
+      "pair_index": 11,
+      "a": "P3_DOUBLE_TIME_RING",
+      "b": "P5_SYMPY_RIG_VISUAL_GEN"
+    },
+    {
+      "pair_index": 12,
+      "a": "P3_DOUBLE_TIME_RING",
+      "b": "P6_CALIBRATED_TABULAR_LOG"
+    },
+    {
+      "pair_index": 13,
+      "a": "P4_GONIO_GODOT_OPTICS",
+      "b": "P5_SYMPY_RIG_VISUAL_GEN"
+    },
+    {
+      "pair_index": 14,
+      "a": "P4_GONIO_GODOT_OPTICS",
+      "b": "P6_CALIBRATED_TABULAR_LOG"
+    },
+    {
+      "pair_index": 15,
+      "a": "P5_SYMPY_RIG_VISUAL_GEN",
+      "b": "P6_CALIBRATED_TABULAR_LOG"
+    }
+  ],
+  "verified_derivative_functions": [
+    {
+      "combination": "P1_CONV_INTERPOSER + P2_DUAL_OS_BINARY",
+      "initial_status": "PATTERN_CANDIDATE",
+      "promoted_status": "VERIFIED_WITH_SCOPE",
+      "cdt_elapsed_ms": 0.112,
+      "output": {
+        "derivative_id": "DF_01_192B_WNTC_KPKT_DATAGRAM",
+        "total_bytes": 192,
+        "cache_lines": 3,
+        "wntc_crc32_valid": true,
+        "kpkt_sha256_valid": true,
+        "particular_target_change": "wsl_bridge/bridge_daemon.py :: WSLBridgeDaemon.sync_telemetry (replace JSON dict with 192B binary datagram)"
+      }
+    },
+    {
+      "combination": "P1_CONV_INTERPOSER + P3_DOUBLE_TIME_RING",
+      "initial_status": "PATTERN_CANDIDATE",
+      "promoted_status": "VERIFIED_WITH_SCOPE",
+      "cdt_elapsed_ms": 40.122,
+      "output": {
+        "derivative_id": "DF_02_CONV_PACED_DOUBLE_TIME",
+        "effective_uma": 0.72,
+        "double_time_status": "SHADOW_PACED",
+        "lookahead_steps": 2,
+        "overrun_ms": 0.0,
+        "particular_target_change": "krystal_kernel/sovereign_openvino_oneapi_app.py :: /api/v1/compositor/double_time (bind optional conv_smooth=1)"
+      }
+    },
+    {
+      "combination": "P4_GONIO_GODOT_OPTICS + P5_SYMPY_RIG_VISUAL_GEN",
+      "initial_status": "PATTERN_CANDIDATE",
+      "promoted_status": "VERIFIED_WITH_SCOPE",
+      "cdt_elapsed_ms": 10.772,
+      "output": {
+        "derivative_id": "DF_03_GODOT_ANIMATION_TRES_COMPILER",
+        "tres_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\reports\\krystal_siege_anim_track.tres",
+        "keyframes_compiled": 6,
+        "layer_masks_emitted": [
+          "0x3ff",
+          "0x3ff",
+          "0x3ff",
+          "0x3ff",
+          "0x1f",
+          "0x3ff"
+        ],
+        "particular_target_change": "godot_project/scenes/HoloStage.tscn & Compositor8KScalingArena.tscn (attach AnimationPlayer ExtResource)"
+      }
+    },
+    {
+      "combination": "P1_CONV_INTERPOSER + P4_GONIO_GODOT_OPTICS",
+      "initial_status": "PATTERN_CANDIDATE",
+      "promoted_status": "VERIFIED_WITH_SCOPE",
+      "cdt_elapsed_ms": 1.009,
+      "output": {
+        "derivative_id": "DF_04_NEURAL_ASCII_SURVIVAL_HUD",
+        "byte_length": 180,
+        "render_ms": 0.9877,
+        "ascii_preview": "   O6 ·· ·· ··\n  ·· O6 ·· ·· ··\n ·· ·· ·· ·· ·· ··\nV6 V6 ·· ·· ·· S6 S6\n ·· ·· ·· ·· ·· ··\n  ·· ·· ·· C6 ··\n   ·· ·· ·· C6",
+        "particular_target_change": "ascii_neural_compositor/neural_art_engine.py (register ClashGame <2KB glyph fallback on OP_01)"
+      }
+    },
+    {
+      "combination": "P2_DUAL_OS_BINARY + P5_SYMPY_RIG_VISUAL_GEN",
+      "initial_status": "PATTERN_CANDIDATE",
+      "promoted_status": "VERIFIED_WITH_SCOPE",
+      "cdt_elapsed_ms": 0.754,
+      "output": {
+        "derivative_id": "DF_05_U64_HEX_BITBOARD_FFI_MASK",
+        "bits_used": 37,
+        "live_units_popcount": 8,
+        "occupancy_u64_hex": "0x0000001080318021",
+        "particular_target_change": "krystal-bitboard/src/edge.rs & rust/krystal_sovereignty_bytecode/src/lib.rs (accept 37-bit u64 mask in 128B C-ABI)"
+      }
+    }
+  ],
+  "incremental_ledger_sha256": "622d792d461c1688f8144a474c20ac51bbd4fa66875adfb1aec5eebd95b708e2"
+}
