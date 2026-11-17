@@ -1,0 +1,528 @@
+{
+  "schema_version": "1.0.0",
+  "vital_max_hp": 6,
+  "panel_name": "Intel Adrenalin Panel — Krystal CMS Edition",
+  "new_process_definitions": [
+    {
+      "definition_id": "PROC_DEF_01_ZERO_COPY_BOUNDARY_MORPHISM",
+      "term_sk": "Hraničný bez-kópiový morfizmus (Zero-Copy Boundary Morphism)",
+      "formal_law": "Phi_align64(S_host) === S_accel  &&  Subnormal(x) -> 0.0  &&  Delta_copy_bytes == 0",
+      "process_description_sk": "Proces, pri ktorom sa stav dátovej štruktúry medzi procesorom, grafickým prúdovým jadrom a NPU nemení kopírovaním bajtov, ale čistou zmenou typovej interpretácie nad tou istou 64B-zarovnanou fyzickou adresou."
+    },
+    {
+      "definition_id": "PROC_DEF_02_CHRONOMETRIC_TELEMETRY_DECIMATION",
+      "term_sk": "Chronometrická decimácia pozorovania (Chronometric Telemetry Decimation)",
+      "formal_law": "HotLoop(120Hz..10kHz) -> BAR0_mmap(133ns)  ;  DriverQuery(32.7us) -> VBlankShadow(1..10Hz)",
+      "process_description_sk": "Rozdelenie pozorovania systému na dve časovo ortogonálne hladiny tak, aby samotný akt merania nespôsoboval fázové vyrušovanie meraného výpočtového a vykresľovacieho prúdu (245,97x nižšia réžia)."
+    },
+    {
+      "definition_id": "PROC_DEF_03_SHADOW_PRICE_BUS_ARBITRATION",
+      "term_sk": "Tieňovo-cenová arbitráž zdieľanej zbernice (Shadow-Price UMA Arbitration)",
+      "formal_law": "lambda_UMA(t) = 1 / max(0.78 - mu_UMA(t), eps)  ;  Grant(b_i) <=> Score(b_i) >= Threshold",
+      "process_description_sk": "Samoregulačný ekonomicko-fyzikálny proces v jadre bota, ktorý namiesto tvrdých výpadkov plynulo zdražuje prístup na pamäťovú zbernicu pri blížení sa k saturácii a odsúva úlohy pozadia do tieňa snímky."
+    },
+    {
+      "definition_id": "PROC_DEF_04_SUBGROUP_SLM_CONFINEMENT",
+      "term_sk": "Podskupinové uzavretie lokálnej pamäte (Subgroup SLM Confinement)",
+      "formal_law": "Tile_bytes <= 64 KB SLM  &&  K_tile < 449  =>  GRF_spill == 0",
+      "process_description_sk": "Udržanie prechodných maticových a optických medzivýsledkov výlučne v rýchlej on-chip pamäti Subslice bloku bez vylievania registrov do zdieľanej systémovej pamäte DRAM."
+    },
+    {
+      "definition_id": "PROC_DEF_05_PERCEPTUAL_THEORY_ENGINEERING_COUPLING",
+      "term_sk": "Percepčné nadpojenie teórie na inžiniering (Perceptual Theory-to-Engineering Coupling)",
+      "formal_law": "f_ML(SyntetickaPraca_i) -> P(PrenositelnyInzinierskyZisk | Invarianty == True)",
+      "process_description_sk": "Schopnosť kalibrovaného modelu strojového učenia vyhodnotiť zo štrukturálnych čŕt teoretického návrhu (zarovnanie, počet zámkov, hustota kópií, hysterézia), či návrh prinesie reálne zrýchlenie a vizuálnu stabilitu."
+    }
+  ],
+  "perceptual_ml_study": {
+    "dataset_summary": {
+      "total_synthetic_works": 96,
+      "splits": {
+        "train": 60,
+        "validation": 18,
+        "test": 18
+      },
+      "missing_or_corrupt_rows_dropped": 0,
+      "positive_transferable_rate": 0.75
+    },
+    "models_test_evaluation": {
+      "M0_NAIVE_MAJORITY_BASELINE": {
+        "accuracy": 0.6667,
+        "f1_score": 0.8,
+        "brier_score": 0.2267,
+        "confusion_matrix": {
+          "tp": 12,
+          "tn": 0,
+          "fp": 6,
+          "fn": 0
+        }
+      },
+      "M1_REGULARIZED_LOGISTIC_REGRESSION": {
+        "accuracy": 0.9444,
+        "f1_score": 0.96,
+        "brier_score": 0.0339,
+        "confusion_matrix": {
+          "tp": 12,
+          "tn": 5,
+          "fp": 1,
+          "fn": 0
+        },
+        "best_l2": 0.01
+      },
+      "M2_PERCEPTUAL_COUPLED_MLP": {
+        "accuracy": 1.0,
+        "f1_score": 1.0,
+        "brier_score": 0.024,
+        "confusion_matrix": {
+          "tp": 12,
+          "tn": 6,
+          "fp": 0,
+          "fn": 0
+        },
+        "accuracy_95pct_ci": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "feature_weights_interpretation": {
+      "zero_copy_alignment_64b": 0.9848,
+      "lockfree_spsc_sharding": 0.7758,
+      "subnormal_ftz_guard": 1.0414,
+      "slm_64kb_locality": 1.2349,
+      "hysteresis_12frame_stability": 0.3547,
+      "syscall_chatter_penalty": -0.9599
+    },
+    "selected_production_evaluator": "M2_PERCEPTUAL_COUPLED_MLP",
+    "epistemic_status": "LOCAL_MEASURED"
+  },
+  "glmark_fhd_and_4k_benchmark": {
+    "vital_max_hp": 6,
+    "opengl_driver_probe": {
+      "gl_vendor": "Microsoft Corporation",
+      "gl_renderer": "GDI Generic",
+      "gl_version": "1.1.0",
+      "status": "HARDWARE_WGL_ACTIVE"
+    },
+    "monitored_frames_logged": 16,
+    "trace_jsonl_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\reports\\glmark_fhd_4k_monitored_trace.jsonl",
+    "resolutions": {
+      "FHD_1920x1080": {
+        "width": 1920,
+        "height": 1080,
+        "framebuffer_fp32_mb": 23.73,
+        "executed_on_device": "GPU",
+        "stock_median_ms": 35.673,
+        "krystal_median_ms": 24.853,
+        "stock_fps": 28.03,
+        "krystal_fps": 40.24,
+        "stock_glmark_equivalent_score": 280,
+        "krystal_glmark_equivalent_score": 402,
+        "speedup_x": 1.44,
+        "fps_gain_pct": 43.53,
+        "epistemic_status": "LOCAL_MEASURED"
+      },
+      "UHD_4K_3840x2160": {
+        "width": 3840,
+        "height": 2160,
+        "framebuffer_fp32_mb": 94.92,
+        "executed_on_device": "GPU",
+        "stock_median_ms": 151.987,
+        "krystal_median_ms": 108.325,
+        "stock_fps": 6.58,
+        "krystal_fps": 9.23,
+        "stock_glmark_equivalent_score": 66,
+        "krystal_glmark_equivalent_score": 92,
+        "speedup_x": 1.4,
+        "fps_gain_pct": 40.31,
+        "epistemic_status": "LOCAL_MEASURED"
+      }
+    }
+  },
+  "active_arbitration": {
+    "vital_max_hp": 6,
+    "shadow_prices": {
+      "lambda_uma": 2.273,
+      "lambda_watt": 0.036
+    },
+    "final_committed_uma": 0.75,
+    "remaining_watt_headroom": 8.0,
+    "accepted_agents": [
+      {
+        "agent_id": "UI_120HZ_SCANOUT_GUARD",
+        "tier": "P0",
+        "utility": 95.0,
+        "uma_delta": 0.12,
+        "watts": 4.5,
+        "preferred_unit": "CPU_VSYNC_CORE",
+        "arbitration_score": 21917.552,
+        "decision": "GRANTED_IMMEDIATE"
+      },
+      {
+        "agent_id": "SLM_FLASH_ATTENTION_PREFILL",
+        "tier": "P1",
+        "utility": 74.0,
+        "uma_delta": 0.11,
+        "watts": 6.5,
+        "preferred_unit": "CPU_4P_AVX512",
+        "arbitration_score": 1534.812,
+        "decision": "GRANTED_IMMEDIATE"
+      },
+      {
+        "agent_id": "XERJ_AST_AND_OPEN_VINO_AI",
+        "tier": "P1",
+        "utility": 82.0,
+        "uma_delta": 0.18,
+        "watts": 9.0,
+        "preferred_unit": "IRIS_XE_768_SP",
+        "arbitration_score": 1122.487,
+        "decision": "GRANTED_IMMEDIATE"
+      }
+    ],
+    "deferred_agents": [
+      {
+        "agent_id": "P2_OFFLINE_LOG_COMPRESSION",
+        "tier": "P2",
+        "utility": 25.0,
+        "uma_delta": 0.16,
+        "watts": 7.5,
+        "preferred_unit": "ECORE_BACKGROUND",
+        "arbitration_score": 39.589,
+        "decision": "DEFERRED_TO_VBLANK_SHADOW_DELTA_S_ZERO"
+      }
+    ],
+    "governed_execution_plan": {
+      "vital_max_hp": 6,
+      "decision_sequence": 2,
+      "resolved_mode": "coprocessor_visual_ai",
+      "selected_script": "projects/trigonometric_hybrid_platform_framework/hybrid_rust_and_intel_xe_cuda_streams.py",
+      "selected_openvino_preset": "OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU",
+      "selected_core_activation_strategy": "CORE_WAKE_04_HETERO_3P_1VSYNC_IRIS_XE",
+      "core_activation_details": {
+        "active_core_mask": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "smt_enabled": false,
+        "igpu_awake": true,
+        "npu_awake": false,
+        "target_pl1_watts": 28.0,
+        "popis_sk": "3 fyzické jadrá logika + 1 jadro 133 ns BAR0/VSync + prebudených 768 prúdových jednotiek Iris Xe."
+      },
+      "efficiency_overseer_index": 15.75,
+      "hysteresis_dwell_step": 0
+    }
+  },
+  "driver_and_os_opportunities": {
+    "vital_max_hp": 6,
+    "live_host_snapshot": {
+      "available_ram_gb": 2.89,
+      "cpu_affinity_threads": 8,
+      "warm_driver_blobs": 25,
+      "gpu_usm_device_mb": 70.09
+    },
+    "discovered_opportunities_count": 5,
+    "opportunities": [
+      {
+        "opportunity_id": "OPP_OS_01_PCORE_AFFINITY_CONSOLIDATION",
+        "target_plane": "OPERAČNÝ_SYSTÉM_PLÁNOVAČ",
+        "trigger_observed": "Proces je rozptýlený na 8 logických vláknach namiesto 4 fyzických jadier",
+        "proposed_action_sk": "Zoskupiť kritické 120 Hz vlákna na fyzické jadrá [0..3] a eliminovať 2,45x SMT kmitanie.",
+        "tier": "P1",
+        "utility": 86.0,
+        "uma_delta": 0.03,
+        "watts": 2.0,
+        "preferred_unit": "CPU_4P_AVX512"
+      },
+      {
+        "opportunity_id": "OPP_OS_02_LOW_RAM_COMPACT_ARENA_GUARD",
+        "target_plane": "OPERAČNÝ_SYSTÉM_VIRTUÁLNA_PAMÄŤ",
+        "trigger_observed": "Voľná systémová RAM je iba 2.89 GB (< 4,5 GB prah)",
+        "proposed_action_sk": "Aktivovať kompaktnú 64 MB zero-copy arénu a 40,37x kompresiu logov na zabránenie stránkovania na NVMe disk.",
+        "tier": "P0",
+        "utility": 94.0,
+        "uma_delta": 0.02,
+        "watts": 1.0,
+        "preferred_unit": "CPU_VSYNC_CORE"
+      },
+      {
+        "opportunity_id": "OPP_GPU_01_ZERO_BOUNCE_64KB_USM_BRIDGE",
+        "target_plane": "GRAFICKÝ_OVLÁDAČ_PAMÄŤ",
+        "trigger_observed": "Aktívna GPU USM pamäť ovládača: 70.09 MB, predhriate bloby: 25",
+        "proposed_action_sk": "Zarovnať všetky zdieľané buffery na 64 B cache riadok a 64 KB D3D12/Vulkan hranicu, aby ovládač preskočil skryté kopírovanie.",
+        "tier": "P1",
+        "utility": 89.0,
+        "uma_delta": 0.08,
+        "watts": 3.5,
+        "preferred_unit": "IRIS_XE_768_SP"
+      },
+      {
+        "opportunity_id": "OPP_GPU_02_SHADER_CACHE_AND_SLM_K256_TILING",
+        "target_plane": "GRAFICKÝ_OVLÁDAČ_KOMPILÁTOR_A_FRONTY",
+        "trigger_observed": "Podskupinový strop K < 449 a 64 KB SLM na každom zo 6 Subslice blokov",
+        "proposed_action_sk": "Rozdeliť dlhé redukcie na K_tile = 256 v 64 KB SLM (nulové rozliatie 128 GRF registrov) a udržiavať predhriatu cache blobov.",
+        "tier": "P1",
+        "utility": 84.0,
+        "uma_delta": 0.07,
+        "watts": 3.0,
+        "preferred_unit": "IRIS_XE_768_SP"
+      },
+      {
+        "opportunity_id": "OPP_OS_GPU_03_VBLANK_SHADOW_TELEMETRY_COALESCING",
+        "target_plane": "KOOPERÁCIA_OS_A_GRAFICKÉHO_OVLÁDAČA",
+        "trigger_observed": "Priamy dotaz do GPU ovládača trvá ~32,7 us oproti ~133 ns v zrkadle BAR0",
+        "proposed_action_sk": "Čítať horúce metriky výhradne zo 133 ns `mmap` BAR0 registra a dotazy na ovládač spájať iba raz za 100 ms vo VBlank tieni.",
+        "tier": "P0",
+        "utility": 92.0,
+        "uma_delta": 0.01,
+        "watts": 0.5,
+        "preferred_unit": "CPU_VSYNC_CORE"
+      }
+    ],
+    "arbitrated_execution": {
+      "vital_max_hp": 6,
+      "shadow_prices": {
+        "lambda_uma": 3.366,
+        "lambda_watt": 0.036
+      },
+      "final_committed_uma": 0.6929,
+      "remaining_watt_headroom": 18.0,
+      "accepted_agents": [
+        {
+          "opportunity_id": "OPP_OS_GPU_03_VBLANK_SHADOW_TELEMETRY_COALESCING",
+          "target_plane": "KOOPERÁCIA_OS_A_GRAFICKÉHO_OVLÁDAČA",
+          "trigger_observed": "Priamy dotaz do GPU ovládača trvá ~32,7 us oproti ~133 ns v zrkadle BAR0",
+          "proposed_action_sk": "Čítať horúce metriky výhradne zo 133 ns `mmap` BAR0 registra a dotazy na ovládač spájať iba raz za 100 ms vo VBlank tieni.",
+          "tier": "P0",
+          "utility": 92.0,
+          "uma_delta": 0.01,
+          "watts": 0.5,
+          "preferred_unit": "CPU_VSYNC_CORE",
+          "arbitration_score": 178582.369,
+          "decision": "GRANTED_IMMEDIATE"
+        },
+        {
+          "opportunity_id": "OPP_OS_02_LOW_RAM_COMPACT_ARENA_GUARD",
+          "target_plane": "OPERAČNÝ_SYSTÉM_VIRTUÁLNA_PAMÄŤ",
+          "trigger_observed": "Voľná systémová RAM je iba 2.89 GB (< 4,5 GB prah)",
+          "proposed_action_sk": "Aktivovať kompaktnú 64 MB zero-copy arénu a 40,37x kompresiu logov na zabránenie stránkovania na NVMe disk.",
+          "tier": "P0",
+          "utility": 94.0,
+          "uma_delta": 0.02,
+          "watts": 1.0,
+          "preferred_unit": "CPU_VSYNC_CORE",
+          "arbitration_score": 91233.183,
+          "decision": "GRANTED_IMMEDIATE"
+        },
+        {
+          "opportunity_id": "OPP_OS_01_PCORE_AFFINITY_CONSOLIDATION",
+          "target_plane": "OPERAČNÝ_SYSTÉM_PLÁNOVAČ",
+          "trigger_observed": "Proces je rozptýlený na 8 logických vláknach namiesto 4 fyzických jadier",
+          "proposed_action_sk": "Zoskupiť kritické 120 Hz vlákna na fyzické jadrá [0..3] a eliminovať 2,45x SMT kmitanie.",
+          "tier": "P1",
+          "utility": 86.0,
+          "uma_delta": 0.03,
+          "watts": 2.0,
+          "preferred_unit": "CPU_4P_AVX512",
+          "arbitration_score": 4988.235,
+          "decision": "GRANTED_IMMEDIATE"
+        },
+        {
+          "opportunity_id": "OPP_GPU_02_SHADER_CACHE_AND_SLM_K256_TILING",
+          "target_plane": "GRAFICKÝ_OVLÁDAČ_KOMPILÁTOR_A_FRONTY",
+          "trigger_observed": "Podskupinový strop K < 449 a 64 KB SLM na každom zo 6 Subslice blokov",
+          "proposed_action_sk": "Rozdeliť dlhé redukcie na K_tile = 256 v 64 KB SLM (nulové rozliatie 128 GRF registrov) a udržiavať predhriatu cache blobov.",
+          "tier": "P1",
+          "utility": 84.0,
+          "uma_delta": 0.07,
+          "watts": 3.0,
+          "preferred_unit": "IRIS_XE_768_SP",
+          "arbitration_score": 2450.732,
+          "decision": "GRANTED_IMMEDIATE"
+        },
+        {
+          "opportunity_id": "OPP_GPU_01_ZERO_BOUNCE_64KB_USM_BRIDGE",
+          "target_plane": "GRAFICKÝ_OVLÁDAČ_PAMÄŤ",
+          "trigger_observed": "Aktívna GPU USM pamäť ovládača: 70.09 MB, predhriate bloby: 25",
+          "proposed_action_sk": "Zarovnať všetky zdieľané buffery na 64 B cache riadok a 64 KB D3D12/Vulkan hranicu, aby ovládač preskočil skryté kopírovanie.",
+          "tier": "P1",
+          "utility": 89.0,
+          "uma_delta": 0.08,
+          "watts": 3.5,
+          "preferred_unit": "IRIS_XE_768_SP",
+          "arbitration_score": 2257.333,
+          "decision": "GRANTED_IMMEDIATE"
+        }
+      ],
+      "deferred_agents": [],
+      "governed_execution_plan": {
+        "vital_max_hp": 6,
+        "decision_sequence": 1,
+        "resolved_mode": "coprocessor_visual_ai",
+        "selected_script": "projects/trigonometric_hybrid_platform_framework/hybrid_rust_and_intel_xe_cuda_streams.py",
+        "selected_openvino_preset": "OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU",
+        "selected_core_activation_strategy": "CORE_WAKE_04_HETERO_3P_1VSYNC_IRIS_XE",
+        "core_activation_details": {
+          "active_core_mask": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "smt_enabled": false,
+          "igpu_awake": true,
+          "npu_awake": false,
+          "target_pl1_watts": 28.0,
+          "popis_sk": "3 fyzické jadrá logika + 1 jadro 133 ns BAR0/VSync + prebudených 768 prúdových jednotiek Iris Xe."
+        },
+        "efficiency_overseer_index": 15.75,
+        "hysteresis_dwell_step": 0
+      }
+    }
+  },
+  "core_activation_strategies": {
+    "CORE_WAKE_01_IDLE_1C_DEEP_SLEEP": {
+      "active_core_mask": [
+        0
+      ],
+      "smt_enabled": false,
+      "igpu_awake": false,
+      "npu_awake": false,
+      "target_pl1_watts": 9.0,
+      "popis_sk": "1 aktívne fyzické jadro, ostatné jadrá v hlbokom spánku C6/C8 pre minimálny odber."
+    },
+    "CORE_WAKE_02_UMA_THERMAL_SHIELD_2C": {
+      "active_core_mask": [
+        0,
+        1
+      ],
+      "smt_enabled": false,
+      "igpu_awake": false,
+      "npu_awake": false,
+      "target_pl1_watts": 15.0,
+      "popis_sk": "2 fyzické jadrá, okamžité odpojenie iGPU zbernice pri UMA >= 0.78 alebo teplote >= 85 C."
+    },
+    "CORE_WAKE_03_REALTIME_4P_ZERO_JITTER": {
+      "active_core_mask": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "smt_enabled": false,
+      "igpu_awake": false,
+      "npu_awake": false,
+      "target_pl1_watts": 22.0,
+      "popis_sk": "4 fyzické P-jadrá bez SMT súrodencov — eliminuje 2.45x chvostové kmitanie latencie pri 120 Hz."
+    },
+    "CORE_WAKE_04_HETERO_3P_1VSYNC_IRIS_XE": {
+      "active_core_mask": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "smt_enabled": false,
+      "igpu_awake": true,
+      "npu_awake": false,
+      "target_pl1_watts": 28.0,
+      "popis_sk": "3 fyzické jadrá logika + 1 jadro 133 ns BAR0/VSync + prebudených 768 prúdových jednotiek Iris Xe."
+    },
+    "CORE_WAKE_05_HYBRID_GEN12_PCORE_ECORE_NPU": {
+      "active_core_mask": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "smt_enabled": false,
+      "igpu_awake": true,
+      "npu_awake": true,
+      "target_pl1_watts": 20.0,
+      "popis_sk": "Hybridný dohľad pre Intel Gen12+ a Core Ultra: odozva na P-jadrách, telemetria na E-jadrách a NPU."
+    },
+    "CORE_WAKE_06_BATCH_BURST_8T_ALL_THREADS": {
+      "active_core_mask": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "smt_enabled": true,
+      "igpu_awake": true,
+      "npu_awake": false,
+      "target_pl1_watts": 28.0,
+      "popis_sk": "Plné prebudenie všetkých 8 logických vlákien a 4 OpenVINO prúdov pre hromadné dávkové výpočty."
+    }
+  },
+  "cms_managed_entries": [
+    {
+      "cms_entry_id": "CMS_PUB_01_OBSERVABLE_SYNTHETIC_ML_STUDY",
+      "category": "Výskumná Štúdia & Percepčné ML",
+      "status": "PUBLISHED",
+      "path": "docs/research/OBSERVABLE_STUDY_SYNTHETIC_ML_THEORY_ENGINEERING_REPORT.md"
+    },
+    {
+      "cms_entry_id": "CMS_PUB_02_GLMARK_FHD_4K_MONITORED_TRACE",
+      "category": "Grafický Benchmark (Full HD & 4K)",
+      "status": "VERIFIED_TELEMETRY",
+      "path": "reports/glmark_fhd_4k_monitored_trace.jsonl"
+    },
+    {
+      "cms_entry_id": "CMS_CFG_03_OPENVINO_MT_AND_CORE_PROFILES",
+      "category": "Konfiguračné Presety & Stratégie Jadier",
+      "status": "ACTIVE_GOVERNANCE",
+      "path": "configs/openvino_multithreading_presets.yaml"
+    },
+    {
+      "cms_entry_id": "CMS_PUB_04_COMMUNITY_AND_ARBITRATION_GUIDE",
+      "category": "Licencovaná Architektúra & Arbitráž",
+      "status": "ALL_RIGHTS_RESERVED",
+      "path": "docs/architecture/COMMUNITY_OFFERING_ARBITRATION_AND_DRIVER_OPPORTUNITIES.md"
+    }
+  ],
+  "fair_licensing_system": {
+    "ownership_notice_sk": "Všetky práva vyhradené (All Rights Reserved) — Majiteľ codebase: Dušan Kopecký (@RhodosBerger, dusan.kopecky0101@gmail.com). Pre komerčné aj osobné použitie chránených nadstavieb je potrebné požiadať majiteľa o výslovný súhlas a pri komerčnom nasadení predložiť cenovú ponuku.",
+    "owner_contact": {
+      "owner_name": "Dušan Kopecký",
+      "github": "https://github.com/RhodosBerger",
+      "email": "dusan.kopecky0101@gmail.com"
+    },
+    "fair_price_to_performance_tiers": [
+      {
+        "tier_id": "LIC_01_PERSONAL_CONSENT",
+        "name_sk": "Osobná / Výskumná licencia (na základe súhlasu majiteľa)",
+        "price_eur": "0 € – individuálna dohoda po písomnom súhlase majiteľa",
+        "scope_sk": "1 lokálne zariadenie na nekomerčné štúdium a testovanie; zákaz komerčného šírenia.",
+        "price_to_performance_note": "Bezplatný vstup pre schválených jednotlivcov a študentov."
+      },
+      {
+        "tier_id": "LIC_02_INDIE_WORKSTATION",
+        "name_sk": "Nezávislý tvorca / Pracovná stanica",
+        "price_eur": "19 € / mesiac (alebo 179 € / rok)",
+        "scope_sk": "Plný Intel Adrenalin Panel + Krystal CMS, 5 OpenVINO presetov, Full HD & 4K akcelerácia.",
+        "price_to_performance_note": "Odďaľuje nutnosť kúpy nového hardvéru za 700–1 200 € (návratnosť > 5x)."
+      },
+      {
+        "tier_id": "LIC_03_PRO_TEAM_NODE",
+        "name_sk": "Profesionálny tím & Edge uzol",
+        "price_eur": "59 € / uzol / mesiac (alebo 540 € / uzol / rok)",
+        "scope_sk": "Tieňovo-cenová arbitráž, XERJ bez-tokenový AST prekladač a 192 B podpísané telemetrické účty.",
+        "price_to_performance_note": "Nahrádza stovky až tisíce € mesačne za externé cloudové LLM API."
+      },
+      {
+        "tier_id": "LIC_04_ENTERPRISE_QUOTE_APPROVAL",
+        "name_sk": "Podniková / Priemyselná licencia (Predloženie cenovej ponuky)",
+        "price_eur": "Individuálna cenová ponuka predložená záujemcom na schválenie majiteľovi (orientačne 10–15 % z merateľnej úspory)",
+        "scope_sk": "Klastrové nasadenie, Windows 11 D3D12 / Linux DRM-DMA-BUF mosty, SLA a zakázková integrácia.",
+        "price_to_performance_note": "Férový podiel z reálne nameraného nárastu kapacity (2,79x až 20,35x)."
+      }
+    ]
+  }
+}

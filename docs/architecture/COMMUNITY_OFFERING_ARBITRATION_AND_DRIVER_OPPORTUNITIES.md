@@ -1,6 +1,6 @@
 # Ponuka pre Komunitu, Arbitrážny Systém Zdrojov, Stratégie Jadier a Proaktívne Príležitosti pre OS a Grafické Ovládače
 
-> **Ústavný invariant:** `VITAL_MAX_HP == 6` ($\neg\text{Valid}(\text{Akcia}) \implies \Delta S = 0$) | **Licencia jadra:** `Apache-2.0` | **Stav dôkazov:** `LOCAL_MEASURED` & `VERIFIED_WITH_SCOPE`
+> **Ústavný invariant:** `VITAL_MAX_HP == 6` ($\neg\text{Valid}(\text{Akcia}) \implies \Delta S = 0$) | **Vlastníctvo a licencia:** **Všetky práva vyhradené — Dušan Kopecký (`dusan.kopecky0101@gmail.com`)**; osobné použitie vyžaduje súhlas majiteľa, komerčné použitie vyžaduje kontaktovanie majiteľa a predloženie cenovej ponuky | **Stav dôkazov:** `LOCAL_MEASURED` & `VERIFIED_WITH_SCOPE`
 
 ---
 

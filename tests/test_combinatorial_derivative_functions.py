@@ -260,6 +260,26 @@ def test_bot_integrated_efficiency_overseer_and_core_activation() -> None:
         assert "OPP_GPU_01_ZERO_BOUNCE_64KB_USM_BRIDGE" in opp_msg["reply"]
 
 
+def test_observable_ml_study_glmark_fhd_4k_and_adrenalin_cms() -> None:
+    from projects.trigonometric_hybrid_platform_framework.observable_study_and_intel_adrenalin_cms import (
+        IntelAdrenalinKrystalCmsEngine,
+    )
+
+    bundle = IntelAdrenalinKrystalCmsEngine().build_complete_cms_and_study_bundle()
+    assert bundle["vital_max_hp"] == 6
+    assert len(bundle["new_process_definitions"]) == 5
+    ml = bundle["perceptual_ml_study"]
+    assert ml["models_test_evaluation"]["M2_PERCEPTUAL_COUPLED_MLP"]["accuracy"] >= ml["models_test_evaluation"]["M0_NAIVE_MAJORITY_BASELINE"]["accuracy"]
+    gl = bundle["glmark_fhd_and_4k_benchmark"]
+    assert gl["monitored_frames_logged"] == 16
+    assert gl["resolutions"]["FHD_1920x1080"]["speedup_x"] > 1.1
+    assert gl["resolutions"]["UHD_4K_3840x2160"]["speedup_x"] > 1.1
+    assert len(bundle["fair_licensing_system"]["fair_price_to_performance_tiers"]) == 4
+    assert Path(bundle["summary_json_path"]).exists()
+    assert Path(bundle["study_md_path"]).exists()
+
+
+
 
 
 

@@ -1674,6 +1674,18 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
             return
 
+        if self.path.startswith("/api/v1/runtime/intel_adrenalin_cms"):
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.observable_study_and_intel_adrenalin_cms import (
+                IntelAdrenalinKrystalCmsEngine,
+            )
+
+            try:
+                self._send_json(200, IntelAdrenalinKrystalCmsEngine().build_complete_cms_and_study_bundle())
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
         if self.path.startswith("/vr_hologram_profiler"):
             from projects.trigonometric_hybrid_platform_framework.spatial_coordinators_and_vr_hologram_compositor import (
                 render_vr_hologram_profiler_html,
