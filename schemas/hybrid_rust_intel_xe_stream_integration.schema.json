@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krystalstack.org/schemas/hybrid_rust_intel_xe_stream_integration.schema.json",
+  "title": "Krystal Hybrid Rust Integration & Intel Xe Stream Processor (CUDA-Equivalent) Schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "vital_max_hp",
+    "hybrid_rust_planes",
+    "intel_xe_device_properties",
+    "cuda_to_intel_xe_mapping",
+    "occupancy_calculation",
+    "multi_stream_execution_benchmark"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "vital_max_hp": { "type": "integer", "const": 6 },
+    "hybrid_rust_planes": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "plane_id",
+          "language_and_abi",
+          "owned_structures",
+          "memory_contract",
+          "linux_and_windows_binding"
+        ],
+        "properties": {
+          "plane_id": { "type": "string" },
+          "language_and_abi": { "type": "string" },
+          "owned_structures": { "type": "array", "items": { "type": "string" } },
+          "memory_contract": { "type": "string" },
+          "linux_and_windows_binding": { "type": "string" }
+        }
+      }
+    },
+    "intel_xe_device_properties": {
+      "type": "object",
+      "required": [
+        "device_name",
+        "pci_id_hex",
+        "subslices_xe_cores",
+        "execution_units_total",
+        "fp32_stream_processors_total",
+        "fp16_stream_lanes_total",
+        "hw_threads_per_eu",
+        "max_concurrent_hw_threads",
+        "slm_bytes_per_subslice",
+        "total_slm_bytes",
+        "supported_simd_subgroup_widths"
+      ]
+    },
+    "cuda_to_intel_xe_mapping": {
+      "type": "array",
+      "minItems": 7
+    },
+    "occupancy_calculation": {
+      "type": "object",
+      "required": [
+        "selected_simd_width",
+        "active_threads_per_subslice",
+        "occupancy_ratio",
+        "slm_utilization_ratio",
+        "grf_spill_free"
+      ]
+    },
+    "multi_stream_execution_benchmark": {
+      "type": "object",
+      "required": [
+        "single_stream_sync_median_ms",
+        "dual_xe_stream_async_median_ms",
+        "async_pipeline_speedup_x",
+        "epistemic_status"
+      ]
+    }
+  }
+}

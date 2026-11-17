@@ -1662,6 +1662,18 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
             return
 
+        if self.path.startswith("/api/v1/runtime/hybrid_xe_cuda_streams"):
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.hybrid_rust_and_intel_xe_cuda_streams import (
+                build_hybrid_rust_and_intel_xe_cuda_report,
+            )
+
+            try:
+                self._send_json(200, build_hybrid_rust_and_intel_xe_cuda_report())
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
         if self.path.startswith("/vr_hologram_profiler"):
             from projects.trigonometric_hybrid_platform_framework.spatial_coordinators_and_vr_hologram_compositor import (
                 render_vr_hologram_profiler_html,

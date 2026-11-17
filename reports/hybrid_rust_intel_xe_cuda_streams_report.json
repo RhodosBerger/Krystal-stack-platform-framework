@@ -1,0 +1,505 @@
+{
+  "schema_version": "1.0.0",
+  "vital_max_hp": 6,
+  "hybrid_rust_planes": [
+    {
+      "plane_id": "HRI_P1_RUST_MEMORY_SAFE_CORE",
+      "language_and_abi": "Rust (`#[repr(C, align(128))]` + typová mreža v `src/rust-bot/src/`)",
+      "owned_structures": [
+        "HybridRustXeLaunchDescriptor128B",
+        "UniversalMmioBar0Aperture",
+        "StrictBitmap64SlabArena",
+        "PerThreadShardedLogRing",
+        "EpistemicState / AuthorityState / InvariantState"
+      ],
+      "memory_contract": "Vlastní stavové prechody, O(1) TZCNT bitmapovú alokáciu a neporušiteľnosť Read-Only registrov (Delta_S == 0).",
+      "linux_and_windows_binding": "Kompatibilné s `Rust-for-Linux` (`IoMem<4096>`) aj používateľským `VFIO/UIO` a Windows `DXCore`."
+    },
+    {
+      "plane_id": "HRI_P2_C11_ZERO_MANGLE_MMIO_ABI",
+      "language_and_abi": "ANSI C11 (`extern \"C\"` v `include/krystal_universal_mmio_aperture.h` & `kr_authority_bits.h`)",
+      "owned_structures": [
+        "KrystalMmioCommand",
+        "kr_authority_input",
+        "KrystalIPCPacketHeader",
+        "ZeroCopyContractFrame"
+      ],
+      "memory_contract": "Stabilné 16 KB `mmap` okno (`0x0000` BAR0, `0x1000` 64B hierarchia, `0x2000` 128B SPSC zbernica) bez C++ name-manglingu.",
+      "linux_and_windows_binding": "POSIX `/dev/shm` + `memfd_create` + `DMA-BUF` na Linuxe; `CreateFileMappingW` na Windows."
+    },
+    {
+      "plane_id": "HRI_P3_UNIFIED_STREAM_AI_NPU_SILICON",
+      "language_and_abi": "SPIR-V / Level Zero / SYCL Sub-Groups / OpenVINO Hetero Runtime",
+      "owned_structures": [
+        "XeDim3 (gridDim, blockDim)",
+        "XeStream (asynchrónny prúd)",
+        "UnifiedAcceleratorTarget (GPU_STREAM | AI_MATRIX | NPU_TILE)"
+      ],
+      "memory_contract": "64B-zarovnaná USM nulová kópia, `SLM <= 64 KB/Subslice`, `K_tile < 449` proti rozliatiu 128 GRF registrov.",
+      "linux_and_windows_binding": "Linux `DRM/GEM` (`xe`/`i915`/`amdgpu`/`ivpu` NPU) a Windows `WDDM 3.2` MCD."
+    },
+    {
+      "plane_id": "HRI_P4_OPENVINO_ONEAPI_EXECUTION",
+      "language_and_abi": "OpenVINO C++/Python `ov.Tensor(shared_memory=True)` + `oneDNN` + `oneTBB`",
+      "owned_structures": [
+        "UMADeviceAssetBuffer",
+        "InferRequest Async Ping-Pong Queue"
+      ],
+      "memory_contract": "Sanitizácia IEEE-754 denormálov na hranici (18.05x-37.37x ochrana) a pripnutie na 4 fyzické jadrá.",
+      "linux_and_windows_binding": "Symetrické Conda presety `configs/conda_krystal_oneapi_llm_presets.yaml`."
+    },
+    {
+      "plane_id": "HRI_P5_PYTHON_XERJ_SCHEMA_ORCHESTRATOR",
+      "language_and_abi": "Python 3 + JSON Schema Draft 2020-12 + XERJ deterministický AST prekladač",
+      "owned_structures": [
+        "UniversalKnowledgeHierarchyKernel",
+        "UnifiedBackendUiAccessGateway (UAP_01 read-only)"
+      ],
+      "memory_contract": "Nulová mutácia surových registrov z UI; validácia schém pred každým spustením úlohy.",
+      "linux_and_windows_binding": "Živé HTTP rozhranie `:8090` pre Mission Control a telemetrický audit."
+    }
+  ],
+  "rust_language_and_ecosystem_gains": [
+    {
+      "gain_id": "RUST_GAIN_01_SAFE_CUDA_ERGONOMICS_WITHOUT_VENDOR_LOCK",
+      "title_sk": "Ergonómia štýlu CUDA (`XeDim3`, `XeStream`, `SLM`, Occupancy) pre Intel/AMD/NPU bez `unsafe` v aplikačnom kóde",
+      "detail_sk": "Odstraňuje závislosť od uzavretého NVIDIA `cudarc` aj kopírovaciu réžiu WebGPU (`wgpu`)."
+    },
+    {
+      "gain_id": "RUST_GAIN_02_NO_STD_ALIGN128_ZERO_HEAP_HOTPATH",
+      "title_sk": "Deterministický `#[repr(C, align(128))]` hot-path bez haldy (`BTreeMap`/`HashMap`/`Arc<RwLock>`)",
+      "detail_sk": "1-inštrukčný `u64::trailing_zeros()` (`TZCNT`) nahrádza uzamykanie stromov na kritickej ceste."
+    },
+    {
+      "gain_id": "RUST_GAIN_03_ALGEBRAIC_EPISTEMIC_AND_HARDWARE_GATES",
+      "title_sk": "Typová mreža epistemických a hardvérových invariantov priamo v deskriptore spustenia",
+      "detail_sk": "Kompilátor a `validate_and_score_occupancy()` garantujú `VITAL_MAX_HP == 6`, `SLM <= 64 KB`, `K < 449` a `UMA < 0.78`."
+    },
+    {
+      "gain_id": "RUST_GAIN_04_RUST_FOR_LINUX_AND_USERSPACE_DRIVER_PARITY",
+      "title_sk": "Priama binárna zhoda medzi `Rust-for-Linux` (`IoMem<4096>`) a používateľským `VFIO/UIO/DXCore` ovládačom",
+      "detail_sk": "Rovnaká štruktúra `UniversalMmioBar0Aperture` a `HybridRustXeLaunchDescriptor128B` funguje v jadre aj v Ring-3."
+    }
+  ],
+  "linux_driver_capabilities": [
+    {
+      "capability_id": "LNX_DRV_01_THIN_VFIO_UIO_USERSPACE_RUST",
+      "linux_subsystem": "VFIO-PCI / UIO (`/dev/uioX`) + IOMMU",
+      "innovation_sk": "Presúva komplexnú logiku alokátora (Bitmap-64) a plánovača z rizikového Ring-0 `.ko` C modulu do pamäťovo bezpečného Rust/Python Ring-3 ovládača nad 16 KB `mmap` apertúrou (reštart bez Kernel Panic).",
+      "quantified_impact": "176-208 KB ľahký modul, nulový pád jadra pri chybe vyššej vrstvy",
+      "epistemic_status": "VERIFIED_WITH_SCOPE"
+    },
+    {
+      "capability_id": "LNX_DRV_02_IOCTL_BYPASS_DOORBELL_RING",
+      "linux_subsystem": "VFS `drmIoctl()` bypass (štýl `io_uring` SQPOLL / NVMe Doorbell)",
+      "innovation_sk": "Nahrádza opakované `ioctl()` systémové volania a `copy_from_user()` priamym zápisom do `128 B` slotu a 64-bitovým poklepaním na `REG_DOORBELL_TAIL` (`0x0040`) v namapovanej stránke.",
+      "quantified_impact": "59.18x rýchlejšie čítanie topológie (119.24 ns vs 7057.08 ns) a 7.98x rýchlejší prenos rámcov",
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "capability_id": "LNX_DRV_03_RUST_FOR_LINUX_IOMEM_TYPING",
+      "linux_subsystem": "Rust-for-Linux (`kernel::io::IoMem<4096>`, štýl Nova / Tyr / drm-asahi)",
+      "innovation_sk": "Kanonické offsety `BAR0` (`0x0000..0x007F`) umožňujú kompilátoru a typovej vrstve vynútiť zarovnanie (4B/8B/64B) a Read-Only ochranu `REG_VITAL_MAX_HP == 6` namiesto nebezpečných C makier `writel()`.",
+      "quantified_impact": "0 nezarovnaných alebo Read-Only prepisov (garancia Delta_S == 0)",
+      "epistemic_status": "CODE_PRESENT"
+    },
+    {
+      "capability_id": "LNX_DRV_04_DMABUF_DRM_GEM_ZERO_COPY_PRIME",
+      "linux_subsystem": "DRM/GEM + `DMA-BUF` (`VK_KHR_external_memory_fd` + Level Zero USM)",
+      "innovation_sk": "64B-zarovnané adresné okná v hierarchii (`0x1000..`) sa priamo exportujú ako `dma_buf` deskriptory medzi V4L2 kamerou, NIC, Mesa Vulkan (`ANV`/`RADV`/`NVK`) a OpenVINO bez kópie v RAM.",
+      "quantified_impact": "Ušetrených 497.66 MB/s šírky pásma UMA pri 60 FPS a 2.79x rýchlejší OpenVINO tenzorový vstup",
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "capability_id": "LNX_DRV_05_OOM_KILLER_AND_GPU_HANG_PREVENTION",
+      "linux_subsystem": "Linux VM Overcommit / `oom_killer` & `drm_sched` TDR ochrana",
+      "innovation_sk": "Pred-alokovaná `mlock` aréna a brána `UMA < 0.78` v `BAR0` zastavia GPU záťaž skôr, než zamrzne Wayland/KMS kompozítor alebo zasiahne `oom_killer`, a plynulo presmerujú beh na 4 fyzické jadrá (`EEVDF`/`cpuset`).",
+      "quantified_impact": "8.00x menej kmitaní režimov pri špičkách OS (2 vs 16 prechodov), 0 SIGKILL výpadkov",
+      "epistemic_status": "LOCAL_MEASURED"
+    },
+    {
+      "capability_id": "LNX_DRV_06_UNIFIED_ACPI_AND_DEVICETREE_ABI",
+      "linux_subsystem": "PCI/ACPI (`x86-64`) + `of_platform` DeviceTree `.dtb` (`ARM64` / `RISC-V`)",
+      "innovation_sk": "Fáza 1 zjednotí PCI BAR registre aj pevné DeviceTree AXI4 adresy do identických `64 B` uzlov v `0x1000..0x1FFF`, takže vyššie vrstvy ovládača nepotrebujú vetvenie pre ACPI vs. DeviceTree.",
+      "quantified_impact": "1 binárna špecifikácia naprieč 6 konfiguráciami (x86-64, ARM64, RISC-V)",
+      "epistemic_status": "DERIVED_ROOFLINE"
+    },
+    {
+      "capability_id": "LNX_DRV_07_BPF_RINGBUF_COMPATIBLE_TELEMETRY",
+      "linux_subsystem": "`bpf_ringbuf` / `perf_event_open` / `powercap` (`intel-rapl`)",
+      "innovation_sk": "Per-thread `128 B` SPSC logovacie prstence pracujú bez globálneho spinlocku/mutexu, zahadzujú len `P2` šum pri preťažení a zachovávajú 100 % kritických `P0` udalostí.",
+      "quantified_impact": "4.18x - 4.99x vyššia priepustnosť pri 4 vláknach, 0 stratených P0 rámcov",
+      "epistemic_status": "LOCAL_MEASURED"
+    }
+  ],
+  "intel_xe_device_properties": {
+    "device_name": "Intel Iris Xe Graphics (96 EUs) + Willow Cove AVX-512 VNNI",
+    "pci_id_hex": "0x80869a49",
+    "openvino_detected_devices": [
+      "CPU",
+      "GPU"
+    ],
+    "physical_npu_present": false,
+    "subslices_xe_cores": 6,
+    "execution_units_total": 96,
+    "fp32_stream_processors_total": 768,
+    "fp16_stream_lanes_total": 1536,
+    "int8_dp4a_lanes_total": 3072,
+    "hw_threads_per_eu": 7,
+    "max_concurrent_hw_threads": 672,
+    "grf_registers_per_thread": 128,
+    "slm_bytes_per_subslice": 65536,
+    "total_slm_bytes": 393216,
+    "supported_simd_subgroup_widths": [
+      8,
+      16,
+      32
+    ],
+    "host_physical_cores": 4
+  },
+  "cuda_to_intel_xe_mapping": [
+    {
+      "cuda_concept": "Streaming Multiprocessor (`SM`)",
+      "intel_xe_and_npu_equivalent": "Intel `Xe Subslice / Xe-Core` (`6 Subslices` na Iris Xe, po `16 EUs`) | NPU `Neural Compute Tile`",
+      "krystal_api_primitive": "`xeGetDeviceProperties()['subslices_xe_cores']`"
+    },
+    {
+      "cuda_concept": "CUDA Cores (`FP32 / INT32 ALUs`)",
+      "intel_xe_and_npu_equivalent": "Intel `Stream Processors` (`96 EUs x 8 FP32 = 768 FP32` prúdových jednotiek, `1536 FP16`, `3072 INT8`)",
+      "krystal_api_primitive": "`TARGET_GPU_STREAM_PROCESSORS` (`SIMD8 / SIMD16 / SIMD32`)"
+    },
+    {
+      "cuda_concept": "Tensor Cores (`WMMA / MMA`)",
+      "intel_xe_and_npu_equivalent": "AI maticové jadrá (`Intel XMX` / `DP4A` / `AVX-512 VNNI` INT8/BF16 dlaždice)",
+      "krystal_api_primitive": "`TARGET_AI_MATRIX_CORES` (automatické dlaždicovanie `K_tile = 256 < 449`)"
+    },
+    {
+      "cuda_concept": "DLA / Low-Power Inference Engine",
+      "intel_xe_and_npu_equivalent": "Dedikované `NPU` (`Intel AI Boost` / `OpenVINO NPU` / `AXI4 NPU` s 1-6 W odberom)",
+      "krystal_api_primitive": "`TARGET_NPU_NEURAL_TILES` (`KR_PROFILE_BALANCED_NPU`, automatický GPU/VNNI fallback)"
+    },
+    {
+      "cuda_concept": "Warp (`32` pevne zviazaných vlákien)",
+      "intel_xe_and_npu_equivalent": "Dynamická `EU Subgroup` s voliteľnou šírkou `SIMD8`, `SIMD16` alebo `SIMD32` podľa tlaku na `128 GRF` registrov",
+      "krystal_api_primitive": "`xeSelectOptimalSubgroupWidth(grf_per_thread, reduction_k)`"
+    },
+    {
+      "cuda_concept": "`__shared__` pamäť SM (`48-100 KB`)",
+      "intel_xe_and_npu_equivalent": "`SLM (Shared Local Memory)` — `64 KB` na každý Subslice (`384 KB` spolu na čipe)",
+      "krystal_api_primitive": "`slm_shared_bytes <= 65536` v `HybridRustXeLaunchDescriptor128B`"
+    },
+    {
+      "cuda_concept": "`cudaStream_t` + `cudaMemcpyAsync` (Pinned)",
+      "intel_xe_and_npu_equivalent": "Asynchrónny `XeStream` (`InferRequest.start_async`) nad `64B` zero-copy `kuMallocUMA` + `BAR0` Doorbell",
+      "krystal_api_primitive": "`UnifiedStreamAiNpuAccelerator.launch_async_dual_stream(...)`"
+    }
+  ],
+  "unified_accelerator_targets": [
+    {
+      "requested_target_class": "GPU_STREAM_PROCESSORS",
+      "resolved_openvino_device": "GPU",
+      "precision_hint": "f16",
+      "bound_hardware_unit": "Intel_Iris_Xe_768_StreamProcessors",
+      "physical_npu_detected": false
+    },
+    {
+      "requested_target_class": "AI_MATRIX_CORES",
+      "resolved_openvino_device": "GPU",
+      "precision_hint": "f16",
+      "bound_hardware_unit": "Intel_Xe_DP4A_FP16_MatrixEngine",
+      "physical_npu_detected": false
+    },
+    {
+      "requested_target_class": "NPU_NEURAL_TILES",
+      "resolved_openvino_device": "GPU",
+      "precision_hint": "f16",
+      "bound_hardware_unit": "Iris_Xe_LowPower_Subslice_NPU_Fallback",
+      "physical_npu_detected": false
+    }
+  ],
+  "occupancy_calculation": {
+    "selected_simd_width": 32,
+    "subgroups_per_workgroup": 4,
+    "active_workgroups_per_subslice": 4,
+    "active_threads_per_subslice": 16,
+    "max_threads_per_subslice": 112,
+    "occupancy_ratio": 0.1429,
+    "slm_utilization_ratio": 1.0,
+    "grf_spill_free": true,
+    "effective_tile_k": 256
+  },
+  "rust_128b_descriptor_attestation": {
+    "byte_length": 128,
+    "sha256_hex": "02dd892873db07606adb4d75d4bc9c71807740f00cac21bb1b0b89f3ae251ed9"
+  },
+  "multi_stream_execution_benchmark": {
+    "executed_on_device": "GPU",
+    "batches_per_trial": 8,
+    "single_stream_sync_median_ms": 3.657,
+    "dual_xe_stream_async_median_ms": 4.156,
+    "async_pipeline_speedup_x": 0.88,
+    "epistemic_status": "LOCAL_MEASURED"
+  },
+  "causal_mechanisms_behind_parameters": [
+    {
+      "parameter_achieved": "59,18x rýchlejšie čítanie hierarchie (119,24 ns vs 7 057,08 ns)",
+      "physical_cause_sk": "Nahradenie parsovania JSON/slovníkov a `ioctl()` kopírovania priamym `O(1)` čítaním 64B slotu z `mmap` pamäte (`0x1000 + idx*64`)."
+    },
+    {
+      "parameter_achieved": "18,05x - 37,37x eliminácia spomalenia na podnormálnych číslach (~1e-42)",
+      "physical_cause_sk": "Sanitizácia IEEE-754 denormálov (`FTZ/DAZ` + `kuMallocUMA`) na hranici zdieľanej pamäte pred vstupom do FPU/AVX-512 jednotiek."
+    },
+    {
+      "parameter_achieved": "10,45x rýchlejší audit maticového výpočtu (46,0 us vs 480,85 us)",
+      "physical_cause_sk": "Nahradenie plného `O(N^3)` prepočtu matice `k = 3` náhodnými Freivaldsovými projekciami `O(N^2)` s chybou <= 2^-96."
+    },
+    {
+      "parameter_achieved": "7,98x rýchlejší IPC prenos a 4,18x - 4,99x rýchlejšie 4T logovanie",
+      "physical_cause_sk": "Pevné 64B/128B/192B cache-line rámce v per-thread bez-zámkových SPSC prstencoch namiesto globálneho `Lock` + UTF-8 JSON."
+    },
+    {
+      "parameter_achieved": "2,79x rýchlejšia OpenVINO inferencia a 20,35x Vulkan akcelerácia",
+      "physical_cause_sk": "64B-zarovnaný zero-copy `ov.Tensor(shared_memory=True)`, pripnutie na 4 fyzické jadrá (bez SMT jittera) a dlaždicovanie `K < 449` v 64 KB SLM."
+    },
+    {
+      "parameter_achieved": "8,00x vyššia stabilita pri OS špičkách (2 vs 16 prepnutí režimu)",
+      "physical_cause_sk": "2-vrstvový OpenVINO `1x3` konvolučný filter spojený s 12-vzorkovou zotrvačnou hysteréziou (`P8`) a `UMA < 0.78` bránou."
+    }
+  ],
+  "usable_algorithms_catalog": [
+    {
+      "algorithm_id": "ALG_01_SLM_TILED_FLASH_ATTENTION_K256",
+      "target_units": "GPU Stream Procesory (`64 KB SLM` + `SIMD16/32`) + AI Maticové Jadrá",
+      "description_sk": "Dlaždicová Flash-Attention s online Softmaxom v rýchlej `64 KB SLM` bez zápisu celej `N x N` matice do pomalej `17,81 GB/s` UMA DRAM."
+    },
+    {
+      "algorithm_id": "ALG_02_HETEROGENEOUS_SPECULATIVE_LLM_DECODE",
+      "target_units": "NPU / 4T CPU VNNI (`Draft`) + 768 GPU Stream Procesorov (`Parallel Verify`)",
+      "description_sk": "Úsporné NPU generuje kandidátne tokeny v prúde `XeStream 1`, zatiaľ čo GPU paralelne overí celú skupinu tokenov jedným prechodom v `XeStream 0`."
+    },
+    {
+      "algorithm_id": "ALG_03_SUBGROUP_PREFIX_SCAN_AND_BVH_RAY_CULLING",
+      "target_units": "GPU Stream Procesory (`SIMD16/32` Subgroup Shuffle)",
+      "description_sk": "Bez-zámkový prefix-sum, frustum/AABB orezávanie a Fresnel `.kopt` SDF raymarching pre 120 Hz scény a VR."
+    },
+    {
+      "algorithm_id": "ALG_04_FREIVALDS_ATTESTED_TENSOR_GEMM",
+      "target_units": "AI Maticové Jadrá (`Compute`) + 4T AVX-512 Host (`Async O(N^2) Verifier`)",
+      "description_sk": "Súbežný maticový výpočet na akcelerátore s okamžitým nezávislým dôkazom správnosti (`proposer != verifier`) bez straty výkonu."
+    },
+    {
+      "algorithm_id": "ALG_05_CONV_HYSTERETIC_KALMAN_GRID_CONTROLLER",
+      "target_units": "NPU / OpenVINO (`1x3 Conv`) + `BAR0` MMIO Zvonček",
+      "description_sk": "Prediktívne riadenie 3-fázovej energetickej siete (VPP), robotických pohonov a chladenia čipu s garanciou nulového prekmitu."
+    },
+    {
+      "algorithm_id": "ALG_06_BITMAP64_PARALLEL_MCTS_TACTICAL_SWARM",
+      "target_units": "Rust `Bitmap-64` Jadro + NPU/GPU Dávkový Hodnotiteľ Stavov",
+      "description_sk": "Paralelné prehľadávanie stavového priestoru (37-hex aréna, logistika, plánovanie trás) nad bitovými maskami a zero-copy dávkami."
+    }
+  ],
+  "verified_flash_attention_slm_demo": {
+    "algorithm_id": "ALG_01_SLM_TILED_FLASH_ATTENTION_K256",
+    "seq_len": 128,
+    "head_dim": 64,
+    "slm_footprint_bytes": 16384,
+    "fits_in_64kb_subslice_slm": true,
+    "relative_l2_error_vs_exact": 2.4e-07,
+    "epistemic_status": "LOCAL_MEASURED"
+  },
+  "vulkan_backward_compatibility_bridges": [
+    {
+      "bridge_id": "VK_BC_01_IMPLICIT_ZERO_TOUCH_LAYER",
+      "mechanism": "`VK_LAYER_KRYSTAL_RUST_LIGHTWEIGHT` (implicitný JSON manifest pre `vulkan-1.dll` / `libvulkan.so.1`)",
+      "compatibility_benefit_sk": "Zachytáva `vkQueueSubmit2` a `vkAllocateMemory` v už skompilovaných aplikáciách (Blender, Godot 4, FFmpeg, llama.cpp) bez zmeny jediného riadku ich zdrojového kódu (`SourceCodeDelta == 0`)."
+    },
+    {
+      "bridge_id": "VK_BC_02_EXTERNAL_HOST_MEMORY_IMPORT",
+      "mechanism": "`VK_EXT_external_memory_host` + `VK_KHR_external_memory_fd` / `VK_KHR_external_memory_win32`",
+      "compatibility_benefit_sk": "Existujúce Vulkan shadery importujú naše 64B-zarovnané zero-copy buffery priamo ako `VkBuffer` bez kopírovania."
+    },
+    {
+      "bridge_id": "VK_BC_03_LEGACY_DX9_DX11_OPENGL_OPENCL_UMBRELLA",
+      "mechanism": "Prekladové vrstvy `DXVK` (D3D9/10/11), `vkd3d-proton` (D3D12), `Zink` (OpenGL 4.6) a `Rusticl` (OpenCL)",
+      "compatibility_benefit_sk": "Starší grafický a výpočtový softvér automaticky zdedí našu bránu `UMA < 0.78`, `FTZ/DAZ` ochranu a 12-snímkovú stabilizáciu."
+    },
+    {
+      "bridge_id": "VK_BC_04_TIMELINE_SEMAPHORE_BAR0_SYNC",
+      "mechanism": "`VK_KHR_timeline_semaphore` <-> `BAR0 REG_COMPLETED_HEAD` (`0x0048`)",
+      "compatibility_benefit_sk": "64-bitový monotónny čítač synchronizuje cudzí Vulkan render pass s našimi `XeStream` AI/NPU prúdmi bez blokovania CPU."
+    }
+  ],
+  "windows11_and_directx12_bridges": [
+    {
+      "bridge_id": "W11_DX12_01_OPEN_EXISTING_HEAP_FROM_ADDRESS",
+      "windows11_api": "`ID3D12Device3::OpenExistingHeapFromAddress` + `CreateFileMappingW` (`64 KB` alokačná granularita NT)",
+      "integration_sk": "DirectX 12 otvorí našu zero-copy pamäťovú apertúru priamo ako natívny `ID3D12Heap` / `ID3D12Resource` zdieľaný s OpenVINO, Rust jadrom a Vulkanom bez medzikópie."
+    },
+    {
+      "bridge_id": "W11_DX12_02_SHARED_NT_FENCE_INTEROP",
+      "windows11_api": "`ID3D12Device::CreateSharedHandle` (`ID3D12Fence`) <-> `VK_KHR_external_semaphore_win32`",
+      "integration_sk": "Spája DirectX 12 `DIRECT` / `COMPUTE` / `COPY` fronty priamo so zvončekom `BAR0` a asynchrónnymi `XeStream` prúdmi."
+    },
+    {
+      "bridge_id": "W11_DX12_03_DXCORE_AND_WDDM32_MCD_NPU",
+      "windows11_api": "`dxcore.dll` (`IDXCoreAdapterList`) + `WDDM 3.2` Minimal Compute Driver (`MCD`)",
+      "integration_sk": "Sprístupňuje bezhlavé NPU jednotky (Intel AI Boost) a výpočtové akcelerátory vo Windows 11, ktoré staré `DXGI` nevidí."
+    },
+    {
+      "bridge_id": "W11_DX12_04_HLSL_SM66_WAVE_AND_DIRECTML",
+      "windows11_api": "HLSL Shader Model 6.6/6.8 `[WaveSize(16/32)]` + `groupshared` SLM + `DirectML` (`IDMLCommandRecorder`)",
+      "integration_sk": "Premietne naše parametre stream procesorov (`SIMD8/16/32`, `SLM <= 64 KB`, `K_tile < 449`) priamo do D3D12 Compute Shaderov, `ExecuteIndirect` / `Work Graphs` a DirectML grafov."
+    },
+    {
+      "bridge_id": "W11_DX12_05_DIRECTSTORAGE_SPSC_INGEST",
+      "windows11_api": "Windows 11 `DirectStorage` (`IDStorageQueue`) + `128 B` SPSC prstenec",
+      "integration_sk": "Streamuje komprimované textúry a váhy LLM modelov z NVMe disku priamo do zdieľanej UMA/VRAM apertúry pod dohľadom brány `UMA < 0.78`."
+    }
+  ],
+  "win11_d3d12_64kb_heap_probe": {
+    "aperture_bytes": 65536,
+    "page_4kb_aligned": true,
+    "size_64kb_d3d12_heap_aligned": true,
+    "ready_for_d3d12_open_existing_heap": true,
+    "epistemic_status": "LOCAL_MEASURED"
+  },
+  "intel_gen11_plus_stability_and_process_governor": {
+    "intel_gen11_plus_matrix": [
+      {
+        "generation": "11. generácia (Tiger Lake — napr. Core i5-1135G7 + Iris Xe 96 EUs)",
+        "cpu_and_isa": "Homogénne P-jadrá Willow Cove · AVX-512F/VNNI + AVX2",
+        "gpu_and_npu": "Xe-LP (až 96 EUs / 768 FP32 SP), bez fyzického NPU",
+        "stabilization_and_driver_assist": "Pripnutie na 4 fyzické jadrá, FTZ/DAZ denormálová bariéra, predhriata OpenVINO GPU cache, brána UMA < 0.78."
+      },
+      {
+        "generation": "12. – 14. generácia (Alder Lake / Raptor Lake — Hybrid P-Core + E-Core)",
+        "cpu_and_isa": "Hybridné P-jadrá + E-jadrá · AVX2 + AVX-VNNI (256-bit, bez AVX-512!) + Intel Thread Director",
+        "gpu_and_npu": "Xe-LP iGPU + voliteľné Intel Arc Alchemist dGPU (XMX matice + ReBAR)",
+        "stabilization_and_driver_assist": "Automatický fallback z AVX-512 na AVX-VNNI (prevencia SIGILL), kritické `XeStream` vlákna na P-jadrách, telemetria a SPSC zber logov na E-jadrách."
+      },
+      {
+        "generation": "Core Ultra Séria 1 (Meteor Lake) & Séria 2 (Lunar Lake / Arrow Lake)",
+        "cpu_and_isa": "Troj-úrovňové P-jadrá + E-jadrá + LP-E ostrov · AVX-VNNI / AVX2",
+        "gpu_and_npu": "Xe-LPG / Xe2 iGPU (XMX AI jadrá) + dedikované Intel AI Boost NPU (OpenVINO `NPU` plugin)",
+        "stabilization_and_driver_assist": "Trvalé pozorovacie a telemetrické modely bežia na NPU (1-5 W cez WDDM 3.2 MCD / Linux `ivpu`), ťažké matice na XMX/Stream procesoroch."
+      }
+    ],
+    "openvino_live_device_telemetry": {
+      "CPU": {
+        "FULL_DEVICE_NAME": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+        "DEVICE_TYPE": "Type.INTEGRATED",
+        "DEVICE_ARCHITECTURE": "intel64",
+        "OPTIMIZATION_CAPABILITIES": [
+          "WINOGRAD",
+          "FP32",
+          "INT8",
+          "BIN",
+          "EXPORT_IMPORT"
+        ],
+        "RANGE_FOR_ASYNC_INFER_REQUESTS": [
+          1,
+          1,
+          1
+        ],
+        "RANGE_FOR_STREAMS": [
+          1,
+          8
+        ]
+      },
+      "GPU": {
+        "FULL_DEVICE_NAME": "Intel(R) Iris(R) Xe Graphics (iGPU)",
+        "DEVICE_TYPE": "Type.INTEGRATED",
+        "DEVICE_ARCHITECTURE": "GPU: vendor=0x8086 arch=v12.0.0",
+        "OPTIMIZATION_CAPABILITIES": [
+          "FP32",
+          "BIN",
+          "FP16",
+          "INT8",
+          "GPU_USM_MEMORY",
+          "EXPORT_IMPORT"
+        ],
+        "RANGE_FOR_ASYNC_INFER_REQUESTS": [
+          1,
+          2,
+          1
+        ],
+        "RANGE_FOR_STREAMS": [
+          1,
+          2
+        ],
+        "GPU_MEMORY_STATISTICS": {
+          "cl_mem": 0,
+          "unknown": 0,
+          "usm_device": 73494864,
+          "usm_host": 42104,
+          "usm_shared": 0
+        }
+      }
+    },
+    "openvino_bridged_api_modes": {
+      "AUTO_DISPATCH": "AUTO:GPU,CPU",
+      "HETERO_PIPELINE_SPLIT": "HETERO:GPU,CPU",
+      "MULTI_THROUGHPUT_POOL": "MULTI:GPU,CPU",
+      "ZERO_COPY_REMOTE_TENSOR": "ov.Tensor(aligned_64b_array, shared_memory=True)"
+    },
+    "os_process_management_bridge": {
+      "pid": 115880,
+      "process_name": "python.exe",
+      "active_os_threads": 65,
+      "rss_memory_mb": 766.56,
+      "voluntary_ctx_switches": 5553,
+      "involuntary_ctx_switches": 0,
+      "current_cpu_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "recommended_physical_core_affinity": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "host_ram_available_gb": 1.9,
+      "driver_assist_actions_active": [
+        "Persistent shader/blob cache active at openvino_blobs (prevents driver JIT stalls)",
+        "64B/4KB/64KB aligned zero-copy buffers (eliminates WDDM/DRM bounce-buffer copies)",
+        "UMA < 0.78 & 12-sample hysteresis TDR guard (prevents igdkmdn64/xe GPU hang resets)",
+        "Dynamic ISA detection (AVX-512 on Gen11 vs AVX-VNNI/AVX2 on Gen12+ Hybrid P/E cores)"
+      ]
+    },
+    "epistemic_status": "LOCAL_MEASURED"
+  },
+  "practical_use_cases": [
+    {
+      "use_case_id": "UC_01_REALTIME_HYBRID_GAME_PHYSICS_AND_AI",
+      "title_sk": "Súbežný 120 Hz render/fyzika + lokálna AI bez trhania snímok",
+      "how_it_works_sk": "Grafické stream procesory počítajú časticovú/optickú scénu (`.kopt` Fresnel, raymarching), kým AI jadrá/NPU v druhom `XeStream` prúde vyhodnocujú ťah nepriateľa a brána `UMA < 0.78` chráni VSync."
+    },
+    {
+      "use_case_id": "UC_02_ZERO_COPY_CAMERA_SDR_VIDEO_PIPELINE",
+      "title_sk": "Nulovo-kópiové spracovanie obrazu a signálu na Linuxe (`DMA-BUF` -> Stream Procesory -> NPU)",
+      "how_it_works_sk": "Snímka z V4L2 kamery alebo sieťovej karty vstúpi cez `DMA-BUF` priamo do `64B` apertúry: stream procesory spravia farebnú/geometrickú transformáciu a AI/NPU jadrá detekciu objektov bez jedinej kópie v RAM."
+    },
+    {
+      "use_case_id": "UC_03_LOCAL_LLM_KV_CACHE_AND_SPECULATIVE_DECODING",
+      "title_sk": "Lokálne LLM s rozdelením Prefill (GPU Stream/XMX) a Decode/Draft (NPU / 4T VNNI)",
+      "how_it_works_sk": "Ťažký paralelný prefill kontextu beží na `768` prúdových jednotkách Iris Xe (`K_tile = 256`), kým nízkoenergetický draft/klasifikátor beží na NPU alebo 4 fyzických jadrách s `FTZ/DAZ` ochranou."
+    },
+    {
+      "use_case_id": "UC_04_USERSPACE_LINUX_WINDOWS_CUSTOM_DRIVERS",
+      "title_sk": "Vlastné ľahké komunitné a podnikové ovládače v Ruste bez pádu jadra OS",
+      "how_it_works_sk": "Vďaka `128 B` deskriptoru `HybridRustXeLaunchDescriptor128B` a `16 KB mmap` apertúre možno písať vlastné plánovače GPU/NPU v používateľskom priestore nad tenkým `VFIO/UIO` alebo `DXCore` mostom."
+    },
+    {
+      "use_case_id": "UC_05_INDUSTRIAL_HIL_AND_VPP_MICROSECOND_CONTROL",
+      "title_sk": "Priemyselné riadenie a energetická arbitráž (VPP) s garantovaným stropom odozvy",
+      "how_it_works_sk": "`BAR0` zvonček a `O(1)` Bitmap-64 alokátor zaručia mikrosekundové odovzdanie telemetrie do AI koprocesora s okamžitým odmietnutím neplatnej akcie (`Delta_S == 0`)."
+    }
+  ]
+}

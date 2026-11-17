@@ -28,11 +28,13 @@ pub mod cinematic_bridge;
 pub mod epistemic_abi;
 pub mod unix_windows_vulkan_driver_core;
 pub mod universal_mmio_kernel;
+pub mod hybrid_rust_xe_cuda_bridge;
 
 pub use types::*;
 pub use epistemic_abi::*;
 pub use unix_windows_vulkan_driver_core::*;
 pub use universal_mmio_kernel::*;
+pub use hybrid_rust_xe_cuda_bridge::*;
 pub use config::Config;
 pub use events::{Event, EventBus};
 pub use trust::{TrustEngine, TrustedDecision};

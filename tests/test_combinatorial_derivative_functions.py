@@ -191,8 +191,35 @@ def test_universal_mmio_hierarchy_coprocessor_and_isa_matrix() -> None:
     assert rep["mmio_vs_stock_lookup_benchmark"]["speedup_x"] > 2.0
     assert rep["coprocessor_end_to_end_benchmark"]["optimal_hetero_speedup_vs_stock_x"] > 1.5
     assert len(rep["cross_isa_and_hardware_configurations"]) == 6
+    assert len(rep["linux_driver_capabilities"]) == 7
     assert Path(rep["json_path"]).exists()
     assert Path(rep["md_path"]).exists()
+
+
+def test_hybrid_rust_linux_drivers_and_intel_xe_cuda_streams() -> None:
+    from projects.trigonometric_hybrid_platform_framework.hybrid_rust_and_intel_xe_cuda_streams import (
+        build_hybrid_rust_and_intel_xe_cuda_report,
+    )
+
+    out = build_hybrid_rust_and_intel_xe_cuda_report()
+    assert out["vital_max_hp"] == 6
+    assert len(out["hybrid_rust_planes"]) == 5
+    assert len(out["linux_driver_capabilities"]) == 7
+    assert out["intel_xe_device_properties"]["fp32_stream_processors_total"] == 768
+    assert out["rust_128b_descriptor_attestation"]["byte_length"] == 128
+    assert len(out["unified_accelerator_targets"]) == 3
+    assert out["occupancy_calculation"]["grf_spill_free"] is True
+    assert len(out["rust_language_and_ecosystem_gains"]) == 4
+    assert len(out["causal_mechanisms_behind_parameters"]) == 6
+    assert len(out["usable_algorithms_catalog"]) == 6
+    assert out["verified_flash_attention_slm_demo"]["fits_in_64kb_subslice_slm"] is True
+    assert out["verified_flash_attention_slm_demo"]["relative_l2_error_vs_exact"] < 1e-5
+    assert out["win11_d3d12_64kb_heap_probe"]["ready_for_d3d12_open_existing_heap"] is True
+    assert "CPU" in out["intel_gen11_plus_stability_and_process_governor"]["openvino_live_device_telemetry"]
+    assert out["intel_gen11_plus_stability_and_process_governor"]["os_process_management_bridge"]["pid"] > 0
+    assert Path(out["json_path"]).exists()
+    assert Path(out["md_path"]).exists()
+
 
 
 
