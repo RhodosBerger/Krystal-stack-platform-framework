@@ -217,8 +217,40 @@ def test_hybrid_rust_linux_drivers_and_intel_xe_cuda_streams() -> None:
     assert out["win11_d3d12_64kb_heap_probe"]["ready_for_d3d12_open_existing_heap"] is True
     assert "CPU" in out["intel_gen11_plus_stability_and_process_governor"]["openvino_live_device_telemetry"]
     assert out["intel_gen11_plus_stability_and_process_governor"]["os_process_management_bridge"]["pid"] > 0
+    assert out["high_frequency_telemetry_overhead_audit"]["hotpath_overhead_reduction_x"] > 5.0
+    assert out["visual_quality_and_performance_gain"]["psnr_improvement_db"] > 8.0
+    assert out["visual_quality_and_performance_gain"]["fits_within_120hz_budget"] is True
+    assert out["openvino_multithreading_presets"]["live_compile_verified"] is True
+    assert out["cpu_lookahead_whisperer_benchmark"]["cpu_whisperer_speedup_x"] > 1.5
     assert Path(out["json_path"]).exists()
     assert Path(out["md_path"]).exists()
+
+
+def test_bot_integrated_efficiency_overseer_and_core_activation() -> None:
+    import tempfile
+    from krystal_bot.integrated_efficiency_overseer import IntegratedEfficiencyOverseer
+    from krystal_bot.service import BotService
+
+    ov = IntegratedEfficiencyOverseer()
+    normal = ov.evaluate_and_select("coprocessor_visual_ai", uma_utilization=0.36, junction_temp_c=60.0)
+    assert normal["vital_max_hp"] == 6
+    assert normal["selected_core_activation_strategy"] == "CORE_WAKE_04_HETERO_3P_1VSYNC_IRIS_XE"
+    assert normal["selected_openvino_preset"] == "OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU"
+
+    emerg = ov.evaluate_and_select("coprocessor_visual_ai", uma_utilization=0.84, junction_temp_c=88.0)
+    assert emerg["selected_core_activation_strategy"] == "CORE_WAKE_02_UMA_THERMAL_SHIELD_2C"
+    assert emerg["core_activation_details"]["igpu_awake"] is False
+
+    # Overenie 12-krokovej hysterézie proti okamžitému kmitaniu späť
+    hold = ov.evaluate_and_select("coprocessor_visual_ai", uma_utilization=0.40, junction_temp_c=62.0)
+    assert hold["resolved_mode"] == "uma_thermal_emergency"
+
+    with tempfile.TemporaryDirectory() as tmp:
+        svc = BotService(root=".", data_dir=tmp, use_keras=False)
+        msg = svc.message("/auto-select batch_benchmark", channel="cli", sender="local")
+        assert msg["ok"] is True
+        assert "CORE_WAKE_06_BATCH_BURST_8T_ALL_THREADS" in msg["reply"]
+
 
 
 

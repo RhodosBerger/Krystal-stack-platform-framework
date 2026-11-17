@@ -28,6 +28,7 @@ from .risk import KerasClient, RiskModel
 from .skills import Gateway, Pairing, Skill
 from .config_cheatsheet_expert import CONFIG_CHEATSHEET_EXPERT
 from .sovereign_layer_governor import SOVEREIGN_LAYER_GOVERNOR
+from .integrated_efficiency_overseer import INTEGRATED_EFFICIENCY_OVERSEER
 
 HEALTH_RANK = {"ok": 0, "degraded": 1, "critical": 2}
 HELP = """Commands:
@@ -253,6 +254,7 @@ class BotService:
         g.register(Skill("layer", "Sovereign layer governing variables & multi-scale bot dimensioning", ["/layer", "/layers", "/scale", "/scales"]), lambda a, c: self._layer_text(a))
         g.register(Skill("bot-diag", "Sovereign bot multi-scale diagnostic and health matrix", ["/bot-diag", "/bot-health"]), lambda a, c: SOVEREIGN_LAYER_GOVERNOR.format_diagnostic_cheatsheet())
         g.register(Skill("bot-tune", "Autonomic bot performance tuning engine", ["/bot-tune", "/auto-tune"]), lambda a, c: SOVEREIGN_LAYER_GOVERNOR.format_autonomic_tuning_cheatsheet(a))
+        g.register(Skill("overseer", "Integrated efficiency overseer, automatic script, OpenVINO preset & core activation selector", ["/overseer", "/auto-select", "/core-strategy"]), lambda a, c: INTEGRATED_EFFICIENCY_OVERSEER.format_slovak_summary(a))
         g.register(Skill("search", "Retrieve from docs and logs", ["/search"]), lambda a, c: self._search_text(a))
         g.register(Skill("ask", "Answer from retrieval, configuration cheatsheet & cascade SLMs", ["/ask"]), lambda a, c: self._ask_text(a))
         g.register(Skill("art", "Draw pixel art", ["/art"]), lambda a, c: self._art_text(a))

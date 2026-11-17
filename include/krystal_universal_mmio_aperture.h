@@ -97,6 +97,23 @@ static inline KrystalMmioError krystal_mmio_write_u32(
     return KRYSTAL_MMIO_OK;
 }
 
+/* Softvérový našepkávač pre procesor (L1/L2 Cache Prefetch & Non-Temporal Hint) */
+static inline void krystal_cpu_whisper_prefetch_l1(const void *addr) {
+#if defined(__GNUC__) || defined(__clang__)
+    __builtin_prefetch(addr, 0, 3); /* Read, vysoká časová lokalita (L1/L2) */
+#else
+    (void)addr;
+#endif
+}
+
+static inline void krystal_cpu_whisper_prefetch_nta(const void *addr) {
+#if defined(__GNUC__) || defined(__clang__)
+    __builtin_prefetch(addr, 0, 0); /* Non-temporal stream (neznečisťuje L2 cache) */
+#else
+    (void)addr;
+#endif
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,0 +1,81 @@
+# Krystal Stack — Dátovo odvodené OpenVINO Multithreading a Alokačné Presety
+# Odvodené z LOCAL_MEASURED telemetrie:
+#   - X02: 4T fyzické jadrá (2.27 ms, p95 4.50 ms) eliminujú 2.45x SMT kmitanie 8T (p95 4.92 ms)
+#   - BM_02 / X03: FTZ/DAZ sanitizácia odstraňuje 18.05x - 37.37x denormálové zdržanie
+#   - GPU USM Stream meranie: 1 GPU prúd (3.657 ms) prekonáva 2 GPU prúdy (4.156 ms) pri zero-copy UMA
+#   - BAR0 Audit: 133.01 ns mmap čítanie je 245.97x rýchlejšie než priamy dotaz do ovládača (32 715.62 ns)
+# Ústavný invariant: VITAL_MAX_HP == 6 | UMA_SATURATION_THRESHOLD == 0.78
+
+schema_version: "1.0.0"
+vital_max_hp: 6
+
+openvino_multithreading_presets:
+  OV_MT_01_REALTIME_120HZ_LOW_JITTER:
+    cieľ_sk: "120 Hz herná/VR slučka a okamžitá odozva bez SMT kmitania chvostovej latencie"
+    target_device: "CPU"
+    compile_properties:
+      PERFORMANCE_HINT: "LATENCY"
+      INFERENCE_NUM_THREADS: 4
+      NUM_STREAMS: 1
+      ENABLE_HYPER_THREADING: false
+      ENABLE_CPU_PINNING: true
+      SCHEDULING_CORE_TYPE: "PCORE_ONLY"
+      INFERENCE_PRECISION_HINT: "f32"
+    allocator_policy:
+      strict_slab_alignment_bytes: 64
+      subnormal_ftz_flush: true
+      telemetry_source: "BAR0_MMAP_133NS"
+
+  OV_MT_02_BATCH_THROUGHPUT_MAX_STREAMS:
+    cieľ_sk: "Maximálna dávková priepustnosť (indexácia znalostnej bázy, offline syntéza)"
+    target_device: "CPU"
+    compile_properties:
+      PERFORMANCE_HINT: "THROUGHPUT"
+      INFERENCE_NUM_THREADS: 8
+      NUM_STREAMS: 4
+      ENABLE_HYPER_THREADING: true
+      ENABLE_CPU_PINNING: true
+      INFERENCE_PRECISION_HINT: "f32"
+    allocator_policy:
+      strict_slab_alignment_bytes: 128
+      subnormal_ftz_flush: true
+      telemetry_source: "SHARDED_4T_SPSC_RING"
+
+  OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU:
+    cieľ_sk: "Optimálna kooperácia iGPU koprocesora (1 USM prúd = 3.657 ms) + 3 fyzické jadrá pre logiku + 1 jadro pre VSync/BAR0"
+    target_device: "GPU"
+    compile_properties:
+      PERFORMANCE_HINT: "LATENCY"
+      NUM_STREAMS: 1
+      INFERENCE_PRECISION_HINT: "f16"
+    companion_cpu_worker_threads: 3
+    allocator_policy:
+      zero_copy_shared_ov_tensor: true
+      subgroup_k_tile_limit: 256
+      uma_veto_ceiling: 0.78
+
+  OV_MT_04_HYBRID_GEN12_PLUS_ECORE_TELEMETRY:
+    cieľ_sk: "Intel 12.-14. gen. a Core Ultra: odsunutie pozorovacích modelov a kompresie logov na úsporné E-jadrá"
+    target_device: "CPU"
+    compile_properties:
+      PERFORMANCE_HINT: "CUMULATIVE_THROUGHPUT"
+      NUM_STREAMS: 2
+      ENABLE_HYPER_THREADING: false
+      SCHEDULING_CORE_TYPE: "ECORE_ONLY"
+      INFERENCE_PRECISION_HINT: "f32"
+    allocator_policy:
+      strict_slab_alignment_bytes: 64
+      telemetry_source: "SHADOW_VBLANK_10HZ"
+
+  OV_MT_05_UMA_SATURATED_THERMAL_ECO_SHIELD:
+    cieľ_sk: "Ochranný fallback pri UMA >= 0.78 alebo teplote >= 85 C (okamžite uvoľní zdieľanú zbernicu pre obraz)"
+    target_device: "CPU"
+    compile_properties:
+      PERFORMANCE_HINT: "LATENCY"
+      INFERENCE_NUM_THREADS: 2
+      NUM_STREAMS: 1
+      ENABLE_HYPER_THREADING: false
+      INFERENCE_PRECISION_HINT: "f32"
+    allocator_policy:
+      arena_cap_mb: 64
+      shed_p2_diagnostic_logs: true

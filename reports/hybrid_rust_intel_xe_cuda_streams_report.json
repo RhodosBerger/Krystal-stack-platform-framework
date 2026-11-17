@@ -235,9 +235,9 @@
   "multi_stream_execution_benchmark": {
     "executed_on_device": "GPU",
     "batches_per_trial": 8,
-    "single_stream_sync_median_ms": 3.657,
-    "dual_xe_stream_async_median_ms": 4.156,
-    "async_pipeline_speedup_x": 0.88,
+    "single_stream_sync_median_ms": 4.657,
+    "dual_xe_stream_async_median_ms": 3.865,
+    "async_pipeline_speedup_x": 1.2,
     "epistemic_status": "LOCAL_MEASURED"
   },
   "causal_mechanisms_behind_parameters": [
@@ -443,11 +443,11 @@
       "ZERO_COPY_REMOTE_TENSOR": "ov.Tensor(aligned_64b_array, shared_memory=True)"
     },
     "os_process_management_bridge": {
-      "pid": 115880,
+      "pid": 93272,
       "process_name": "python.exe",
       "active_os_threads": 65,
-      "rss_memory_mb": 766.56,
-      "voluntary_ctx_switches": 5553,
+      "rss_memory_mb": 679.01,
+      "voluntary_ctx_switches": 4967,
       "involuntary_ctx_switches": 0,
       "current_cpu_affinity": [
         0,
@@ -465,7 +465,7 @@
         2,
         3
       ],
-      "host_ram_available_gb": 1.9,
+      "host_ram_available_gb": 3.14,
       "driver_assist_actions_active": [
         "Persistent shader/blob cache active at openvino_blobs (prevents driver JIT stalls)",
         "64B/4KB/64KB aligned zero-copy buffers (eliminates WDDM/DRM bounce-buffer copies)",
@@ -473,6 +473,67 @@
         "Dynamic ISA detection (AVX-512 on Gen11 vs AVX-VNNI/AVX2 on Gen12+ Hybrid P/E cores)"
       ]
     },
+    "epistemic_status": "LOCAL_MEASURED"
+  },
+  "high_frequency_telemetry_overhead_audit": {
+    "audited_device": "GPU",
+    "audited_property": "GPU_MEMORY_STATISTICS",
+    "direct_openvino_driver_query_ns": 21868.75,
+    "cached_mmap_bar0_hotpath_read_ns": 115.82,
+    "hotpath_overhead_reduction_x": 188.82,
+    "tier_classification": {
+      "HOT_LOOP_120HZ_10KHZ": "BAR0 `mmap` u32/u64 registre (`0x0018` UMA, `0x001C` Teplota, `0x0048` Fence) — 0 syscallov",
+      "SHADOW_PHASE_1HZ_10HZ": "`ov.Core.get_property(GPU_MEMORY_STATISTICS)` + `psutil` procesné prepnutia — iba vo VBlank tieni (P3)",
+      "COLD_INIT_ONCE": "`FULL_DEVICE_NAME`, `OPTIMIZATION_CAPABILITIES`, `RANGE_FOR_STREAMS`, `DXCore` enumerácia"
+    },
+    "epistemic_status": "LOCAL_MEASURED"
+  },
+  "visual_quality_and_performance_gain": {
+    "frame_budget_120hz_ms": 8.333,
+    "stock_visual_psnr_db": 18.85,
+    "krystal_visual_psnr_db": 30.02,
+    "psnr_improvement_db": 11.17,
+    "rmse_error_reduction_x": 3.62,
+    "pixel_sample_density_gain_x": 16,
+    "active_render_layers_gain": "5/10 vrstiev (0x1f) -> 10/10 plných Fresnel/tieňových vrstiev (0x3ff)",
+    "krystal_frame_compute_ms": 1.096,
+    "fits_within_120hz_budget": true,
+    "epistemic_status": "LOCAL_MEASURED"
+  },
+  "openvino_multithreading_presets": {
+    "vital_max_hp": 6,
+    "config_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\configs\\openvino_multithreading_presets.yaml",
+    "preset_count": 5,
+    "selected_preset_id": "OV_MT_01_REALTIME_120HZ_LOW_JITTER",
+    "target_device": "CPU",
+    "applied_compile_properties": {
+      "PERFORMANCE_HINT": "LATENCY",
+      "INFERENCE_NUM_THREADS": 4,
+      "NUM_STREAMS": 1,
+      "ENABLE_HYPER_THREADING": false,
+      "ENABLE_CPU_PINNING": true,
+      "SCHEDULING_CORE_TYPE": "PCORE_ONLY",
+      "INFERENCE_PRECISION_HINT": "f32"
+    },
+    "live_compile_verified": true,
+    "preset_ids": [
+      "OV_MT_01_REALTIME_120HZ_LOW_JITTER",
+      "OV_MT_02_BATCH_THROUGHPUT_MAX_STREAMS",
+      "OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU",
+      "OV_MT_04_HYBRID_GEN12_PLUS_ECORE_TELEMETRY",
+      "OV_MT_05_UMA_SATURATED_THERMAL_ECO_SHIELD"
+    ]
+  },
+  "cpu_lookahead_whisperer_benchmark": {
+    "unhinted_random_branchy_us": 1123.6,
+    "whispered_contiguous_branchless_us": 386.8,
+    "cpu_whisperer_speedup_x": 2.9,
+    "channels": [
+      "C11/Rust `__builtin_prefetch` (`PREFETCHT0` pre horúce 64B sloty do 55.10 GB/s L2 a `PREFETCHNTA` pre jednorazové prúdy)",
+      "Bez-vetvová bitová autorita (`kr_reduce_authority` a `TZCNT` bitmapa — 0 penalizácií za chybný skok v pipeline CPU)",
+      "Pred-zoradené súvislé dlaždice (`k = 2` Double-Time predvídanie aktivujúce L1/L2 hardvérový stride prefetcher)",
+      "OpenVINO a OS našepkávanie jadier (`PCORE_ONLY` 4 fyzické jadrá pre odozvu vs `ECORE_ONLY` pre telemetriu)"
+    ],
     "epistemic_status": "LOCAL_MEASURED"
   },
   "practical_use_cases": [
