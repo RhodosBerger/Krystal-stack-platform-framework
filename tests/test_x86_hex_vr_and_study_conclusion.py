@@ -394,5 +394,53 @@ def test_priority_logger_dependency_bridges_visual_story_and_zero_bare_asserts()
     assert bare_asserts == []
 
 
+def test_double_time_mode_bugfixes_60hz_120hz_uma_and_buffers() -> None:
+    from krystal_kernel.double_time_coefficient_emulator import DoubleTimeCoefficientEmulator
+
+    comp = SovereignOpenVinoRequestHandler.app_instance.compositor
+    # 1. Nominal 60 Hz (16.667 ms, k=4) -> verified lock
+    dt60 = comp.run_double_time_compositor_cycle(frame_budget_ms=16.667, speculative_speedup_factor=4, uma_utilization=0.35)
+    assert dt60["status"] == "DOUBLE_TIME_LOCK_VERIFIED"
+    assert dt60["temporal_domains"]["tau_spec_lookahead_axis"]["lookahead_horizon_steps"] == 4
+
+    # 2. 120 Hz Double-Time (8.333 ms, requested k=4) -> clamped to k=2 (4.90 ms <= 6.713 ms), zero overrun!
+    dt120 = comp.run_double_time_compositor_cycle(frame_budget_ms=8.333, speculative_speedup_factor=4, uma_utilization=0.35)
+    spec120 = dt120["temporal_domains"]["tau_spec_lookahead_axis"]
+    assert dt120["status"] == "SHADOW_PACED"
+    assert spec120["lookahead_horizon_steps"] == 2
+    assert spec120["total_shadow_compute_ms"] <= spec120["available_phase_shadow_ms"]
+
+    # 3. UMA >= 0.78 -> immediate suspension of tau_spec (Sovereign P3)
+    dt_uma = comp.run_double_time_compositor_cycle(frame_budget_ms=16.667, speculative_speedup_factor=4, uma_utilization=0.84)
+    assert dt_uma["status"] == "UMA_SHADOW_SUSPENDED_DELTA_S_ZERO"
+    assert dt_uma["temporal_domains"]["tau_spec_lookahead_axis"]["lookahead_horizon_steps"] == 0
+
+    # 4. Non-overlapping 128 B slabs BUF_00 (0x000..0x07F), BUF_01 (0x080..0x0FF), BUF_02 (0x100..0x2FF) + zero Cyrillic
+    emu = DoubleTimeCoefficientEmulator()
+    sweeps = emu.emulate_coefficient_sweeps()
+    assert sweeps["critical_zero_stall_compression_threshold_eta"] == 1.72
+    mb = sweeps["multi_buffer_hierarchy"]
+    assert mb["buffers"][0]["size_bytes"] == 128
+    assert mb["buffers"][1]["size_bytes"] == 128
+    assert "0x080..0x0FF" in mb["buffers"][1]["address_range_hex"]
+    assert "0x100..0x2FF" in mb["buffers"][2]["address_range_hex"]
+    assert "за" not in json.dumps(mb, ensure_ascii=False)
+
+    # 5. Live HTTP query params on /api/v1/compositor/double_time + GET /api/hybrid/marias_click
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SovereignOpenVinoRequestHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{server.server_address[1]}"
+    try:
+        with urllib.request.urlopen(base + "/api/v1/compositor/double_time?hz=120&k=4&uma=0.35", timeout=15) as r:
+            body = json.loads(r.read().decode("utf-8"))
+            assert r.status == 200 and body["temporal_domains"]["tau_spec_lookahead_axis"]["lookahead_horizon_steps"] == 2
+        with urllib.request.urlopen(base + "/api/hybrid/marias_click", timeout=15) as r2:
+            assert r2.status == 200
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+
 
 

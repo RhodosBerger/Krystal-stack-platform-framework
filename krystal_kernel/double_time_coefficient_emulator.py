@@ -117,9 +117,12 @@ class DoubleTimeCoefficientEmulator:
             psi_sq = round(re_part * re_part + im_part * im_part, 4)
             constructive_pass = psi_sq >= 0.75
 
-            # Emulate NPU+SSD transfer time in Double-Time shadow (32 MB slab, 5.6 GB/s NVMe)
-            dma_ms = round((32.0 / r["npu_comp_coeff"] / 1024.0) / 5.6 * 1000.0, 3)
-            net_stall_ms = round(max(0.0, dma_ms - 6.50), 3)
+            # Emulate NPU+SSD transfer time in Double-Time shadow (64 MB BUF_03 Ping/Pong slab, 5.6 GB/s NVMe, 6.50 ms SLICE_DT4 window)
+            shadow_dma_window_ms = 6.50
+            slab_mb = 64.0
+            nvme_gbps = 5.6
+            dma_ms = round((slab_mb / r["npu_comp_coeff"] / 1024.0) / nvme_gbps * 1000.0, 3)
+            net_stall_ms = round(max(0.0, dma_ms - shadow_dma_window_ms), 3)
 
             # Emulate steady-state Merkle-Momentum M_inf = w / (1 - gamma) normalized
             steady_momentum = round(0.12 / max(0.01, 1.0 - r["merkle_gamma"]), 4)
@@ -200,10 +203,11 @@ class DoubleTimeCoefficientEmulator:
             },
         ]
 
+        critical_eta = round(((64.0 / 1024.0) / 5.6 * 1000.0) / 6.50, 2)
         payload = {
             "vital_max_hp": VITAL_MAX_HP,
             "emulator_status": "COEFFICIENT_EMULATION_VERIFIED",
-            "critical_zero_stall_compression_threshold_eta": 1.12,
+            "critical_zero_stall_compression_threshold_eta": critical_eta,
             "emulated_regimes": emulated_results,
             "emergent_modules_catalog": emergent_modules,
             "multi_buffer_hierarchy": self.emulate_multi_buffer_ring_hierarchy(),
@@ -220,25 +224,25 @@ class DoubleTimeCoefficientEmulator:
         buffers = [
             {
                 "buffer_id": "BUF_00_ANCHOR_SCANOUT_SLAB",
-                "size_bytes": 64,
+                "size_bytes": 128,
                 "alignment_bytes": 64,
-                "address_range_hex": "0x00..0x3F",
+                "address_range_hex": "0x000..0x07F (2 x 64B Cache Lines)",
                 "temporal_axis": "tau_real (1x Present Deterministic)",
                 "memory_barrier": "atomic_load_explicit(memory_order_acquire)",
                 "role_sk": (
-                    "Primárny čítací buffer pre CPU AST a 60Hz VSync scanout. Počas vykresľovania "
-                    "je nemenný (immutable), čím stopercentne vylučuje trhanie a kolízie."
+                    "Primárny 128 B čítací buffer (96 B payload + 32 B SHA-256) pre CPU AST a 60/120Hz VSync scanout. "
+                    "Počas vykresľovania je nemenný (immutable), bez prekryvu s BUF_01."
                 ),
             },
             {
                 "buffer_id": "BUF_01_SPECULATIVE_LOOKAHEAD_SLAB",
-                "size_bytes": 64,
+                "size_bytes": 128,
                 "alignment_bytes": 64,
-                "address_range_hex": "0x40..0x7F",
-                "temporal_axis": "tau_spec (4x Accelerated Phase Shadow)",
+                "address_range_hex": "0x080..0x0FF (2 x 64B Cache Lines)",
+                "temporal_axis": "tau_spec (Accelerated Phase Shadow)",
                 "memory_barrier": "atomic_store_explicit(memory_order_release)",
                 "role_sk": (
-                    "Špekulatívny zápisový buffer pre kvadratické digitálne dvojča a OpenVINO "
+                    "Špekulatívny 128 B zápisový buffer pre kvadratické digitálne dvojča a OpenVINO "
                     "validátor. Po schválení semaformi SEM_01..SEM_05 sa preklopí na BUF_00 za 1 takt."
                 ),
             },
@@ -246,7 +250,7 @@ class DoubleTimeCoefficientEmulator:
                 "buffer_id": "BUF_02_VULKAN_3D_HEX_VOXEL_RING",
                 "size_bytes": 512,
                 "alignment_bytes": 64,
-                "address_range_hex": "0x80..0x27F (64 x 8B Hex Words)",
+                "address_range_hex": "0x100..0x2FF (64 x 8B Hex Words)",
                 "temporal_axis": "tau_spec -> tau_real Bridge",
                 "memory_barrier": "VK_ACCESS_SHADER_WRITE_BIT -> VK_ACCESS_HOST_READ_BIT",
                 "role_sk": (
@@ -273,25 +277,25 @@ class DoubleTimeCoefficientEmulator:
                 "slice_id": "SLICE_DT1_ANCHOR_FACT_SET",
                 "set_symbol": "Set_M_A (Uzavretá množina AST faktov)",
                 "time_fraction_ms": "0.00 .. 1.62 ms (9.7 % snímky)",
-                "target_buffer_partition": "BUF_00 [0x00..0x3F] (64B L1/L2 Cache-Pinned)",
+                "target_buffer_partition": "BUF_00 [0x000..0x07F] (128B L1/L2 Cache-Pinned)",
                 "hardware_unit": "P_CORE_AVX2",
-                "hex_partition_mask": "0x06B00100003F0097",
+                "hex_partition_mask": "0x06B00100007F0097",
             },
             {
                 "slice_id": "SLICE_DT2_EROSION_QUADRATIC_SET",
                 "set_symbol": "Set_M_B (Množina riedkych CV hrán a vizuálnych erózií)",
                 "time_fraction_ms": "1.62 .. 4.07 ms (14.7 % snímky)",
-                "target_buffer_partition": "BUF_01_SUB_A [0x40..0x5F] (32B Quadratic Twin Sub-Slab)",
+                "target_buffer_partition": "BUF_01 [0x080..0x0FF] (128B Quadratic Twin Slab)",
                 "hardware_unit": "P_CORE_SIMD + NPU_PREFILTER",
-                "hex_partition_mask": "0x06B00200405F00EB",
+                "hex_partition_mask": "0x06B0020080FF00EB",
             },
             {
                 "slice_id": "SLICE_DT3_VULKAN_HEX_VOXEL_SET",
                 "set_symbol": "Set_M_C (Množina 64 špekulatívnych 3D hex voxelov M0..M3)",
                 "time_fraction_ms": "4.07 .. 7.80 ms (22.4 % snímky)",
-                "target_buffer_partition": "BUF_02 [0x80..0x27F] (512B Host-Coherent UMA Ring)",
+                "target_buffer_partition": "BUF_02 [0x100..0x2FF] (512B Host-Coherent UMA Ring)",
                 "hardware_unit": "VULKAN_GPU_TENSOR_EU",
-                "hex_partition_mask": "0x06B003008027F166",
+                "hex_partition_mask": "0x06B00301002FF166",
             },
             {
                 "slice_id": "SLICE_DT4_NVME_NPU_SWAP_SET",
@@ -305,9 +309,9 @@ class DoubleTimeCoefficientEmulator:
                 "slice_id": "SLICE_DT5_OPENVINO_SEMAPHORE_COMMIT",
                 "set_symbol": "Set_M_E (Prienik validovaných stavov SEM_01..SEM_05)",
                 "time_fraction_ms": "14.30 .. 16.67 ms (14.2 % snímky)",
-                "target_buffer_partition": "Atomic Pointer Flip (BUF_01 -> BUF_00 за 1 takt)",
+                "target_buffer_partition": "Atomic Pointer Flip (BUF_01 -> BUF_00 za 1 takt)",
                 "hardware_unit": "OPENVINO_NATIVE_VALIDATOR",
-                "hex_partition_mask": "0x06B00500400000E3",
+                "hex_partition_mask": "0x06B00500800000E3",
             },
         ]
         return {

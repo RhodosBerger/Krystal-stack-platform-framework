@@ -970,8 +970,26 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
         if self.path == "/api/v1/compositor/npu_ssd_virtualization":
             self._send_json(200, self.app_instance.compositor.virtualize_resources_and_zero_stall_ssd_swap())
             return
-        if self.path == "/api/v1/compositor/double_time":
-            self._send_json(200, self.app_instance.compositor.run_double_time_compositor_cycle())
+        if self.path.startswith("/api/v1/compositor/double_time"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.constants import ContractViolation
+
+            qs = parse_qs(urlparse(self.path).query)
+            try:
+                hz = float(qs["hz"][0]) if "hz" in qs else None
+                budget = (1000.0 / hz) if (hz is not None and hz > 0) else float(qs.get("budget_ms", ["16.667"])[0])
+                k_fac = int(qs.get("k", qs.get("speedup", ["4"]))[0])
+                uma_val = float(qs.get("uma", ["0.35"])[0])
+                self._send_json(
+                    200,
+                    self.app_instance.compositor.run_double_time_compositor_cycle(
+                        frame_budget_ms=budget,
+                        speculative_speedup_factor=k_fac,
+                        uma_utilization=uma_val,
+                    ),
+                )
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
             return
         if self.path == "/api/v1/compositor/coefficient_emulation":
             self._send_json(200, self.app_instance.compositor.run_coefficient_emulation_and_module_synthesis())
@@ -1477,17 +1495,23 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
         if self.path in self.app_instance.stratified_kernel._custom_endpoints:
             self._send_json(200, self.app_instance.stratified_kernel._custom_endpoints[self.path])
             return
-        if self.path == "/api/hybrid/fetch_objectives":
+        if self.path.startswith("/api/hybrid/fetch_objectives"):
+            from urllib.parse import parse_qs, urlparse
             from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
-            lens = str(data.get("semantic_lens", "LORE_NARRATIVE"))
+
+            qs = parse_qs(urlparse(self.path).query)
+            lens = str(qs.get("semantic_lens", ["LORE_NARRATIVE"])[0])
             self._send_json(200, GLOBAL_HYBRID_LORE_AGGREGATOR.aggregate_hybrid_lore_and_fetch_objectives(semantic_lens=lens))
             return
 
-        if self.path == "/api/hybrid/marias_click":
+        if self.path.startswith("/api/hybrid/marias_click"):
+            from urllib.parse import parse_qs, urlparse
             from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
-            action_id = str(data.get("action_id", "ACT_MARIAS_TRUMP_MARRIAGE"))
-            from_idx = int(data.get("from_idx", 12))
-            to_idx = int(data.get("to_idx", 28))
+
+            qs = parse_qs(urlparse(self.path).query)
+            action_id = str(qs.get("action_id", ["ACT_MARIAS_TRUMP_MARRIAGE"])[0])
+            from_idx = int(qs.get("from_idx", ["12"])[0])
+            to_idx = int(qs.get("to_idx", ["28"])[0])
             pkt = GLOBAL_HYBRID_LORE_AGGREGATOR.enqueue_and_resolve_marias_click_action(action_id, from_idx, to_idx)
             self._send_json(200, GLOBAL_HYBRID_LORE_AGGREGATOR.decode_binary_grid_packet(pkt))
             return
@@ -1967,14 +1991,16 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self._send_json(200, comp_res)
             return
 
-        if self.path == "/api/hybrid/fetch_objectives":
+        if self.path.startswith("/api/hybrid/fetch_objectives"):
             from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
+
             lens = str(data.get("semantic_lens", "LORE_NARRATIVE"))
             self._send_json(200, GLOBAL_HYBRID_LORE_AGGREGATOR.aggregate_hybrid_lore_and_fetch_objectives(semantic_lens=lens))
             return
 
-        if self.path == "/api/hybrid/marias_click":
+        if self.path.startswith("/api/hybrid/marias_click"):
             from krystal_kernel.hybrid_lore_aggregator_runtime import GLOBAL_HYBRID_LORE_AGGREGATOR
+
             action_id = str(data.get("action_id", "ACT_MARIAS_TRUMP_MARRIAGE"))
             from_idx = int(data.get("from_idx", 12))
             to_idx = int(data.get("to_idx", 28))

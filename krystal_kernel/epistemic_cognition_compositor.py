@@ -2502,49 +2502,74 @@ class MultiDataHybridCompositor:
         self,
         frame_budget_ms: float = 16.667,
         speculative_speedup_factor: int = 4,
+        uma_utilization: float = 0.35,
     ) -> Dict[str, Any]:
         """
         Implements the Double-Time Compositor (`DoubleTimeCompositor`):
           Operates simultaneously across two coupled temporal axes within a single
-          60Hz VSync frame (16.667 ms):
+          60Hz (16.667 ms) or 120Hz (8.333 ms) VSync frame:
             1. `tau_real` (Present Deterministic Time, 1x Real-Time):
-               Executes on Slab 0 (0x00..0x3F) via CPU AST + Active Scanout (< 1.85 ms),
+               Executes on Slab 0 (0x000..0x07F, 128 B) via CPU AST + Active Scanout (< 1.85 ms),
                serving verified facts with zero latency stall.
-            2. `tau_spec` (Accelerated Speculative Double-Time, 4x..8x Lookahead):
-               Executes in the Phase Shadow on Slab 1 (0x40..0x7F) across Quadratic Digital
+            2. `tau_spec` (Accelerated Speculative Double-Time, 2x..8x Lookahead):
+               Executes in the Phase Shadow on Slab 1 (0x080..0x0FF, 128 B) across Quadratic Digital
                Twin, Vulkan 3D Hex Grid, E-Core NVMe SSD Prefetch, and NPU Inline Decompression,
-               pre-validating state t+1..t+k on OpenVINO before `tau_real` arrives.
+               clamped strictly to `phase_shadow_window_ms` and `uma_utilization < 0.78`.
         """
-        k_lookahead = max(2, int(speculative_speedup_factor))
-        tau_real_ast_ms = 1.62
-        phase_shadow_window_ms = round(max(1.0, frame_budget_ms - tau_real_ast_ms), 3)
+        import math
 
-        # In the 15.047 ms phase shadow, tau_spec executes k_lookahead speculative sub-cycles
+        if not math.isfinite(frame_budget_ms) or frame_budget_ms <= 2.0:
+            raise ContractViolation("frame_budget_ms must be finite and > 2.0 ms", violation_code="ERR_DT_BUDGET")
+        if not math.isfinite(uma_utilization) or not (0.0 <= uma_utilization <= 1.0):
+            raise ContractViolation("uma_utilization must be in [0.0, 1.0]", violation_code="ERR_DT_UMA")
+
+        requested_lookahead = max(2, int(speculative_speedup_factor))
+        tau_real_ast_ms = 1.62
+        phase_shadow_window_ms = round(max(0.0, frame_budget_ms - tau_real_ast_ms), 3)
         subcycle_cost_ms = 2.45  # Quadratic Twin + Vulkan 3D Hex + NPU SSD Prefetch
-        total_spec_ms = round(k_lookahead * subcycle_cost_ms, 3)
-        fits_in_shadow = total_spec_ms <= phase_shadow_window_ms
-        pointer_flip_cycles = 1  # Atomic 128B SPSC ring commit
+
+        # Fix #1: Enforce Sovereign P3 (UMA < 0.78) and clamp lookahead steps so tau_spec never overruns VSync!
+        uma_saturated = uma_utilization >= 0.78
+        max_safe_steps = 0 if uma_saturated else max(0, int(math.floor(phase_shadow_window_ms / subcycle_cost_ms)))
+        effective_lookahead = min(requested_lookahead, max_safe_steps)
+        total_spec_ms = round(effective_lookahead * subcycle_cost_ms, 3)
+        was_paced = effective_lookahead < requested_lookahead
+
+        if uma_saturated:
+            status = "UMA_SHADOW_SUSPENDED_DELTA_S_ZERO"
+        elif not was_paced and effective_lookahead >= 2:
+            status = "DOUBLE_TIME_LOCK_VERIFIED"
+        else:
+            status = "SHADOW_PACED"
+
+        pointer_flip_cycles = 0 if uma_saturated or effective_lookahead == 0 else 1
+        horizon_label = (
+            "pozastavený špekulatívny beh (ochrana UMA >= 0.78)"
+            if effective_lookahead == 0
+            else f"{effective_lookahead}x zrýchlený dopredný čas: pred-načíta NVMe SSD swap cez NPU a overí stavy t+1..t+{effective_lookahead} v OpenVINO."
+        )
 
         return {
             "vital_max_hp": VITAL_MAX_HP,
             "concept_name": "Double-Time Compositor (Dual-Horizon Chronometric Synthesis)",
-            "status": "DOUBLE_TIME_LOCK_VERIFIED" if fits_in_shadow else "SHADOW_PACED",
+            "status": status,
+            "uma_utilization": round(uma_utilization, 4),
+            "frame_budget_ms": round(frame_budget_ms, 3),
             "temporal_domains": {
                 "tau_real_present_axis": {
-                    "slab_binding": "SLAB_0_ANCHOR (0x00..0x3F)",
-                    "role_sk": "Okamžitá deterministická odpoveď (CPU AST + 60Hz VSync Scanout)",
+                    "slab_binding": "SLAB_0_ANCHOR (0x000..0x07F, 128 B)",
+                    "role_sk": "Okamžitá deterministická odpoveď (CPU AST + 60/120Hz VSync Scanout)",
                     "latency_ms": tau_real_ast_ms,
                     "ssd_stall_ms": 0.0,
                 },
                 "tau_spec_lookahead_axis": {
-                    "slab_binding": "SLAB_1_SPECULATIVE (0x40..0x7F)",
-                    "role_sk": (
-                        f"{k_lookahead}x zrýchlený dopredný čas v digitálnom dvojčati: pred-načíta "
-                        "NVMe SSD swap cez NPU, opraví vizuálnu eróziu a overí stavy t+1..t+4 v OpenVINO."
-                    ),
-                    "lookahead_horizon_steps": k_lookahead,
+                    "slab_binding": "SLAB_1_SPECULATIVE (0x080..0x0FF, 128 B)",
+                    "role_sk": horizon_label,
+                    "requested_lookahead_steps": requested_lookahead,
+                    "lookahead_horizon_steps": effective_lookahead,
                     "total_shadow_compute_ms": total_spec_ms,
                     "available_phase_shadow_ms": phase_shadow_window_ms,
+                    "overrun_ms": 0.0,
                 },
             },
             "synchronization_bridge": {
