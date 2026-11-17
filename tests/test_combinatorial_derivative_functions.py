@@ -280,6 +280,28 @@ def test_observable_ml_study_glmark_fhd_4k_and_adrenalin_cms() -> None:
     assert Path(bundle["study_md_path"]).exists()
 
 
+def test_mcp_parameter_grep_comm_pipeline_and_bot_configurator() -> None:
+    from krystal_web_hub.hybrid_mcp_antigravity_connector import GLOBAL_HYBRID_MCP_CONNECTOR
+    from projects.trigonometric_hybrid_platform_framework.mcp_parameter_grep_pipeline_and_bot_configurator import (
+        render_bot_configurator_studio_html,
+    )
+
+    r_grep = GLOBAL_HYBRID_MCP_CONNECTOR.execute_tool("krystal-grep-parameters", {"pattern": "VITAL_MAX_HP|NUM_STREAMS"})
+    assert r_grep["vital_max_hp"] == 6
+    assert r_grep["matches_count"] >= 3
+    assert r_grep["validation_status"] == "CLEAN_NO_DRIFT"
+
+    r_pipe = GLOBAL_HYBRID_MCP_CONNECTOR.execute_tool("krystal-automated-comm-pipeline", {})
+    assert r_pipe["vital_max_hp"] == 6
+    assert Path(r_pipe["announcements_jsonl_path"]).exists()
+
+    r_diff = GLOBAL_HYBRID_MCP_CONNECTOR.execute_tool("krystal-bot-configurator-diff", {})
+    assert r_diff["vital_max_hp"] == 6
+    assert r_diff["speedups_vs_baseline"]["telemetry_x"] > 200.0
+    assert "KRYSTAL" in render_bot_configurator_studio_html()
+
+
+
 
 
 

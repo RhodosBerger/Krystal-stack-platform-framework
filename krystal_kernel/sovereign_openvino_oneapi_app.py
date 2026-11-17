@@ -1686,6 +1686,59 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
             return
 
+        if self.path.startswith("/bot_configurator_studio"):
+            from projects.trigonometric_hybrid_platform_framework.mcp_parameter_grep_pipeline_and_bot_configurator import (
+                render_bot_configurator_studio_html,
+            )
+
+            html_bytes = render_bot_configurator_studio_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/api/v1/runtime/bot_configurator_diff"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.mcp_parameter_grep_pipeline_and_bot_configurator import (
+                evaluate_bot_configurator_architecture_and_baseline_diff,
+            )
+
+            qs = parse_qs(urlparse(self.path).query)
+            core_s = str(qs.get("core", ["CORE_WAKE_04_HETERO_3P_1VSYNC_IRIS_XE"])[0])
+            ov_s = str(qs.get("ov", ["OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU"])[0])
+            zc = str(qs.get("zc", ["1"])[0]) != "0"
+            bar0 = str(qs.get("bar0", ["1"])[0]) != "0"
+            ftz = str(qs.get("ftz", ["1"])[0]) != "0"
+            try:
+                self._send_json(
+                    200,
+                    evaluate_bot_configurator_architecture_and_baseline_diff(
+                        core_strategy_id=core_s,
+                        openvino_preset_id=ov_s,
+                        zero_copy_enabled=zc,
+                        bar0_telemetry_mirror=bar0,
+                        ftz_subnormal_guard=ftz,
+                    ),
+                )
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path.startswith("/api/v1/runtime/mcp_comm_pipeline"):
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.mcp_parameter_grep_pipeline_and_bot_configurator import (
+                AutomatedMcpCommunicationPipeline,
+            )
+
+            try:
+                self._send_json(200, AutomatedMcpCommunicationPipeline().run_pipeline_and_emit_announcement())
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
         if self.path.startswith("/vr_hologram_profiler"):
             from projects.trigonometric_hybrid_platform_framework.spatial_coordinators_and_vr_hologram_compositor import (
                 render_vr_hologram_profiler_html,

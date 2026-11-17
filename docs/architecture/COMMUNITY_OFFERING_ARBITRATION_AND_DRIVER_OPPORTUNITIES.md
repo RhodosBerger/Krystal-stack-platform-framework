@@ -2,7 +2,7 @@
 
 > **Ústavný invariant:** `VITAL_MAX_HP == 6` ($\neg\text{Valid}(\text{Akcia}) \implies \Delta S = 0$) | **Vlastníctvo a licencia:** **Všetky práva vyhradené — Dušan Kopecký (`dusan.kopecky0101@gmail.com`)**; osobné použitie vyžaduje súhlas majiteľa, komerčné použitie vyžaduje kontaktovanie majiteľa a predloženie cenovej ponuky | **Stav dôkazov:** `LOCAL_MEASURED` & `VERIFIED_WITH_SCOPE`
 >
-> **Licenčný dodatok (`Ivan Novikov` / `xerj.org`):** **Ivan Novikov** má na základe dohody s majiteľom codebase **Dušanom Kopeckým** povolené používať novododané funkcie a rozšírenia tohto frameworku na svojom projekte (**XERJ**, `xerj.org`). Ďakujeme za spoluprácu s `xerj.org`.
+> **Licenčný dodatok (`Ivan Novikov` / `xerj.org`):** **Ivan Novikov** má na základe dohody s majiteľom codebase **Dušanom Kopeckým** povolené používať novododané funkcie a rozšírenia tohto frameworku — predovšetkým **hlboké integrácie bez-kópiových tenzorov (`kuMallocUMA`, `ov.Tensor` v zdieľanej pamäti `GPU_USM_MEMORY`, `64 B / 64 KB` zarovnanie, `FTZ/DAZ` ochrana) a dátovo odvodené konfigurácie OpenVINO (`OV_MT_01..05` viacvláknové profily a `HETERO` plánovanie)** — na svojom projekte (**XERJ**, `xerj.org`). Ďakujeme za spoluprácu s `xerj.org`.
 
 ---
 

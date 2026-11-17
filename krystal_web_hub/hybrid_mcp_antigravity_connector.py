@@ -688,6 +688,54 @@ class HybridMcpAntigravityConnector:
                         }
                     }
                 }
+            },
+            # 16. Linux-Style 5-Phase Parameter Grep & Drift Validator
+            {
+                "name": "krystal-grep-parameters",
+                "description": (
+                    "5-fázová metodika vyhľadávania, extrakcie a validácie konfiguračných parametrov štýlu Linux grep "
+                    "naprieč configs/*.yaml, include/*.h, Rust modulmi a živými registrami BAR0 (detekcia driftu VITAL_MAX_HP == 6)."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "pattern": {"type": "string", "description": "Regulárny vzor parametrov (napr. 'INFERENCE_NUM_THREADS|NUM_STREAMS|UMA')."},
+                        "scope_glob": {"type": "string", "enum": ["configs_and_headers", "rust_and_schemas", "all"]}
+                    }
+                }
+            },
+            # 17. Automated MCP Communication & Bulletin Pipeline
+            {
+                "name": "krystal-automated-comm-pipeline",
+                "description": (
+                    "Automatizovaná komunikačná pipeline spájajúca Parameter Grep, dozor efektivity bota, arbitráž zdrojov "
+                    "a generovanie podpísaných pravidelných hlásení do reports/automated_mcp_comm_announcements.jsonl."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "workload_intent": {"type": "string", "description": "Zámer záťaže (napr. 'coprocessor_visual_ai', 'realtime_120hz')."},
+                        "grep_pattern": {"type": "string", "description": "Vzor auditovaných parametrov."}
+                    }
+                }
+            },
+            # 18. Bot Configurator Architecture & Baseline Diff Engine
+            {
+                "name": "krystal-bot-configurator-diff",
+                "description": (
+                    "Výpočtové jadro Konfigurátora Bota: vráti zmenu architektonických väzieb a porovnanie výkonu "
+                    "Baseline oproti zvolenej stratégii jadier a OpenVINO presetu."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "core_strategy_id": {"type": "string"},
+                        "openvino_preset_id": {"type": "string"},
+                        "zero_copy_enabled": {"type": "boolean"},
+                        "bar0_telemetry_mirror": {"type": "boolean"},
+                        "ftz_subnormal_guard": {"type": "boolean"}
+                    }
+                }
             }
         ]
 
@@ -1182,7 +1230,40 @@ class HybridMcpAntigravityConnector:
                 p_w = float(arguments.get("load_power_w", 28.0))
                 return GLOBAL_SILICON_PIPELINE_ORCHESTRATOR.step_pipeline(act, simulated_time_s=t_s, load_power_w=p_w)
 
-            # 16. Fallback to Krystal MCP Core Tools
+            # 16. Linux-Style Parameter Grep Tool
+            elif name == "krystal-grep-parameters":
+                from projects.trigonometric_hybrid_platform_framework.mcp_parameter_grep_pipeline_and_bot_configurator import (
+                    execute_krystal_grep_parameters,
+                )
+                return execute_krystal_grep_parameters(
+                    pattern=str(arguments.get("pattern", "INFERENCE_NUM_THREADS|NUM_STREAMS|UMA|VITAL_MAX_HP")),
+                    scope_glob=str(arguments.get("scope_glob", "configs_and_headers")),
+                )
+
+            # 17. Automated MCP Communication & Reporting Pipeline
+            elif name == "krystal-automated-comm-pipeline":
+                from projects.trigonometric_hybrid_platform_framework.mcp_parameter_grep_pipeline_and_bot_configurator import (
+                    AutomatedMcpCommunicationPipeline,
+                )
+                return AutomatedMcpCommunicationPipeline().run_pipeline_and_emit_announcement(
+                    grep_pattern=str(arguments.get("grep_pattern", "INFERENCE_NUM_THREADS|NUM_STREAMS|VITAL_MAX_HP")),
+                    workload_intent=str(arguments.get("workload_intent", "coprocessor_visual_ai")),
+                )
+
+            # 18. Bot Configurator Architecture & Baseline Diff
+            elif name == "krystal-bot-configurator-diff":
+                from projects.trigonometric_hybrid_platform_framework.mcp_parameter_grep_pipeline_and_bot_configurator import (
+                    evaluate_bot_configurator_architecture_and_baseline_diff,
+                )
+                return evaluate_bot_configurator_architecture_and_baseline_diff(
+                    core_strategy_id=str(arguments.get("core_strategy_id", "CORE_WAKE_04_HETERO_3P_1VSYNC_IRIS_XE")),
+                    openvino_preset_id=str(arguments.get("openvino_preset_id", "OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU")),
+                    zero_copy_enabled=bool(arguments.get("zero_copy_enabled", True)),
+                    bar0_telemetry_mirror=bool(arguments.get("bar0_telemetry_mirror", True)),
+                    ftz_subnormal_guard=bool(arguments.get("ftz_subnormal_guard", True)),
+                )
+
+            # 19. Fallback to Krystal MCP Core Tools
             elif name in self.krystal_mcp.tool_registry:
                 return self.krystal_mcp.dispatch_call(name, arguments)
 

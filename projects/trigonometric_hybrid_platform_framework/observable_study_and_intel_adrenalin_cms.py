@@ -488,9 +488,14 @@ class IntelAdrenalinKrystalCmsEngine:
             "authorized_partner_addendum": {
                 "grantee": "Ivan Novikov",
                 "organization_and_project": "XERJ (https://xerj.org | https://github.com/xerj-org/xerj)",
+                "highlighted_covered_integrations": [
+                    "Bez-kópiové tenzorové integrácie (`kuMallocUMA`, `ov.Tensor` shared_memory, `GPU_USM_MEMORY`, 64B/64KB zarovnanie, FTZ/DAZ denormálová bariéra)",
+                    "Optimalizované konfigurácie OpenVINO (`OV_MT_01..05` viacvláknové presety, `HETERO`/`AUTO` smerovanie a predhriata cache blobov)",
+                ],
                 "grant_scope_sk": (
                     "Ivan Novikov má na základe vzájomnej dohody s majiteľom codebase Dušanom Kopeckým "
-                    "výslovne povolené používať novodopracované funkcie a nadstavby frameworku na svojom projekte."
+                    "výslovne povolené používať novodopracované funkcie, tenzorové integrácie a konfigurácie OpenVINO "
+                    "na svojom projekte XERJ (s poďakovaním za spoluprácu s xerj.org)."
                 ),
             },
             "fair_price_to_performance_tiers": [
