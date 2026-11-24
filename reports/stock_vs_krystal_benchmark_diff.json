@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "vital_max_hp": 6,
-  "timestamp_utc": "2026-11-17T14:41:16Z",
+  "timestamp_utc": "2026-11-24T17:07:20Z",
   "hardware_scope": {
     "cpu_brand": "x86_64",
     "physical_cores": 4,
@@ -15,7 +15,7 @@
     "total_benchmarks": 8,
     "krystal_wins": 7,
     "stock_wins": 1,
-    "geometric_mean_ratio_x": 3.72,
+    "geometric_mean_ratio_x": 4.32,
     "epistemic_note": "All latencies/counts measured head-to-head on identical local silicon (`LOCAL_MEASURED`). Where Krystal performs stricter AST safety/catalog validation than a raw string dump (e.g. BM_07 local envelope), both raw microsecond cost and the ~980->0 LLM token elimination are reported without cherry-picking."
   },
   "benchmarks": [
@@ -29,22 +29,22 @@
       "stock_stats": {
         "n": 24,
         "unit": "ms",
-        "median": 0.2618,
-        "p95": 1.36,
-        "p99": 1.7013,
-        "std": 0.379
+        "median": 0.378,
+        "p95": 0.9084,
+        "p99": 3.9161,
+        "std": 0.7309
       },
       "krystal_stats": {
         "n": 24,
         "unit": "ms",
-        "median": 0.1511,
-        "p95": 0.5377,
-        "p99": 0.7047,
-        "std": 0.1604
+        "median": 0.111,
+        "p95": 0.2463,
+        "p99": 0.2905,
+        "std": 0.0502
       },
-      "difference_krystal_minus_stock": -0.1107,
-      "speedup_or_gain_x": 1.73,
-      "relative_improvement_pct": 42.28,
+      "difference_krystal_minus_stock": -0.267,
+      "speedup_or_gain_x": 3.41,
+      "relative_improvement_pct": 70.63,
       "winner": "KRYSTAL_PLATFORM",
       "extra_metrics": {
         "aligned_64b": true,
@@ -62,22 +62,22 @@
       "stock_stats": {
         "n": 20,
         "unit": "us",
-        "median": 114.3,
-        "p95": 136.9,
-        "p99": 136.9,
-        "std": 5.7859
+        "median": 127.3,
+        "p95": 4961.0,
+        "p99": 4961.0,
+        "std": 1078.3477
       },
       "krystal_stats": {
         "n": 20,
         "unit": "us",
-        "median": 6.75,
-        "p95": 12.9,
-        "p99": 12.9,
-        "std": 1.3979
+        "median": 7.5,
+        "p95": 45.6,
+        "p99": 45.6,
+        "std": 8.7748
       },
-      "difference_krystal_minus_stock": -107.55,
-      "speedup_or_gain_x": 16.93,
-      "relative_improvement_pct": 94.09,
+      "difference_krystal_minus_stock": -119.8,
+      "speedup_or_gain_x": 16.97,
+      "relative_improvement_pct": 94.11,
       "winner": "KRYSTAL_PLATFORM",
       "extra_metrics": {
         "canonical_scalar_check": false
@@ -94,22 +94,22 @@
       "stock_stats": {
         "n": 20,
         "unit": "us",
-        "median": 660.05,
-        "p95": 1826.8,
-        "p99": 1826.8,
-        "std": 325.4064
+        "median": 797.85,
+        "p95": 7799.7,
+        "p99": 7799.7,
+        "std": 1794.2971
       },
       "krystal_stats": {
         "n": 20,
         "unit": "us",
-        "median": 150.8,
-        "p95": 449.9,
-        "p99": 449.9,
-        "std": 92.5902
+        "median": 153.7,
+        "p95": 1974.2,
+        "p99": 1974.2,
+        "std": 415.6651
       },
-      "difference_krystal_minus_stock": -509.25,
-      "speedup_or_gain_x": 4.38,
-      "relative_improvement_pct": 77.15,
+      "difference_krystal_minus_stock": -644.15,
+      "speedup_or_gain_x": 5.19,
+      "relative_improvement_pct": 80.74,
       "winner": "KRYSTAL_PLATFORM",
       "extra_metrics": {
         "matrix_dim": 256,
@@ -127,22 +127,22 @@
       "stock_stats": {
         "n": 24,
         "unit": "ns/frame",
-        "median": 23350.9766,
-        "p95": 29714.4531,
-        "p99": 30705.0781,
-        "std": 3192.8944
+        "median": 48936.3281,
+        "p95": 66844.9219,
+        "p99": 91863.2812,
+        "std": 17189.5606
       },
       "krystal_stats": {
         "n": 24,
         "unit": "ns/frame",
-        "median": 2681.6406,
-        "p95": 3978.9062,
-        "p99": 4018.3594,
-        "std": 647.6435
+        "median": 4450.9766,
+        "p95": 9234.7656,
+        "p99": 13265.625,
+        "std": 2373.2375
       },
-      "difference_krystal_minus_stock": -20669.336,
-      "speedup_or_gain_x": 8.71,
-      "relative_improvement_pct": 88.52,
+      "difference_krystal_minus_stock": -44485.3515,
+      "speedup_or_gain_x": 10.99,
+      "relative_improvement_pct": 90.9,
       "winner": "KRYSTAL_PLATFORM",
       "extra_metrics": {
         "stock_json_bytes": 194,
@@ -160,22 +160,22 @@
       "stock_stats": {
         "n": 24,
         "unit": "ns/op",
-        "median": 1796.9727,
-        "p95": 2646.9727,
-        "p99": 3186.5234,
-        "std": 471.5448
+        "median": 2928.418,
+        "p95": 4599.8047,
+        "p99": 4930.2734,
+        "std": 850.9636
       },
       "krystal_stats": {
         "n": 24,
         "unit": "ns/op",
-        "median": 763.6719,
-        "p95": 1494.7266,
-        "p99": 2138.5742,
-        "std": 388.3145
+        "median": 1043.7012,
+        "p95": 6559.082,
+        "p99": 7630.0781,
+        "std": 1871.8486
       },
-      "difference_krystal_minus_stock": -1033.3008,
-      "speedup_or_gain_x": 2.35,
-      "relative_improvement_pct": 57.5,
+      "difference_krystal_minus_stock": -1884.7168,
+      "speedup_or_gain_x": 2.81,
+      "relative_improvement_pct": 64.36,
       "winner": "KRYSTAL_PLATFORM",
       "extra_metrics": {
         "slot_bytes_stock": 416,
@@ -193,22 +193,22 @@
       "stock_stats": {
         "n": 10,
         "unit": "ms",
-        "median": 16.1976,
-        "p95": 51.1301,
-        "p99": 51.1301,
-        "std": 11.2946
+        "median": 44.9878,
+        "p95": 151.0505,
+        "p99": 151.0505,
+        "std": 39.6483
       },
       "krystal_stats": {
         "n": 10,
         "unit": "ms",
-        "median": 3.3446,
-        "p95": 6.99,
-        "p99": 6.99,
-        "std": 1.3973
+        "median": 10.4205,
+        "p95": 62.949,
+        "p99": 62.949,
+        "std": 20.9726
       },
-      "difference_krystal_minus_stock": -12.853,
-      "speedup_or_gain_x": 4.84,
-      "relative_improvement_pct": 79.35,
+      "difference_krystal_minus_stock": -34.5673,
+      "speedup_or_gain_x": 4.32,
+      "relative_improvement_pct": 76.84,
       "winner": "KRYSTAL_PLATFORM",
       "extra_metrics": {
         "worker_threads": 4,
@@ -226,22 +226,22 @@
       "stock_stats": {
         "n": 20,
         "unit": "us",
-        "median": 48.45,
-        "p95": 116.1,
-        "p99": 116.1,
-        "std": 16.144
+        "median": 51.25,
+        "p95": 142.6,
+        "p99": 142.6,
+        "std": 25.6762
       },
       "krystal_stats": {
         "n": 20,
         "unit": "us",
-        "median": 134.9,
-        "p95": 827.4,
-        "p99": 827.4,
-        "std": 160.1392
+        "median": 134.55,
+        "p95": 7389.8,
+        "p99": 7389.8,
+        "std": 1628.1767
       },
-      "difference_krystal_minus_stock": 86.45,
-      "speedup_or_gain_x": 0.36,
-      "relative_improvement_pct": -178.43,
+      "difference_krystal_minus_stock": 83.3,
+      "speedup_or_gain_x": 0.38,
+      "relative_improvement_pct": -162.54,
       "winner": "STOCK_SOLUTION",
       "extra_metrics": {
         "stock_prefill_tokens_est": 1019,

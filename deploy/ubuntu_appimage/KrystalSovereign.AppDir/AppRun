@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+HERE="$(dirname "$(readlink -f "${0}")")"
+export KRYSTAL_VITAL_MAX_HP=6
+export KRYSTAL_PORT="${KRYSTAL_PORT:-8090}"
+export PYTHONPATH="${HERE}/usr/share/krystal:${PYTHONPATH:-}"
+echo "[Krystal Sovereign AppImage] Starting Krystal Cyber60s & Adrenalin Hub on Ubuntu (http://127.0.0.1:${KRYSTAL_PORT})..."
+exec python3 -O "${HERE}/usr/bin/krystal-sovereign-entry.py" "$@"

@@ -3,8 +3,8 @@
 - **Ústavný invariant prežitia:** `VITAL_MAX_HP == 6` (`\neg Valid \implies \Delta S = 0`)
 - **Natívny binárny modul:** `native/krystal_sovereign_firmware_rs.dll` (`16.5 KB`, `#![no_std]`, `0` externých crate závislostí)
 - **C11 ABI hlavička:** `include/krystal_sovereign_firmware_abi.h`
-- **Zrýchlenie KUBC VLIW oproti interpretovanému ACPI AML:** `13.93x`
-- **Zrýchlenie procesov cez spätne vystavený Generátor + Agregátor:** `2.81x`
+- **Zrýchlenie KUBC VLIW oproti interpretovanému ACPI AML:** `12.41x`
+- **Zrýchlenie procesov cez spätne vystavený Generátor + Agregátor:** `1.91x`
 - **Stream-CUDA + FPS Booster (768 Stream Procesorov):** `60.0 FPS -> 148.8 FPS` (`2.48x`)
 
 ## Presety šité na mieru pre Vulkan herné enginy (`ENG_PRESET_01..08`)

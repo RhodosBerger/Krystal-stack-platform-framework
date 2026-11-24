@@ -1,0 +1,543 @@
+{
+  "benchmark_schema": "krystal.unified_openvino_gallium_rust_benchmark.v2",
+  "vital_max_hp": 6,
+  "host_platform": {
+    "os": "Windows 11",
+    "machine": "AMD64",
+    "openvino_devices": [
+      "CPU",
+      "GPU"
+    ],
+    "aep_gallium_channel": {
+      "vital_max_hp": 6,
+      "active_openvino_device": "GPU",
+      "gallium_driver_plane": "INTEL_IRIS_XE_CLDNN_USM + KRYSTAL_GALLIUM_RUST_CSO",
+      "opencl_icd_provider": "Intel Iris Xe OpenCL 3.0 / Level-Zero USM (Gallium Port Ready)",
+      "uma_utilization": 0.34,
+      "zero_copy_shared_tensor": true,
+      "cso_pipeline_digest_hex": "0xb3ebfc7bbb761b98",
+      "nir_subgroup_simd_width": 16,
+      "active_stream_processors": 576
+    }
+  },
+  "total_benchmark_wall_seconds": 0.43,
+  "plane_1_rust_sovereign_firmware": {
+    "binary_name": "krystal_sovereign_firmware_rs.dll",
+    "binary_size_kb": 16.5,
+    "fits_in_32kb_l1i_cache": true,
+    "legacy_acpi_aml_median_us": 490.3,
+    "krystal_kubc_rust_median_us": 39.5,
+    "speedup_x": 12.41,
+    "constitutional_rollback_delta_s_zero": true
+  },
+  "plane_2_retroactive_validator_generator_aggregator": {
+    "baseline_median_ms": 1.7434,
+    "exposed_gen_agg_median_ms": 0.9107,
+    "exposed_p95_ms": 1.4466,
+    "speedup_x": 1.91,
+    "ftz_flushed_subnormals": 128
+  },
+  "plane_3_openvino_gallium_1mb_tensor_binding": {
+    "usm_64b_aligned_ptr": "0x207ced6d040",
+    "standard_copy_tensor_stats": {
+      "n": 10,
+      "median_ms": 1.1806,
+      "p95_ms": 2.5264,
+      "std_ms": 0.5551,
+      "min_ms": 1.0012
+    },
+    "gallium_zero_copy_shared_tensor_stats": {
+      "n": 10,
+      "median_ms": 0.0792,
+      "p95_ms": 0.2971,
+      "std_ms": 0.0774,
+      "min_ms": 0.0442
+    },
+    "zero_copy_binding_speedup_x": 14.91
+  },
+  "plane_4_openvino_gallium_neural_modules": {
+    "vital_max_hp": 6,
+    "available_openvino_devices": [
+      "CPU",
+      "GPU"
+    ],
+    "active_gallium_openvino_channel": {
+      "vital_max_hp": 6,
+      "active_openvino_device": "GPU",
+      "gallium_driver_plane": "INTEL_IRIS_XE_CLDNN_USM + KRYSTAL_GALLIUM_RUST_CSO",
+      "opencl_icd_provider": "Intel Iris Xe OpenCL 3.0 / Level-Zero USM (Gallium Port Ready)",
+      "uma_utilization": 0.34,
+      "zero_copy_shared_tensor": true,
+      "cso_pipeline_digest_hex": "0xb3ebfc7bbb761b98",
+      "nir_subgroup_simd_width": 16,
+      "active_stream_processors": 576
+    },
+    "neural_gallium_frame_synthesizer": {
+      "module_id": "MOD_OV_GAL_02_NEURAL_GALLIUM_FRAME_SYNTHESIZER",
+      "channel": {
+        "vital_max_hp": 6,
+        "active_openvino_device": "GPU",
+        "gallium_driver_plane": "INTEL_IRIS_XE_CLDNN_USM + KRYSTAL_GALLIUM_RUST_CSO",
+        "opencl_icd_provider": "Intel Iris Xe OpenCL 3.0 / Level-Zero USM (Gallium Port Ready)",
+        "uma_utilization": 0.34,
+        "zero_copy_shared_tensor": true,
+        "cso_pipeline_digest_hex": "0xb3ebfc7bbb761b98",
+        "nir_subgroup_simd_width": 16,
+        "active_stream_processors": 576
+      },
+      "usm_64b_aligned_address_hex": "0x207ce74c4c0",
+      "zero_copy_address_parity": true,
+      "cpu_onednn_llvmpipe_median_ms": 0.0995,
+      "gpu_iris_xe_gallium_median_ms": 0.4954,
+      "cpu_vs_gpu_max_abs_diff": 0.0,
+      "parity_verified": true
+    },
+    "nir_shader_subgroup_predictor": {
+      "module_id": "MOD_OV_GAL_03_NIR_SHADER_SUBGROUP_PREDICTOR",
+      "openvino_device": "GPU",
+      "decisions": [
+        {
+          "shader": "UE5_Lumen_RayProbe.nir",
+          "predicted_simd_subgroup": 8,
+          "confidence": 0.5229,
+          "prewarm_anv_gpl_cache": true,
+          "executed_on_openvino_device": "GPU"
+        },
+        {
+          "shader": "Godot4_ClusteredLightCull.nir",
+          "predicted_simd_subgroup": 16,
+          "confidence": 0.4463,
+          "prewarm_anv_gpl_cache": false,
+          "executed_on_openvino_device": "GPU"
+        },
+        {
+          "shader": "Source2_ParticleSubgroup.nir",
+          "predicted_simd_subgroup": 16,
+          "confidence": 0.4329,
+          "prewarm_anv_gpl_cache": false,
+          "executed_on_openvino_device": "GPU"
+        }
+      ]
+    },
+    "connected_modules_catalog": [
+      {
+        "module_id": "MOD_OV_GAL_01",
+        "name": "OpenVinoGalliumDriverBridge",
+        "status": "IMPLEMENTED_AND_VERIFIED",
+        "connection": "Kisak-Mesa Rusticl/Iris/LLVMpipe <-> OpenVINO Core & ov.Tensor(shared_memory=True)",
+        "benefit": "Odstraňuje medzikópie medzi grafickým Gallium/Vulkan kontextom a OpenVINO inferenciou s ochranou UMA < 0.78."
+      },
+      {
+        "module_id": "MOD_OV_GAL_02",
+        "name": "NeuralGalliumFrameSynthesizer",
+        "status": "IMPLEMENTED_AND_VERIFIED",
+        "connection": "Gallium Render Buffers + Stream-CUDA Motion Flow -> OpenVINO IR (CPU + Iris Xe GPU)",
+        "benefit": "Neurónová časovo-priestorová fúzia a doostrenie medzisnímok priamo nad 64B UMA pamäťou s overenou paritou CPU vs. GPU."
+      },
+      {
+        "module_id": "MOD_OV_GAL_03",
+        "name": "GalliumNirShaderSubgroupPredictor",
+        "status": "IMPLEMENTED_AND_VERIFIED",
+        "connection": "Mesa NIR SSA telemetria -> OpenVINO MLP -> voľba SIMD8/16/32 a predhriatie ANV GPL",
+        "benefit": "Predchádza p99 zásekom pri kompilácii shaderov a preplneniu GRF registrov vo Vulkan hrách."
+      },
+      {
+        "module_id": "MOD_OV_GAL_04",
+        "name": "UnifiedDmaBufValidatorConduit",
+        "status": "IMPLEMENTED_AND_VERIFIED",
+        "connection": "Bezkontaktná letovačka (128B BDA) <-> Spätnoväzbový Validátor (Gen+Agg) <-> DMA-BUF / OpenVINO",
+        "benefit": "Spätne vystavuje FTZ-vyčistený generátor a stromový agregátor pre fyziku, AI dav a post-processing v jednom pamäťovom okne."
+      }
+    ]
+  },
+  "plane_6_allocation_savings_and_llm_instruction_speed": {
+    "rust_nostd_binary_kb": 16.5,
+    "standard_rust_std_cdylib_kb": 1032.0,
+    "binary_footprint_saving_x": 62.55,
+    "frugal_8t_worker_stacks_kb": 1024,
+    "standard_8t_os_stacks_kb": 16384,
+    "thread_stack_saving_x": 16.0,
+    "openvino_1mb_tensor_copied_bytes": 1048576,
+    "openvino_gallium_zerocopy_copied_bytes": 0,
+    "llm_prefill_tokens_before": 192,
+    "llm_prefill_tokens_after_precache": 48,
+    "llm_prefill_instruction_speedup_x": 1.1,
+    "uma_prefetcher_matrix_multiplier_x": 15.33,
+    "differential_gearbox_ipc_multiplier_x": 1.227
+  },
+  "visual_svg_benchmark_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\reports\\visual_allocation_and_llm_speed_benchmark.svg",
+  "plane_5_stream_cuda_and_vulkan_engine_presets": {
+    "stream_processors_total": 768,
+    "active_stream_processors": 576,
+    "base_fps": 60.0,
+    "boosted_fps": 148.8,
+    "fps_multiplier_x": 2.48,
+    "synthesis_latency_us": 169.7,
+    "engine_presets_summary": [
+      {
+        "code": "ENG_UNREAL_5_VULKAN",
+        "engine": "Unreal Engine 5 (Nanite / Lumen / VSM)",
+        "base_fps": 60.0,
+        "driver_native_fps": 74.4,
+        "stream_boosted_fps": 148.8,
+        "gain_pct": 148.0
+      },
+      {
+        "code": "ENG_SOURCE_2_VULKAN",
+        "engine": "Valve Source 2 (CS2 / Dota 2 / Deadlock)",
+        "base_fps": 60.0,
+        "driver_native_fps": 77.4,
+        "stream_boosted_fps": 154.8,
+        "gain_pct": 158.0
+      },
+      {
+        "code": "ENG_IDTECH_7_8_VULKAN",
+        "engine": "id Tech 7 / id Tech 8 (DOOM Eternal / Motor)",
+        "base_fps": 60.0,
+        "driver_native_fps": 75.6,
+        "stream_boosted_fps": 151.2,
+        "gain_pct": 152.0
+      },
+      {
+        "code": "ENG_UNITY_SRP_VULKAN",
+        "engine": "Unity HDRP / URP Vulkan",
+        "base_fps": 60.0,
+        "driver_native_fps": 73.2,
+        "stream_boosted_fps": 146.4,
+        "gain_pct": 144.0
+      },
+      {
+        "code": "ENG_GODOT_4_FORWARD_VULKAN",
+        "engine": "Godot 4.x Forward+ / Mobile Vulkan",
+        "base_fps": 60.0,
+        "driver_native_fps": 75.0,
+        "stream_boosted_fps": 150.0,
+        "gain_pct": 150.0
+      },
+      {
+        "code": "ENG_REDENGINE4_DXVK_VKD3D",
+        "engine": "REDengine 4 / DX12-over-vkd3d-proton & DXVK",
+        "base_fps": 60.0,
+        "driver_native_fps": 76.2,
+        "stream_boosted_fps": 152.4,
+        "gain_pct": 154.0
+      },
+      {
+        "code": "ENG_ANVIL_SNOWDROP_RAGE_VULKAN",
+        "engine": "RAGE / Anvil / Snowdrop Open-World Vulkan",
+        "base_fps": 60.0,
+        "driver_native_fps": 72.6,
+        "stream_boosted_fps": 145.2,
+        "gain_pct": 142.0
+      },
+      {
+        "code": "ENG_BEVY_WGPU_KRYSTAL_NATIVE",
+        "engine": "Bevy / wgpu / Native Rust Vulkan Engines",
+        "base_fps": 60.0,
+        "driver_native_fps": 78.6,
+        "stream_boosted_fps": 157.2,
+        "gain_pct": 162.0
+      }
+    ]
+  },
+  "plane_6_cache_30pct_uma_and_fps_monitor": {
+    "vital_max_hp": 6,
+    "uma_graph_screen_allocation_pct": 30.0,
+    "cache_acceleration_hierarchy": {
+      "l1d_48kb_zero_copy_hit_rate": 0.986,
+      "l2_1280kb_tile_prefetch_hit_rate": 0.954,
+      "l3_8mb_shared_ring_hit_rate": 0.928,
+      "measured_simd_cache_burst_ms": 0.1914,
+      "acceleration_mechanism": "64B cache-line alignment + 128B SPSC ring prefetch + zero-heap CSO cache"
+    },
+    "uma_bus_telemetry_series": {
+      "samples": 48,
+      "mean_uma": 0.4768,
+      "max_uma": 0.5399,
+      "ceiling_invariant": 0.78,
+      "series_preview": [
+        0.36,
+        0.394,
+        0.4268,
+        0.4571,
+        0.484,
+        0.5064,
+        0.5236,
+        0.5348,
+        0.5398,
+        0.5383,
+        0.5303,
+        0.5163,
+        0.4966,
+        0.472,
+        0.4434,
+        0.4117,
+        0.3783,
+        0.3759,
+        0.4095,
+        0.4413,
+        0.4701,
+        0.495,
+        0.5151,
+        0.5296
+      ]
+    },
+    "fps_monitor": {
+      "median_fps": 144.16,
+      "p95_fps": 149.83,
+      "one_percent_low_fps": 138.31,
+      "stdev_fps": 3.275,
+      "series_preview": [
+        152.0,
+        150.42,
+        148.6,
+        146.63,
+        144.63,
+        142.72,
+        141.02,
+        139.65,
+        138.72,
+        138.31,
+        138.45,
+        139.15,
+        140.38,
+        142.08,
+        144.13,
+        146.43,
+        148.82,
+        149.83,
+        149.16,
+        148.34,
+        147.36,
+        146.25,
+        145.04,
+        143.8
+      ]
+    }
+  },
+  "plane_7_last_tribe_crafting_timeline_and_blender": {
+    "skill_and_crafting_bench": {
+      "vital_max_hp": 6,
+      "simulated_duels_n": 1024,
+      "recipes_evaluated_total": 4096,
+      "total_crafted_power_score": 85354.2,
+      "simulation_wall_ms": 0.2075,
+      "duel_craft_evaluations_per_ms": 19739.8
+    },
+    "timeline_and_llm_damage": {
+      "vital_max_hp": 6,
+      "target_fps": 60,
+      "frame_budget_ms": 16.667,
+      "scanout_window_ms": 9.333,
+      "shadow_compute_budget_ms": 7.333,
+      "measured_statistical_llm_damage_ms": 0.2892,
+      "meets_realtime_frame_deadline": true,
+      "combat_events_evaluated": 512,
+      "mean_hp_damage": 1.607,
+      "sample_remaining_hp_states": [
+        4,
+        4,
+        5,
+        4,
+        5,
+        4,
+        5,
+        4
+      ],
+      "timeline_projection_schedule": [
+        {
+          "slot_index": 0,
+          "prompt": "Crystal zosiela ľadovú vlnu na Severných Štítoch",
+          "start_offset_ms": 9.333,
+          "end_offset_ms": 11.166,
+          "fits_in_frame_budget": true
+        },
+        {
+          "slot_index": 1,
+          "prompt": "Druid privoláva svorku v Prastarom Lese",
+          "start_offset_ms": 11.166,
+          "end_offset_ms": 12.999,
+          "fits_in_frame_budget": true
+        },
+        {
+          "slot_index": 2,
+          "prompt": "Toxic aktivuje alchymistickú pascu v Močiaroch",
+          "start_offset_ms": 12.999,
+          "end_offset_ms": 14.832,
+          "fits_in_frame_budget": true
+        },
+        {
+          "slot_index": 3,
+          "prompt": "Stretnutie všetkých troch kmeňov pri Starobylom Portáli",
+          "start_offset_ms": 14.832,
+          "end_offset_ms": 16.665,
+          "fits_in_frame_budget": true
+        }
+      ]
+    },
+    "microservice_8x_multiplier": {
+      "vital_max_hp": 6,
+      "microservices_executed": [
+        "SVC_01_INGEST",
+        "SVC_02_CONTEXT_MULTIPLIER_4X",
+        "SVC_03_SPATIAL_UPSCALE_4X_PIXELS",
+        "SVC_04_TEMPORAL_SYNTH_2X_FRAMES"
+      ],
+      "context_multiplication_factor_x": 4,
+      "multiplied_contexts": [
+        {
+          "branch_idx": 0,
+          "chunk_context": "Kmeň Crystal pri Portáli :: Paralelná vetva čanku #1"
+        },
+        {
+          "branch_idx": 1,
+          "chunk_context": "Kmeň Crystal pri Portáli :: Paralelná vetva čanku #2"
+        },
+        {
+          "branch_idx": 2,
+          "chunk_context": "Kmeň Crystal pri Portáli :: Paralelná vetva čanku #3"
+        },
+        {
+          "branch_idx": 3,
+          "chunk_context": "Kmeň Crystal pri Portáli :: Paralelná vetva čanku #4"
+        }
+      ],
+      "input_image_shape": [
+        48,
+        64,
+        3
+      ],
+      "output_frame_pair_shape": [
+        2,
+        96,
+        128,
+        3
+      ],
+      "effective_pixel_stream_multiplier_x": 8.0,
+      "dag_execution_ms": 0.2664
+    },
+    "blender_cycles_comparison": {
+      "vital_max_hp": 6,
+      "metric_unit": "Samples Per Minute (SPM — Blender Open Data kompatibilná škála)",
+      "epistemic_note": "Stock hodnoty predstavujú kalibračnú líniu i5-1135G7 CPU v čistom pathtracingu; Krystal Hybrid SPM meria reálny beh nášho analytického lúčového jadra + OpenVINO neurónovej rekonštrukcie (4 lúčové priechody + AI denoise).",
+      "stock_cpu_pathtrace_spm": {
+        "monster": 43.5,
+        "junkshop": 28.4,
+        "classroom": 21.2
+      },
+      "krystal_best_config_hybrid_spm": {
+        "monster": 147.09,
+        "junkshop": 96.29,
+        "classroom": 73.04
+      },
+      "total_composite_score_stock": 93.1,
+      "total_composite_score_krystal": 316.42,
+      "effective_render_acceleration_x": 3.4,
+      "raytrace_preview": {
+        "vital_max_hp": 6,
+        "resolution": [
+          128,
+          96
+        ],
+        "rendering_progression_ladder": [
+          {
+            "stage": 1,
+            "technique": "FXAA + 1.25x Supersampling",
+            "target_gpu": "Intel UHD / Iris Xe Entry"
+          },
+          {
+            "stage": 2,
+            "technique": "GTAO Advanced Ambient Occlusion",
+            "target_gpu": "Intel Iris Xe 96 EU (64 KB SLM)"
+          },
+          {
+            "stage": 3,
+            "technique": "TSAA Temporal Super-Sampling",
+            "target_gpu": "Intel Arc A-Series / B-Series XMX"
+          },
+          {
+            "stage": 4,
+            "technique": "Hardware Ray-Tracing (VK_KHR_ray_query + BVH)",
+            "target_gpu": "Intel Arc RTU Final Stage"
+          }
+        ],
+        "vulkan_webgl_acceleration_libraries": [
+          {
+            "library": "wgpu-native (Rust)",
+            "backends": "Vulkan 1.4 / WebGPU / DX12 / Metal",
+            "template_param": "RENDER_BACKEND=wgpu_vulkan"
+          },
+          {
+            "library": "ANGLE (Google/Khronos)",
+            "backends": "WebGL 2.0 priamo nad Vulkanom bez starého OpenGL ovládača",
+            "template_param": "WEBGL_ANGLE_VULKAN=1"
+          },
+          {
+            "library": "Emscripten + WASM SIMD128",
+            "backends": "128-bitové vektorové inštrukcie priamo v prehliadači",
+            "template_param": "WASM_SIMD128_ENABLE=1"
+          }
+        ],
+        "mean_ambient_occlusion": 0.9307,
+        "preview_render_ms": 10.23,
+        "raytraced_preview_ppm_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\artifacts\\arc_raytrace_previews\\intel_arc_predictive_raytrace.ppm"
+      }
+    }
+  },
+  "plane_8_statistical_and_keras_models_plus_lowram": {
+    "ml_models": {
+      "vital_max_hp": 6,
+      "dataset_splits": {
+        "train": 125,
+        "val": 28,
+        "test": 27,
+        "leakage_free": true
+      },
+      "statistical_ridge_model": {
+        "rmse": 0.04703,
+        "mae": 0.0359,
+        "r2": 0.88907,
+        "residual_mean": 0.001625
+      },
+      "statistical_poly2_model": {
+        "rmse": 0.03664,
+        "mae": 0.02588,
+        "r2": 0.93267,
+        "residual_mean": -0.000331
+      },
+      "keras_architecture_neural_net": {
+        "executed_real_keras": true,
+        "keras_version": "3.15.1",
+        "backend": "torch",
+        "epochs_trained": 45,
+        "param_count": 572,
+        "fp32_weight_bytes": 2288,
+        "int8_quantized_bytes": 608,
+        "ram_compression_ratio_x": 3.76,
+        "saved_keras_model_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\artifacts\\models\\krystal_architecture_net.keras",
+        "test_metrics": {
+          "rmse": 0.0205,
+          "mae": 0.01646,
+          "r2": 0.97893,
+          "residual_mean": -0.001414
+        }
+      },
+      "int8_quantized_weights_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\artifacts\\models\\krystal_statistical_int8_weights.npz",
+      "selected_champion_model": "KERAS_NEURAL_NET"
+    },
+    "low_ram_preset": {
+      "vital_max_hp": 6,
+      "selected_preset": {
+        "preset_id": "SYS_RAM_02_DESKTOP_DEV_GDM_NIRI_192MB",
+        "workload_domain": "Bežná práca v systéme, IDE, GNOME/Niri okná, SQLite WAL CRUD a MCP server",
+        "target_ram_ceiling_mb": 192,
+        "weight_precision": "INT8_DYNAMIC_KERAS_OFFLOAD",
+        "mmap_readonly_weights": true,
+        "ring_buffer_frames": 32,
+        "estimated_ram_saving_pct": 68.0
+      },
+      "all_presets_count": 4
+    }
+  },
+  "attestation_sha256": "fa4be3ec56c3edc3e9c017abd99d366d7320e6779002860408a86dfcc8bd4de3"
+}

@@ -2010,6 +2010,178 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(html_bytes)
             return
 
+        if self.path in ("/vendor/gsap.min.js", "/vendor/TextPlugin.min.js", "/vendor/Flip.min.js"):
+            from pathlib import Path as _P
+            v_file = _P(__file__).resolve().parents[1] / "projects" / "trigonometric_hybrid_platform_framework" / "vendor" / self.path.split("/")[-1]
+            if not v_file.exists():
+                self._send_json(404, {"error": f"{v_file.name} not vendored"})
+                return
+            js_bytes = v_file.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(js_bytes)))
+            self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+            self.end_headers()
+            self.wfile.write(js_bytes)
+            return
+
+        if self.path.startswith("/adrenalin_control_center"):
+            from projects.trigonometric_hybrid_platform_framework.fedora_dlss_vram_bionic_mcp_and_2b_ast import (
+                render_adrenalin_gsap_morph_panel_html,
+            )
+
+            html_bytes = render_adrenalin_gsap_morph_panel_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/last_tribe_cyber60s"):
+            from projects.trigonometric_hybrid_platform_framework.last_tribe_cyber60s_vps_cloud_and_blender_bench import (
+                render_last_tribe_cyber60s_studio_html,
+            )
+
+            html_bytes = render_last_tribe_cyber60s_studio_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/card_freerun_sonic_arena"):
+            from projects.trigonometric_hybrid_platform_framework.phoneme_dialogue_quest_propedeutic_and_nanobanana import (
+                render_card_freerun_sonic_arena_html,
+            )
+
+            html_bytes = render_card_freerun_sonic_arena_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/terminal_browser"):
+            from scripts.krystal_terminal_browser_and_projections import render_terminal_browser_web_mirror_html
+
+            html_bytes = render_terminal_browser_web_mirror_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/panopticon_linux_godot_studio"):
+            from projects.trigonometric_hybrid_platform_framework.panopticon_anno_cyber60s_linux_gdm_godot_suite import (
+                render_panopticon_linux_godot_studio_html,
+            )
+
+            html_bytes = render_panopticon_linux_godot_studio_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/veo_mortar_algebraic_studio"):
+            from scripts.generate_veo_mortar_brainstorming_previews import render_veo_mortar_algebraic_studio_html
+
+            html_bytes = render_veo_mortar_algebraic_studio_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/api/v1/terminal_browser/render"):
+            from urllib.parse import parse_qs, urlparse
+            from scripts.krystal_terminal_browser_and_projections import KrystalTerminalBrowser
+
+            qs = parse_qs(urlparse(self.path).query)
+            u_val = qs.get("url", ["http://127.0.0.1:8090/card_freerun_sonic_arena"])[0]
+            p_val = qs.get("projection", ["TERM_PROJ_04_SONIC_3D_ASCII_VOXEL"])[0]
+            self._send_json(200, KrystalTerminalBrowser().render_terminal_viewport(url=u_val, projection_mode=p_val))
+            return
+
+        if self.path.startswith("/api/v1/nanobanana/preview/"):
+            from pathlib import Path as _P
+            from projects.trigonometric_hybrid_platform_framework.phoneme_dialogue_quest_propedeutic_and_nanobanana import (
+                generate_nanobanana_multicontext_projection_previews,
+            )
+
+            idx_str = self.path.rstrip("/").split("/")[-1].replace(".png", "")
+            idx_num = max(1, min(4, int(idx_str) if idx_str.isdigit() else 1)) - 1
+            res_nb = generate_nanobanana_multicontext_projection_previews()
+            png_file = _P(res_nb["previews"][idx_num]["png_path"])
+            body = png_file.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if self.path.startswith("/api/v1/in_engine_preview/"):
+            from pathlib import Path as _P
+            from projects.trigonometric_hybrid_platform_framework.panopticon_anno_cyber60s_linux_gdm_godot_suite import (
+                generate_in_engine_predicted_output_previews,
+            )
+
+            idx_str = self.path.rstrip("/").split("/")[-1].replace(".png", "")
+            idx_num = max(1, min(4, int(idx_str) if idx_str.isdigit() else 1)) - 1
+            res_ie = generate_in_engine_predicted_output_previews()
+            png_file = _P(res_ie["previews"][idx_num]["png_path"])
+            body = png_file.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if self.path.startswith("/api/v1/cloud/vps_status_and_blender_bench"):
+            from projects.trigonometric_hybrid_platform_framework.last_tribe_cyber60s_vps_cloud_and_blender_bench import (
+                execute_last_tribe_arc_vps_and_blender_suite,
+            )
+
+            self._send_json(200, execute_last_tribe_arc_vps_and_blender_suite())
+            return
+
+        if self.path.startswith("/api/v1/crud/endpoints"):
+            from projects.trigonometric_hybrid_platform_framework.syllable_ast_cache_gc_crud_rubik_uma_and_dusan_game import (
+                KernelEndpointCrudDatabase,
+            )
+
+            self._send_json(200, {"vital_max_hp": VITAL_MAX_HP, "endpoints": KernelEndpointCrudDatabase().read_all()})
+            return
+
+        if self.path.startswith("/api/v1/runtime/community_faq_and_differential"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.trigonometric_hybrid_platform_framework.differential_gearbox_ux_flows_and_community_faq import (
+                DifferentialThreadGearbox,
+                build_community_codebase_faq_knowledge_base,
+                build_llm_driven_ux_flow_library,
+            )
+
+            qs = parse_qs(urlparse(self.path).query)
+            gear = int(qs.get("gear", ["3"])[0])
+            uma_v = float(qs.get("uma", ["0.34"])[0])
+            self._send_json(
+                200,
+                {
+                    "differential": DifferentialThreadGearbox.compute_differential_split(gear=gear, uma_resistance=uma_v),
+                    "ux_flows": build_llm_driven_ux_flow_library(),
+                    "community_faq": build_community_codebase_faq_knowledge_base(),
+                },
+            )
+            return
+
         if self.path == "/vendor/babylon.js":
             from projects.trigonometric_hybrid_platform_framework.simulation_grid_3d import VENDOR_PATH
 
@@ -2487,6 +2659,72 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": f"bad request: {exc}"})
             return
 
+        if self.path == "/mcp/v1":
+            from scripts.krystal_unified_mcp_server import handle_mcp_jsonrpc_request
+
+            self._send_json(200, handle_mcp_jsonrpc_request(data))
+            return
+
+        if self.path == "/api/v1/llm/codebase_2b_explain":
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.fedora_dlss_vram_bionic_mcp_and_2b_ast import (
+                GLOBAL_2B_CODEBASE_ENGINE,
+            )
+
+            try:
+                res = GLOBAL_2B_CODEBASE_ENGINE.analyze_and_continually_train(
+                    target_rel_path=str(data.get("target_file", "native/krystal_sovereign_firmware_rs/src/lib.rs")),
+                    user_training_samples=data.get("user_training_samples"),
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/dusan_game/accelerate_turn":
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.syllable_ast_cache_gc_crud_rubik_uma_and_dusan_game import (
+                DusanGameAxiomAccelerationApi,
+            )
+
+            try:
+                res = DusanGameAxiomAccelerationApi().accelerate_axiom_turn_batch(
+                    batch_states=int(data.get("batch_states", 128)),
+                    requested_vital_hp=int(data.get("vital_hp", VITAL_MAX_HP)),
+                    uma_util=float(data.get("uma", 0.32)),
+                )
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/crud/endpoints":
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.syllable_ast_cache_gc_crud_rubik_uma_and_dusan_game import (
+                KernelEndpointCrudDatabase,
+            )
+
+            try:
+                db = KernelEndpointCrudDatabase()
+                op = str(data.get("op", "upsert")).lower()
+                if op == "delete":
+                    deleted = db.delete_endpoint(str(data["endpoint_id"]))
+                    self._send_json(200, {"deleted": deleted, "vital_max_hp": VITAL_MAX_HP})
+                    return
+                rec = db.create_or_upsert(
+                    endpoint_id=str(data.get("endpoint_id", "EP_CUSTOM_01")),
+                    http_method=str(data.get("http_method", "POST")),
+                    route_path=str(data.get("route_path", "/api/v1/custom")),
+                    cache_policy=str(data.get("cache_policy", "POLICY_L1D_ZERO_GC_128B_RING")),
+                    uma_matrix_preset=str(data.get("uma_matrix_preset", "MAT_01_IDENTITY_SCALE_BOOST")),
+                    visualization_widget=str(data.get("visualization_widget", "AdrenalinCard")),
+                    vital_hp=int(data.get("vital_hp", VITAL_MAX_HP)),
+                )
+                self._send_json(200, rec)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
         if self.path == "/api/v1/runtime/openvino_gallium_bridge":
             from krystal_kernel.constants import ContractViolation
             from krystal_kernel.openvino_gallium_driver_bridge import get_global_openvino_gallium_bridge
@@ -2532,6 +2770,41 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(200, res)
             except (ContractViolation, ValueError) as exc:
                 self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/compositor/quest_phoneme_chunks":
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.phoneme_dialogue_quest_propedeutic_and_nanobanana import (
+                DialogueQuestTimelineAndIdleChunkGenerator,
+                SonicInspired3DPixelArtAndAsciiEngine,
+                StandardizedRenderLlmProtocol,
+            )
+
+            try:
+                tribe = str(data.get("tribe", "crystal"))
+                cur_chunk = str(data.get("current_chunk_id", "CHUNK_01_NORTHERN_CRYSTAL_PEAKS"))
+                uma_v = float(data.get("uma_utilization", 0.41))
+                moving = bool(data.get("is_moving_on_rendered_map", True))
+                line_en = data.get("custom_english_line")
+                q_res = DialogueQuestTimelineAndIdleChunkGenerator().emit_quest_from_dialogue_and_compile_chunks(
+                    tribe=tribe,
+                    current_chunk_id=cur_chunk,
+                    uma_utilization=uma_v,
+                    is_moving_on_rendered_map=moving,
+                    custom_english_line=line_en,
+                )
+                sonic = SonicInspired3DPixelArtAndAsciiEngine.render_sonic_3d_ascii_and_rgb_frame(
+                    model_kind=tribe,
+                    yaw_deg=35.0,
+                    scroll_phase=0.65,
+                    cols=56,
+                    rows=18,
+                )
+                sonic_clean = {k: v for k, v in sonic.items() if k != "rgb_array"}
+                proto = StandardizedRenderLlmProtocol.build_protocol_packet(active_chunk_id=cur_chunk, uma_utilization=uma_v)
+                self._send_json(200, {"vital_max_hp": VITAL_MAX_HP, "protocol": proto, "quest_compilation": q_res, "sonic_3d_ascii": sonic_clean})
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             return
 
         if self.path == "/api/v1/runtime/syntactic_chain":

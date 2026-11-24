@@ -235,9 +235,9 @@
   "multi_stream_execution_benchmark": {
     "executed_on_device": "GPU",
     "batches_per_trial": 8,
-    "single_stream_sync_median_ms": 2.718,
-    "dual_xe_stream_async_median_ms": 2.267,
-    "async_pipeline_speedup_x": 1.2,
+    "single_stream_sync_median_ms": 61.66,
+    "dual_xe_stream_async_median_ms": 36.719,
+    "async_pipeline_speedup_x": 1.68,
     "epistemic_status": "LOCAL_MEASURED"
   },
   "causal_mechanisms_behind_parameters": [
@@ -430,8 +430,8 @@
         "GPU_MEMORY_STATISTICS": {
           "cl_mem": 0,
           "unknown": 0,
-          "usm_device": 73494864,
-          "usm_host": 42104,
+          "usm_device": 73763984,
+          "usm_host": 58488,
           "usm_shared": 0
         }
       }
@@ -443,11 +443,11 @@
       "ZERO_COPY_REMOTE_TENSOR": "ov.Tensor(aligned_64b_array, shared_memory=True)"
     },
     "os_process_management_bridge": {
-      "pid": 104804,
+      "pid": 25232,
       "process_name": "python.exe",
-      "active_os_threads": 69,
-      "rss_memory_mb": 726.36,
-      "voluntary_ctx_switches": 12410,
+      "active_os_threads": 81,
+      "rss_memory_mb": 726.64,
+      "voluntary_ctx_switches": 68385,
       "involuntary_ctx_switches": 0,
       "current_cpu_affinity": [
         0,
@@ -465,7 +465,7 @@
         2,
         3
       ],
-      "host_ram_available_gb": 4.26,
+      "host_ram_available_gb": 3.66,
       "driver_assist_actions_active": [
         "Persistent shader/blob cache active at openvino_blobs (prevents driver JIT stalls)",
         "64B/4KB/64KB aligned zero-copy buffers (eliminates WDDM/DRM bounce-buffer copies)",
@@ -478,9 +478,9 @@
   "high_frequency_telemetry_overhead_audit": {
     "audited_device": "GPU",
     "audited_property": "GPU_MEMORY_STATISTICS",
-    "direct_openvino_driver_query_ns": 15540.62,
-    "cached_mmap_bar0_hotpath_read_ns": 79.1,
-    "hotpath_overhead_reduction_x": 196.46,
+    "direct_openvino_driver_query_ns": 39818.75,
+    "cached_mmap_bar0_hotpath_read_ns": 229.49,
+    "hotpath_overhead_reduction_x": 173.51,
     "tier_classification": {
       "HOT_LOOP_120HZ_10KHZ": "BAR0 `mmap` u32/u64 registre (`0x0018` UMA, `0x001C` Teplota, `0x0048` Fence) — 0 syscallov",
       "SHADOW_PHASE_1HZ_10HZ": "`ov.Core.get_property(GPU_MEMORY_STATISTICS)` + `psutil` procesné prepnutia — iba vo VBlank tieni (P3)",
@@ -496,7 +496,7 @@
     "rmse_error_reduction_x": 3.62,
     "pixel_sample_density_gain_x": 16,
     "active_render_layers_gain": "5/10 vrstiev (0x1f) -> 10/10 plných Fresnel/tieňových vrstiev (0x3ff)",
-    "krystal_frame_compute_ms": 0.674,
+    "krystal_frame_compute_ms": 1.255,
     "fits_within_120hz_budget": true,
     "epistemic_status": "LOCAL_MEASURED"
   },
@@ -525,9 +525,9 @@
     ]
   },
   "cpu_lookahead_whisperer_benchmark": {
-    "unhinted_random_branchy_us": 763.5,
-    "whispered_contiguous_branchless_us": 99.8,
-    "cpu_whisperer_speedup_x": 7.65,
+    "unhinted_random_branchy_us": 3126.5,
+    "whispered_contiguous_branchless_us": 322.5,
+    "cpu_whisperer_speedup_x": 9.69,
     "channels": [
       "C11/Rust `__builtin_prefetch` (`PREFETCHT0` pre horúce 64B sloty do 55.10 GB/s L2 a `PREFETCHNTA` pre jednorazové prúdy)",
       "Bez-vetvová bitová autorita (`kr_reduce_authority` a `TZCNT` bitmapa — 0 penalizácií za chybný skok v pipeline CPU)",

@@ -10,7 +10,7 @@
       "binary_path": "native\\krystal_concurrent_rust_core.dll",
       "binary_size_bytes": 15360,
       "binary_size_kb": 15.0,
-      "sha256": "72fdc4e56bf7a93400afb8109e4f571c7fcee916c0482aca84e9d9f4f9fd48a7",
+      "sha256": "c4c20b0bd1491689a93e87211dfc2287a9e20e69327f48bf689fecc869bfb66a",
       "provenance_verified": true,
       "can_execute_native_cdll": false,
       "code_integrity_outcome": "UNSIGNED_QUIET_PRECHECK_UMCI (0x800b0100)",
@@ -70,7 +70,7 @@
       "binary_path": "native\\pulse_logger_core.dll",
       "binary_size_bytes": 10240,
       "binary_size_kb": 10.0,
-      "sha256": "b352482eb7b81ff4eec12899c7278fc8f0c22a9375835d4dfe3149741b3cc7d8",
+      "sha256": "ee1b3ef8285cef01a4ce0bfebf4735de4ec60522267c5c3990221fe4adb12566",
       "provenance_verified": true,
       "can_execute_native_cdll": false,
       "code_integrity_outcome": "UNSIGNED_QUIET_PRECHECK_UMCI (0x800b0100)",
@@ -136,8 +136,8 @@
     "rejected_invalid_hp_frames_delta_s_zero": 4,
     "bar0_live_completed_head": 480,
     "bar0_live_rejected_noop_count": 4,
-    "coworker_active_compute_us": 5232.0,
-    "combined_openvino_plus_coworker_wall_ms": 5.897,
-    "last_fnv1a_digest_hex": "0xdbf39861f0781646"
+    "coworker_active_compute_us": 13532.2,
+    "combined_openvino_plus_coworker_wall_ms": 15.671,
+    "last_fnv1a_digest_hex": "0x4ea05dba73000879"
   }
 }

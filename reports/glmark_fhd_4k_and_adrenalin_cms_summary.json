@@ -99,9 +99,9 @@
   "glmark_fhd_and_4k_benchmark": {
     "vital_max_hp": 6,
     "opengl_driver_probe": {
-      "gl_vendor": "Intel",
-      "gl_renderer": "Intel(R) Iris(R) Xe Graphics",
-      "gl_version": "4.6.0 - Build 32.0.101.7092",
+      "gl_vendor": "Microsoft Corporation",
+      "gl_renderer": "GDI Generic",
+      "gl_version": "1.1.0",
       "status": "HARDWARE_WGL_ACTIVE"
     },
     "monitored_frames_logged": 16,
@@ -112,14 +112,14 @@
         "height": 1080,
         "framebuffer_fp32_mb": 23.73,
         "executed_on_device": "GPU",
-        "stock_median_ms": 30.869,
-        "krystal_median_ms": 22.453,
-        "stock_fps": 32.39,
-        "krystal_fps": 44.54,
-        "stock_glmark_equivalent_score": 324,
-        "krystal_glmark_equivalent_score": 445,
+        "stock_median_ms": 50.075,
+        "krystal_median_ms": 36.459,
+        "stock_fps": 19.97,
+        "krystal_fps": 27.43,
+        "stock_glmark_equivalent_score": 200,
+        "krystal_glmark_equivalent_score": 274,
         "speedup_x": 1.37,
-        "fps_gain_pct": 37.48,
+        "fps_gain_pct": 37.35,
         "epistemic_status": "LOCAL_MEASURED"
       },
       "UHD_4K_3840x2160": {
@@ -127,14 +127,14 @@
         "height": 2160,
         "framebuffer_fp32_mb": 94.92,
         "executed_on_device": "GPU",
-        "stock_median_ms": 150.878,
-        "krystal_median_ms": 105.794,
-        "stock_fps": 6.63,
-        "krystal_fps": 9.45,
-        "stock_glmark_equivalent_score": 66,
-        "krystal_glmark_equivalent_score": 95,
-        "speedup_x": 1.43,
-        "fps_gain_pct": 42.62,
+        "stock_median_ms": 358.168,
+        "krystal_median_ms": 207.421,
+        "stock_fps": 2.79,
+        "krystal_fps": 4.82,
+        "stock_glmark_equivalent_score": 28,
+        "krystal_glmark_equivalent_score": 48,
+        "speedup_x": 1.73,
+        "fps_gain_pct": 72.68,
         "epistemic_status": "LOCAL_MEASURED"
       }
     }
@@ -193,7 +193,7 @@
     ],
     "governed_execution_plan": {
       "vital_max_hp": 6,
-      "decision_sequence": 2,
+      "decision_sequence": 5,
       "resolved_mode": "coprocessor_visual_ai",
       "selected_script": "projects/trigonometric_hybrid_platform_framework/hybrid_rust_and_intel_xe_cuda_streams.py",
       "selected_openvino_preset": "OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU",
@@ -218,10 +218,10 @@
   "driver_and_os_opportunities": {
     "vital_max_hp": 6,
     "live_host_snapshot": {
-      "available_ram_gb": 2.93,
+      "available_ram_gb": 3.11,
       "cpu_affinity_threads": 8,
-      "warm_driver_blobs": 25,
-      "gpu_usm_device_mb": 70.09
+      "warm_driver_blobs": 36,
+      "gpu_usm_device_mb": 70.35
     },
     "discovered_opportunities_count": 5,
     "opportunities": [
@@ -239,7 +239,7 @@
       {
         "opportunity_id": "OPP_OS_02_LOW_RAM_COMPACT_ARENA_GUARD",
         "target_plane": "OPERAČNÝ_SYSTÉM_VIRTUÁLNA_PAMÄŤ",
-        "trigger_observed": "Voľná systémová RAM je iba 2.93 GB (< 4,5 GB prah)",
+        "trigger_observed": "Voľná systémová RAM je iba 3.11 GB (< 4,5 GB prah)",
         "proposed_action_sk": "Aktivovať kompaktnú 64 MB zero-copy arénu a 40,37x kompresiu logov na zabránenie stránkovania na NVMe disk.",
         "tier": "P0",
         "utility": 94.0,
@@ -250,7 +250,7 @@
       {
         "opportunity_id": "OPP_GPU_01_ZERO_BOUNCE_64KB_USM_BRIDGE",
         "target_plane": "GRAFICKÝ_OVLÁDAČ_PAMÄŤ",
-        "trigger_observed": "Aktívna GPU USM pamäť ovládača: 70.09 MB, predhriate bloby: 25",
+        "trigger_observed": "Aktívna GPU USM pamäť ovládača: 70.35 MB, predhriate bloby: 36",
         "proposed_action_sk": "Zarovnať všetky zdieľané buffery na 64 B cache riadok a 64 KB D3D12/Vulkan hranicu, aby ovládač preskočil skryté kopírovanie.",
         "tier": "P1",
         "utility": 89.0,
@@ -284,10 +284,10 @@
     "arbitrated_execution": {
       "vital_max_hp": 6,
       "shadow_prices": {
-        "lambda_uma": 3.355,
+        "lambda_uma": 3.309,
         "lambda_watt": 0.036
       },
-      "final_committed_uma": 0.6919,
+      "final_committed_uma": 0.6878,
       "remaining_watt_headroom": 18.0,
       "accepted_agents": [
         {
@@ -300,20 +300,20 @@
           "uma_delta": 0.01,
           "watts": 0.5,
           "preferred_unit": "CPU_VSYNC_CORE",
-          "arbitration_score": 178974.633,
+          "arbitration_score": 180573.398,
           "decision": "GRANTED_IMMEDIATE"
         },
         {
           "opportunity_id": "OPP_OS_02_LOW_RAM_COMPACT_ARENA_GUARD",
           "target_plane": "OPERAČNÝ_SYSTÉM_VIRTUÁLNA_PAMÄŤ",
-          "trigger_observed": "Voľná systémová RAM je iba 2.93 GB (< 4,5 GB prah)",
+          "trigger_observed": "Voľná systémová RAM je iba 3.11 GB (< 4,5 GB prah)",
           "proposed_action_sk": "Aktivovať kompaktnú 64 MB zero-copy arénu a 40,37x kompresiu logov na zabránenie stránkovania na NVMe disk.",
           "tier": "P0",
           "utility": 94.0,
           "uma_delta": 0.02,
           "watts": 1.0,
           "preferred_unit": "CPU_VSYNC_CORE",
-          "arbitration_score": 91433.582,
+          "arbitration_score": 92250.359,
           "decision": "GRANTED_IMMEDIATE"
         },
         {
@@ -326,7 +326,7 @@
           "uma_delta": 0.03,
           "watts": 2.0,
           "preferred_unit": "CPU_4P_AVX512",
-          "arbitration_score": 4998.055,
+          "arbitration_score": 5038.032,
           "decision": "GRANTED_IMMEDIATE"
         },
         {
@@ -339,27 +339,27 @@
           "uma_delta": 0.07,
           "watts": 3.0,
           "preferred_unit": "IRIS_XE_768_SP",
-          "arbitration_score": 2456.396,
+          "arbitration_score": 2479.496,
           "decision": "GRANTED_IMMEDIATE"
         },
         {
           "opportunity_id": "OPP_GPU_01_ZERO_BOUNCE_64KB_USM_BRIDGE",
           "target_plane": "GRAFICKÝ_OVLÁDAČ_PAMÄŤ",
-          "trigger_observed": "Aktívna GPU USM pamäť ovládača: 70.09 MB, predhriate bloby: 25",
+          "trigger_observed": "Aktívna GPU USM pamäť ovládača: 70.35 MB, predhriate bloby: 36",
           "proposed_action_sk": "Zarovnať všetky zdieľané buffery na 64 B cache riadok a 64 KB D3D12/Vulkan hranicu, aby ovládač preskočil skryté kopírovanie.",
           "tier": "P1",
           "utility": 89.0,
           "uma_delta": 0.08,
           "watts": 3.5,
           "preferred_unit": "IRIS_XE_768_SP",
-          "arbitration_score": 2262.516,
+          "arbitration_score": 2283.654,
           "decision": "GRANTED_IMMEDIATE"
         }
       ],
       "deferred_agents": [],
       "governed_execution_plan": {
         "vital_max_hp": 6,
-        "decision_sequence": 1,
+        "decision_sequence": 4,
         "resolved_mode": "coprocessor_visual_ai",
         "selected_script": "projects/trigonometric_hybrid_platform_framework/hybrid_rust_and_intel_xe_cuda_streams.py",
         "selected_openvino_preset": "OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU",
@@ -497,7 +497,11 @@
     "authorized_partner_addendum": {
       "grantee": "Ivan Novikov",
       "organization_and_project": "XERJ (https://xerj.org | https://github.com/xerj-org/xerj)",
-      "grant_scope_sk": "Ivan Novikov má na základe vzájomnej dohody s majiteľom codebase Dušanom Kopeckým výslovne povolené používať novodopracované funkcie a nadstavby frameworku na svojom projekte."
+      "highlighted_covered_integrations": [
+        "Bez-kópiové tenzorové integrácie (`kuMallocUMA`, `ov.Tensor` shared_memory, `GPU_USM_MEMORY`, 64B/64KB zarovnanie, FTZ/DAZ denormálová bariéra)",
+        "Optimalizované konfigurácie OpenVINO (`OV_MT_01..05` viacvláknové presety, `HETERO`/`AUTO` smerovanie a predhriata cache blobov)"
+      ],
+      "grant_scope_sk": "Ivan Novikov má na základe vzájomnej dohody s majiteľom codebase Dušanom Kopeckým výslovne povolené používať novodopracované funkcie, tenzorové integrácie a konfigurácie OpenVINO na svojom projekte XERJ (s poďakovaním za spoluprácu s xerj.org)."
     },
     "fair_price_to_performance_tiers": [
       {

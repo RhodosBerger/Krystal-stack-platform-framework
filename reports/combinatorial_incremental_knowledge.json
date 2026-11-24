@@ -126,7 +126,7 @@
       "combination": "P1_CONV_INTERPOSER + P2_DUAL_OS_BINARY",
       "initial_status": "PATTERN_CANDIDATE",
       "promoted_status": "VERIFIED_WITH_SCOPE",
-      "cdt_elapsed_ms": 0.091,
+      "cdt_elapsed_ms": 0.373,
       "output": {
         "derivative_id": "DF_01_192B_WNTC_KPKT_DATAGRAM",
         "total_bytes": 192,
@@ -140,7 +140,7 @@
       "combination": "P1_CONV_INTERPOSER + P3_DOUBLE_TIME_RING",
       "initial_status": "PATTERN_CANDIDATE",
       "promoted_status": "VERIFIED_WITH_SCOPE",
-      "cdt_elapsed_ms": 38.017,
+      "cdt_elapsed_ms": 58.477,
       "output": {
         "derivative_id": "DF_02_CONV_PACED_DOUBLE_TIME",
         "effective_uma": 0.72,
@@ -154,7 +154,7 @@
       "combination": "P4_GONIO_GODOT_OPTICS + P5_SYMPY_RIG_VISUAL_GEN",
       "initial_status": "PATTERN_CANDIDATE",
       "promoted_status": "VERIFIED_WITH_SCOPE",
-      "cdt_elapsed_ms": 8.74,
+      "cdt_elapsed_ms": 9.957,
       "output": {
         "derivative_id": "DF_03_GODOT_ANIMATION_TRES_COMPILER",
         "tres_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\reports\\krystal_siege_anim_track.tres",
@@ -174,11 +174,11 @@
       "combination": "P1_CONV_INTERPOSER + P4_GONIO_GODOT_OPTICS",
       "initial_status": "PATTERN_CANDIDATE",
       "promoted_status": "VERIFIED_WITH_SCOPE",
-      "cdt_elapsed_ms": 0.709,
+      "cdt_elapsed_ms": 3.273,
       "output": {
         "derivative_id": "DF_04_NEURAL_ASCII_SURVIVAL_HUD",
         "byte_length": 180,
-        "render_ms": 0.6942,
+        "render_ms": 3.2493,
         "ascii_preview": "   O6 ·· ·· ··\n  ·· O6 ·· ·· ··\n ·· ·· ·· ·· ·· ··\nV6 V6 ·· ·· ·· S6 S6\n ·· ·· ·· ·· ·· ··\n  ·· ·· ·· C6 ··\n   ·· ·· ·· C6",
         "particular_target_change": "ascii_neural_compositor/neural_art_engine.py (register ClashGame <2KB glyph fallback on OP_01)"
       }
@@ -187,7 +187,7 @@
       "combination": "P2_DUAL_OS_BINARY + P5_SYMPY_RIG_VISUAL_GEN",
       "initial_status": "PATTERN_CANDIDATE",
       "promoted_status": "VERIFIED_WITH_SCOPE",
-      "cdt_elapsed_ms": 0.581,
+      "cdt_elapsed_ms": 1.147,
       "output": {
         "derivative_id": "DF_05_U64_HEX_BITBOARD_FFI_MASK",
         "bits_used": 37,
@@ -197,5 +197,5 @@
       }
     }
   ],
-  "incremental_ledger_sha256": "20526334a56fd8525244299cdd40263bc7efce171d6b6037e9cb14f84434e6a9"
+  "incremental_ledger_sha256": "7b735df3d596a5afd2ccec49c66ba21646a98651bc5b51b2c6aec0ec7e22fc3f"
 }

@@ -1,6 +1,8 @@
 # Python & Virtual Environments
 venv/
 .venv/
+.venv-keras/
+artifacts/*.sqlite3*
 env/
 ENV/
 *.pyc

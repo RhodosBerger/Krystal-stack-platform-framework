@@ -24,5 +24,5 @@
 
 ## 3. Nameraný prínos 2-prúdového asynchrónneho `XeStream` prekrývania (`LOCAL_MEASURED`)
 - **Zariadenie:** `GPU` (`8` dávok `[128x256]` dvojvrstvového GEMM)
-- **Sekvenčný 1-stream beh:** `2.718 ms`
-- **Asynchrónny 2-stream `XeStream` ping-pong:** **`2.267 ms`** (**`1.2x` rýchlejšie**).
+- **Sekvenčný 1-stream beh:** `61.66 ms`
+- **Asynchrónny 2-stream `XeStream` ping-pong:** **`36.719 ms`** (**`1.68x` rýchlejšie**).

@@ -493,6 +493,98 @@ def test_openvino_gallium_driver_bridge_and_unified_benchmark() -> None:
         assert "OpenVINO <-> Kisak-Mesa Gallium" in msg["reply"]
 
 
+def test_fedora_dlss_mcp_2b_ast_crud_rubik_dusan_game_and_faq() -> None:
+    from krystal_kernel.constants import ContractViolation
+    from projects.trigonometric_hybrid_platform_framework.differential_gearbox_ux_flows_and_community_faq import (
+        DifferentialThreadGearbox,
+        build_community_codebase_faq_knowledge_base,
+        build_llm_driven_ux_flow_library,
+        mirror_user_terminology_explanation,
+    )
+    from projects.trigonometric_hybrid_platform_framework.dissertation_eula_nextcloud_cad_blender_kb_suite import (
+        execute_dissertation_eula_nextcloud_cad_blender_suite,
+    )
+    from projects.trigonometric_hybrid_platform_framework.fedora_dlss_vram_bionic_mcp_and_2b_ast import (
+        GLOBAL_2B_CODEBASE_ENGINE,
+        build_authorial_chatbot_lexicon,
+        diagnose_agent_ai_and_replay_pending_wal,
+        profile_safe_chipset_vram_bionic_and_swap,
+        render_adrenalin_gsap_morph_panel_html,
+    )
+    from projects.trigonometric_hybrid_platform_framework.syllable_ast_cache_gc_crud_rubik_uma_and_dusan_game import (
+        RUBIK_3X3_GROUP_ORDER,
+        execute_programmer_pipeline_cache_crud_rubik_uma_dusan_suite,
+    )
+    from scripts.krystal_exclusive_terminal_accel_cli import run_exclusive_terminal_acceleration
+    from scripts.krystal_unified_mcp_server import handle_mcp_jsonrpc_request
+
+    # 1. MCP JSON-RPC 2.0 protokol
+    mcp_init = handle_mcp_jsonrpc_request({"jsonrpc": "2.0", "id": 1, "method": "initialize"})
+    assert mcp_init["result"]["serverInfo"]["vital_max_hp"] == 6
+    mcp_call = handle_mcp_jsonrpc_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {"name": "krystal_relationship_and_fedora_dlss_sheets", "arguments": {"uma_utilization": 0.34}},
+        }
+    )
+    sheets_res = mcp_call["result"]["structuredContent"]
+    assert len(sheets_res["relationship_sheets"]) == 5
+    assert len(sheets_res["fedora_patterns_6tuple"]) == 6
+    assert len(sheets_res["krystal_dlss_libraries"]) == 6
+    assert len(sheets_res["platform_plugins"]) == 6
+
+    # 2. Bezpečné frekvencie čipsetu (400..4200 MHz), 14 GB VRAM (LM Studio & Bionic) + Unifikovaný Swap
+    chip = profile_safe_chipset_vram_bionic_and_swap(requested_cpu_mhz=3800, requested_vram_mb=14_336)
+    assert chip["unified_memory_swap_verification"]["sha256_verified"] is True
+    assert chip["unified_memory_swap_verification"]["max_abs_restore_error"] == 0.0
+    try:
+        profile_safe_chipset_vram_bionic_and_swap(requested_cpu_mhz=5100)  # Nad povolený strop 4200 MHz -> veto!
+        raise AssertionError("Malo vyvolať ContractViolation pre nebezpečný takt")
+    except ContractViolation:
+        pass
+
+    # 3. 2B Gemma AST analyzátor, priebežné učenie na dátach používateľa + skutočná rustc kompilácia vygenerovaného kódu
+    ast_2b = GLOBAL_2B_CODEBASE_ENGINE.analyze_and_continually_train()
+    assert ast_2b["continual_user_data_training"]["precision_improved"] is True
+    assert ast_2b["compilable_rust_bridge_output"]["compilable_verified"] is True
+    assert ast_2b["compilable_rust_bridge_output"]["rustc_exit_code"] == 0
+
+    # 4. Návrat pending procesov z trvalého WAL žurnálu + Adrenalin GSAP HTML
+    wal = diagnose_agent_ai_and_replay_pending_wal()
+    assert wal["pending_wal_replay"]["recovered_count"] >= 4
+    assert wal["constitutional_rollback_test"]["status"] == "ROLLED_BACK_DELTA_S_ZERO"
+    assert "gsap.min.js" in render_adrenalin_gsap_morph_panel_html()
+    assert build_authorial_chatbot_lexicon()["authorial_terms_count"] >= 6
+
+    # 5. Predkešované slabiky+AST, L1/L2/L3+GC, SQLite CRUD, Rubikova grupa, UMA matica, ML model a dusan-game API
+    prog = execute_programmer_pipeline_cache_crud_rubik_uma_dusan_suite()
+    assert prog["syllable_ast_precache"]["matched_preset_id"] == "PRESET_SEM_06_DUSAN_GAME_AXIOM"
+    assert int(prog["rubik_combinatorial_compiler"]["group_order"]) == RUBIK_3X3_GROUP_ORDER
+    assert prog["uma_prefetcher_multiplier"]["uma_throughput_multiplier_x"] > 1.0
+    assert prog["dusan_game_axiom_acceleration"]["dusan_game_repo_detected"] is True
+    assert len(prog["crud_endpoints_db"]["all_endpoints"]) >= 2
+
+    # 6. Dizertačná špecifikácia, EULA Bass scenáre + cenník, Nextcloud K8s 2FA/SMS, CAD/Blender MCP + CLI
+    diss = execute_dissertation_eula_nextcloud_cad_blender_suite()
+    assert diss["nextcloud_k8s_sms_2fa_security"]["valid_dual_factor_login"]["authorized"] is True
+    assert diss["nextcloud_k8s_sms_2fa_security"]["replay_attack_quarantined"] is True
+    assert Path(diss["cad_drafter_and_progressive_blender_mcp"]["produced_artifacts"]["dxf"]).exists()
+    cli_out = run_exclusive_terminal_acceleration("BLENDER_MCP_PROGRESSIVE", 14336)
+    assert cli_out["vital_max_hp"] == 6
+
+    # 7. Diferenciálne prevody vlákien, UX Flow knižnica a komunitná FAQ znalostná báza
+    diff = DifferentialThreadGearbox.compute_differential_split(gear=3, uma_resistance=0.34)
+    assert abs((diff["axle_a_cpu_threads_share"] + diff["axle_b_xe_stream_processors_share"]) - 1.0) < 1e-6
+    assert build_llm_driven_ux_flow_library()["ux_flows_count"] == 4
+    faq = build_community_codebase_faq_knowledge_base()
+    assert faq["faq_count"] >= 8
+    mir = mirror_user_terminology_explanation("prevody s diferenciálom pre thready a dvojbiliónovú Gemmu v pipeline")
+    assert "potrubie" not in mir["mirrored_programmer_explanation"].lower()
+
+
+
 
 
 

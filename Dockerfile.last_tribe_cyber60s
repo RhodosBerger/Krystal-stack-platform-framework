@@ -1,0 +1,26 @@
+# Krystal Stack — Kontajnerizovaná Webová Aplikácia: The Last Tribe (60s Cyberpunk Hologram) + Adrenalin Benchmark
+FROM python:3.12-slim
+
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    KRYSTAL_HOST=0.0.0.0 \
+    KRYSTAL_PORT=8090 \
+    KRYSTAL_VITAL_MAX_HP=6
+
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir numpy psutil pyyaml openvino
+
+COPY include /app/include
+COPY native /app/native
+COPY configs /app/configs
+COPY krystal_kernel /app/krystal_kernel
+COPY krystal_bot /app/krystal_bot
+COPY projects /app/projects
+COPY scripts /app/scripts
+COPY docs /app/docs
+
+EXPOSE 8090
+HEALTHCHECK --interval=15s --timeout=3s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/last_tribe_cyber60s')" || exit 1
+
+CMD ["python", "-O", "-m", "krystal_kernel.sovereign_openvino_oneapi_app"]

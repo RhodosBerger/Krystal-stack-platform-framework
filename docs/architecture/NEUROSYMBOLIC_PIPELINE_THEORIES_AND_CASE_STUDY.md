@@ -1,8 +1,8 @@
 # Cross-Module Theories (`TH_01..TH_04`), Neurosymbolic Pipeline Case Study & Production Chunk Ceilings
 
 - **Constitutional Invariant:** `VITAL_MAX_HP == 6` · `UMA < 0.78` · `PROPOSER != VERIFIER`
-- **Knowledge Base Exported:** `neurosymbolic_pipeline_kb.jsonl` (`11` SHA-256-attested records across `58` scanned modules & `206` public functions)
-- **End-to-End Case Study Runtime:** `2112.953 ms` (`LOCAL_MEASURED`)
+- **Knowledge Base Exported:** `neurosymbolic_pipeline_kb.jsonl` (`11` SHA-256-attested records across `67` scanned modules & `243` public functions)
+- **End-to-End Case Study Runtime:** `5027.484 ms` (`LOCAL_MEASURED`)
 
 ---
 

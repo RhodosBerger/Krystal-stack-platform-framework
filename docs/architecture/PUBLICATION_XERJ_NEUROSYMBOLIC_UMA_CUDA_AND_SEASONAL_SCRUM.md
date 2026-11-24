@@ -19,8 +19,8 @@
 ---
 
 ## 2. `Krystal-UMA-CUDA` (`ku*`), Defensive Vulkan Endpoints & HyperTransport Methodics
-- **Bound Repository Schemas (`schemas/`):** `10` JSON schemas coordinated.
-- **Bound Benchmark Scripts (`scripts/`):** `16` benchmark scripts coordinated.
+- **Bound Repository Schemas (`schemas/`):** `11` JSON schemas coordinated.
+- **Bound Benchmark Scripts (`scripts/`):** `17` benchmark scripts coordinated.
 - **Live Defended `K=512` MatMul Proof (`kuLaunchMatMulDefended`):** Executed `2` tiles (`K < 449` law), `64 B` cache-line aligned = `True`, `192 B` HyperTransport verified = `True`.
 - **Zero-Touch Kernel Injection (`@kuInjectSimplifiedKernelOp`):** Wrapped existing function with `0` source delta (`result = 14.0`, `192 B` receipt = `True`).
 

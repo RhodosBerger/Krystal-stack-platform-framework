@@ -34,10 +34,10 @@ def run_exclusive_terminal_acceleration(target: str = "BLENDER_MCP_PROGRESSIVE",
         profile_safe_chipset_vram_bionic_and_swap,
     )
     from projects.trigonometric_hybrid_platform_framework.metal_vulkan_endpoints_and_speculative_bench_loop import (
-        optimize_windows_gen11_threads_and_rust_vulkan_quota,
+        optimize_win32_gen11_processes_and_advise_vulkan_quota,
     )
 
-    hw_lock = optimize_windows_gen11_threads_and_rust_vulkan_quota(uma_util=0.30, temp_c=60.0)
+    hw_lock = optimize_win32_gen11_processes_and_advise_vulkan_quota(uma_util=0.30, junction_temp_c=60.0)
     vram_cfg = profile_safe_chipset_vram_bionic_and_swap(
         cooling_mode="TIGERLAKE_TURBO_SAFE_28W",
         requested_cpu_mhz=3800,
@@ -49,8 +49,8 @@ def run_exclusive_terminal_acceleration(target: str = "BLENDER_MCP_PROGRESSIVE",
     return {
         "vital_max_hp": VITAL_MAX_HP,
         "exclusive_acceleration_target": target,
-        "p_core_affinity_hex": hw_lock["multithread_4_physical_cores_mask_hex"],
-        "single_core_boost_gain_pct": hw_lock["single_core_pinned_gain_percent"],
+        "p_core_affinity_hex": hw_lock["gen11_multithread_4p_tuning"]["physical_cores_mask"],
+        "single_core_pinned_ms": hw_lock["gen11_single_core_turbo_tuning"]["pinned_core0_ms"],
         "granted_uma_vram_mb": vram_cfg["vram_and_bionic_lmstudio_bundle"]["uma_shared_vram_allocation"][
             "granted_llm_vram_mb"
         ],

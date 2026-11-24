@@ -1,0 +1,17 @@
+{
+  "schema": "krystal.vps_config_backup.v1",
+  "vital_max_hp": 6,
+  "sha256": "5a04c9a89061cc2fd0e3c43b5b31efce0615df6c907f01a76c7498e1c5221923",
+  "payload": {
+    "vital_max_hp": 6,
+    "os_platform": "Windows-AMD64",
+    "logical_cores": 8,
+    "openvino_detected_devices": [
+      "CPU",
+      "GPU"
+    ],
+    "selected_hardware_preset": "HW_PRESET_HETERO_INTEL_XE_OR_ARC_GPU",
+    "recommended_modular_build": "BUILD_03_IRIS_XE_ARC_GAMING_PACK",
+    "timestamp": 1795540156.678
+  }
+}

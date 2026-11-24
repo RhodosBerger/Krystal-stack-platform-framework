@@ -1,0 +1,273 @@
+{
+  "vital_max_hp": 6,
+  "generator": "Krystal Veo Brainstorming & Mortar Ballistics Suite",
+  "veo_model_target": "veo-2.0-generate-001",
+  "shots": [
+    {
+      "shot_id": "VEO_SHOT_01_MORTAR_ALGEBRAIC_LOCK",
+      "duration_seconds": 6,
+      "aspect_ratio": "16:9",
+      "camera_directive": "Low-angle tracking dolly from 1960s phosphor-amber mortar battery following parabolic cyan arc",
+      "veo_prompt": "1960s Space-Age Retro-Futurist Cyberpunk tactical hologram war-table in obsidian carbon (#0a0e17) with AMD Adrenalin crimson bezel (#ed1c24). Glowing cyan (#00e5ff) algebraic mortar reticle locks onto target sector at 68.4 degrees elevation, displaying crisp amber (#ff9e2c) tangent velocity arrows, apex height marker, and concentric blast radius iso-rings over hexagonal crystal terrain, 60fps.",
+      "bound_ballistics": {
+        "equation": "y(x) = x*tan(theta) - (g*x^2)/(2*v0^2*cos^2(theta))",
+        "discriminant_delta": 3381305.72,
+        "mortar_high_angle_deg": 68.223,
+        "flight_time_s": 9.59,
+        "apex_height_m": 118.85,
+        "wind_drift_mps": -3.4
+      }
+    },
+    {
+      "shot_id": "VEO_SHOT_02_PROGRESSIVE_PRECACHE_REVEAL",
+      "duration_seconds": 6,
+      "aspect_ratio": "16:9",
+      "camera_directive": "Isometric 52-degree orbital sweep across Northern Crystal Peaks and Ancient Portal",
+      "veo_prompt": "Progressive 4-stage render-engine reveal in 1960s Cyberpunk aesthetic: wireframe algebraic crosshairs materialize into directional process arrows, spatial sector callouts, and full ray-traced mortar impact shockwave with 30% screen-right live UMA bus telemetry graph (< 0.78) and VITAL HP 6/6.",
+      "bound_precache_layers": [
+        "PRECACHE_L1_ALGEBRAIC_RETICLE_WIREFRAME",
+        "PRECACHE_L2_PROCESS_ARROWS_AND_SPATIAL_TAGS",
+        "PRECACHE_L3_PARABOLIC_ARC_AND_BLAST_ISORINGS",
+        "PRECACHE_L4_FULL_RAYTRACED_SHRAPNEL_AND_VEO_KEYFRAME"
+      ]
+    }
+  ],
+  "mortar_simulation": {
+    "vital_max_hp": 6,
+    "target_in_ballistic_envelope": true,
+    "algebraic_solution": {
+      "equation": "y(x) = x*tan(theta) - (g*x^2)/(2*v0^2*cos^2(theta))",
+      "discriminant_delta": 3381305.72,
+      "mortar_high_angle_deg": 68.223,
+      "flight_time_s": 9.59,
+      "apex_height_m": 118.85,
+      "wind_drift_mps": -3.4
+    },
+    "trajectory_points": [
+      {
+        "t_s": 0.0,
+        "x_m": 0.0,
+        "y_m": 0.0
+      },
+      {
+        "t_s": 0.479,
+        "x_m": 9.01,
+        "y_m": 22.03
+      },
+      {
+        "t_s": 0.959,
+        "x_m": 18.01,
+        "y_m": 41.8
+      },
+      {
+        "t_s": 1.438,
+        "x_m": 27.02,
+        "y_m": 59.31
+      },
+      {
+        "t_s": 1.918,
+        "x_m": 36.02,
+        "y_m": 74.57
+      },
+      {
+        "t_s": 2.397,
+        "x_m": 45.03,
+        "y_m": 87.58
+      },
+      {
+        "t_s": 2.877,
+        "x_m": 54.03,
+        "y_m": 98.33
+      },
+      {
+        "t_s": 3.356,
+        "x_m": 63.04,
+        "y_m": 106.82
+      },
+      {
+        "t_s": 3.836,
+        "x_m": 72.04,
+        "y_m": 113.06
+      },
+      {
+        "t_s": 4.315,
+        "x_m": 81.05,
+        "y_m": 117.04
+      },
+      {
+        "t_s": 4.795,
+        "x_m": 90.05,
+        "y_m": 118.77
+      },
+      {
+        "t_s": 5.274,
+        "x_m": 99.06,
+        "y_m": 118.24
+      },
+      {
+        "t_s": 5.754,
+        "x_m": 108.07,
+        "y_m": 115.46
+      },
+      {
+        "t_s": 6.233,
+        "x_m": 117.07,
+        "y_m": 110.42
+      },
+      {
+        "t_s": 6.713,
+        "x_m": 126.08,
+        "y_m": 103.13
+      },
+      {
+        "t_s": 7.192,
+        "x_m": 135.08,
+        "y_m": 93.58
+      },
+      {
+        "t_s": 7.672,
+        "x_m": 144.09,
+        "y_m": 81.77
+      },
+      {
+        "t_s": 8.151,
+        "x_m": 153.09,
+        "y_m": 67.71
+      },
+      {
+        "t_s": 8.631,
+        "x_m": 162.1,
+        "y_m": 51.4
+      },
+      {
+        "t_s": 9.11,
+        "x_m": 171.1,
+        "y_m": 32.83
+      },
+      {
+        "t_s": 9.59,
+        "x_m": 180.11,
+        "y_m": 12.0
+      }
+    ],
+    "vector_process_arrows": [
+      {
+        "arrow_id": "ARROW_STEP_03",
+        "origin_xy_m": [
+          27.02,
+          59.31
+        ],
+        "tangent_angle_deg": 61.21,
+        "label": "STÚPANIE_MORTAR"
+      },
+      {
+        "arrow_id": "ARROW_STEP_08",
+        "origin_xy_m": [
+          72.04,
+          113.06
+        ],
+        "tangent_angle_deg": 29.58,
+        "label": "STÚPANIE_MORTAR"
+      },
+      {
+        "arrow_id": "ARROW_STEP_13",
+        "origin_xy_m": [
+          117.07,
+          110.42
+        ],
+        "tangent_angle_deg": -34.4,
+        "label": "ZÁVEREČNÝ_DOPAD"
+      },
+      {
+        "arrow_id": "ARROW_STEP_18",
+        "origin_xy_m": [
+          162.1,
+          51.4
+        ],
+        "tangent_angle_deg": -62.69,
+        "label": "ZÁVEREČNÝ_DOPAD"
+      }
+    ],
+    "spatial_zone_markers": [
+      {
+        "marker_id": "SPATIAL_01_LAUNCH_BATTERY",
+        "xy_m": [
+          0.0,
+          0.0
+        ],
+        "tag": "BATÉRIA [0,0]"
+      },
+      {
+        "marker_id": "SPATIAL_02_APEX_GATE",
+        "xy_m": [
+          92.5,
+          118.9
+        ],
+        "tag": "VRCHOL ΔH=118.9m"
+      },
+      {
+        "marker_id": "SPATIAL_03_IMPACT_ELLIPSE",
+        "xy_m": [
+          185.0,
+          12.0
+        ],
+        "blast_radius_m": 14.5,
+        "clamped_vital_damage": 4,
+        "tag": "CIEĽOVÝ SEKTOR R=14.5m (ETA 9.59s)"
+      }
+    ]
+  },
+  "progressive_precache": {
+    "vital_max_hp": 6,
+    "uma_utilization": 0.4,
+    "precached_layers_count": 4,
+    "total_progressive_budget_ms": 4.6,
+    "fits_within_148fps_6_7ms_budget": true,
+    "layers": [
+      {
+        "stage_order": 1,
+        "layer_id": "PRECACHE_L1_ALGEBRAIC_RETICLE_WIREFRAME",
+        "precached_properties": [
+          "theta_deg",
+          "discriminant_delta",
+          "crosshair_concentric_radii"
+        ],
+        "frame_budget_ms": 0.42,
+        "ready_in_cache": true
+      },
+      {
+        "stage_order": 2,
+        "layer_id": "PRECACHE_L2_PROCESS_ARROWS_AND_SPATIAL_TAGS",
+        "precached_properties": [
+          "tangent_velocity_arrows",
+          "wind_shear_vectors",
+          "sector_azimuth_labels"
+        ],
+        "frame_budget_ms": 0.68,
+        "ready_in_cache": true
+      },
+      {
+        "stage_order": 3,
+        "layer_id": "PRECACHE_L3_PARABOLIC_ARC_AND_BLAST_ISORINGS",
+        "precached_properties": [
+          "mortar_spline_samples_21",
+          "impact_ellipse_sdf",
+          "ao_contact_ring"
+        ],
+        "frame_budget_ms": 1.15,
+        "ready_in_cache": true
+      },
+      {
+        "stage_order": 4,
+        "layer_id": "PRECACHE_L4_FULL_RAYTRACED_SHRAPNEL_AND_VEO_KEYFRAME",
+        "precached_properties": [
+          "vk_khr_ray_query_reflections",
+          "60s_phosphor_bloom",
+          "veo_motion_vectors"
+        ],
+        "frame_budget_ms": 2.35,
+        "ready_in_cache": true
+      }
+    ]
+  }
+}

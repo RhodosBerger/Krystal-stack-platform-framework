@@ -320,7 +320,7 @@ class KernelEndpointCrudDatabase:
 
 
 class RubikCombinatorialBackendCompiler:
-    """Mapuje ľubovoľný dopyt a kontext telemetrie injektívne do platnej konfigurácie 3×3×3 Rubikovej
+    r"""Mapuje ľubovoľný dopyt a kontext telemetrie injektívne do platnej konfigurácie 3×3×3 Rubikovej
     grupy ($|G| = 43\,252\,003\,274\,489\,856\,000$ stavov: permutácia 8 rohov s paritou orientácie $\pmod 3$
     a párna permutácia 12 hrán s paritou preklopenia $\pmod 2$) a zostavuje 6 ortogonálnych sekcií
     programátorského `.md` výstupu pre `Gemma 4 E2B`.

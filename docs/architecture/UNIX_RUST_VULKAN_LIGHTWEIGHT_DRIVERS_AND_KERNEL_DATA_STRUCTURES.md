@@ -15,13 +15,13 @@
 ## 2. Measured Kernel Data-Structure Benchmark (`LOCAL_MEASURED`)
 | Structure | Median (`ns/op`) | P95 (`ns/op`) | Throughput (`Mops/s`) | Bytes/Slot |
 | :--- | :---: | :---: | :---: | :---: |
-| `KDS_00_HASHMAP_BTREEMAP_HEAP` | `948.29` | `1134.57` | `1.055` | `416` |
-| `KDS_01_DEQUE_TUPLE_POOL` | `89.21` | `204.0` | `11.21` | `168` |
-| `KDS_02_PACKED_128B_FULL_WRITE` | `359.42` | `385.55` | `2.782` | `128` |
-| `KDS_03_STRICT_BITMAP64_ZERO_COPY_128B` | `277.49` | `545.12` | `3.604` | `128` |
+| `KDS_00_HASHMAP_BTREEMAP_HEAP` | `2272.9` | `7014.65` | `0.44` | `416` |
+| `KDS_01_DEQUE_TUPLE_POOL` | `235.45` | `374.9` | `4.247` | `168` |
+| `KDS_02_PACKED_128B_FULL_WRITE` | `736.47` | `1443.75` | `1.358` | `128` |
+| `KDS_03_STRICT_BITMAP64_ZERO_COPY_128B` | `463.96` | `1276.86` | `2.155` | `128` |
 
-- **Winner:** `KDS_01_DEQUE_TUPLE_POOL` (**`3.42x` speedup**, **`3.25x` smaller slot footprint**).
-- **Dynamic 4T Log Ring Speedup vs Global Mutex JSON:** **`4.24x`** (`0` P0 drops, `Q_adj = 1089719 ns`).
+- **Winner:** `KDS_01_DEQUE_TUPLE_POOL` (**`4.9x` speedup**, **`3.25x` smaller slot footprint**).
+- **Dynamic 4T Log Ring Speedup vs Global Mutex JSON:** **`4.95x`** (`0` P0 drops, `Q_adj = 1089719 ns`).
 
 ## 3. Lightweight Rust + Vulkan Community & Core Drivers (Windows & Unix/Linux)
 | Driver ID | OS Plane | Silicon Class | Stack | Target Size |

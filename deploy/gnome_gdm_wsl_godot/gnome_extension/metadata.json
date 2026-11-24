@@ -1,0 +1,8 @@
+{
+  "uuid": "krystal-cyber60s-modes@krystal.stack",
+  "name": "Krystal Sovereign Window Modes & Godot WSL Bridge",
+  "description": "GNOME 46/47 Wayland nadstavba nad GDM pre prepínanie režimov okien (COSMIC Auto-Tiling, Niri Scrollable Strip, Hyprland Dynamic Dwindle, Stacked Tabs) a priame spúšťanie WebGL/Godot 4 procedúr cez WSLg.",
+  "shell-version": ["45", "46", "47"],
+  "version": 1,
+  "url": "https://github.com/RhodosBerger/Krystal-stack-platform-framework"
+}

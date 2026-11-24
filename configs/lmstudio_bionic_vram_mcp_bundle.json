@@ -1,0 +1,36 @@
+{
+  "schema": "krystal.lmstudio_bionic_vram_mcp_extension.v2",
+  "vital_max_hp": 6,
+  "uma_shared_vram_allocation": {
+    "host_total_ram_mb": 24268,
+    "os_safety_floor_mb": 6144,
+    "granted_llm_vram_mb": 14336,
+    "granted_llm_vram_gb": 14.0,
+    "kv_cache_quantization": "Q8_0_ZERO_COPY_PAGED",
+    "vulkan_shared_heap_enabled": true
+  },
+  "detected_host_installations": {
+    "lm_studio_root": "C:\\Users\\dusan\\.lmstudio",
+    "lm_studio_installed": true,
+    "lms_cli_present": true,
+    "gemma_4_e2b_gguf_present": true,
+    "bionic_executable": "C:\\Users\\dusan\\AppData\\Local\\Programs\\Bionic\\Bionic.exe",
+    "bionic_installed": true
+  },
+  "mcpServers": {
+    "krystal-sovereign-adrenalin-mcp": {
+      "command": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\.venv\\Scripts\\python.exe",
+      "args": [
+        "-X",
+        "utf8",
+        "-O",
+        "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\scripts\\krystal_unified_mcp_server.py"
+      ],
+      "env": {
+        "KRYSTAL_VITAL_MAX_HP": "6",
+        "KRYSTAL_GRANTED_VRAM_MB": "14336",
+        "GGML_VK_VISIBLE_DEVICES": "0"
+      }
+    }
+  }
+}

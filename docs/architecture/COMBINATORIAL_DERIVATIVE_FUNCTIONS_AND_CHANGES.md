@@ -1,6 +1,6 @@
 # Combinatorial Derivative Functions, Particular Module Changes & Incremental Knowledge Ledger
 
-- **Constitutional Invariant:** `VITAL_MAX_HP == 6` · Ledger `SHA-256 = 20526334a56fd8525244...`
+- **Constitutional Invariant:** `VITAL_MAX_HP == 6` · Ledger `SHA-256 = 7b735df3d596a5afd2cc...`
 - **Combinatorial Space (`N = 6` Conspected Pillars):** $\binom{6}{2} = 15$ pairwise · $\binom{6}{3} = 20$ triadic · `57` total multi-pillar subsets
 
 ## 1. Conspected Pillars & Exact Codebase Anchors
@@ -18,8 +18,8 @@
 
 | Derivative ID | Pillar Combination | CDT Latency | Particular Target Change Connected to Integration |
 | :--- | :--- | :---: | :--- |
-| **`DF_01_192B_WNTC_KPKT_DATAGRAM`** | `P1_CONV_INTERPOSER + P2_DUAL_OS_BINARY` | `0.091 ms` | `wsl_bridge/bridge_daemon.py :: WSLBridgeDaemon.sync_telemetry (replace JSON dict with 192B binary datagram)` |
-| **`DF_02_CONV_PACED_DOUBLE_TIME`** | `P1_CONV_INTERPOSER + P3_DOUBLE_TIME_RING` | `38.017 ms` | `krystal_kernel/sovereign_openvino_oneapi_app.py :: /api/v1/compositor/double_time (bind optional conv_smooth=1)` |
-| **`DF_03_GODOT_ANIMATION_TRES_COMPILER`** | `P4_GONIO_GODOT_OPTICS + P5_SYMPY_RIG_VISUAL_GEN` | `8.74 ms` | `godot_project/scenes/HoloStage.tscn & Compositor8KScalingArena.tscn (attach AnimationPlayer ExtResource)` |
-| **`DF_04_NEURAL_ASCII_SURVIVAL_HUD`** | `P1_CONV_INTERPOSER + P4_GONIO_GODOT_OPTICS` | `0.709 ms` | `ascii_neural_compositor/neural_art_engine.py (register ClashGame <2KB glyph fallback on OP_01)` |
-| **`DF_05_U64_HEX_BITBOARD_FFI_MASK`** | `P2_DUAL_OS_BINARY + P5_SYMPY_RIG_VISUAL_GEN` | `0.581 ms` | `krystal-bitboard/src/edge.rs & rust/krystal_sovereignty_bytecode/src/lib.rs (accept 37-bit u64 mask in 128B C-ABI)` |
+| **`DF_01_192B_WNTC_KPKT_DATAGRAM`** | `P1_CONV_INTERPOSER + P2_DUAL_OS_BINARY` | `0.373 ms` | `wsl_bridge/bridge_daemon.py :: WSLBridgeDaemon.sync_telemetry (replace JSON dict with 192B binary datagram)` |
+| **`DF_02_CONV_PACED_DOUBLE_TIME`** | `P1_CONV_INTERPOSER + P3_DOUBLE_TIME_RING` | `58.477 ms` | `krystal_kernel/sovereign_openvino_oneapi_app.py :: /api/v1/compositor/double_time (bind optional conv_smooth=1)` |
+| **`DF_03_GODOT_ANIMATION_TRES_COMPILER`** | `P4_GONIO_GODOT_OPTICS + P5_SYMPY_RIG_VISUAL_GEN` | `9.957 ms` | `godot_project/scenes/HoloStage.tscn & Compositor8KScalingArena.tscn (attach AnimationPlayer ExtResource)` |
+| **`DF_04_NEURAL_ASCII_SURVIVAL_HUD`** | `P1_CONV_INTERPOSER + P4_GONIO_GODOT_OPTICS` | `3.273 ms` | `ascii_neural_compositor/neural_art_engine.py (register ClashGame <2KB glyph fallback on OP_01)` |
+| **`DF_05_U64_HEX_BITBOARD_FFI_MASK`** | `P2_DUAL_OS_BINARY + P5_SYMPY_RIG_VISUAL_GEN` | `1.147 ms` | `krystal-bitboard/src/edge.rs & rust/krystal_sovereignty_bytecode/src/lib.rs (accept 37-bit u64 mask in 128B C-ABI)` |

@@ -1,0 +1,13 @@
+services:
+  krystal-last-tribe-cyber60s:
+    build:
+      context: .
+      dockerfile: Dockerfile.last_tribe_cyber60s
+    container_name: krystal-last-tribe-cyber60s
+    ports:
+      - "8090:8090"
+    environment:
+      KRYSTAL_HOST: "0.0.0.0"
+      KRYSTAL_PORT: "8090"
+      KRYSTAL_VITAL_MAX_HP: "6"
+    restart: unless-stopped

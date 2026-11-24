@@ -1,0 +1,14 @@
+; Engine configuration file (Godot 4.3 WebGL2 / GLES3 Compatibility & Vulkan Forward+)
+; Krystal Stack — 60s Cyberpunk Panopticon & Procedural Harmonic Renderer (VITAL_MAX_HP == 6)
+
+config_version=5
+
+[application]
+config/name="Krystal Last Tribe Cyber60s Panopticon"
+run/main_scene="res://scenes/PanopticonCyber60s.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.039, 0.055, 0.090, 1)

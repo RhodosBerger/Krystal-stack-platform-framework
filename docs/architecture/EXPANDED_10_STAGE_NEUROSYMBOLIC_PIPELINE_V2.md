@@ -2,7 +2,7 @@
 
 - **Ústavné invarianty:** `VITAL_MAX_HP == 6` · `UMA < 0.78` · `PROPOSER != VERIFIER`
 - **Znalostná báza v2:** `neurosymbolic_pipeline_v2_kb.jsonl` (`24` SHA-256 podpísaných záznamov: `6` dôkazov, `8` teórií, `10` stupňov)
-- **Celkový čas behu 10-stupňovej pipeline:** `4935.364 ms` (`LOCAL_MEASURED`)
+- **Celkový čas behu 10-stupňovej pipeline:** `10728.881 ms` (`LOCAL_MEASURED`)
 
 ---
 

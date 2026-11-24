@@ -2,7 +2,7 @@ name: Krystal Verification & Cross-ISA Publication CI
 
 on:
   push:
-    branches: [main, develop, phase-q-full-path, 'claude/*']
+    branches: [main, develop, phase-q-full-path, 'claude/*', 'feat/*']
   pull_request:
     branches: [main, develop, phase-q-full-path]
   workflow_dispatch:
@@ -32,6 +32,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
+          pip install -r requirements.txt
           pip install pytest
 
       - name: Run Core 58 Integration & Memory Model Tests
@@ -125,6 +126,10 @@ jobs:
         run: |
           gcc -std=c11 -O3 -Wall -Wextra -Werror -Iinclude -pthread src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_gcc
           ./krystal_spsc_bench_gcc
+          gcc -std=c11 -O3 -Wall -Wextra -Werror -Iinclude src/c/krystal_isa_vulkan_webgl_diagrams.c -o krystal_isa_diagrams
+          ./krystal_isa_diagrams
+          gcc -std=c11 -O3 -Wall -Wextra -Werror -Iinclude src/c/krystal_state_before_after_scaler.c -o krystal_state_scaler
+          ./krystal_state_scaler
 
       - name: Build & Run Native SPSC Benchmark (x86_64 Clang)
         run: |
@@ -145,7 +150,8 @@ jobs:
         run: |
           cargo build --release --manifest-path native/krystal_concurrent_rust_core/Cargo.toml
           cargo build --release --manifest-path native/pulse_logger_core/Cargo.toml
-          ls -lh native/krystal_concurrent_rust_core/target/release/libkrystal_concurrent_rust_core.so native/pulse_logger_core/target/release/libpulse_logger_core.so
+          cargo build --release --manifest-path native/krystal_sovereign_firmware_rs/Cargo.toml
+          ls -lh native/krystal_concurrent_rust_core/target/release/libkrystal_concurrent_rust_core.so native/pulse_logger_core/target/release/libpulse_logger_core.so native/krystal_sovereign_firmware_rs/target/release/libkrystal_sovereign_firmware_rs.so
 
       - name: Push Build & Smoke Logs on Failure
         if: failure()

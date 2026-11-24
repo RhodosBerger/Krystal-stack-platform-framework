@@ -2,7 +2,7 @@
 
 - **Ústavné invarianty:** `VITAL_MAX_HP == 6` · `UMA < 0.78` · `PROPOSER != VERIFIER`
 - **Marketingový a technický konštrukt:** **Bezkontaktná letovačka** (`weld_uma_pathway` / `TH_09_CONTACTLESS_TOPOLOGY_WELD_IMPEDANCE`)
-- **Najlepšie overené zrýchlenie špekulatívnej vetvy (`128 B` UMA L1d):** **`325.74x`**
+- **Najlepšie overené zrýchlenie špekulatívnej vetvy (`128 B` UMA L1d):** **`340.52x`**
 
 ## 1. Plánované a splnené Míľniky (`MS_01..MS_06`)
 

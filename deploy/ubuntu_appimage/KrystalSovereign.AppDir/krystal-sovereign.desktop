@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Krystal Sovereign Cyber60s & Adrenalin Studio
+Exec=krystal-sovereign-entry.py
+Icon=krystal-sovereign
+Categories=Development;Science;Game;Graphics;
+Terminal=true

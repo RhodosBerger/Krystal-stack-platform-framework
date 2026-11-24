@@ -335,26 +335,26 @@
       "physical_cores": 4,
       "current_freq_mhz": 2419.0,
       "max_freq_mhz": 2419.0,
-      "avg_cpu_load_pct": 14.57,
+      "avg_cpu_load_pct": 16.66,
       "per_core_load_pct": [
         0.0,
         0.0,
-        50.0,
         33.3,
         0.0,
-        33.3,
         0.0,
+        0.0,
+        100.0,
         0.0
       ],
-      "ctx_switches_per_sec": 16425,
-      "interrupts_per_sec": 10625,
-      "ram_used_pct": 82.0,
-      "estimated_uma_bus_ratio": 0.533,
-      "estimated_junction_temp_c": 51.0,
+      "ctx_switches_per_sec": 25475,
+      "interrupts_per_sec": 14750,
+      "ram_used_pct": 81.4,
+      "estimated_uma_bus_ratio": 0.529,
+      "estimated_junction_temp_c": 51.7,
       "on_ac_power": true,
       "battery_pct": 100
     },
-    "detected_utilization_class": "HETERO_UMA_VISION_AND_CRYPTO",
+    "detected_utilization_class": "INTERACTIVE_LOW_JITTER_120HZ",
     "selected_thermal_strategy": {
       "strategy_id": "THRM_01_LAMINAR_FULL_WELD",
       "temp_range_c": [
@@ -388,7 +388,7 @@
         },
         {
           "window_h": "08:00–12:00",
-          "phase": "HETERO_UMA_VISION_AND_CRYPTO",
+          "phase": "INTERACTIVE_LOW_JITTER_120HZ",
           "pl1_w": 28.0,
           "epp": "balance_performance",
           "c_state_target": "C1E/C3"
@@ -434,20 +434,20 @@
     },
     "bulk_hash_64kb_throughput": {
       "sha256": {
-        "throughput_mb_s": 1304.05,
+        "throughput_mb_s": 738.88,
         "sample_digest_prefix": "0bca3b5b2577c134"
       },
       "blake2b": {
-        "throughput_mb_s": 650.18,
+        "throughput_mb_s": 334.14,
         "sample_digest_prefix": "d386489519712847"
       },
       "sha3_256": {
-        "throughput_mb_s": 342.64,
+        "throughput_mb_s": 110.01,
         "sample_digest_prefix": "ed190f2eb66581ab"
       }
     },
-    "kspp_p9_hmac_sha256_96b_ns": 4434.9,
-    "pqc_ml_kem_z3329_ntt256_us": 116.973,
+    "kspp_p9_hmac_sha256_96b_ns": 4606.6,
+    "pqc_ml_kem_z3329_ntt256_us": 279.237,
     "presets": [
       {
         "preset_id": "CRYPTO_PRESET_01_SHANI_96B_FRAME_PROVENANCE",
@@ -501,9 +501,9 @@
   },
   "strategic_uma_process_pairing_pipeline": {
     "vital_max_hp": 6,
-    "colliding_memory_pair_ms": 5.873,
-    "strategic_complementary_uma_pair_ms": 2.078,
-    "pairing_speedup_x": 2.83,
+    "colliding_memory_pair_ms": 9.499,
+    "strategic_complementary_uma_pair_ms": 5.173,
+    "pairing_speedup_x": 1.84,
     "modeled_colliding_uma_peak": 0.89,
     "modeled_strategic_uma_peak": 0.41,
     "stays_below_078_ceiling": true,
