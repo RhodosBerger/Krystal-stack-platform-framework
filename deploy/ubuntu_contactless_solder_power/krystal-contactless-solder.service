@@ -1,0 +1,16 @@
+[Unit]
+Description=Krystal Stack Bezkontaktna Letovacka — Adaptive UMA, NPU & Thermal Power Governor (Ubuntu LTS)
+After=multi-user.target thermald.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/krystal-stack/krystal_ubuntu_power_daemon.py --apply-sysfs --loop-seconds 2.0
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/sys/class/powercap /sys/devices/system/cpu
+
+[Install]
+WantedBy=multi-user.target

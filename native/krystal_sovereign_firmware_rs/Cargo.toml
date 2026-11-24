@@ -1,0 +1,22 @@
+[package]
+name = "krystal_sovereign_firmware_rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dušan Kopecký <dusan.kopecky0101@gmail.com>"]
+description = "Krystal Stack #![no_std] Sovereign Rust Firmware Competitor, Retroactive Validator-Generator-Aggregator, Stream-CUDA Extension & Kisak-Gallium Driver Core"
+
+[lib]
+name = "krystal_sovereign_firmware_rs"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Zero external dependencies: fits inside 32 KB Tiger Lake L1i instruction cache, zero heap bloat.
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+
+[workspace]

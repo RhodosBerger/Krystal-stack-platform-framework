@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.1.0",
+  "crate_name": "krystal_concurrent_rust_core",
+  "target_binary": "krystal_concurrent_rust_core.dll",
+  "target_triple": "x86_64-pc-windows-gnullvm",
+  "no_std_cdylib": true,
+  "external_dependencies": 0,
+  "compile_time_s": 2.884,
+  "binary_size_bytes": 15360,
+  "binary_size_kb": 15.0,
+  "dll_sha256": "c4c20b0bd1491689a93e87211dfc2287a9e20e69327f48bf689fecc869bfb66a",
+  "source_sha256": "9748a1675c46b15442afd8b25b3d81fdb1b9e49ed40a6ce25c0ea4f35725519e",
+  "pe_inspection": {
+    "format": "PE32+_X86_64",
+    "machine_hex": "0x8664",
+    "sections": [
+      ".text",
+      ".rdata",
+      ".data",
+      ".pdata",
+      ".tls",
+      ".reloc"
+    ],
+    "exports": [
+      "_CRT_INIT",
+      "_RNvCs5WqGp7zLRnA_7___rustc17rust_begin_unwind",
+      "_RNvMs4_CsfmMam2uHvJ9_28krystal_concurrent_rust_coreNtB5_24SharedCoWorkerRingRegion13init_in_place",
+      "_RNvMs4_CsfmMam2uHvJ9_28krystal_concurrent_rust_coreNtB5_24SharedCoWorkerRingRegion15drain_available",
+      "___chkstk_ms",
+      "__mingw_module_is_dll",
+      "kr_arena_alloc_concurrent",
+      "kr_arena_alloc_release_burst_concurrent",
+      "kr_arena_free_slots",
+      "kr_arena_init_inplace",
+      "kr_arena_rejected_count",
+      "kr_arena_release_concurrent",
+      "kr_arena_required_bytes",
+      "kr_coworker_drain_step",
+      "kr_coworker_enqueue_batch",
+      "kr_coworker_region_init",
+      "kr_coworker_region_required_bytes",
+      "kr_coworker_snapshot_telemetry",
+      "kr_mmio_init_aperture",
+      "kr_mmio_read_u32_atomic",
+      "kr_mmio_ring_doorbell_concurrent",
+      "kr_mmio_write_u32_governed",
+      "kr_rust_abi_version",
+      "kr_rust_vital_max_hp",
+      "kr_vulkan_compute_acceleration_quota",
+      "kr_xe_validate_batch_128b"
+    ],
+    "isa_opcodes": {
+      "has_lock_cmpxchg_cas": true,
+      "has_tzcnt_bmi1": true,
+      "has_rdtsc": true,
+      "has_movnti_stream": false,
+      "text_section_bytes": 8704
+    }
+  }
+}

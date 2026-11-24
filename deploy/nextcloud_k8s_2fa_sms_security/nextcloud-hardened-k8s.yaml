@@ -1,0 +1,123 @@
+# Krystal Stack — Hardened Nextcloud + Monitored Dual-Factor SMS/TOTP Sentinel on Kubernetes
+# Constitutional Invariant: VITAL_MAX_HP == 6 | Zero Plaintext Secrets (SecretKeyRef only)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: krystal-sovereign-vault
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    krystal.stack/vital-max-hp: "6"
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nextcloud-zero-trust-netpol
+  namespace: krystal-sovereign-vault
+spec:
+  podSelector:
+    matchLabels:
+      app: krystal-nextcloud
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: krystal-sms-2fa-sentinel
+      ports:
+        - protocol: TCP
+          port: 8443
+    - to:
+        - podSelector:
+            matchLabels:
+              app: krystal-postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krystal-sms-2fa-sentinel
+  namespace: krystal-sovereign-vault
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: krystal-sms-2fa-sentinel
+  template:
+    metadata:
+      labels:
+        app: krystal-sms-2fa-sentinel
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: sms-2fa-monitor
+          image: ghcr.io/rhodosberger/krystal-sms-2fa-sentinel:2.0.0
+          ports:
+            - containerPort: 8443
+          env:
+            - name: KRYSTAL_VITAL_MAX_HP
+              value: "6"
+            - name: SMS_HMAC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: krystal-2fa-secrets
+                  key: sms-hmac-secret
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krystal-nextcloud-hardened
+  namespace: krystal-sovereign-vault
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: krystal-nextcloud
+  template:
+    metadata:
+      labels:
+        app: krystal-nextcloud
+      annotations:
+        nginx.ingress.kubernetes.io/limit-rps: "25"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 33
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nextcloud
+          image: nextcloud:30-fpm-alpine
+          ports:
+            - containerPort: 8080
+          env:
+            - name: NEXTCLOUD_TRUSTED_DOMAINS
+              valueFrom:
+                configMapKeyRef:
+                  name: nextcloud-security-cfg
+                  key: trusted_domains
+            - name: KRYSTAL_2FA_SENTINEL_URL
+              value: "https://krystal-sms-2fa-sentinel.krystal-sovereign-vault.svc.cluster.local:8443/verify"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

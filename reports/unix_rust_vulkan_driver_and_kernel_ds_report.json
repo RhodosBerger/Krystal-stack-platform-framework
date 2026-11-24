@@ -14,8 +14,8 @@
       "vulkan_gpu_vs_cpu_speedup_x": 20.35,
       "subnormal_stall_eliminated_x": 37.37,
       "binary_128b_vs_json_ipc_x": 5.04,
-      "bitmap64_slab_vs_legacy_heap_x": 3.99,
-      "sharded_4t_log_vs_mutex_x": 4.63
+      "bitmap64_slab_vs_legacy_heap_x": 3.42,
+      "sharded_4t_log_vs_mutex_x": 4.24
     }
   },
   "structured_kb_prompt": {
@@ -151,11 +151,11 @@
         "structure_id": "KDS_00_HASHMAP_BTREEMAP_HEAP",
         "samples_n": 24,
         "ops_per_sample": 1024,
-        "median_ns_per_op": 2240.19,
-        "p95_ns_per_op": 3011.43,
-        "p99_ns_per_op": 3164.36,
-        "std_ns_per_op": 519.39,
-        "throughput_mops_per_sec": 0.446,
+        "median_ns_per_op": 948.29,
+        "p95_ns_per_op": 1134.57,
+        "p99_ns_per_op": 2564.26,
+        "std_ns_per_op": 334.53,
+        "throughput_mops_per_sec": 1.055,
         "bytes_per_slot": 416,
         "epistemic_status": "LOCAL_MEASURED"
       },
@@ -163,11 +163,11 @@
         "structure_id": "KDS_01_DEQUE_TUPLE_POOL",
         "samples_n": 24,
         "ops_per_sample": 1024,
-        "median_ns_per_op": 172.36,
-        "p95_ns_per_op": 285.84,
-        "p99_ns_per_op": 356.93,
-        "std_ns_per_op": 60.51,
-        "throughput_mops_per_sec": 5.802,
+        "median_ns_per_op": 89.21,
+        "p95_ns_per_op": 204.0,
+        "p99_ns_per_op": 398.34,
+        "std_ns_per_op": 71.79,
+        "throughput_mops_per_sec": 11.21,
         "bytes_per_slot": 168,
         "epistemic_status": "LOCAL_MEASURED"
       },
@@ -175,11 +175,11 @@
         "structure_id": "KDS_02_PACKED_128B_FULL_WRITE",
         "samples_n": 24,
         "ops_per_sample": 1024,
-        "median_ns_per_op": 963.18,
-        "p95_ns_per_op": 1653.32,
-        "p99_ns_per_op": 1865.33,
-        "std_ns_per_op": 296.53,
-        "throughput_mops_per_sec": 1.038,
+        "median_ns_per_op": 359.42,
+        "p95_ns_per_op": 385.55,
+        "p99_ns_per_op": 472.66,
+        "std_ns_per_op": 24.75,
+        "throughput_mops_per_sec": 2.782,
         "bytes_per_slot": 128,
         "epistemic_status": "LOCAL_MEASURED"
       },
@@ -187,17 +187,17 @@
         "structure_id": "KDS_03_STRICT_BITMAP64_ZERO_COPY_128B",
         "samples_n": 24,
         "ops_per_sample": 1024,
-        "median_ns_per_op": 561.33,
-        "p95_ns_per_op": 1015.04,
-        "p99_ns_per_op": 1025.2,
-        "std_ns_per_op": 207.08,
-        "throughput_mops_per_sec": 1.781,
+        "median_ns_per_op": 277.49,
+        "p95_ns_per_op": 545.12,
+        "p99_ns_per_op": 749.71,
+        "std_ns_per_op": 120.11,
+        "throughput_mops_per_sec": 3.604,
         "bytes_per_slot": 128,
         "epistemic_status": "LOCAL_MEASURED"
       }
     ],
     "winning_structure": "KDS_01_DEQUE_TUPLE_POOL",
-    "bitmap_zero_copy_speedup_vs_legacy_x": 3.99,
+    "bitmap_zero_copy_speedup_vs_legacy_x": 3.42,
     "memory_footprint_reduction_x": 3.25,
     "epistemic_status": "LOCAL_MEASURED"
   },
@@ -206,22 +206,22 @@
     "physical_core_worker_threads": 4,
     "total_log_events_dispatched": 2048,
     "baseline_global_mutex_json": {
-      "median_ms": 14.052,
-      "p95_ms": 16.869,
-      "std_ms": 2.01,
-      "throughput_logs_per_sec": 145741.3
+      "median_ms": 6.896,
+      "p95_ms": 8.151,
+      "std_ms": 0.712,
+      "throughput_logs_per_sec": 296994.5
     },
     "krystal_sharded_spsc_128b_priority_log": {
-      "median_ms": 3.034,
-      "p95_ms": 4.17,
-      "std_ms": 0.566,
-      "throughput_logs_per_sec": 674938.6,
+      "median_ms": 1.628,
+      "p95_ms": 3.062,
+      "std_ms": 0.541,
+      "throughput_logs_per_sec": 1258101.2,
       "committed_frames": 1878,
       "shed_p2_frames_under_thrash": 170,
       "p0_constitutional_frames_dropped": 0,
       "adjusted_quantum_ns_under_thrash": 1089719
     },
-    "speedup_sharded_vs_mutex_x": 4.63,
+    "speedup_sharded_vs_mutex_x": 4.24,
     "epistemic_status": "LOCAL_MEASURED"
   },
   "lightweight_rust_vulkan_drivers": [
@@ -363,7 +363,7 @@
       {
         "seq_id": 0,
         "connection_id": "CONN_01_HOST_CPU_TO_UMA_SLAB",
-        "timestamp_ns": 1794926475384204300,
+        "timestamp_ns": 1795533620681281200,
         "source_hardware": "x86_64_Host_CPU_4T_AVX512_VNNI",
         "target_ai_chip": "Pinned_UMA_ZeroCopy_Slab_64B",
         "symmetric_oneapi_element": "oneTBB + oneDNN FTZ/DAZ",
@@ -383,7 +383,7 @@
       {
         "seq_id": 1,
         "connection_id": "CONN_02_UMA_SLAB_TO_IGPU_AI_CHIP",
-        "timestamp_ns": 1794926475384268100,
+        "timestamp_ns": 1795533620681296400,
         "source_hardware": "Pinned_UMA_ZeroCopy_Slab_64B",
         "target_ai_chip": "Intel_Iris_Xe_96EU_Vulkan_LevelZero",
         "symmetric_oneapi_element": "Level Zero USM + VK_LAYER_KRYSTAL_RUST_LIGHTWEIGHT",
@@ -403,7 +403,7 @@
       {
         "seq_id": 2,
         "connection_id": "CONN_03_IGPU_TO_OPENVINO_NPU_GOVERNOR",
-        "timestamp_ns": 1794926475384283600,
+        "timestamp_ns": 1795533620681303900,
         "source_hardware": "Intel_Iris_Xe_96EU_Vulkan_LevelZero",
         "target_ai_chip": "OpenVINO_Hetero_Governor_Gate",
         "symmetric_oneapi_element": "SYCL sub_group (K_tile=256 < 449) + OpenVINO Runtime",
@@ -425,16 +425,16 @@
   "continuous_framework_improvements": [
     {
       "improvement_id": "CONT_IMP_01_KERNEL_DATA_STRUCTURE",
-      "baseline": "HashMap+BTreeMap heap (`2240.19 ns/op`, 416 B/slot)",
-      "extension": "Strict 64-bit Bitmap Zero-Copy 128B Slab (`561.33 ns/op`, 128 B/slot)",
-      "measured_gain": "3.99x faster, 3.25x smaller",
+      "baseline": "HashMap+BTreeMap heap (`948.29 ns/op`, 416 B/slot)",
+      "extension": "Strict 64-bit Bitmap Zero-Copy 128B Slab (`277.49 ns/op`, 128 B/slot)",
+      "measured_gain": "3.42x faster, 3.25x smaller",
       "epistemic_status": "LOCAL_MEASURED"
     },
     {
       "improvement_id": "CONT_IMP_02_DYNAMIC_THREADED_LOG_SYSTEM",
-      "baseline": "4T Global Mutex JSON Log (`14.052 ms`)",
-      "extension": "4T Lock-Free Sharded 128B SPSC Priority Ring (`3.034 ms`)",
-      "measured_gain": "4.63x throughput speedup, 0 P0 drops",
+      "baseline": "4T Global Mutex JSON Log (`6.896 ms`)",
+      "extension": "4T Lock-Free Sharded 128B SPSC Priority Ring (`1.628 ms`)",
+      "measured_gain": "4.24x throughput speedup, 0 P0 drops",
       "epistemic_status": "LOCAL_MEASURED"
     },
     {

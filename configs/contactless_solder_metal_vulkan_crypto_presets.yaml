@@ -1,0 +1,103 @@
+# Krystal Stack — Presety „Bezkontaktná letovačka“, Apple Metal <-> Vulkan 1.4 UMA Ekvivalencia & Kryptografia
+# Ústavné invarianty: VITAL_MAX_HP == 6 | UMA_SATURATION_THRESHOLD == 0.78 | PROPOSER != VERIFIER
+
+schema_version: "1.0.0"
+vital_max_hp: 6
+uma_saturation_ceiling: 0.78
+nomenclature:
+  replaced_mode: "Double-Time Mode"
+  marketing_brand_sk: "Bezkontaktná letovačka"
+  marketing_brand_en: "Krystal Contactless Solder"
+  technical_construct: "UMA Topology-Weld & Phase-Shunt Multiplexing"
+  core_verb: "weld_uma_pathway"
+
+# 1. Presety Bezkontaktnej letovačky a adaptívneho riadenia UMA / Teploty
+contactless_solder_presets:
+  WELD_PRESET_01_HETERO_UMA_ZERO_COPY:
+    pl1_watts: 28.0
+    pl2_watts: 35.0
+    tau_seconds: 28.0
+    linux_epp: "balance_performance"
+    uncore_min_max_mhz: [1200, 2400]
+    openvino_streams: 1
+    npu_offload_role: "telemetry_anomaly_filter"
+    uma_pair: ["GPU_USM_CONV_STREAM", "CPU_SHANI_96B_PROVENANCE"]
+  WELD_PRESET_02_ARRHENIUS_THERMAL_CRUISE:
+    pl1_watts: 22.0
+    pl2_watts: 26.0
+    tau_seconds: 20.0
+    linux_epp: "balance_performance"
+    uncore_min_max_mhz: [1000, 2000]
+    openvino_streams: 1
+    npu_offload_role: "continuous_sensor_ewma"
+    uma_pair: ["GPU_DYNAMIC_RENDER_PASS", "CPU_BLAKE2B_MERKLE_LEDGER"]
+  WELD_PRESET_03_PREEMPTIVE_THROTTLE_SHUNT:
+    pl1_watts: 16.0
+    pl2_watts: 19.0
+    tau_seconds: 10.0
+    linux_epp: "balance_power"
+    uncore_min_max_mhz: [800, 1600]
+    openvino_streams: 1
+    npu_offload_role: "low_watt_background_classifier"
+    uma_pair: ["CPU_QUERY1_SYMBOLIC_LOOKUP", "NPU_INT8_BACKGROUND_SENSE"]
+  WELD_PRESET_04_UBUNTU_ECO_SILICON_SHIELD:
+    pl1_watts: 10.0
+    pl2_watts: 12.0
+    tau_seconds: 4.0
+    linux_epp: "power"
+    uncore_min_max_mhz: [400, 1000]
+    openvino_streams: 1
+    npu_offload_role: "deep_sleep_wake_sentinel"
+    uma_pair: ["BAR0_133NS_DECIMATOR", "NOSTD_RUST_PARKED_COWORKER"]
+
+# 2. Presety ekvivalencie Apple Metal -> Pokročilé akceleračné knižnice Vulkan 1.3 / 1.4
+metal_to_vulkan_equivalence_presets:
+  METAL_VK_01_UNIFIED_ZERO_COPY_HEAP:
+    apple_metal_feature: "MTLStorageModeShared (CPU/GPU Unified Memory)"
+    vulkan_equivalent: "VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | HOST_VISIBLE_BIT | HOST_COHERENT_BIT + VK_EXT_external_memory_host"
+    driver_overhead_reduction: "Trvalý vkMapMemory nad 64B/64KB UMA regiónom; nulové staging buffery"
+  METAL_VK_02_ARGUMENT_BUFFER_BDA_PUSH:
+    apple_metal_feature: "MTLBuffer.gpuAddress + Argument Buffers Tier 2"
+    vulkan_equivalent: "VK_KHR_buffer_device_address + VK_EXT_descriptor_buffer + 128B Push Constants"
+    driver_overhead_reduction: "Odovzdáva priamy 64-bitový GPU ukazovateľ na 128B Krystal rámec bez VkDescriptorPool alokácií"
+  METAL_VK_03_DYNAMIC_RENDER_SHADER_OBJECT:
+    apple_metal_feature: "MTLRenderCommandEncoder bez kombinatoriky RenderPass objektov"
+    vulkan_equivalent: "VK_KHR_dynamic_rendering + VK_EXT_shader_object"
+    driver_overhead_reduction: "Eliminuje stovky predbežných VkRenderPass/VkFramebuffer stavových permutácií"
+  METAL_VK_04_TIMELINE_EVENT_AND_SIMDGROUP:
+    apple_metal_feature: "MTLSharedEvent + simdgroup_matrix (8x8 Threadgroup Memory)"
+    vulkan_equivalent: "VK_KHR_timeline_semaphore + VK_KHR_shader_subgroup_extended_types + 64KB Workgroup SLM"
+    driver_overhead_reduction: "Monotónne 64-bitové CPU/GPU počítadlo bez ťažkých VkFence bariér a maticové podskupiny v SLM"
+
+# 3. Presety komplexného mapovania kryptografických výpočtov (Deep Research)
+cryptographic_mapping_presets:
+  CRYPTO_PRESET_01_SHANI_96B_PROVENANCE:
+    primitive: "HMAC-SHA256 (96B prefix rámca)"
+    hardware_path: "SHA-NI / AVX2 L1d"
+    linux_provider: "AF_ALG hmac(sha256)"
+    uma_delta: 0.02
+  CRYPTO_PRESET_02_VAES_GCM_ZERO_COPY:
+    primitive: "AES-256-GCM"
+    hardware_path: "512-bit VAES + VPCLMULQDQ"
+    linux_provider: "Kernel Crypto rfc4106(gcm(aes))"
+    uma_delta: 0.06
+  CRYPTO_PRESET_03_BLAKE2B_SIMD_MERKLE:
+    primitive: "BLAKE2b-256"
+    hardware_path: "AVX-512 RORQ 64-bit"
+    linux_provider: "blake2b-256-avx512"
+    uma_delta: 0.015
+  CRYPTO_PRESET_04_AVX512_IFMA_ED25519:
+    primitive: "Ed25519 / Curve25519"
+    hardware_path: "AVX-512 IFMA 52-bit FMA"
+    linux_provider: "OpenSSL 3 / libsodium IFMA"
+    uma_delta: 0.01
+  CRYPTO_PRESET_05_FIPS203_ML_KEM_768_NTT:
+    primitive: "ML-KEM-768 (Post-Quantum Lattice NTT Z_3329)"
+    hardware_path: "AVX-512 / AVX2 16-bit NTT v L1d"
+    linux_provider: "leancrypto / liboqs ML-KEM-768"
+    uma_delta: 0.025
+  CRYPTO_PRESET_06_SHAKE256_KECCAK_XOF:
+    primitive: "SHA3-256 / SHAKE-256"
+    hardware_path: "AVX-512 VPTERNLOGQ"
+    linux_provider: "sha3-256-avx512"
+    uma_delta: 0.02

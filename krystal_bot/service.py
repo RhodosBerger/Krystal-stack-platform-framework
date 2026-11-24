@@ -261,6 +261,10 @@ class BotService:
         g.register(Skill("overseer", "Integrated efficiency overseer, automatic script, OpenVINO preset & core activation selector", ["/overseer", "/auto-select", "/core-strategy"]), lambda a, c: INTEGRATED_EFFICIENCY_OVERSEER.format_slovak_summary(a))
         g.register(Skill("arbitrate", "Sovereign shadow-price multi-agent resource arbitration engine", ["/arbitrate", "/arbitraz"]), lambda a, c: SOVEREIGN_ARBITRATION_ENGINE.format_slovak_arbitration(a))
         g.register(Skill("opportunities", "Discover and arbitrate new OS & GPU driver optimization opportunities", ["/opportunities", "/prilezitosti"]), lambda a, c: BOT_OPPORTUNITY_GENERATOR.format_slovak_opportunities(a))
+        g.register(Skill("rust-modules", "Compiled #![no_std] low-footprint concurrent Rust modules & co-worker audit", ["/rust-modules", "/rust-moduly"]), lambda a, c: self._rust_modules_text())
+        g.register(Skill("rust-firmware", "Sovereign #![no_std] Rust firmware competitor, Retroactive Validator, Stream-CUDA & Kisak-Gallium Vulkan presets", ["/rust-firmware", "/kisak-gallium", "/stream-cuda", "/vulkan-presety"]), lambda a, c: self._rust_firmware_gallium_text(a))
+        g.register(Skill("openvino-gallium", "OpenVINO <-> Kisak-Mesa Gallium zero-copy bridge, Neural Frame Synthesizer & NIR shader predictor", ["/openvino-gallium", "/ov-gallium"]), lambda a, c: self._openvino_gallium_text())
+        g.register(Skill("neurosymbolic-v2", "Expanded 10-stage neurosymbolic pipeline & 6 formal proofs", ["/neurosymbolic", "/neurosymbolika"]), lambda a, c: self._neurosymbolic_v2_text())
         g.register(Skill("search", "Retrieve from docs and logs", ["/search"]), lambda a, c: self._search_text(a))
         g.register(Skill("ask", "Answer from retrieval, configuration cheatsheet & cascade SLMs", ["/ask"]), lambda a, c: self._ask_text(a))
         g.register(Skill("art", "Draw pixel art", ["/art"]), lambda a, c: self._art_text(a))
@@ -296,6 +300,77 @@ class BotService:
                  f"llm: {'allowed' if self.llm.policy()['allowed'] else 'off (' + '; '.join(self.llm.policy()['reasons'][:1]) + ')'}",
                  f"donor: {'yes' if self.is_donor() else 'no'}", f"pending evaluation: {self.pending.stats()['pending']}"]
         return "\n".join(lines)
+
+    def _rust_modules_text(self) -> str:
+        from projects.trigonometric_hybrid_platform_framework.concurrent_rust_ffi_runtime_bridge import (
+            run_concurrent_rust_efficiency_and_resource_audit,
+        )
+
+        rep = run_concurrent_rust_efficiency_and_resource_audit()
+        mods = rep["compiled_nostd_rust_modules"]
+        frug = rep["low_resource_frugality"]
+        coex = rep["concurrent_coexecution_metrics"]
+        return (
+            f"Skompilované #![no_std] Rust moduly (VITAL_MAX_HP == {rep['vital_max_hp']}):\n"
+            f"- krystal_concurrent_rust_core: {mods['krystal_concurrent_rust_core']['binary_size_kb']} KB\n"
+            f"- pulse_logger_core: {mods['pulse_logger_core']['binary_size_kb']} KB\n"
+            f"- Spolu: {mods['combined_binary_kb']} KB (zmestí sa do 32 KB L1i cache: {mods['fits_inside_32kb_l1i_cache']})\n"
+            f"- Úspora zásobníka vlákien: {frug['total_reserved_stack_kb']} KB vs {frug['standard_tokio_8t_stack_kb']} KB ({frug['stack_memory_reduction_x']}x)\n"
+            f"- CPU spin v pokoji: {frug['idle_cpu_spin_percent']} % | Súbežne spracované rámce: {coex['completed_valid_frames']} ({coex['combined_openvino_plus_coworker_wall_ms']} ms)"
+        )
+
+    def _neurosymbolic_v2_text(self) -> str:
+        from projects.trigonometric_hybrid_platform_framework.expanded_neurosymbolic_pipeline_v2 import (
+            run_expanded_10_stage_neurosymbolic_pipeline,
+        )
+
+        res = run_expanded_10_stage_neurosymbolic_pipeline()
+        m = res["ns07_grammar_masking"]
+        p = res["ns06_hetero_parity"]
+        return (
+            f"Rozšírená 10-stupňová neurosymbolická pipeline v2 (VITAL_MAX_HP == {res['vital_max_hp']}):\n"
+            f"- Dôkazy codebase: {len(res['proven_capabilities'])} | Teórie: {res['theories_count']} | Stupne: {len(res['stages'])}\n"
+            f"- NS_06 CPU vs Iris Xe parita: greedy={p['greedy_token_parity']}, max_diff={p['max_abs_logit_diff']}\n"
+            f"- NS_07 Symbolická maska logitov: fabulácia {m['unmasked_fabrication_rate']*100:.1f} % -> {m['masked_fabrication_rate']*100:.2f} %\n"
+            f"- Celkový čas: {res['total_pipeline_ms']} ms | KB záznamov: {res['kb_records_count']}"
+        )
+
+    def _rust_firmware_gallium_text(self, arg: str) -> str:
+        from projects.trigonometric_hybrid_platform_framework.sovereign_rust_firmware_cuda_gallium_suite import (
+            execute_sovereign_rust_firmware_cuda_gallium_suite,
+            match_vulkan_engine_preset,
+        )
+
+        res = execute_sovereign_rust_firmware_cuda_gallium_suite(uma_util=0.34, base_vulkan_fps=60.0)
+        fw = res["sovereign_rust_firmware"]
+        rv = res["retroactive_validator_generator_aggregator"]
+        sc = res["stream_cuda_and_fps_booster"]
+        eng_line = ""
+        if arg.strip():
+            mp = match_vulkan_engine_preset(arg.strip(), uma_util=0.34, base_fps=60.0)
+            eng_line = f"\n- Vybraný Vulkan preset ({mp['engine_name']}): {mp['base_vulkan_fps']} -> {mp['stream_boosted_vulkan_fps']} FPS (+{mp['total_fps_gain_percent']} %)"
+        return (
+            f"Suverénny #![no_std] Rust Firmvér, Stream-CUDA & Kisak-Gallium Port (VITAL_MAX_HP == {res['vital_max_hp']}):\n"
+            f"- Modul {fw['rust_binary_name']}: {fw['rust_binary_size_kb']} KB (L1i cache: {fw['fits_in_32kb_l1i_cache']}), KUBC zrýchlenie: {fw['firmware_control_speedup_x']}x oproti ACPI AML\n"
+            f"- Spätnoväzbový Validátor (Generátor + Agregátor): {rv['retroactive_compute_speedup_x']}x zrýchlenie, FTZ vyčistené subnormály: {rv['sanitized_subnormals_ftz_count']}\n"
+            f"- Stream-CUDA (768 FP32 SPs / 96 EU) FPS Booster: {sc['base_native_fps']} -> {sc['boosted_effective_fps']} FPS ({sc['fps_multiplier_x']}x)\n"
+            f"- Kisak-Mesa Gallium KB záznamy: {res['kisak_gallium_and_vulkan_presets']['kb_records_written']} (8 herných enginov){eng_line}"
+        )
+
+    def _openvino_gallium_text(self) -> str:
+        from krystal_kernel.openvino_gallium_driver_bridge import get_global_openvino_gallium_bridge
+
+        rep = get_global_openvino_gallium_bridge().execute_full_openvino_gallium_suite(uma_utilization=0.34)
+        ch = rep["active_gallium_openvino_channel"]
+        sy = rep["neural_gallium_frame_synthesizer"]
+        preds = rep["nir_shader_subgroup_predictor"]["decisions"]
+        return (
+            f"Prepojenie OpenVINO <-> Kisak-Mesa Gallium (VITAL_MAX_HP == {rep['vital_max_hp']}):\n"
+            f"- Aktívne zariadenie: {ch['active_openvino_device']} | Rovina: {ch['gallium_driver_plane']}\n"
+            f"- Bezkópiová parita UMA adresy: {sy['zero_copy_address_parity']} ({sy['usm_64b_aligned_address_hex']})\n"
+            f"- Neurónová syntéza snímky: CPU={sy['cpu_onednn_llvmpipe_median_ms']} ms, Iris Xe GPU={sy['gpu_iris_xe_gallium_median_ms']} ms (max odchýlka {sy['cpu_vs_gpu_max_abs_diff']})\n"
+            f"- NIR prediktor subgroupy: " + ", ".join(f"{d['shader']}->SIMD{d['predicted_simd_subgroup']}" for d in preds)
+        )
 
     def _config_text(self, arg: str) -> str:
         parts = arg.strip().split()

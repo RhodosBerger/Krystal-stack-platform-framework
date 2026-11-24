@@ -301,6 +301,203 @@ def test_mcp_parameter_grep_comm_pipeline_and_bot_configurator() -> None:
     assert "KRYSTAL" in render_bot_configurator_studio_html()
 
 
+def test_compiled_nostd_concurrent_rust_modules_and_low_footprint() -> None:
+    import tempfile
+    from krystal_bot.service import BotService
+    from projects.trigonometric_hybrid_platform_framework.concurrent_rust_ffi_runtime_bridge import (
+        run_concurrent_rust_efficiency_and_resource_audit,
+    )
+
+    rep = run_concurrent_rust_efficiency_and_resource_audit()
+    assert rep["vital_max_hp"] == 6
+    mods = rep["compiled_nostd_rust_modules"]
+    assert mods["krystal_concurrent_rust_core"]["binary_built"] is True
+    assert mods["pulse_logger_core"]["binary_built"] is True
+    assert mods["combined_binary_kb"] <= 32.0
+    assert mods["fits_inside_32kb_l1i_cache"] is True
+
+    frug = rep["low_resource_frugality"]
+    assert frug["stack_kb_per_worker"] == 128
+    assert frug["stack_memory_reduction_x"] >= 32.0
+    assert frug["idle_cpu_spin_percent"] == 0.0
+    assert frug["rust_heap_allocations_bytes"] == 0
+
+    coex = rep["concurrent_coexecution_metrics"]
+    assert coex["total_frames_submitted"] == 512
+    assert coex["completed_valid_frames"] == 480
+    assert coex["shed_p2_frames_under_uma_pressure"] == 28
+    assert coex["rejected_invalid_hp_frames_delta_s_zero"] == 4
+    assert coex["bar0_live_completed_head"] == 480
+
+    with tempfile.TemporaryDirectory() as tmp:
+        svc = BotService(root=".", data_dir=tmp, use_keras=False)
+        msg = svc.message("/rust-moduly", channel="cli", sender="local")
+        assert msg["ok"] is True
+        assert "krystal_concurrent_rust_core" in msg["reply"]
+
+
+def test_expanded_10_stage_neurosymbolic_pipeline_v2() -> None:
+    import tempfile
+    from krystal_bot.service import BotService
+    from projects.trigonometric_hybrid_platform_framework.expanded_neurosymbolic_pipeline_v2 import (
+        run_expanded_10_stage_neurosymbolic_pipeline,
+    )
+
+    out = run_expanded_10_stage_neurosymbolic_pipeline()
+    assert out["vital_max_hp"] == 6
+    assert len(out["proven_capabilities"]) == 6
+    assert out["theories_count"] == 8
+    assert len(out["stages"]) == 10
+    assert out["kb_records_count"] == 24
+    assert out["ns05_query1"]["lookup_nostd_kb"] == 24.5
+    assert out["ns05_query1"]["conflict_verdict"] == "CONFLICT"
+    assert out["ns05_query1"]["conflict_branches_count"] == 2
+    assert out["ns06_hetero_parity"]["greedy_token_parity"] is True
+    assert out["ns06_hetero_parity"]["max_abs_logit_diff"] < 1e-2
+    assert out["ns07_grammar_masking"]["masked_fabrication_rate"] == 0.0
+    assert out["ns07_grammar_masking"]["masked_grounded_count"] == 40
+    assert out["ns09_parameter_grep_status"] == "CLEAN_NO_DRIFT"
+    assert Path(out["kb_v2_path"]).exists()
+    assert Path(out["doc_v2_path"]).exists()
+
+    with tempfile.TemporaryDirectory() as tmp:
+        svc = BotService(root=".", data_dir=tmp, use_keras=False)
+        msg = svc.message("/neurosymbolika", channel="cli", sender="local")
+        assert msg["ok"] is True
+        assert "10-stupňová" in msg["reply"]
+
+
+def test_contactless_solder_metal_vulkan_ubuntu_and_speculative_loop() -> None:
+    from deploy.ubuntu_contactless_solder_power.krystal_ubuntu_power_daemon import probe_ubuntu_linux_sensors
+    from projects.trigonometric_hybrid_platform_framework.metal_vulkan_endpoints_and_speculative_bench_loop import (
+        execute_all_milestones_and_export_roadmap,
+        render_contactless_solder_live_studio_html,
+    )
+
+    out = execute_all_milestones_and_export_roadmap()
+    assert out["vital_max_hp"] == 6
+    assert len(out["milestones"]) == 7
+
+    cs = out["contactless_solder_bundle"]
+    assert cs["nomenclature_and_theory_th09"]["marketing_name_sk"] == "Bezkontaktná letovačka"
+    assert cs["contactless_solder_bytecode"]["bytecode_size_bytes"] == 8 + 8 * 8
+    assert len(cs["contactless_solder_bytecode"]["progression_timeline"]) == 16
+    assert cs["strategic_uma_process_pairing_pipeline"]["stays_below_078_ceiling"] is True
+    assert cs["strategic_uma_process_pairing_pipeline"]["pairing_speedup_x"] > 1.0
+
+    vk_gate = out["vulkan_endpoint_gate_results"]
+    assert vk_gate["committed_ep1"]["status"] == "COMMITTED_AFTER_GLMARK_PASS"
+    assert vk_gate["rolled_back_regression_ep"]["status"] == "ROLLED_BACK_GLMARK_REGRESSION_DELTA_S_ZERO"
+    assert Path(vk_gate["layer_manifest_path"]).exists()
+
+    spec = out["speculative_debug_and_benchmark_loop"]
+    assert spec["best_verified_speedup_x"] > 2.0
+    assert any("REJECTED_REGRESSION" in c["verdict"] for c in spec["spawned_child_branches"])
+
+    w32 = out["win32_gen11_and_rust_vulkan_quota"]
+    assert w32["rust_vulkan_acceleration_quota_64b"]["rust_symbol_exported_in_dll"] is True
+    assert 0 < w32["rust_vulkan_acceleration_quota_64b"]["allowed_iris_xe_eus_of_96"] <= 96
+
+    ub = probe_ubuntu_linux_sensors()
+    assert ub["vital_max_hp"] == 6
+    assert "Bezkontaktná letovačka" in render_contactless_solder_live_studio_html()
+
+
+def test_sovereign_rust_firmware_validator_stream_cuda_and_kisak_gallium_presets() -> None:
+    import tempfile
+    from krystal_bot.service import BotService
+    from projects.trigonometric_hybrid_platform_framework.sovereign_rust_firmware_cuda_gallium_suite import (
+        execute_sovereign_rust_firmware_cuda_gallium_suite,
+        match_vulkan_engine_preset,
+        render_sovereign_rust_gallium_cuda_studio_html,
+    )
+
+    res = execute_sovereign_rust_firmware_cuda_gallium_suite(uma_util=0.34, base_vulkan_fps=60.0)
+    assert res["vital_max_hp"] == 6
+
+    fw = res["sovereign_rust_firmware"]
+    assert fw["fits_in_32kb_l1i_cache"] is True
+    assert fw["rust_binary_size_kb"] <= 24.0
+    assert fw["firmware_control_speedup_x"] > 1.5
+    assert fw["constitutional_rollback_audit"]["fault_return_code"] == -6
+    assert fw["constitutional_rollback_audit"]["svn_epoch_preserved_delta_s_zero"] is True
+
+    rv = res["retroactive_validator_generator_aggregator"]
+    assert rv["emission_authorized"] is True
+    assert rv["proposer_not_equal_verifier"] is True
+    assert rv["sanitized_subnormals_ftz_count"] == 128
+    assert rv["retroactive_compute_speedup_x"] > 1.2
+    assert rv["self_certification_quarantine_verified"] is True
+
+    sc = res["stream_cuda_and_fps_booster"]
+    assert sc["device_props"]["fp32_stream_processors_cuda_core_equivalent"] == 768
+    assert sc["boosted_effective_fps"] > sc["base_native_fps"]
+    assert sc["chronometric_shadow_multiplexing_ok"] is True
+
+    gal = res["kisak_gallium_and_vulkan_presets"]
+    assert gal["zero_touch_interposition_p1"] is True
+    assert gal["gallium_pillars_count"] == 6
+    assert gal["vulkan_engine_presets_count"] == 8
+    assert Path(gal["kb_jsonl_path"]).exists()
+    assert Path(gal["ubuntu_port_installer_path"]).exists()
+    assert Path(gal["vulkan_layer_manifest_path"]).exists()
+
+    ue5 = match_vulkan_engine_preset("UnrealEngine", uma_util=0.34, base_fps=60.0)
+    assert ue5["code"] == "ENG_UNREAL_5_VULKAN"
+    assert ue5["stream_boosted_vulkan_fps"] > 120.0
+
+    # UMA >= 0.78 circuit breaker protects scanout and disables speculative framegen
+    saturated = match_vulkan_engine_preset("Source 2", uma_util=0.82, base_fps=60.0)
+    assert saturated["active_stream_processors_of_768"] == 128
+    assert saturated["stream_boosted_vulkan_fps"] == 60.0
+
+    assert "Kisak-Gallium" in render_sovereign_rust_gallium_cuda_studio_html()
+
+    with tempfile.TemporaryDirectory() as tmp:
+        svc = BotService(root=".", data_dir=tmp, use_keras=False)
+        msg = svc.message("/kisak-gallium Source 2", channel="cli", sender="local")
+        assert msg["ok"] is True
+        assert "krystal_sovereign_firmware_rs" in msg["reply"]
+        assert "Source 2" in msg["reply"]
+
+
+def test_openvino_gallium_driver_bridge_and_unified_benchmark() -> None:
+    import tempfile
+    from krystal_bot.service import BotService
+    from krystal_kernel.openvino_aep_runtime import OpenVinoAepRuntime
+    from scripts.benchmark_unified_openvino_gallium_rust_stack import run_unified_openvino_gallium_rust_benchmark
+
+    rt = OpenVinoAepRuntime()
+    ch = rt.get_gallium_driver_channel(uma_utilization=0.34, payload_bytes=65_536)
+    assert ch["vital_max_hp"] == 6
+    assert ch["zero_copy_shared_tensor"] is True
+
+    ch_spill = rt.get_gallium_driver_channel(uma_utilization=0.84, payload_bytes=65_536)
+    assert ch_spill["active_openvino_device"] == "CPU"
+    assert "LLVMPIPE" in ch_spill["gallium_driver_plane"]
+
+    bench = run_unified_openvino_gallium_rust_benchmark(samples_n=10)
+    assert bench["vital_max_hp"] == 6
+    assert bench["plane_3_openvino_gallium_1mb_tensor_binding"]["zero_copy_binding_speedup_x"] > 1.0
+    sy = bench["plane_4_openvino_gallium_neural_modules"]["neural_gallium_frame_synthesizer"]
+    assert sy["zero_copy_address_parity"] is True
+    assert sy["parity_verified"] is True
+    assert len(bench["plane_4_openvino_gallium_neural_modules"]["connected_modules_catalog"]) == 4
+    assert Path(bench["report_json_path"]).exists()
+    assert Path(bench["report_md_path"]).exists()
+
+    with tempfile.TemporaryDirectory() as tmp:
+        svc = BotService(root=".", data_dir=tmp, use_keras=False)
+        msg = svc.message("/openvino-gallium", channel="cli", sender="local")
+        assert msg["ok"] is True
+        assert "OpenVINO <-> Kisak-Mesa Gallium" in msg["reply"]
+
+
+
+
+
+
+
 
 
 

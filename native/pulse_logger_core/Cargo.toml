@@ -10,4 +10,17 @@ license = "Apache-2.0"
 name = "pulse_logger_core"
 crate-type = ["cdylib", "staticlib", "rlib"]
 
+[features]
+std = []
+
 [dependencies]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+
+[workspace]
+

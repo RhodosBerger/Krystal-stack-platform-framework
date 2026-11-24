@@ -144,8 +144,21 @@ class OpenVinoAepRuntime:
             self._ov_core.set_property({"CACHE_DIR": self.cache_dir})
             self.available_devices = list(self._ov_core.available_devices)
             self._init_compiled_models()
+            from krystal_kernel.openvino_gallium_driver_bridge import get_global_openvino_gallium_bridge
+            self.gallium_bridge = get_global_openvino_gallium_bridge(ov_core=self._ov_core)
         except Exception:
             self._ov_core = None
+            self.gallium_bridge = None
+
+    def get_gallium_driver_channel(
+        self, uma_utilization: float = 0.34, payload_bytes: int = 65_536
+    ) -> Dict[str, Any]:
+        """Vracia aktívny kanál Kisak-Mesa Gallium <-> OpenVINO pre dané zaťaženie UMA zbernice."""
+        if getattr(self, "gallium_bridge", None) is None:
+            return {"active_openvino_device": "CPU", "gallium_driver_plane": "FALLBACK_CPU", "vital_max_hp": VITAL_MAX_HP}
+        return self.gallium_bridge.resolve_gallium_openvino_channel(
+            uma_utilization=uma_utilization, payload_bytes=payload_bytes
+        ).to_dict()
 
     def _init_compiled_models(self) -> None:
         """Initializes and compiles the Cortex neural prioritizer for available OpenVINO backends."""

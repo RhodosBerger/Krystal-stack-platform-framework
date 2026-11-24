@@ -141,6 +141,12 @@ jobs:
           riscv64-linux-gnu-gcc -std=c11 -march=rv64gc -O3 -Wall -Wextra -Werror -Iinclude -c src/c/krystal_spsc_benchmark.c -o krystal_spsc_bench_riscv64.o
           file krystal_spsc_bench_riscv64.o
 
+      - name: Build Low-Footprint #![no_std] Concurrent Rust Modules (Linux .so)
+        run: |
+          cargo build --release --manifest-path native/krystal_concurrent_rust_core/Cargo.toml
+          cargo build --release --manifest-path native/pulse_logger_core/Cargo.toml
+          ls -lh native/krystal_concurrent_rust_core/target/release/libkrystal_concurrent_rust_core.so native/pulse_logger_core/target/release/libpulse_logger_core.so
+
       - name: Push Build & Smoke Logs on Failure
         if: failure()
         run: |

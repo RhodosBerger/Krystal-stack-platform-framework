@@ -1,0 +1,105 @@
+# Krystal Stack — Concentrated Kisak-Mesa Gallium3D Knowledge Base & Tailor-Made Vulkan Engine Presets
+# Copyright (c) 2026 Dušan Kopecký (@RhodosBerger). All Rights Reserved.
+# Authorized Partner Addendum: Ivan Novikov (xerj.org).
+
+schema_version: "1.0.0"
+constitutional_invariants:
+  vital_max_hp: 6
+  uma_saturation_ceiling: 0.78
+  zero_touch_interposition_p1: true
+  rust_driver_core_binary: "native/krystal_sovereign_firmware_rs.dll"
+  rust_driver_size_kb: 16.5
+
+kisak_mesa_gallium_knowledge_base:
+  upstream_baseline: "ppa:kisak/kisak-mesa (Mesa 25.x Gallium3D + NIR + ANV + Iris + Zink + Rusticl)"
+  gallium_architectural_pillars:
+    - id: "GAL_01_PIPE_SCREEN_CSO"
+      kisak_component: "Gallium pipe_screen / Constant State Objects (cso_cache)"
+      kisak_mechanism: "Immutable rasterizer, blend, depth-stencil, and sampler states hashed once instead of per-draw validation."
+      krystal_rust_enhancement: "Zero-heap 128B cache-line-aligned FNV-1a CSO table in #![no_std] Rust (0 B malloc overhead, O(1) L1d lookup)."
+    - id: "GAL_02_U_THREADED_CONTEXT"
+      kisak_component: "u_threaded_context (MESA_GLTHREAD=true)"
+      kisak_mechanism: "Asynchronous command batching decoupling application render thread from kernel DRM ioctl submission."
+      krystal_rust_enhancement: "128 KB frugal worker stacks (16x smaller than standard 2 MB threads) + zero-spin OS futex parking (0.0% idle CPU)."
+    - id: "GAL_03_IRIS_ANV_XE"
+      kisak_component: "Intel Iris (Gallium) & ANV (Vulkan 1.4) for Gen11/Gen12 Xe (96 EUs / 768 SPs)"
+      kisak_mechanism: "bo_cache bucket allocator, ISL tiling, BLORP blit engine, VK_EXT_graphics_pipeline_library (GPL), BDA."
+      krystal_rust_enhancement: "TH_09 Contactless Solder UMA < 0.78 circuit breaker + Chronometric Shadow Multiplexing preventing p99 UMA stutter."
+    - id: "GAL_04_ZINK_MULTI_API"
+      kisak_component: "Mesa Zink (OpenGL 4.6 over Vulkan 1.4)"
+      kisak_mechanism: "Translates Gallium pipe_context draws to VK_KHR_dynamic_rendering and push descriptors."
+      krystal_rust_enhancement: "128B Apple-Metal-equivalent PushConstant + BDA fast path with automatic glmark2 non-regression rollback."
+    - id: "GAL_05_RUSTICL_STREAM_COMPUTE"
+      kisak_component: "Mesa Rusticl (OpenCL 3.0 in Rust over Gallium NIR/SPIR-V)"
+      kisak_mechanism: "Compiles OpenCL C / SPIR-V kernels through NIR algebraic/vectorize passes onto Gallium compute queues."
+      krystal_rust_enhancement: "Direct Krystal Stream-CUDA Extension (ksStream*, subgroup SIMD8/16/32, 64KB SLM) + Retroactive Validator Generator/Aggregator."
+    - id: "GAL_06_NIR_ALGEBRAIC_LOWERING"
+      kisak_component: "NIR SSA Intermediate Representation (nir_opt_algebraic, nir_lower_subgroups)"
+      kisak_mechanism: "Vectorizes ALU ops and lowers subgroup ballot/shuffle intrinsics to Intel EU GRF registers."
+      krystal_rust_enhancement: "TH_01 IEEE-754 FTZ/DAZ pre-sanitization flushing denormal uniforms before EU dispatch (~120-cycle microcode trap avoided)."
+
+vulkan_game_engine_presets:
+  - preset_id: 1
+    code: "ENG_UNREAL_5_VULKAN"
+    engine_name: "Unreal Engine 5 (Nanite / Lumen / VSM)"
+    vk_engine_match: ["UnrealEngine", "UE5"]
+    simd_subgroup: 16
+    slm_shared_bytes: 49152
+    bottleneck_solved: "Indirect draw BDA churn, pipeline stutter, and Lumen GI UMA bus contention"
+    krystal_techniques: ["GPL Zero-Heap CSO", "128B BDA Indirect Weld", "TH_09 UMA<0.78 AVX-512 Async Spill", "Stream-FPS Shadow 2x"]
+  - preset_id: 2
+    code: "ENG_SOURCE_2_VULKAN"
+    engine_name: "Valve Source 2 (CS2 / Dota 2 / Deadlock)"
+    vk_engine_match: ["Source 2", "Source2"]
+    simd_subgroup: 32
+    slm_shared_bytes: 16384
+    bottleneck_solved: "eSports 1%-low frame-time spikes, CPU submission latency, particle denormals"
+    krystal_techniques: ["SIMD32 Warp Throughput", "TH_01 FTZ/DAZ Physics Purge", "P-Core 0x55 Affinity", "PresentWait Anti-Lag"]
+  - preset_id: 3
+    code: "ENG_IDTECH_7_8_VULKAN"
+    engine_name: "id Tech 7 / id Tech 8 (DOOM Eternal / Motor)"
+    vk_engine_match: ["idTech", "id Tech"]
+    simd_subgroup: 32
+    slm_shared_bytes: 65536
+    bottleneck_solved: "Async compute + mega-texture streaming colliding with display scanout on shared UMA"
+    krystal_techniques: ["64KB Full Subslice SLM", "Chronometric Shadow Scanout*Compute==0", "128B PushConstant FastPath"]
+  - preset_id: 4
+    code: "ENG_UNITY_SRP_VULKAN"
+    engine_name: "Unity HDRP / URP Vulkan"
+    vk_engine_match: ["Unity", "UnityEngine"]
+    simd_subgroup: 16
+    slm_shared_bytes: 24576
+    bottleneck_solved: "Frequent render-pass switches, small draw-call validation, managed GC jitter"
+    krystal_techniques: ["VK_KHR_dynamic_rendering Merge", "Zero-Heap O(1) CSO Hash", "GC SMT Sibling Pinning 0xAA"]
+  - preset_id: 5
+    code: "ENG_GODOT_4_FORWARD_VULKAN"
+    engine_name: "Godot 4.x Forward+ / Mobile Vulkan"
+    vk_engine_match: ["Godot", "GodotEngine"]
+    simd_subgroup: 16
+    slm_shared_bytes: 32768
+    bottleneck_solved: "Clustered forward light-culling dispatch overhead & SDFGI uniform updates"
+    krystal_techniques: ["Stream-CUDA subgroupShuffleXor Light Culling", "32KB SLM Tile Cache", "Zero-Copy Uniform Ring"]
+  - preset_id: 6
+    code: "ENG_REDENGINE4_DXVK_VKD3D"
+    engine_name: "REDengine 4 / DX12-over-vkd3d-proton & DXVK"
+    vk_engine_match: ["REDengine", "vkd3d", "DXVK"]
+    simd_subgroup: 16
+    slm_shared_bytes: 49152
+    bottleneck_solved: "D3D12 root-signature translation overhead & heavy crowd-AI CPU/UMA contention"
+    krystal_techniques: ["128B Root-BDA Direct Map", "Retroactive Validator Crowd Generator+Aggregator", "12-Frame Dwell FPS Boost"]
+  - preset_id: 7
+    code: "ENG_ANVIL_SNOWDROP_RAGE_VULKAN"
+    engine_name: "RAGE / Anvil / Snowdrop Open-World Vulkan"
+    vk_engine_match: ["RAGE", "Anvil", "Snowdrop"]
+    simd_subgroup: 16
+    slm_shared_bytes: 32768
+    bottleneck_solved: "Open-world terrain/texture staging buffer copies causing traversal hitches"
+    krystal_techniques: ["Persistent USM HOST_COHERENT Zero-Copy", "TH_03 [0.25,0.50,0.25] Spike Filter", "Iris bo_cache Reuse"]
+  - preset_id: 8
+    code: "ENG_BEVY_WGPU_KRYSTAL_NATIVE"
+    engine_name: "Bevy / wgpu / Native Rust Vulkan Engines"
+    vk_engine_match: ["Bevy", "wgpu", "KrystalEngine"]
+    simd_subgroup: 32
+    slm_shared_bytes: 32768
+    bottleneck_solved: "ECS parallel schedule barriers prior to Vulkan queue submission"
+    krystal_techniques: ["Direct #![no_std] C11/Rust ABI Binding", "128KB Frugal Worker Stacks", "Full 768 Stream Processor Unlock"]

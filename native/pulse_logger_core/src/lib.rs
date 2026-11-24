@@ -176,3 +176,75 @@ impl PulseRing {
         Some(frame)
     }
 }
+
+#[no_mangle]
+pub extern "C" fn kr_pulse_ring_init(
+    ring: *mut PulseRing,
+    buffer: *mut PulseFrame,
+    capacity: u32,
+) -> i32 {
+    if ring.is_null() {
+        return -1;
+    }
+    match unsafe { &mut *ring }.init(buffer, capacity) {
+        Ok(()) => 0,
+        Err(_) => -2,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn kr_pulse_emit_h1_ordinary(
+    ring: *mut PulseRing,
+    event_code: u8,
+    payload: u16,
+) -> i32 {
+    if ring.is_null() {
+        return -1;
+    }
+    unsafe { &mut *ring }.emit_h1_ordinary(event_code, payload);
+    0
+}
+
+#[no_mangle]
+pub extern "C" fn kr_pulse_emit_h2_nontemporal(
+    ring: *mut PulseRing,
+    event_code: u8,
+    payload: u16,
+) -> i32 {
+    if ring.is_null() {
+        return -1;
+    }
+    unsafe { &mut *ring }.emit_h2_nontemporal(event_code, payload);
+    0
+}
+
+#[no_mangle]
+pub extern "C" fn kr_pulse_emit_h2_burst(
+    ring: *mut PulseRing,
+    event_code: u8,
+    base_payload: u16,
+    count: u32,
+) -> i32 {
+    if ring.is_null() {
+        return -1;
+    }
+    let r = unsafe { &mut *ring };
+    let mut i = 0u32;
+    while i < count {
+        r.emit_h2_nontemporal(event_code, base_payload.wrapping_add(i as u16));
+        i += 1;
+    }
+    count as i32
+}
+
+#[cfg(not(any(test, feature = "std")))]
+#[panic_handler]
+fn krystal_nostd_panic(_info: &core::panic::PanicInfo) -> ! {
+    #[cfg(target_arch = "x86_64")]
+    unsafe {
+        core::arch::asm!("ud2", options(noreturn, nomem, nostack));
+    }
+    #[cfg(not(target_arch = "x86_64"))]
+    loop {}
+}
+

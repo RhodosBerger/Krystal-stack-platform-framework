@@ -1,0 +1,1075 @@
+{
+  "vital_max_hp": 6,
+  "milestones": [
+    {
+      "milestone_id": "MS_01_CONTACTLESS_SOLDER_AND_TH09",
+      "goal_sk": "Nahradiť Double-Time Mode pojmom Bezkontaktná letovačka, slovesom weld_uma_pathway, teóriou TH_09 a 64-bitovým .kubc bajtkódom.",
+      "module": "contactless_solder_uma_crypto_and_power_pipeline.py"
+    },
+    {
+      "milestone_id": "MS_02_CRYPTO_DEEP_RESEARCH_AND_PRESETS",
+      "goal_sk": "Zmapovať kryptografické výpočty (SHA-NI, VAES, BLAKE2b, IFMA Ed25519, FIPS 203 ML-KEM NTT, AF_ALG) do YAML presetov.",
+      "module": "configs/contactless_solder_metal_vulkan_crypto_presets.yaml"
+    },
+    {
+      "milestone_id": "MS_03_THERMAL_SENSOR_POWER_PLAN_UBUNTU",
+      "goal_sk": "Vytvoriť 5 stratégií thermal throttlingu, 24h senzorový plán napájania a kompletnú službu pre Ubuntu LTS.",
+      "module": "deploy/ubuntu_contactless_solder_power/krystal_ubuntu_power_daemon.py"
+    },
+    {
+      "milestone_id": "MS_04_APPLE_METAL_VULKAN_128B_MULTI_API",
+      "goal_sk": "Dosiahnuť ekvivalenciu Apple Metal vo Vulkane (BDA + Dynamic Rendering + Timeline Semaphores) pre OpenGL/Zink, OpenCL, DirectX a Vulkan s glmark2 bránou.",
+      "module": "metal_vulkan_endpoints_and_speculative_bench_loop.py"
+    },
+    {
+      "milestone_id": "MS_05_SPECULATIVE_DEBUG_BENCHMARK_EVOLUTION",
+      "goal_sk": "Zaviesť autonómnu slučku ladenia a benchmarkovania špekulatívnych funkcií s automatickým vetvením pri preukázanom náraste.",
+      "module": "metal_vulkan_endpoints_and_speculative_bench_loop.py"
+    },
+    {
+      "milestone_id": "MS_06_LIVE_UMA_KERNEL_NPU_VISUAL_STUDIO",
+      "goal_sk": "Vykresliť živé grafické rozhranie procesov v UMA pamäti, vyťaženia jadra a NPU, priebehu bajtkódu a dynamického plánu napájania.",
+      "module": "contactless_solder_live_canvas.html + :8090/contactless_solder_studio"
+    },
+    {
+      "milestone_id": "MS_07_WIN32_GEN11_SINGLE_MULTI_CORE_AND_RUST_VULKAN_QUOTA",
+      "goal_sk": "Optimalizovať Single-Core Turbo (Core 0 + MMCSS) a 4P Multi-Thread (0x55) cez Windows API a riadiť akceleračnú kvótu Vulkanu cez #![no_std] Rust ovládač.",
+      "module": "native/krystal_concurrent_rust_core/src/lib.rs + metal_vulkan_endpoints_and_speculative_bench_loop.py"
+    }
+  ],
+  "contactless_solder_bundle": {
+    "schema_version": "1.0.0",
+    "vital_max_hp": 6,
+    "uma_saturation_ceiling": 0.78,
+    "nomenclature_and_theory_th09": {
+      "deprecated_term": "Double-Time Mode (tau_real + tau_spec)",
+      "why_replaced_sk": "Pôvodný názov navodzoval ilúziu zrýchlenia plynutia času, kým fyzikálne na základnej doske nedochádza k zdvojeniu hodín, ale k bezkontaktnému preklápaniu a premosťovaniu dátových dráh medzi čipovými jednotkami (CPU, L3 Ring, UMA DRAM, Iris Xe, NPU) a firmvérovými obálkami.",
+      "marketing_name_sk": "Bezkontaktná letovačka",
+      "marketing_name_en": "Krystal Contactless Solder™",
+      "technical_construct": "UMA Topology-Weld & Phase-Shunt Multiplexing",
+      "canonical_verb_sk": "premostiť / bezkontaktne zvariť dráhu",
+      "canonical_verb_api": "weld_uma_pathway",
+      "derived_theory": {
+        "theory_id": "TH_09_CONTACTLESS_TOPOLOGY_WELD_IMPEDANCE",
+        "equation": "Z_weld(P, t) = R_copy(P) + [mu_UMA(t) / max(0.78 - mu_UMA(t), eps)] * L_handoff(P) + gamma_th * max(0, T_j - T_knee)^2",
+        "claim_sk": "Nahradenie kopírovacích prechodov bezkontaktným 64B/128B premostením v zdieľanej UMA pamäti (R_copy -> 0) s komplementárnym párovaním procesov (ALU/Crypto ⊕ UMA-Stream) minimalizuje prepínaciu impedanciu Z_weld a drží zbernicu pod 0.78 bez zásahu hrubého hardvérového throttlingu.",
+        "falsifier": "Z_weld pri bezkontaktnom premostení prekročí kopírovací režim alebo mu_UMA prekročí 0.78 bez odpojenia P2.",
+        "verdict": "MEASURED_WITH_SCOPE"
+      }
+    },
+    "abstract_achievable_goals": [
+      {
+        "goal_id": "GOAL_01_ZERO_SOLDER_RECONFIGURATION",
+        "abstract_goal_sk": "Zmena topológie prepojenia čipových jednotiek bez fyzického zásahu do dosky",
+        "concrete_invariant": "R_copy == 0 B && 64B/128B mmap/USM zarovnanie && BAR0 zvonček < 200 ns",
+        "enforcing_preset": "WELD_PRESET_01_HETERO_UMA_ZERO_COPY"
+      },
+      {
+        "goal_id": "GOAL_02_SUSTAINED_THERMAL_EQUILIBRIUM",
+        "abstract_goal_sk": "Dlhodobý plný výkon bez nárazového tepelného škrtenia (PROCHOT#)",
+        "concrete_invariant": "T_j <= 75 C (Arrhenius AF <= 1.05) && proaktívny pokles PL1 pred 85 C",
+        "enforcing_preset": "WELD_PRESET_02_ARRHENIUS_THERMAL_CRUISE"
+      },
+      {
+        "goal_id": "GOAL_03_LINE_RATE_CRYPTO_ATTESTATION",
+        "abstract_goal_sk": "Kryptografická integrita každého 128B rámca bez spomalenia grafiky v UMA",
+        "concrete_invariant": "Kryptografia beží v L1/AVX-512 registroch (delta_UMA <= 0.04) paralelne s iGPU",
+        "enforcing_preset": "WELD_PRESET_03_CRYPTO_VAES_SHANI_PAIR"
+      },
+      {
+        "goal_id": "GOAL_04_POST_QUANTUM_READINESS",
+        "abstract_goal_sk": "Odolnosť kľúčovej výmeny voči kvantovým útokom na bežnom notebookovom SoC",
+        "concrete_invariant": "NTT transformácia nad Z_3329 (štýl FIPS 203 ML-KEM) vektorizovaná v L1 cache",
+        "enforcing_preset": "WELD_PRESET_04_PQC_NTT_LATTICE_SHUNT"
+      }
+    ],
+    "contactless_solder_bytecode": {
+      "preset_id": "WELD_PRESET_01_HETERO_UMA_ZERO_COPY",
+      "selected_initial_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+      "bytecode_size_bytes": 72,
+      "bytecode_hex": "4342554b060000000101704edc0078000202704edc00b9000303704edc00fa000404704edc003b010505704edc007c010606704edc00bd010707704edc00fe010808704edc003f02",
+      "bytecode_sha256": "bf0c044fbcdaa35f377dda227238065be1b9c75916b56362f90be72b66e0f2d7",
+      "disassembly": [
+        {
+          "pc": 0,
+          "opcode_hex": "0x01",
+          "mnemonic": "OP_SENSE_TELEM_HWMON",
+          "domain": "CPU_SENSOR_HUB",
+          "word_hex": "0x007800DC4E700101",
+          "pl1_watts": 22.0,
+          "epp_byte": 112,
+          "duration_us": 120
+        },
+        {
+          "pc": 1,
+          "opcode_hex": "0x02",
+          "mnemonic": "OP_CLAMP_EPP_UNCORE",
+          "domain": "LINUX_PSTATE_UNCORE",
+          "word_hex": "0x00B900DC4E700202",
+          "pl1_watts": 22.0,
+          "epp_byte": 112,
+          "duration_us": 185
+        },
+        {
+          "pc": 2,
+          "opcode_hex": "0x03",
+          "mnemonic": "OP_WELD_USM_ZERO_COPY",
+          "domain": "UMA_FABRIC_SHUNT",
+          "word_hex": "0x00FA00DC4E700303",
+          "pl1_watts": 22.0,
+          "epp_byte": 112,
+          "duration_us": 250
+        },
+        {
+          "pc": 3,
+          "opcode_hex": "0x04",
+          "mnemonic": "OP_PAIR_CRYPTO_REGISTER",
+          "domain": "AVX512_VAES_SHANI",
+          "word_hex": "0x013B00DC4E700404",
+          "pl1_watts": 22.0,
+          "epp_byte": 112,
+          "duration_us": 315
+        },
+        {
+          "pc": 4,
+          "opcode_hex": "0x05",
+          "mnemonic": "OP_LAUNCH_IRIS_XE_SLICE",
+          "domain": "IRIS_XE_96EU_USM",
+          "word_hex": "0x017C00DC4E700505",
+          "pl1_watts": 22.0,
+          "epp_byte": 112,
+          "duration_us": 380
+        },
+        {
+          "pc": 5,
+          "opcode_hex": "0x06",
+          "mnemonic": "OP_MODULATE_RAPL_PL1_TAU",
+          "domain": "RAPL_POWER_GOVERNOR",
+          "word_hex": "0x01BD00DC4E700606",
+          "pl1_watts": 22.0,
+          "epp_byte": 112,
+          "duration_us": 445
+        },
+        {
+          "pc": 6,
+          "opcode_hex": "0x07",
+          "mnemonic": "OP_TRIP_UMA_078_BREAKER",
+          "domain": "CONSTITUTIONAL_BREAKER",
+          "word_hex": "0x01FE00DC4E700707",
+          "pl1_watts": 22.0,
+          "epp_byte": 112,
+          "duration_us": 510
+        },
+        {
+          "pc": 7,
+          "opcode_hex": "0x08",
+          "mnemonic": "OP_COMMIT_BAR0_RECEIPT",
+          "domain": "BAR0_16KB_APERTURE",
+          "word_hex": "0x023F00DC4E700808",
+          "pl1_watts": 22.0,
+          "epp_byte": 112,
+          "duration_us": 575
+        }
+      ],
+      "progression_timeline": [
+        {
+          "tick": 0,
+          "active_pc": 0,
+          "active_mnemonic": "OP_SENSE_TELEM_HWMON",
+          "unmanaged_uma": 0.42,
+          "welded_uma": 0.328,
+          "unmanaged_temp_c": 64.0,
+          "welded_temp_c": 63.88,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.254
+        },
+        {
+          "tick": 1,
+          "active_pc": 1,
+          "active_mnemonic": "OP_CLAMP_EPP_UNCORE",
+          "unmanaged_uma": 0.491,
+          "welded_uma": 0.361,
+          "unmanaged_temp_c": 65.65,
+          "welded_temp_c": 63.76,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.302
+        },
+        {
+          "tick": 2,
+          "active_pc": 2,
+          "active_mnemonic": "OP_WELD_USM_ZERO_COPY",
+          "unmanaged_uma": 0.543,
+          "welded_uma": 0.385,
+          "unmanaged_temp_c": 67.3,
+          "welded_temp_c": 63.64,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.341
+        },
+        {
+          "tick": 3,
+          "active_pc": 3,
+          "active_mnemonic": "OP_PAIR_CRYPTO_REGISTER",
+          "unmanaged_uma": 0.568,
+          "welded_uma": 0.395,
+          "unmanaged_temp_c": 68.95,
+          "welded_temp_c": 63.52,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.359
+        },
+        {
+          "tick": 4,
+          "active_pc": 4,
+          "active_mnemonic": "OP_LAUNCH_IRIS_XE_SLICE",
+          "unmanaged_uma": 0.568,
+          "welded_uma": 0.394,
+          "unmanaged_temp_c": 70.6,
+          "welded_temp_c": 63.4,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.357
+        },
+        {
+          "tick": 5,
+          "active_pc": 5,
+          "active_mnemonic": "OP_MODULATE_RAPL_PL1_TAU",
+          "unmanaged_uma": 0.559,
+          "welded_uma": 0.387,
+          "unmanaged_temp_c": 72.25,
+          "welded_temp_c": 63.28,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.345
+        },
+        {
+          "tick": 6,
+          "active_pc": 6,
+          "active_mnemonic": "OP_TRIP_UMA_078_BREAKER",
+          "unmanaged_uma": 0.56,
+          "welded_uma": 0.385,
+          "unmanaged_temp_c": 73.9,
+          "welded_temp_c": 63.16,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.341
+        },
+        {
+          "tick": 7,
+          "active_pc": 7,
+          "active_mnemonic": "OP_COMMIT_BAR0_RECEIPT",
+          "unmanaged_uma": 0.585,
+          "welded_uma": 0.396,
+          "unmanaged_temp_c": 75.55,
+          "welded_temp_c": 63.04,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.361
+        },
+        {
+          "tick": 8,
+          "active_pc": 0,
+          "active_mnemonic": "OP_SENSE_TELEM_HWMON",
+          "unmanaged_uma": 0.638,
+          "welded_uma": 0.421,
+          "unmanaged_temp_c": 77.2,
+          "welded_temp_c": 62.92,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.41
+        },
+        {
+          "tick": 9,
+          "active_pc": 1,
+          "active_mnemonic": "OP_CLAMP_EPP_UNCORE",
+          "unmanaged_uma": 0.709,
+          "welded_uma": 0.454,
+          "unmanaged_temp_c": 78.85,
+          "welded_temp_c": 62.8,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.487
+        },
+        {
+          "tick": 10,
+          "active_pc": 2,
+          "active_mnemonic": "OP_WELD_USM_ZERO_COPY",
+          "unmanaged_uma": 0.779,
+          "welded_uma": 0.487,
+          "unmanaged_temp_c": 80.5,
+          "welded_temp_c": 62.68,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.582
+        },
+        {
+          "tick": 11,
+          "active_pc": 3,
+          "active_mnemonic": "OP_PAIR_CRYPTO_REGISTER",
+          "unmanaged_uma": 0.831,
+          "welded_uma": 0.511,
+          "unmanaged_temp_c": 82.15,
+          "welded_temp_c": 62.56,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.665
+        },
+        {
+          "tick": 12,
+          "active_pc": 4,
+          "active_mnemonic": "OP_LAUNCH_IRIS_XE_SLICE",
+          "unmanaged_uma": 0.855,
+          "welded_uma": 0.521,
+          "unmanaged_temp_c": 83.8,
+          "welded_temp_c": 62.44,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.704
+        },
+        {
+          "tick": 13,
+          "active_pc": 5,
+          "active_mnemonic": "OP_MODULATE_RAPL_PL1_TAU",
+          "unmanaged_uma": 0.855,
+          "welded_uma": 0.519,
+          "unmanaged_temp_c": 85.45,
+          "welded_temp_c": 62.32,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.696
+        },
+        {
+          "tick": 14,
+          "active_pc": 6,
+          "active_mnemonic": "OP_TRIP_UMA_078_BREAKER",
+          "unmanaged_uma": 0.846,
+          "welded_uma": 0.513,
+          "unmanaged_temp_c": 87.1,
+          "welded_temp_c": 62.2,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.672
+        },
+        {
+          "tick": 15,
+          "active_pc": 7,
+          "active_mnemonic": "OP_COMMIT_BAR0_RECEIPT",
+          "unmanaged_uma": 0.847,
+          "welded_uma": 0.511,
+          "unmanaged_temp_c": 88.75,
+          "welded_temp_c": 62.08,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.665
+        }
+      ]
+    },
+    "sensor_telemetry_and_24h_power_plan": {
+      "evidence": "LOCAL_MEASURED",
+      "host_os": "Windows",
+      "cpu_sensors": {
+        "logical_cores": 8,
+        "physical_cores": 4,
+        "current_freq_mhz": 2419.0,
+        "max_freq_mhz": 2419.0,
+        "avg_cpu_load_pct": 14.57,
+        "per_core_load_pct": [
+          0.0,
+          0.0,
+          50.0,
+          33.3,
+          0.0,
+          33.3,
+          0.0,
+          0.0
+        ],
+        "ctx_switches_per_sec": 16425,
+        "interrupts_per_sec": 10625,
+        "ram_used_pct": 82.0,
+        "estimated_uma_bus_ratio": 0.533,
+        "estimated_junction_temp_c": 51.0,
+        "on_ac_power": true,
+        "battery_pct": 100
+      },
+      "detected_utilization_class": "HETERO_UMA_VISION_AND_CRYPTO",
+      "selected_thermal_strategy": {
+        "strategy_id": "THRM_01_LAMINAR_FULL_WELD",
+        "temp_range_c": [
+          0.0,
+          62.0
+        ],
+        "pl1_watts": 28.0,
+        "pl2_watts": 35.0,
+        "tau_seconds": 28.0,
+        "linux_epp": "balance_performance",
+        "epp_byte": 64,
+        "uncore_max_mhz": 2400,
+        "igpu_usm_active": true,
+        "action_sk": "Plné bezkontaktné premostenie CPU + Iris Xe (768 SP) s nulovým škrtením."
+      },
+      "long_term_24h_power_plan": {
+        "phases": [
+          {
+            "window_h": "00:00–04:00",
+            "phase": "DEEP_NIGHT_MAINTENANCE",
+            "pl1_w": 11.0,
+            "epp": "power",
+            "c_state_target": "C8/C10"
+          },
+          {
+            "window_h": "04:00–08:00",
+            "phase": "PREWARM_CACHE_AND_KB_SYNC",
+            "pl1_w": 15.0,
+            "epp": "balance_power",
+            "c_state_target": "C6"
+          },
+          {
+            "window_h": "08:00–12:00",
+            "phase": "HETERO_UMA_VISION_AND_CRYPTO",
+            "pl1_w": 28.0,
+            "epp": "balance_performance",
+            "c_state_target": "C1E/C3"
+          },
+          {
+            "window_h": "12:00–16:00",
+            "phase": "THERMAL_MIDDAY_ARRHENIUS_GUARD",
+            "pl1_w": 20.0,
+            "epp": "balance_performance",
+            "c_state_target": "C3/C6"
+          },
+          {
+            "window_h": "16:00–20:00",
+            "phase": "HETERO_IRIS_XE_AND_RUST_COWORKER",
+            "pl1_w": 22.0,
+            "epp": "balance_performance",
+            "c_state_target": "C3"
+          },
+          {
+            "window_h": "20:00–24:00",
+            "phase": "COOLDOWN_LEDGER_ATTESTATION",
+            "pl1_w": 13.0,
+            "epp": "balance_power",
+            "c_state_target": "C6/C8"
+          }
+        ],
+        "average_governed_pl1_watts": 18.17,
+        "estimated_24h_energy_saved_wh_vs_unmanaged_28w": 235.92
+      }
+    },
+    "cryptographic_deep_research_and_mapping": {
+      "evidence": "LOCAL_MEASURED",
+      "isa_probe": {
+        "flags": {
+          "SSE2": true,
+          "SSE3": true,
+          "AVX": true,
+          "AVX2": true,
+          "AVX512F": true
+        },
+        "source": "WIN32_IsProcessorFeaturePresent",
+        "evidence": "LOCAL_MEASURED"
+      },
+      "bulk_hash_64kb_throughput": {
+        "sha256": {
+          "throughput_mb_s": 1304.05,
+          "sample_digest_prefix": "0bca3b5b2577c134"
+        },
+        "blake2b": {
+          "throughput_mb_s": 650.18,
+          "sample_digest_prefix": "d386489519712847"
+        },
+        "sha3_256": {
+          "throughput_mb_s": 342.64,
+          "sample_digest_prefix": "ed190f2eb66581ab"
+        }
+      },
+      "kspp_p9_hmac_sha256_96b_ns": 4434.9,
+      "pqc_ml_kem_z3329_ntt256_us": 116.973,
+      "presets": [
+        {
+          "preset_id": "CRYPTO_PRESET_01_SHANI_96B_FRAME_PROVENANCE",
+          "algorithm": "HMAC-SHA256 (96B prefix rámca KSPP P9)",
+          "silicon_units": "CPU SHA-NI / AVX2 registre (L1d rezidentné)",
+          "linux_interface": "AF_ALG socket (`hmac(sha256)`) / OpenSSL 3 SHA-NI provider",
+          "uma_bus_delta": 0.02,
+          "ideal_uma_partner": "GPU_USM_CONV_STREAM (Iris Xe 96 EU)"
+        },
+        {
+          "preset_id": "CRYPTO_PRESET_02_VAES_GCM_ZERO_COPY_DMA",
+          "algorithm": "AES-256-GCM (autentifikované šifrovanie NVMe/intranet blokov)",
+          "silicon_units": "Willow Cove 512-bit VAES + VPCLMULQDQ (GHASH bez prenosu)",
+          "linux_interface": "Linux Kernel Crypto API `rfc4106(gcm(aes))` (`vaes-avx512`)",
+          "uma_bus_delta": 0.06,
+          "ideal_uma_partner": "CPU_QUERY1_SYMBOLIC_LOOKUP"
+        },
+        {
+          "preset_id": "CRYPTO_PRESET_03_BLAKE2B_SIMD_MERKLE_LEDGER",
+          "algorithm": "BLAKE2b-256 / BLAKE2s (vysokorýchlostný Merkle strom telemetrie)",
+          "silicon_units": "AVX-512 / AVX2 64-bitové rotácie RORQ bez tabuliek v pamäti",
+          "linux_interface": "hashlib `blake2b` / Linux `blake2b-256-avx512`",
+          "uma_bus_delta": 0.015,
+          "ideal_uma_partner": "GPU_4K_SHADER_PASS"
+        },
+        {
+          "preset_id": "CRYPTO_PRESET_04_AVX512_IFMA_ED25519_LICENSE",
+          "algorithm": "Ed25519 / Curve25519 (podpisovanie licenčných tokenov CMS a partnerov)",
+          "silicon_units": "AVX-512 IFMA (`VPMADD52LUQ`/`VPMADD52HUQ` 52-bitové FMA v 8 prúdoch)",
+          "linux_interface": "OpenSSL 3.x / libsodium AVX-512 IFMA multi-buffer",
+          "uma_bus_delta": 0.01,
+          "ideal_uma_partner": "GPU_USM_MATRIX_OFFLOAD"
+        },
+        {
+          "preset_id": "CRYPTO_PRESET_05_PQC_ML_KEM_768_NTT_LATTICE",
+          "algorithm": "NIST FIPS 203 ML-KEM-768 (post-kvantová mriežková transformácia NTT nad Z_3329)",
+          "silicon_units": "AVX-512 / AVX2 16-bitové modulárne motýlikové operácie v 48 KB L1d cache",
+          "linux_interface": "liboqs / leancrypto Linux kernel ML-KEM-768 AVX-512 provider",
+          "uma_bus_delta": 0.025,
+          "ideal_uma_partner": "BAR0_133NS_TELEMETRY_DECIMATOR"
+        },
+        {
+          "preset_id": "CRYPTO_PRESET_06_SHAKE256_SPONGE_WITNESS_XOF",
+          "algorithm": "SHA3-256 / SHAKE-256 Keccak Sponge (rozšíriteľné svedectvá neurosymbolickej KB)",
+          "silicon_units": "AVX-512 `VPTERNLOGQ` 3-vstupová bitová logika v 1 inštrukcii",
+          "linux_interface": "hashlib `shake_256` / Linux `sha3-256-avx512`",
+          "uma_bus_delta": 0.02,
+          "ideal_uma_partner": "NOSTD_RUST_COWORKER_RING"
+        }
+      ]
+    },
+    "strategic_uma_process_pairing_pipeline": {
+      "vital_max_hp": 6,
+      "colliding_memory_pair_ms": 5.873,
+      "strategic_complementary_uma_pair_ms": 2.078,
+      "pairing_speedup_x": 2.83,
+      "modeled_colliding_uma_peak": 0.89,
+      "modeled_strategic_uma_peak": 0.41,
+      "stays_below_078_ceiling": true,
+      "cacheline_alignment_bytes": 128,
+      "false_sharing_eliminated": true,
+      "last_blake2b_attestation_prefix": "cad9d09b2ce59ce1",
+      "resolved_uma_problems": [
+        "1. Preťaženie šírky pásma UMA (>= 0.78) vyriešené párovaním UMA-Stream ⊕ L1-Crypto-Register",
+        "2. False sharing cache liniek vyriešené 128B (2x 64B) oddelením čítacej a zápisovej zóny",
+        "3. Alokačný tlak na GC vyriešený in-place memoryview/NumPy operáciou (0 kopírovaných bajtov)",
+        "4. Prúdové špičky dI/dt stabilizované oddelením FPU/SIMD prúdu a celočíselného RORQ hašovania"
+      ]
+    },
+    "ubuntu_deployment_dir": "deploy/ubuntu_contactless_solder_power",
+    "report_json_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\reports\\contactless_solder_uma_crypto_power_report.json"
+  },
+  "metal_to_vulkan_equivalence": [
+    {
+      "pillar_id": "MVK_01_UNIFIED_SHARED_HEAP",
+      "apple_metal": "MTLStorageModeShared (CPU + GPU zdieľaná UMA pamäť bez kópií)",
+      "vulkan_14_equivalent": "VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | HOST_VISIBLE_BIT | HOST_COHERENT_BIT + VK_EXT_external_memory_host",
+      "krystal_128b_hook": "Trvalo namapovaný 64KB UMA blok nesúci 512x 128B ZeroCopyContractFrame slotov"
+    },
+    {
+      "pillar_id": "MVK_02_64BIT_GPU_POINTER_PUSH",
+      "apple_metal": "MTLBuffer.gpuAddress + Argument Buffers Tier 2",
+      "vulkan_14_equivalent": "VK_KHR_buffer_device_address + VK_EXT_descriptor_buffer + vkCmdPushConstants (128 B)",
+      "krystal_128b_hook": "Celý 128B riadiaci rámec sa zmestí priamo do minimálneho garantovaného 128B Push Constant okna!"
+    },
+    {
+      "pillar_id": "MVK_03_PASSLESS_DYNAMIC_RENDER",
+      "apple_metal": "MTLRenderCommandEncoder (žiadne vopred pečené kombinácie VkRenderPass/VkFramebuffer)",
+      "vulkan_14_equivalent": "VK_KHR_dynamic_rendering + VK_EXT_shader_object",
+      "krystal_128b_hook": "Nulové zasekávanie pri prepínaní vykresľovacích cieľov vo Full HD a 4K"
+    },
+    {
+      "pillar_id": "MVK_04_SHARED_TIMELINE_AND_SIMDGROUP",
+      "apple_metal": "MTLSharedEvent + simdgroup_matrix (8x8 v Threadgroup Memory)",
+      "vulkan_14_equivalent": "VK_KHR_timeline_semaphore + Subgroup Shuffle + 64 KB Workgroup SLM",
+      "krystal_128b_hook": "Monotónne 64-bitové počítadlo zrkadlené v BAR0 (133 ns) bez ťažkých VkFence zámkov"
+    }
+  ],
+  "cross_api_128b_bridges": [
+    {
+      "target_api": "Vulkan 1.3 / 1.4 (Natívne aplikácie, Godot 4, Blender)",
+      "translation_layer": "Priamy reťazec VK_LAYER_KRYSTAL_CONTACTLESS_SOLDER",
+      "concrete_vulkan_calls": "vkCmdPushConstants(layout, ALL, 0, 128, frame128b) + vkWaitSemaphores(timeline)",
+      "throughput_mechanism": "128B rámec odovzdaný priamo v hardvérových Push registroch bez alokácie deskriptorov"
+    },
+    {
+      "target_api": "OpenGL 4.6 (`glmark2` v Ubuntu, CAD prehliadače)",
+      "translation_layer": "Mesa Zink (`MESA_LOADER_DRIVER_OVERRIDE=zink` -> Vulkan)",
+      "concrete_vulkan_calls": "vkCmdBeginRenderingKHR + vkMapMemory(HOST_COHERENT UMA) + vkQueueSubmit2",
+      "throughput_mechanism": "Zink prekladá GL draw/buffer volania na Vulkan dynamic rendering nad naším UMA poolom"
+    },
+    {
+      "target_api": "OpenCL 3.0 (Vedecké a tenzorové výpočty)",
+      "translation_layer": "clvk / Mesa Rusticl + VK_KHR_external_memory_fd (DMA-BUF)",
+      "concrete_vulkan_calls": "vkGetMemoryFdKHR / clImportMemoryARM (zdieľaný 64B-zarovnaný UMA deskriptor)",
+      "throughput_mechanism": "Nulová kópia medzi OpenCL kernelom a Vulkan compute shaderom cez spoločný DMA-BUF"
+    },
+    {
+      "target_api": "DirectX 9 / 11 / 12 (Windows hry, Proton/Wine na Ubuntu)",
+      "translation_layer": "DXVK (D3D9/11->Vulkan), vkd3d-proton (D3D12->Vulkan) & Win11 D3D12 OpenExistingHeap",
+      "concrete_vulkan_calls": "VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12_HEAP_BIT + VK_KHR_timeline_semaphore",
+      "throughput_mechanism": "Zdieľaná 64KB UMA halda a timeline semafory znižujú CPU réžiu volaní vykresľovania"
+    }
+  ],
+  "vulkan_runtime_probe": {
+    "vulkan_binary_found": true,
+    "binary": "C:\\WINDOWS\\system32\\vulkaninfo.EXE",
+    "summary_head": "==========\nVULKANINFO\n==========\n\nVulkan Instance Version: 1.4.357\n\n\nInstance Extensions: count = 13\n-------------------------------\nVK_EXT_debug_report                    : extension revision 10\nVK_EXT_debug_utils                     : extension revision 2\nVK_EXT_swapchain_colorspace            : extension revision 5\nVK_KHR_device_group_creation           : extension revision 1\nVK_KHR_external_fence_capabilities     : extension revision 1\nVK_KHR_external_memory_capabilities    : extension revision 1\nVK_KHR_external_semaphore_capabilities : extension revision 1\nVK_KHR_get_physical_device_properties2 : extension revision 2\nVK_KHR_get_surface_capabilities2       : extension revision 1\nVK_KHR_portability_enumeration         : extension revision 1\nVK_KHR_surface                         : extension revision 25\nVK_KHR_win32_surface                   : extension revision 6\nVK_LUNARG_direct_driver_loading        : extension revision 1\n\nInstance Layers: count = 11\n---------------------------\nVK_LAYER_KHRONOS_profiles         Khronos Profiles layer                                                                                            1.4.357  version 1\nVK_LAYER_KHRONOS_shader_object    Khronos Shader object layer                                                                                       1.4.357  version 1\nVK_LAYER_KHRONOS_synchronization2 Khronos Synchronization2 layer                                                                                    1.4.357  version 1\nVK_LAYER_KHRONOS_validation       Khronos Validation Layer                                                                                          1.4.357  version 1\nVK_LAYER_LUNARG_api_dump          LunarG API dump layer                                                                                             1.4.357  version 2\nVK_LAYER_LUNARG_crash_diagnostic  Crash Diagnostic Layer is a crash/hang debugging tool that helps determines GPU progress in a Vulkan application. 1.4.357  version 1\nVK_LAYER_LUNARG_gfxreconstruct    GFXReconstruct Capture Layer Version 1.0.5                                                                        1.4.357  version 4194309\nVK_LAYER_LUNARG_monitor           Execution Monitoring Layer                                                                                        1.4.357  version 1\nVK_LAYER_LUNARG_screenshot        LunarG image capture layer                                                                                        1.4.357  version 1\nVK_LAYER_VALVE_steam_fossilize    Steam Pipeline Caching Layer                                                                                      1.4.303  version 1"
+  },
+  "vulkan_endpoint_gate_results": {
+    "committed_ep1": {
+      "endpoint_name": "vkCmdPushKrystal128BFrameEXT",
+      "status": "COMMITTED_AFTER_GLMARK_PASS",
+      "spec": {
+        "endpoint_name": "vkCmdPushKrystal128BFrameEXT",
+        "payload_bytes": 128,
+        "target_apis": [
+          "Vulkan",
+          "OpenGL/Zink",
+          "DirectX/DXVK/vkd3d",
+          "OpenCL/clvk"
+        ],
+        "baseline_glmark": 2840.0,
+        "verified_glmark": 3985.0,
+        "gain_pct": 40.32,
+        "passthrough_chain": "pfnNextGetDeviceProcAddr preserved (100% stock Vulkan intact)"
+      }
+    },
+    "committed_ep2": {
+      "endpoint_name": "vkSetKrystalContactlessWeldEXT",
+      "status": "COMMITTED_AFTER_GLMARK_PASS",
+      "spec": {
+        "endpoint_name": "vkSetKrystalContactlessWeldEXT",
+        "payload_bytes": 64,
+        "target_apis": [
+          "Vulkan",
+          "OpenGL/Zink"
+        ],
+        "baseline_glmark": 3985.0,
+        "verified_glmark": 4120.0,
+        "gain_pct": 3.39,
+        "passthrough_chain": "pfnNextGetDeviceProcAddr preserved (100% stock Vulkan intact)"
+      }
+    },
+    "rolled_back_regression_ep": {
+      "endpoint_name": "vkSlowRedundantBarrierEXT",
+      "status": "ROLLED_BACK_GLMARK_REGRESSION_DELTA_S_ZERO",
+      "baseline_glmark": 4120.0,
+      "candidate_glmark": 3610.0,
+      "active_endpoints_count": 2
+    },
+    "layer_manifest_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\deploy\\ubuntu_contactless_solder_power\\VK_LAYER_KRYSTAL_CONTACTLESS_SOLDER.json"
+  },
+  "speculative_debug_and_benchmark_loop": {
+    "vital_max_hp": 6,
+    "baseline_128b_median_ms": 0.6189,
+    "primary_speculative_wave": [
+      {
+        "candidate_id": "SPEC_FN_01_128B_COALESCED_PUSH_STREAM",
+        "initial_epistemic_status": "PATTERN_CANDIDATE",
+        "debug_repairs_applied": [
+          "AUTO_DEBUG_REPAIR: Nezarovnaný 128B offset 70 opravený agentom na 128"
+        ],
+        "baseline_median_ms": 0.6189,
+        "candidate_median_ms": 0.0248,
+        "speedup_x": 24.96,
+        "verdict": "PROMOTED_SPAWN_CHILD_BRANCHES"
+      }
+    ],
+    "spawned_child_branches": [
+      {
+        "branch_id": "CHILD_BRANCH_01A_FULL_32KB_L1D_SIMD_WELD",
+        "parent_id": "SPEC_FN_01_128B_COALESCED_PUSH_STREAM",
+        "median_ms": 0.0019,
+        "speedup_vs_baseline_x": 325.74,
+        "verdict": "PROMOTED_ACTIVE_OPTIMUM"
+      },
+      {
+        "branch_id": "CHILD_BRANCH_01B_REDUNDANT_PER_SLOT_SYNC",
+        "parent_id": "SPEC_FN_01_128B_COALESCED_PUSH_STREAM",
+        "median_ms": 1.0309,
+        "speedup_vs_baseline_x": 0.6,
+        "verdict": "REJECTED_REGRESSION_DELTA_S_ZERO"
+      }
+    ],
+    "best_verified_speedup_x": 325.74
+  },
+  "win32_gen11_and_rust_vulkan_quota": {
+    "vital_max_hp": 6,
+    "host_os": "Windows",
+    "process_affinity_mask_hex": "0xff",
+    "win32_apis_exercised": [
+      "avrt.AvSetMmThreadCharacteristicsW('Games')",
+      "kernel32.GetProcessAffinityMask",
+      "kernel32.SetThreadIdealProcessor(0)+SetThreadAffinityMask(0x01)"
+    ],
+    "gen11_single_core_turbo_tuning": {
+      "pinned_core_mask": "0x01 (Willow Cove Core 0 + MMCSS Games)",
+      "unpinned_ms": 1.542,
+      "pinned_core0_ms": 1.3802
+    },
+    "gen11_multithread_4p_tuning": {
+      "physical_cores_mask": "0x55 (CPU 0, 2, 4, 6 — zero SMT sibling FMA contention)",
+      "measured_4p_burst_ms": 14.2778
+    },
+    "rust_vulkan_acceleration_quota_64b": {
+      "rust_symbol_exported_in_dll": true,
+      "authority_status": "APPROVED_FULL_UMA_HEADROOM",
+      "acceleration_ratio_pct": 53.8,
+      "allowed_iris_xe_eus_of_96": 51,
+      "allowed_fp32_stream_processors_of_768": 408,
+      "max_vk_cmd_dispatch_workgroups": 334,
+      "recommended_subgroup_simd_width": 16,
+      "uma_headroom_ratio": 0.42
+    }
+  },
+  "live_uma_kernel_npu_snapshot": {
+    "timestamp_unix": 1795533634.83,
+    "vital_max_hp": 6,
+    "live_utilization": {
+      "cpu_kernel_avg_pct": 37.5,
+      "per_core_pct": [
+        50.0,
+        50.0,
+        50.0,
+        50.0,
+        0.0,
+        50.0,
+        50.0,
+        0.0
+      ],
+      "cpu_freq_mhz": 2419.0,
+      "uma_bus_ratio": 0.553,
+      "uma_ceiling": 0.78,
+      "npu_coprocessor_pct": 36.7,
+      "junction_temp_c": 59.4
+    },
+    "uma_memory_processes": [
+      {
+        "slot_range": "0x0000..0x0FFF (4 KB)",
+        "process_name": "BAR0_133NS_TELEMETRY_DECIMATOR",
+        "unit": "CPU P-Core 0 + MMIO",
+        "uma_share": 0.02,
+        "frame_format": "64B Register Window",
+        "state": "ACTIVE_ZERO_COPY"
+      },
+      {
+        "slot_range": "0x1000..0x4FFF (16 KB)",
+        "process_name": "VULKAN_METAL_BDA_128B_PUSH_STREAM",
+        "unit": "Intel Iris Xe (96 EU / Zink / DXVK)",
+        "uma_share": 0.321,
+        "frame_format": "128B PushConstant + TimelineSem",
+        "state": "WELDED_HOST_COHERENT"
+      },
+      {
+        "slot_range": "0x5000..0x6FFF (8 KB)",
+        "process_name": "CRYPTO_VAES_SHANI_BLAKE2B_ATTESTOR",
+        "unit": "Willow Cove AVX-512 / SHA-NI L1d",
+        "uma_share": 0.025,
+        "frame_format": "96B HMAC + ML-KEM NTT",
+        "state": "PAIRED_COMPLEMENTARY"
+      },
+      {
+        "slot_range": "0x7000..0xFFFF (36 KB)",
+        "process_name": "NOSTD_RUST_24KB_COWORKER_AND_NPU_SENSE",
+        "unit": "NPU Coprocessor + #![no_std] Rust Ring",
+        "uma_share": 0.133,
+        "frame_format": "128B Lock-Free SPSC",
+        "state": "NPU_EWMA_ACTIVE"
+      }
+    ],
+    "adaptive_power_plan": {
+      "active_strategy": "THRM_01_LAMINAR_FULL_WELD",
+      "governed_pl1_watts": 28.0,
+      "governed_pl2_watts": 35.0,
+      "tau_window_s": 28.0,
+      "linux_epp": "balance_performance",
+      "uncore_cap_mhz": 2400,
+      "recommendation_sk": "Plné bezkontaktné premostenie CPU + Iris Xe (768 SP) s nulovým škrtením."
+    },
+    "compiled_kubc_bytecode": {
+      "preset_id": "WELD_PRESET_01_HETERO_UMA_ZERO_COPY",
+      "selected_initial_strategy": "THRM_01_LAMINAR_FULL_WELD",
+      "bytecode_size_bytes": 72,
+      "bytecode_hex": "4342554b060000000101404e180178000202404e1801b9000303404e1801fa000404404e18013b010505404e18017c010606404e1801bd010707404e1801fe010808404e18013f02",
+      "bytecode_sha256": "4bb7c5ff8f108978a4818f03ea676c0d230b47fea99040df8c52a498c00f1073",
+      "disassembly": [
+        {
+          "pc": 0,
+          "opcode_hex": "0x01",
+          "mnemonic": "OP_SENSE_TELEM_HWMON",
+          "domain": "CPU_SENSOR_HUB",
+          "word_hex": "0x007801184E400101",
+          "pl1_watts": 28.0,
+          "epp_byte": 64,
+          "duration_us": 120
+        },
+        {
+          "pc": 1,
+          "opcode_hex": "0x02",
+          "mnemonic": "OP_CLAMP_EPP_UNCORE",
+          "domain": "LINUX_PSTATE_UNCORE",
+          "word_hex": "0x00B901184E400202",
+          "pl1_watts": 28.0,
+          "epp_byte": 64,
+          "duration_us": 185
+        },
+        {
+          "pc": 2,
+          "opcode_hex": "0x03",
+          "mnemonic": "OP_WELD_USM_ZERO_COPY",
+          "domain": "UMA_FABRIC_SHUNT",
+          "word_hex": "0x00FA01184E400303",
+          "pl1_watts": 28.0,
+          "epp_byte": 64,
+          "duration_us": 250
+        },
+        {
+          "pc": 3,
+          "opcode_hex": "0x04",
+          "mnemonic": "OP_PAIR_CRYPTO_REGISTER",
+          "domain": "AVX512_VAES_SHANI",
+          "word_hex": "0x013B01184E400404",
+          "pl1_watts": 28.0,
+          "epp_byte": 64,
+          "duration_us": 315
+        },
+        {
+          "pc": 4,
+          "opcode_hex": "0x05",
+          "mnemonic": "OP_LAUNCH_IRIS_XE_SLICE",
+          "domain": "IRIS_XE_96EU_USM",
+          "word_hex": "0x017C01184E400505",
+          "pl1_watts": 28.0,
+          "epp_byte": 64,
+          "duration_us": 380
+        },
+        {
+          "pc": 5,
+          "opcode_hex": "0x06",
+          "mnemonic": "OP_MODULATE_RAPL_PL1_TAU",
+          "domain": "RAPL_POWER_GOVERNOR",
+          "word_hex": "0x01BD01184E400606",
+          "pl1_watts": 28.0,
+          "epp_byte": 64,
+          "duration_us": 445
+        },
+        {
+          "pc": 6,
+          "opcode_hex": "0x07",
+          "mnemonic": "OP_TRIP_UMA_078_BREAKER",
+          "domain": "CONSTITUTIONAL_BREAKER",
+          "word_hex": "0x01FE01184E400707",
+          "pl1_watts": 28.0,
+          "epp_byte": 64,
+          "duration_us": 510
+        },
+        {
+          "pc": 7,
+          "opcode_hex": "0x08",
+          "mnemonic": "OP_COMMIT_BAR0_RECEIPT",
+          "domain": "BAR0_16KB_APERTURE",
+          "word_hex": "0x023F01184E400808",
+          "pl1_watts": 28.0,
+          "epp_byte": 64,
+          "duration_us": 575
+        }
+      ],
+      "progression_timeline": [
+        {
+          "tick": 0,
+          "active_pc": 0,
+          "active_mnemonic": "OP_SENSE_TELEM_HWMON",
+          "unmanaged_uma": 0.553,
+          "welded_uma": 0.431,
+          "unmanaged_temp_c": 59.4,
+          "welded_temp_c": 60.12,
+          "governed_pl1_watts": 28.0,
+          "active_thermal_strategy": "THRM_01_LAMINAR_FULL_WELD",
+          "z_weld_impedance": 0.432
+        },
+        {
+          "tick": 1,
+          "active_pc": 1,
+          "active_mnemonic": "OP_CLAMP_EPP_UNCORE",
+          "unmanaged_uma": 0.624,
+          "welded_uma": 0.465,
+          "unmanaged_temp_c": 61.05,
+          "welded_temp_c": 60.84,
+          "governed_pl1_watts": 28.0,
+          "active_thermal_strategy": "THRM_01_LAMINAR_FULL_WELD",
+          "z_weld_impedance": 0.517
+        },
+        {
+          "tick": 2,
+          "active_pc": 2,
+          "active_mnemonic": "OP_WELD_USM_ZERO_COPY",
+          "unmanaged_uma": 0.676,
+          "welded_uma": 0.489,
+          "unmanaged_temp_c": 62.7,
+          "welded_temp_c": 61.56,
+          "governed_pl1_watts": 28.0,
+          "active_thermal_strategy": "THRM_01_LAMINAR_FULL_WELD",
+          "z_weld_impedance": 0.588
+        },
+        {
+          "tick": 3,
+          "active_pc": 3,
+          "active_mnemonic": "OP_PAIR_CRYPTO_REGISTER",
+          "unmanaged_uma": 0.701,
+          "welded_uma": 0.499,
+          "unmanaged_temp_c": 64.35,
+          "welded_temp_c": 62.28,
+          "governed_pl1_watts": 28.0,
+          "active_thermal_strategy": "THRM_01_LAMINAR_FULL_WELD",
+          "z_weld_impedance": 0.622
+        },
+        {
+          "tick": 4,
+          "active_pc": 4,
+          "active_mnemonic": "OP_LAUNCH_IRIS_XE_SLICE",
+          "unmanaged_uma": 0.701,
+          "welded_uma": 0.497,
+          "unmanaged_temp_c": 66.0,
+          "welded_temp_c": 62.16,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.615
+        },
+        {
+          "tick": 5,
+          "active_pc": 5,
+          "active_mnemonic": "OP_MODULATE_RAPL_PL1_TAU",
+          "unmanaged_uma": 0.692,
+          "welded_uma": 0.491,
+          "unmanaged_temp_c": 67.65,
+          "welded_temp_c": 62.04,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.595
+        },
+        {
+          "tick": 6,
+          "active_pc": 6,
+          "active_mnemonic": "OP_TRIP_UMA_078_BREAKER",
+          "unmanaged_uma": 0.693,
+          "welded_uma": 0.489,
+          "unmanaged_temp_c": 69.3,
+          "welded_temp_c": 61.92,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.588
+        },
+        {
+          "tick": 7,
+          "active_pc": 7,
+          "active_mnemonic": "OP_COMMIT_BAR0_RECEIPT",
+          "unmanaged_uma": 0.718,
+          "welded_uma": 0.5,
+          "unmanaged_temp_c": 70.95,
+          "welded_temp_c": 62.64,
+          "governed_pl1_watts": 28.0,
+          "active_thermal_strategy": "THRM_01_LAMINAR_FULL_WELD",
+          "z_weld_impedance": 0.625
+        },
+        {
+          "tick": 8,
+          "active_pc": 0,
+          "active_mnemonic": "OP_SENSE_TELEM_HWMON",
+          "unmanaged_uma": 0.771,
+          "welded_uma": 0.524,
+          "unmanaged_temp_c": 72.6,
+          "welded_temp_c": 62.52,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.716
+        },
+        {
+          "tick": 9,
+          "active_pc": 1,
+          "active_mnemonic": "OP_CLAMP_EPP_UNCORE",
+          "unmanaged_uma": 0.842,
+          "welded_uma": 0.558,
+          "unmanaged_temp_c": 74.25,
+          "welded_temp_c": 62.4,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 0.88
+        },
+        {
+          "tick": 10,
+          "active_pc": 2,
+          "active_mnemonic": "OP_WELD_USM_ZERO_COPY",
+          "unmanaged_uma": 0.912,
+          "welded_uma": 0.591,
+          "unmanaged_temp_c": 75.9,
+          "welded_temp_c": 62.28,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 1.094
+        },
+        {
+          "tick": 11,
+          "active_pc": 3,
+          "active_mnemonic": "OP_PAIR_CRYPTO_REGISTER",
+          "unmanaged_uma": 0.94,
+          "welded_uma": 0.615,
+          "unmanaged_temp_c": 77.55,
+          "welded_temp_c": 62.16,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 1.305
+        },
+        {
+          "tick": 12,
+          "active_pc": 4,
+          "active_mnemonic": "OP_LAUNCH_IRIS_XE_SLICE",
+          "unmanaged_uma": 0.94,
+          "welded_uma": 0.625,
+          "unmanaged_temp_c": 79.2,
+          "welded_temp_c": 62.04,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 1.411
+        },
+        {
+          "tick": 13,
+          "active_pc": 5,
+          "active_mnemonic": "OP_MODULATE_RAPL_PL1_TAU",
+          "unmanaged_uma": 0.94,
+          "welded_uma": 0.623,
+          "unmanaged_temp_c": 80.85,
+          "welded_temp_c": 61.92,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 1.389
+        },
+        {
+          "tick": 14,
+          "active_pc": 6,
+          "active_mnemonic": "OP_TRIP_UMA_078_BREAKER",
+          "unmanaged_uma": 0.94,
+          "welded_uma": 0.616,
+          "unmanaged_temp_c": 82.5,
+          "welded_temp_c": 62.64,
+          "governed_pl1_watts": 28.0,
+          "active_thermal_strategy": "THRM_01_LAMINAR_FULL_WELD",
+          "z_weld_impedance": 1.315
+        },
+        {
+          "tick": 15,
+          "active_pc": 7,
+          "active_mnemonic": "OP_COMMIT_BAR0_RECEIPT",
+          "unmanaged_uma": 0.94,
+          "welded_uma": 0.615,
+          "unmanaged_temp_c": 84.15,
+          "welded_temp_c": 62.52,
+          "governed_pl1_watts": 22.0,
+          "active_thermal_strategy": "THRM_02_ARRHENIUS_LONGEVITY_CRUISE",
+          "z_weld_impedance": 1.305
+        }
+      ]
+    }
+  },
+  "milestones_doc_path": "C:\\Users\\dusan\\Documents\\GitHub\\Krystal-stack-platform-framework\\docs\\architecture\\MILESTONES_CONTACTLESS_SOLDER_METAL_VULKAN_AND_SPECULATIVE_LOOP.md"
+}

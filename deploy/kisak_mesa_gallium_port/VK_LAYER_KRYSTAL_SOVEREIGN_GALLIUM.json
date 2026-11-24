@@ -1,0 +1,17 @@
+{
+  "file_format_version": "1.2.1",
+  "layer": {
+    "name": "VK_LAYER_KRYSTAL_SOVEREIGN_GALLIUM",
+    "type": "GLOBAL",
+    "library_path": "./libkrystal_sovereign_firmware_rs.so",
+    "api_version": "1.4.304",
+    "implementation_version": "2",
+    "description": "Krystal Stack #![no_std] Rust Sovereign Firmware, Kisak-Gallium Port, Stream-CUDA & Per-Engine Vulkan FPS Booster (VITAL_MAX_HP==6, UMA<0.78)",
+    "enable_environment": {
+      "ENABLE_KRYSTAL_SOVEREIGN_GALLIUM": "1"
+    },
+    "disable_environment": {
+      "DISABLE_KRYSTAL_SOVEREIGN_GALLIUM": "1"
+    }
+  }
+}

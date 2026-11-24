@@ -191,6 +191,7 @@ class SovereignOpenVinoOneApiApp:
                 "logical_cores": os.cpu_count() or 4,
                 "openvino_available_devices": self.openvino_runtime.available_devices,
                 "crossover_threshold_bytes": HardwareCrossoverPolicy.CROSSOVER_THRESHOLD_BYTES,
+                "gallium_driver_channel": self.openvino_runtime.get_gallium_driver_channel(uma_utilization=0.34),
             },
             "governor": {
                 "active_model": st.active_model,
@@ -1739,6 +1740,67 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
             return
 
+        if self.path.startswith("/api/v1/runtime/concurrent_rust_core"):
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.concurrent_rust_ffi_runtime_bridge import (
+                run_concurrent_rust_efficiency_and_resource_audit,
+            )
+
+            try:
+                self._send_json(200, run_concurrent_rust_efficiency_and_resource_audit())
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path.startswith("/api/v1/runtime/neurosymbolic_pipeline_v2"):
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.expanded_neurosymbolic_pipeline_v2 import (
+                run_expanded_10_stage_neurosymbolic_pipeline,
+            )
+
+            try:
+                self._send_json(200, run_expanded_10_stage_neurosymbolic_pipeline())
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path.startswith("/api/v1/runtime/contactless_solder_live"):
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.metal_vulkan_endpoints_and_speculative_bench_loop import (
+                capture_live_uma_kernel_npu_telemetry_snapshot,
+            )
+
+            try:
+                self._send_json(200, capture_live_uma_kernel_npu_telemetry_snapshot())
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path.startswith("/api/v1/runtime/contactless_solder_milestones"):
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.metal_vulkan_endpoints_and_speculative_bench_loop import (
+                execute_all_milestones_and_export_roadmap,
+            )
+
+            try:
+                self._send_json(200, execute_all_milestones_and_export_roadmap())
+            except (ContractViolation, ValueError) as exc:
+                self._send_json(400, {"error": str(exc), "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path.startswith("/contactless_solder_studio"):
+            from projects.trigonometric_hybrid_platform_framework.metal_vulkan_endpoints_and_speculative_bench_loop import (
+                render_contactless_solder_live_studio_html,
+            )
+
+            html_bytes = render_contactless_solder_live_studio_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
         if self.path.startswith("/vr_hologram_profiler"):
             from projects.trigonometric_hybrid_platform_framework.spatial_coordinators_and_vr_hologram_compositor import (
                 render_vr_hologram_profiler_html,
@@ -1974,6 +2036,45 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(html_bytes)))
             self.end_headers()
             self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/rust_firmware_studio"):
+            from projects.trigonometric_hybrid_platform_framework.sovereign_rust_firmware_cuda_gallium_suite import (
+                render_sovereign_rust_gallium_cuda_studio_html,
+            )
+
+            html_bytes = render_sovereign_rust_gallium_cuda_studio_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+            return
+
+        if self.path.startswith("/api/v1/runtime/openvino_gallium_bridge"):
+            from urllib.parse import parse_qs, urlparse
+            from krystal_kernel.openvino_gallium_driver_bridge import get_global_openvino_gallium_bridge
+
+            qs = parse_qs(urlparse(self.path).query)
+            uma_v = float(qs.get("uma", ["0.34"])[0])
+            self._send_json(200, get_global_openvino_gallium_bridge().execute_full_openvino_gallium_suite(uma_utilization=uma_v))
+            return
+
+        if self.path.startswith("/api/v1/runtime/rust_firmware_gallium_cuda"):
+            from urllib.parse import parse_qs, urlparse
+            from projects.trigonometric_hybrid_platform_framework.sovereign_rust_firmware_cuda_gallium_suite import (
+                execute_sovereign_rust_firmware_cuda_gallium_suite,
+                match_vulkan_engine_preset,
+            )
+
+            qs = parse_qs(urlparse(self.path).query)
+            uma_v = float(qs.get("uma", ["0.34"])[0])
+            fps_v = float(qs.get("base_fps", ["60.0"])[0])
+            eng_q = qs.get("engine", [""])[0]
+            payload = execute_sovereign_rust_firmware_cuda_gallium_suite(uma_util=uma_v, base_vulkan_fps=fps_v)
+            if eng_q:
+                payload["matched_engine_preset"] = match_vulkan_engine_preset(eng_q, uma_util=uma_v, base_fps=fps_v)
+            self._send_json(200, payload)
             return
 
         if self.path.startswith("/api/v1/runtime/trigonometric_hybrid_platform"):
@@ -2384,6 +2485,36 @@ class SovereignOpenVinoRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             except (TypeError, ValueError) as exc:
                 self._send_json(400, {"error": f"bad request: {exc}"})
+            return
+
+        if self.path == "/api/v1/runtime/openvino_gallium_bridge":
+            from krystal_kernel.constants import ContractViolation
+            from krystal_kernel.openvino_gallium_driver_bridge import get_global_openvino_gallium_bridge
+
+            try:
+                uma_v = float(data.get("uma", 0.34))
+                self._send_json(200, get_global_openvino_gallium_bridge().execute_full_openvino_gallium_suite(uma_utilization=uma_v))
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
+            return
+
+        if self.path == "/api/v1/runtime/rust_firmware_gallium_cuda":
+            from krystal_kernel.constants import ContractViolation
+            from projects.trigonometric_hybrid_platform_framework.sovereign_rust_firmware_cuda_gallium_suite import (
+                execute_sovereign_rust_firmware_cuda_gallium_suite,
+                match_vulkan_engine_preset,
+            )
+
+            try:
+                uma_v = float(data.get("uma", 0.34))
+                fps_v = float(data.get("base_fps", 60.0))
+                eng_q = str(data.get("engine", ""))
+                res = execute_sovereign_rust_firmware_cuda_gallium_suite(uma_util=uma_v, base_vulkan_fps=fps_v)
+                if eng_q:
+                    res["matched_engine_preset"] = match_vulkan_engine_preset(eng_q, uma_util=uma_v, base_fps=fps_v)
+                self._send_json(200, res)
+            except ContractViolation as exc:
+                self._send_json(400, {"error": str(exc), "violation_code": exc.violation_code, "vital_max_hp": VITAL_MAX_HP})
             return
 
         if self.path == "/api/v1/runtime/tensor_branch":

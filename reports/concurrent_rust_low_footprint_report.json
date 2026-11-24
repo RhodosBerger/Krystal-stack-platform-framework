@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.1.0",
+  "evidence_status": "BINARY_BUILT_PE64_ISA_VERIFIED_UMCI_GOVERNED_COEXECUTION_MEASURED",
+  "vital_max_hp": 6,
+  "uma_saturation_ceiling": 0.78,
+  "compiled_nostd_rust_modules": {
+    "krystal_concurrent_rust_core": {
+      "crate_name": "krystal_concurrent_rust_core",
+      "binary_built": true,
+      "binary_path": "native\\krystal_concurrent_rust_core.dll",
+      "binary_size_bytes": 15360,
+      "binary_size_kb": 15.0,
+      "sha256": "72fdc4e56bf7a93400afb8109e4f571c7fcee916c0482aca84e9d9f4f9fd48a7",
+      "provenance_verified": true,
+      "can_execute_native_cdll": false,
+      "code_integrity_outcome": "UNSIGNED_QUIET_PRECHECK_UMCI (0x800b0100)",
+      "loader_error_code": 0,
+      "host_policy": "UMCI_ENFORCED",
+      "pe_inspection": {
+        "format": "PE32+_X86_64",
+        "machine_hex": "0x8664",
+        "sections": [
+          ".text",
+          ".rdata",
+          ".data",
+          ".pdata",
+          ".tls",
+          ".reloc"
+        ],
+        "exports": [
+          "_CRT_INIT",
+          "_RNvCs5WqGp7zLRnA_7___rustc17rust_begin_unwind",
+          "_RNvMs4_CsfmMam2uHvJ9_28krystal_concurrent_rust_coreNtB5_24SharedCoWorkerRingRegion13init_in_place",
+          "_RNvMs4_CsfmMam2uHvJ9_28krystal_concurrent_rust_coreNtB5_24SharedCoWorkerRingRegion15drain_available",
+          "___chkstk_ms",
+          "__mingw_module_is_dll",
+          "kr_arena_alloc_concurrent",
+          "kr_arena_alloc_release_burst_concurrent",
+          "kr_arena_free_slots",
+          "kr_arena_init_inplace",
+          "kr_arena_rejected_count",
+          "kr_arena_release_concurrent",
+          "kr_arena_required_bytes",
+          "kr_coworker_drain_step",
+          "kr_coworker_enqueue_batch",
+          "kr_coworker_region_init",
+          "kr_coworker_region_required_bytes",
+          "kr_coworker_snapshot_telemetry",
+          "kr_mmio_init_aperture",
+          "kr_mmio_read_u32_atomic",
+          "kr_mmio_ring_doorbell_concurrent",
+          "kr_mmio_write_u32_governed",
+          "kr_rust_abi_version",
+          "kr_rust_vital_max_hp",
+          "kr_vulkan_compute_acceleration_quota",
+          "kr_xe_validate_batch_128b"
+        ],
+        "isa_opcodes": {
+          "has_lock_cmpxchg_cas": true,
+          "has_tzcnt_bmi1": true,
+          "has_rdtsc": true,
+          "has_movnti_stream": false,
+          "text_section_bytes": 8704
+        }
+      }
+    },
+    "pulse_logger_core": {
+      "crate_name": "pulse_logger_core",
+      "binary_built": true,
+      "binary_path": "native\\pulse_logger_core.dll",
+      "binary_size_bytes": 10240,
+      "binary_size_kb": 10.0,
+      "sha256": "b352482eb7b81ff4eec12899c7278fc8f0c22a9375835d4dfe3149741b3cc7d8",
+      "provenance_verified": true,
+      "can_execute_native_cdll": false,
+      "code_integrity_outcome": "UNSIGNED_QUIET_PRECHECK_UMCI (0x800b0100)",
+      "loader_error_code": 0,
+      "host_policy": "UMCI_ENFORCED",
+      "pe_inspection": {
+        "format": "PE32+_X86_64",
+        "machine_hex": "0x8664",
+        "sections": [
+          ".text",
+          ".rdata",
+          ".data",
+          ".pdata",
+          ".tls",
+          ".reloc"
+        ],
+        "exports": [
+          "_CRT_INIT",
+          "_RNvCs5WqGp7zLRnA_7___rustc17rust_begin_unwind",
+          "_RNvMCsXpTI6k1Psu_17pulse_logger_coreNtB2_9PulseRing10read_frame",
+          "_RNvMCsXpTI6k1Psu_17pulse_logger_coreNtB2_9PulseRing4init",
+          "___chkstk_ms",
+          "__mingw_module_is_dll",
+          "kr_pulse_emit_h1_ordinary",
+          "kr_pulse_emit_h2_burst",
+          "kr_pulse_emit_h2_nontemporal",
+          "kr_pulse_ring_init"
+        ],
+        "isa_opcodes": {
+          "has_lock_cmpxchg_cas": true,
+          "has_tzcnt_bmi1": true,
+          "has_rdtsc": true,
+          "has_movnti_stream": true,
+          "text_section_bytes": 4608
+        }
+      }
+    },
+    "combined_binary_bytes": 25600,
+    "combined_binary_kb": 25.0,
+    "fits_inside_32kb_l1i_cache": true,
+    "nostd_vs_std_size_reduction_x": 68.8
+  },
+  "low_resource_frugality": {
+    "coworker_threads": 2,
+    "stack_kb_per_worker": 128,
+    "total_reserved_stack_kb": 256,
+    "standard_tokio_8t_stack_kb": 16384,
+    "stack_memory_reduction_x": 64.0,
+    "idle_parked_workers_before_work": 2,
+    "idle_parked_workers_after_work": 2,
+    "idle_cpu_spin_percent": 0.0,
+    "rust_heap_allocations_bytes": 0,
+    "dll_load_rss_delta_kb": 0.0,
+    "measured_rust_plus_coworker_rss_delta_kb": 52.0
+  },
+  "direct_native_rust_benchmarks": {},
+  "concurrent_coexecution_metrics": {
+    "openvino_coexecution_device": "GPU",
+    "waves_executed": 4,
+    "total_frames_submitted": 512,
+    "completed_valid_frames": 480,
+    "shed_p2_frames_under_uma_pressure": 28,
+    "rejected_invalid_hp_frames_delta_s_zero": 4,
+    "bar0_live_completed_head": 480,
+    "bar0_live_rejected_noop_count": 4,
+    "coworker_active_compute_us": 5232.0,
+    "combined_openvino_plus_coworker_wall_ms": 5.897,
+    "last_fnv1a_digest_hex": "0xdbf39861f0781646"
+  }
+}

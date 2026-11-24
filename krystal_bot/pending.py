@@ -7,6 +7,8 @@ Records that cannot be evaluated in time are *counted as dropped*, never silentl
 """
 from __future__ import annotations
 
+import json
+import os
 import threading
 import time
 from collections import deque
@@ -14,6 +16,93 @@ from typing import Any, Callable, Deque, Dict, List, Optional
 
 from .quota import QuotaManager
 from .risk import RiskModel, featurize, heuristic_risk, label
+
+
+class DurablePendingProcessJournal:
+    """Trvalý transakčný žurnál (WAL) pre čakajúce (`pending`) procesy agenta.
+    Zabraňuje strate naplánovaných krokov pri výpadku pripojenia AI modelu alebo prerušení behu
+    a umožňuje ich deterministické vrátenie a opätovné vykonanie (`replay_pending`).
+    """
+
+    def __init__(self, wal_path: Optional[str] = None) -> None:
+        self.wal_path = wal_path
+        self._lock = threading.Lock()
+        self._entries: Dict[str, Dict[str, Any]] = {}
+        if self.wal_path and os.path.exists(self.wal_path):
+            try:
+                with open(self.wal_path, "r", encoding="utf-8") as fh:
+                    for line in fh:
+                        line = line.strip()
+                        if line:
+                            rec = json.loads(line)
+                            pid = str(rec.get("process_id", ""))
+                            if pid:
+                                self._entries[pid] = rec
+            except (OSError, ValueError):
+                pass
+
+    def _append_wal(self, rec: Dict[str, Any]) -> None:
+        if not self.wal_path:
+            return
+        os.makedirs(os.path.dirname(os.path.abspath(self.wal_path)), exist_ok=True)
+        with open(self.wal_path, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+    def stage_pending(self, process_id: str, title: str, module: str, vital_hp: int = 6) -> Dict[str, Any]:
+        with self._lock:
+            if vital_hp != 6:
+                rec = {
+                    "process_id": process_id,
+                    "title": title,
+                    "module": module,
+                    "status": "ROLLED_BACK_DELTA_S_ZERO",
+                    "vital_max_hp": 6,
+                    "ts": round(time.time(), 3),
+                }
+                self._append_wal(rec)
+                return rec
+            rec = {
+                "process_id": process_id,
+                "title": title,
+                "module": module,
+                "status": "PENDING",
+                "vital_max_hp": 6,
+                "ts": round(time.time(), 3),
+            }
+            self._entries[process_id] = rec
+            self._append_wal(rec)
+            return rec
+
+    def mark_completed(self, process_id: str, result_summary: str = "OK") -> Optional[Dict[str, Any]]:
+        with self._lock:
+            if process_id not in self._entries:
+                return None
+            rec = dict(self._entries[process_id])
+            rec["status"] = "COMPLETED"
+            rec["result_summary"] = result_summary
+            rec["completed_ts"] = round(time.time(), 3)
+            self._entries[process_id] = rec
+            self._append_wal(rec)
+            return rec
+
+    def list_recoverable_pending(self) -> List[Dict[str, Any]]:
+        with self._lock:
+            return [dict(v) for v in self._entries.values() if v.get("status") == "PENDING"]
+
+    def replay_pending(self, executor: Optional[Callable[[Dict[str, Any]], str]] = None) -> Dict[str, Any]:
+        recoverable = self.list_recoverable_pending()
+        replayed: List[Dict[str, Any]] = []
+        for item in recoverable:
+            summary = executor(item) if executor is not None else f"RECOVERED:{item['module']}"
+            done = self.mark_completed(item["process_id"], result_summary=summary)
+            if done:
+                replayed.append(done)
+        return {
+            "vital_max_hp": 6,
+            "recovered_count": len(replayed),
+            "replayed_processes": replayed,
+            "remaining_pending": len(self.list_recoverable_pending()),
+        }
 
 
 class PendingEvaluator:

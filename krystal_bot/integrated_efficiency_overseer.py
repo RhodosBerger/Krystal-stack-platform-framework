@@ -97,6 +97,16 @@ GOVERNED_SCRIPT_REGISTRY: Dict[str, Dict[str, str]] = {
         "openvino_preset": "OV_MT_05_UMA_SATURATED_THERMAL_ECO_SHIELD",
         "core_strategy": "CORE_WAKE_02_UMA_THERMAL_SHIELD_2C",
     },
+    "concurrent_rust_coworker": {
+        "script": "projects/trigonometric_hybrid_platform_framework/concurrent_rust_ffi_runtime_bridge.py",
+        "openvino_preset": "OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU",
+        "core_strategy": "CORE_WAKE_04_HETERO_3P_1VSYNC_IRIS_XE",
+    },
+    "neurosymbolic_pipeline_v2": {
+        "script": "projects/trigonometric_hybrid_platform_framework/expanded_neurosymbolic_pipeline_v2.py",
+        "openvino_preset": "OV_MT_03_HETERO_IRIS_XE_SINGLE_STREAM_PLUS_3T_CPU",
+        "core_strategy": "CORE_WAKE_04_HETERO_3P_1VSYNC_IRIS_XE",
+    },
 }
 
 
